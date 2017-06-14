@@ -110,14 +110,6 @@ trait OnlineTestService extends TimeExtension with EventSink {
     val notificationProgressStatus = Try{(`type`, toNotify.applicationStatus) match {
       case(n: FailedTestTypeSdipFs, status) =>
         getProgressStatusForSdipFsFailedNotified(status)
-      case(n: SuccessfulTestTypeSdipFs, ApplicationStatus.EXPORTED) =>
-        getProgressStatusForSdipFsPassedNotified(ApplicationStatus.READY_TO_UPDATE)
-      case(n: SuccessfulTestTypeSdipFs, ApplicationStatus.PHASE1_TESTS_FAILED) =>
-        getProgressStatusForSdipFsPassedNotified(ApplicationStatus.READY_FOR_EXPORT)
-      case(n: SuccessfulTestTypeSdipFs, ApplicationStatus.PHASE2_TESTS_FAILED) =>
-        getProgressStatusForSdipFsPassedNotified(ApplicationStatus.READY_FOR_EXPORT)
-      case(n: SuccessfulTestTypeSdipFs, ApplicationStatus.PHASE3_TESTS_FAILED) =>
-        getProgressStatusForSdipFsPassedNotified(ApplicationStatus.READY_FOR_EXPORT)
       case(n: SuccessfulTestTypeSdipFs, status) =>
         getProgressStatusForSdipFsPassedNotified(status)
     }}
@@ -204,7 +196,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
   private[onlinetesting] def generateStatusEvents(applicationId: String, status: ProgressStatuses.ProgressStatus): Events = {
 
     val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
-    val passedStates = PHASE3_TESTS_SUCCESS_NOTIFIED :: Nil
+    val passedStates = PHASE3_TESTS_PASSED_NOTIFIED :: Nil
 
     if(expiredStates.contains(status)) {
       AuditEvents.ApplicationExpired(Map("applicationId" -> applicationId, "status" -> status )) ::
@@ -224,7 +216,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
     val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
     val failedStates = PHASE1_TESTS_FAILED_NOTIFIED :: PHASE2_TESTS_FAILED_NOTIFIED :: PHASE3_TESTS_FAILED_NOTIFIED :: Nil
-    val passedStates = PHASE3_TESTS_SUCCESS_NOTIFIED :: Nil
+    val passedStates = PHASE3_TESTS_PASSED_NOTIFIED :: Nil
     val data = Map("applicationId" -> applicationId, "emailAddress" -> email, "to" -> to, "template" -> template)
     if(expiredStates.contains(status)) {
       AuditEvents.ExpiredTestEmailSent(data) :: Nil

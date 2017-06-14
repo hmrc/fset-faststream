@@ -29,15 +29,15 @@ import model.command.testdata.GeneratorConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AllocationStatusGenerator extends AllocationStatusGenerator {
-  override val previousStatusGenerator = AwaitingAllocationStatusGenerator
+object AssessmentCentreAllocationStatusGenerator$ extends AssessmentCentreAllocationStatusGenerator$ {
+  override val previousStatusGenerator = AssessmentCentreAwaitingAllocationStatusGenerator$
   override val otRepository = phase1TestRepository
   override val aaRepository = applicationAssessmentRepository
 
   val SlotFindingLockObj = new Object()
 }
 
-trait AllocationStatusGenerator extends ConstructiveGenerator {
+trait AssessmentCentreAllocationStatusGenerator$ extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
   val aaRepository: ApplicationAssessmentRepository
 
@@ -59,7 +59,7 @@ trait AllocationStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-    AllocationStatusGenerator.SlotFindingLockObj.synchronized {
+    AssessmentCentreAllocationStatusGenerator$.SlotFindingLockObj.synchronized {
       for {
         candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
         randomAssessment <- getApplicationAssessment(candidateInPreviousStatus)

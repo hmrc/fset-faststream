@@ -28,13 +28,13 @@ import model.command.testdata.GeneratorConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AssessmentScoresEnteredStatusGenerator extends AssessmentScoresEnteredStatusGenerator {
-  override val previousStatusGenerator = AllocationStatusGenerator
+object AssessmentCentreScoresEnteredStatusGenerator$ extends AssessmentCentreScoresEnteredStatusGenerator$ {
+  override val previousStatusGenerator = AssessmentCentreAllocationStatusGenerator$
   override val aRepository = applicationRepository
   override val aasRepository = applicationAssessmentScoresRepository
 }
 
-trait AssessmentScoresEnteredStatusGenerator extends ConstructiveGenerator {
+trait AssessmentCentreScoresEnteredStatusGenerator$ extends ConstructiveGenerator {
   val aRepository: GeneralApplicationRepository
   val aasRepository: ApplicationAssessmentScoresRepository
 
@@ -56,7 +56,7 @@ trait AssessmentScoresEnteredStatusGenerator extends ConstructiveGenerator {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- aasRepository.save(getScoresAndFeedback(candidateInPreviousStatus.applicationId.get))
-      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_SCORES_ENTERED)
+      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_CENTRE_SCORES_ENTERED)
     } yield {
       candidateInPreviousStatus
     }

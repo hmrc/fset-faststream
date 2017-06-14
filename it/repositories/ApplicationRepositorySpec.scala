@@ -166,65 +166,9 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  "find applications for assessment allocation" should {
-    "return an empty list when there are no applications" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(0, onlyAwaitingAllocation = false).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 0, 5).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result mustBe empty
-    }
-
-    "return an empty list when there are no applications awaiting for allocation" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(5, onlyAwaitingAllocation = false, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 0, 5).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result mustBe empty
-    }
-
-    "return a one item list when there are applications awaiting for allocation and start item and end item is the same" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(5, onlyAwaitingAllocation = true, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 2, 2).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result must have size 1
-    }
-
-    "return a non empty list when there are applications" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(20, onlyAwaitingAllocation = true, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 0, 5).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result.length mustBe 6
-    }
-
-    "return an empty list when start is beyond the number of results" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(5, onlyAwaitingAllocation = true, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), Int.MaxValue, Int.MaxValue).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result mustBe empty
-    }
-
-    "return an empty list when start is higher than end" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(5, onlyAwaitingAllocation = true, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 2, 1).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result mustBe empty
-    }
-  }
-
   "next application ready for assessment score evaluation" should {
     "return the only application ready for evaluation" in {
-      createApplication("app1", ASSESSMENT_SCORES_ACCEPTED)
+      createApplication("app1", ASSESSMENT_CENTRE_SCORES_ACCEPTED)
 
       val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
 
@@ -233,7 +177,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
 
     "return the next application when the passmark is different" in {
-      createApplicationWithPassmark("app1", AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, "1")
+      createApplicationWithPassmark("app1", ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION, "1")
 
       val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("2").futureValue
 
@@ -241,7 +185,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
 
     "return none when application has already passmark and it has not changed" in {
-      createApplicationWithPassmark("app1", AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, "1")
+      createApplicationWithPassmark("app1", ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION, "1")
 
       val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
 
@@ -259,30 +203,30 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   "save assessment score evaluation" should {
     "save a score evaluation and update the application status when the application is in ASSESSMENT_SCORES_ACCEPTED status" in {
-      createApplication("app1", ASSESSMENT_SCORES_ACCEPTED)
+      createApplication("app1", ASSESSMENT_CENTRE_SCORES_ACCEPTED)
 
       val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION).futureValue
+      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION).futureValue
 
       val status = getApplicationStatus("app1")
-      status mustBe AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.toString
+      status mustBe ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.toString
     }
 
     "save a score evaluation and update the application status when the application is in AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION" in {
-      createApplication("app1", AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
+      createApplication("app1", ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION)
 
       val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_SCORES_ACCEPTED).futureValue
+      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_CENTRE_SCORES_ACCEPTED).futureValue
 
       val status = getApplicationStatus("app1")
-      status mustBe ASSESSMENT_SCORES_ACCEPTED.toString
+      status mustBe ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString
     }
 
     "fail to save a score evaluation when candidate has been withdrawn" in {
       createApplication("app1", WITHDRAWN)
 
       val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_SCORES_ACCEPTED).futureValue
+      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_CENTRE_SCORES_ACCEPTED).futureValue
 
       val status = getApplicationStatus("app1")
       status mustBe WITHDRAWN.toString
@@ -315,7 +259,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   "online test results" should {
     "be returned" in {
       createApplicationWithFrameworkEvaluations("app1", frameworkId,
-        ASSESSMENT_SCORES_ACCEPTED,
+        ASSESSMENT_CENTRE_SCORES_ACCEPTED,
         "1",
         OnlineTestPassmarkEvaluationSchemes(Some("Red"), Some("Green"), Some("Amber"), Some("Red"), Some("Green"))
       )

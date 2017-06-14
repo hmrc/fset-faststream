@@ -44,7 +44,7 @@ class CandidateAllocationMongoRepository(dateTime: DateTimeFactory)(implicit mon
   def nextUnconfirmedCandidateToSendReminder(daysBeforeExpiration: Int): Future[Option[AllocatedCandidate]] = {
     val now = dateTime.nowLocalDate
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ALLOCATION_UNCONFIRMED),
+      BSONDocument("applicationStatus" -> ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED),
       BSONDocument("allocation-reminder-sent-date" -> BSONDocument("$exists" -> BSONBoolean(false))),
       BSONDocument("allocation-expire-date" -> BSONDocument("$gte" -> now)),
       BSONDocument("allocation-expire-date" -> BSONDocument("$lte" -> now.plusDays(daysBeforeExpiration)))

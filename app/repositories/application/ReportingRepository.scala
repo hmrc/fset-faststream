@@ -488,8 +488,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
         BSONDocument("userId" -> BSONDocument("$exists" -> true)),
         BSONDocument("$or" ->
           BSONArray(
-            BSONDocument(s"progress-status.${ApplicationStatus.EXPORTED}" -> true),
-            BSONDocument(s"progress-status.${ApplicationStatus.UPDATE_EXPORTED}" -> true)
+            BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
+            BSONDocument(s"progress-status.${ApplicationStatus.PHASE1_TESTS_PASSED}" -> true)
           )
         )
       )
@@ -518,9 +518,11 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
 
         val preferredName = personalDetailsDoc.flatMap(_.getAs[String]("preferredName"))
         val maybeSubmittedTimestamp = getDate(doc, ApplicationStatus.SUBMITTED).orElse(getLegacyDate(doc, ApplicationStatus.SUBMITTED))
-        val maybeExportedTimestamp = getDate(doc, ApplicationStatus.EXPORTED).orElse(getLegacyDate(doc, ApplicationStatus.EXPORTED))
-        val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.UPDATE_EXPORTED).orElse(
-          getLegacyDate(doc, ApplicationStatus.UPDATE_EXPORTED)
+        val maybeExportedTimestamp = getDate(doc, ApplicationStatus.PHASE3_TESTS_PASSED).orElse(
+          getLegacyDate(doc, ApplicationStatus.PHASE3_TESTS_PASSED)
+        )
+        val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.PHASE1_TESTS_PASSED).orElse(
+          getLegacyDate(doc, ApplicationStatus.PHASE1_TESTS_PASSED)
         )
         val fsacIndicatorDoc = doc.getAs[BSONDocument]("fsac-indicator")
         val assessmentCentre = fsacIndicatorDoc.flatMap(_.getAs[String]("assessmentCentre"))

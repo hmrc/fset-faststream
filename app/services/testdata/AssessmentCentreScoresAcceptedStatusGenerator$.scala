@@ -27,19 +27,19 @@ import model.command.testdata.GeneratorConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AssessmentScoresAcceptedStatusGenerator extends AssessmentScoresAcceptedStatusGenerator {
-  override val previousStatusGenerator = AssessmentScoresEnteredStatusGenerator
+object AssessmentCentreScoresAcceptedStatusGenerator$ extends AssessmentCentreScoresAcceptedStatusGenerator$ {
+  override val previousStatusGenerator = AssessmentCentreScoresEnteredStatusGenerator$
   override val aRepository = applicationRepository
 }
 
-trait AssessmentScoresAcceptedStatusGenerator extends ConstructiveGenerator {
+trait AssessmentCentreScoresAcceptedStatusGenerator$ extends ConstructiveGenerator {
   val aRepository: GeneralApplicationRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_SCORES_ACCEPTED)
+      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_CENTRE_SCORES_ACCEPTED)
     } yield {
       candidateInPreviousStatus
     }

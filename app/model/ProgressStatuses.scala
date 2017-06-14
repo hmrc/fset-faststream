@@ -101,21 +101,21 @@ object ProgressStatuses {
   case object PHASE3_TESTS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
 
   // Edip and Sdip status only
-  case object PHASE1_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
+  case object PHASE1_TESTS_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+  case object PHASE3_TESTS_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+  case object FAST_PASS_ACCEPTED extends ProgressStatus(ApplicationStatus.FAST_PASS_ACCEPTED)
 
-  case object PHASE3_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
+  case object ASSESSMENT_CENTRE_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.AWAITING_ASSESSMENT_CENTRE_ALLOCATION)
 
-  case object AWAITING_ASSESSMENT_CENTRE_ALLOCATION extends ProgressStatus(ApplicationStatus.AWAITING_ASSESSMENT_CENTRE_ALLOCATION)
-
-  case object ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.ALLOCATION_CONFIRMED)
-  case object ASSESSMENT_CENTNRE_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ALLOCATION_UNCONFIRMED)
+  case object ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED)
+  case object ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED)
 
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
-  case object FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FAILED_TO_ATTEND)
-  case object ASSESSMENT_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.ASSESSMENT_SCORES_ENTERED)
-  case object ASSESSMENT_SCORES_ACCEPTED extends ProgressStatus(ApplicationStatus.ASSESSMENT_SCORES_ACCEPTED)
-  case object AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION extends ProgressStatus(ApplicationStatus.AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
+  case object ASSESSMENT_CENTRE_FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FAILED_TO_ATTEND)
+  case object ASSESSMENT_CENTRE_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_SCORES_ENTERED)
+  case object ASSESSMENT_CENTRE_SCORES_ACCEPTED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
+  case object ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION)
   case object ASSESSMENT_CENTRE_PASSED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED)
   case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED)
   case object ASSESSMENT_CENTRE_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED_NOTIFIED)

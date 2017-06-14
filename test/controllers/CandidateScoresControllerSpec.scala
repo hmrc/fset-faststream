@@ -78,7 +78,7 @@ class CandidateScoresControllerSpec extends UnitWithAppSpec {
   "Save Candidate Scores" should {
     "save candidate scores & feedback and update application status" in new TestFixture {
       when(mockApplicationAssessmentScoresRepository.save(CandidateScoresWithFeedback)).thenReturn(Future.successful(()))
-      when(mockApplicationRepository.updateStatus("app1", ApplicationStatus.ASSESSMENT_SCORES_ENTERED)).thenReturn(Future.successful(()))
+      when(mockApplicationRepository.updateStatus("app1", ApplicationStatus.ASSESSMENT_CENTRE_SCORES_ENTERED)).thenReturn(Future.successful(()))
 
       val result = TestCandidateScoresController.createCandidateScoresAndFeedback("app1")(
         createSaveCandidateScoresAndFeedback("app1", Json.toJson(CandidateScoresWithFeedback).toString())
@@ -86,7 +86,7 @@ class CandidateScoresControllerSpec extends UnitWithAppSpec {
 
       status(result) must be(CREATED)
       verify(mockApplicationAssessmentScoresRepository).save(CandidateScoresWithFeedback)
-      verify(mockApplicationRepository).updateStatus("app1", ApplicationStatus.ASSESSMENT_SCORES_ENTERED)
+      verify(mockApplicationRepository).updateStatus("app1", ApplicationStatus.ASSESSMENT_CENTRE_SCORES_ENTERED)
     }
 
     "mark application status as FAILED_TO_ATTEND when candidate didn't show and save the score" in new TestFixture {

@@ -253,8 +253,8 @@ object GeneratorConfig {
       loc1scheme1Passmark = o.loc1scheme1EvaluationResult.map(Result.apply),
       loc1scheme2Passmark = o.loc1scheme2EvaluationResult.map(Result.apply),
       confirmedAllocation = statusData.applicationStatus match {
-        case ApplicationStatus.ALLOCATION_UNCONFIRMED => false
-        case ApplicationStatus.ALLOCATION_CONFIRMED => true
+        case ApplicationStatus.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED => false
+        case ApplicationStatus.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED => true
         case _ => o.confirmedAllocation.getOrElse(false)
       },
       phase1TestData = o.phase1TestData.map(Phase1TestData.apply),

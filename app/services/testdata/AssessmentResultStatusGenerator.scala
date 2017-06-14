@@ -28,16 +28,16 @@ import model.command.testdata.GeneratorConfig
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AwaitingAssessmentCentreReevalationStatusGenerator extends AssessmentResultStatusGenerator {
-  override val previousStatusGenerator = AssessmentScoresAcceptedStatusGenerator
+object AssessmentCentreAwaitingReevalationStatusGenerator extends AssessmentResultStatusGenerator {
+  override val previousStatusGenerator = AssessmentCentreScoresAcceptedStatusGenerator$
   override val aRepository = applicationRepository
-  override val applicationStatus = AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION
+  override val applicationStatus = ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION
   override def getAssessmentRuleCategoryResult = AssessmentRuleCategoryResult(Some(true), Some(Amber), Some(Amber), Some(Amber), Some(Amber),
     Some(Amber), None, None)
 }
 
 object AssessmentCentreFailedStatusGenerator extends AssessmentResultStatusGenerator {
-  override val previousStatusGenerator = AssessmentScoresAcceptedStatusGenerator
+  override val previousStatusGenerator = AssessmentCentreScoresAcceptedStatusGenerator$
   override val aRepository = applicationRepository
   override val applicationStatus = ASSESSMENT_CENTRE_FAILED
   override def getAssessmentRuleCategoryResult = AssessmentRuleCategoryResult(Some(true), Some(Red), Some(Red), Some(Red), Some(Red),
@@ -45,7 +45,7 @@ object AssessmentCentreFailedStatusGenerator extends AssessmentResultStatusGener
 }
 
 object AssessmentCentrePassedStatusGenerator extends AssessmentResultStatusGenerator {
-  override val previousStatusGenerator = AssessmentScoresAcceptedStatusGenerator
+  override val previousStatusGenerator = AssessmentCentreScoresAcceptedStatusGenerator$
   override val aRepository = applicationRepository
   override val applicationStatus = ASSESSMENT_CENTRE_PASSED
   override def getAssessmentRuleCategoryResult = AssessmentRuleCategoryResult(Some(true), Some(Green), Some(Green), Some(Green), Some(Green),

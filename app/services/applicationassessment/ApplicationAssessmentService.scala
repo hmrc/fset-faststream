@@ -156,7 +156,7 @@ trait ApplicationAssessmentService {
       allResults match {
         case _ if allResults.forall(_ == Red) => ASSESSMENT_CENTRE_FAILED
         case _ if allResults.contains(Green) => ASSESSMENT_CENTRE_PASSED
-        case _ => AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION
+        case _ => ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION
       }
   }
 
@@ -165,7 +165,7 @@ trait ApplicationAssessmentService {
       case ASSESSMENT_CENTRE_PASSED_NOTIFIED => "ApplicationAssessmentPassedNotified"
       case ASSESSMENT_CENTRE_FAILED_NOTIFIED => "ApplicationAssessmentFailedNotified"
       case ASSESSMENT_CENTRE_FAILED | ASSESSMENT_CENTRE_PASSED |
-        AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION => "ApplicationAssessmentEvaluated"
+           ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION => "ApplicationAssessmentEvaluated"
     }
     Logger.info(s"$event for $appId. The new status: $newStatus")
     auditService.logEventNoRequest(

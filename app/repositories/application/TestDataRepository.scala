@@ -17,9 +17,9 @@
 package repositories.application
 
 import connectors.ExchangeObjects
-import model.{ Address, CivilServiceExperienceType, InternshipType, SchemeType }
+import model.{ ApplicationStatus, _ }
 import model.ApplicationRoute.ApplicationRoute
-import model.ApplicationStatus._
+import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.ContactDetails
 import org.joda.time.{ DateTime, LocalDate }
@@ -98,15 +98,15 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     LocalDate.parse("1982-12-12"), LocalDate.parse("1983-12-12"), LocalDate.parse("1984-12-12"), LocalDate.parse("1985-12-12"),
     LocalDate.parse("1987-12-12"), LocalDate.parse("1987-12-12"))
 
-  override def createApplications(num: Int, onlyAwaitingAllocation: Boolean = false,
+  override def createApplications(num: Int, onlyAssessmentCentreAwaitingAllocation: Boolean = false,
                                   locationsAndRegions: Seq[(String, String)] = allLocationsAndRegions): Future[Unit] =
     Future.sequence(
-      (0 until num).map { i => createSingleApplication(i, onlyAwaitingAllocation, locationsAndRegions) }
+      (0 until num).map { i => createSingleApplication(i, onlyAssessmentCentreAwaitingAllocation, locationsAndRegions) }
     ).map(_ => ())
 
   // scalastyle:off parameter.number
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-    appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes",
+    appStatus: ApplicationStatus = ApplicationStatus.IN_PROGRESS, hasDisability: String = "Yes",
     needsSupportForOnlineAssessment: Boolean = false,
     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
     firstName: Option[String] = None, preferredName: Option[String] = None,
@@ -199,9 +199,9 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     )) //.futureValue
   }
 
-  private def createSingleApplication(id: Int, onlyAwaitingAllocation: Boolean,
+  private def createSingleApplication(id: Int, onlyAssessmentCentreAwaitingAllocation: Boolean,
                                       locationsAndRegions: Seq[(String, String)]): Future[Unit] = {
-    val document = buildSingleApplication(id, onlyAwaitingAllocation, locationsAndRegions)
+    val document = buildSingleApplication(id, onlyAssessmentCentreAwaitingAllocation, locationsAndRegions)
 
     val validator = singleUpsertValidator(id.toString, actionDesc = "creating application test data")
 
@@ -226,17 +226,22 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     progress
   }
 
-  private def buildSingleApplication(id: Int, onlyAwaitingAllocation: Boolean, locationsAndRegions: Seq[(String, String)]) = {
-    val personalDetails = createPersonalDetails(id, onlyAwaitingAllocation)
-    val frameworks = createLocations(id, onlyAwaitingAllocation, locationsAndRegions)
-    val assistance = createAssistance(id, onlyAwaitingAllocation)
-    val onlineTests = createOnlineTests(id, onlyAwaitingAllocation)
+  private def buildSingleApplication(id: Int, onlyAssessmentCentreAwaitingAllocation: Boolean, locationsAndRegions: Seq[(String, String)]) = {
+    val personalDetails = createPersonalDetails(id, onlyAssessmentCentreAwaitingAllocation)
+    val frameworks = createLocations(id, onlyAssessmentCentreAwaitingAllocation, locationsAndRegions)
+    val assistance = createAssistance(id, onlyAssessmentCentreAwaitingAllocation)
+    val onlineTests = createOnlineTests(id, onlyAssessmentCentreAwaitingAllocation)
     val submitted = isSubmitted(id)(personalDetails, frameworks, assistance)
     val withdrawn = isWithdrawn(id)(personalDetails, frameworks, assistance)
 
     val progress = createProgress(personalDetails, frameworks, assistance, submitted, withdrawn)
 
-    val applicationStatus = if (onlyAwaitingAllocation) "AWAITING_ALLOCATION" else chooseOne(applicationStatuses)
+    val applicationStatus = if (onlyAssessmentCentreAwaitingAllocation) {
+      ApplicationStatus.AWAITING_ASSESSMENT_CENTRE_ALLOCATION.toString
+    } else {
+      chooseOne(applicationStatuses)
+    }
+
     var document = BSONDocument(
       "applicationId" -> id.toString,
       "userId" -> id.toString,

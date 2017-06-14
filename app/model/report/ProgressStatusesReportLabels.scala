@@ -44,7 +44,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase1ProgressResponse.phase1TestsResultsReceived, 160, Phase1TestsResultsReceived),
     (progress.phase1ProgressResponse.phase1TestsExpired, 170, Phase1TestsExpired),
     (progress.phase1ProgressResponse.phase1TestsPassed, 180, Phase1TestsPassed),
-    (progress.phase1ProgressResponse.phase1TestsSuccessNotified, 185, Phase1TestsSuccessNotified),
+    (progress.phase1ProgressResponse.phase1TestsSuccessNotified, 185, Phase1TestsPassedNotified),
     (progress.phase1ProgressResponse.phase1TestsFailed, 190, Phase1TestsFailed),
     (progress.phase1ProgressResponse.phase1TestsFailedNotified, 195, Phase1TestsFailedNotified),
     (progress.phase1ProgressResponse.sdipFSSuccessful, 181, SdipFaststreamPassed),
@@ -71,7 +71,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsExpired, 360, Phase3TestsExpired),
     (progress.phase3ProgressResponse.phase3TestsPassedWithAmber, 370, Phase3TestsPassedWithAmber),
     (progress.phase3ProgressResponse.phase3TestsPassed, 380, Phase3TestsPassed),
-    (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 385, Phase3TestsSuccessNotified),
+    (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 385, Phase3TestsPassedNotified),
     (progress.phase3ProgressResponse.phase3TestsFailed, 390, Phase3TestsFailed),
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
     (progress.exported, 398, Exported),
@@ -140,7 +140,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase1TestsPassed = "phase1_tests_passed"
   val Phase1TestsFailed = "phase1_tests_failed"
   val Phase1TestsFailedNotified = "phase1_tests_failed_notified"
-  val Phase1TestsSuccessNotified = "phase1_tests_success_notified"
+  val Phase1TestsPassedNotified = "phase1_tests_passed_notified"
   val Phase2TestsInvited = "phase2_tests_invited"
   val Phase2TestsFirstReminder = "phase2_tests_first_reminder"
   val Phase2TestsSecondReminder = "phase2_tests_second_reminder"
@@ -163,7 +163,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsPassed = "phase3_tests_passed"
   val Phase3TestsFailed = "phase3_tests_failed"
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
-  val Phase3TestsSuccessNotified = "phase3_tests_success_notified"
+  val Phase3TestsPassedNotified = "phase3_tests_passed_notified"
   val ApplicationArchived = "application_archived"
   val FastPassAccepted = "fast_pass_accepted"
   val Exported = "exported"
@@ -172,9 +172,9 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
   val FailedToAttendProgress = FAILED_TO_ATTEND.toLowerCase()
-  val AssessmentScoresEnteredProgress = ASSESSMENT_SCORES_ENTERED.toLowerCase()
-  val AssessmentScoresAcceptedProgress = ASSESSMENT_SCORES_ACCEPTED.toLowerCase()
-  val AwaitingAssessmentCentreReevaluationProgress = AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.toLowerCase()
+  val AssessmentScoresEnteredProgress = ASSESSMENT_CENTRE_SCORES_ENTERED.toLowerCase()
+  val AssessmentScoresAcceptedProgress = ASSESSMENT_CENTRE_SCORES_ACCEPTED.toLowerCase()
+  val AwaitingAssessmentCentreReevaluationProgress = ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.toLowerCase()
   val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toLowerCase()
   val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toLowerCase()
   val AssessmentCentrePassedNotifiedProgress = ASSESSMENT_CENTRE_PASSED_NOTIFIED.toLowerCase()

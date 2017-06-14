@@ -26,9 +26,9 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
     PHASE2_TESTS_FIRST_REMINDER -> "phase2_tests_first_reminder",
     PHASE2_TESTS_SECOND_REMINDER -> "phase2_tests_second_reminder",
     PHASE1_TESTS_FAILED_NOTIFIED -> "registered",
-    AWAITING_ASSESSMENT_CENTRE_ALLOCATION -> "registered",
+    ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> "registered",
     ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED -> "registered",
-    ASSESSMENT_CENTNRE_ALLOCATION_UNCONFIRMED -> "registered")
+    ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED -> "registered")
 
   "All progress status in the application" should {
     "be mapped to the report labels" in {

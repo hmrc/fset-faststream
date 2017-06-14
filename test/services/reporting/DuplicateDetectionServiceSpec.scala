@@ -38,7 +38,7 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
     }
 
     "detect no duplications if only one application" in new TestFixture {
-      val app1 = UserApplicationProfile("1", EXPORTED, "first1", "last1", dob, exportedToParity = true)
+      val app1 = UserApplicationProfile("1", PHASE3_TESTS_PASSED, "first1", "last1", dob, exportedToParity = true)
       override val allApplications = List(app1)
 
       val result = service.findAll.futureValue

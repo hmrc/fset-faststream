@@ -306,7 +306,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   override def findApplicationsForAssessmentAllocation(locations: List[String], start: Int,
                                                        end: Int): Future[ApplicationForAssessmentAllocationResult] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> "AWAITING_ALLOCATION"),
+      BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_ALLOCATION),
       BSONDocument("framework-preferences.firstLocation.location" -> BSONDocument("$in" -> locations))
     ))
 
@@ -389,7 +389,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] =
     applicationPreferences(BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
-      BSONDocument(s"progress-status.${ASSESSMENT_SCORES_ACCEPTED.toLowerCase}" -> true),
+      BSONDocument(s"progress-status.${ASSESSMENT_CENTRE_SCORES_ACCEPTED.toLowerCase}" -> true),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
     )))
 
@@ -883,13 +883,13 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         BSONArray(
           BSONDocument(
             "$and" -> BSONArray(
-              BSONDocument("applicationStatus" -> ASSESSMENT_SCORES_ACCEPTED),
+              BSONDocument("applicationStatus" -> ASSESSMENT_CENTRE_SCORES_ACCEPTED),
               BSONDocument("assessment-centre-passmark-evaluation.passmarkVersion" -> BSONDocument("$exists" -> false))
             )
           ),
           BSONDocument(
             "$and" -> BSONArray(
-              BSONDocument("applicationStatus" -> AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION),
+              BSONDocument("applicationStatus" -> ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION),
               BSONDocument("assessment-centre-passmark-evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
             )
           )
@@ -920,8 +920,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument("applicationId" -> applicationId),
       BSONDocument(
         "$or" -> BSONArray(
-          BSONDocument("applicationStatus" -> ASSESSMENT_SCORES_ACCEPTED),
-          BSONDocument("applicationStatus" -> AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
+          BSONDocument("applicationStatus" -> ASSESSMENT_CENTRE_SCORES_ACCEPTED),
+          BSONDocument("applicationStatus" -> ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION)
         )
       )
     ))

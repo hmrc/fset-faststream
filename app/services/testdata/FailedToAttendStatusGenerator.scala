@@ -29,7 +29,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object FailedToAttendStatusGenerator extends FailedToAttendStatusGenerator {
-  override val previousStatusGenerator = AllocationStatusGenerator
+  override val previousStatusGenerator = AssessmentCentreAllocationStatusGenerator$
   override val aRepository = applicationRepository
   override val aasRepository = applicationAssessmentScoresRepository
 }
