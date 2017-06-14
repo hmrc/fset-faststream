@@ -45,7 +45,7 @@ abstract class ConsiderForSdipController(applicationClient: ApplicationClient, c
     Future.successful {
       cachedData.application match {
         case Some(app) if !isFaststreamOnly(cachedData) =>
-          Redirect(routes.HomeController.present()).flashing(warning("error.notfaststream"))
+          Redirect(routes.HomeController.present())
         case Some(app) if isFaststreamOnly(cachedData) && !isNewAccountsEnabled(Sdip) =>
           Redirect(routes.HomeController.present(false))
         case optApp if faststreamerNotEligibleForSdip(cachedData).isDefinedAt(optApp) =>

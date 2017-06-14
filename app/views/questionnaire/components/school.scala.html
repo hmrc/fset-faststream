@@ -1,7 +1,7 @@
 @(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit messages: Messages)
 
     @import helpers.CSRFieldConstructor._
-    @import views.html.widgets.{ checkbox, radioBox }
+    @import views.html.widgets.{ checkbox, radioBox, radioBoxVertical }
 
     <h2 class="heading-medium">School</h2>
     <div class="panel-indent text">
@@ -29,6 +29,10 @@
         @checkbox(questionnaireForm("preferNotSay_schoolName14to16"), Some("schoolName14to16")) {
             I don't know/prefer not to say
         }
+        </div>
+        <div class="text">
+            <p class="form-label">Which type of school was this?</p>
+            @radioBoxVertical(questionnaireForm("schoolType14to16"), options = models.view.questionnaire.SchoolType.list)
         </div>
     </section>
     <section>
