@@ -39,14 +39,14 @@ class AssessmentEventsRepositorySpec extends MongoRepositorySpec {
 
     "filter FSAC events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(Some("FSAC"), None).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), None).futureValue
       result.size mustBe 2
       result.map(_.eventType) mustBe List(EventType.FSAC, EventType.FSAC)
     }
 
     "filter NEWCASTLE_LONGBENTON events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(None, Some("NEWCASTLE_LONGBENTON")).futureValue
+      val result = repository.fetchEvents(None, Some(VenueType.NEWCASTLE_LONGBENTON)).futureValue
 
       result.size mustBe 1
       result.head.venue mustBe VenueType.NEWCASTLE_LONGBENTON.toString

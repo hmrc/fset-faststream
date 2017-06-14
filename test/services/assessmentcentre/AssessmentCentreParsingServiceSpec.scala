@@ -16,7 +16,7 @@
 
 package services.assessmentcentre
 
-import model.persisted.assessmentcentre.Event
+import model.persisted.assessmentcentre.{ Event, EventType }
 import services.BaseServiceSpec
 
 import scala.concurrent.Future
@@ -27,7 +27,7 @@ class AssessmentCentreParsingServiceSpec extends BaseServiceSpec {
       val events: Seq[Event] = service.processCentres().futureValue
 
       events.size mustBe 2
-      events.head.eventType.toString mustBe "FSAC"
+      events.head.eventType mustBe EventType.FSAC
       events(1).skillRequirements.getOrElse("QUALITY_ASSURANCE_COORDINATOR", "--") mustBe 0
     }
 

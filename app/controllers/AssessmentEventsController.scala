@@ -16,6 +16,7 @@
 
 package controllers
 
+import model.persisted.assessmentcentre.{ EventType, VenueType }
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.Action
@@ -41,8 +42,12 @@ trait AssessmentEventsController extends BaseController {
     }.map(_ => Created).recover { case _ => UnprocessableEntity }
   }
 
-  def fetchEvents(eventTypeOpt: Option[String], venueTypeOpt: Option[String]) = Action.async { implicit request =>
-    assessmentEventsRepository.fetchEvents(eventTypeOpt, venueTypeOpt)
+  def fetchEvents(eventTypeParamOpt: Option[String], venueParamOpt: Option[String]) = Action.async { implicit request =>
+    // convert params to native enum type
+    val eventTypeOpt = eventTypeParamOpt.map(et => EventType.withName(et.toUpperCase))
+    val venueOpt = venueParamOpt.map(v => VenueType.withName(v.toUpperCase))
+
+    assessmentEventsRepository.fetchEvents(eventTypeOpt, venueOpt)
       .map(events => Ok(Json.toJson(events)))
   }
 }

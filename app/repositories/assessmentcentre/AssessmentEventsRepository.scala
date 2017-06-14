@@ -16,7 +16,7 @@
 
 package repositories.assessmentcentre
 
-import model.persisted.assessmentcentre.Event
+import model.persisted.assessmentcentre.{ Event, EventType, VenueType }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.CollectionNames
@@ -28,7 +28,7 @@ import scala.concurrent.Future
 
 trait AssessmentEventsRepository {
   def save(events: List[Event]): Future[Unit]
-  def fetchEvents(eventTypeOpt: Option[String], venueTypeOpt: Option[String]) : Future[List[Event]]
+  def fetchEvents(eventTypeOpt: Option[EventType.Value], venueTypeOpt: Option[VenueType.Value]) : Future[List[Event]]
 }
 
 class AssessmentEventsMongoRepository(implicit mongo: () => DB)
@@ -41,13 +41,12 @@ class AssessmentEventsMongoRepository(implicit mongo: () => DB)
       .map(_ => ())
   }
 
-  override def fetchEvents(eventTypeOpt: Option[String], venueTypeOpt: Option[String]): Future[List[Event]] = {
-    val query = (eventTypeOpt, venueTypeOpt) match {
-      case (Some(e), Some(v)) => BSONDocument("eventType" -> e, "venue" -> v)
-      case (Some(e), None) => BSONDocument("eventType" -> e)
-      case (None, Some(v)) => BSONDocument("venue" -> v)
-      case (None, None) => BSONDocument()
-    }
+  override def fetchEvents(eventTypeOpt: Option[EventType.Value], venueTypeOpt: Option[VenueType.Value]): Future[List[Event]] = {
+    val query = List(
+      eventTypeOpt.map(v => BSONDocument("eventType" -> v.toString)),
+      venueTypeOpt.map(v => BSONDocument("venue" -> v.toString))
+    ).flatten.fold(BSONDocument.empty)(_ ++ _)
+
     collection.find(query).cursor[Event]().collect[List]()
   }
 
