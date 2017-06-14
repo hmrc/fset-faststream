@@ -17,7 +17,7 @@
 package controllers
 
 import config.TestFixtureBase
-import model.persisted.eventschedules.EventType
+import model.persisted.eventschedules.{ EventType, VenueType }
 import org.mockito.Mockito._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -55,16 +55,8 @@ class EventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return OK with all events" in new TestFixture {
-      when(mockAssessmentEventsRepo.fetchEvents(eventTypeOpt = None, venueTypeOpt = None)).thenReturn(Future.successful(List()))
-      val res = controller.fetchEvents(eventTypeParamOpt = None, venueParamOpt = None)(FakeRequest())
-      status(res) mustBe OK
-    }
-
-    "return OK with filtered events" in new TestFixture {
-      val fsacEventOpt = Some(EventType.FSAC)
-      val fsacEventParamOpt = Some("fsac")
-      when(mockAssessmentEventsRepo.fetchEvents(eventTypeOpt = fsacEventOpt, venueTypeOpt = None)).thenReturn(Future.successful(List()))
-      val res = controller.fetchEvents(eventTypeParamOpt = fsacEventParamOpt, venueParamOpt = None)(FakeRequest())
+      when(mockAssessmentEventsRepo.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC)).thenReturn(Future.successful(List()))
+      val res = controller.fetchEvents("fsac","london_fsac")(FakeRequest())
       status(res) mustBe OK
     }
   }

@@ -124,4 +124,4 @@ GET         /assessment-schedule                                         control
 
 # Assessment Events
 POST        /assessment-events/save                                      controllers.EventsController.saveAssessmentEvents()
-GET         /assessment-events/fetchEvents                               controllers.EventsController.fetchEvents(eventType: Option[String] ?= None, venueType: Option[String] ?= None)
+GET         /assessment-events/fetchEvents/:venue/:eventType             controllers.EventsController.fetchEvents(eventType: String, venue: String)

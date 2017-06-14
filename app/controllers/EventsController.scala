@@ -42,12 +42,12 @@ trait EventsController extends BaseController {
     }.map(_ => Created).recover { case _ => UnprocessableEntity }
   }
 
-  def fetchEvents(eventTypeParamOpt: Option[String], venueParamOpt: Option[String]) = Action.async { implicit request =>
+  def fetchEvents(eventTypeParam: String, venueParam: String) = Action.async { implicit request =>
     // convert params to native enum type
-    val eventTypeOpt = eventTypeParamOpt.map(et => EventType.withName(et.toUpperCase))
-    val venueOpt = venueParamOpt.map(v => VenueType.withName(v.toUpperCase))
+    val eventType = EventType.withName(eventTypeParam.toUpperCase)
+    val venue = VenueType.withName(venueParam.toUpperCase)
 
-    assessmentEventsRepository.fetchEvents(eventTypeOpt, venueOpt)
+    assessmentEventsRepository.fetchEvents(eventType, venue)
       .map(events => Ok(Json.toJson(events)))
   }
 }

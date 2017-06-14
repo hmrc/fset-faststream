@@ -33,23 +33,29 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "save and fetch events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(None, None).futureValue
-      result mustBe events
-    }
-
-    "filter FSAC events" in {
-      repository.save(events).futureValue
-      val result = repository.fetchEvents(Some(EventType.FSAC), None).futureValue
+      val result = repository.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC).futureValue
       result.size mustBe 2
-      result.map(_.eventType) mustBe List(EventType.FSAC, EventType.FSAC)
     }
 
-    "filter NEWCASTLE_LONGBENTON events" in {
+    "filter FSAC in LONDON_FSAC events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(None, Some(VenueType.NEWCASTLE_LONGBENTON)).futureValue
+      val result = repository.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC).futureValue
+      result mustBe List(events.head, events.tail.head)
+    }
+
+    "filter SKYPE_INTERVIEW in NEWCASTLE_LONGBENTON " in {
+      repository.save(events).futureValue
+      val result = repository.fetchEvents(EventType.SKYPE_INTERVIEW, VenueType.NEWCASTLE_LONGBENTON).futureValue
 
       result.size mustBe 1
       result.head.venue mustBe VenueType.NEWCASTLE_LONGBENTON.toString
+    }
+
+    "filter and return empty list" in {
+      repository.save(events).futureValue
+      val result = repository.fetchEvents(EventType.FSAC, VenueType.NEWCASTLE_FSAC).futureValue
+
+      result.size mustBe 0
     }
   }
 }
