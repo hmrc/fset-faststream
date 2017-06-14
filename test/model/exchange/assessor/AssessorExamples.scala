@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package model.exchange.assessoravailability
+package model.exchange.assessor
 
-import model.exchange.AssessorAvailability
+import model.exchange.{ Assessor, AssessorAvailability }
 import org.joda.time.LocalDate
+
+object AssessorExamples {
+  val UserId1 = "57364"
+  val Assessor1 = Assessor(UserId1, List("assessor", "qac"), true)
+}
 
 object AssessorAvailabilityExamples {
   val AssessorAvailabilityInBothLondonAndNewcastle = AssessorAvailability(
