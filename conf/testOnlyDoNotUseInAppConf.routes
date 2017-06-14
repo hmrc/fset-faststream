@@ -18,3 +18,4 @@ GET     /candidate-application/test-data-generator/create-admin-users       cont
 POST    /candidate-application/test-data-generator/create-candidates        controllers.testdata.TestDataGeneratorController.createCandidatesInStatusPOST(numberToGenerate: Int)
 GET     /candidate-application/test-data-generator/example                  controllers.testdata.TestDataGeneratorController.requestExample
 GET     /candidate-application/evaluate-phase1-candidate                    controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
+GET     /candidate-application/evaluate-phase3-candidate                    controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
