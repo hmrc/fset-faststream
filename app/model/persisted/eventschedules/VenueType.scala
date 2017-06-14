@@ -22,7 +22,7 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 object VenueType extends Enumeration {
   type VenueType = Value
 
-  val LONDON_FSAC, NEWCASTLE_FSAC, NEWCASTLE_LONGBENTON = Value
+  val LONDON_FSAC, NEWCASTLE_FSAC, NEWCASTLE_LONGBENTON, VIRTUAL = Value
 
   implicit val VenueTypeFormat = new Format[VenueType] {
     override def reads(json: JsValue): JsResult[VenueType] = JsSuccess(VenueType.withName(json.as[String].toUpperCase))
