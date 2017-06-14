@@ -1,11 +1,11 @@
 package repositories
 
 import factories.UUIDFactory
-import model.persisted.assessmentcentre.{ Event, EventType, VenueType }
+import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import org.joda.time.{ LocalDate, LocalTime }
 import testkit.MongoRepositorySpec
 
-class AssessmentEventsRepositorySpec extends MongoRepositorySpec {
+class EventsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.ASSESSMENT_EVENTS
   lazy val repository = repositories.assessmentEventsRepository

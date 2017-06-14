@@ -123,5 +123,5 @@ GET         /assessment-centre-dates/region/:region                      control
 GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
 
 # Assessment Events
-POST        /assessment-events/save                                      controllers.AssessmentEventsController.saveAssessmentEvents()
-GET         /assessment-events/fetchEvents                               controllers.AssessmentEventsController.fetchEvents(eventType: Option[String] ?= None, venueType: Option[String] ?= None)
+POST        /assessment-events/save                                      controllers.EventsController.saveAssessmentEvents()
+GET         /assessment-events/fetchEvents                               controllers.EventsController.fetchEvents(eventType: Option[String] ?= None, venueType: Option[String] ?= None)

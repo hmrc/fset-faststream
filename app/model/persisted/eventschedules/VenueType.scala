@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package model.persisted.assessmentcentre
+package model.persisted.eventschedules
 
 import play.api.libs.json._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }

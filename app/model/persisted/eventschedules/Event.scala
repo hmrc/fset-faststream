@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package model.persisted.assessmentcentre
+package model.persisted.eventschedules
 
-import model.persisted.assessmentcentre.EventType.EventType
+import model.persisted.eventschedules.EventType.EventType
 import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json

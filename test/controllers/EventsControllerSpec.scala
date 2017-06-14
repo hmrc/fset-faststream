@@ -17,17 +17,17 @@
 package controllers
 
 import config.TestFixtureBase
-import model.persisted.assessmentcentre.EventType
+import model.persisted.eventschedules.EventType
 import org.mockito.Mockito._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.assessmentcentre.AssessmentEventsRepository
+import repositories.events.EventsRepository
 import services.assessmentcentre.AssessmentCentreParsingService
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
-class AssessmentEventsControllerSpec extends UnitWithAppSpec {
+class EventsControllerSpec extends UnitWithAppSpec {
 
   "Upload assessment events" should {
     "return CREATED with valid input" in new TestFixture {
@@ -71,10 +71,10 @@ class AssessmentEventsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockAssessmentCentreParsingService = mock[AssessmentCentreParsingService]
-    val mockAssessmentEventsRepo = mock[AssessmentEventsRepository]
+    val mockAssessmentEventsRepo = mock[EventsRepository]
     val events = List()
-    val controller = new AssessmentEventsController {
-      override val assessmentEventsRepository: AssessmentEventsRepository = mockAssessmentEventsRepo
+    val controller = new EventsController {
+      override val assessmentEventsRepository: EventsRepository = mockAssessmentEventsRepo
       override val assessmentCenterParsingService: AssessmentCentreParsingService = mockAssessmentCentreParsingService
     }
   }

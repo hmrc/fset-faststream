@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package repositories.assessmentcentre
+package repositories.events
 
-import model.persisted.assessmentcentre.{ Event, EventType, VenueType }
+import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.CollectionNames
@@ -26,15 +26,15 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait AssessmentEventsRepository {
+trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def fetchEvents(eventTypeOpt: Option[EventType.Value], venueTypeOpt: Option[VenueType.Value]) : Future[List[Event]]
 }
 
-class AssessmentEventsMongoRepository(implicit mongo: () => DB)
+class EventsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Event, BSONObjectID](CollectionNames.ASSESSMENT_EVENTS,
     mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
-  with AssessmentEventsRepository {
+  with EventsRepository {
 
   override def save(events: List[Event]): Future[Unit] = {
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)

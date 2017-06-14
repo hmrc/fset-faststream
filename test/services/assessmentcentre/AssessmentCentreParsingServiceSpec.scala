@@ -16,7 +16,7 @@
 
 package services.assessmentcentre
 
-import model.persisted.assessmentcentre.{ Event, EventType }
+import model.persisted.eventschedules.{ Event, EventType }
 import services.BaseServiceSpec
 
 import scala.concurrent.Future

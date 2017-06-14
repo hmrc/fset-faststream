@@ -18,7 +18,7 @@ package services.assessmentcentre
 
 import common.FutureEx
 import factories.UUIDFactory
-import model.persisted.assessmentcentre.{ Event, EventType }
+import model.persisted.eventschedules.{ Event, EventType }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.LocalDate
 import play.api.Play

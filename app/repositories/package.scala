@@ -41,7 +41,7 @@ import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Ph
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.fsacindicator.{ FSACIndicatorMongoRepository, FSACIndicatorRepository }
-import repositories.assessmentcentre.AssessmentEventsMongoRepository
+import repositories.events.EventsMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -84,7 +84,7 @@ package object repositories {
   lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorAvailabilityRepository = new AssessorAvailabilityMongoRepository()
-  lazy val assessmentEventsRepository = new AssessmentEventsMongoRepository()
+  lazy val assessmentEventsRepository = new EventsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
