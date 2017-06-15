@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object AssessmentCentreParsingService extends AssessmentCentreParsingService {
   override def fileContents: Future[List[String]] = Future.successful {
-    val input = managed(Play.current.resourceAsStream("fset-faststream-event-schedule").get)
+    val input = managed(Play.current.resourceAsStream("fset-faststream-event-schedule.csv").get)
     input.acquireAndGet(file => scala.io.Source.fromInputStream(file).getLines().toList.tail)
   }
 }
@@ -42,8 +42,7 @@ trait AssessmentCentreParsingService {
     "CHAIR" -> 10,
     "DEPARTMENTAL_ASSESSOR" -> 11,
     "EXERCISE_MARKER" -> 12,
-    "QUALITY_ASSURANCE_COORDINATOR" -> 13,
-    "SIFTER" -> 14
+    "QUALITY_ASSURANCE_COORDINATOR" -> 13
   )
 
   def fileContents: Future[List[String]]

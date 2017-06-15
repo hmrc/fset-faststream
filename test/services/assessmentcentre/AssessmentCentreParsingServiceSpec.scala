@@ -41,7 +41,7 @@ class AssessmentCentreParsingServiceSpec extends BaseServiceSpec {
     val service = new AssessmentCentreParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
         "fsac,london,london (euston tower),03/04/17,09:0,12:00,36,4,5,6,1,1,1,1,2", // malformed starttime
-        "phone interview,london,london (euston tower),,08:00,13:30,36,24,7,,,,,," // missing date
+        "edip phone interview,london,london (euston tower),,08:00,13:30,36,24,7,,,,,," // missing date
       ))
     }
   }
@@ -50,7 +50,7 @@ class AssessmentCentreParsingServiceSpec extends BaseServiceSpec {
     val service = new AssessmentCentreParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
         "FSAC,London,London (Euston Tower),03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2",
-        "phone interview,London,London (Euston Tower),04/04/17,08:00,13:30,36,24,7,,,,,,"
+        "sdip phone interview,London,London (Euston Tower),04/04/17,08:00,13:30,36,24,7,,,,,,"
       ))
     }
   }
