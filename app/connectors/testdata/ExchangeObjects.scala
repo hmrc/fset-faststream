@@ -21,6 +21,7 @@ import model.persisted.AssistanceDetails
 import model.command.GeneralDetails
 import model.persisted._
 import model.{ Adjustments, SelectedSchemes }
+import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 
 object ExchangeObjects {
@@ -42,7 +43,8 @@ object ExchangeObjects {
                                      applicationAssessment: Option[ApplicationAssessment] = None,
                                      schemePreferences: Option[SelectedSchemes] = None,
                                      accessCode: Option[String] = None,
-                                     adjustmentInformation: Option[Adjustments] = None
+                                     adjustmentInformation: Option[Adjustments] = None,
+                                     assessor: Option[AssessorResponse] = None
   )
 
   object DataGenerationResponse {
@@ -54,5 +56,18 @@ object ExchangeObjects {
 
   case class TestResponse(testId: Int, testType: String, token: String, testUrl: String)
   object TestResponse { implicit val testResponseFormat: OFormat[TestResponse] = Json.format[TestResponse] }
+
+  case class AssessorResponse(userId: String, skills: List[String], civilServant: Boolean, availability: Map[String, List[LocalDate]])
+  object AssessorResponse {
+    implicit val assessorResponseFormat: OFormat[AssessorResponse] = Json.format[AssessorResponse]
+
+    def apply(exchange: model.exchange.Assessor): AssessorResponse = {
+      AssessorResponse(exchange.userId, exchange.skills, exchange.civilServant, Map.empty)
+    }
+
+    def apply(persisted: model.persisted.Assessor): AssessorResponse = {
+      AssessorResponse(persisted.userId, persisted.skills, persisted.civilServant, persisted.availability)
+    }
+  }
 
 }
