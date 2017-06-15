@@ -20,3 +20,4 @@ POST    /candidate-application/test-data-generator/create-admin-users       cont
 GET     /candidate-application/test-data-generator/example                  controllers.testdata.TestDataGeneratorController.requestExample
 GET     /candidate-application/test-data-generator/admin-example            controllers.testdata.TestDataGeneratorController.requestAdminExample
 GET     /candidate-application/evaluate-phase1-candidate                    controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
+GET     /candidate-application/evaluate-phase2-candidate                    controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
