@@ -144,6 +144,4 @@ trait AuthProviderClient {
       case _ => throw new ConnectorException(s"Bad response received when getting access code")
     }
   }
-
-
 }
