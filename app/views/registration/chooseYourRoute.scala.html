@@ -38,7 +38,9 @@
 
                 @yesNoRadioWithNestedTogglePanel(form("sdipConsider"),
                                                  '_label -> "Do you want to be considered for SDIP?") {
+
                 <div id="sdipConsider-panel-yes" class="toggle-content">
+                @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) {
                     <h3 class="heading-medium">To be considered for SDIP, confirm the following statements are true</h3>
                     <ul id="eligibility-list" class="para-btm-margin text">
                         <li>I'm either from a Black, Asian and Minority Ethnic (BAME)
@@ -50,6 +52,13 @@
 
                     @yesNoQuestion(form("sdipEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
                                    noMessage = Some("You must be eligible to apply for the Summer Diversity Internship Programme."))
+
+
+                    } else {
+                    <div class="panel-info standard-panel">
+                        <p class="text">Unfortunately, applications for the Summer Diversity Internship Programme are now closed.</p>
+                    </div>
+                }
                 </div>
                 }
 
