@@ -24,6 +24,7 @@ import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
 import model.{ ApplicationStatus, Phase => _, _ }
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
 import repositories.{ BaseBSONReader, CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
@@ -54,6 +55,8 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
                              newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
+    Logger.debug(s"applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
+
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses))

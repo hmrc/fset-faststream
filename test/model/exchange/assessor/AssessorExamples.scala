@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package model.exchange
+package model.exchange.assessor
 
+import model.exchange.{ Assessor, AssessorAvailability }
 import org.joda.time.LocalDate
-import play.api.libs.json.Json
 
-case class AssessorAvailability(userId: String, availability: Map[String, List[LocalDate]])
+object AssessorExamples {
+  val UserId1 = "57364"
+  val Assessor1 = Assessor(UserId1, List("assessor", "qac"), true)
+}
 
-object AssessorAvailability {
-  implicit val assessorAvailabilityFormat = Json.format[AssessorAvailability]
+object AssessorAvailabilityExamples {
+  val AssessorAvailabilityInBothLondonAndNewcastle = AssessorAvailability(
+    userId = "userId",
+    availability = Map(
+      "london" -> List(new LocalDate(2017, 10, 10), new LocalDate(2017, 10, 10)),
+      "newcastle" -> List(new LocalDate(2017, 5, 10), new LocalDate(2017, 5, 10))
+    )
+  )
 }

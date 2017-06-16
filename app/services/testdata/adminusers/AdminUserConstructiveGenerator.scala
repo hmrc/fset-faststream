@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package model.exchange.assessoravailability
+package services.testdata.adminusers
 
-import model.exchange.AssessorAvailability
-import org.joda.time.LocalDate
-
-object AssessorAvailabilityExamples {
-  val AssessorAvailabilityInBothLondonAndNewcastle = AssessorAvailability(
-    userId = "userId",
-    availability = Map(
-      "london" -> List(new LocalDate(2017, 10, 10), new LocalDate(2017, 10, 10)),
-      "newcastle" -> List(new LocalDate(2017, 5, 10), new LocalDate(2017, 5, 10))
-    )
-  )
+trait AdminUserConstructiveGenerator extends AdminUserBaseGenerator {
+  val previousStatusGenerator: AdminUserBaseGenerator
 }

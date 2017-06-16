@@ -16,10 +16,12 @@
 
 package model.command.testdata
 
+import connectors.AuthProviderClient.UserRole
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
 import model.SchemeType.SchemeType
+import model.exchange.testdata.AssessorData
 import model.persisted.PassmarkEvaluation
 import model.{ Adjustments, ApplicationRoute, ApplicationStatus, ProgressStatuses }
 import org.joda.time.format.DateTimeFormat
@@ -174,7 +176,8 @@ case class PersonalData(
   dob: LocalDate = new LocalDate(1981, 5, 21),
   postCode: Option[String] = None,
   country: Option[String] = None,
-  edipCompleted: Option[Boolean] = None
+  edipCompleted: Option[Boolean] = None,
+  role: Option[UserRole] = None
 ) {
   def getPreferredName: String = preferredName.getOrElse(s"Pref$firstName")
 }
@@ -232,7 +235,8 @@ case class GeneratorConfig(statusData: StatusData,
   phase1TestData: Option[Phase1TestData] = None,
   phase2TestData: Option[Phase2TestData] = None,
   phase3TestData: Option[Phase3TestData] = None,
-  adjustmentInformation: Option[Adjustments] = None
+  adjustmentInformation: Option[Adjustments] = None,
+  assessorDetails: Option[AssessorData] = None
 )
 
 object GeneratorConfig {

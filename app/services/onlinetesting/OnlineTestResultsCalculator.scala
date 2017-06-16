@@ -18,6 +18,7 @@ package services.onlinetesting
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.exchange.passmarksettings.PassMarkThreshold
+import play.api.Logger
 
 trait OnlineTestResultsCalculator {
 
@@ -34,10 +35,12 @@ trait OnlineTestResultsCalculator {
 
   def combineTestResults(results: Result*) = {
     require(results.nonEmpty, "Test results not found")
-    results match {
+    val result = results match {
       case _ if results.contains(Red) => Red
       case _ if results.contains(Amber) => Amber
       case _ if results.forall(_ == Green) => Green
     }
+    Logger.debug(s"Combining results $results = $result")
+    result
   }
 }

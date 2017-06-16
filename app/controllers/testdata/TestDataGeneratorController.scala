@@ -130,6 +130,23 @@ trait TestDataGeneratorController extends BaseController {
   }
   // scalastyle:on method.length
 
+  def requestAdminExample = Action { implicit request =>
+    val example = CreateAdminUserStatusRequest(
+      emailPrefix = Some("admin_user"),
+      firstName = Some("Admin user 1"),
+      lastName = Some("lastname"),
+      preferredName = Some("Ad"),
+      role = Some("assessor"),
+      phone = Some("123456789"),
+      assessor = Some(AssessorDataRequest(
+        skills = Some(List("assessor", "qac")),
+        civilServant = Some(true)
+      ))
+    )
+
+    Ok(Json.toJson(example))
+  }
+
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String): Action[AnyContent] = Action.async { implicit request =>
     try {
       TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
@@ -138,6 +155,12 @@ trait TestDataGeneratorController extends BaseController {
     } catch {
       case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+    }
+  }
+
+  def createAdminUsersInStatusPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[CreateAdminUserStatusRequest] { createRequest =>
+      createAdminUserInStatus(CreateAdminUserStatusData.apply(createRequest), numberToGenerate)
     }
   }
 
@@ -153,7 +176,7 @@ trait TestDataGeneratorController extends BaseController {
     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createCandidatesInSpecificStatus(
-        numberToGenerate, StatusGeneratorFactory.getGenerator,
+        numberToGenerate, StatusGeneratorFactory.getGeneratorForCandidates,
         config
       ).map { candidates =>
         Ok(Json.toJson(candidates))
@@ -161,6 +184,22 @@ trait TestDataGeneratorController extends BaseController {
     } catch {
       case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+    }
+  }
+
+  private def createAdminUserInStatus(createData: (Int) => CreateAdminUserStatusData, numberToGenerate: Int)
+                                     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    try {
+      TestDataGeneratorService.createAdminUserInSpecificStatus(
+        numberToGenerate,
+        AdminUserStatusGeneratorFactory.getGeneratorForAdminUsers,
+        createData
+      ).map { candidates =>
+        Ok(Json.toJson(candidates))
+      }
+    } catch {
+      case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
+        JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
   }
 }

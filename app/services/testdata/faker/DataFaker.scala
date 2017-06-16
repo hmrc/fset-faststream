@@ -653,6 +653,8 @@ object DataFaker {
       "Unknown"
     ))
 
+    def skills = randList(List("qac", "assessor", "chair"), 3)
+
     def parentsOccupationDetails = randOne(List(
       "Modern professional",
       "Clerical (office work) and intermediate",

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package repositories.assessmentcentre
+package repositories.events
 
-import model.persisted.assessmentcentre.Event
+import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import reactivemongo.api.DB
-import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -26,17 +26,24 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait AssessmentEventsRepository {
+trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
+  def fetchEvents(eventType: EventType.Value, venueType: VenueType.Value) : Future[List[Event]]
 }
 
-class AssessmentEventsMongoRepository(implicit mongo: () => DB)
+class EventsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Event, BSONObjectID](CollectionNames.ASSESSMENT_EVENTS,
     mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
-  with AssessmentEventsRepository {
+  with EventsRepository {
 
   override def save(events: List[Event]): Future[Unit] = {
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
       .map(_ => ())
   }
+
+  override def fetchEvents(eventType: EventType.Value, venue: VenueType.Value): Future[List[Event]] = {
+    val query = BSONDocument("eventType" -> eventType.toString, "venue" -> venue.toString)
+    collection.find(query).cursor[Event]().collect[List]()
+  }
+
 }

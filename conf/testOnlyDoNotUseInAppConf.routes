@@ -16,6 +16,9 @@ GET     /candidate-application/test-data-generator/ping                     cont
 GET     /candidate-application/test-data-generator/clear-database           controllers.testdata.TestDataGeneratorController.clearDatabase(generateDefaultUsers: Boolean ?= true)
 GET     /candidate-application/test-data-generator/create-admin-users       controllers.testdata.TestDataGeneratorController.createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String] ?= None, role: String ?= "tech-admin")
 POST    /candidate-application/test-data-generator/create-candidates        controllers.testdata.TestDataGeneratorController.createCandidatesInStatusPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-admin-users       controllers.testdata.TestDataGeneratorController.createAdminUsersInStatusPOST(numberToGenerate: Int)
 GET     /candidate-application/test-data-generator/example                  controllers.testdata.TestDataGeneratorController.requestExample
+GET     /candidate-application/test-data-generator/admin-example            controllers.testdata.TestDataGeneratorController.requestAdminExample
 GET     /candidate-application/evaluate-phase1-candidate                    controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
+GET     /candidate-application/evaluate-phase2-candidate                    controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
 GET     /candidate-application/evaluate-phase3-candidate                    controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
