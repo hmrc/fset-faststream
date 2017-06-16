@@ -40,7 +40,9 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     "filter FSAC in LONDON_FSAC events" in {
       repository.save(events).futureValue
       val result = repository.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC).futureValue
-      result mustBe List(events.head, events.tail.head)
+      result.size mustBe 2
+      result.contains(events.head) mustBe true
+      result.contains(events.tail.head) mustBe true
     }
 
     "filter SKYPE_INTERVIEW in NEWCASTLE_LONGBENTON " in {
