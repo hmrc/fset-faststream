@@ -71,7 +71,8 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
         },
         data => {
           val appRouteFromForm = ApplicationRoute.withName(data.applicationRoute)
-          val appRoute = if (appRouteFromForm == ApplicationRoute.Faststream && data.sdipConsider) {
+          val sdipFastStreamConsider = data.sdipFastStreamConsider.getOrElse(false)
+          val appRoute = if (appRouteFromForm == ApplicationRoute.Faststream && sdipFastStreamConsider) {
             ApplicationRoute.SdipFaststream
           } else {
             appRouteFromForm
