@@ -8,7 +8,7 @@ import testkit.MongoRepositorySpec
 class EventsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.ASSESSMENT_EVENTS
-  lazy val repository = repositories.assessmentEventsRepository
+  lazy val repository = repositories.eventsRepository
   val events = List(
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "London",
       venue = VenueType.LONDON_FSAC.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,

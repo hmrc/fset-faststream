@@ -84,7 +84,7 @@ package object repositories {
   lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorRepository = new AssessorMongoRepository()
-  lazy val assessmentEventsRepository = new AssessmentEventsMongoRepository()
+  lazy val eventsRepository = new EventsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
@@ -123,7 +123,7 @@ package object repositories {
 
     assessorRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
 
-    assessmentEventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending),
+    eventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending),
       ("location", Ascending), ("venue", Ascending)), unique = false))
   )), 20 seconds)
 
