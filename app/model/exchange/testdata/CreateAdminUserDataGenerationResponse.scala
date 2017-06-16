@@ -16,18 +16,35 @@
 
 package model.exchange.testdata
 
+import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 
 case class CreateAdminUserDataGenerationResponse(generationId: Int, userId: String,
                                             preferedName: Option[String], email: String,
                                             firstName: String, lastName: String, phone: Option[String] = None,
-                                            assessor: Option[AssessorData] = None) {
+                                            assessor: Option[AssessorResponse] = None) {
 
 }
-
-
 
 object CreateAdminUserDataGenerationResponse {
   implicit val createAdminUserDataGenerationResponseFormat: OFormat[CreateAdminUserDataGenerationResponse] =
     Json.format[CreateAdminUserDataGenerationResponse]
+}
+
+case class AssessorResponse(skills: List[String], civilServant: Boolean, availability: Map[String, List[LocalDate]])
+object AssessorResponse {
+  implicit val assessorResponseFormat: OFormat[AssessorResponse] = Json.format[AssessorResponse]
+
+  def apply(exchange: model.exchange.Assessor): AssessorResponse = {
+    AssessorResponse(exchange.skills, exchange.civilServant, Map.empty)
+  }
+
+  def apply(persisted: model.persisted.Assessor): AssessorResponse = {
+    AssessorResponse(persisted.skills, persisted.civilServant, persisted.availability)
+  }
+
+  def apply(data: AssessorData): AssessorResponse = {
+    // TODO: We should add availability in AssessorData
+    AssessorResponse(data.skills, data.civilServant, Map.empty)
+  }
 }

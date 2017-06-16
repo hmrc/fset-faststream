@@ -18,7 +18,7 @@ package services.testdata.adminusers
 
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.exchange.testdata.{ AssessorData, CreateAdminUserDataGenerationResponse, CreateAdminUserStatusData }
+import model.exchange.testdata.{ AssessorData, AssessorResponse, CreateAdminUserDataGenerationResponse, CreateAdminUserStatusData }
 import model.persisted.Media
 import play.api.mvc.RequestHeader
 import repositories._
@@ -55,7 +55,7 @@ trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
       _ <- authProviderClient.activate(data.email, token)
     } yield {
       CreateAdminUserDataGenerationResponse(generationId, user.userId.toString, None, data.email,
-        data.firstName, data.lastName, data.phone, data.assessor)
+        data.firstName, data.lastName, data.phone, data.assessor.map(AssessorResponse(_)))
     }
   }
 

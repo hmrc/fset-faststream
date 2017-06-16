@@ -16,6 +16,7 @@
 
 package services.testdata.adminusers
 
+import model.exchange.testdata.AssessorResponse
 import model.exchange.testdata.{ AssessorData, CreateAdminUserStatusData }
 import play.api.mvc.RequestHeader
 import services.assessoravailability.AssessorService
@@ -41,7 +42,7 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
         case Some(assessor) =>
           createAssessor(userInPrevStatus.userId, assessor).map { assessorStored =>
             userInPrevStatus.copy(assessor =
-              Some(AssessorData(assessorStored.skills, assessorStored.civilServant)))
+              Some(AssessorResponse.apply((assessorStored))))
           }
         case None => Future.successful(userInPrevStatus)
       }
