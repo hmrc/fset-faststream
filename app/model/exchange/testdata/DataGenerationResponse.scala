@@ -23,9 +23,9 @@ import model.{ Adjustments, SelectedSchemes }
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 
-object CreateCandidateDataGenerationResponse {
+object DataGenerationResponse {
 
-  case class CreateCandidateDataGenerationResponse(
+  case class DataGenerationResponse(
                                      generationId: Int,
                                      userId: String,
                                      applicationId: Option[String],
@@ -46,9 +46,9 @@ object CreateCandidateDataGenerationResponse {
                                      assessor: Option[AssessorResponse] = None
   )
 
-  object CreateCandidateDataGenerationResponse {
-    implicit val createCandidateDataGenerationResponseFormat: OFormat[CreateCandidateDataGenerationResponse] =
-      Json.format[CreateCandidateDataGenerationResponse]
+  object DataGenerationResponse {
+    implicit val dataGenerationResponseFormat: OFormat[DataGenerationResponse] =
+      Json.format[DataGenerationResponse]
   }
 
   case class TestGroupResponse(tests: List[TestResponse], schemeResult: Option[PassmarkEvaluation])

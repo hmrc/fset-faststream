@@ -22,7 +22,7 @@ import repositories.application.{ GeneralApplicationMongoRepository, GeneralAppl
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import model.command.testdata.{ DiversityDetails, GeneratorConfig }
-import model.exchange.testdata.CreateCandidateDataGenerationResponse
+import model.exchange.testdata.DataGenerationResponse
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,7 +40,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
   // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse.DataGenerationResponse] = {
 
     val didYouLiveInUkBetween14and18Answer = Random.yesNo
 

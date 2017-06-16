@@ -17,7 +17,7 @@
 package services.testdata.onlinetests.phase3
 
 import common.FutureEx
-import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
+import model.exchange.testdata.DataGenerationResponse.DataGenerationResponse
 import model.command.testdata.GeneratorConfig
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -41,7 +41,7 @@ trait Phase3TestsStartedStatusGenerator extends ConstructiveGenerator {
   val otService: Phase3TestService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
-      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateDataGenerationResponse] = {
+      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase3TestGroup.get.tests.map(_.token))(token =>

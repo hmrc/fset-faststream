@@ -17,7 +17,7 @@
 package services.testdata.onlinetests.phase1
 
 import common.FutureEx
-import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
+import model.exchange.testdata.DataGenerationResponse.DataGenerationResponse
 import model.OnlineTestCommands.TestResult
 import model.ProgressStatuses
 import model.command.testdata.GeneratorConfig
@@ -57,11 +57,11 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
     def getPhase1Test(cubiksUserId: Int) = CubiksTest(0, usedForResults = true, cubiksUserId, "", "", "", now, 0)
     def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(
       Some(tscore.getOrElse(10.0))), Some(tscore.getOrElse(20.0)), Some(tscore.getOrElse(30.0)), Some(tscore.getOrElse(40.0)))
-    def getTest(candidate: CreateCandidateDataGenerationResponse, testType: String): Int =
+    def getTest(candidate: DataGenerationResponse, testType: String): Int =
       candidate.phase1TestGroup.get.tests.filter(_.testType == testType).head.testId
 
 
-    def buildTestResults(candidate: CreateCandidateDataGenerationResponse, generatorConfig: GeneratorConfig): List[(TestResult, CubiksTest)] = {
+    def buildTestResults(candidate: DataGenerationResponse, generatorConfig: GeneratorConfig): List[(TestResult, CubiksTest)] = {
       val sjqTestUserId = getTest(candidate, "sjq")
 
       if (generatorConfig.assistanceDetails.setGis) {
@@ -74,7 +74,7 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
     }
 
     def generate(generationId: Int, generatorConfig: GeneratorConfig)
-      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateDataGenerationResponse] = {
+      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
       for {
         candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
         _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests) { test =>

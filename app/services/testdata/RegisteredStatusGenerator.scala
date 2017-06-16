@@ -17,7 +17,7 @@
 package services.testdata
 
 import connectors.AuthProviderClient
-import model.exchange.testdata.CreateCandidateDataGenerationResponse.{ AssessorResponse, CreateCandidateDataGenerationResponse }
+import model.exchange.testdata.DataGenerationResponse.{ AssessorResponse, DataGenerationResponse }
 import model.command.testdata.GeneratorConfig
 import model.exchange.testdata.AssessorData
 import model.persisted.Media
@@ -58,7 +58,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       _ <- medRepository.create(Media(user.userId, mediaReferrer.getOrElse("")))
 
     } yield {
-      CreateCandidateDataGenerationResponse(generationId, user.userId, None, email, firstName, lastName, mediaReferrer = mediaReferrer)
+      DataGenerationResponse(generationId, user.userId, None, email, firstName, lastName, mediaReferrer = mediaReferrer)
     }
 
   }
@@ -74,7 +74,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       token <- authProviderClient.getToken(email)
       _ <- authProviderClient.activate(email, token)
     } yield {
-      CreateCandidateDataGenerationResponse(generationId, user.userId.toString, None, email, firstName, lastName)
+      DataGenerationResponse(generationId, user.userId.toString, None, email, firstName, lastName)
     }
 
     val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)

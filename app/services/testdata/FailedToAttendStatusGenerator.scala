@@ -16,7 +16,7 @@
 
 package services.testdata
 
-import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
+import model.exchange.testdata.DataGenerationResponse.DataGenerationResponse
 import model.CandidateScoresCommands.CandidateScoresAndFeedback
 import play.api.mvc.RequestHeader
 import repositories._
@@ -39,7 +39,7 @@ trait FailedToAttendStatusGenerator extends ConstructiveGenerator {
   val aasRepository: ApplicationAssessmentScoresRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateDataGenerationResponse] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- aasRepository.save(CandidateScoresAndFeedback(candidateInPreviousStatus.applicationId.get, Some(false),

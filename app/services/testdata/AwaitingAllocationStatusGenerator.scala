@@ -18,7 +18,7 @@ package services.testdata
 
 import java.util.UUID
 
-import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
+import model.exchange.testdata.DataGenerationResponse.DataGenerationResponse
 import model.EvaluationResults.RuleCategoryResult
 import play.api.mvc.RequestHeader
 import repositories._

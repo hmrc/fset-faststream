@@ -16,7 +16,7 @@
 
 package services.testdata
 
-import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
+import model.exchange.testdata.DataGenerationResponse.DataGenerationResponse
 import model._
 import model.command.testdata.{ GeneratorConfig, PersonalData }
 import play.api.mvc.RequestHeader
@@ -36,7 +36,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
   //scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
-    def getPersonalDetails(candidateInformation: CreateCandidateDataGenerationResponse) = {
+    def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
       def getEdipCompleted = {
         if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip) {
           Some(generatorConfig.personalData.edipCompleted.getOrElse(Random.bool))}
@@ -49,7 +49,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         personalData.country.isDefined
       }
 
-      def getCivilServiceExperienceDetails(candidateInformation: CreateCandidateDataGenerationResponse) = {
+      def getCivilServiceExperienceDetails(candidateInformation: DataGenerationResponse) = {
         if (generatorConfig.isCivilServant) {
           if (generatorConfig.hasFastPass) {
             CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
