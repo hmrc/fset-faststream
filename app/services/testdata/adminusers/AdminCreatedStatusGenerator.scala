@@ -17,7 +17,7 @@
 package services.testdata.adminusers
 
 import connectors.AuthProviderClient
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
 import model.exchange.testdata.{ AssessorData, AssessorResponse, CreateAdminUserDataGenerationResponse, CreateAdminUserStatusData }
 import model.persisted.Media
 import play.api.mvc.RequestHeader

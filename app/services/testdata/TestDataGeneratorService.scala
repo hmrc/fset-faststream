@@ -18,7 +18,7 @@ package services.testdata
 
 import connectors.AuthProviderClient
 import connectors.AuthProviderClient._
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
 import model.{ ApplicationRoute, ApplicationStatus }
 import model.command.testdata.{ GeneratorConfig, PersonalData, StatusData }
 import model.exchange.testdata.{ CreateAdminUserDataGenerationResponse, CreateAdminUserStatusData, CreateAdminUserStatusRequest }
@@ -74,7 +74,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
   }
 
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String],
-                       role: UserRole)(implicit hc: HeaderCarrier): Future[List[DataGenerationResponse]] = {
+                       role: UserRole)(implicit hc: HeaderCarrier): Future[List[CreateCandidateDataGenerationResponse]] = {
     Future.successful {
       val parNumbers = (1 to numberToGenerate).par
       parNumbers.tasksupport = new ForkJoinTaskSupport(
@@ -97,7 +97,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
   def createCandidatesInSpecificStatus(numberToGenerate: Int,
                                        generatorForStatus: (GeneratorConfig) => BaseGenerator,
                                        configGenerator: (Int) => GeneratorConfig
-                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
+                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateDataGenerationResponse]] = {
     Future.successful {
 
       val parNumbers = (1 to numberToGenerate).par

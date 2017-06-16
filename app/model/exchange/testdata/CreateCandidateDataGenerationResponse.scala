@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package connectors.testdata
+package model.exchange.testdata
 
 import model.Commands.ApplicationAssessment
-import model.persisted.AssistanceDetails
 import model.command.GeneralDetails
-import model.persisted._
+import model.persisted.{ AssistanceDetails, _ }
 import model.{ Adjustments, SelectedSchemes }
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 
-object ExchangeObjects {
+object CreateCandidateDataGenerationResponse {
 
-  case class DataGenerationResponse(
+  case class CreateCandidateDataGenerationResponse(
                                      generationId: Int,
                                      userId: String,
                                      applicationId: Option[String],
@@ -47,8 +46,9 @@ object ExchangeObjects {
                                      assessor: Option[AssessorResponse] = None
   )
 
-  object DataGenerationResponse {
-    implicit val dataGenerationResponseFormat: OFormat[DataGenerationResponse] = Json.format[DataGenerationResponse]
+  object CreateCandidateDataGenerationResponse {
+    implicit val createCandidateDataGenerationResponseFormat: OFormat[CreateCandidateDataGenerationResponse] =
+      Json.format[CreateCandidateDataGenerationResponse]
   }
 
   case class TestGroupResponse(tests: List[TestResponse], schemeResult: Option[PassmarkEvaluation])

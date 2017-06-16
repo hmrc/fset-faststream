@@ -16,7 +16,7 @@
 
 package services.testdata
 
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
 import repositories._
 import model.ApplicationStatus._
 import play.api.mvc.RequestHeader
@@ -44,7 +44,7 @@ trait AssessmentResultNotifiedStatusGenerator extends ConstructiveGenerator {
   val status: String
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateDataGenerationResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, withName(status))

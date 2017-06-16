@@ -16,9 +16,9 @@
 
 package services.testdata.onlinetests
 
-import connectors.testdata.ExchangeObjects
 import model.ProgressStatuses._
 import model.command.testdata.GeneratorConfig
+import model.exchange.testdata.CreateCandidateDataGenerationResponse
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -54,7 +54,7 @@ trait TestsFailedStatusGenerator extends ConstructiveGenerator {
   val failedStatus: ProgressStatus
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[ExchangeObjects.DataGenerationResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, failedStatus)

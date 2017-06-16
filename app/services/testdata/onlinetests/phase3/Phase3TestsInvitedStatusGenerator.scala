@@ -22,7 +22,7 @@ import _root_.services.onlinetesting.phase3.Phase3TestService
 import _root_.services.testdata.ConstructiveGenerator
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig._
-import connectors.testdata.ExchangeObjects.{ DataGenerationResponse, TestGroupResponse, TestResponse }
+import model.exchange.testdata.CreateCandidateDataGenerationResponse.{ CreateCandidateDataGenerationResponse, TestGroupResponse, TestResponse }
 import model.ApplicationStatus._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.testdata.GeneratorConfig
@@ -50,7 +50,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
   val gatewayConfig: LaunchpadGatewayConfig
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateDataGenerationResponse] = {
 
     val launchpad = LaunchpadTest(
       interviewId = 12345,

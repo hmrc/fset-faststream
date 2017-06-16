@@ -16,7 +16,7 @@
 
 package services.testdata
 
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import play.api.mvc.RequestHeader
 import repositories._
@@ -39,7 +39,7 @@ trait AssessmentScoresEnteredStatusGenerator extends ConstructiveGenerator {
   val aasRepository: ApplicationAssessmentScoresRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateDataGenerationResponse] = {
 
     def getScoresAndFeedback(applicationId: String): CandidateScoresAndFeedback = {
       CandidateScoresAndFeedback(applicationId, Some(true), assessmentIncomplete = false,

@@ -20,7 +20,7 @@ import java.util.UUID
 
 import config.CubiksGatewayConfig
 import config.MicroserviceAppConfig.cubiksGatewayConfig
-import connectors.testdata.ExchangeObjects.{ TestGroupResponse, TestResponse }
+import model.exchange.testdata.CreateCandidateDataGenerationResponse.{ TestGroupResponse, TestResponse }
 import model.command.testdata.GeneratorConfig
 import model.persisted.{ CubiksTest, Phase1TestProfile }
 import org.joda.time.DateTime

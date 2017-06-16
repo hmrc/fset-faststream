@@ -16,7 +16,7 @@
 
 package services.testdata
 
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.exchange.testdata.CreateCandidateDataGenerationResponse.CreateCandidateDataGenerationResponse
 import model.EvaluationResults._
 import play.api.mvc.RequestHeader
 import repositories._
@@ -58,7 +58,7 @@ trait AssessmentResultStatusGenerator extends ConstructiveGenerator {
   def getAssessmentRuleCategoryResult: AssessmentRuleCategoryResult
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateDataGenerationResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- aRepository.saveAssessmentScoreEvaluation(candidateInPreviousStatus.applicationId.get, "version1", getAssessmentRuleCategoryResult,
