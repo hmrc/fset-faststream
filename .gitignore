@@ -21,3 +21,4 @@ dist
 /.cache-tests
 /bin/
 /.DS_Store
+.ensime*

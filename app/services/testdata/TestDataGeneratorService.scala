@@ -17,12 +17,15 @@
 package services.testdata
 
 import connectors.AuthProviderClient
-import connectors.AuthProviderClient.UserRole
+import connectors.AuthProviderClient._
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.command.testdata.GeneratorConfig
+import model.{ ApplicationRoute, ApplicationStatus }
+import model.command.testdata.{ GeneratorConfig, PersonalData, StatusData }
+import model.exchange.testdata.{ CreateAdminUserDataGenerationResponse, CreateAdminUserStatusData, CreateAdminUserStatusRequest }
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.MongoDbConnection
+import services.testdata.adminusers.AdminUserBaseGenerator
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -115,4 +118,30 @@ trait TestDataGeneratorService extends MongoDbConnection {
 
     }
   }
+
+  def createAdminUserInSpecificStatus(numberToGenerate: Int,
+                                      generatorForStatus: (CreateAdminUserStatusData) => AdminUserBaseGenerator,
+                                      createData: (Int) => CreateAdminUserStatusData
+                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAdminUserDataGenerationResponse]] = {
+    Future.successful {
+
+      val parNumbers = (1 to numberToGenerate).par
+      parNumbers.tasksupport = new ForkJoinTaskSupport(
+        new scala.concurrent.forkjoin.ForkJoinPool(2)
+      )
+
+      // one wasted generation of config
+      val config = createData(parNumbers.head)
+      val generator = generatorForStatus(config)
+
+      parNumbers.map { candidateGenerationId =>
+        Await.result(
+          generator.generate(candidateGenerationId, createData(candidateGenerationId)),
+          10 seconds
+        )
+      }.toList
+
+    }
+  }
+
 }

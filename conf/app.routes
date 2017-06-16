@@ -114,9 +114,11 @@ DELETE      /application/:applicationId/issue                            control
 
 GET         /schools                                                     controllers.SchoolsController.getSchools(term: String)
 
-POST        /assessor-availability/save/:userId                          controllers.AssessorAvailabilityController.save(userId: String)
-GET         /assessor-availability/find/:userId                          controllers.AssessorAvailabilityController.find(userId: String)
-GET         /assessor-availability/countSubmitted                        controllers.AssessorAvailabilityController.countSubmitted()
+POST        /assessor/save/:userId                                       controllers.AssessorController.saveAssessor(userId: String)
+GET         /assessor/find/:userId                                       controllers.AssessorController.findAssessor(userId: String)
+POST        /assessor-availability/save/:userId                          controllers.AssessorController.addAvailability(userId: String)
+GET         /assessor-availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
+GET         /assessor-availability/countSubmitted                        controllers.AssessorController.countSubmittedAvailability()
 
 # Assessment Centres
 GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package model.persisted
+package services.testdata.adminusers
 
-import org.joda.time.LocalDate
-import play.api.libs.json.Json
+import model.exchange.testdata.{ CreateAdminUserDataGenerationResponse, CreateAdminUserStatusData }
+import play.api.mvc.RequestHeader
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-case class AssessorAvailability(userId: String, availability: Map[String, List[LocalDate]])
+import scala.concurrent.Future
 
-object AssessorAvailability {
-  implicit val persistedAssessorAvailabilityFormat = Json.format[AssessorAvailability]
+trait AdminUserBaseGenerator {
+  def generate(generationId: Int, generatorData: CreateAdminUserStatusData)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminUserDataGenerationResponse]
 }
