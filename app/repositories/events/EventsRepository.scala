@@ -17,6 +17,8 @@
 package repositories.events
 
 import model.persisted.eventschedules.{ Event, EventType, VenueType }
+import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.VenueType.VenueType
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.CollectionNames
@@ -28,7 +30,7 @@ import scala.concurrent.Future
 
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
-  def fetchEvents(eventType: EventType.Value, venueType: VenueType.Value) : Future[List[Event]]
+  def fetchEvents(eventType: EventType, venueType: VenueType) : Future[List[Event]]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -41,8 +43,11 @@ class EventsMongoRepository(implicit mongo: () => DB)
       .map(_ => ())
   }
 
-  override def fetchEvents(eventType: EventType.Value, venue: VenueType.Value): Future[List[Event]] = {
-    val query = BSONDocument("eventType" -> eventType.toString, "venue" -> venue.toString)
+  override def fetchEvents(eventType: EventType, venue: VenueType): Future[List[Event]] = {
+    val query = List(
+      Option(eventType).filterNot(_ == EventType.ALL_EVENTS).map(e => BSONDocument("eventType" -> e)),
+      Option(venue).filterNot(_ == VenueType.ALL_VENUES).map(v => BSONDocument("venue" -> v))
+    ).flatten.fold(BSONDocument.empty)(_ ++ _)
     collection.find(query).cursor[Event]().collect[List]()
   }
 
