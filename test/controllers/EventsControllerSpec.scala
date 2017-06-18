@@ -55,8 +55,10 @@ class EventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return OK with all events" in new TestFixture {
-      when(mockAssessmentEventsRepo.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC)).thenReturn(Future.successful(List()))
-      val res = controller.fetchEvents("fsac","london_fsac")(FakeRequest())
+      when(mockAssessmentEventsRepo
+        .fetchEvents(EventType.FAST_STREAM_ASSESSMENT_CENTRE, VenueType.LONDON_FSAC))
+        .thenReturn(Future.successful(List()))
+      val res = controller.fetchEvents("fast_stream_assessment_centre","london_fsac")(FakeRequest())
       status(res) mustBe OK
     }
   }

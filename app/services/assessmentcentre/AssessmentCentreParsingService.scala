@@ -62,7 +62,7 @@ trait AssessmentCentreParsingService {
         case (line, idx) =>
           val tryRes = Try {
             val items = line.split(", ?", -1)
-            val eventType = EventType.withName(items.head.replaceAll("\\s", "_").toUpperCase)
+            val eventType = EventType.withName(items.head.replaceAll("\\s|-", "_").toUpperCase)
             val location = items(1)
             val venue = items(2)
             val date = LocalDate.parse(items(3), DateTimeFormat.forPattern("dd/MM/yy"))
