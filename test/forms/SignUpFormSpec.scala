@@ -182,8 +182,8 @@ case class SignupFormGenerator(
   agree: Boolean = true,
   applicationRoute: Option[ApplicationRoute.ApplicationRoute] = Some(ApplicationRoute.Faststream),
   faststreamEligible: Boolean = true,
-  sdipFastStreamConsider: Option[Boolean] = Option(true),
-  sdipFastStreamEligible: Option[Boolean] = Option(true),
+  sdipFastStreamConsider: Option[Boolean] = Option(false),
+  sdipFastStreamEligible: Option[Boolean] = Option(false),
   edipEligible: Boolean = false,
   sdipEligible: Boolean = false,
   hasAppliedToFaststream: Option[Boolean] = None

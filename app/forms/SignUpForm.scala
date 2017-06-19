@@ -99,7 +99,7 @@ object SignUpForm {
       data.get(key) match {
         case Some(appRoute) if appRoute.nonEmpty =>
           ApplicationRoute.withName(appRoute) match {
-            case ApplicationRoute.Faststream => fsCheck(appRoute, data)
+            case ApplicationRoute.Faststream => fastStreamCheck(appRoute, data)
 
             case ApplicationRoute.Edip => edipEligibilityCheck(data)
 
@@ -115,45 +115,45 @@ object SignUpForm {
     override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
   }
 
-  private def edipEligibilityCheck(data: Map[String, String]): Either[List[FormError], String] with Product with Serializable = {
-    data.get("edipEligible") match {
+  private def edipEligibilityCheck(data: Map[String, String]): Either[Seq[FormError], String] = {
+    data.get("edipEligible").map(_.toLowerCase) match {
       case Some("true") => Right(ApplicationRoute.Edip)
       case _ => Left(List(FormError("edipEligible", Messages("agree.edipEligible"))))
     }
   }
 
-  private def fsCheck(appRoute: String, data: Map[String, String]): Either[List[FormError], String] with Product with Serializable = {
-    val fsEligible = data.getOrElse("faststreamEligible", "false").toBoolean
-    val sdipFastStreamConsider = data.get("sdipFastStreamConsider")
-    (fsEligible, sdipFastStreamConsider) match {
-      case (true, Some("false")) => Right(appRoute)
-      case (true, Some("true")) => sdipFsCheck(appRoute, data)
-      case (true, None) => Left(List(FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider"))))
+  private def fastStreamCheck(appRoute: String, data: Map[String, String]): Either[Seq[FormError], String] = {
+    val fastStreamEligible = data.get("faststreamEligible").map(_.toLowerCase)
+    val sdipFastStreamConsider = data.get("sdipFastStreamConsider").map(_.toLowerCase)
+    (fastStreamEligible, sdipFastStreamConsider) match {
+      case (Some("true"), Some("false")) => Right(appRoute)
+      case (Some("true"), Some("true")) => sdipFsCheck(data)
+      case (Some("true"), None) => Left(List(FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider"))))
       case (_ , _) => Left(List(
         FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider")),
         FormError("faststreamEligible", Messages("agree.faststreamEligible"))
       ))
     }
+
   }
 
-  private def sdipFsCheck(appRoute: String, data: Map[String, String]): Either[List[FormError], String] with Product with Serializable = {
-    val sdipFastStreamEligible = data.get("sdipFastStreamEligible")
-    sdipFastStreamEligible match {
-      case Some("true") => Right(appRoute)
+  private def sdipFsCheck(data: Map[String, String]): Either[Seq[FormError], String] = {
+    data.get("sdipFastStreamEligible").map(_.toLowerCase) match {
+      case Some("true") => Right(ApplicationRoute.SdipFaststream)
       case _ => Left(List(FormError("sdipFastStreamEligible", Messages("agree.sdipEligible"))))
     }
   }
 
   private def sdipEligibiliyCheck(postData: Map[String, String]): Either[Seq[FormError], String] = {
-    val sdipEligable = postData.getOrElse("sdipEligible", "false").toBoolean
-    val hasAppliedtoFaststream = postData.lift("hasAppliedToFaststream").map(_.toBoolean)
+    val sdipEligable = postData.get("sdipEligible").map(_.toLowerCase)
+    val hasAppliedtoFaststream = postData.lift("hasAppliedToFaststream").map(_.toLowerCase)
 
     val errors = (hasAppliedtoFaststream match {
-                    case Some(true) => List(FormError("hasAppliedToFaststream", Messages("error.hasAppliedToFaststream")))
-                    case Some(false) => Nil
-                    case None => List(FormError("hasAppliedToFaststream", Messages("agree.hasAppliedToFaststream")))
+                    case Some("true") => List(FormError("hasAppliedToFaststream", Messages("error.hasAppliedToFaststream")))
+                    case Some("false") => Nil
+                    case _ => List(FormError("hasAppliedToFaststream", Messages("agree.hasAppliedToFaststream")))
                   }) ++
-      (if (!sdipEligable) { List(FormError("sdipEligible", Messages("agree.sdipEligible"))) } else { Nil })
+      (if (!sdipEligable.contains("true")) { List(FormError("sdipEligible", Messages("agree.sdipEligible"))) } else { Nil })
 
     if (errors.isEmpty) {
       Right(ApplicationRoute.Sdip)
@@ -162,7 +162,7 @@ object SignUpForm {
     }
   }
 
-  def form = Form(
+  def form: Form[Data] = Form(
     mapping(
       "firstName" -> nonEmptyTrimmedText("error.firstName", 256),
       "lastName" -> nonEmptyTrimmedText("error.lastName", 256),
