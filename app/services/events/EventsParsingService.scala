@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package services.assessmentcentre
+package services.events
 
 import common.FutureEx
 import factories.UUIDFactory
-import model.persisted.eventschedules.{ Event, EventType }
-import org.joda.time.format.DateTimeFormat
+import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import org.joda.time.LocalDate
+import org.joda.time.format.DateTimeFormat
 import play.api.Play
 import resource._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{ Failure, Try }
-import scala.concurrent.ExecutionContext.Implicits.global
 
-object AssessmentCentreParsingService extends AssessmentCentreParsingService {
+object EventsParsingService extends EventsParsingService {
   override def fileContents: Future[List[String]] = Future.successful {
     val input = managed(Play.current.resourceAsStream("fset-faststream-event-schedule.csv").get)
     input.acquireAndGet(file => scala.io.Source.fromInputStream(file).getLines().toList.tail)
   }
 }
 
-trait AssessmentCentreParsingService {
+trait EventsParsingService {
 
   private val skillsIdxTable = List(
     "ASSESSOR" -> 9,
@@ -64,7 +64,7 @@ trait AssessmentCentreParsingService {
             val items = line.split(", ?", -1)
             val eventType = EventType.withName(items.head.replaceAll("\\s|-", "_").toUpperCase)
             val location = items(1)
-            val venue = items(2)
+            val venue = VenueType.withName(items(2).replaceAll("\\s|-", "_").toUpperCase)
             val date = LocalDate.parse(items(3), DateTimeFormat.forPattern("dd/MM/yy"))
             val startTime = df.parseLocalTime(items(4))
             val endTime = df.parseLocalTime(items(5))

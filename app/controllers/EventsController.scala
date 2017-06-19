@@ -21,19 +21,19 @@ import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories.events.EventsRepository
-import services.assessmentcentre._
+import services.events.EventsParsingService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
   override val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
-  override val assessmentCenterParsingService: AssessmentCentreParsingService = AssessmentCentreParsingService
+  override val assessmentCenterParsingService: EventsParsingService = EventsParsingService
 }
 
 trait EventsController extends BaseController {
   val assessmentEventsRepository: EventsRepository
-  val assessmentCenterParsingService: AssessmentCentreParsingService
+  val assessmentCenterParsingService: EventsParsingService
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     assessmentCenterParsingService.processCentres().flatMap{ events =>

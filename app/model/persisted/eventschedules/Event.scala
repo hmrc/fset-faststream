@@ -17,6 +17,7 @@
 package model.persisted.eventschedules
 
 import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.VenueType.VenueType
 import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json
@@ -25,7 +26,7 @@ import reactivemongo.bson.Macros
 case class Event(id: String,
                  eventType: EventType,
                  location: String,
-                 venue: String,
+                 venue: VenueType,
                  date: LocalDate,
                  capacity: Int,
                  minViableAttendees: Int,

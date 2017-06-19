@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package services.assessmentcentre
+package services.events
 
 import model.persisted.eventschedules.{ Event, EventType }
 import services.BaseServiceSpec
 
 import scala.concurrent.Future
 
-class AssessmentCentreParsingServiceSpec extends BaseServiceSpec {
+class EventsParsingServiceSpec extends BaseServiceSpec {
   "processCentres" must {
     "successfully saves and loads the file contents" in new GoodTestFixture {
       val events: Seq[Event] = service.processCentres().futureValue
@@ -38,19 +38,19 @@ class AssessmentCentreParsingServiceSpec extends BaseServiceSpec {
 
 
   trait MalformedTestFixture {
-    val service = new AssessmentCentreParsingService {
+    val service = new EventsParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
-        "Fast Stream Assessment Centre,london,london (euston tower),03/04/17,09:0,12:00,36,4,5,6,1,1,1,1,2", // malformed starttime
-        "edip telephone interview,london,london (euston tower),,08:00,13:30,36,24,7,,,,,," // missing date
+        "fsac,london,london fsac,03/04/17,09:0,12:00,36,4,5,6,1,1,1,1,2", // malformed starttime
+        "telephone interview,london,virtual,,08:00,13:30,36,24,7,,,,,," // missing date
       ))
     }
   }
 
   trait GoodTestFixture {
-    val service = new AssessmentCentreParsingService {
+    val service = new EventsParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
-        "Fast Stream Assessment Centre,London,London (Euston Tower),03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2",
-        "sdip telephone interview,London,London (Euston Tower),04/04/17,08:00,13:30,36,24,7,,,,,,"
+        "fsac,London,london fsac,03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2",
+        "telephone interview,London,virtual,04/04/17,08:00,13:30,36,24,7,,,,,,"
       ))
     }
   }

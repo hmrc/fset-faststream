@@ -11,25 +11,25 @@ class EventsRepositorySpec extends MongoRepositorySpec {
   lazy val repository = repositories.eventsRepository
   val events = List(
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "London",
-      venue = VenueType.LONDON_FSAC.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      venue = VenueType.LONDON_FSAC, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "London",
-      venue = VenueType.LONDON_FSAC.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      venue = VenueType.LONDON_FSAC, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
       skillRequirements = Map()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.TELEPHONE_INTERVIEW, location = "London",
-      venue = VenueType.LONDON_FSAC.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      venue = VenueType.LONDON_FSAC, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
       skillRequirements = Map()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.SKYPE_INTERVIEW, location = "Newcastle",
-      venue = VenueType.NEWCASTLE_LONGBENTON.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      venue = VenueType.NEWCASTLE_LONGBENTON, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "Newcastle",
-      venue = VenueType.NEWCASTLE_LONGBENTON.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      venue = VenueType.NEWCASTLE_LONGBENTON, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map())
 
   )
@@ -60,16 +60,19 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       val result = repository.fetchEvents(EventType.SKYPE_INTERVIEW, VenueType.NEWCASTLE_LONGBENTON).futureValue
 
       result.size mustBe 1
-      result.head.venue mustBe VenueType.NEWCASTLE_LONGBENTON.toString
+      result.head.venue mustBe VenueType.NEWCASTLE_LONGBENTON
     }
 
     "filter ALL_EVENTS in LONDON_FSAC" in {
       repository.save(events).futureValue
       val result = repository.fetchEvents(EventType.ALL_EVENTS, VenueType.LONDON_FSAC).futureValue
       result.size mustBe 3
+      result.exists(_.eventType == EventType.TELEPHONE_INTERVIEW) mustBe true
+      result.forall(_.venue == VenueType.LONDON_FSAC)
+      result.exists(_.eventType == EventType.FSAC) mustBe true
     }
 
-    "filter FSAC in NEWCASTLE_LONGBENTON"  in {
+    "filter FSAC in ALL_VENUES"  in {
       repository.save(events).futureValue
       val result = repository.fetchEvents(EventType.FSAC, VenueType.ALL_VENUES).futureValue
       result.size mustBe 3
