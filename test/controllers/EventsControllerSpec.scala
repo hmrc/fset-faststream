@@ -17,16 +17,17 @@
 package controllers
 
 import config.TestFixtureBase
+import model.persisted.eventschedules.{ EventType, VenueType }
 import org.mockito.Mockito._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.assessmentcentre.AssessmentEventsRepository
+import repositories.events.EventsRepository
 import services.assessmentcentre.AssessmentCentreParsingService
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
-class AssessmentEventsControllerSpec extends UnitWithAppSpec {
+class EventsControllerSpec extends UnitWithAppSpec {
 
   "Upload assessment events" should {
     "return CREATED with valid input" in new TestFixture {
@@ -52,14 +53,20 @@ class AssessmentEventsControllerSpec extends UnitWithAppSpec {
       val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
     }
+
+    "return OK with all events" in new TestFixture {
+      when(mockAssessmentEventsRepo.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC)).thenReturn(Future.successful(List()))
+      val res = controller.fetchEvents("fsac","london_fsac")(FakeRequest())
+      status(res) mustBe OK
+    }
   }
 
   trait TestFixture extends TestFixtureBase {
     val mockAssessmentCentreParsingService = mock[AssessmentCentreParsingService]
-    val mockAssessmentEventsRepo = mock[AssessmentEventsRepository]
+    val mockAssessmentEventsRepo = mock[EventsRepository]
     val events = List()
-    val controller = new AssessmentEventsController {
-      override val assessmentEventsRepository: AssessmentEventsRepository = mockAssessmentEventsRepo
+    val controller = new EventsController {
+      override val assessmentEventsRepository: EventsRepository = mockAssessmentEventsRepo
       override val assessmentCenterParsingService: AssessmentCentreParsingService = mockAssessmentCentreParsingService
     }
   }

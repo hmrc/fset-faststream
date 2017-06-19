@@ -16,21 +16,23 @@
 
 package controllers
 
+import model.persisted.eventschedules.{ EventType, VenueType }
 import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc.Action
-import repositories.assessmentcentre.AssessmentEventsRepository
+import repositories.events.EventsRepository
 import services.assessmentcentre._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object AssessmentEventsController extends AssessmentEventsController {
-  override val assessmentEventsRepository: AssessmentEventsRepository = repositories.assessmentEventsRepository
+object EventsController extends EventsController {
+  override val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
   override val assessmentCenterParsingService: AssessmentCentreParsingService = AssessmentCentreParsingService
 }
 
-trait AssessmentEventsController extends BaseController {
-  val assessmentEventsRepository: AssessmentEventsRepository
+trait EventsController extends BaseController {
+  val assessmentEventsRepository: EventsRepository
   val assessmentCenterParsingService: AssessmentCentreParsingService
 
   def saveAssessmentEvents() = Action.async { implicit request =>
@@ -38,5 +40,14 @@ trait AssessmentEventsController extends BaseController {
       Logger.debug("Events have been processed!")
       assessmentEventsRepository.save(events)
     }.map(_ => Created).recover { case _ => UnprocessableEntity }
+  }
+
+  def fetchEvents(eventTypeParam: String, venueParam: String) = Action.async { implicit request =>
+    // convert params to native enum type
+    val eventType = EventType.withName(eventTypeParam.toUpperCase)
+    val venue = VenueType.withName(venueParam.toUpperCase)
+
+    assessmentEventsRepository.fetchEvents(eventType, venue)
+      .map(events => Ok(Json.toJson(events)))
   }
 }

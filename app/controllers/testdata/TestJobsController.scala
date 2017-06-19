@@ -17,7 +17,7 @@
 package controllers.testdata
 
 import play.api.mvc.Action
-import scheduler.onlinetesting.{ EvaluatePhase2ResultJob, EvaluatePhase1ResultJob }
+import scheduler.onlinetesting.{ EvaluatePhase1ResultJob, EvaluatePhase2ResultJob, EvaluatePhase3ResultJob }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,6 +35,12 @@ class TestJobsController extends BaseController {
   def evaluatePhase2EtrayCandidate = Action.async { implicit request =>
     EvaluatePhase2ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 2 result job started")
+    }
+  }
+
+  def evaluatePhase3VideoInterviewCandidate = Action.async { implicit request =>
+    EvaluatePhase3ResultJob.tryExecute().map { _ =>
+      Ok("Evaluate phase 3 result job started")
     }
   }
 }

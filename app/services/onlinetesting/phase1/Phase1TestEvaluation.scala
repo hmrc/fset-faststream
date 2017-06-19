@@ -20,6 +20,7 @@ import model.EvaluationResults.Green
 import model.SchemeType._
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ SchemeEvaluationResult, TestResult }
+import play.api.Logger
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
@@ -42,6 +43,16 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
     } yield {
       val sjqResult = evaluateTestResult(schemePassmark.schemeThresholds.situational)(sjqTestResult.tScore)
       val bqResult = bqTestResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.behavioural)).getOrElse(Green)
+      Logger.debug(s"Processing scheme $schemeToEvaluate, " +
+        s"sjq score = ${sjqTestResult.tScore}, " +
+        s"sjq fail = ${schemePassmark.schemeThresholds.situational.failThreshold}, " +
+        s"sqj pass = ${schemePassmark.schemeThresholds.situational.passThreshold}, " +
+        s"sqj result = $sjqResult, " +
+        s"bq score = ${bqTestResultOpt.map(_.tScore).getOrElse(None)}, " +
+        s"bq fail = ${schemePassmark.schemeThresholds.behavioural.failThreshold}, " +
+        s"bq pass = ${schemePassmark.schemeThresholds.behavioural.passThreshold}, " +
+        s"bq result = $bqResult"
+      )
       SchemeEvaluationResult(schemeToEvaluate, combineTestResults(sjqResult, bqResult).toString)
     }
   }
