@@ -1,30 +1,14 @@
 $(function () {
   var schemePrefArray = ['Empty'];
   var firstEmptyPosition = $.inArray('Empty', schemePrefArray);
-  var preferencesAs123 = ['1st', '2nd', '3rd', '4th', '5th', '6th',
-    '7th', '8th', '9th', '10th', '11th', '12th', '13th', '14th',
-    '15th', '16th', '17th'
-  ];
-  var numberOfSchemas = preferencesAs123.length;
-  var preferencesAsText = [
-    '1st preference',
-    '2nd preference',
-    '3rd preference',
-    '4th preference',
-    '5th preference',
-    '6th preference',
-    '7th preference',
-    '8th preference',
-    '9th preference',
-    '10th preference',
-    '11th preference',
-    '12th preference',
-    '13th preference',
-    '14th preference',
-    '15th preference',
-    '16th preference',
-    '17th preference'
-  ];
+  var maxSchemes = 3;
+  var numberOfSchemas = $('[data-schemename]').length;
+
+  function getGetOrdinal(n) {
+    var s=["th","st","nd","rd"],
+    v=n%100;
+    return n+(s[(v-20)%10]||s[v]||s[0]);
+  }
 
   $('[data-schemename]').on('change', function () {
     var $this = $(this);
@@ -57,7 +41,7 @@ $(function () {
         $('#selectedPrefList li').eq(arrayPositionNow).after(
           '<li class="med-btm-margin scheme-prefcontainer" data-scheme-id="' +
           thisSchemeID + '"><span data-schemeorder>' +
-          preferencesAsText[arrayPositionNow] +
+          getGetOrdinal(arrayPositionNow + 1) +
           '</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
           thisScheme +
           '</span><p>You\'re eligible as a current civil servant</p>' +
@@ -68,8 +52,8 @@ $(function () {
         $('#selectedPrefList li').eq(arrayPositionNow).after(
           '<li class="med-btm-margin scheme-prefcontainer" data-scheme-id="' +
           thisSchemeID + '"><span data-schemeorder>' +
-          preferencesAsText[arrayPositionNow] +
-          '</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
+          getGetOrdinal(arrayPositionNow + 1) +
+          ' preference</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
           thisScheme + '</span>' + specialEligibility +
           '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove <span class="visuallyhidden">' + thisScheme + '</span></a>' +
           '</div>'
@@ -77,7 +61,12 @@ $(function () {
       }
 
       $this.closest('.scheme-container').addClass('selected-scheme')
-        .find('.selected-preference').text(preferencesAs123[arrayPositionNow]).removeClass('invisible');
+        .find('.selected-preference').text(getGetOrdinal(arrayPositionNow + 1)).removeClass('invisible');
+
+      if($('[data-schemename]:checked').length == maxSchemes) {
+        $('[data-schemename]:not(:checked)').attr('disabled', true).closest('label').addClass('disabled');
+        $('#selectedPrefList').after('<div id="schemeWarning" class="panel-info standard-panel"><p>You\'ve chosen the maximum number of schemes</p></div>');
+      }
     }
 
     if (!$this.is(':checked')) {
@@ -89,6 +78,9 @@ $(function () {
       $this.closest('.scheme-container').removeClass(
         'selected-scheme').find('.selected-preference').text(
         'N/A').addClass('invisible');
+
+      $('[data-schemename]:not(:checked)').attr('disabled', false).closest('label').removeClass('disabled');
+      $('#schemeWarning').remove();
     }
 
     var chosenPreferences = $('[data-schemeorder]').map(function () {
@@ -98,11 +90,6 @@ $(function () {
     var arrayOfChosen = $.makeArray(chosenPreferences);
     var differenceArray = [];
     var initialVal = 0;
-    $.grep(preferencesAsText, function (el) {
-      if ($.inArray(el, arrayOfChosen) === -1)
-        differenceArray.push(el);
-      initialVal++;
-    });
 
     if (differenceArray[0] === undefined) {
       $('#chosenLimit').removeClass('hidden');
@@ -142,7 +129,7 @@ $(function () {
   });
 
   function selectSchemes() {
-    for (i = 0; i < numberOfSchemas; i++) {
+    for (i = 0; i < numberOfSchemes; i++) {
       var scheme = $('#scheme_' + i).val();
       if (scheme !== '') {
         var sid = "#schemes_" + scheme;
