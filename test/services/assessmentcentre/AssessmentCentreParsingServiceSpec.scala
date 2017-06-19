@@ -27,7 +27,7 @@ class AssessmentCentreParsingServiceSpec extends BaseServiceSpec {
       val events: Seq[Event] = service.processCentres().futureValue
 
       events.size mustBe 2
-      events.head.eventType mustBe EventType.FAST_STREAM_ASSESSMENT_CENTRE
+      events.head.eventType mustBe EventType.FSAC
       events(1).skillRequirements.getOrElse("QUALITY_ASSURANCE_COORDINATOR", "--") mustBe 0
     }
 

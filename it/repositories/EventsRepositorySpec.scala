@@ -10,16 +10,16 @@ class EventsRepositorySpec extends MongoRepositorySpec {
   override val collectionName: String = CollectionNames.ASSESSMENT_EVENTS
   lazy val repository = repositories.eventsRepository
   val events = List(
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FAST_STREAM_ASSESSMENT_CENTRE, location = "London",
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "London",
       venue = VenueType.LONDON_FSAC.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
 
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FAST_STREAM_ASSESSMENT_CENTRE, location = "London",
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "London",
       venue = VenueType.LONDON_FSAC.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
       skillRequirements = Map()),
 
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.EDIP_TELEPHONE_INTERVIEW, location = "London",
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.TELEPHONE_INTERVIEW, location = "London",
       venue = VenueType.LONDON_FSAC.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
       skillRequirements = Map()),
@@ -28,7 +28,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       venue = VenueType.NEWCASTLE_LONGBENTON.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
 
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FAST_STREAM_ASSESSMENT_CENTRE, location = "Newcastle",
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "Newcastle",
       venue = VenueType.NEWCASTLE_LONGBENTON.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map())
 
@@ -43,13 +43,13 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "save and fetch events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FAST_STREAM_ASSESSMENT_CENTRE, VenueType.LONDON_FSAC).futureValue
+      val result = repository.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC).futureValue
       result.size mustBe 2
     }
 
     "filter FSAC in LONDON_FSAC events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FAST_STREAM_ASSESSMENT_CENTRE, VenueType.LONDON_FSAC).futureValue
+      val result = repository.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC).futureValue
       result.size mustBe 2
       result.contains(events.head) mustBe true
       result.contains(events.tail.head) mustBe true
@@ -71,13 +71,13 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "filter FSAC in NEWCASTLE_LONGBENTON"  in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FAST_STREAM_ASSESSMENT_CENTRE, VenueType.ALL_VENUES).futureValue
+      val result = repository.fetchEvents(EventType.FSAC, VenueType.ALL_VENUES).futureValue
       result.size mustBe 3
     }
 
     "filter and return empty list" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FAST_STREAM_ASSESSMENT_CENTRE, VenueType.NEWCASTLE_FSAC).futureValue
+      val result = repository.fetchEvents(EventType.FSAC, VenueType.NEWCASTLE_FSAC).futureValue
 
       result.size mustBe 0
     }
