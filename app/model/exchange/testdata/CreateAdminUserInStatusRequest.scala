@@ -18,13 +18,13 @@ package model.exchange.testdata
 
 import play.api.libs.json.{ Json, OFormat }
 
-case class CreateAdminUserStatusRequest(emailPrefix: Option[String], firstName: Option[String], lastName: Option[String],
-                                   preferredName: Option[String], role: Option[String], phone: Option[String],
-                                   assessor: Option[AssessorDataRequest]) {
+case class CreateAdminUserInStatusRequest(emailPrefix: Option[String], firstName: Option[String], lastName: Option[String],
+                                          preferredName: Option[String], role: Option[String], phone: Option[String],
+                                          assessor: Option[AssessorDataRequest]) {
 }
 
-object CreateAdminUserStatusRequest {
-  implicit val createAdminUserStatusRequestFormat: OFormat[CreateAdminUserStatusRequest] = Json.format[CreateAdminUserStatusRequest]
+object CreateAdminUserInStatusRequest {
+  implicit val createAdminUserStatusRequestFormat: OFormat[CreateAdminUserInStatusRequest] = Json.format[CreateAdminUserInStatusRequest]
 }
 
 case class AssessorDataRequest(skills: Option[List[String]] = None, civilServant: Option[Boolean] = None)

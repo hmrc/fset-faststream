@@ -39,7 +39,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.events.{ EventService, EventServiceFixture }
+import services.events.{ AuditEventService, EventServiceFixture }
 import testkit.{ ExtendedTimeout, UnitWithAppSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -705,7 +705,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
-    val eventServiceMock = mock[EventService]
+    val eventServiceMock = mock[AuditEventService]
 
     when(tokenFactoryMock.generateUUID()).thenReturn(token)
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)

@@ -41,7 +41,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
-import services.events.{ EventService, EventServiceFixture }
+import services.events.{ AuditEventService, EventServiceFixture }
 import services.onlinetesting.Exceptions.CannotResetPhase2Tests
 import services.onlinetesting.phase3.Phase3TestService
 import testkit.{ ExtendedTimeout, UnitSpec }
@@ -829,7 +829,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val emailClientMock = mock[CSREmailClient]
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
-    val eventServiceMock = mock[EventService]
+    val eventServiceMock = mock[AuditEventService]
     val phase3TestServiceMock = mock[Phase3TestService]
 
     val tokens = UUIDFactory.generateUUID :: UUIDFactory.generateUUID :: Nil

@@ -29,7 +29,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.events.{EventService, EventSink}
+import services.events.{AuditEventService, EventSink}
 import services.onlinetesting.Exceptions.TestExtensionException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -41,7 +41,7 @@ object OnlineTestExtensionService extends OnlineTestExtensionService {
   val otRepository = phase1TestRepository
   val auditService = AuditService
   val dateTimeFactory = DateTimeFactory
-  val eventService = EventService
+  val eventService = AuditEventService
 }
 
 trait OnlineTestExtensionService extends EventSink {

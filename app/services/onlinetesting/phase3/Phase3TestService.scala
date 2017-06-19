@@ -37,7 +37,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
-import services.events.EventService
+import services.events.AuditEventService
 import services.onlinetesting.Exceptions.NoActiveTestException
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
@@ -60,7 +60,7 @@ object Phase3TestService extends Phase3TestService {
   val emailClient = Phase3OnlineTestEmailClient
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
-  val eventService = EventService
+  val eventService = AuditEventService
 
 }
 

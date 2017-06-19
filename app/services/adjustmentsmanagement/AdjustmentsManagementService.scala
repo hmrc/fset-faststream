@@ -26,7 +26,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.events.{ EventService, EventSink }
+import services.events.{ AuditEventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,7 +34,7 @@ import scala.concurrent.Future
 
 object AdjustmentsManagementService extends AdjustmentsManagementService {
   val appRepository = applicationRepository
-  val eventService = EventService
+  val eventService = AuditEventService
   val cdRepository = faststreamContactDetailsRepository
 }
 

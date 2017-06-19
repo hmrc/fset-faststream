@@ -80,7 +80,7 @@ package object repositories {
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
   lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
   lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
-  lazy val eventMongoRepository = new EventMongoRepository
+  lazy val auditEventMongoRepository = new AuditEventMongoRepository
   lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorRepository = new AssessorMongoRepository()

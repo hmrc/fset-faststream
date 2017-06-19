@@ -24,7 +24,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.events.{ EventService, EventSink }
+import services.events.{ AuditEventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -38,7 +38,7 @@ object SubmitApplicationController extends SubmitApplicationController {
   override val frameworkPrefRepository: FrameworkPreferenceMongoRepository = frameworkPreferenceRepository
   override val frameworkRegionsRepository: FrameworkRepository = frameworkRepository
   override val appRepository: GeneralApplicationRepository = applicationRepository
-  override val eventService: EventService = EventService
+  override val eventService: AuditEventService = AuditEventService
 }
 
 trait SubmitApplicationController extends BaseController with EventSink {

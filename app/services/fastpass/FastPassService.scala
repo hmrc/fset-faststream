@@ -25,7 +25,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.events.{ EventService, EventSink }
+import services.events.{ AuditEventService, EventSink }
 import services.personaldetails.PersonalDetailsService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -35,7 +35,7 @@ import scala.concurrent.Future
 object FastPassService extends FastPassService {
   override val appRepo = applicationRepository
   override val personalDetailsService = PersonalDetailsService
-  override val eventService: EventService = EventService
+  override val eventService: AuditEventService = AuditEventService
   override val emailClient = CSREmailClient
   override val cdRepository = faststreamContactDetailsRepository
   override val csedRepository = civilServiceExperienceDetailsRepository
@@ -53,7 +53,7 @@ trait FastPassService extends EventSink {
 
   val appRepo: GeneralApplicationRepository
   val personalDetailsService: PersonalDetailsService
-  val eventService: EventService
+  val eventService: AuditEventService
   val emailClient: OnlineTestEmailClient
   val cdRepository: ContactDetailsRepository
   val csedRepository: CivilServiceExperienceDetailsRepository

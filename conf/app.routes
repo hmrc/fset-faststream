@@ -127,3 +127,10 @@ GET         /assessment-schedule                                         control
 # Assessment Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
 GET         /events/:venue/:eventType                                    controllers.EventsController.fetchEvents(eventType: String, venue: String)
+
+# Day aggregate availability
+GET         /day-aggregate-events/skills/:skills                         controllers.DayAggregateEventController.findBySkills(skills: String)
+GET         /day-aggregate-events/location/:location/skills/:skills      controllers.DayAggregateEventController.findBySkillsAndLocation(skills: String, location: String)
+
+# Reference data
+GET         /reference/skills                                            controllers.reference.ReferenceDataController.allSkills

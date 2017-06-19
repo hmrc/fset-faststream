@@ -30,7 +30,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.parity.{ ApplicationReadyForExport, ParityExportRepository }
 import services.application.ApplicationService
-import services.events.{ EventService, EventSink }
+import services.events.{ AuditEventService, EventSink }
 import services.parity.ParityExportService.ParityExportException
 import services.reporting.{ SocioEconomicCalculator, SocioEconomicScoreCalculator }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -39,7 +39,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object ParityExportService extends ParityExportService {
-  val eventService = EventService
+  val eventService = AuditEventService
   val parityExRepository = parityExportRepository
   val parityGatewayConfig = MicroserviceAppConfig.parityGatewayConfig
   val parityGatewayClient = ParityGatewayClient

@@ -20,21 +20,21 @@ import model.events.EventTypes.{ EventType, Events }
 import model.events.{ AuditEvent, DataStoreEvent, EmailEvent }
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import services.events.handler.{ AuditEventHandler, EmailEventHandler, DataStoreEventHandler }
+import services.events.handler.{ AuditEventHandler, EmailEventHandler, DataStoreAuditEventHandler }
 import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.language.implicitConversions
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object EventService extends EventService {
-  val dataStoreEventHandler: DataStoreEventHandler = DataStoreEventHandler
+object AuditEventService extends AuditEventService {
+  val dataStoreEventHandler: DataStoreAuditEventHandler = DataStoreAuditEventHandler
   val auditEventHandler: AuditEventHandler = AuditEventHandler
   val emailEventHandler: EmailEventHandler = EmailEventHandler
 }
 
-trait EventService {
-  protected[events] val dataStoreEventHandler: DataStoreEventHandler
+trait AuditEventService {
+  protected[events] val dataStoreEventHandler: DataStoreAuditEventHandler
   protected[events] val auditEventHandler: AuditEventHandler
   protected[events] val emailEventHandler: EmailEventHandler
 
@@ -58,7 +58,7 @@ trait EventService {
 }
 
 trait EventSink {
-  val eventService: EventService
+  val eventService: AuditEventService
 
   def eventSink(block: => Future[Events])(implicit hc: HeaderCarrier, rh: RequestHeader) = block.flatMap { events =>
     eventService.handle(events)

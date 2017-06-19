@@ -34,7 +34,7 @@ import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-import services.events.EventService
+import services.events.AuditEventService
 import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -56,7 +56,7 @@ object Phase1TestService extends Phase1TestService {
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
-  val eventService = EventService
+  val eventService = AuditEventService
 }
 
 trait Phase1TestService extends OnlineTestService with Phase1TestConcern with ResetPhase1Test {

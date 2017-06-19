@@ -36,7 +36,7 @@ import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
-import services.events.EventService
+import services.events.AuditEventService
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, NoActiveTestException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.OnlineTestService
@@ -60,7 +60,7 @@ object Phase2TestService extends Phase2TestService {
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
-  val eventService = EventService
+  val eventService = AuditEventService
   val authProvider = AuthProviderClient
   val phase3TestService = Phase3TestService
 }

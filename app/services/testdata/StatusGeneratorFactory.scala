@@ -21,7 +21,7 @@ import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
 import model.ProgressStatuses
 import model.ProgressStatuses.ProgressStatus
 import model.command.testdata.GeneratorConfig
-import model.exchange.testdata.{ CreateAdminUserStatusData, CreateAdminUserStatusRequest }
+import model.exchange.testdata.{ CreateAdminUserStatusData, CreateAdminUserInStatusRequest }
 import services.testdata.adminusers.{ AdminCreatedStatusGenerator, AdminUserBaseGenerator, AssessorCreatedStatusGenerator }
 import services.testdata.onlinetests._
 import services.testdata.onlinetests.phase1._

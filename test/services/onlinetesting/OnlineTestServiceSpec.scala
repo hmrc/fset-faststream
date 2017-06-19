@@ -35,7 +35,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.events.{ EventService, EventServiceFixture }
+import services.events.{ AuditEventService, EventServiceFixture }
 import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -281,7 +281,7 @@ class OnlineTestServiceSpec extends UnitSpec {
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
-    val eventServiceMock = mock[EventService]
+    val eventServiceMock = mock[AuditEventService]
 
     val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
     val userId = "353bffd0-447e-47f6-b581-6e37ab2906af"

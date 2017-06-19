@@ -21,7 +21,7 @@ import connectors.AuthProviderClient._
 import model.exchange.testdata.DataGenerationResponse.DataGenerationResponse
 import model.{ ApplicationRoute, ApplicationStatus }
 import model.command.testdata.{ GeneratorConfig, PersonalData, StatusData }
-import model.exchange.testdata.{ CreateAdminUserDataGenerationResponse, CreateAdminUserStatusData, CreateAdminUserStatusRequest }
+import model.exchange.testdata.{ CreateAdminUserDataGenerationResponse, CreateAdminUserStatusData, CreateAdminUserInStatusRequest }
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.MongoDbConnection

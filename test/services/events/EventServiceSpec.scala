@@ -25,7 +25,7 @@ import org.mockito.Mockito._
 import org.scalatest.MustMatchers
 import org.scalatest.mock.MockitoSugar
 import play.api.mvc.RequestHeader
-import services.events.handler.{ AuditEventHandler, DataStoreEventHandler, EmailEventHandler }
+import services.events.handler.{ AuditEventHandler, DataStoreAuditEventHandler, EmailEventHandler }
 import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -47,11 +47,11 @@ class EventServiceSpec extends UnitSpec with EventServiceFixture {
 
 trait EventServiceFixture extends MockitoSugar with MustMatchers {
 
-  val dataStoreEventHandlerMock = mock[DataStoreEventHandler]
+  val dataStoreEventHandlerMock = mock[DataStoreAuditEventHandler]
   val auditEventHandlerMock = mock[AuditEventHandler]
   val emailEventHandlerMock = mock[EmailEventHandler]
 
-  val eventServiceMock = new EventService {
+  val eventServiceMock = new AuditEventService {
     val dataStoreEventHandler = dataStoreEventHandlerMock
     val auditEventHandler = auditEventHandlerMock
     val emailEventHandler = emailEventHandlerMock

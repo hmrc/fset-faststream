@@ -24,7 +24,7 @@ case class CreateAdminUserStatusData(email: String, firstName: String, lastName:
                                      preferredName: String, role: String, phone: Option[String], assessor: Option[AssessorData])
 
 object CreateAdminUserStatusData {
-  def apply(createRequest: CreateAdminUserStatusRequest)(generatorId: Int): CreateAdminUserStatusData = {
+  def apply(createRequest: CreateAdminUserInStatusRequest)(generatorId: Int): CreateAdminUserStatusData = {
 
     val role = createRequest.role.getOrElse("admin")
     val username = s"test_${role}_${createRequest.emailPrefix.getOrElse(Random.number(Some(10000)))}a$generatorId"

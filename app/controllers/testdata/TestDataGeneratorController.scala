@@ -131,7 +131,7 @@ trait TestDataGeneratorController extends BaseController {
   // scalastyle:on method.length
 
   def requestAdminExample = Action { implicit request =>
-    val example = CreateAdminUserStatusRequest(
+    val example = CreateAdminUserInStatusRequest(
       emailPrefix = Some("admin_user"),
       firstName = Some("Admin user 1"),
       lastName = Some("lastname"),
@@ -159,7 +159,7 @@ trait TestDataGeneratorController extends BaseController {
   }
 
   def createAdminUsersInStatusPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[CreateAdminUserStatusRequest] { createRequest =>
+    withJsonBody[CreateAdminUserInStatusRequest] { createRequest =>
       createAdminUserInStatus(CreateAdminUserStatusData.apply(createRequest), numberToGenerate)
     }
   }

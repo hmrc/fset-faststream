@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.exchange
 
-import org.joda.time.DateTime
+import model.persisted.eventschedules.SkillType._
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class Event(name: String,
-                 created: DateTime,
-                 applicationId: Option[String],
-                 userId: Option[String],
-                 createdBy: Option[String] = None)
 
-object Event {
-  import repositories.BSONDateTimeHandler
-  implicit val eventFormat = Json.format[Event]
-  implicit val eventHandler: BSONHandler[BSONDocument, Event] = Macros.handler[Event]
+case class AssessorSkill(name: SkillType, label: String)
+
+object AssessorSkill {
+
+  implicit val assessorSkillFormatter = Json.format[AssessorSkill]
+
+  val AllSkillsWithLabels = List(
+    AssessorSkill(ASSESSOR, "Assessor"),
+    AssessorSkill(DEPARTMENTAL_ASSESSOR, "Departamental Assessor"),
+    AssessorSkill(CHAIR, "Chair"),
+    AssessorSkill(EXERCISE_MARKER, "Exercise Marker"),
+    AssessorSkill(QUALITY_ASSURANCE_COORDINATOR, "Quality Assurance Coordinator"),
+    AssessorSkill(SIFTER, "Sifter")
+  )
 }

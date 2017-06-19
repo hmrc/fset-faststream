@@ -38,7 +38,7 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.events.{ EventService, EventSink }
+import services.events.{ AuditEventService, EventSink }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -48,7 +48,7 @@ import scala.util.{ Failure, Success, Try }
 
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository
-  val eventService = EventService
+  val eventService = AuditEventService
   val pdRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val mediaRepo = mediaRepository
