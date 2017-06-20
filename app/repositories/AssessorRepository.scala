@@ -16,11 +16,10 @@
 
 package repositories
 
-import model.persisted.Assessor
+import model.persisted.assessor.{ Assessor, AssessorStatus }
 import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.bson._
-import services.assessoravailability.AssessorService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -54,6 +53,8 @@ class AssessorMongoRepository(implicit mongo: () => DB)
   }
 
   override def save(assessor: Assessor): Future[Unit] = {
+    require(assessor.availability.isEmpty || assessor.status == AssessorStatus.AVAILABILITIES_SUBMITTED,
+      "Can't submit assessor availabilities with new status")
     val query = BSONDocument("userId" -> assessor.userId)
     val saveBson: BSONDocument = BSONDocument("$set" -> assessor)
     val insertIfNoRecordFound = true
@@ -63,13 +64,8 @@ class AssessorMongoRepository(implicit mongo: () => DB)
   }
 
   override def countSubmittedAvailability: Future[Int] = {
-    AssessorService.regions.map { regions =>
-      regions.map { region =>
-        s"availability.$region" -> Json.toJsFieldJsValueWrapper(Json.obj("$exists" -> true))
-      }
-    }.flatMap { fields =>
-      val query = Json.obj(fields.toSeq: _*)
-      collection.count(Some(query))
-    }
+    val query = Json.obj(Seq("status" -> Json.toJsFieldJsValueWrapper(AssessorStatus.AVAILABILITIES_SUBMITTED.toString)): _*)
+    collection.count(Some(query))
   }
+
 }

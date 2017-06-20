@@ -28,4 +28,5 @@ trait ReferenceDataController extends BaseController {
   def allSkills: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(AssessorSkill.AllSkillsWithLabels))
   }
+
 }

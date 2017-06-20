@@ -16,23 +16,19 @@
 
 package services.assessor
 
-import model.command.AssistanceDetailsExchangeExamples
-import model.exchange.{ Assessor, AssessorAvailability }
-import model.persisted.AssessorExamples
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito._
-import repositories.{ AssessmentCentreRepository, AssessmentCentreYamlRepository, AssessorRepository }
-import repositories.assistancedetails.AssistanceDetailsRepository
-import services.BaseServiceSpec
-import services.assessoravailability.AssessorService
-import services.assistancedetails.AssistanceDetailsService
-
-import scala.concurrent.duration._
-import AssessorExamples._
 import model.Exceptions
 import model.Exceptions.AssessorNotFoundException
+import model.exchange.{ Assessor, AssessorAvailability }
+import model.persisted.AssessorExamples._
+import org.mockito.ArgumentMatchers.{ eq => eqTo }
+import org.mockito.Mockito._
+import repositories.{ AssessmentCentreRepository, AssessorRepository }
+import services.BaseServiceSpec
+import services.assessoravailability.AssessorService
 
+import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
+import scala.language.postfixOps
 
 class AssessorServiceSpec extends BaseServiceSpec {
 
