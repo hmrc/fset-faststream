@@ -42,13 +42,20 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   this: ReactiveRepository[ApplicationReadyForEvaluation, _] =>
 
   val phase: Phase
-  val evaluationApplicationStatuses: List[ApplicationStatus]
+  val evaluationApplicationStatuses: Set[ApplicationStatus]
   val evaluationProgressStatus: ProgressStatus
   val expiredProgressStatus: ProgressStatus
 
   implicit val applicationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation]
 
   val nextApplicationQuery: String => BSONDocument
+
+  def validEvaluationPhaseStatuses(phase: ApplicationStatus): Set[ApplicationStatus] = {
+    val failStatusesToIgnore = List(ApplicationStatus.PHASE1_TESTS_FAILED, ApplicationStatus.PHASE2_TESTS_FAILED)
+    ApplicationStatus.values.filter(s =>
+      s >= phase && s < ApplicationStatus.PHASE3_TESTS_FAILED)
+      .filterNot(failStatusesToIgnore.contains(_))
+  }
 
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] =
     selectRandom[ApplicationReadyForEvaluation](nextApplicationQuery(currentPassmarkVersion), batchSize)
@@ -128,7 +135,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments{
 
   val phase = PHASE1
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS)
+  val evaluationApplicationStatuses = validEvaluationPhaseStatuses(ApplicationStatus.PHASE1_TESTS)
   val evaluationProgressStatus = ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED
   val expiredProgressStatus = ProgressStatuses.PHASE1_TESTS_EXPIRED
 
@@ -176,7 +183,7 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
 
   val phase = PHASE2
   val prevPhase = PHASE1
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE2_TESTS)
+  val evaluationApplicationStatuses = validEvaluationPhaseStatuses(ApplicationStatus.PHASE2_TESTS)
   val evaluationProgressStatus = ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED
   val expiredProgressStatus = ProgressStatuses.PHASE2_TESTS_EXPIRED
 
@@ -213,7 +220,7 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
 
   val phase = PHASE3
   val prevPhase = PHASE2
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
+  val evaluationApplicationStatuses = validEvaluationPhaseStatuses(ApplicationStatus.PHASE3_TESTS)
   val evaluationProgressStatus = ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
   val expiredProgressStatus = ProgressStatuses.PHASE3_TESTS_EXPIRED
 
