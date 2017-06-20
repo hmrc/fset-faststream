@@ -16,36 +16,28 @@
 
 package controllers
 
-import model.persisted.eventschedules.{ Event, SkillType }
-import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
-import play.api.libs.json.Json
-import play.api.mvc.Action
-import reactivemongo.bson.Macros
+import play.api.libs.json.{ Json, OFormat }
+import play.api.mvc.{ Action, AnyContent }
 import repositories.events.EventsRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object DayAggregateEventController extends DayAggregateEventController {
+
   override val eventsRepository: EventsRepository = repositories.eventsRepository
 
 }
 
-case class DayAggregateEvent(date: LocalDate, location: String)
-
-object DayAggregateEvent {
-  implicit val dayAggregateEventFormat = Json.format[DayAggregateEvent]
-}
-
 trait DayAggregateEventController extends BaseController {
-  val eventsRepository: EventsRepository
+  def eventsRepository: EventsRepository
 
-  def findBySkills(skills: String) = Action.async { implicit request =>
+  def findBySkills(skills: String): Action[AnyContent] = Action.async { implicit request =>
     find(Some(skills), None)
   }
 
-  def findBySkillsAndLocation(skills: String, location: String) = Action.async { implicit request =>
+  def findBySkillsAndLocation(skills: String, location: String): Action[AnyContent] = Action.async { implicit request =>
     find(Some(skills), Some(location))
   }
 
@@ -57,4 +49,10 @@ trait DayAggregateEventController extends BaseController {
         Ok(Json.toJson(dayAggregateDays))
       }
   }
+}
+
+case class DayAggregateEvent(date: LocalDate, location: String)
+
+object DayAggregateEvent {
+  implicit val dayAggregateEventFormat: OFormat[DayAggregateEvent] = Json.format[DayAggregateEvent]
 }

@@ -1,28 +1,14 @@
 package repositories
 
-import factories.UUIDFactory
-import model.persisted.eventschedules.{ Event, EventType, VenueType }
-import org.joda.time.{ LocalDate, LocalTime }
+import model.persisted.EventExamples
+import model.persisted.eventschedules.{ EventType, VenueType }
 import testkit.MongoRepositorySpec
 
 class EventsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.ASSESSMENT_EVENTS
   lazy val repository = repositories.eventsRepository
-  val events = List(
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "London",
-      venue = VenueType.LONDON_FSAC.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
-
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "London",
-      venue = VenueType.LONDON_FSAC.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      skillRequirements = Map()),
-
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.SKYPE_INTERVIEW, location = "Newcastle",
-      venue = VenueType.NEWCASTLE_LONGBENTON.toString, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map())
-  )
+  val events = EventExamples.EventsNew
 
   "Assessment Events" should {
     "create indexes for the repository" in {
@@ -33,13 +19,13 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "save and fetch events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), Some(VenueType.LONDON_FSAC)).futureValue
       result.size mustBe 2
     }
 
     "filter FSAC in LONDON_FSAC events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), Some(VenueType.LONDON_FSAC)).futureValue
       result.size mustBe 2
       result.contains(events.head) mustBe true
       result.contains(events.tail.head) mustBe true
@@ -47,15 +33,34 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "filter SKYPE_INTERVIEW in NEWCASTLE_LONGBENTON " in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.SKYPE_INTERVIEW, VenueType.NEWCASTLE_LONGBENTON).futureValue
+      val result = repository.fetchEvents(Some(EventType.SKYPE_INTERVIEW), Some(VenueType.NEWCASTLE_LONGBENTON)).futureValue
 
       result.size mustBe 1
       result.head.venue mustBe VenueType.NEWCASTLE_LONGBENTON.toString
     }
 
+    "filter by skills" in {
+      repository.save(events).futureValue
+      val result = repository.fetchEvents(None, None, None, Some(List("QAC"))).futureValue
+
+      result.size mustBe 1
+      result.head.venue mustBe VenueType.LONDON_FSAC.toString
+
+    }
+
+    "filter by skills and Location" in {
+      repository.save(events).futureValue
+      val result = repository.fetchEvents(None, None, Some("Newcastle"), Some(List("ASSESSOR"))).futureValue
+
+      result.size mustBe 1
+      result.head.venue mustBe VenueType.NEWCASTLE_LONGBENTON.toString
+
+    }
+
+
     "filter and return empty list" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FSAC, VenueType.NEWCASTLE_FSAC).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), Some(VenueType.NEWCASTLE_FSAC)).futureValue
 
       result.size mustBe 0
     }

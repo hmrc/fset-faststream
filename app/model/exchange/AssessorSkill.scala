@@ -28,7 +28,7 @@ object AssessorSkill {
 
   val AllSkillsWithLabels = List(
     AssessorSkill(ASSESSOR, "Assessor"),
-    AssessorSkill(DEPARTMENTAL_ASSESSOR, "Departamental Assessor"),
+    AssessorSkill(DEPARTMENTAL_ASSESSOR, "Departmental Assessor"),
     AssessorSkill(CHAIR, "Chair"),
     AssessorSkill(EXERCISE_MARKER, "Exercise Marker"),
     AssessorSkill(QUALITY_ASSURANCE_COORDINATOR, "Quality Assurance Coordinator"),

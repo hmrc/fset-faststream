@@ -36,7 +36,7 @@ trait EventsController extends BaseController {
   val assessmentCenterParsingService: AssessmentCentreParsingService
 
   def saveAssessmentEvents() = Action.async { implicit request =>
-    assessmentCenterParsingService.processCentres().flatMap{ events =>
+    assessmentCenterParsingService.processCentres().flatMap { events =>
       Logger.debug("Events have been processed!")
       assessmentEventsRepository.save(events)
     }.map(_ => Created).recover { case _ => UnprocessableEntity }
@@ -47,7 +47,6 @@ trait EventsController extends BaseController {
     val eventType = EventType.withName(eventTypeParam.toUpperCase)
     val venue = VenueType.withName(venueParam.toUpperCase)
 
-    assessmentEventsRepository.fetchEvents(Some(eventType), Some(venue), None, None)
-      .map(events => Ok(Json.toJson(events)))
+    assessmentEventsRepository.fetchEvents(Some(eventType), Some(venue), None, None).map(events => Ok(Json.toJson(events)))
   }
 }

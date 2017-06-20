@@ -16,8 +16,7 @@
 
 package repositories.events
 
-import model.persisted.eventschedules.SkillType.SkillType
-import model.persisted.eventschedules.{ Event, EventType, SkillType, VenueType }
+import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.CollectionNames
@@ -29,26 +28,31 @@ import scala.concurrent.Future
 
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
-  def fetchEvents(eventType: Option[EventType.Value], venueType: Option[VenueType.Value],
-                  location: Option[String], skills: Option[List[String]])
+
+  def fetchEvents(eventType: Option[EventType.Value] = None,
+                  venueType: Option[VenueType.Value] = None,
+                  location: Option[String] = None,
+                  skills: Option[List[String]] = None)
   : Future[List[Event]]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Event, BSONObjectID](CollectionNames.ASSESSMENT_EVENTS,
     mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
-  with EventsRepository {
+    with EventsRepository {
 
   override def save(events: List[Event]): Future[Unit] = {
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
       .map(_ => ())
   }
 
-  override def fetchEvents(eventType: Option[EventType.Value], venueType: Option[VenueType.Value],
-                           location: Option[String], skills: Option[List[String]]): Future[List[Event]] = {
-    val eventTypeQuery = eventType.map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString)}
-    val venueTypeQuery = venueType.map { venueTypeVal => BSONDocument("venueType" -> venueTypeVal.toString)}
-    val locationQuery = location.map { locationVal => BSONDocument("location" -> locationVal)}
+  override def fetchEvents(eventType: Option[EventType.Value] = None,
+                           venueType: Option[VenueType.Value] = None,
+                           location: Option[String] = None,
+                           skills: Option[List[String]] = None): Future[List[Event]] = {
+    val eventTypeQuery = eventType.map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) }
+    val venueTypeQuery = venueType.map { venueTypeVal => BSONDocument("venue" -> venueTypeVal.toString) }
+    val locationQuery = location.map { locationVal => BSONDocument("location" -> locationVal) }
     val skillsQuery = skills.map { skillsVal =>
       val skillsPartialQueries = skillsVal.map { skillVal =>
         s"skillRequirements.$skillVal" -> BSONDocument("$gte" -> 1)
