@@ -38,12 +38,12 @@ class EventsMongoRepository(implicit mongo: () => DB)
     mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
   with EventsRepository {
 
-  override def save(events: List[Event]): Future[Unit] = {
+  def save(events: List[Event]): Future[Unit] = {
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
       .map(_ => ())
   }
 
-  override def fetchEvents(eventType: EventType, venue: VenueType): Future[List[Event]] = {
+  def fetchEvents(eventType: EventType, venue: VenueType): Future[List[Event]] = {
     val query = List(
       Option(eventType).filterNot(_ == EventType.ALL_EVENTS).map(e => BSONDocument("eventType" -> e)),
       Option(venue).filterNot(_ == VenueType.ALL_VENUES).map(v => BSONDocument("venue" -> v))

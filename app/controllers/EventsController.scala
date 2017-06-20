@@ -27,8 +27,8 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
-  override val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
-  override val assessmentCenterParsingService: EventsParsingService = EventsParsingService
+  val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
+  val assessmentCenterParsingService: EventsParsingService = EventsParsingService
 }
 
 trait EventsController extends BaseController {
