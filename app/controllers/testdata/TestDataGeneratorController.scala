@@ -18,18 +18,27 @@ package controllers.testdata
 
 import java.io.File
 
-import com.typesafe.config.ConfigFactory
 import config.MicroserviceAppConfig
 import connectors.AuthProviderClient
+import factories.UUIDFactory
 import model.Exceptions.EmailTakenException
-import model.command.testdata.GeneratorConfig
+import model.command.testdata._
 import model.exchange.testdata._
 import model._
+import model.command.testdata.CreateAdminUserInStatusRequest.{ AssessorRequest, CreateAdminUserInStatusRequest }
+import model.command.testdata.CreateCandidateInStatusRequest.{ CreateCandidateInStatusRequest, _ }
+import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.persisted.PassmarkEvaluation
+import model.persisted.eventschedules.EventType
+import model.testdata.CreateAdminUserInStatusData.CreateAdminUserInStatusData
+import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateEventData.CreateEventData
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.Play
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 import play.api.mvc.{ Action, AnyContent, RequestHeader }
 import services.testdata._
+import services.testdata.candidate.{ AdminUserStatusGeneratorFactory, StatusGeneratorFactory }
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -52,7 +61,7 @@ trait TestDataGeneratorController extends BaseController {
   }
 
   // scalastyle:off method.length
-  def requestExample = Action { implicit request =>
+  def exampleCreateCandidateRequest = Action { implicit request =>
     val example = CreateCandidateInStatusRequest(
      statusData = StatusDataRequest(
        applicationStatus = ApplicationStatus.SUBMITTED.toString,
@@ -130,7 +139,7 @@ trait TestDataGeneratorController extends BaseController {
   }
   // scalastyle:on method.length
 
-  def requestAdminExample = Action { implicit request =>
+  def exampleCreateAdminUserRequest = Action { implicit request =>
     val example = CreateAdminUserInStatusRequest(
       emailPrefix = Some("admin_user"),
       firstName = Some("Admin user 1"),
@@ -138,10 +147,29 @@ trait TestDataGeneratorController extends BaseController {
       preferredName = Some("Ad"),
       role = Some("assessor"),
       phone = Some("123456789"),
-      assessor = Some(AssessorDataRequest(
+      assessor = Some(AssessorRequest(
         skills = Some(List("assessor", "qac")),
         civilServant = Some(true)
       ))
+    )
+
+    Ok(Json.toJson(example))
+  }
+
+  def exampleCreateEventRequest = Action { implicit request =>
+    val example = CreateEventRequest(
+      id = Some(UUIDFactory.generateUUID()),
+      eventType = Some(EventType.FSAC),
+      location = Some("London"),
+      venue = Some("London venue 1"),
+      date = Some(LocalDate.now),
+      capacity = Some(32),
+      minViableAttendees = Some(24),
+      attendeeSafetyMargin = Some(30),
+      startTime = Some(LocalTime.now()),
+      endTime = Some(LocalTime.now()),
+      skillRequirements = Some(Map("ASSESSOR" -> 4,
+      "CHAIR" -> 1))
     )
 
     Ok(Json.toJson(example))
@@ -160,7 +188,7 @@ trait TestDataGeneratorController extends BaseController {
 
   def createAdminUsersInStatusPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateAdminUserInStatusRequest] { createRequest =>
-      createAdminUserInStatus(CreateAdminUserStatusData.apply(createRequest), numberToGenerate)
+      createAdminUserInStatus(CreateAdminUserInStatusData.apply(createRequest), numberToGenerate)
     }
   }
 
@@ -168,11 +196,18 @@ trait TestDataGeneratorController extends BaseController {
 
   def createCandidatesInStatusPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateInStatusRequest] { createRequest =>
-      createCandidateInStatus(GeneratorConfig.apply(cubiksUrlFromConfig, createRequest), numberToGenerate)
+      createCandidateInStatus(CreateCandidateInStatusData.apply(cubiksUrlFromConfig, createRequest), numberToGenerate)
     }
   }
 
-  private def createCandidateInStatus(config: (Int) => GeneratorConfig, numberToGenerate: Int)
+  def createEvent(numberToGenerate: Int) : Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[CreateEventRequest] { createRequest =>
+      createEvent(CreateEventData.apply(createRequest), numberToGenerate)
+    }
+  }
+
+
+  private def createCandidateInStatus(config: (Int) => CreateCandidateInStatusData, numberToGenerate: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createCandidatesInSpecificStatus(
@@ -187,19 +222,34 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createAdminUserInStatus(createData: (Int) => CreateAdminUserStatusData, numberToGenerate: Int)
+  private def createAdminUserInStatus(createData: (Int) => CreateAdminUserInStatusData, numberToGenerate: Int)
                                      (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createAdminUserInSpecificStatus(
         numberToGenerate,
         AdminUserStatusGeneratorFactory.getGeneratorForAdminUsers,
         createData
-      ).map { candidates =>
-        Ok(Json.toJson(candidates))
+      ).map { adminUsers =>
+        Ok(Json.toJson(adminUsers))
       }
     } catch {
       case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
         JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+    }
+  }
+
+  private def createEvent(createData: (Int) => CreateEventData, numberToGenerate: Int)
+                                     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    try {
+      TestDataGeneratorService.createEvent(
+        numberToGenerate,
+        createData
+      ).map { events =>
+        Ok(Json.toJson(events))
+      }
+    } catch {
+      case _: Throwable => Future.successful(Conflict(JsObject(List(("message",
+        JsString("There was an exception creating the event"))))))
     }
   }
 }

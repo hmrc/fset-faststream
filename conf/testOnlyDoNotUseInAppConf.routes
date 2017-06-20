@@ -17,8 +17,10 @@ GET     /candidate-application/test-data-generator/clear-database           cont
 GET     /candidate-application/test-data-generator/create-admin-users       controllers.testdata.TestDataGeneratorController.createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String] ?= None, role: String ?= "tech-admin")
 POST    /candidate-application/test-data-generator/create-candidates        controllers.testdata.TestDataGeneratorController.createCandidatesInStatusPOST(numberToGenerate: Int)
 POST    /candidate-application/test-data-generator/create-admin-users       controllers.testdata.TestDataGeneratorController.createAdminUsersInStatusPOST(numberToGenerate: Int)
-GET     /candidate-application/test-data-generator/example                  controllers.testdata.TestDataGeneratorController.requestExample
-GET     /candidate-application/test-data-generator/admin-example            controllers.testdata.TestDataGeneratorController.requestAdminExample
+POST    /candidate-application/test-data-generator/create-event             controllers.testdata.TestDataGeneratorController.createEvent(numberToGenerate: Int)
+GET     /candidate-application/test-data-generator/example                  controllers.testdata.TestDataGeneratorController.exampleCreateCandidateRequest
+GET     /candidate-application/test-data-generator/admin-example            controllers.testdata.TestDataGeneratorController.exampleCreateAdminUserRequest
+GET     /candidate-application/test-data-generator/event-example            controllers.testdata.TestDataGeneratorController.exampleCreateEventRequest
 GET     /candidate-application/evaluate-phase1-candidate                    controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
 GET     /candidate-application/evaluate-phase2-candidate                    controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
 GET     /candidate-application/evaluate-phase3-candidate                    controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate

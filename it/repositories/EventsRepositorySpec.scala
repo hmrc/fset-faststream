@@ -33,13 +33,13 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "save and fetch events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), Some(VenueType.LONDON_FSAC), None, None).futureValue
       result.size mustBe 2
     }
 
     "filter FSAC in LONDON_FSAC events" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), Some(VenueType.LONDON_FSAC), None, None).futureValue
       result.size mustBe 2
       result.contains(events.head) mustBe true
       result.contains(events.tail.head) mustBe true
@@ -47,7 +47,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "filter SKYPE_INTERVIEW in NEWCASTLE_LONGBENTON " in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.SKYPE_INTERVIEW, VenueType.NEWCASTLE_LONGBENTON).futureValue
+      val result = repository.fetchEvents(Some(EventType.SKYPE_INTERVIEW), Some(VenueType.NEWCASTLE_LONGBENTON), None, None).futureValue
 
       result.size mustBe 1
       result.head.venue mustBe VenueType.NEWCASTLE_LONGBENTON.toString
@@ -55,7 +55,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "filter and return empty list" in {
       repository.save(events).futureValue
-      val result = repository.fetchEvents(EventType.FSAC, VenueType.NEWCASTLE_FSAC).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), Some(VenueType.NEWCASTLE_FSAC), None, None).futureValue
 
       result.size mustBe 0
     }

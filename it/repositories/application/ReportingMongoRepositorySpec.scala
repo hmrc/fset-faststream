@@ -16,7 +16,7 @@
 
 package repositories.application
 
-import _root_.services.testdata.{ StatusGeneratorFactory, TestDataGeneratorService }
+import _root_.services.testdata.TestDataGeneratorService
 import factories.UUIDFactory
 import model.ProgressStatuses.{ EXPORTED, PHASE3_TESTS_INVITED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model.SchemeType.SchemeType
@@ -25,12 +25,13 @@ import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, Cand
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
-import model.command.testdata.GeneratorConfig
+import model.command.testdata.CreateCandidateInStatusRequest.{ AssistanceDetailsRequest, CreateCandidateInStatusRequest, StatusDataRequest }
 import model.command.{ ProgressResponse, WithdrawApplication }
-import model.exchange.testdata.{ AssistanceDetailsRequest, CreateCandidateInStatusRequest, StatusDataRequest }
 import model.persisted._
+import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
 import reactivemongo.bson.BSONDocument
 import repositories.{ CollectionNames, CommonBSONDocuments }
+import _root_.services.testdata.candidate.StatusGeneratorFactory
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -279,7 +280,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ))
       )
 
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidatesInSpecificStatus(1,
+        StatusGeneratorFactory.getGeneratorForCandidates, CreateCandidateInStatusData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -301,7 +303,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           assessmentCentreAdjustmentsDescription = Some("I need a warm room and no sun light")
         ))
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidatesInSpecificStatus(1,
+        StatusGeneratorFactory.getGeneratorForCandidates, CreateCandidateInStatusData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -330,7 +333,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidatesInSpecificStatus(1,
+        StatusGeneratorFactory.getGeneratorForCandidates, CreateCandidateInStatusData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -365,7 +369,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidatesInSpecificStatus(1,
+        StatusGeneratorFactory.getGeneratorForCandidates, CreateCandidateInStatusData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue

@@ -16,16 +16,18 @@
 
 package services.testdata.faker
 
+import factories.UUIDFactory
 import model.EvaluationResults
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.SchemeType._
-import org.joda.time.LocalDate
+import org.joda.time.{ LocalDate, LocalTime }
 import repositories._
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import model.persisted.eventschedules.{ Event, EventType, SkillType }
 
 //scalastyle:off number.of.methods
 object DataFaker {
@@ -653,7 +655,7 @@ object DataFaker {
       "Unknown"
     ))
 
-    def skills = randList(List("qac", "assessor", "chair"), 3)
+    def skills = randList(List("QUALITY_ASSURANCE_COORDINATOR", "ASSESSOR", "CHAIR"), 3)
 
     def parentsOccupationDetails = randOne(List(
       "Modern professional",
@@ -699,6 +701,32 @@ object DataFaker {
       "1. Provided limited specific, but some evidence of engagement.\n" +
       "2. Provided some limited evidence of focus on learning but none on personal development."
 
+    object Event {
+      def id = UUIDFactory.generateUUID()
+      def eventType = randOne(List(EventType.FSAC, EventType.SDIP_PHONE_INTERVIEW, EventType.EDIP_PHONE_INTERVIEW,
+        EventType.SKYPE_INTERVIEW))
+      def location = randOne(List("London", "Newcastle"))
+      def venueLondon = randOne(List("London 1", "London 2", "London 3"))
+      def venueNewcastle = randOne(List("Newcastle 1", "Newcastle 2", "Newcastle 3"))
+      def venue = if (location == "London") { venueLondon } else { venueNewcastle }
+      def date = LocalDate.now()
+      def capacity = randOne(List(32, 24, 16, 8, 4, 30, 28))
+      def minViableAttendees = capacity - randOne(List(2, 3, 4, 1))
+      def attendeeSafetyMargin = randOne(List(1,2, 3))
+      def startTime = LocalTime.now()
+      def endTime = startTime.plusHours(1)
+      def skillRequirements = {
+        val skills = SkillType.values.toList.map(_.toString)
+        val numberOfSkills = randOne((1 to SkillType.values.size).map( i => i).toList)
+        val skillsSelected = randList(skills, numberOfSkills)
+
+        def numberOfPeopleWithSkillsRequired = randOne(List(1,2,3,4,8))
+
+        skillsSelected.map { skillSelected =>
+          skillSelected -> numberOfPeopleWithSkillsRequired
+        }.toMap
+      }
+    }
   }
 }
 //scalastyle:on number.of.methods
