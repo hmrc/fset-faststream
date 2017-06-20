@@ -18,6 +18,7 @@ package model.exchange.testdata
 
 import model.Commands.ApplicationAssessment
 import model.command.GeneralDetails
+import model.persisted.assessor.Assessor
 import model.persisted.{ AssistanceDetails, _ }
 import model.{ Adjustments, SelectedSchemes }
 import org.joda.time.LocalDate
@@ -65,7 +66,7 @@ object DataGenerationResponse {
       AssessorResponse(exchange.userId, exchange.skills, exchange.civilServant, Map.empty)
     }
 
-    def apply(persisted: model.persisted.Assessor): AssessorResponse = {
+    def apply(persisted: Assessor): AssessorResponse = {
       AssessorResponse(persisted.userId, persisted.skills, persisted.civilServant, persisted.availability)
     }
   }

@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.persisted.assessor
 
+import model.persisted.assessor.AssessorStatus.AssessorStatus
 import org.joda.time.LocalDate
-import play.api.libs.json.Json
+import play.api.libs.json._
 
-case class Assessor(userId: String, skills: List[String], civilServant: Boolean, availability: Map[String, List[LocalDate]])
+case class Assessor(userId: String, skills: List[String], civilServant: Boolean,
+                    availability: Map[String, List[LocalDate]],
+                    status: AssessorStatus = AssessorStatus.NEW)
 
 object Assessor {
-  implicit val persistedAssessorFormat = Json.format[Assessor]
+  implicit val persistedAssessorFormat: OFormat[Assessor] = Json.format[Assessor]
 }

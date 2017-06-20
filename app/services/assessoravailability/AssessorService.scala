@@ -17,6 +17,9 @@
 package services.assessoravailability
 
 import model.Exceptions.AssessorNotFoundException
+import model.persisted
+import model.persisted.assessor
+import model.persisted.assessor.{ Assessor, AssessorStatus }
 import org.joda.time.LocalDate
 import repositories._
 
@@ -42,15 +45,15 @@ trait AssessorService {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
         // TODO: If we change skills, we have to decide if we want to reset the availability
-        val assessorToPersist = model.persisted.Assessor(
-          userId, assessor.skills, assessor.civilServant, existing.availability
+        val assessorToPersist = Assessor(
+          userId, assessor.skills, assessor.civilServant, existing.availability, existing.status
         )
-        assessorRepository.save(assessorToPersist).map( _ => () )
+        assessorRepository.save(assessorToPersist).map(_ => ())
       case _ =>
-        val assessorToPersist = model.persisted.Assessor(
+        val assessorToPersist = persisted.assessor.Assessor(
           userId, assessor.skills, assessor.civilServant, Map.empty[String, List[LocalDate]]
         )
-        assessorRepository.save(assessorToPersist).map( _ => () )
+        assessorRepository.save(assessorToPersist).map(_ => ())
     }
   }
 
@@ -58,8 +61,9 @@ trait AssessorService {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
         val mergedAvailability = existing.availability ++ assessorAvailability.availability
-        val assessorAvailabilityToPersist = model.persisted.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability)
-        assessorRepository.save(assessorAvailabilityToPersist).map(_ => () )
+        val assessorAvailabilityToPersist = assessor.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability,
+          AssessorStatus.AVAILABILITIES_SUBMITTED)
+        assessorRepository.save(assessorAvailabilityToPersist).map(_ => ())
       case _ => throw AssessorNotFoundException(userId)
     }
   }
@@ -68,7 +72,7 @@ trait AssessorService {
     for {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
-      assessorOpt.fold( throw AssessorNotFoundException(userId) ) {
+      assessorOpt.fold(throw AssessorNotFoundException(userId)) {
         assessor => model.exchange.AssessorAvailability(assessor.userId, assessor.availability)
       }
     }
@@ -78,7 +82,7 @@ trait AssessorService {
     for {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
-      assessorOpt.fold( throw AssessorNotFoundException(userId) ) {
+      assessorOpt.fold(throw AssessorNotFoundException(userId)) {
         assessor => model.exchange.Assessor.apply(assessor)
       }
     }

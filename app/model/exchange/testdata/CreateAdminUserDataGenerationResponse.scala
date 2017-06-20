@@ -16,6 +16,7 @@
 
 package model.exchange.testdata
 
+import model.persisted.assessor.Assessor
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 
@@ -39,7 +40,7 @@ object AssessorResponse {
     AssessorResponse(exchange.skills, exchange.civilServant, Map.empty)
   }
 
-  def apply(persisted: model.persisted.Assessor): AssessorResponse = {
+  def apply(persisted: Assessor): AssessorResponse = {
     AssessorResponse(persisted.skills, persisted.civilServant, persisted.availability)
   }
 
