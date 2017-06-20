@@ -1,6 +1,6 @@
 package repositories.onlinetesting
 
-import model.ApplicationStatus.ApplicationStatus
+import model.ApplicationStatus._
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.SchemeType._
 import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest, Phase1TestProfile, _ }
@@ -18,6 +18,17 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   import Phase1EvaluationMongoRepositorySpec._
 
   val collectionName: String = CollectionNames.APPLICATION
+
+  "dynamically specified evaluation application statuses collection" should {
+    "contain the expected phases that result in evaluation running" in {
+      phase1EvaluationRepo.evaluationApplicationStatuses mustBe Set(
+        ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED,
+        ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_PASSED,
+        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
+        ApplicationStatus.PHASE3_TESTS_PASSED
+      )
+    }
+  }
 
   "next Application Ready For Evaluation" should {
     "return nothing if there is no PHASE1_TESTS applications" in {
