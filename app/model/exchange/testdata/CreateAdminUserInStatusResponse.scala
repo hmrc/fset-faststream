@@ -41,7 +41,7 @@ object CreateAdminUserInStatusResponse {
       AssessorResponse(exchange.skills, exchange.civilServant, Map.empty)
     }
 
-    def apply(persisted: model.persisted.Assessor): AssessorResponse = {
+    def apply(persisted: model.persisted.assessor.Assessor): AssessorResponse = {
       AssessorResponse(persisted.skills, persisted.civilServant, persisted.availability)
     }
 
