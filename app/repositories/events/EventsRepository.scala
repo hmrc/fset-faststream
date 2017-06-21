@@ -17,6 +17,8 @@
 package repositories.events
 
 import model.persisted.eventschedules.{ Event, EventType, VenueType }
+import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.VenueType.VenueType
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.CollectionNames
@@ -41,7 +43,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
     mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
     with EventsRepository {
 
-  override def save(events: List[Event]): Future[Unit] = {
+  def save(events: List[Event]): Future[Unit] = {
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
       .map(_ => ())
   }
@@ -50,23 +52,16 @@ class EventsMongoRepository(implicit mongo: () => DB)
                            venueType: Option[VenueType.Value] = None,
                            location: Option[String] = None,
                            skills: Option[List[String]] = None): Future[List[Event]] = {
-    val eventTypeQuery = eventType.map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) }
-    val venueTypeQuery = venueType.map { venueTypeVal => BSONDocument("venue" -> venueTypeVal.toString) }
-    val locationQuery = location.map { locationVal => BSONDocument("location" -> locationVal) }
-    val skillsQuery = skills.map { skillsVal =>
-      val skillsPartialQueries = skillsVal.map { skillVal =>
-        s"skillRequirements.$skillVal" -> BSONDocument("$gte" -> 1)
-      }
-      BSONDocument("$or" -> BSONArray.apply(skillsPartialQueries.map(BSONDocument(_))))
-    }
-
-    val paramQueries = List(eventTypeQuery, venueTypeQuery, locationQuery, skillsQuery).flatten
-
-    val query = if (paramQueries.nonEmpty) {
-      BSONDocument("$and" -> BSONArray.apply(paramQueries))
-    } else {
-      BSONDocument.empty
-    }
+    val query = List(
+      eventType.filterNot(_ == EventType.ALL_EVENTS).map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) },
+      venueType.filterNot(_ == VenueType.ALL_VENUES).map { venueTypeVal => BSONDocument("venue" -> venueTypeVal.toString) },
+      location.map { locationVal => BSONDocument("location" -> locationVal) },
+      skills.map { skillsVal =>
+        val skillsPartialQueries = skillsVal.map { skillVal =>
+          s"skillRequirements.$skillVal" -> BSONDocument("$gte" -> 1)
+        }
+        BSONDocument("$or" -> BSONArray.apply(skillsPartialQueries.map(BSONDocument(_))))
+      }).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query).cursor[Event]().collect[List]()
   }

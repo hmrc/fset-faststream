@@ -19,30 +19,30 @@ package controllers
 import model.persisted.eventschedules.{ EventType, VenueType }
 import play.api.Logger
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{ Action, AnyContent }
 import repositories.events.EventsRepository
-import services.assessmentcentre._
+import services.events.EventsParsingService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
-  override val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
-  override val assessmentCenterParsingService: AssessmentCentreParsingService = AssessmentCentreParsingService
+  val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
+  val assessmentCenterParsingService: EventsParsingService = EventsParsingService
 }
 
 trait EventsController extends BaseController {
   val assessmentEventsRepository: EventsRepository
-  val assessmentCenterParsingService: AssessmentCentreParsingService
+  val assessmentCenterParsingService: EventsParsingService
 
-  def saveAssessmentEvents() = Action.async { implicit request =>
-    assessmentCenterParsingService.processCentres().flatMap { events =>
+  def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
+    assessmentCenterParsingService.processCentres().flatMap{ events =>
       Logger.debug("Events have been processed!")
       assessmentEventsRepository.save(events)
     }.map(_ => Created).recover { case _ => UnprocessableEntity }
   }
 
-  def fetchEvents(eventTypeParam: String, venueParam: String) = Action.async { implicit request =>
+  def fetchEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
     // convert params to native enum type
     val eventType = EventType.withName(eventTypeParam.toUpperCase)
     val venue = VenueType.withName(venueParam.toUpperCase)

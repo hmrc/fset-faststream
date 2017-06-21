@@ -703,7 +703,7 @@ object DataFaker {
 
     object Event {
       def id = UUIDFactory.generateUUID()
-      def eventType = randOne(List(EventType.FSAC, EventType.SDIP_PHONE_INTERVIEW, EventType.EDIP_PHONE_INTERVIEW,
+      def eventType = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW,
         EventType.SKYPE_INTERVIEW))
       def location = randOne(List("London", "Newcastle"))
       def venueLondon = randOne(List("London 1", "London 2", "London 3"))
