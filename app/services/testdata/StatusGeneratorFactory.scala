@@ -21,14 +21,27 @@ import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
 import model.ProgressStatuses
 import model.ProgressStatuses.ProgressStatus
 import model.command.testdata.GeneratorConfig
+import model.exchange.testdata.{ CreateAdminUserStatusData, CreateAdminUserStatusRequest }
+import services.testdata.adminusers.{ AdminCreatedStatusGenerator, AdminUserBaseGenerator, AssessorCreatedStatusGenerator }
 import services.testdata.onlinetests._
 import services.testdata.onlinetests.phase1._
 import services.testdata.onlinetests.phase2._
 import services.testdata.onlinetests.phase3._
 
+object AdminUserStatusGeneratorFactory {
+  def getGeneratorForAdminUsers(createData: CreateAdminUserStatusData): AdminUserBaseGenerator = {
+    createData.role match {
+      case "assessor" => AssessorCreatedStatusGenerator
+      case _ => AdminCreatedStatusGenerator
+    }
+  }
+}
+
 object StatusGeneratorFactory {
+
+
   // scalastyle:off cyclomatic.complexity method.length
-  def getGenerator(generatorConfig: GeneratorConfig) = {
+  def getGeneratorForCandidates(generatorConfig: GeneratorConfig) = {
 
     val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
     val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)

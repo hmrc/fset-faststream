@@ -15,7 +15,7 @@
  */
 
 import factories.DateTimeFactory
-import model.persisted.AssessorAvailability
+import model.persisted.Assessor
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
@@ -23,7 +23,7 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
 import model.command.WithdrawApplication
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -40,6 +40,7 @@ import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Ph
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.fsacindicator.{ FSACIndicatorMongoRepository, FSACIndicatorRepository }
+import repositories.events.EventsMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -80,7 +81,8 @@ package object repositories {
   lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
   lazy val eventMongoRepository = new EventMongoRepository
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
-  lazy val assessorAvailabilityRepository = new AssessorAvailabilityMongoRepository()
+  lazy val assessorRepository = new AssessorMongoRepository()
+  lazy val eventsRepository = new EventsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
@@ -117,7 +119,10 @@ package object repositories {
 
     applicationAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
-    assessorAvailabilityRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true))
+    assessorRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
+
+    eventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending),
+      ("location", Ascending), ("venue", Ascending)), unique = false))
   )), 20 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
@@ -131,6 +136,12 @@ package object repositories {
     def read(time: BSONString) = LocalDate.parse(time.value)
 
     def write(jdtime: LocalDate) = BSONString(jdtime.toString("yyyy-MM-dd"))
+  }
+
+  implicit object BSONLocalTimeHandler extends BSONHandler[BSONString, LocalTime] {
+    def read(time: BSONString) = LocalTime.parse(time.value)
+
+    def write(jdtime: LocalTime) = BSONString(jdtime.toString("HH:mm"))
   }
 
   implicit object BSONMapHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
@@ -200,8 +211,7 @@ package object repositories {
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
   implicit val adjustmentDetailHandler: BSONHandler[BSONDocument, AdjustmentDetail] = Macros.handler[AdjustmentDetail]
-  implicit val assessorAvailabilityHandler: BSONHandler[BSONDocument, AssessorAvailability] =
-    Macros.handler[AssessorAvailability]
+  implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
 
   def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get

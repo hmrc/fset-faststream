@@ -1,15 +1,14 @@
 package repositories
 
 import config.Phase2TestsConfig
-import model.{ ApplicationStatus, Phase }
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
 import model.SchemeType._
 import model.exchange.passmarksettings._
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
+import model.{ ApplicationStatus, Phase }
 import org.joda.time.DateTime
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -18,7 +17,6 @@ import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future
-
 
 class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
@@ -87,20 +85,31 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
     "give no results when no schemes are in green and at-least one scheme is in amber" in new TestFixture {
       {
+        phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None, List(SchemeEvaluationResult(Commercial, Green.toString)))
+        applicationEvaluation("application-1", 20, Commercial) mustResultIn(
+          PHASE2_TESTS, Commercial -> Amber)
+      }
+      {
+        phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None, List(SchemeEvaluationResult(Commercial, Green.toString),
+          SchemeEvaluationResult(DigitalAndTechnology, Green.toString)))
+        applicationEvaluation("application-2", 20, Commercial, DigitalAndTechnology) mustResultIn(
+          PHASE2_TESTS, Commercial -> Amber, DigitalAndTechnology -> Red)
+      }
+      {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None, List(SchemeEvaluationResult(European, Amber.toString),
           SchemeEvaluationResult(ScienceAndEngineering, Amber.toString)))
-        applicationEvaluation("application-1", 80, European, ScienceAndEngineering) mustResultIn(
+        applicationEvaluation("application-3", 80, European, ScienceAndEngineering) mustResultIn(
           PHASE2_TESTS, European -> Amber, ScienceAndEngineering -> Amber)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None, List(SchemeEvaluationResult(European, Green.toString)))
-        applicationEvaluation("application-3", 50, European) mustResultIn(
+        applicationEvaluation("application-4", 50, European) mustResultIn(
           PHASE2_TESTS, European -> Amber)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None, List(SchemeEvaluationResult(European, Amber.toString),
           SchemeEvaluationResult(ProjectDelivery, Amber.toString)))
-        applicationEvaluation("application-2", 50, European, ProjectDelivery) mustResultIn(
+        applicationEvaluation("application-5", 50, European, ProjectDelivery) mustResultIn(
           PHASE2_TESTS, European -> Amber, ProjectDelivery -> Amber)
       }
     }
@@ -135,7 +144,6 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   }
 
   trait TestFixture {
-
 
     // format: OFF
     val phase2PassMarkSettingsTable = Table[SchemeType, Double, Double](

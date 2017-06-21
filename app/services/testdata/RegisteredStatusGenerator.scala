@@ -17,25 +17,32 @@
 package services.testdata
 
 import connectors.AuthProviderClient
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import connectors.testdata.ExchangeObjects.{ AssessorResponse, DataGenerationResponse }
+import model.command.testdata.GeneratorConfig
+import model.exchange.testdata.AssessorData
 import model.persisted.Media
 import play.api.mvc.RequestHeader
 import repositories._
+import services.testdata.adminusers.AssessorCreatedStatusGenerator
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
+
+import scala.concurrent.Future
 
 object RegisteredStatusGenerator extends RegisteredStatusGenerator {
   override val authProviderClient = AuthProviderClient
   override val medRepository = mediaRepository
+  override val assessorGenerator = AssessorCreatedStatusGenerator
 
 }
 
 trait RegisteredStatusGenerator extends BaseGenerator {
+
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val authProviderClient: AuthProviderClient.type
   val medRepository: MediaRepository
+  val assessorGenerator: AssessorCreatedStatusGenerator
 
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
@@ -49,22 +56,34 @@ trait RegisteredStatusGenerator extends BaseGenerator {
     for {
       user <- createUser(generationId, email, firstName, lastName, preferredName, AuthProviderClient.CandidateRole)
       _ <- medRepository.create(Media(user.userId, mediaReferrer.getOrElse("")))
+
     } yield {
       DataGenerationResponse(generationId, user.userId, None, email, firstName, lastName, mediaReferrer = mediaReferrer)
     }
+
   }
 
   def createUser(
-    generationId: Int,
-    email: String,
-    firstName: String, lastName: String, preferredName: Option[String], role: AuthProviderClient.UserRole
-  )(implicit hc: HeaderCarrier) = {
-    for {
+                  generationId: Int,
+                  email: String,
+                  firstName: String, lastName: String, preferredName: Option[String], role: AuthProviderClient.UserRole
+                )(implicit hc: HeaderCarrier) = {
+
+    val userFuture = for {
       user <- authProviderClient.addUser(email, "Service01", firstName, lastName, role)
       token <- authProviderClient.getToken(email)
       _ <- authProviderClient.activate(email, token)
     } yield {
       DataGenerationResponse(generationId, user.userId.toString, None, email, firstName, lastName)
+    }
+
+    val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)
+    userFuture.flatMap {
+      case user if assessorRoles.contains(role) =>
+        assessorGenerator.createAssessor(user.userId, AssessorData(List("assessor", "qac"), Random.bool)).map { assessor =>
+          user.copy(assessor = Some(AssessorResponse.apply(assessor)))
+        }
+      case user => Future.successful(user)
     }
   }
 

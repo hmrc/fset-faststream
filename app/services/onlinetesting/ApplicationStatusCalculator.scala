@@ -28,7 +28,7 @@ import model.persisted.SchemeEvaluationResult
 
 trait ApplicationStatusCalculator {
 
-  def faststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+  private def faststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     results: List[Result]): Option[ProgressStatus] = (phase, originalAppStatus) match {
     case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
     case (PHASE2, ApplicationStatus.PHASE2_TESTS) => processResults(results, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED)
@@ -41,13 +41,13 @@ trait ApplicationStatusCalculator {
     case _ => None
   }
 
-  def sdipFaststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+  private def sdipFaststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     evaluatedSchemes: List[SchemeEvaluationResult]): Option[ProgressStatus] = {
     val results = evaluatedSchemes.filterNot(_.scheme == SchemeType.Sdip).map(s => Result(s.result))
     faststreamCalc(phase, originalAppStatus, results)
   }
 
-  def edipSdipCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+  private def edipSdipCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     results: List[Result]): Option[ProgressStatus] = (phase, originalAppStatus) match {
     case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
     case _ => None

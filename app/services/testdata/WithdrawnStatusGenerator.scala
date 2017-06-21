@@ -35,7 +35,7 @@ trait WithdrawnStatusGenerator extends BaseGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    val previousStatusGenerator = StatusGeneratorFactory.getGenerator(
+    val previousStatusGenerator = StatusGeneratorFactory.getGeneratorForCandidates(
       generatorConfig.copy(
         statusData = generatorConfig.statusData.copy(
           applicationStatus = generatorConfig.statusData.previousApplicationStatus.getOrElse(SUBMITTED)

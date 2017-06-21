@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package persisted
+package model.persisted
 
+import model.persisted.{ ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport }
 import model.{ ApplicationRoute, SchemeType }
-import model.persisted.CivilServiceExperienceDetailsForDiversityReport
-import model.persisted.ApplicationForDiversityReport
 
 object ApplicationForDiversityReportExamples {
 

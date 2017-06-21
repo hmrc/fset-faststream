@@ -279,7 +279,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ))
       )
 
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -301,7 +301,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           assessmentCentreAdjustmentsDescription = Some("I need a warm room and no sun light")
         ))
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -330,7 +330,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -365,7 +365,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
