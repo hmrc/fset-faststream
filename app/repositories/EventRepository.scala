@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.persisted.Event
+import model.persisted.StcEvent
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -27,15 +27,15 @@ import scala.concurrent.Future
 
 trait EventRepository {
 
-  def create(event: Event): Future[Unit]
+  def create(event: StcEvent): Future[Unit]
 }
 
 class EventMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Event, BSONObjectID](CollectionNames.EVENT, mongo, Event.eventFormat,
+  extends ReactiveRepository[StcEvent, BSONObjectID](CollectionNames.EVENT, mongo, StcEvent.eventFormat,
     ReactiveMongoFormats.objectIdFormats) with EventRepository {
 
-  def create(event: Event): Future[Unit] = {
-    val doc = Event.eventHandler.write(event)
+  def create(event: StcEvent): Future[Unit] = {
+    val doc = StcEvent.eventHandler.write(event)
     collection.insert[BSONDocument](doc) map (_ => ())
   }
 }

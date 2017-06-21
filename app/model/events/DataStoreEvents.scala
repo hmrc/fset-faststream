@@ -17,7 +17,7 @@
 package model.events
 
 import model.events.EventTypes.EventType
-import model.persisted.Event
+import model.persisted.StcEvent
 import org.joda.time.DateTime
 
 sealed trait DataStoreEvent extends EventType {
@@ -35,8 +35,8 @@ sealed trait DataStoreEvent extends EventType {
 object DataStoreEvent {
   import scala.language.implicitConversions
 
-  implicit def toDataStoreEvent(dataStoreEvent: DataStoreEvent): model.persisted.Event =
-    Event(dataStoreEvent.eventName, dataStoreEvent.eventCreated, dataStoreEvent.applicationId, dataStoreEvent.userId, dataStoreEvent.createdBy)
+  implicit def toDataStoreEvent(dataStoreEvent: DataStoreEvent): model.persisted.StcEvent =
+    StcEvent(dataStoreEvent.eventName, dataStoreEvent.eventCreated, dataStoreEvent.applicationId, dataStoreEvent.userId, dataStoreEvent.createdBy)
 }
 
 sealed trait DataStoreEventWithAppId extends DataStoreEvent {
