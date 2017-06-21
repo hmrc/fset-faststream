@@ -145,7 +145,7 @@ object SignUpForm {
   }
 
   private def sdipEligibiliyCheck(postData: Map[String, String]): Either[Seq[FormError], String] = {
-    val sdipEligable = postData.get("sdipEligible").map(_.toLowerCase)
+    val sdipEligible = postData.get("sdipEligible").map(_.toLowerCase)
     val hasAppliedtoFaststream = postData.lift("hasAppliedToFaststream").map(_.toLowerCase)
 
     val errors = (hasAppliedtoFaststream match {
@@ -153,7 +153,7 @@ object SignUpForm {
                     case Some("false") => Nil
                     case _ => List(FormError("hasAppliedToFaststream", Messages("agree.hasAppliedToFaststream")))
                   }) ++
-      (if (!sdipEligable.contains("true")) { List(FormError("sdipEligible", Messages("agree.sdipEligible"))) } else { Nil })
+      (if (!sdipEligible.contains("true")) { List(FormError("sdipEligible", Messages("agree.sdipEligible"))) } else { Nil })
 
     if (errors.isEmpty) {
       Right(ApplicationRoute.Sdip)
