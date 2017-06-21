@@ -22,7 +22,7 @@ import org.mockito.Mockito._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.events.EventsRepository
-import services.assessmentcentre.AssessmentCentreParsingService
+import services.events.EventsParsingService
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -55,19 +55,21 @@ class EventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return OK with all events" in new TestFixture {
-      when(mockAssessmentEventsRepo.fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC)).thenReturn(Future.successful(List()))
+      when(mockAssessmentEventsRepo
+        .fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC))
+        .thenReturn(Future.successful(List()))
       val res = controller.fetchEvents("fsac","london_fsac")(FakeRequest())
       status(res) mustBe OK
     }
   }
 
   trait TestFixture extends TestFixtureBase {
-    val mockAssessmentCentreParsingService = mock[AssessmentCentreParsingService]
+    val mockAssessmentCentreParsingService = mock[EventsParsingService]
     val mockAssessmentEventsRepo = mock[EventsRepository]
     val events = List()
     val controller = new EventsController {
       override val assessmentEventsRepository: EventsRepository = mockAssessmentEventsRepo
-      override val assessmentCenterParsingService: AssessmentCentreParsingService = mockAssessmentCentreParsingService
+      override val assessmentCenterParsingService: EventsParsingService = mockAssessmentCentreParsingService
     }
   }
 }
