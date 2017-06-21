@@ -21,7 +21,7 @@ import java.util.UUID
 import _root_.services.onlinetesting.phase3.Phase3TestService
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig._
-import model.exchange.testdata.CreateCandidateInStatusResponse.{ CreateCandidateInStatusResponse, TestGroupResponse, TestResponse }
+import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, TestGroupResponse, TestResponse }
 import model.ApplicationStatus._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
@@ -30,7 +30,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import _root_.services.testdata.candidate.onlinetests.Phase2TestsPassedStatusGenerator
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import _root_.services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -49,8 +49,8 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
   val p3TestService: Phase3TestService
   val gatewayConfig: LaunchpadGatewayConfig
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateInStatusResponse] = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     val launchpad = LaunchpadTest(
       interviewId = 12345,

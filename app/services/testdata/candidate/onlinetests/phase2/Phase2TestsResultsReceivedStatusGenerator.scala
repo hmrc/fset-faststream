@@ -21,7 +21,7 @@ import model.OnlineTestCommands.TestResult
 import model.ProgressStatuses
 import model.exchange.CubiksTestResultReady
 import model.persisted.CubiksTest
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import repositories._
@@ -57,7 +57,7 @@ trait Phase2TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
     def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(Some(10.0)), Some(20.0), Some(30.0), Some(40.0))
 
 
-    def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
       for {
         candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
         _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests) { test =>

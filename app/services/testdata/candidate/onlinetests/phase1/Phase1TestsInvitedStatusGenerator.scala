@@ -20,9 +20,9 @@ import java.util.UUID
 
 import config.CubiksGatewayConfig
 import config.MicroserviceAppConfig.cubiksGatewayConfig
-import model.exchange.testdata.CreateCandidateInStatusResponse.{ TestGroupResponse, TestResponse }
+import model.exchange.testdata.CreateCandidateResponse.{ TestGroupResponse, TestResponse }
 import model.persisted.{ CubiksTest, Phase1TestProfile }
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -42,7 +42,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
   val gatewayConfig: CubiksGatewayConfig
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     val sjqTest = CubiksTest(
       cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),

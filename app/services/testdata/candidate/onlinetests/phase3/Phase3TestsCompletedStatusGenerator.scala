@@ -17,7 +17,7 @@
 package services.testdata.candidate.onlinetests.phase3
 
 import common.FutureEx
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
@@ -37,7 +37,7 @@ trait Phase3TestsCompletedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase3TestRepository
   val otService: Phase3TestService
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase3TestGroup.get.tests.map(_.token))(token => otService.markAsCompleted(token))

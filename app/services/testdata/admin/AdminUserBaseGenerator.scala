@@ -16,14 +16,14 @@
 
 package services.testdata.admin
 
-import model.exchange.testdata.CreateAdminUserInStatusResponse.CreateAdminUserInStatusResponse
-import model.testdata.CreateAdminUserInStatusData.CreateAdminUserInStatusData
+import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
+import model.testdata.CreateAdminData.CreateAdminData
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 trait AdminUserBaseGenerator {
-  def generate(generationId: Int, generatorData: CreateAdminUserInStatusData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminUserInStatusResponse]
+  def generate(generationId: Int, generatorData: CreateAdminData)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminResponse]
 }

@@ -21,15 +21,15 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
 import model.SchemeType.SchemeType
-import model.command.testdata.CreateCandidateInStatusRequest._
+import model.command.testdata.CreateCandidateRequest._
 import model.persisted.PassmarkEvaluation
-import model.testdata.CreateAdminUserInStatusData.AssessorData
+import model.testdata.CreateAdminData.AssessorData
 import model.{ Adjustments, ApplicationRoute, ApplicationStatus, ProgressStatuses }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import services.testdata.faker.DataFaker.Random
 
-object CreateCandidateInStatusData {
+object CreateCandidateData {
 
   case class AssistanceDetails(
                                 hasDisability: String = Random.yesNoPreferNotToSay,
@@ -224,32 +224,32 @@ object CreateCandidateInStatusData {
     }
   }
 
-  case class CreateCandidateInStatusData(statusData: StatusData,
-                                         personalData: PersonalData = PersonalData(),
-                                         diversityDetails: DiversityDetails = DiversityDetails(),
-                                         assistanceDetails: AssistanceDetails = AssistanceDetails(),
-                                         cubiksUrl: String,
-                                         schemeTypes: Option[List[SchemeType]] = None,
-                                         isCivilServant: Boolean = false,
-                                         hasFastPass: Boolean = false,
-                                         hasDegree: Boolean = Random.bool,
-                                         region: Option[String] = None,
-                                         loc1scheme1Passmark: Option[Result] = None,
-                                         loc1scheme2Passmark: Option[Result] = None,
-                                         confirmedAllocation: Boolean = true,
-                                         phase1TestData: Option[Phase1TestData] = None,
-                                         phase2TestData: Option[Phase2TestData] = None,
-                                         phase3TestData: Option[Phase3TestData] = None,
-                                         adjustmentInformation: Option[Adjustments] = None,
-                                         assessorDetails: Option[AssessorData] = None
+  case class CreateCandidateData(statusData: StatusData,
+                                 personalData: PersonalData = PersonalData(),
+                                 diversityDetails: DiversityDetails = DiversityDetails(),
+                                 assistanceDetails: AssistanceDetails = AssistanceDetails(),
+                                 cubiksUrl: String,
+                                 schemeTypes: Option[List[SchemeType]] = None,
+                                 isCivilServant: Boolean = false,
+                                 hasFastPass: Boolean = false,
+                                 hasDegree: Boolean = Random.bool,
+                                 region: Option[String] = None,
+                                 loc1scheme1Passmark: Option[Result] = None,
+                                 loc1scheme2Passmark: Option[Result] = None,
+                                 confirmedAllocation: Boolean = true,
+                                 phase1TestData: Option[Phase1TestData] = None,
+                                 phase2TestData: Option[Phase2TestData] = None,
+                                 phase3TestData: Option[Phase3TestData] = None,
+                                 adjustmentInformation: Option[Adjustments] = None,
+                                 assessorDetails: Option[AssessorData] = None
                                         ) extends CreateTestData
 
-  object CreateCandidateInStatusData {
-    def apply(cubiksUrlFromConfig: String, o: CreateCandidateInStatusRequest)(generatorId: Int): CreateCandidateInStatusData = {
+  object CreateCandidateData {
+    def apply(cubiksUrlFromConfig: String, o: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
 
       val statusData = StatusData(o.statusData)
 
-      CreateCandidateInStatusData(
+      CreateCandidateData(
         statusData = statusData,
         personalData = o.personalData.map(PersonalData(_, generatorId)).getOrElse(PersonalData()),
         diversityDetails = o.diversityDetails.map(DiversityDetails(_)).getOrElse(DiversityDetails()),

@@ -16,7 +16,7 @@
 
 package services.testdata.candidate
 
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
@@ -32,7 +32,7 @@ object AwaitingAllocationStatusGenerator extends AwaitingAllocationStatusGenerat
 trait AwaitingAllocationStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     /*
     def getEvaluationResult(candidate: DataGenerationResponse): RuleCategoryResult = {

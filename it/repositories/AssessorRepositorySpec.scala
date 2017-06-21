@@ -1,6 +1,6 @@
 package repositories
 
-import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
 import org.joda.time.LocalDate
 import testkit.MongoRepositorySpec
 
@@ -13,7 +13,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
   private val userId = "123"
   private val AssessorWithAvailabilities = Assessor(userId,
     List("assessor", "qac"), true,
-    Map("london" -> List(new LocalDate(2017, 9, 11)), "newcastle" -> List(new LocalDate(2017, 9, 12))),
+    List(AssessorAvailability("london", new LocalDate(2017, 9, 11)), AssessorAvailability("newcastle", new LocalDate(2017, 9, 12))),
     AssessorStatus.AVAILABILITIES_SUBMITTED
   )
 
@@ -43,8 +43,10 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       result.get mustBe AssessorWithAvailabilities
 
       val updated = AssessorWithAvailabilities.copy(
-        availability = Map("london" -> List(new LocalDate(2017, 9, 11), new LocalDate(2017, 10, 11)),
-          "newcastle" -> List(new LocalDate(2017, 9, 12)))
+        availability = List(
+          AssessorAvailability("london", new LocalDate(2017, 9, 11)),
+          AssessorAvailability("london", new LocalDate(2017, 10, 11)),
+          AssessorAvailability("newcastle", new LocalDate(2017, 9, 12)))
       )
       repository.save(updated).futureValue
 

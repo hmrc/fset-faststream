@@ -16,8 +16,8 @@
 
 package services.testdata.admin
 
-import model.exchange.testdata.CreateAdminUserInStatusResponse.AssessorResponse
-import model.testdata.CreateAdminUserInStatusData.{ AssessorData, CreateAdminUserInStatusData }
+import model.exchange.testdata.CreateAdminResponse.AssessorResponse
+import model.testdata.CreateAdminData.{ AssessorData, CreateAdminData }
 import play.api.mvc.RequestHeader
 import services.assessoravailability.AssessorService
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -36,7 +36,7 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
   val assessorService: AssessorService
 
 
-  def generate(generationId: Int, createData: CreateAdminUserInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, createData: CreateAdminData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     previousStatusGenerator.generate(generationId, createData).flatMap { userInPrevStatus =>
       createData.assessor match {
         case Some(assessor) =>

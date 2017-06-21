@@ -19,16 +19,16 @@ package services.testdata.candidate
 import model.ApplicationStatus._
 import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
 import model.ProgressStatuses
-import model.testdata.CreateAdminUserInStatusData.CreateAdminUserInStatusData
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateAdminData.CreateAdminData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import services.testdata.admin.{ AdminCreatedStatusGenerator, AdminUserBaseGenerator, AssessorCreatedStatusGenerator }
 import services.testdata.candidate.onlinetests._
 import services.testdata.candidate.onlinetests.phase1._
 import services.testdata.candidate.onlinetests.phase2._
 import services.testdata.candidate.onlinetests.phase3._
 
-object AdminUserStatusGeneratorFactory {
-  def getGeneratorForAdminUsers(createData: CreateAdminUserInStatusData): AdminUserBaseGenerator = {
+object AdminStatusGeneratorFactory {
+  def getGenerator(createData: CreateAdminData): AdminUserBaseGenerator = {
     createData.role match {
       case "assessor" => AssessorCreatedStatusGenerator
       case _ => AdminCreatedStatusGenerator
@@ -36,11 +36,11 @@ object AdminUserStatusGeneratorFactory {
   }
 }
 
-object StatusGeneratorFactory {
+object CandidateStatusGeneratorFactory {
 
 
   // scalastyle:off cyclomatic.complexity method.length
-  def getGeneratorForCandidates(generatorConfig: CreateCandidateInStatusData) = {
+  def getGenerator(generatorConfig: CreateCandidateData) = {
 
     val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
     val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)

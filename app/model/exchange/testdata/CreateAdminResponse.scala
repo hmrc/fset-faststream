@@ -16,38 +16,39 @@
 
 package model.exchange.testdata
 
-import model.testdata.CreateAdminUserInStatusData.AssessorData
+import model.exchange.AssessorAvailability
+import model.testdata.CreateAdminData.AssessorData
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 
-object CreateAdminUserInStatusResponse {
+object CreateAdminResponse {
 
-  case class CreateAdminUserInStatusResponse(generationId: Int, userId: String,
-                                             preferedName: Option[String], email: String,
-                                             firstName: String, lastName: String, phone: Option[String] = None,
-                                             assessor: Option[AssessorResponse] = None) extends CreateTestDataResponse
+  case class CreateAdminResponse(generationId: Int, userId: String,
+                                 preferedName: Option[String], email: String,
+                                 firstName: String, lastName: String, phone: Option[String] = None,
+                                 assessor: Option[AssessorResponse] = None) extends CreateTestDataResponse
 
-  object CreateAdminUserInStatusResponse {
-    implicit val createAdminUserInStatusResponseFormat: OFormat[CreateAdminUserInStatusResponse] =
-      Json.format[CreateAdminUserInStatusResponse]
+  object CreateAdminResponse {
+    implicit val createAdminResponseFormat: OFormat[CreateAdminResponse] =
+      Json.format[CreateAdminResponse]
   }
 
-  case class AssessorResponse(skills: List[String], civilServant: Boolean, availability: Map[String, List[LocalDate]])
+  case class AssessorResponse(skills: List[String], civilServant: Boolean, availability: List[AssessorAvailability])
 
   object AssessorResponse {
     implicit val assessorResponseFormat: OFormat[AssessorResponse] = Json.format[AssessorResponse]
 
     def apply(exchange: model.exchange.Assessor): AssessorResponse = {
-      AssessorResponse(exchange.skills, exchange.civilServant, Map.empty)
+      AssessorResponse(exchange.skills, exchange.civilServant, List.empty)
     }
 
     def apply(persisted: model.persisted.assessor.Assessor): AssessorResponse = {
-      AssessorResponse(persisted.skills, persisted.civilServant, persisted.availability)
+      AssessorResponse(persisted.skills, persisted.civilServant, persisted.availability.map(a => AssessorAvailability.apply(a)))
     }
 
     def apply(data: AssessorData): AssessorResponse = {
       // TODO: We should add availability in AssessorData
-      AssessorResponse(data.skills, data.civilServant, Map.empty)
+      AssessorResponse(data.skills, data.civilServant, List.empty)
     }
   }
 

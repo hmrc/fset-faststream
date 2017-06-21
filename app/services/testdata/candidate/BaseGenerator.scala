@@ -16,14 +16,14 @@
 
 package services.testdata.candidate
 
-import model.exchange.testdata.CreateCandidateInStatusResponse.CreateCandidateInStatusResponse
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 trait BaseGenerator {
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateInStatusResponse]
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse]
 }

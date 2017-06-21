@@ -17,11 +17,11 @@
 package services.testdata.candidate
 
 import connectors.AuthProviderClient
-import model.exchange.testdata.CreateAdminUserInStatusResponse.AssessorResponse
-import model.exchange.testdata.CreateCandidateInStatusResponse.CreateCandidateInStatusResponse
+import model.exchange.testdata.CreateAdminResponse.AssessorResponse
+import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.Media
-import model.testdata.CreateAdminUserInStatusData.AssessorData
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateAdminData.AssessorData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import services.testdata.admin.AssessorCreatedStatusGenerator
@@ -46,7 +46,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
   val assessorGenerator: AssessorCreatedStatusGenerator
 
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     val firstName = generatorConfig.personalData.firstName
     val lastName = generatorConfig.personalData.lastName
@@ -59,7 +59,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       _ <- medRepository.create(Media(user.userId, mediaReferrer.getOrElse("")))
 
     } yield {
-      CreateCandidateInStatusResponse(generationId, user.userId, None, email, firstName, lastName, mediaReferrer = mediaReferrer)
+      CreateCandidateResponse(generationId, user.userId, None, email, firstName, lastName, mediaReferrer = mediaReferrer)
     }
 
   }
@@ -75,13 +75,13 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       token <- authProviderClient.getToken(email)
       _ <- authProviderClient.activate(email, token)
     } yield {
-      CreateCandidateInStatusResponse(generationId, user.userId.toString, None, email, firstName, lastName)
+      CreateCandidateResponse(generationId, user.userId.toString, None, email, firstName, lastName)
     }
 
     val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)
     userFuture.flatMap {
       case user if assessorRoles.contains(role) =>
-        assessorGenerator.createAssessor(user.userId, AssessorData(List("assessor", "qac"), Random.bool)).map { assessor =>
+        assessorGenerator.createAssessor(user.userId, AssessorData(List("assessor", "qac"), Random.bool, None)).map { assessor =>
           user.copy(assessor = Some(AssessorResponse.apply(assessor)))
         }
       case user => Future.successful(user)

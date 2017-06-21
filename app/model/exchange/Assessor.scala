@@ -16,6 +16,7 @@
 
 package model.exchange
 
+import model.command.testdata.CreateAdminRequest.AssessorAvailabilityRequest
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
@@ -27,12 +28,47 @@ object Assessor {
   def apply(assessor: model.persisted.assessor.Assessor): Assessor = Assessor(assessor.userId, assessor.skills, assessor.civilServant)
 }
 
-
-case class AssessorAvailability(userId: String, availability: Map[String, List[LocalDate]])
+case class AssessorAvailability(location: String, date: LocalDate)
 
 object AssessorAvailability {
   implicit val assessorAvailabilityFormat = Json.format[AssessorAvailability]
 
-  def apply(assessor: model.persisted.assessor.Assessor): AssessorAvailability = AssessorAvailability(assessor.userId, assessor.availability)
+  def apply(persisted: model.persisted.assessor.AssessorAvailability): AssessorAvailability = {
+    AssessorAvailability(persisted.location, persisted.date)
+  }
 
+  def apply(request: AssessorAvailabilityRequest): AssessorAvailability = {
+    AssessorAvailability(request.location, request.date)
+  }
+}
+
+case class AssessorAvailabilities(userId: String, availability: List[AssessorAvailability])
+
+object AssessorAvailabilities {
+  implicit val assessorAvailabilityFormat = Json.format[AssessorAvailabilities]
+
+  def apply(assessor: model.persisted.assessor.Assessor): AssessorAvailabilities =
+    AssessorAvailabilities(assessor.userId, assessor.availability.map(a => AssessorAvailability.apply(a)))
+}
+
+
+
+case class AssessorOld(userId: String, skills: List[String], civilServant: Boolean)
+
+object AssessorOld {
+  implicit val assessorFormat = Json.format[AssessorOld]
+
+  def apply(assessor: model.persisted.assessor.Assessor): AssessorOld = AssessorOld(assessor.userId, assessor.skills, assessor.civilServant)
+}
+
+
+case class AssessorAvailabilityOld(userId: String, availability: Map[String, List[LocalDate]])
+
+object AssessorAvailabilityOld {
+  implicit val assessorAvailabilityOldFormat = Json.format[AssessorAvailabilityOld]
+
+  def apply(assessor: model.persisted.assessor.Assessor): AssessorAvailabilityOld = {
+    val availabityMap = assessor.availability.groupBy(_.location).map { a => (a._1 -> a._2.map(_.date)) }
+    AssessorAvailabilityOld(assessor.userId, availabityMap)
+  }
 }

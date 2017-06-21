@@ -16,7 +16,7 @@
 
 package services.testdata.candidate
 
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -32,7 +32,7 @@ object InProgressPreviewStatusGenerator extends InProgressPreviewStatusGenerator
 trait InProgressPreviewStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.preview(candidateInPreviousStatus.applicationId.get)

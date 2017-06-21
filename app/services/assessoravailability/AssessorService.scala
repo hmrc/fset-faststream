@@ -17,6 +17,7 @@
 package services.assessoravailability
 
 import model.Exceptions.AssessorNotFoundException
+import model.exchange.AssessorAvailability
 import model.persisted
 import model.persisted.assessor
 import model.persisted.assessor.{ Assessor, AssessorStatus }
@@ -51,16 +52,19 @@ trait AssessorService {
         assessorRepository.save(assessorToPersist).map(_ => ())
       case _ =>
         val assessorToPersist = persisted.assessor.Assessor(
-          userId, assessor.skills, assessor.civilServant, Map.empty[String, List[LocalDate]]
+          userId, assessor.skills, assessor.civilServant, List.empty, AssessorStatus.CREATED
         )
         assessorRepository.save(assessorToPersist).map(_ => ())
     }
   }
 
-  def addAvailability(userId: String, assessorAvailability: model.exchange.AssessorAvailability): Future[Unit] = {
+  def addAvailability(userId: String, assessorAvailability: model.exchange.AssessorAvailabilityOld): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
-        val mergedAvailability = existing.availability ++ assessorAvailability.availability
+        val newAvailability = assessorAvailability.availability.flatMap { a => a._2.map { date =>
+          model.persisted.assessor.AssessorAvailability(a._1, date) }}.toList
+        val mergedAvailability = existing.availability ++ newAvailability
+
         val assessorAvailabilityToPersist = assessor.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability,
           AssessorStatus.AVAILABILITIES_SUBMITTED)
         assessorRepository.save(assessorAvailabilityToPersist).map(_ => ())
@@ -68,12 +72,12 @@ trait AssessorService {
     }
   }
 
-  def findAvailability(userId: String): Future[model.exchange.AssessorAvailability] = {
+  def findAvailability(userId: String): Future[model.exchange.AssessorAvailabilityOld] = {
     for {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
       assessorOpt.fold(throw AssessorNotFoundException(userId)) {
-        assessor => model.exchange.AssessorAvailability(assessor.userId, assessor.availability)
+        assessor => model.exchange.AssessorAvailabilityOld.apply(assessor)
       }
     }
   }

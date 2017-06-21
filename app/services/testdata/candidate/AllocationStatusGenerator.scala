@@ -17,8 +17,8 @@
 package services.testdata.candidate
 
 import model.Commands.ApplicationAssessment
-import model.exchange.testdata.CreateCandidateInStatusResponse.CreateCandidateInStatusResponse
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
@@ -40,10 +40,10 @@ trait AllocationStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
   val aaRepository: ApplicationAssessmentRepository
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateInStatusResponse] = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
-    def getApplicationAssessment(candidate: CreateCandidateInStatusResponse) = {
+    def getApplicationAssessment(candidate: CreateCandidateResponse) = {
       for {
         availableAssessment <- Random.availableAssessmentVenueAndDate
       } yield {

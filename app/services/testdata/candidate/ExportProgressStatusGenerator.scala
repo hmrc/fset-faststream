@@ -17,7 +17,7 @@
 package services.testdata.candidate
 
 import model.ProgressStatuses._
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -54,7 +54,7 @@ trait ExportProgressStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
   val progressStatus: ProgressStatus
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)

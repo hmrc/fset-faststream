@@ -16,29 +16,23 @@
 
 package controllers.testdata
 
-import java.io.File
-
 import config.MicroserviceAppConfig
 import connectors.AuthProviderClient
 import factories.UUIDFactory
 import model.Exceptions.EmailTakenException
-import model.command.testdata._
-import model.exchange.testdata._
 import model._
-import model.command.testdata.CreateAdminUserInStatusRequest.{ AssessorRequest, CreateAdminUserInStatusRequest }
-import model.command.testdata.CreateCandidateInStatusRequest.{ CreateCandidateInStatusRequest, _ }
+import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
+import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
-import model.persisted.PassmarkEvaluation
 import model.persisted.eventschedules.EventType
-import model.testdata.CreateAdminUserInStatusData.CreateAdminUserInStatusData
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateAdminData.CreateAdminData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
 import org.joda.time.{ LocalDate, LocalTime }
-import play.api.Play
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 import play.api.mvc.{ Action, AnyContent, RequestHeader }
 import services.testdata._
-import services.testdata.candidate.{ AdminUserStatusGeneratorFactory, StatusGeneratorFactory }
+import services.testdata.candidate.{ AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory }
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -61,8 +55,8 @@ trait TestDataGeneratorController extends BaseController {
   }
 
   // scalastyle:off method.length
-  def exampleCreateCandidateRequest = Action { implicit request =>
-    val example = CreateCandidateInStatusRequest(
+  def exampleCreateCandidate = Action { implicit request =>
+    val example = CreateCandidateRequest(
      statusData = StatusDataRequest(
        applicationStatus = ApplicationStatus.SUBMITTED.toString,
        previousApplicationStatus = Some(ApplicationStatus.REGISTERED.toString),
@@ -139,8 +133,8 @@ trait TestDataGeneratorController extends BaseController {
   }
   // scalastyle:on method.length
 
-  def exampleCreateAdminUserRequest = Action { implicit request =>
-    val example = CreateAdminUserInStatusRequest(
+  def exampleCreateAdmin = Action { implicit request =>
+    val example = CreateAdminRequest(
       emailPrefix = Some("admin_user"),
       firstName = Some("Admin user 1"),
       lastName = Some("lastname"),
@@ -149,14 +143,18 @@ trait TestDataGeneratorController extends BaseController {
       phone = Some("123456789"),
       assessor = Some(AssessorRequest(
         skills = Some(List("assessor", "qac")),
-        civilServant = Some(true)
+        civilServant = Some(true),
+        availability = Some(List(
+          AssessorAvailabilityRequest("London", LocalDate.now()),
+          AssessorAvailabilityRequest("Newcastle", LocalDate.now())
+        ))
       ))
     )
 
     Ok(Json.toJson(example))
   }
 
-  def exampleCreateEventRequest = Action { implicit request =>
+  def exampleCreateEvent = Action { implicit request =>
     val example = CreateEventRequest(
       id = Some(UUIDFactory.generateUUID()),
       eventType = Some(EventType.FSAC),
@@ -175,7 +173,7 @@ trait TestDataGeneratorController extends BaseController {
     Ok(Json.toJson(example))
   }
 
-  def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String): Action[AnyContent] = Action.async { implicit request =>
+  def createAdmins(numberToGenerate: Int, emailPrefix: Option[String], role: String): Action[AnyContent] = Action.async { implicit request =>
     try {
       TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
         Ok(Json.toJson(candidates))
@@ -186,32 +184,32 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  def createAdminUsersInStatusPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[CreateAdminUserInStatusRequest] { createRequest =>
-      createAdminUserInStatus(CreateAdminUserInStatusData.apply(createRequest), numberToGenerate)
+  def createAdminsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[CreateAdminRequest] { createRequest =>
+      createAdmins(CreateAdminData.apply(createRequest), numberToGenerate)
     }
   }
 
   private lazy val cubiksUrlFromConfig: String = MicroserviceAppConfig.testDataGeneratorCubiksSecret
 
-  def createCandidatesInStatusPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[CreateCandidateInStatusRequest] { createRequest =>
-      createCandidateInStatus(CreateCandidateInStatusData.apply(cubiksUrlFromConfig, createRequest), numberToGenerate)
+  def createCandidatesPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[CreateCandidateRequest] { createRequest =>
+      createCandidates(CreateCandidateData.apply(cubiksUrlFromConfig, createRequest), numberToGenerate)
     }
   }
 
-  def createEvent(numberToGenerate: Int) : Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def createEventsPOST(numberToGenerate: Int) : Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateEventRequest] { createRequest =>
-      createEvent(CreateEventData.apply(createRequest), numberToGenerate)
+      createEvents(CreateEventData.apply(createRequest), numberToGenerate)
     }
   }
 
 
-  private def createCandidateInStatus(config: (Int) => CreateCandidateInStatusData, numberToGenerate: Int)
+  private def createCandidates(config: (Int) => CreateCandidateData, numberToGenerate: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createCandidatesInSpecificStatus(
-        numberToGenerate, StatusGeneratorFactory.getGeneratorForCandidates,
+      TestDataGeneratorService.createCandidates(
+        numberToGenerate, CandidateStatusGeneratorFactory.getGenerator,
         config
       ).map { candidates =>
         Ok(Json.toJson(candidates))
@@ -222,15 +220,15 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createAdminUserInStatus(createData: (Int) => CreateAdminUserInStatusData, numberToGenerate: Int)
+  private def createAdmins(createData: (Int) => CreateAdminData, numberToGenerate: Int)
                                      (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createAdminUserInSpecificStatus(
+      TestDataGeneratorService.createAdmins(
         numberToGenerate,
-        AdminUserStatusGeneratorFactory.getGeneratorForAdminUsers,
+        AdminStatusGeneratorFactory.getGenerator,
         createData
-      ).map { adminUsers =>
-        Ok(Json.toJson(adminUsers))
+      ).map { admins =>
+        Ok(Json.toJson(admins))
       }
     } catch {
       case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
@@ -238,10 +236,10 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createEvent(createData: (Int) => CreateEventData, numberToGenerate: Int)
+  private def createEvents(createData: (Int) => CreateEventData, numberToGenerate: Int)
                                      (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createEvent(
+      TestDataGeneratorService.createEvents(
         numberToGenerate,
         createData
       ).map { events =>

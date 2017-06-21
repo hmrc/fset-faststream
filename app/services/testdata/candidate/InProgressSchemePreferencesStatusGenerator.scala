@@ -17,7 +17,7 @@
 package services.testdata.candidate
 
 import model._
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.schemepreferences.SchemePreferencesRepository
@@ -36,7 +36,7 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
   val spRepository: SchemePreferencesRepository
 
   // scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getSchemePreferences: Future[SelectedSchemes] = {
        Future.successful(
          generatorConfig.schemeTypes.map { schemeTypesList =>

@@ -16,9 +16,9 @@
 
 package services.testdata.candidate
 
-import model.exchange.testdata.CreateCandidateInStatusResponse
+import model.exchange.testdata.CreateCandidateResponse
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import model.testdata.CreateCandidateInStatusData.{ CreateCandidateInStatusData, DiversityDetails }
+import model.testdata.CreateCandidateData.{ CreateCandidateData, DiversityDetails }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
@@ -39,8 +39,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
   val qRepository: QuestionnaireRepository
 
   // scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateInStatusResponse.CreateCandidateInStatusResponse] = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse.CreateCandidateResponse] = {
 
     val didYouLiveInUkBetween14and18Answer = Random.yesNo
 

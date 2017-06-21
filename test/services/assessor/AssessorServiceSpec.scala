@@ -18,7 +18,7 @@ package services.assessor
 
 import model.Exceptions
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.{ Assessor, AssessorAvailability }
+import model.exchange.{ Assessor, AssessorAvailability, AssessorAvailabilityOld }
 import model.persisted.AssessorExamples._
 import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
@@ -62,7 +62,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
 
       intercept[AssessorNotFoundException] {
-        Await.result(service.addAvailability(AssessorUserId, AssessorAvailability.apply(AssessorWithAvailability)), 10 seconds)
+        Await.result(service.addAvailability(AssessorUserId, AssessorAvailabilityOld.apply(AssessorWithAvailability)), 10 seconds)
       }
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
@@ -72,7 +72,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorWithAvailabilityMerged))).thenReturn(Future.successful(()))
 
-      val result = service.addAvailability(AssessorUserId, AssessorAvailability.apply(AssessorWithAvailability)).futureValue
+      val result = service.addAvailability(AssessorUserId, AssessorAvailabilityOld.apply(AssessorWithAvailability)).futureValue
 
       result mustBe unit
 
@@ -108,7 +108,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       val response = service.findAvailability(AssessorUserId).futureValue
 
-      response mustBe model.exchange.AssessorAvailability(AssessorWithAvailability)
+      response mustBe model.exchange.AssessorAvailabilityOld(AssessorWithAvailability)
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
 

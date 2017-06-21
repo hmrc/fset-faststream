@@ -18,7 +18,7 @@ package services.testdata.candidate.onlinetests.phase3
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import model.ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.mvc.RequestHeader
 import repositories._
@@ -84,7 +84,7 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
     )
   }
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val receivedBeforeInHours = generatorConfig.phase3TestData.flatMap(_.receivedBeforeInHours).getOrElse(0)
     val score = generatorConfig.phase3TestData.flatMap(_.score)
     val generateNullScoresForFewQuestions = generatorConfig.phase3TestData.flatMap(_.generateNullScoresForFewQuestions).getOrElse(false)

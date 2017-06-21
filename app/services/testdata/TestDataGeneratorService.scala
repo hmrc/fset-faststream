@@ -18,11 +18,11 @@ package services.testdata
 
 import connectors.AuthProviderClient
 import connectors.AuthProviderClient._
-import model.exchange.testdata.CreateAdminUserInStatusResponse.CreateAdminUserInStatusResponse
-import model.exchange.testdata.CreateCandidateInStatusResponse.CreateCandidateInStatusResponse
+import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
+import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateEventResponse.CreateEventResponse
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
-import model.testdata.CreateAdminUserInStatusData.CreateAdminUserInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.CreateAdminData.CreateAdminData
 import model.exchange.testdata.CreateTestDataResponse
 import model.testdata.CreateEventData.CreateEventData
 import model.testdata.CreateTestData
@@ -81,7 +81,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
   }
 
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String],
-                       role: UserRole)(implicit hc: HeaderCarrier): Future[List[CreateCandidateInStatusResponse]] = {
+                       role: UserRole)(implicit hc: HeaderCarrier): Future[List[CreateCandidateResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
 
@@ -99,10 +99,10 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-  def createCandidatesInSpecificStatus(numberToGenerate: Int,
-                                       generatorForStatus: (CreateCandidateInStatusData) => BaseGenerator,
-                                       configGenerator: (Int) => CreateCandidateInStatusData
-                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateInStatusResponse]] = {
+  def createCandidates(numberToGenerate: Int,
+                       generatorForStatus: (CreateCandidateData) => BaseGenerator,
+                       configGenerator: (Int) => CreateCandidateData
+                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
 
@@ -114,10 +114,10 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-  def createAdminUserInSpecificStatus(numberToGenerate: Int,
-                                      generatorForStatus: (CreateAdminUserInStatusData) => AdminUserBaseGenerator,
-                                      createData: (Int) => CreateAdminUserInStatusData
-                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAdminUserInStatusResponse]] = {
+  def createAdmins(numberToGenerate: Int,
+                   generatorForStatus: (CreateAdminData) => AdminUserBaseGenerator,
+                   createData: (Int) => CreateAdminData
+                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAdminResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
 
@@ -129,7 +129,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-  def createEvent(numberToGenerate: Int, createData: (Int) => CreateEventData)(
+  def createEvents(numberToGenerate: Int, createData: (Int) => CreateEventData)(
     implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateEventResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)

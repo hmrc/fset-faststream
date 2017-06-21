@@ -18,7 +18,7 @@ package services.testdata.candidate
 
 import model.ApplicationRoute
 import model.persisted.AssistanceDetails
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.assistancedetails.AssistanceDetailsRepository
@@ -39,7 +39,7 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
   val adRepository: AssistanceDetailsRepository
   val adjustmentsManagementService: AdjustmentsManagementService
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val assistanceDetails = getAssistanceDetails(generatorConfig)
     val maybeAdjustments = generatorConfig.adjustmentInformation
 
@@ -57,7 +57,7 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
     }
   }
 
-  private def getAssistanceDetails(config: CreateCandidateInStatusData): AssistanceDetails = {
+  private def getAssistanceDetails(config: CreateCandidateData): AssistanceDetails = {
     val hasDisabilityFinalValue = config.assistanceDetails.hasDisability
 
     val hasDisabilityDescriptionFinalValue =

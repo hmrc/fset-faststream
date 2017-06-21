@@ -17,7 +17,7 @@
 package services.testdata.candidate
 
 import model.ApplicationStatus._
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -33,9 +33,9 @@ object WithdrawnStatusGenerator extends WithdrawnStatusGenerator {
 trait WithdrawnStatusGenerator extends BaseGenerator {
   val appRepository: GeneralApplicationRepository
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    val previousStatusGenerator = StatusGeneratorFactory.getGeneratorForCandidates(
+    val previousStatusGenerator = CandidateStatusGeneratorFactory.getGenerator(
       generatorConfig.copy(
         statusData = generatorConfig.statusData.copy(
           applicationStatus = generatorConfig.statusData.previousApplicationStatus.getOrElse(SUBMITTED)

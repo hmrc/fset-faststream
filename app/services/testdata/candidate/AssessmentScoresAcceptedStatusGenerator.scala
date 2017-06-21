@@ -17,8 +17,8 @@
 package services.testdata.candidate
 
 import model.ApplicationStatus._
-import model.exchange.testdata.CreateCandidateInStatusResponse.CreateCandidateInStatusResponse
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -35,8 +35,8 @@ object AssessmentScoresAcceptedStatusGenerator extends AssessmentScoresAcceptedS
 trait AssessmentScoresAcceptedStatusGenerator extends ConstructiveGenerator {
   val aRepository: GeneralApplicationRepository
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateInStatusResponse] = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_SCORES_ACCEPTED)

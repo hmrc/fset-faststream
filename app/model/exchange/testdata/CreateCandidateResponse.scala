@@ -18,14 +18,14 @@ package model.exchange.testdata
 
 import model.Commands.ApplicationAssessment
 import model.command.GeneralDetails
-import model.exchange.testdata.CreateAdminUserInStatusResponse.AssessorResponse
+import model.exchange.testdata.CreateAdminResponse.AssessorResponse
 import model.persisted.{ AssistanceDetails, _ }
 import model.{ Adjustments, SelectedSchemes }
 import play.api.libs.json.{ Json, OFormat }
 
-object CreateCandidateInStatusResponse {
+object CreateCandidateResponse {
 
-  case class CreateCandidateInStatusResponse(
+  case class CreateCandidateResponse(
                                               generationId: Int,
                                               userId: String,
                                               applicationId: Option[String],
@@ -46,9 +46,9 @@ object CreateCandidateInStatusResponse {
                                               assessor: Option[AssessorResponse] = None
                                             ) extends CreateTestDataResponse
 
-  object CreateCandidateInStatusResponse {
-    implicit val createCandidateInStatusResponseFormat: OFormat[CreateCandidateInStatusResponse] =
-      Json.format[CreateCandidateInStatusResponse]
+  object CreateCandidateResponse {
+    implicit val createCandidateResponseFormat: OFormat[CreateCandidateResponse] =
+      Json.format[CreateCandidateResponse]
   }
 
   case class TestGroupResponse(tests: List[TestResponse], schemeResult: Option[PassmarkEvaluation])

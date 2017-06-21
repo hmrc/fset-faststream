@@ -22,7 +22,7 @@ import model.SchemeType.SchemeType
 import model.persisted.PassmarkEvaluation
 import play.api.libs.json.{ Json, OFormat }
 
-object CreateCandidateInStatusRequest {
+object CreateCandidateRequest {
 
   case class AssistanceDetailsRequest(hasDisability: Option[String] = None,
                                       hasDisabilityDescription: Option[String] = None,
@@ -130,7 +130,7 @@ object CreateCandidateInStatusRequest {
     implicit def statusDataFormat: OFormat[StatusDataRequest] = Json.format[StatusDataRequest]
   }
 
-  case class CreateCandidateInStatusRequest(
+  case class CreateCandidateRequest(
                                              statusData: StatusDataRequest = new StatusDataRequest,
                                              personalData: Option[PersonalDataRequest],
                                              diversityDetails: Option[DiversityDetailsRequest],
@@ -149,11 +149,11 @@ object CreateCandidateInStatusRequest {
                                              adjustmentInformation: Option[Adjustments] = None
                                            ) extends CreateTestDataRequest
 
-  object CreateCandidateInStatusRequest {
-    implicit val createCandidateInStatusRequestFormat: OFormat[CreateCandidateInStatusRequest] = Json.format[CreateCandidateInStatusRequest]
+  object CreateCandidateRequest {
+    implicit val createCandidateRequestFormat: OFormat[CreateCandidateRequest] = Json.format[CreateCandidateRequest]
 
-    def create(status: String, progressStatus: Option[String], applicationRoute: Option[ApplicationRoute]): CreateCandidateInStatusRequest = {
-      CreateCandidateInStatusRequest(
+    def create(status: String, progressStatus: Option[String], applicationRoute: Option[ApplicationRoute]): CreateCandidateRequest = {
+      CreateCandidateRequest(
         statusData = StatusDataRequest(
           applicationStatus = status,
           progressStatus = progressStatus,

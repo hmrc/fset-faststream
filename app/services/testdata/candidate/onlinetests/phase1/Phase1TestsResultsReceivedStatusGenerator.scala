@@ -20,9 +20,9 @@ import common.FutureEx
 import model.OnlineTestCommands.TestResult
 import model.ProgressStatuses
 import model.exchange.CubiksTestResultReady
-import model.exchange.testdata.CreateCandidateInStatusResponse.CreateCandidateInStatusResponse
+import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.CubiksTest
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import repositories._
@@ -57,11 +57,11 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
     def getPhase1Test(cubiksUserId: Int) = CubiksTest(0, usedForResults = true, cubiksUserId, "", "", "", now, 0)
     def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(
       Some(tscore.getOrElse(10.0))), Some(tscore.getOrElse(20.0)), Some(tscore.getOrElse(30.0)), Some(tscore.getOrElse(40.0)))
-    def getTest(candidate: CreateCandidateInStatusResponse, testType: String): Int =
+    def getTest(candidate: CreateCandidateResponse, testType: String): Int =
       candidate.phase1TestGroup.get.tests.filter(_.testType == testType).head.testId
 
 
-    def buildTestResults(candidate: CreateCandidateInStatusResponse, generatorConfig: CreateCandidateInStatusData): List[(TestResult, CubiksTest)] = {
+    def buildTestResults(candidate: CreateCandidateResponse, generatorConfig: CreateCandidateData): List[(TestResult, CubiksTest)] = {
       val sjqTestUserId = getTest(candidate, "sjq")
 
       if (generatorConfig.assistanceDetails.setGis) {
@@ -73,8 +73,8 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-    def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)
-      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateInStatusResponse] = {
+    def generate(generationId: Int, generatorConfig: CreateCandidateData)
+      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
       for {
         candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
         _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests) { test =>

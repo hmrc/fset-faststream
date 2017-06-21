@@ -21,6 +21,7 @@ import model.EvaluationResults
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.SchemeType._
+import model.exchange.AssessorAvailability
 import org.joda.time.{ LocalDate, LocalTime }
 import repositories._
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
@@ -71,6 +72,7 @@ object DataFaker {
     def upperLetter: Char = randOne(('A' to 'Z').toList)
 
     def bool: Boolean = randOne(List(true, false))
+    def boolTrue20percent: Boolean = randOne(List(1,2,3,4,5)) == 5
 
     def number(limit: Option[Int] = None): Int = util.Random.nextInt(limit.getOrElse(2000000000))
 
@@ -700,6 +702,25 @@ object DataFaker {
     val videoInterviewFeedback: String = "Collaborating and Partnering/In the interview you:\n" +
       "1. Provided limited specific, but some evidence of engagement.\n" +
       "2. Provided some limited evidence of focus on learning but none on personal development."
+
+    object Assessor {
+      private def location = randOne(List("London", "Newcastle"))
+
+      def availability: Option[List[AssessorAvailability]] = {
+        if (boolTrue20percent) {
+          Some(List.empty)
+        } else {
+          val dates = (15 to 25).map(i => LocalDate.parse(s"2017-06-$i")).toList
+          Option(dates.map { date =>
+            if (bool) {
+              Some(AssessorAvailability(location, date))
+            } else {
+              None
+            }
+          }.flatten)
+        }
+      }
+    }
 
     object Event {
       def id = UUIDFactory.generateUUID()

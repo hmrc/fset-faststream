@@ -17,8 +17,8 @@
 package services.testdata.candidate
 
 import model._
-import model.exchange.testdata.CreateCandidateInStatusResponse.CreateCandidateInStatusResponse
-import model.testdata.CreateCandidateInStatusData.{ CreateCandidateInStatusData, PersonalData }
+import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
+import model.testdata.CreateCandidateData.{ CreateCandidateData, PersonalData }
 import play.api.mvc.RequestHeader
 import services.personaldetails.PersonalDetailsService
 import services.testdata.faker.DataFaker.Random
@@ -35,8 +35,8 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
   val pdService: PersonalDetailsService
 
   //scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
-    def getPersonalDetails(candidateInformation: CreateCandidateInStatusResponse) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    def getPersonalDetails(candidateInformation: CreateCandidateResponse) = {
       def getEdipCompleted = {
         if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip) {
           Some(generatorConfig.personalData.edipCompleted.getOrElse(Random.bool))}
@@ -49,7 +49,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         personalData.country.isDefined
       }
 
-      def getCivilServiceExperienceDetails(candidateInformation: CreateCandidateInStatusResponse) = {
+      def getCivilServiceExperienceDetails(candidateInformation: CreateCandidateResponse) = {
         if (generatorConfig.isCivilServant) {
           if (generatorConfig.hasFastPass) {
             CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),

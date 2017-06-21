@@ -17,8 +17,8 @@
 package services.testdata.admin
 
 import connectors.AuthProviderClient
-import model.exchange.testdata.CreateAdminUserInStatusResponse.{ AssessorResponse, CreateAdminUserInStatusResponse }
-import model.testdata.CreateAdminUserInStatusData.CreateAdminUserInStatusData
+import model.exchange.testdata.CreateAdminResponse.{ AssessorResponse, CreateAdminResponse }
+import model.testdata.CreateAdminData.CreateAdminData
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -34,24 +34,24 @@ trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
 
   val authProviderClient: AuthProviderClient.type
 
-  def generate(generationId: Int, createData: CreateAdminUserInStatusData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminUserInStatusResponse] = {
+  def generate(generationId: Int, createData: CreateAdminData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminResponse] = {
     for {
       user <- createUser(generationId, createData)
     } yield {
-      CreateAdminUserInStatusResponse(generationId, user.userId, None, user.email, user.firstName, user.lastName)
+      CreateAdminResponse(generationId, user.userId, None, user.email, user.firstName, user.lastName)
     }
   }
 
-  def createUser(generationId: Int, data: CreateAdminUserInStatusData)
-                (implicit hc: HeaderCarrier): Future[CreateAdminUserInStatusResponse] = {
+  def createUser(generationId: Int, data: CreateAdminData)
+                (implicit hc: HeaderCarrier): Future[CreateAdminResponse] = {
     for {
       user <- authProviderClient.addUser(data.email, "Service01", data.firstName, data.lastName,
         AuthProviderClient.getRole(data.role))
       token <- authProviderClient.getToken(data.email)
       _ <- authProviderClient.activate(data.email, token)
     } yield {
-      CreateAdminUserInStatusResponse(generationId, user.userId.toString, None, data.email,
+      CreateAdminResponse(generationId, user.userId.toString, None, data.email,
         data.firstName, data.lastName, data.phone, data.assessor.map(AssessorResponse(_)))
     }
   }

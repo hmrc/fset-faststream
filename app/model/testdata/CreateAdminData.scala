@@ -16,19 +16,21 @@
 
 package model.testdata
 
-import model.command.testdata.CreateAdminUserInStatusRequest.CreateAdminUserInStatusRequest
+import model.command.testdata.CreateAdminRequest.CreateAdminRequest
+import model.exchange.AssessorAvailability
+import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker
 import services.testdata.faker.DataFaker.Random
 
-object CreateAdminUserInStatusData {
+object CreateAdminData {
 
-  case class CreateAdminUserInStatusData(email: String, firstName: String, lastName: String,
-                                         preferredName: String, role: String, phone: Option[String],
-                                         assessor: Option[AssessorData]) extends CreateTestData
+  case class CreateAdminData(email: String, firstName: String, lastName: String,
+                             preferredName: String, role: String, phone: Option[String],
+                             assessor: Option[AssessorData]) extends CreateTestData
 
-  object CreateAdminUserInStatusData {
-    def apply(createRequest: CreateAdminUserInStatusRequest)(generatorId: Int): CreateAdminUserInStatusData = {
+  object CreateAdminData {
+    def apply(createRequest: CreateAdminRequest)(generatorId: Int): CreateAdminData = {
 
       val role = createRequest.role.getOrElse("admin")
       val username = s"test_${role}_${createRequest.emailPrefix.getOrElse(Random.number(Some(10000)))}a$generatorId"
@@ -40,16 +42,22 @@ object CreateAdminUserInStatusData {
       val assessorData = if (role == "assessor") {
         val skills = createRequest.assessor.flatMap(_.skills).getOrElse(DataFaker.Random.skills)
         val civilServant = createRequest.assessor.flatMap(_.civilServant).getOrElse(DataFaker.Random.bool)
-        Some(AssessorData(skills, civilServant))
+        val availability: Option[List[AssessorAvailability]] = createRequest.assessor.flatMap(assessorRequest => {
+            assessorRequest.availability.map { assessorAvailabilityRequests => {
+              assessorAvailabilityRequests.map { assessorAvailabilityRequest => {
+                AssessorAvailability.apply(assessorAvailabilityRequest)
+              }
+            }}}}).orElse(DataFaker.Random.Assessor.availability)
+        Some(AssessorData(skills, civilServant, availability))
       } else {
         None
       }
-      CreateAdminUserInStatusData(s"$username@mailinator.com", firstName, lastName, preferredName, role, phone, assessorData)
+      CreateAdminData(s"$username@mailinator.com", firstName, lastName, preferredName, role, phone, assessorData)
     }
 
   }
 
-  case class AssessorData(skills: List[String], civilServant: Boolean)
+  case class AssessorData(skills: List[String], civilServant: Boolean, availability: Option[List[AssessorAvailability]])
 
   object AssessorData {
     implicit val assessorDataFormat: OFormat[AssessorData] = Json.format[AssessorData]

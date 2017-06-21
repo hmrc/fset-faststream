@@ -23,7 +23,7 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 object AssessorStatus extends Enumeration {
   type AssessorStatus = Value
 
-  val NEW, AVAILABILITIES_SUBMITTED = Value
+  val CREATED, AVAILABILITIES_SUBMITTED = Value
 
   implicit val assessorStatusFormat = new Format[AssessorStatus] {
     override def reads(json: JsValue): JsResult[AssessorStatus] = JsSuccess(AssessorStatus.withName(json.as[String].toUpperCase))

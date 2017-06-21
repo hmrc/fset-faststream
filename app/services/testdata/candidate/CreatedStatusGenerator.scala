@@ -18,7 +18,7 @@ package services.testdata.candidate
 
 import connectors.ExchangeObjects
 import model.ApplicationRoute
-import model.testdata.CreateCandidateInStatusData.CreateCandidateInStatusData
+import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -35,7 +35,7 @@ object CreatedStatusGenerator extends CreatedStatusGenerator {
 trait CreatedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateInStatusData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       applicationId <- createApplication(candidateInPreviousStatus.userId, generatorConfig.statusData.applicationRoute)
