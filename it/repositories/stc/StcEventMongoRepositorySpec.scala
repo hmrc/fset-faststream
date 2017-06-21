@@ -1,24 +1,24 @@
-package repositories.event
+package repositories.stc
 
-import model.persisted.Event
+import model.persisted.StcEvent
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.{ CollectionNames, EventMongoRepository }
+import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future
 
-class EventMongoRepositorySpec extends MongoRepositorySpec {
+class StcEventMongoRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
   override val collectionName = CollectionNames.EVENT
 
-  lazy val repository = new EventMongoRepository()
+  lazy val repository = new StcEventMongoRepository()
 
-  "Event repository" should {
+  "Stop the Clock Event repository" should {
     "insert new event" in {
-      val event = Event("ExampleEvent", DateTime.now(DateTimeZone.UTC), Some("appId"), Some("userId"))
+      val event = StcEvent("ExampleEvent", DateTime.now(DateTimeZone.UTC), Some("appId"), Some("userId"))
       repository.create(event).futureValue
       val result = getEvent(repository.collection.find(BSONDocument.empty).one[BSONDocument])
 
@@ -26,6 +26,6 @@ class EventMongoRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  private def getEvent(doc: Future[Option[BSONDocument]]): Event =
-    doc.map(_.map(Event.eventHandler.read)).futureValue.get
+  private def getEvent(doc: Future[Option[BSONDocument]]): StcEvent =
+    doc.map(_.map(StcEvent.eventHandler.read)).futureValue.get
 }

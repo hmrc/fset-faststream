@@ -19,17 +19,17 @@ package services.events.handler
 import model.events.DataStoreEvent
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import repositories.{ EventRepository, eventMongoRepository }
+import repositories.stc.StcEventRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 object DataStoreEventHandler extends DataStoreEventHandler {
-  val eventRepository: EventRepository = eventMongoRepository
+  val eventRepository: StcEventRepository = repositories.stcEventMongoRepository
 }
 
 trait DataStoreEventHandler extends EventHandler[DataStoreEvent] {
-  val eventRepository: EventRepository
+  val eventRepository: StcEventRepository
 
   def handle(event: DataStoreEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     Logger.info(s"Data store event $event")
