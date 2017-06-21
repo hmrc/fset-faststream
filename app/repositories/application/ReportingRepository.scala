@@ -354,7 +354,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
-        BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+        BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.toString)
       ))
 
     val projection = BSONDocument(
@@ -369,6 +369,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     )
 
     reportQueryWithProjections[BSONDocument](query, projection).map { list =>
+      println("LIST = " + list.size)
       list.map { document =>
 
         val userId = document.getAs[String]("userId").get
