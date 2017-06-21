@@ -18,7 +18,7 @@ package model.persisted
 
 import org.joda.time.DateTime
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class StcEvent(
   name: String,
