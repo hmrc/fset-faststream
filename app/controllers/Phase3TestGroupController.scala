@@ -18,7 +18,7 @@ package controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import services.events.EventService
+import services.stc.StcEventService
 import services.onlinetesting.phase3.Phase3TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -26,12 +26,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase3TestGroupController extends Phase3TestGroupController {
   val phase3TestService = Phase3TestService
-  val eventService: EventService = EventService
+  val eventService: StcEventService = StcEventService
 }
 
 trait Phase3TestGroupController extends BaseController {
   val phase3TestService: Phase3TestService
-  val eventService: EventService
+  val eventService: StcEventService
 
   def getTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     phase3TestService.getTestGroup(applicationId).map {

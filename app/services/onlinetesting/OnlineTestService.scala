@@ -20,20 +20,20 @@ import connectors.OnlineTestEmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
-import model.events.DataStoreEvents
+import model.stc.DataStoreEvents
 import model.exchange.CubiksTestResultReady
 import model.persisted._
 import model._
 import org.joda.time.DateTime
-import model.events.AuditEvents
-import model.events.EventTypes._
+import model.stc.AuditEvents
+import model.stc.StcEventTypes._
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.OnlineTestRepository
 import services.AuditService
-import services.events.EventSink
+import services.stc.EventSink
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -201,7 +201,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
     }
   }
 
-  private[onlinetesting] def generateStatusEvents(applicationId: String, status: ProgressStatuses.ProgressStatus): Events = {
+  private[onlinetesting] def generateStatusEvents(applicationId: String, status: ProgressStatuses.ProgressStatus): StcEvents = {
 
     val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
     val passedStates = PHASE3_TESTS_SUCCESS_NOTIFIED :: Nil
@@ -220,7 +220,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
   private[onlinetesting] def generateEmailEvents(applicationId: String,
                                                  status: ProgressStatuses.ProgressStatus,
-                                                 email: String, to: String, template: String): Events = {
+                                                 email: String, to: String, template: String): StcEvents = {
 
     val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
     val failedStates = PHASE1_TESTS_FAILED_NOTIFIED :: PHASE2_TESTS_FAILED_NOTIFIED :: PHASE3_TESTS_FAILED_NOTIFIED :: Nil

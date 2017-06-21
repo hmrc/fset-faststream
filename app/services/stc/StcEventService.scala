@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-package services.events
+package services.stc
 
-import model.events.EventTypes.{ EventType, Events }
-import model.events.{ AuditEvent, DataStoreEvent, EmailEvent }
+import model.stc.StcEventTypes.{ StcEventType, StcEvents }
+import model.stc.{ AuditEvent, DataStoreEvent, EmailEvent }
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import services.events.handler.{ AuditEventHandler, EmailEventHandler, DataStoreEventHandler }
+import services.stc.handler.{ AuditEventHandler, DataStoreEventHandler, EmailEventHandler }
 import uk.gov.hmrc.play.http.HeaderCarrier
-import scala.language.implicitConversions
 
+import scala.language.implicitConversions
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object EventService extends EventService {
+object StcEventService extends StcEventService {
   val dataStoreEventHandler: DataStoreEventHandler = DataStoreEventHandler
   val auditEventHandler: AuditEventHandler = AuditEventHandler
   val emailEventHandler: EmailEventHandler = EmailEventHandler
 }
 
-trait EventService {
-  protected[events] val dataStoreEventHandler: DataStoreEventHandler
-  protected[events] val auditEventHandler: AuditEventHandler
-  protected[events] val emailEventHandler: EmailEventHandler
+trait StcEventService {
+  protected[stc] val dataStoreEventHandler: DataStoreEventHandler
+  protected[stc] val auditEventHandler: AuditEventHandler
+  protected[stc] val emailEventHandler: EmailEventHandler
 
-  protected[events] implicit def toEvents(e: EventType): Events = List(e)
+  protected[stc] implicit def toEvents(e: StcEventType): StcEvents = List(e)
 
   // TODO: Error handling
-  protected[events] def handle(events: Events)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  protected[stc] def handle(events: StcEvents)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val result = events.collect {
       case event: DataStoreEvent => dataStoreEventHandler.handle(event)
       case event: AuditEvent => auditEventHandler.handle(event)
@@ -54,15 +54,15 @@ trait EventService {
     Future.sequence(result) map (_ => ())
   }
 
-  protected[events] def handle(event: EventType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = handle(List(event))
+  protected[stc] def handle(event: StcEventType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = handle(List(event))
 }
 
 trait EventSink {
-  val eventService: EventService
+  val eventService: StcEventService
 
-  def eventSink(block: => Future[Events])(implicit hc: HeaderCarrier, rh: RequestHeader) = block.flatMap { events =>
+  def eventSink(block: => Future[StcEvents])(implicit hc: HeaderCarrier, rh: RequestHeader) = block.flatMap { events =>
     eventService.handle(events)
   }
 
-  def eventSink(block: Events)(implicit hc: HeaderCarrier, rh: RequestHeader) = eventService.handle(block)
+  def eventSink(block: StcEvents)(implicit hc: HeaderCarrier, rh: RequestHeader) = eventService.handle(block)
 }

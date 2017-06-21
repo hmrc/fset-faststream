@@ -36,7 +36,7 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
 import services.adjustmentsmanagement.AdjustmentsManagementService
-import services.events.EventServiceFixture
+import services.stc.StcEventServiceFixture
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -411,7 +411,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
-  trait Phase3TestServiceFixture extends EventServiceFixture {
+  trait Phase3TestServiceFixture extends StcEventServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
     implicit val rh = mock[RequestHeader]

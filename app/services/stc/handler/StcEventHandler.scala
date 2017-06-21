@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package services.events.handler
+package services.stc.handler
 
-import model.events.DataStoreEvent
-import play.api.Logger
+import model.stc.StcEventTypes.StcEventType
 import play.api.mvc.RequestHeader
-import repositories.stc.StcEventRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object DataStoreEventHandler extends DataStoreEventHandler {
-  val eventRepository: StcEventRepository = repositories.stcEventMongoRepository
-}
+trait StcEventHandler[T <: StcEventType] {
 
-trait DataStoreEventHandler extends EventHandler[DataStoreEvent] {
-  val eventRepository: StcEventRepository
+  def handle(event: T)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
-  def handle(event: DataStoreEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    Logger.info(s"Data store event $event")
-    eventRepository.create(event)
-  }
 }

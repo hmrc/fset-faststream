@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package services.events.handler
+package services.stc.handler
 
 import connectors.{ CSREmailClient, EmailClient }
-import model.events.{ EmailEvent, EmailEvents }
+import model.stc.{ EmailEvent, EmailEvents }
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -28,7 +28,7 @@ object EmailEventHandler extends EmailEventHandler {
   val emailClient: EmailClient = CSREmailClient
 }
 
-trait EmailEventHandler extends EventHandler[EmailEvent] {
+trait EmailEventHandler extends StcEventHandler[EmailEvent] {
   val emailClient: EmailClient
 
   def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {

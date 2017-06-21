@@ -22,7 +22,7 @@ import controllers.LaunchpadTestsController.CannotFindTestByLaunchpadInviteId
 import model.Exceptions.NotFoundException
 import play.api.Logger
 import play.api.mvc.{ Action, Result }
-import services.events.EventService
+import services.stc.StcEventService
 import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object LaunchpadTestsController extends LaunchpadTestsController {
   override val phase3TestService = Phase3TestService
   override val phase3TestCallbackService = Phase3TestCallbackService
-  val eventService = EventService
+  val eventService = StcEventService
 
   case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
 }
@@ -39,7 +39,7 @@ object LaunchpadTestsController extends LaunchpadTestsController {
 trait LaunchpadTestsController extends BaseController {
   val phase3TestService: Phase3TestService
   val phase3TestCallbackService: Phase3TestCallbackService
-  val eventService: EventService
+  val eventService: StcEventService
 
   def markAsStarted(inviteId: String) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Launchpad Assessment with invite ID $inviteId marked as started")

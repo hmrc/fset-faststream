@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package model.events
+package model.stc
 
-import model.events.EventTypes.EventType
+import model.stc.StcEventTypes.StcEventType
 import model.persisted.StcEvent
 import org.joda.time.DateTime
 
-sealed trait DataStoreEvent extends EventType {
+sealed trait DataStoreEvent extends StcEventType {
   final val eventCreated: DateTime = DateTime.now()
   lazy val applicationId: Option[String] = None
   lazy val userId: Option[String] = None
