@@ -21,7 +21,7 @@ import model.exchange.{ Assessor, AssessorAvailability }
 import model.persisted.AssessorExamples
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import repositories.{ AssessmentCentreRepository, AssessmentCentreYamlRepository, AssessorRepository }
+import repositories.{ AssessorRepository, LocationsWithVenuesYamlRepository$$ }
 import repositories.assistancedetails.AssistanceDetailsRepository
 import services.BaseServiceSpec
 import services.assessoravailability.AssessorService
@@ -31,6 +31,7 @@ import scala.concurrent.duration._
 import AssessorExamples._
 import model.Exceptions
 import model.Exceptions.AssessorNotFoundException
+import repositories.events.LocationsWithVenuesRepository
 
 import scala.concurrent.{ Await, Future }
 
@@ -128,11 +129,11 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
   trait TestFixture  {
     val mockAssessorRepository = mock[AssessorRepository]
-    val mockAssessmentCentreYamlRepository = mock[AssessmentCentreRepository]
+    val mockAssessmentCentreYamlRepository = mock[LocationsWithVenuesRepository]
 
     val service = new AssessorService {
       override val assessorRepository: AssessorRepository = mockAssessorRepository
-      override val assessmentCentreYamlRepository: AssessmentCentreRepository = mockAssessmentCentreYamlRepository
+      override val assessmentCentreYamlRepository: LocationsWithVenuesRepository = mockAssessmentCentreYamlRepository
     }
   }
 }

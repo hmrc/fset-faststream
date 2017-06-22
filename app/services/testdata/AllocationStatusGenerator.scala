@@ -50,7 +50,7 @@ trait AllocationStatusGenerator extends ConstructiveGenerator {
       } yield {
         ApplicationAssessment(
           candidate.applicationId.get,
-          availableAssessment.venue.venueName,
+          availableAssessment.venue.name,
           availableAssessment.date,
           availableAssessment.session,
           generationId,

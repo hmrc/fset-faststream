@@ -22,6 +22,7 @@ import model.Exceptions.DataFakingException
 import model.SchemeType._
 import org.joda.time.LocalDate
 import repositories._
+import repositories.events.{ LocationsWithVenuesYamlRepository, Venue }
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,7 +33,7 @@ object DataFaker {
 
   object ExchangeObjects {
 
-    case class AvailableAssessmentSlot(venue: AssessmentCentreVenue, date: LocalDate, session: String)
+    case class AvailableAssessmentSlot(venue: Venue, date: LocalDate, session: String)
 
   }
 
@@ -108,23 +109,26 @@ object DataFaker {
     def passmark: Result = randOne(List(EvaluationResults.Green, EvaluationResults.Amber, EvaluationResults.Red))
 
     def availableAssessmentVenueAndDate: Future[AvailableAssessmentSlot] = {
-      AssessmentCentreYamlRepository.assessmentCentreCapacities.flatMap { assessmentCentreLocations =>
+      LocationsWithVenuesYamlRepository.allVenues.flatMap { allVenues =>
 
-        val randomisedVenues = util.Random.shuffle(assessmentCentreLocations.flatMap(_.venues))
+        val randomisedVenues = util.Random.shuffle(allVenues)
 
         val firstVenueWithSpace = randomisedVenues.foldLeft(Future.successful(Option.empty[AvailableAssessmentSlot])) {
           case (acc, venue) =>
             acc.flatMap {
               case Some(accVenueAndDate) => Future.successful(Some(accVenueAndDate))
-              case _ => venueHasFreeSlots(venue)
+              //case _ => venueHasFreeSlots(venue)
+              case _ => Future.successful(None)
             }
         }
         firstVenueWithSpace.map(_.get)
       }
     }
 
-    private def venueHasFreeSlots(venue: AssessmentCentreVenue): Future[Option[AvailableAssessmentSlot]] = {
-      applicationAssessmentRepository.applicationAssessmentsForVenue(venue.venueName).map { assessments =>
+    /* TODO Fix these again once the event allocation features have been done
+
+    private def venueHasFreeSlots(venue: Venue): Future[Option[AvailableAssessmentSlot]] = {
+      applicationAssessmentRepository.applicationAssessmentsForVenue(venue.name).map { assessments =>
         val takenSlotsByDateAndSession = assessments.groupBy(slot => slot.date -> slot.session).map {
           case (date, numOfAssessments) => (date, numOfAssessments.length)
         }
@@ -143,19 +147,21 @@ object DataFaker {
       }
     }
 
+
     def region: Future[String] = {
-      AssessmentCentreYamlRepository.locationsAndAssessmentCentreMapping.map { locationsToAssessmentCentres =>
+      LocationsWithVenuesYamlRepository.locationsAndAssessmentCentreMapping.map { locationsToAssessmentCentres =>
         val locationToRegion = locationsToAssessmentCentres.values.filterNot(_.startsWith("TestAssessment"))
         randOne(locationToRegion.toList)
       }
     }
 
     def location(region: String, cannotBe: List[String] = Nil): Future[String] = {
-      AssessmentCentreYamlRepository.locationsAndAssessmentCentreMapping.map { locationsToAssessmentCentres =>
+      LocationsWithVenuesYamlRepository.locationsWithVenuesList.map { locationsToAssessmentCentres =>
         val locationsInRegion = locationsToAssessmentCentres.filter(_._2 == region).keys.toList
         randOne(locationsInRegion, cannotBe)
       }
     }
+    */
 
     def schemeTypes = randList(List(
       Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,

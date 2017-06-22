@@ -19,24 +19,21 @@ package services.assessoravailability
 import model.Exceptions.AssessorNotFoundException
 import org.joda.time.LocalDate
 import repositories._
+import repositories.events.{ Location, LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
-  val assessmentCentreYamlRepository: AssessmentCentreRepository = AssessmentCentreYamlRepository
+  val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesYamlRepository
 }
 
 trait AssessorService {
   val assessorRepository: AssessorRepository
-  val assessmentCentreYamlRepository: AssessmentCentreRepository
+  val locationsWithVenuesRepo: LocationsWithVenuesRepository
 
-  lazy val regions: Future[Set[String]] = assessmentCentreYamlRepository.assessmentCentreCapacities.map(
-    _.map(
-      _.regionName.toLowerCase
-    ).toSet
-  )
+  lazy val locations: Future[Set[Location]] = locationsWithVenuesRepo.allLocations
 
   def saveAssessor(userId: String, assessor: model.exchange.Assessor): Future[Unit] = {
     assessorRepository.find(userId).flatMap {

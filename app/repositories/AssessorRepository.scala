@@ -63,9 +63,9 @@ class AssessorMongoRepository(implicit mongo: () => DB)
   }
 
   override def countSubmittedAvailability: Future[Int] = {
-    AssessorService.regions.map { regions =>
-      regions.map { region =>
-        s"availability.$region" -> Json.toJsFieldJsValueWrapper(Json.obj("$exists" -> true))
+    AssessorService.locations.map { locations =>
+      locations.map { location =>
+        s"availability.${location.name}" -> Json.toJsFieldJsValueWrapper(Json.obj("$exists" -> true))
       }
     }.flatMap { fields =>
       val query = Json.obj(fields.toSeq: _*)

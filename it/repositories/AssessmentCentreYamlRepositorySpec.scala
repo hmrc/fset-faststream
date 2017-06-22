@@ -19,6 +19,7 @@ package repositories
 import model.Exceptions.{ NoSuchVenueDateException, NoSuchVenueException }
 import org.joda.time.LocalDate
 import play.Logger
+import repositories.events.LocationsWithVenuesRepositoryImpl
 import testkit.UnitWithAppSpec
 
 class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
@@ -26,7 +27,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
 
   "Locations and assessment centre mapping" should {
     "return non empty mapping" in {
-      val mapping = AssessmentCentreYamlRepository.locationsAndAssessmentCentreMapping.futureValue
+      val mapping = LocationsWithVenuesYamlRepository$$.locationsAndAssessmentCentreMapping.futureValue
       mapping must not be empty
       mapping("London") mustBe "London"
       mapping("Cardiff") mustBe "Bristol"
@@ -34,7 +35,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
 
     "be consistent with regions-locations-frameworks" in {
       val allLocationsFromFrameworkRepo = allLocationsFromFrameworkRepository
-      val locationToAssessmentCentre = AssessmentCentreYamlRepository.locationsAndAssessmentCentreMapping.futureValue.keys.toSet
+      val locationToAssessmentCentre = LocationsWithVenuesYamlRepository$$.locationsAndAssessmentCentreMapping.futureValue.keys.toSet
 
       val missingLocationsInFrameworkRepo = locationToAssessmentCentre.diff(allLocationsFromFrameworkRepo)
       val missingLocationsInAssessmentCentresMapping = allLocationsFromFrameworkRepo.diff(locationToAssessmentCentre)
@@ -57,7 +58,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
 
   "Assessment centre capacities" should {
     "return non empty mapping" in {
-      val capacities = AssessmentCentreYamlRepository.assessmentCentreCapacities.futureValue
+      val capacities = LocationsWithVenuesYamlRepository$$.locationsAndVenuesList.futureValue
       capacities must not be empty
       val assessmentCapacity = capacities.head
       assessmentCapacity.regionName mustBe "London"
@@ -71,7 +72,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
     }
 
     "reject invalid configuration" in {
-      val capacities = AssessmentCentreYamlRepository.assessmentCentreCapacities.futureValue
+      val capacities = LocationsWithVenuesYamlRepository$$.locationsAndVenuesList.futureValue
       for {
         c <- capacities
         v <- c.venues
@@ -85,12 +86,12 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
 
   "Assessment centre capacity by date" should {
     "Throw NoSuchVenueException when a bad venue name is passed" in {
-        val exception = AssessmentCentreYamlRepository.assessmentCentreCapacityDate("Bleurgh", LocalDate.parse("2015-04-01")).failed.futureValue
+        val exception = LocationsWithVenuesYamlRepository$$.assessmentCentreCapacityDate("Bleurgh", LocalDate.parse("2015-04-01")).failed.futureValue
         exception mustBe a[NoSuchVenueException]
     }
 
     "Throw NoSuchVenueDateException when there are no sessions on the specified date" in {
-        val exception = AssessmentCentreYamlRepository.assessmentCentreCapacityDate("London (FSAC) 1",
+        val exception = LocationsWithVenuesYamlRepository$$.assessmentCentreCapacityDate("London (FSAC) 1",
           LocalDate.parse("2010-04-01")).failed.futureValue
         exception mustBe a[NoSuchVenueDateException]
     }
@@ -106,12 +107,12 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
   "Assessment centre production YAML file" should {
 
     "remain parsable and load" in {
-      val repo = new AssessmentCentreRepositoryImpl {
+      val repo = new LocationsWithVenuesRepositoryImpl {
         val assessmentCentresLocationsPath = "assessment-centres-preferred-locations-prod.yaml"
-        val assessmentCentresConfigPath = "assessment-centres-prod.yaml"
+        val locationsAndVenuesFilePath = "assessment-centres-prod.yaml"
       }
 
-      val capacities = repo.assessmentCentreCapacities.futureValue
+      val capacities = repo.locationsAndVenuesList.futureValue
       capacities must not be empty
       val assessmentCapacity = capacities.head
       assessmentCapacity.regionName mustBe "London"

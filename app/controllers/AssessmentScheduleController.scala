@@ -16,25 +16,12 @@
 
 package controllers
 
-import java.io.UnsupportedEncodingException
-import java.net.URLDecoder
-
-import com.github.nscala_time.time.OrderingImplicits.LocalDateOrdering
-import common.FutureEx
 import connectors.AssessmentScheduleExchangeObjects._
-import connectors.ExchangeObjects.AllocationDetails
 import connectors.{ CSREmailClient, EmailClient }
-import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
-import model.AssessmentScheduleCommands.Implicits.ApplicationForAssessmentAllocationResultFormats
-import model.Exceptions.NotFoundException
 import model.command.AssessmentCentreAllocation
-import model.{ Commands, ProgressStatuses }
-import org.joda.time.LocalDate
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, Result }
-import repositories.AssessmentCentreLocation.assessmentCentreVenueFormat
 import repositories._
 import repositories.application._
+import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository }
 import services.AuditService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -44,7 +31,7 @@ import scala.util.Try
 
 object AssessmentScheduleController extends AssessmentScheduleController {
   // val aaRepository: AssessmentCentreAllocationMongoRepository = assessmentCentreAllocationRepository
-  val acRepository = AssessmentCentreYamlRepository
+  val acRepository = LocationsWithVenuesYamlRepository
   val aRepository: GeneralApplicationMongoRepository = applicationRepository
   // val otRepository: OnlineTestMongoRepository = onlineTestRepository
   val auditService = AuditService
@@ -57,7 +44,7 @@ object AssessmentScheduleController extends AssessmentScheduleController {
 
 trait AssessmentScheduleController extends BaseController {
   // val aaRepository: AssessmentCentreAllocationRepository
-  val acRepository: AssessmentCentreRepository
+  val acRepository: LocationsWithVenuesRepository
   val aRepository: GeneralApplicationRepository
   // val otRepository: OnlineTestRepository
   val auditService: AuditService
@@ -66,22 +53,6 @@ trait AssessmentScheduleController extends BaseController {
   val emailClient: EmailClient
   // val aaService: AssessmentCentreService
   // val assessmentScoresService: AssessmentCentreScoresService
-
-  def getAssessmentScheduleDatesByRegion(region: String): Action[AnyContent] = Action.async { implicit request =>
-     acRepository.assessmentCentreCapacities.map { schedule =>
-       val dates = schedule
-         .filter(scheduleRegion => scheduleRegion.regionName == region)
-         .flatMap(scheduleRegion =>
-           scheduleRegion.venues.flatMap(venue =>
-             venue.capacityDates.map(capacityDates =>
-               capacityDates.date
-             )
-           )
-         ).distinct.sorted
-       Ok(Json.toJson(dates))
-     }
-  }
-
 
   // TODO: uncomment all comments line in this method when implementing assessment centre schedule
   // Remove dummy data lines under comments in some cases
@@ -93,45 +64,6 @@ trait AssessmentScheduleController extends BaseController {
       // UsedCapacity(usedCapacity = 0, confirmedAttendees = 0, minViableAttendees, preferredAttendeeMargin)
       UsedCapacity(usedCapacity = 0, false) // dummy data line
     //)
-  }
-
-  // TODO: uncomment all comments line in this method when implementing assessment centre schedule.
-  // Remove dummy data lines under comments in some cases.
-  def getAssessmentSchedule: Action[AnyContent] = Action.async { implicit request =>
-    // val assessments = aaRepository.findAll.map(_.groupBy(x => (x.venue, x.date, x.session)))
-
-    for {
-      // assessmentMap <- assessments
-      assessmentCentreCapacities <- acRepository.assessmentCentreCapacities
-    } yield {
-      val schedule = Schedule(
-        assessmentCentreCapacities.map(assessmentCentreCapacity =>
-          Region(
-            assessmentCentreCapacity.regionName,
-            assessmentCentreCapacity.venues.map(venue =>
-              Venue(
-                venue.venueName,
-                venue.capacityDates.map(capacityDate =>
-                  UsedCapacityDate(
-                    capacityDate.date,
-                    calculateUsedCapacity(
-                      //assessmentMap.get((venue.venueName, capacityDate.date, "AM")),
-                      None,
-                      // capacityDate.amCapacity, capacityDate.amMinViableAttendees, capacityDate.amPreferredAttendeeMargin
-                      capacityDate.amCapacity, 0, 0 // dummy data line
-                    ),
-                    calculateUsedCapacity(
-                      // assessmentMap.get((venue.venueName, capacityDate.date, "PM")),
-                      None,
-                      // capacityDate.pmCapacity, capacityDate.pmMinViableAttendees, capacityDate.pmPreferredAttendeeMargin
-                      capacityDate.pmCapacity, 0, 0 // dummy data line
-                    )
-                  ))
-              ))
-          ))
-      )
-      Ok(Json.toJson(schedule))
-    }
   }
 
   /*

@@ -121,8 +121,8 @@ GET         /assessor-availability/find/:userId                          control
 GET         /assessor-availability/countSubmitted                        controllers.AssessorController.countSubmittedAvailability()
 
 # Assessment Centres
-GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)
-GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
+#GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)
+#GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
 
 # Assessment Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()

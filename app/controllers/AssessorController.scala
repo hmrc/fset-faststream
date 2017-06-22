@@ -18,12 +18,14 @@ package controllers
 
 import model.Exceptions.AssessorNotFoundException
 import model.exchange.{ Assessor, AssessorAvailability }
+import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import services.assessoravailability.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object AssessorController extends AssessorController {
   val assessorService = AssessorService
@@ -70,5 +72,9 @@ trait AssessorController extends BaseController {
     } recover {
       case ex: Throwable => InternalServerError("Could not retrieve a count of submitted assessor availabilities")
     }
+  }
+
+  def findAvailableAssessorsForDate(date: LocalDate): Action[AnyContent] = Action.async { implicit request =>
+    Future.successful(Ok(""))
   }
 }

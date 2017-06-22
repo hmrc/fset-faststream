@@ -125,8 +125,7 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
                              evaluationWaitTimeAfterResultsReceivedInHours: Int,
                              verifyAllScoresArePresent: Boolean)
 
-case class AssessmentCentresLocationsConfig(yamlFilePath: String)
-case class AssessmentCentresConfig(yamlFilePath: String)
+case class LocationsAndVenuesConfig(yamlFilePath: String)
 
 case class AssessmentEvaluationMinimumCompetencyLevel(enabled: Boolean, minimumCompetencyLevelScore: Option[Double],
   motivationalFitMinimumCompetencyLevelScore: Option[Double]) {
@@ -155,10 +154,8 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val parityGatewayConfig = underlyingConfiguration.as[ParityGatewayConfig]("microservice.services.parity-gateway")
   lazy val maxNumberOfDocuments = underlyingConfiguration.as[Int]("maxNumberOfDocuments")
 
-  lazy val assessmentCentresLocationsConfig =
-    underlyingConfiguration.as[AssessmentCentresLocationsConfig]("scheduling.online-testing.assessment-centres-locations")
-  lazy val assessmentCentresConfig =
-    underlyingConfiguration.as[AssessmentCentresConfig]("scheduling.online-testing.assessment-centres")
+  lazy val locationsAndVenuesConfig =
+    underlyingConfiguration.as[LocationsAndVenuesConfig]("scheduling.online-testing.locations-and-venues")
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
     underlyingConfiguration
       .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")
