@@ -19,6 +19,16 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   val collectionName: String = CollectionNames.APPLICATION
 
+  "dynamically specified evaluation application statuses collection" should {
+    "contain the expected phases that result in evaluation running" in {
+      phase3EvaluationRepo.evaluationApplicationStatuses mustBe Set(
+        ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED,
+        ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_PASSED,
+        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER
+      )
+    }
+  }
+
   "next Application Ready For Evaluation" should {
     "return nothing if there is no PHASE1_TESTS applications" in {
       insertApplication("appId1", ApplicationStatus.SUBMITTED)
