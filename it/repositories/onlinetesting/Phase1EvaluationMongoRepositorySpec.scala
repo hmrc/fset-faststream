@@ -1,6 +1,6 @@
 package repositories.onlinetesting
 
-import model.ApplicationStatus._
+import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.SchemeType._
 import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest, Phase1TestProfile, _ }
