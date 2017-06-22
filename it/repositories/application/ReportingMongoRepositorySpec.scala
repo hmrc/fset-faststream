@@ -51,7 +51,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
   def testDataGeneratorService = TestDataGeneratorService
 
   implicit def blankedHeaderCarrier = new HeaderCarrier()
-
+  
   "Candidate Progress Report" must {
     "for an application with all fields" in {
       val userId = generateUUID()
@@ -383,6 +383,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val result = repository.candidatesAwaitingAllocation(frameworkId).futureValue
       result must have size 10
     }
+
+
 
     "not return candidates that are initially awaiting allocation but subsequently withdrawn" in {
       val testData = new TestDataMongoRepository()

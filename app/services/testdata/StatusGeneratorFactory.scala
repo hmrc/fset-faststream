@@ -61,12 +61,12 @@ object StatusGeneratorFactory {
         // IN_PROGRESS_PREVIEW should be deprecated, look below
         case IN_PROGRESS_PREVIEW => InProgressPreviewStatusGenerator
         case SUBMITTED => SubmittedStatusGenerator
-        case ASSESSMENT_CENTRE_AWAITING_ALLOCATION => AssessmentCentreAwaitingAllocationStatusGenerator$
-        case ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED => AssessmentCentreAllocationStatusGenerator$
-        case ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED => AssessmentCentreAllocationStatusGenerator$
+        case ASSESSMENT_CENTRE_AWAITING_ALLOCATION => AssessmentCentreAwaitingAllocationStatusGenerator
+        case ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED => AssessmentCentreAllocationStatusGenerator
+        case ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED => AssessmentCentreAllocationStatusGenerator
         case FAILED_TO_ATTEND => FailedToAttendStatusGenerator
-        case ASSESSMENT_CENTRE_SCORES_ENTERED => AssessmentCentreScoresEnteredStatusGenerator$
-        case ASSESSMENT_CENTRE_SCORES_ACCEPTED => AssessmentCentreScoresAcceptedStatusGenerator$
+        case ASSESSMENT_CENTRE_SCORES_ENTERED => AssessmentCentreScoresEnteredStatusGenerator
+        case ASSESSMENT_CENTRE_SCORES_ACCEPTED => AssessmentCentreScoresAcceptedStatusGenerator
         case ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION => AssessmentCentreAwaitingReevalationStatusGenerator
         case ASSESSMENT_CENTRE_PASSED => AssessmentCentrePassedStatusGenerator
         case ASSESSMENT_CENTRE_FAILED => AssessmentCentreFailedStatusGenerator
@@ -142,5 +142,5 @@ trait ApplicationStatusOnlyForTest {
   this: Enumeration =>
   val REGISTERED, IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES,
   IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES, IN_PROGRESS_ASSISTANCE_DETAILS,
-  IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW, ASSESSMENT_CENTRE_AWAITING_ALLOCATION = Value
+  IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
 }

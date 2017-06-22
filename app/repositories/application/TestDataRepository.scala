@@ -237,7 +237,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     val progress = createProgress(personalDetails, frameworks, assistance, submitted, withdrawn)
 
     val applicationStatus = if (onlyAssessmentCentreAwaitingAllocation) {
-      ApplicationStatus.AWAITING_ASSESSMENT_CENTRE_ALLOCATION.toString
+      ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.toString
     } else {
       chooseOne(applicationStatuses)
     }
