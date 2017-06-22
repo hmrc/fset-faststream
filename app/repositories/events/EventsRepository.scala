@@ -16,6 +16,7 @@
 
 package repositories.events
 
+import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.VenueType.VenueType
@@ -32,8 +33,6 @@ trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def getEvent(id: String): Future[Event]
   def fetchEvents(eventType: EventType, venueType: VenueType) : Future[List[Event]]
-
-  case class EventNotFound(m: String) extends Exception(m)
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -49,7 +48,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
   def getEvent(id: String): Future[Event] = {
     collection.find(BSONDocument("id" -> id), BSONDocument("_id" -> false)).one[Event] map {
       case Some(event) => event
-      case None => throw EventNotFound(s"No event found with id $id")
+      case None => throw EventNotFoundException(s"No event found with id $id")
     }
   }
 

@@ -16,39 +16,41 @@
 
 package controllers
 
+import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.{ EventType, VenueType }
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories.events.EventsRepository
-import services.events.EventsParsingService
+import services.events.{ EventsParsingService, EventsService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
   val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
   val assessmentCenterParsingService: EventsParsingService = EventsParsingService
+  val eventsService: EventsService = EventsService
 }
 
 trait EventsController extends BaseController {
-  val assessmentEventsRepository: EventsRepository
-  val assessmentCenterParsingService: EventsParsingService
+  def assessmentEventsRepository: EventsRepository
+  def assessmentCenterParsingService: EventsParsingService
+  def eventsService: EventsService
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
-    assessmentCenterParsingService.processCentres().flatMap{ events =>
-      Logger.debug("Events have been processed!")
-      assessmentEventsRepository.save(events)
-    }.map(_ => Created).recover { case _ => UnprocessableEntity }
+    eventsService.saveAssessmentEvents().map(_ => Created("Events saved")).recover { case _ => UnprocessableEntity }
   }
 
   def getEvent(eventId: String): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(""))
+    eventsService.getEvent(eventId).map { event =>
+      Ok(Json.toJson(event))
+    }.recover {
+      case _: EventNotFoundException => NotFound(s"No event found with id $eventId")
+    }
   }
 
   def fetchEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
-    // convert params to native enum type
     val eventType = EventType.withName(eventTypeParam.toUpperCase)
     val venue = VenueType.withName(venueParam.toUpperCase)
 

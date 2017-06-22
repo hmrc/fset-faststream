@@ -1,6 +1,7 @@
 package repositories.events
 
 import factories.UUIDFactory
+import model.Exceptions.EventNotFoundException
 import repositories.CollectionNames
 import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import org.joda.time.{ LocalDate, LocalTime }
@@ -99,7 +100,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "return an exception if not event is found by Id" in {
       val result = repository.getEvent("fakeid").failed.futureValue
-      result mustBe a[repository.EventNotFound]
+      result mustBe a[EventNotFoundException]
     }
   }
 }
