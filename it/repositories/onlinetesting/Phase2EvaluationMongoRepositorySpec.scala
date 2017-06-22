@@ -26,8 +26,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "contain the expected phases that result in evaluation running" in {
       phase2EvaluationRepo.evaluationApplicationStatuses mustBe Set(
         ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_PASSED,
-        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
-        ApplicationStatus.PHASE3_TESTS_PASSED
+        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER
       )
     }
   }

@@ -30,8 +30,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   "dynamically specified evaluation application statuses collection" should {
     "contain the expected phases that result in evaluation running" in {
       phase3EvaluationRepo.evaluationApplicationStatuses mustBe Set(
-        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
-        ApplicationStatus.PHASE3_TESTS_PASSED
+        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER
       )
     }
   }

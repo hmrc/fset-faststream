@@ -24,8 +24,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       phase1EvaluationRepo.evaluationApplicationStatuses mustBe Set(
         ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED,
         ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_PASSED,
-        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
-        ApplicationStatus.PHASE3_TESTS_PASSED
+        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER
       )
     }
   }
