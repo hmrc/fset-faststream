@@ -27,9 +27,9 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
 import model._
 import model.command.{ Phase2ProgressResponse, Phase3ProgressResponse, ProgressResponse }
-import model.events.AuditEvents.Phase2TestInvitationProcessComplete
-import model.events.DataStoreEvents
-import model.events.DataStoreEvents.OnlineExerciseResultSent
+import model.stc.AuditEvents.Phase2TestInvitationProcessComplete
+import model.stc.DataStoreEvents
+import model.stc.DataStoreEvents.OnlineExerciseResultSent
 import model.exchange.CubiksTestResultReady
 import model.persisted.{ ContactDetails, Phase2TestGroup, Phase2TestGroupWithAppId, _ }
 import org.joda.time.{ DateTime, DateTimeZone }
@@ -41,9 +41,10 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
-import services.events.{ EventService, EventServiceFixture }
+import services.stc.StcEventService
 import services.onlinetesting.Exceptions.CannotResetPhase2Tests
 import services.onlinetesting.phase3.Phase3TestService
+import services.stc.StcEventServiceFixture
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -829,7 +830,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val emailClientMock = mock[CSREmailClient]
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
-    val eventServiceMock = mock[EventService]
+    val eventServiceMock = mock[StcEventService]
     val phase3TestServiceMock = mock[Phase3TestService]
 
     val tokens = UUIDFactory.generateUUID :: UUIDFactory.generateUUID :: Nil
@@ -941,7 +942,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     when(tokenFactoryMock.generateUUID()).thenReturn(token)
 
-    val phase2TestService = new Phase2TestService with EventServiceFixture with Phase2TestSelector {
+    val phase2TestService = new Phase2TestService with StcEventServiceFixture with Phase2TestSelector {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val testRepository = otRepositoryMock

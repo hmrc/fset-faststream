@@ -20,8 +20,7 @@ import factories.DateTimeFactory
 import model.persisted.Phase1TestProfile
 import model.ProgressStatuses._
 import model.command.ProgressResponse
-import model.events.EventTypes.Events
-import model.events.{AuditEvent, AuditEvents, DataStoreEvents}
+import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
 import model.{ Phase1FirstReminder, Phase1SecondReminder }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -29,7 +28,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.events.{EventService, EventSink}
+import services.stc.{ StcEventService, EventSink}
 import services.onlinetesting.Exceptions.TestExtensionException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -41,7 +40,7 @@ object OnlineTestExtensionService extends OnlineTestExtensionService {
   val otRepository = phase1TestRepository
   val auditService = AuditService
   val dateTimeFactory = DateTimeFactory
-  val eventService = EventService
+  val eventService = StcEventService
 }
 
 trait OnlineTestExtensionService extends EventSink {

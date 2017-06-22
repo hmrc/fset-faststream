@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package repositories
+package repositories.stc
 
-import model.persisted.Event
+import model.persisted.StcEvent
 import reactivemongo.api.DB
+import repositories.CollectionNames
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -25,17 +26,17 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait EventRepository {
+trait StcEventRepository {
 
-  def create(event: Event): Future[Unit]
+  def create(event: StcEvent): Future[Unit]
 }
 
-class EventMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Event, BSONObjectID](CollectionNames.EVENT, mongo, Event.eventFormat,
-    ReactiveMongoFormats.objectIdFormats) with EventRepository {
+class StcEventMongoRepository(implicit mongo: () => DB)
+  extends ReactiveRepository[StcEvent, BSONObjectID](CollectionNames.EVENT, mongo, StcEvent.eventFormat,
+    ReactiveMongoFormats.objectIdFormats) with StcEventRepository {
 
-  def create(event: Event): Future[Unit] = {
-    val doc = Event.eventHandler.write(event)
+  def create(event: StcEvent): Future[Unit] = {
+    val doc = StcEvent.eventHandler.write(event)
     collection.insert[BSONDocument](doc) map (_ => ())
   }
 }

@@ -21,7 +21,7 @@ import connectors.ExchangeObjects
 import connectors.paritygateway.ParityGatewayClient
 import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.{ EXPORTED, ProgressStatus, UPDATE_EXPORTED }
-import model.events.{ AuditEvents, DataStoreEvents }
+import model.stc.{ AuditEvents, DataStoreEvents }
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
@@ -30,7 +30,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.parity.{ ApplicationReadyForExport, ParityExportRepository }
 import services.application.ApplicationService
-import services.events.{ EventService, EventSink }
+import services.stc.{ StcEventService, EventSink }
 import services.parity.ParityExportService.ParityExportException
 import services.reporting.{ SocioEconomicCalculator, SocioEconomicScoreCalculator }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -39,7 +39,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object ParityExportService extends ParityExportService {
-  val eventService = EventService
+  val eventService = StcEventService
   val parityExRepository = parityExportRepository
   val parityGatewayConfig = MicroserviceAppConfig.parityGatewayConfig
   val parityGatewayClient = ParityGatewayClient
