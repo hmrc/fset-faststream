@@ -22,20 +22,18 @@ import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories.events.EventsRepository
+import scala.concurrent.Future
+import scala.util.Try
 import services.events.{ EventsParsingService, EventsService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
-  val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
-  val assessmentCenterParsingService: EventsParsingService = EventsParsingService
   val eventsService: EventsService = EventsService
 }
 
 trait EventsController extends BaseController {
-  def assessmentEventsRepository: EventsRepository
-  def assessmentCenterParsingService: EventsParsingService
   def eventsService: EventsService
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
@@ -51,10 +49,19 @@ trait EventsController extends BaseController {
   }
 
   def fetchEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
-    val eventType = EventType.withName(eventTypeParam.toUpperCase)
-    val venue = VenueType.withName(venueParam.toUpperCase)
+    val events =  Try {
+        val eventType = EventType.withName(eventTypeParam.toUpperCase)
+        val venueType = VenueType.withName(venueParam.toUpperCase)
 
-    assessmentEventsRepository.fetchEvents(eventType, venue)
-      .map(events => Ok(Json.toJson(events)))
+        eventsService.fetchEvents(eventType, venueType).map { events =>
+          Ok(Json.toJson(events))
+        }
+    }
+
+    play.api.Logger.debug(s"$events")
+
+    Future.fromTry(events) flatMap identity recover {
+      case e: NoSuchElementException => BadRequest(e.getMessage)
+    }
   }
 }

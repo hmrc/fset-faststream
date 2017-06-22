@@ -17,12 +17,15 @@
 package controllers
 
 import config.TestFixtureBase
-import model.persisted.eventschedules.{ EventType, VenueType }
-import org.mockito.Mockito._
+import model.persisted.eventschedules.Event
+import model.persisted.eventschedules.EventType
+import model.persisted.eventschedules.VenueType
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.events.EventsRepository
-import services.events.EventsParsingService
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.Mockito._
+import services.events.EventsService
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -31,45 +34,38 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
   "Upload assessment events" should {
     "return CREATED with valid input" in new TestFixture {
-      when(mockAssessmentCentreParsingService.processCentres()).thenReturn(Future.successful(events))
-      when(mockAssessmentEventsRepo.save(events)).thenReturn(Future.successful(()))
-
+      when(mockEventsService.saveAssessmentEvents()).thenReturn(Future.successful(unit))
       val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe CREATED
     }
 
-    "return UNPROCESSABLE_ENTITY when saving goes wrong" in new TestFixture {
-      when(mockAssessmentCentreParsingService.processCentres()).thenReturn(Future.successful(events))
-      when(mockAssessmentEventsRepo.save(events)).thenReturn(Future.failed(new Exception))
-
-      val res = controller.saveAssessmentEvents()(FakeRequest())
-      status(res) mustBe UNPROCESSABLE_ENTITY
-    }
-
     "return UNPROCESSABLE_ENTITY when parsing goes wrong" in new TestFixture {
-      when(mockAssessmentCentreParsingService.processCentres()).thenReturn(Future.failed(new Exception))
-      when(mockAssessmentEventsRepo.save(events)).thenReturn(Future.successful(()))
+      when(mockEventsService.saveAssessmentEvents()).thenReturn(Future.failed(new Exception()))
 
       val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
     }
 
     "return OK with all events" in new TestFixture {
-      when(mockAssessmentEventsRepo
-        .fetchEvents(EventType.FSAC, VenueType.LONDON_FSAC))
-        .thenReturn(Future.successful(List()))
-      val res = controller.fetchEvents("fsac","london_fsac")(FakeRequest())
+      when(mockEventsService.fetchEvents(any[EventType.EventType], any[VenueType.VenueType])).thenReturn(Future.successful(
+        List(
+          Event("id", EventType.FSAC, "London", VenueType.LONDON_FSAC, LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty)
+        )
+      ))
+      val res = controller.fetchEvents("FSAC","LONDON_FSAC")(FakeRequest())
       status(res) mustBe OK
+    }
+
+     "return 400 for invalid event or venue types" in new TestFixture {
+       status(controller.fetchEvents("blah","LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
+       status(controller.fetchEvents("FSAC","blah")(FakeRequest())) mustBe BAD_REQUEST
     }
   }
 
   trait TestFixture extends TestFixtureBase {
-    val mockAssessmentCentreParsingService = mock[EventsParsingService]
-    val mockAssessmentEventsRepo = mock[EventsRepository]
-    val events = List()
+    val mockEventsService = mock[EventsService]
     val controller = new EventsController {
-      override val assessmentEventsRepository: EventsRepository = mockAssessmentEventsRepo
-      override val assessmentCenterParsingService: EventsParsingService = mockAssessmentCentreParsingService
+      val eventsService = mockEventsService
     }
   }
 }
