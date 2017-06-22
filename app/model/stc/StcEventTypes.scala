@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package services.events.handler
+package model.stc
 
-import model.events.EventTypes.EventType
-import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.http.HeaderCarrier
+object StcEventTypes {
+  type StcEvents = List[StcEventType]
 
-import scala.concurrent.Future
+  trait StcEventType {
+    final val eventName: String = getClass.getSimpleName
 
-trait EventHandler[T <: EventType] {
-
-  def handle(event: T)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-
+    override def toString: String = s"eventName=$eventName"
+  }
 }

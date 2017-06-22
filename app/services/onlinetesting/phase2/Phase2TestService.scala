@@ -27,8 +27,8 @@ import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.events.EventTypes.EventType
-import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
+import model.stc.StcEventTypes.StcEventType
+import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
 import model.persisted._
 import model.{ ApplicationStatus, _ }
@@ -36,7 +36,7 @@ import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
-import services.events.AuditEventService
+import services.stc.StcEventService
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, NoActiveTestException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.OnlineTestService
@@ -60,7 +60,7 @@ object Phase2TestService extends Phase2TestService {
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
-  val eventService = AuditEventService
+  val eventService = StcEventService
   val authProvider = AuthProviderClient
   val phase3TestService = Phase3TestService
 }
@@ -391,7 +391,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
           DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
         }
       } else {
-        Future.successful(List.empty[EventType])
+        Future.successful(List.empty[StcEventType])
       }
     }
   }

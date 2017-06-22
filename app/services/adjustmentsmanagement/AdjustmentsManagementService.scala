@@ -18,15 +18,15 @@ package services.adjustmentsmanagement
 
 import model.Commands.Candidate
 import model.Exceptions.ApplicationNotFound
-import model.events.EventTypes.Events
-import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
+import model.stc.StcEventTypes.StcEvents
+import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.persisted.ContactDetails
 import model.{ AdjustmentDetail, Adjustments, AdjustmentsComment }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.events.{ AuditEventService, EventSink }
+import services.stc.{ StcEventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,7 +34,7 @@ import scala.concurrent.Future
 
 object AdjustmentsManagementService extends AdjustmentsManagementService {
   val appRepository = applicationRepository
-  val eventService = AuditEventService
+  val eventService = StcEventService
   val cdRepository = faststreamContactDetailsRepository
 }
 
@@ -45,7 +45,7 @@ trait AdjustmentsManagementService extends EventSink {
   def confirmAdjustment(applicationId: String, adjustmentInformation: Adjustments)
                        (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    val adjustmentsDataStoreAndAuditEvents: Events =
+    val adjustmentsDataStoreAndAuditEvents: StcEvents =
       DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
       AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
       Nil

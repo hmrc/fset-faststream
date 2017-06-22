@@ -25,7 +25,7 @@ import model.ProgressStatuses._
 import model.exchange.CubiksTestResultReady
 import model.persisted._
 import model._
-import model.events.{ AuditEvents, DataStoreEvents }
+import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
@@ -35,7 +35,8 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.events.{ AuditEventService, EventServiceFixture }
+import services.stc.StcEventService
+import services.stc.StcEventServiceFixture
 import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -281,7 +282,7 @@ class OnlineTestServiceSpec extends UnitSpec {
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
-    val eventServiceMock = mock[AuditEventService]
+    val eventServiceMock = mock[StcEventService]
 
     val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
     val userId = "353bffd0-447e-47f6-b581-6e37ab2906af"
@@ -319,7 +320,7 @@ class OnlineTestServiceSpec extends UnitSpec {
     def updateFn(cTest: CubiksTest): CubiksTest = cTest.copy(testUrl = "www.bogustest.test")
     val underTest = new TestableOnlineTestService
 
-    class TestableOnlineTestService extends OnlineTestService with Phase1TestConcern with EventServiceFixture {
+    class TestableOnlineTestService extends OnlineTestService with Phase1TestConcern with StcEventServiceFixture {
 
       type TestRepository = Phase1TestRepository
       override val testRepository = testRepositoryMock

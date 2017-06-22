@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package model.events
+package model.stc
 
-import model.events.EventTypes.EventType
+import model.stc.StcEventTypes.StcEventType
 
-sealed trait EmailEvent extends EventType {
+sealed trait EmailEvent extends StcEventType {
   val to: String
   val name: String
   val template: Option[String] = None

@@ -24,7 +24,7 @@ import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
-import services.events.AuditEventService
+import services.stc.StcEventService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
 import testkit.UnitWithAppSpec
@@ -36,7 +36,7 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
 
   val mockPhase1TestService = mock[Phase1TestService]
   val mockPhase2TestService = mock[Phase2TestService]
-  val mockEventService = mock[AuditEventService]
+  val mockEventService = mock[StcEventService]
 
   def controllerUnderTest = new CubiksTestsController {
     val phase1TestService = mockPhase1TestService

@@ -126,6 +126,7 @@ GET         /assessment-schedule                                         control
 
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
+GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.fetchEvents(eventType: String, venue: String)
 
 # Day aggregate events

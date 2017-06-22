@@ -24,6 +24,7 @@ import repositories.events.EventsRepository
 import services.events.EventsParsingService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
@@ -40,6 +41,10 @@ trait EventsController extends BaseController {
       Logger.debug("Events have been processed!")
       assessmentEventsRepository.save(events)
     }.map(_ => Created).recover { case _ => UnprocessableEntity }
+  }
+
+  def getEvent(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+    Future.successful(Ok(""))
   }
 
   def fetchEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>

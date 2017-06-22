@@ -23,13 +23,13 @@ import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.{ NotFoundException }
+import model.Exceptions.NotFoundException
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
 import model.command.ProgressResponse
-import model.events.EventTypes.EventType
-import model.events.{ AuditEvents, DataStoreEvents }
+import model.stc.StcEventTypes.StcEventType
+import model.stc.{ AuditEvents, DataStoreEvents }
 import model.exchange.Phase3TestGroupWithActiveTest
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
@@ -37,7 +37,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
-import services.events.AuditEventService
+import services.stc.StcEventService
 import services.onlinetesting.Exceptions.NoActiveTestException
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
@@ -60,7 +60,7 @@ object Phase3TestService extends Phase3TestService {
   val emailClient = Phase3OnlineTestEmailClient
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
-  val eventService = AuditEventService
+  val eventService = StcEventService
 
 }
 
@@ -172,7 +172,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     val daysUntilExpiry = gatewayConfig.phase3Tests.timeToExpireInDays
 
     val expirationDate = phase3TestGroup.map { phase3TG =>
-      if (phase3TG.expirationDate.isAfterNow()) {
+      if (phase3TG.expirationDate.isAfterNow) {
         phase3TG.expirationDate
       } else {
         dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry)
@@ -238,14 +238,14 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       phase3TestGroup.map {
         phase3TestGroupContent =>
           val candidateId = phase3TestGroupContent.tests.head.candidateId
-          phase3TestGroupContent.tests.filter(_.interviewId == interviewId).headOption.map {
+          phase3TestGroupContent.tests.find(_.interviewId == interviewId).map {
             launchpadTest =>
               if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isDefined) {
                 retakeApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
                   retakeResponse =>
                     InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
                 }
-              } else if (launchpadTest.startedDateTime.isDefined && !launchpadTest.completedDateTime.isDefined) {
+              } else if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isEmpty) {
                 resetApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
                   resetResponse =>
                     InviteResetOrTakeResponse(candidateId, resetResponse.testUrl, resetResponse.customInviteId, getInitialCustomCandidateId)
@@ -308,7 +308,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       testRepository.getTestGroupByToken(launchpadInviteId).flatMap {
         test =>
           val launchpadTest = test.testGroup.tests.find(_.token == launchpadInviteId).get
-          if (launchpadTest.completedDateTime.isEmpty && !launchpadTest.startedDateTime.isEmpty) {
+          if (launchpadTest.completedDateTime.isEmpty && launchpadTest.startedDateTime.isDefined) {
             for {
               _ <- testRepository.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
               updated <- testRepository.getTestGroupByToken(launchpadInviteId)
@@ -321,7 +321,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                 Nil
             }
           } else {
-            Future.successful(List[EventType]())
+            Future.successful(List[StcEventType]())
           }
       }
     }

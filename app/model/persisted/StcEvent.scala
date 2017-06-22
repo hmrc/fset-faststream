@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package model.events
+package model.persisted
 
-object EventTypes {
-  type Events = List[EventType]
+import org.joda.time.DateTime
+import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-  trait EventType {
-    final val eventName: String = getClass.getSimpleName
+case class StcEvent(
+  name: String,
+  created: DateTime,
+  applicationId: Option[String],
+  userId: Option[String],
+  createdBy: Option[String] = None
+)
 
-    override def toString: String = s"eventName=$eventName"
-  }
+object StcEvent {
+  import repositories.BSONDateTimeHandler
+  implicit val eventFormat = Json.format[StcEvent]
+  implicit val eventHandler: BSONHandler[BSONDocument, StcEvent] = Macros.handler[StcEvent]
 }

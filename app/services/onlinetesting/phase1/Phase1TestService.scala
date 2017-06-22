@@ -26,7 +26,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
-import model.events.{ AuditEvents, DataStoreEvents }
+import model.stc.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, TestResult => _, _ }
 import model._
@@ -34,7 +34,7 @@ import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-import services.events.AuditEventService
+import services.stc.StcEventService
 import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -56,7 +56,7 @@ object Phase1TestService extends Phase1TestService {
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
-  val eventService = AuditEventService
+  val eventService = StcEventService
 }
 
 trait Phase1TestService extends OnlineTestService with Phase1TestConcern with ResetPhase1Test {

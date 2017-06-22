@@ -14,44 +14,44 @@
  * limitations under the License.
  */
 
-package services.events
+package services.stc
 
 import connectors.AuthProviderClient
-import model.events.{ AuditEvent, DataStoreEvent, EmailEvent }
 import model.exchange.SimpleTokenResponse
+import model.stc._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.MustMatchers
 import org.scalatest.mock.MockitoSugar
 import play.api.mvc.RequestHeader
-import services.events.handler.{ AuditEventHandler, DataStoreAuditEventHandler, EmailEventHandler }
+import services.stc.handler._
 import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
 
-class EventServiceSpec extends UnitSpec with EventServiceFixture {
+class StcEventServiceSpec extends UnitSpec with StcEventServiceFixture {
 
   "Event service" should {
     "consume lists of events properly" in {
       implicit val hc = mock[HeaderCarrier]
       implicit val rh = mock[RequestHeader]
 
-      eventServiceMock.handle(model.events.AuditEvents.ApplicationSubmitted("appId"))
+      eventServiceMock.handle(model.stc.AuditEvents.ApplicationSubmitted("appId"))
       verifyAuditEvents(1)
     }
   }
 }
 
-trait EventServiceFixture extends MockitoSugar with MustMatchers {
+trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
 
-  val dataStoreEventHandlerMock = mock[DataStoreAuditEventHandler]
+  val dataStoreEventHandlerMock = mock[DataStoreEventHandler]
   val auditEventHandlerMock = mock[AuditEventHandler]
   val emailEventHandlerMock = mock[EmailEventHandler]
 
-  val eventServiceMock = new AuditEventService {
+  val eventServiceMock = new StcEventService {
     val dataStoreEventHandler = dataStoreEventHandlerMock
     val auditEventHandler = auditEventHandlerMock
     val emailEventHandler = emailEventHandlerMock
@@ -114,7 +114,7 @@ trait EventServiceFixture extends MockitoSugar with MustMatchers {
   def verifyEmailEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[EmailEvent])
     verify(emailEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
-    assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
+    assert(eventCaptor.getAllValues.toList.forall(x => x.eventName == eventName))
   }
 
   def verifyEmailEvent(eventName: String): Unit = {

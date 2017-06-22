@@ -19,7 +19,7 @@ package services
 import model.Commands.{ ApplicationResponse, Candidate }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.command.ProgressResponse
-import model.events.AuditEvents
+import model.stc.AuditEvents
 import org.joda.time.DateTime
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationRoute, SchemeType, SelectedSchemes }
@@ -34,12 +34,12 @@ import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.application.ApplicationService
-import services.events.EventServiceFixture
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.stc.StcEventServiceFixture
 
 import scala.concurrent.Future
 
@@ -210,7 +210,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val evalPhase1ResultMock: EvaluatePhase1ResultService = mock[EvaluatePhase1ResultService]
     val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
 
-    val underTest = new ApplicationService with EventServiceFixture {
+    val underTest = new ApplicationService with StcEventServiceFixture {
       val appRepository = appRepositoryMock
       val pdRepository = pdRepositoryMock
       val cdRepository = cdRepositoryMock

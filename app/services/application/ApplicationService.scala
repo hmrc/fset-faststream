@@ -23,8 +23,8 @@ import model.EvaluationResults.Green
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
 import model.SchemeType.SchemeType
 import model.command.WithdrawApplication
-import model.events.EventTypes._
-import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
+import model.stc.StcEventTypes._
+import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
 import model.persisted.PassmarkEvaluation
 import model.{ ApplicationRoute, ApplicationStatus, SchemeType }
@@ -38,7 +38,7 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.events.{ AuditEventService, EventSink }
+import services.stc.{ StcEventService, EventSink }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -48,7 +48,7 @@ import scala.util.{ Failure, Success, Try }
 
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository
-  val eventService = AuditEventService
+  val eventService = StcEventService
   val pdRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val mediaRepo = mediaRepository
@@ -182,7 +182,7 @@ trait ApplicationService extends EventSink {
     } yield toEvents(fixed, fixType)
   }
 
-  private def toEvents(seq: Seq[Try[Option[Candidate]]], fixBatch: FixBatch): Events = {
+  private def toEvents(seq: Seq[Try[Option[Candidate]]], fixBatch: FixBatch): StcEvents = {
     seq.flatMap {
       case Success(Some(app)) => Some(AuditEvents.FixedProdData(Map("issue" -> fixBatch.fix.name,
         "applicationId" -> app.applicationId.getOrElse(""),
