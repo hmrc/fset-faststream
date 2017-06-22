@@ -47,8 +47,7 @@ object CreateAdminResponse {
     }
 
     def apply(data: AssessorData): AssessorResponse = {
-      // TODO: We should add availability in AssessorData
-      AssessorResponse(data.skills, data.civilServant, List.empty)
+      AssessorResponse(data.skills, data.civilServant, data.availability.getOrElse(List.empty))
     }
   }
 

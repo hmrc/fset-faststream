@@ -25,9 +25,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object DayAggregateEventController extends DayAggregateEventController {
-
   override val eventsRepository: EventsRepository = repositories.eventsRepository
-
 }
 
 trait DayAggregateEventController extends BaseController {
