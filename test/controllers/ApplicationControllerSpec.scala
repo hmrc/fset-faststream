@@ -174,15 +174,6 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Mark as ready for export" must {
-    "return a 404 if the application can't be found" in new TestFixture {
-      when(mockApplicationService.markForExportToParity(any[String])(any[HeaderCarrier])).thenReturn(Future.failed(new NotFoundException()))
-      val result = TestApplicationController.markForExportToParity("appId").apply(FakeRequest())
-      status(result) mustBe 404
-
-    }
-  }
-
   trait TestFixture extends TestFixtureBase {
     val mockApplicationService = mock[ApplicationService]
     val mockPassmarkService = mock[EvaluatePhase3ResultService]

@@ -144,10 +144,6 @@ trait ApplicationService extends EventSink {
     appRepository.updateSubmissionDeadline(applicationId, newDeadline)
   }
 
-  def markForExportToParity(appId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
-    appRepository.updateStatus(appId, ApplicationStatus.READY_FOR_EXPORT)
-  }
-
   def getPassedSchemes(userId: String, frameworkId: String): Future[List[SchemeType]] = {
 
       val passedSchemes = (_:PassmarkEvaluation).result.filter(result => result.result == Green.toString).map(_.scheme)

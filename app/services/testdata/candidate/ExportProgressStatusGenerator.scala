@@ -29,7 +29,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object ReadyForExportStatusGenerator extends ExportProgressStatusGenerator {
   val previousStatusGenerator = Phase3TestsPassedStatusGenerator
   val appRepository = applicationRepository
-  val progressStatus = PHASE3_TESTS_SUCCESS_NOTIFIED
+  val progressStatus = PHASE3_TESTS_PASSED_NOTIFIED
 }
 
 object ReadyToUpdateStatusGenerator extends ExportProgressStatusGenerator {

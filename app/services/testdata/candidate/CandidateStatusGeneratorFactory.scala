@@ -60,17 +60,6 @@ object CandidateStatusGeneratorFactory {
         // IN_PROGRESS_PREVIEW should be deprecated, look below
         case IN_PROGRESS_PREVIEW => InProgressPreviewStatusGenerator
         case SUBMITTED => SubmittedStatusGenerator
-        case AWAITING_ALLOCATION => AwaitingAllocationStatusGenerator
-        case ALLOCATION_CONFIRMED => AllocationStatusGenerator
-        case ALLOCATION_UNCONFIRMED => AllocationStatusGenerator
-        case FAILED_TO_ATTEND => FailedToAttendStatusGenerator
-        case ASSESSMENT_SCORES_ENTERED => AssessmentScoresEnteredStatusGenerator
-        case ASSESSMENT_SCORES_ACCEPTED => AssessmentScoresAcceptedStatusGenerator
-        case AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION => AwaitingAssessmentCentreReevalationStatusGenerator
-        case ASSESSMENT_CENTRE_PASSED => AssessmentCentrePassedStatusGenerator
-        case ASSESSMENT_CENTRE_FAILED => AssessmentCentreFailedStatusGenerator
-        case ASSESSMENT_CENTRE_PASSED_NOTIFIED => AssessmentCentrePassedNotifiedStatusGenerator
-        case ASSESSMENT_CENTRE_FAILED_NOTIFIED => AssessmentCentreFailedNotifiedStatusGenerator
         case WITHDRAWN => WithdrawnStatusGenerator
         case PHASE1_TESTS_PASSED => Phase1TestsPassedStatusGenerator
         case PHASE1_TESTS_FAILED => Phase1TestsFailedStatusGenerator
@@ -78,8 +67,6 @@ object CandidateStatusGeneratorFactory {
         case PHASE2_TESTS_FAILED => Phase2TestsFailedStatusGenerator
         case PHASE3_TESTS_PASSED => Phase3TestsPassedStatusGenerator
         case PHASE3_TESTS_FAILED => Phase3TestsFailedStatusGenerator
-        case (READY_FOR_EXPORT) => ReadyForExportStatusGenerator
-        case (EXPORTED) => ExportedStatusGenerator
       }
       case (SUBMITTED, Some(ProgressStatuses.SUBMITTED)) => SubmittedStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PERSONAL_DETAILS)) => InProgressPersonalDetailsStatusGenerator
@@ -131,10 +118,6 @@ object CandidateStatusGeneratorFactory {
       case (PHASE3_TESTS_PASSED, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => Phase3TestsPassedStatusGenerator
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED)) => Phase3TestsFailedNotifiedStatusGenerator
-      case (READY_FOR_EXPORT, _) => ReadyForExportStatusGenerator
-      case (READY_TO_UPDATE, _) => ReadyToUpdateStatusGenerator
-      case (EXPORTED, _) => ExportedStatusGenerator
-      case (UPDATE_EXPORTED, _) => UpdateExportedStatusGenerator
 
       case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")
@@ -147,5 +130,5 @@ trait ApplicationStatusOnlyForTest {
   this: Enumeration =>
   val REGISTERED, IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES,
   IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES, IN_PROGRESS_ASSISTANCE_DETAILS,
-  IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW, AWAITING_ALLOCATION = Value
+  IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
 }
