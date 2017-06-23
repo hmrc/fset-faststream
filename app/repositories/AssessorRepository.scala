@@ -16,7 +16,9 @@
 
 package repositories
 
-import model.persisted.Assessor
+import model.persisted.{ Assessor, AssessorAvailability }
+import model.persisted.eventschedules.Location
+import org.joda.time.LocalDate
 import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.bson._
@@ -56,6 +58,10 @@ class AssessorMongoRepository(implicit mongo: () => DB)
 
     val assessorValidator = singleUpdateValidator(assessor.userId, actionDesc = "saveAssessor")
     collection.update(query, saveBson, upsert = insertIfNoRecordFound) map assessorValidator
+  }
+
+  def findAvailabilitiesForVenueAndDate(location: Location, date: LocalDate): Future[List[AssessorAvailability]] = {
+    val query = BSONDocument("")
   }
 
   // TODO Fix this when availability submission is complete

@@ -77,7 +77,7 @@ trait AssessorController extends BaseController {
     }
   }
 
-  def findAvailableAssessorsForDate(date: LocalDate): Action[AnyContent] = Action.async { implicit request =>
+  def findAvailableAssessors(locationName: String, date: LocalDate): Action[AnyContent] = Action.async { implicit request =>
     Future.successful(Ok(""))
   }
 }

@@ -77,7 +77,9 @@ trait AssessorService {
     }
   }
 
-  def findAvailabilitiesForDate(date: LocalDate): Future[Seq[model.exchange.AssessorAvailability]] = ???
+  def findAvailabilities(location: Location, date: LocalDate): Future[Seq[model.exchange.AssessorAvailability]] = {
+    assessorRepository.findAvailabilitiesForVenueAndDate()
+  }
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {
     for {
