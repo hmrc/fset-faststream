@@ -70,8 +70,6 @@ trait EventsParsingService {
             val items = line.split(", ?", -1)
             val eventType = EventType.withName(items.head.replaceAll("\\s|-", "_").toUpperCase)
             //val venue = VenueType.withName(items(2).replaceAll("\\s|-", "_").toUpperCase)
-            val venueName = items(2).replaceAll("\\s|-", "_").toUpperCase
-
             val date = LocalDate.parse(items(3), DateTimeFormat.forPattern("dd/MM/yy"))
             val startTime = df.parseLocalTime(items(4))
             val endTime = df.parseLocalTime(items(5))
@@ -86,8 +84,8 @@ trait EventsParsingService {
             for {
               location <- locationsWithVenuesRepo.allLocations.map(_.find(_.name == items(1))
                 .getOrElse(throw new Exception(s"Unknown location ${items(1)}")))
-              venue <- locationsWithVenuesRepo.allVenues.map(_.find(_.name == venueName)
-                .getOrElse(throw new Exception(s"Unknown venue type $venueName")))
+              venue <- locationsWithVenuesRepo.allVenues.map(_.find(_.name == items(2))
+                .getOrElse(throw new Exception(s"Unknown venue type ${items(2)}")))
             } yield {
               Event(
                 id = UUIDFactory.generateUUID(),

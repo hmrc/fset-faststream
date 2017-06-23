@@ -18,7 +18,7 @@ package controllers
 
 import config.TestFixtureBase
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.Event
+import model.persisted.eventschedules.{ Event, Location, Venue }
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.VenueType
 import org.joda.time.{ LocalDate, LocalTime }
@@ -50,9 +50,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
     "return OK with all events" in new TestFixture {
       when(mockEventsService.fetchEvents(any[EventType.EventType], any[VenueType.VenueType])).thenReturn(Future.successful(
-        List(
-          Event("id", EventType.FSAC, "London", VenueType.LONDON_FSAC, LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty)
-        )
+        event :: Nil
       ))
       val res = controller.fetchEvents("FSAC","LONDON_FSAC")(FakeRequest())
       status(res) mustBe OK
@@ -60,11 +58,10 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
      "return 400 for invalid event or venue types" in new TestFixture {
        status(controller.fetchEvents("blah","LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
-       status(controller.fetchEvents("FSAC","blah")(FakeRequest())) mustBe BAD_REQUEST
+       status(controller.fetchEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
     }
 
     "return 200 for an event for an id" in new TestFixture {
-      val event = Event("id", EventType.FSAC, "London", VenueType.LONDON_FSAC, LocalDate.now, 30, 20, 5, LocalTime.now, LocalTime.now, Map.empty)
       when(mockEventsService.getEvent(any[String])).thenReturn(Future.successful(event))
 
       val result = controller.getEvent("id")(FakeRequest())
@@ -82,6 +79,10 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockEventsService = mock[EventsService]
+
+    val event = Event("id", EventType.FSAC, Location("London"), Venue("London FSAC", "Bush House"),
+            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty)
+
     val controller = new EventsController {
       val eventsService = mockEventsService
     }
