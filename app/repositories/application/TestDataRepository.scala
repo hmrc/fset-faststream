@@ -39,7 +39,7 @@ object Utils {
 }
 
 trait TestDataRepository {
-  def createApplications(num: Int, onlyAwaitingAllocation: Boolean = false, locationsAndRegions: Seq[(String, String)]): Future[Unit]
+  def createApplications(num: Int): Future[Unit]
 }
 
 trait TestDataContactDetailsRepository {
@@ -98,10 +98,9 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     LocalDate.parse("1982-12-12"), LocalDate.parse("1983-12-12"), LocalDate.parse("1984-12-12"), LocalDate.parse("1985-12-12"),
     LocalDate.parse("1987-12-12"), LocalDate.parse("1987-12-12"))
 
-  override def createApplications(num: Int, onlyAssessmentCentreAwaitingAllocation: Boolean = false,
-                                  locationsAndRegions: Seq[(String, String)] = allLocationsAndRegions): Future[Unit] =
+  override def createApplications(num: Int): Future[Unit] =
     Future.sequence(
-      (0 until num).map { i => createSingleApplication(i, onlyAssessmentCentreAwaitingAllocation, locationsAndRegions) }
+      (0 until num).map { i => createSingleApplication(i) }
     ).map(_ => ())
 
   // scalastyle:off parameter.number
@@ -199,9 +198,8 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     )) //.futureValue
   }
 
-  private def createSingleApplication(id: Int, onlyAssessmentCentreAwaitingAllocation: Boolean,
-                                      locationsAndRegions: Seq[(String, String)]): Future[Unit] = {
-    val document = buildSingleApplication(id, onlyAssessmentCentreAwaitingAllocation, locationsAndRegions)
+  private def createSingleApplication(id: Int): Future[Unit] = {
+    val document = buildSingleApplication(id)
 
     val validator = singleUpsertValidator(id.toString, actionDesc = "creating application test data")
 
@@ -210,7 +208,6 @@ class TestDataMongoRepository(implicit mongo: () => DB)
 
   private def createProgress(
                               personalDetails: Option[BSONDocument],
-                              frameworks: Option[BSONDocument],
                               assistance: Option[BSONDocument],
                               isSubmitted: Option[Boolean],
                               isWithdrawn: Option[Boolean]
@@ -218,7 +215,6 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     var progress = BSONDocument.empty
 
     progress = personalDetails.map(_ => progress ++ ("personal-details" -> true)).getOrElse(progress)
-    progress = frameworks.map(_ => progress ++ ("frameworks-location" -> true)).getOrElse(progress)
     progress = assistance.map(_ => progress ++ ("assistance-details" -> true)).getOrElse(progress)
     progress = isSubmitted.map(_ => progress ++ ("submitted" -> true)).getOrElse(progress)
     progress = isWithdrawn.map(_ => progress ++ ("withdrawn" -> true)).getOrElse(progress)
@@ -226,21 +222,16 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     progress
   }
 
-  private def buildSingleApplication(id: Int, onlyAssessmentCentreAwaitingAllocation: Boolean, locationsAndRegions: Seq[(String, String)]) = {
-    val personalDetails = createPersonalDetails(id, onlyAssessmentCentreAwaitingAllocation)
-    val frameworks = createLocations(id, onlyAssessmentCentreAwaitingAllocation, locationsAndRegions)
-    val assistance = createAssistance(id, onlyAssessmentCentreAwaitingAllocation)
-    val onlineTests = createOnlineTests(id, onlyAssessmentCentreAwaitingAllocation)
-    val submitted = isSubmitted(id)(personalDetails, frameworks, assistance)
-    val withdrawn = isWithdrawn(id)(personalDetails, frameworks, assistance)
+  private def buildSingleApplication(id: Int): BSONDocument = {
+    val personalDetails = createPersonalDetails(id)
+    val assistance = createAssistance(id)
+    val onlineTests = createOnlineTests(id)
+    val submitted = isSubmitted(id)(personalDetails, assistance)
+    val withdrawn = isWithdrawn(id)(personalDetails, assistance)
 
-    val progress = createProgress(personalDetails, frameworks, assistance, submitted, withdrawn)
+    val progress = createProgress(personalDetails, assistance, submitted, withdrawn)
 
-    val applicationStatus = if (onlyAssessmentCentreAwaitingAllocation) {
-      ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.toString
-    } else {
-      chooseOne(applicationStatuses)
-    }
+    val applicationStatus = chooseOne(applicationStatuses)
 
     var document = BSONDocument(
       "applicationId" -> id.toString,
@@ -249,7 +240,6 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       "applicationStatus" -> applicationStatus
     )
     document = buildDocument(document)(personalDetails.map(d => "personal-details" -> d))
-    document = buildDocument(document)(frameworks.map(d => "framework-preferences" -> d))
     document = buildDocument(document)(assistance.map(d => "assistance-details" -> d))
     document = buildDocument(document)(onlineTests.map(d => "online-tests" -> d))
     document = document ++ ("progress-status" -> progress)
@@ -261,8 +251,8 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     f.map(d => document ++ d).getOrElse(document)
   }
 
-  private def createAssistance(id: Int, buildAlways: Boolean) = id match {
-    case x if x % 7 == 0 && !buildAlways => None
+  private def createAssistance(id: Int) = id match {
+    case x if x % 7 == 0 => None
     case _ =>
       Some(BSONDocument(
         "hasDisability" -> "Yes",
@@ -275,8 +265,8 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       ))
   }
 
-  private def createPersonalDetails(id: Int, buildAlways: Boolean) = id match {
-    case x if x % 5 == 0 && !buildAlways => None
+  private def createPersonalDetails(id: Int) = id match {
+    case x if x % 5 == 0 => None
     case _ =>
       Some(BSONDocument(
         "firstName" -> chooseOne(firstNames),
@@ -288,40 +278,8 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       ))
   }
 
-  private def createLocations(id: Int, buildAlways: Boolean, regionsAndLocations: Seq[(String, String)] ) = id match {
-    case x if x % 11 == 0 && !buildAlways => None
-    case _ =>
-      val firstLocationRegion = chooseOne(regionsAndLocations)
-      val possibleSecondRegions = regionsAndLocations.filterNot(_ == firstLocationRegion)
-      val secondLocationRegion = if (possibleSecondRegions.isEmpty) None else Some(chooseOne(possibleSecondRegions))
-
-      secondLocationRegion.map { sl =>
-        Some(BSONDocument(
-          "firstLocation" -> BSONDocument(
-            "region" -> firstLocationRegion._2, "location" -> firstLocationRegion._1,
-            "firstFramework" -> chooseOne(frameworks), "secondFramework" -> chooseOne(frameworks)
-          ),
-          "secondLocation" -> BSONDocument(
-            "region" -> sl._2, "location" -> sl._1,
-            "firstFramework" -> chooseOne(frameworks), "secondFramework" -> chooseOne(frameworks)
-          ),
-          "secondLocationIntended" -> true,
-          "alternatives" -> BSONDocument("location" -> true, "framework" -> true)
-        ))
-      } getOrElse {
-        Some(BSONDocument(
-          "firstLocation" -> BSONDocument(
-            "region" -> firstLocationRegion._2, "location" -> firstLocationRegion._1,
-            "firstFramework" -> chooseOne(frameworks), "secondFramework" -> chooseOne(frameworks)
-          ),
-          "secondLocationIntended" -> false,
-          "alternatives" -> BSONDocument("location" -> true, "framework" -> true)
-        ))
-      }
-  }
-
-  private def createOnlineTests(id: Int, buildAlways: Boolean) = id match {
-    case x if x % 12 == 0 && !buildAlways => None
+  private def createOnlineTests(id: Int) = id match {
+    case x if x % 12 == 0 => None
     case _ =>
       Some(BSONDocument(
         "cubiksUserId" -> 117344,
@@ -336,13 +294,13 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       ))
   }
 
-  private def isSubmitted(id: Int)(ps: Option[BSONDocument], fl: Option[BSONDocument], as: Option[BSONDocument]) = (ps, fl, as) match {
-    case (Some(_), Some(_), Some(_)) if id % 2 == 0 => Some(true)
+  private def isSubmitted(id: Int)(ps: Option[BSONDocument], as: Option[BSONDocument]) = (ps, as) match {
+    case (Some(_), Some(_)) if id % 2 == 0 => Some(true)
     case _ => None
   }
 
-  private def isWithdrawn(id: Int)(ps: Option[BSONDocument], fl: Option[BSONDocument], as: Option[BSONDocument]) = (ps, fl, as) match {
-    case (Some(_), Some(_), Some(_)) if id % 3 == 0 => Some(true)
+  private def isWithdrawn(id: Int)(ps: Option[BSONDocument], as: Option[BSONDocument]) = (ps, as) match {
+    case (Some(_), Some(_)) if id % 3 == 0 => Some(true)
     case _ => None
   }
 }

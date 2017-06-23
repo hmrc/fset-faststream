@@ -17,8 +17,6 @@
 package scheduler
 
 import play.api.Logger
-import scheduler.allocation.{ ConfirmAttendanceReminderJob, ConfirmAttendanceReminderJobConfig }
-import scheduler.assessment._
 import scheduler.fixer.{ FixerJob, FixerJobConfig }
 import scheduler.onlinetesting._
 import uk.gov.hmrc.play.scheduling.{ RunningOfScheduledJobs, ScheduledJob }
@@ -57,9 +55,6 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(EvaluatePhase1ResultJobConfig, EvaluatePhase1ResultJob),
     maybeInitScheduler(EvaluatePhase2ResultJobConfig, EvaluatePhase2ResultJob),
     maybeInitScheduler(EvaluatePhase3ResultJobConfig, EvaluatePhase3ResultJob),
-    maybeInitScheduler(ConfirmAttendanceReminderJobConfig, ConfirmAttendanceReminderJob),
-    maybeInitScheduler(EvaluateAssessmentScoreJobConfig, EvaluateAssessmentScoreJob),
-    maybeInitScheduler(NotifyAssessmentCentrePassedOrFailedJobConfig, NotifyAssessmentCentrePassedOrFailedJob),
     maybeInitScheduler(FixerJobConfig, FixerJob),
     maybeInitScheduler(ProgressSdipForFaststreamCandidateJobConfig, ProgressSdipForFaststreamCandidateJob)
   ).flatten

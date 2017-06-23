@@ -18,7 +18,6 @@ package repositories
 
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import model.ApplicationStatus._
-import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.{ ApplicationRoute, EvaluationResults, ProgressStatuses }
 import model.EvaluationResults.AssessmentRuleCategoryResult
@@ -163,116 +162,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
       applicationStatus.status mustBe WITHDRAWN.toString
       timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
-    }
-  }
-
-  "next application ready for assessment score evaluation" should {
-    "return the only application ready for evaluation" in {
-      createApplication("app1", ASSESSMENT_CENTRE_SCORES_ACCEPTED)
-
-      val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
-
-      result must not be empty
-      result.get mustBe "app1"
-    }
-
-    "return the next application when the passmark is different" in {
-      createApplicationWithPassmark("app1", ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION, "1")
-
-      val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("2").futureValue
-
-      result must not be empty
-    }
-
-    "return none when application has already passmark and it has not changed" in {
-      createApplicationWithPassmark("app1", ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION, "1")
-
-      val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
-
-      result mustBe empty
-    }
-
-    "return none when there is no candidates in ASSESSMENT_SCORES_ACCEPTED status" in {
-      createApplication("app1", "ASSESSMENT_SCORES_UNACCEPTED")
-
-      val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
-
-      result mustBe empty
-    }
-  }
-
-  "save assessment score evaluation" should {
-    "save a score evaluation and update the application status when the application is in ASSESSMENT_SCORES_ACCEPTED status" in {
-      createApplication("app1", ASSESSMENT_CENTRE_SCORES_ACCEPTED)
-
-      val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION).futureValue
-
-      val status = getApplicationStatus("app1")
-      status mustBe ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.toString
-    }
-
-    "save a score evaluation and update the application status when the application is in AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION" in {
-      createApplication("app1", ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION)
-
-      val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_CENTRE_SCORES_ACCEPTED).futureValue
-
-      val status = getApplicationStatus("app1")
-      status mustBe ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString
-    }
-
-    "fail to save a score evaluation when candidate has been withdrawn" in {
-      createApplication("app1", WITHDRAWN)
-
-      val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_CENTRE_SCORES_ACCEPTED).futureValue
-
-      val status = getApplicationStatus("app1")
-      status mustBe WITHDRAWN.toString
-    }
-  }
-
-  "applications passed in assessment centre" should {
-    "be returned" in {
-      val scores = CandidateScoresSummary(Some(2d), Some(2d), Some(2d), Some(2d), Some(2d), Some(2d), Some(2d), Some(14d))
-      createApplicationWithSummaryScoresAndSchemeEvaluations("app1", frameworkId,
-        ASSESSMENT_CENTRE_PASSED,
-        "1",
-        scores,
-        SchemeEvaluation(Some("Red"), Some("Green"), Some("Amber"), Some("Red"), Some("Green"))
-      )
-
-      val result = applicationRepo.applicationsPassedInAssessmentCentre(frameworkId).futureValue
-      result.size mustBe 1
-      result.head.applicationId mustBe "app1"
-      result.head.scores mustBe scores
-      result.head.passmarks mustBe SchemeEvaluation(
-        Some("Fail"),
-        Some("Pass"),
-        Some("Amber"),
-        Some("Fail"),
-        Some("Pass"))
-    }
-  }
-
-  "online test results" should {
-    "be returned" in {
-      createApplicationWithFrameworkEvaluations("app1", frameworkId,
-        ASSESSMENT_CENTRE_SCORES_ACCEPTED,
-        "1",
-        OnlineTestPassmarkEvaluationSchemes(Some("Red"), Some("Green"), Some("Amber"), Some("Red"), Some("Green"))
-      )
-
-      val result = applicationRepo.applicationsWithAssessmentScoresAccepted(frameworkId).futureValue
-      result.size mustBe 1
-      result.head.applicationId mustBe "app1"
-      result.head.onlineTestPassmarkEvaluations mustBe OnlineTestPassmarkEvaluationSchemes(
-        Some("Fail"),
-        Some("Pass"),
-        Some("Amber"),
-        Some("Fail"),
-        Some("Pass"))
     }
   }
 

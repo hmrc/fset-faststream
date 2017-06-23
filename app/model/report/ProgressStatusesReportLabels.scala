@@ -76,15 +76,10 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
     (progress.exported, 398, Exported),
     (progress.updateExported, 399, UpdateExported),
-    (progress.assessmentScores.entered, 400, AssessmentScoresEnteredProgress),
-    (progress.failedToAttend, 410, FailedToAttendProgress),
-    (progress.assessmentScores.accepted, 420, AssessmentScoresAcceptedProgress),
-    (progress.assessmentCentre.awaitingReevaluation, 430, AwaitingAssessmentCentreReevaluationProgress),
     (progress.assessmentCentre.failed, 440, AssessmentCentreFailedProgress),
     (progress.assessmentCentre.failedNotified, 450, AssessmentCentreFailedNotifiedProgress),
     (progress.assessmentCentre.passed, 460, AssessmentCentrePassedProgress),
     (progress.assessmentCentre.passedNotified, 470, AssessmentCentrePassedNotifiedProgress),
-    (progress.assessmentScores.entered, 475, AssessmentScoresEnteredProgress),
     (progress.withdrawn, 999, WithdrawnProgress),
     (progress.applicationArchived, 1000, ApplicationArchived)
   )
@@ -171,10 +166,6 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
 
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
-  val FailedToAttendProgress = ASSESSMENT_CENTRE_FAILED_TO_ATTEND.toLowerCase()
-  val AssessmentScoresEnteredProgress = ASSESSMENT_CENTRE_SCORES_ENTERED.toLowerCase()
-  val AssessmentScoresAcceptedProgress = ASSESSMENT_CENTRE_SCORES_ACCEPTED.toLowerCase()
-  val AwaitingAssessmentCentreReevaluationProgress = ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.toLowerCase()
   val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toLowerCase()
   val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toLowerCase()
   val AssessmentCentrePassedNotifiedProgress = ASSESSMENT_CENTRE_PASSED_NOTIFIED.toLowerCase()

@@ -375,33 +375,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
   }
 
-  "manual assessment centre allocation report" must {
-    "return all candidates that are in awaiting allocation state" in {
-      val testData = new TestDataMongoRepository()
-      testData.createApplications(10, onlyAssessmentCentreAwaitingAllocation = true).futureValue
-
-      val result = repository.candidatesAwaitingAllocation(frameworkId).futureValue
-      result must have size 10
-    }
-
-
-
-    "not return candidates that are initially awaiting allocation but subsequently withdrawn" in {
-      val testData = new TestDataMongoRepository()
-      testData.createApplications(10, onlyAssessmentCentreAwaitingAllocation = true).futureValue
-
-      val result = repository.candidatesAwaitingAllocation(frameworkId).futureValue
-      result.foreach {
-        c =>
-          val appId = applicationRepo.findByUserId(c.userId, frameworkId).futureValue.applicationId
-          applicationRepo.withdraw(appId, WithdrawApplication("testing", None, "Candidate")).futureValue
-      }
-
-      val updatedResult = repository.candidatesAwaitingAllocation(frameworkId).futureValue
-      updatedResult mustBe empty
-    }
-  }
-
   "Candidates for duplicate detection report" must {
     "return empty list when there is no candidates" in {
       val candidates = repository.candidatesForDuplicateDetectionReport.futureValue

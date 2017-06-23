@@ -50,8 +50,6 @@ trait ReportingRepository {
 
   def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]]
 
-  def candidatesAwaitingAllocation(frameworkId: String): Future[List[CandidateAwaitingAllocation]]
-
   def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]]
 
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]]
@@ -347,52 +345,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       }
     }
   }
-
   //scalastyle:on method.length
-
-  override def candidatesAwaitingAllocation(frameworkId: String): Future[List[CandidateAwaitingAllocation]] = {
-    val query = BSONDocument("$and" ->
-      BSONArray(
-        BSONDocument("frameworkId" -> frameworkId),
-        BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.toString)
-      ))
-
-    val projection = BSONDocument(
-      "userId" -> "1",
-      "personal-details.firstName" -> "1",
-      "personal-details.lastName" -> "1",
-      "personal-details.preferredName" -> "1",
-      "personal-details.dateOfBirth" -> "1",
-      "framework-preferences.firstLocation.location" -> "1",
-      "assistance-details.typeOfAdjustments" -> "1",
-      "assistance-details.otherAdjustments" -> "1"
-    )
-
-    reportQueryWithProjections[BSONDocument](query, projection).map { list =>
-      println("LIST = " + list.size)
-      list.map { document =>
-
-        val userId = document.getAs[String]("userId").get
-        val personalDetails = document.getAs[BSONDocument]("personal-details").get
-        val firstName = personalDetails.getAs[String]("firstName").get
-        val lastName = personalDetails.getAs[String]("lastName").get
-        val preferredName = personalDetails.getAs[String]("preferredName").get
-        val dateOfBirth = personalDetails.getAs[LocalDate]("dateOfBirth").get
-        val frameworkPreferences = document.getAs[BSONDocument]("framework-preferences").get
-        val firstLocationDoc = frameworkPreferences.getAs[BSONDocument]("firstLocation").get
-        val firstLocation = firstLocationDoc.getAs[String]("location").get
-
-        val assistance = document.getAs[BSONDocument]("assistance-details")
-        val typesOfAdjustments = assistance.flatMap(_.getAs[List[String]]("typeOfAdjustments"))
-
-        val otherAdjustments = extract("otherAdjustments")(assistance)
-        val adjustments = typesOfAdjustments.getOrElse(Nil) ::: otherAdjustments.toList
-        val finalTOA = if (adjustments.isEmpty) None else Some(adjustments.mkString("|"))
-
-        CandidateAwaitingAllocation(userId, firstName, lastName, preferredName, firstLocation, finalTOA, dateOfBirth)
-      }
-    }
-  }
 
   override def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]] = {
     val query = BSONDocument("frameworkId" -> frameworkId)

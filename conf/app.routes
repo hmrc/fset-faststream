@@ -103,10 +103,6 @@ PUT         /launchpad/:inviteId/finalCallback                           control
 PUT         /launchpad/:inviteId/finishedCallback                        controllers.LaunchpadTestsController.finishedCallback(inviteId: String)
 PUT         /launchpad/:inviteId/reviewedCallback                        controllers.LaunchpadTestsController.reviewedCallback(inviteId: String)
 
-GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
-PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)
-PUT         /test-scores/accept/application/:applicationId               controllers.CandidateScoresController.acceptCandidateScoresAndFeedback(applicationId: String)
-
 GET         /application/:applicationId/issue                            controllers.FlagCandidateController.find(applicationId: String)
 PUT         /application/:applicationId/issue                            controllers.FlagCandidateController.save(applicationId: String)
 DELETE      /application/:applicationId/issue                            controllers.FlagCandidateController.remove(applicationId: String)

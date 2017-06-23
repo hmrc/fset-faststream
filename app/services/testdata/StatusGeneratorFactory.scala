@@ -61,17 +61,6 @@ object StatusGeneratorFactory {
         // IN_PROGRESS_PREVIEW should be deprecated, look below
         case IN_PROGRESS_PREVIEW => InProgressPreviewStatusGenerator
         case SUBMITTED => SubmittedStatusGenerator
-        case ASSESSMENT_CENTRE_AWAITING_ALLOCATION => AssessmentCentreAwaitingAllocationStatusGenerator
-        case ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED => AssessmentCentreAllocationStatusGenerator
-        case ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED => AssessmentCentreAllocationStatusGenerator
-        case ASSESSMENT_CENTRE_FAILED_TO_ATTEND => FailedToAttendStatusGenerator
-        case ASSESSMENT_CENTRE_SCORES_ENTERED => AssessmentCentreScoresEnteredStatusGenerator
-        case ASSESSMENT_CENTRE_SCORES_ACCEPTED => AssessmentCentreScoresAcceptedStatusGenerator
-        case ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION => AssessmentCentreAwaitingReevalationStatusGenerator
-        case ASSESSMENT_CENTRE_PASSED => AssessmentCentrePassedStatusGenerator
-        case ASSESSMENT_CENTRE_FAILED => AssessmentCentreFailedStatusGenerator
-        case ASSESSMENT_CENTRE_PASSED_NOTIFIED => AssessmentCentrePassedNotifiedStatusGenerator
-        case ASSESSMENT_CENTRE_FAILED_NOTIFIED => AssessmentCentreFailedNotifiedStatusGenerator
         case WITHDRAWN => WithdrawnStatusGenerator
         case PHASE1_TESTS_PASSED => Phase1TestsPassedStatusGenerator
         case PHASE1_TESTS_FAILED => Phase1TestsFailedStatusGenerator
