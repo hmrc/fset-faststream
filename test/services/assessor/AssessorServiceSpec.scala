@@ -34,7 +34,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
   "save assessor" should {
 
-    "save NEW assessors should be successful" in new TestFixture {
+    "save NEW assessor when assessor is new" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
       when(mockAssessorRepository.save(eqTo(AssessorNew))).thenReturn(Future.successful(()))
@@ -44,7 +44,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       verify(mockAssessorRepository).save(eqTo(AssessorNew))
     }
 
-    "update EXISTING assessors should update skills and respect availability" in new TestFixture {
+    "update skills and do not update availability when assessor previously EXISTED" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorMerged))).thenReturn(Future.successful(()))
@@ -57,7 +57,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
   "add availability" should {
 
-    "add availability to NON-EXISTING assessors should fail" in new TestFixture {
+    "throw assessor not found exception when assessor cannot be found" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
 
@@ -69,7 +69,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
 
-    "add availability to EXISTING assessors" in new TestFixture {
+    "merge availability to EXISTING assessor" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorWithAvailabilityMerged))).thenReturn(Future.successful(()))
@@ -96,7 +96,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
 
-    "throw exception when there are no assessor" in new TestFixture {
+    "throw exception when there is no assessor" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturn(Future.successful(None))
 
       intercept[Exceptions.AssessorNotFoundException] {
@@ -119,7 +119,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
 
-    "throw exception when there are no assessor" in new TestFixture {
+    "throw exception when there are is assessor" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturn(Future.successful(None))
 
       intercept[Exceptions.AssessorNotFoundException] {
