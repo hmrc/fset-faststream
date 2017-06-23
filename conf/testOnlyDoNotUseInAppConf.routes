@@ -17,7 +17,8 @@ GET     /candidate-application/test-data-generator/clear-database           cont
 GET     /candidate-application/test-data-generator/create-admin-users       controllers.testdata.TestDataGeneratorController.createAdmins(numberToGenerate: Int, emailPrefix: Option[String] ?= None, role: String ?= "tech-admin")
 POST    /candidate-application/test-data-generator/create-candidates        controllers.testdata.TestDataGeneratorController.createCandidatesPOST(numberToGenerate: Int)
 POST    /candidate-application/test-data-generator/create-admin             controllers.testdata.TestDataGeneratorController.createAdminsPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-event             controllers.testdata.TestDataGeneratorController.createEventsPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-event             controllers.testdata.TestDataGeneratorController.createEventPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-events            controllers.testdata.TestDataGeneratorController.createEventsPOST(numberToGenerate: Int)
 GET     /candidate-application/test-data-generator/example-candidate        controllers.testdata.TestDataGeneratorController.exampleCreateCandidate
 GET     /candidate-application/test-data-generator/example-admin            controllers.testdata.TestDataGeneratorController.exampleCreateAdmin
 GET     /candidate-application/test-data-generator/example-event            controllers.testdata.TestDataGeneratorController.exampleCreateEvent
