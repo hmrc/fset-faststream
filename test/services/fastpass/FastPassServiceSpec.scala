@@ -26,8 +26,8 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.events.EventServiceFixture
 import services.personaldetails.PersonalDetailsService
+import services.stc.StcEventServiceFixture
 import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -125,7 +125,7 @@ class FastPassServiceSpec extends UnitSpec {
     }
   }
 
-  trait TestFixture extends EventServiceFixture {
+  trait TestFixture extends StcEventServiceFixture {
     implicit val hc = HeaderCarrier()
     implicit val rh = mock[RequestHeader]
     val appRepoMock = mock[GeneralApplicationRepository]

@@ -64,7 +64,7 @@ object StatusGeneratorFactory {
         case ASSESSMENT_CENTRE_AWAITING_ALLOCATION => AssessmentCentreAwaitingAllocationStatusGenerator
         case ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED => AssessmentCentreAllocationStatusGenerator
         case ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED => AssessmentCentreAllocationStatusGenerator
-        case FAILED_TO_ATTEND => FailedToAttendStatusGenerator
+        case ASSESSMENT_CENTRE_FAILED_TO_ATTEND => FailedToAttendStatusGenerator
         case ASSESSMENT_CENTRE_SCORES_ENTERED => AssessmentCentreScoresEnteredStatusGenerator
         case ASSESSMENT_CENTRE_SCORES_ACCEPTED => AssessmentCentreScoresAcceptedStatusGenerator
         case ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION => AssessmentCentreAwaitingReevalationStatusGenerator

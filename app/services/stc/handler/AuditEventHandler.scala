@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package services.events.handler
+package services.stc.handler
 
-import model.events.{ AuditEvent, AuditEventNoRequest, AuditEventWithAppId }
+import model.stc.{ AuditEvent, AuditEventNoRequest, AuditEventWithAppId }
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import services.AuditService
@@ -28,7 +28,7 @@ object AuditEventHandler extends AuditEventHandler {
   val auditService: AuditService = AuditService
 }
 
-trait AuditEventHandler extends EventHandler[AuditEvent] {
+trait AuditEventHandler extends StcEventHandler[AuditEvent] {
   val auditService: AuditService
 
   def handle(event: AuditEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {

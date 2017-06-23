@@ -63,7 +63,7 @@ trait CandidateScoresController extends BaseController {
     withJsonBody[CandidateScoresAndFeedback] { candidateScoresAndFeedback =>
       candidateScoresAndFeedback.attendancy match {
         case Some(attendancy) =>
-          val newStatus = if (attendancy) ASSESSMENT_CENTRE_SCORES_ENTERED else FAILED_TO_ATTEND
+          val newStatus = if (attendancy) ASSESSMENT_CENTRE_SCORES_ENTERED else ASSESSMENT_CENTRE_FAILED_TO_ATTEND
           for {
             _ <- aasRepository.save(candidateScoresAndFeedback)
             _ <- aRepository.updateStatus(applicationId, newStatus)

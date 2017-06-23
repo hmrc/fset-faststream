@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package model.events
+package model.stc
 
-import model.events.EventTypes.EventType
+import model.stc.StcEventTypes.StcEventType
 
 // rename AuditEvent
-sealed abstract class AuditEvent(val details: Map[String, String]) extends EventType {
+sealed abstract class AuditEvent(val details: Map[String, String]) extends StcEventType {
   override def toString: String = s"${super.toString}, details=$details"
 }
 

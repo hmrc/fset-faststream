@@ -51,7 +51,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
   def testDataGeneratorService = TestDataGeneratorService
 
   implicit def blankedHeaderCarrier = new HeaderCarrier()
-  
+
   "Candidate Progress Report" must {
     "for an application with all fields" in {
       val userId = generateUUID()

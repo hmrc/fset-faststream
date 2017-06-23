@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import factories.DateTimeFactory
 import model.persisted.Assessor
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults._
@@ -23,6 +22,8 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
 import model.command.WithdrawApplication
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
+import factories.DateTimeFactory
+import model.persisted._
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.Index
@@ -41,6 +42,7 @@ import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait 
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.fsacindicator.{ FSACIndicatorMongoRepository, FSACIndicatorRepository }
 import repositories.events.EventsMongoRepository
+import repositories.stc.StcEventMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -79,7 +81,7 @@ package object repositories {
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
   lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
   lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
-  lazy val eventMongoRepository = new EventMongoRepository
+  lazy val stcEventMongoRepository = new StcEventMongoRepository
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorRepository = new AssessorMongoRepository()
   lazy val eventsRepository = new EventsMongoRepository()

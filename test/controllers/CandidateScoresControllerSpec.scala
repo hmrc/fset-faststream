@@ -92,7 +92,7 @@ class CandidateScoresControllerSpec extends UnitWithAppSpec {
     "mark application status as FAILED_TO_ATTEND when candidate didn't show and save the score" in new TestFixture {
       val candidateScores = CandidateScoresAndFeedback("app1", Some(false), assessmentIncomplete = false)
       when(mockApplicationAssessmentScoresRepository.save(candidateScores)).thenReturn(Future.successful(()))
-      when(mockApplicationRepository.updateStatus("app1", ApplicationStatus.FAILED_TO_ATTEND)).thenReturn(Future.successful(()))
+      when(mockApplicationRepository.updateStatus("app1", ApplicationStatus.ASSESSMENT_CENTRE_FAILED_TO_ATTEND)).thenReturn(Future.successful(()))
 
       val result = TestCandidateScoresController.createCandidateScoresAndFeedback("app1")(
         createSaveCandidateScoresAndFeedback("app1", Json.toJson(candidateScores).toString())
@@ -100,7 +100,7 @@ class CandidateScoresControllerSpec extends UnitWithAppSpec {
 
       status(result) must be(CREATED)
       verify(mockApplicationAssessmentScoresRepository).save(candidateScores)
-      verify(mockApplicationRepository).updateStatus("app1", ApplicationStatus.FAILED_TO_ATTEND)
+      verify(mockApplicationRepository).updateStatus("app1", ApplicationStatus.ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
     }
 
     "return Bad Request when attendancy is not set" in new TestFixture {

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package model.events
+package model.stc
 
-import model.events.EventTypes.EventType
-import model.persisted.Event
+import model.stc.StcEventTypes.StcEventType
+import model.persisted.StcEvent
 import org.joda.time.DateTime
 
-sealed trait DataStoreEvent extends EventType {
+sealed trait DataStoreEvent extends StcEventType {
   final val eventCreated: DateTime = DateTime.now()
   lazy val applicationId: Option[String] = None
   lazy val userId: Option[String] = None
@@ -35,8 +35,8 @@ sealed trait DataStoreEvent extends EventType {
 object DataStoreEvent {
   import scala.language.implicitConversions
 
-  implicit def toDataStoreEvent(dataStoreEvent: DataStoreEvent): model.persisted.Event =
-    Event(dataStoreEvent.eventName, dataStoreEvent.eventCreated, dataStoreEvent.applicationId, dataStoreEvent.userId, dataStoreEvent.createdBy)
+  implicit def toDataStoreEvent(dataStoreEvent: DataStoreEvent): model.persisted.StcEvent =
+    StcEvent(dataStoreEvent.eventName, dataStoreEvent.eventCreated, dataStoreEvent.applicationId, dataStoreEvent.userId, dataStoreEvent.createdBy)
 }
 
 sealed trait DataStoreEventWithAppId extends DataStoreEvent {

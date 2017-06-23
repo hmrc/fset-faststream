@@ -18,14 +18,14 @@ package services.fastpass
 
 import connectors.{ CSREmailClient, OnlineTestEmailClient }
 import model.{ CivilServiceExperienceDetails, ProgressStatuses }
-import model.events.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
-import model.events.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
+import model.stc.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
+import model.stc.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.events.{ EventService, EventSink }
+import services.stc.{ StcEventService, EventSink }
 import services.personaldetails.PersonalDetailsService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -35,7 +35,7 @@ import scala.concurrent.Future
 object FastPassService extends FastPassService {
   override val appRepo = applicationRepository
   override val personalDetailsService = PersonalDetailsService
-  override val eventService: EventService = EventService
+  override val eventService: StcEventService = StcEventService
   override val emailClient = CSREmailClient
   override val cdRepository = faststreamContactDetailsRepository
   override val csedRepository = civilServiceExperienceDetailsRepository
@@ -53,7 +53,7 @@ trait FastPassService extends EventSink {
 
   val appRepo: GeneralApplicationRepository
   val personalDetailsService: PersonalDetailsService
-  val eventService: EventService
+  val eventService: StcEventService
   val emailClient: OnlineTestEmailClient
   val cdRepository: ContactDetailsRepository
   val csedRepository: CivilServiceExperienceDetailsRepository
@@ -76,7 +76,7 @@ trait FastPassService extends EventSink {
     for {
       _ <- csedRepository.update(applicationId, fastPassDetails)
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      _ <- eventSink(model.events.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
+      _ <- eventSink(model.stc.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
       _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
 
     } yield ()
@@ -92,7 +92,7 @@ trait FastPassService extends EventSink {
       email <- emailFut
       personalDetail <- personalDetailsFut
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      _ <- eventSink(model.events.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
+      _ <- eventSink(model.stc.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
       _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = true)
       _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
       _ <- emailClient.sendEmailWithName(email, personalDetail.preferredName, acceptedTemplate)

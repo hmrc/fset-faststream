@@ -16,7 +16,6 @@
 
 package connectors
 
-import java.time.ZoneId
 import java.util.TimeZone
 
 import config.{ EmailConfig, WSHttp }

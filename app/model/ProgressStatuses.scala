@@ -112,7 +112,7 @@ object ProgressStatuses {
 
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
-  case object ASSESSMENT_CENTRE_FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FAILED_TO_ATTEND)
+  case object ASSESSMENT_CENTRE_FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
   case object ASSESSMENT_CENTRE_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_SCORES_ENTERED)
   case object ASSESSMENT_CENTRE_SCORES_ACCEPTED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
   case object ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION)

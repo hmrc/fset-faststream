@@ -171,7 +171,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
 
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
-  val FailedToAttendProgress = FAILED_TO_ATTEND.toLowerCase()
+  val FailedToAttendProgress = ASSESSMENT_CENTRE_FAILED_TO_ATTEND.toLowerCase()
   val AssessmentScoresEnteredProgress = ASSESSMENT_CENTRE_SCORES_ENTERED.toLowerCase()
   val AssessmentScoresAcceptedProgress = ASSESSMENT_CENTRE_SCORES_ACCEPTED.toLowerCase()
   val AwaitingAssessmentCentreReevaluationProgress = ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.toLowerCase()
