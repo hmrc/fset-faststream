@@ -27,16 +27,21 @@ import resource._
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 case class LocationWithVenue(name: String, venues: List[Venue])
 object LocationWithVenue { implicit val locationWithVenueFormat: OFormat[LocationWithVenue] = Json.format[LocationWithVenue] }
 
+case class UnknownLocationException(m: String) extends Exception(m)
+case class UnknownVenueException(m: String) extends Exception(m)
+
 trait LocationsWithVenuesRepository {
-  def locationsWithVenuesList: Future[List[LocationWithVenue]]
-  def allLocations: Future[Set[Location]]
-  def allVenues: Future[Set[Venue]]
+  def locationsWithVenuesList: List[LocationWithVenue]
+  def allLocations: Set[Location]
+  def location(name: String): Try[Location]
+  def allVenues: Set[Venue]
+  def venue(name: String): Try[Venue]
 }
 
 trait LocationsWithVenuesRepositoryImpl extends LocationsWithVenuesRepository {
@@ -45,20 +50,28 @@ trait LocationsWithVenuesRepositoryImpl extends LocationsWithVenuesRepository {
 
   val locationsAndVenuesFilePath: String
 
-  private lazy val locationsAndVenuesCached = Future.successful {
+  private lazy val locationsAndVenuesCached = {
     @silent val input = managed(Play.application.resourceAsStream(locationsAndVenuesFilePath).get)
     input.acquireAndGet(file => asLocationWithVenues(new Yaml().load(file)))
   }
 
-  private lazy val allLocationsCached = locationsAndVenuesCached.map(_.map(Location.apply))
+  private lazy val allLocationsCached = locationsAndVenuesCached.map(Location.apply).toSet
 
-  private lazy val allVenuesCached = locationsAndVenuesCached.map(_.flatMap(_.venues).toSet)
+  private lazy val allVenuesCached = locationsAndVenuesCached.flatMap(_.venues).toSet
 
-  def allLocations: Future[Set[Location]] = allLocationsCached.map(_.toSet)
+  def allLocations: Set[Location] = allLocationsCached
 
-  def allVenues: Future[Set[Venue]] = allVenuesCached
+  def location(name: String): Try[Location] = Try {
+    allLocations.find(_.name == name).getOrElse(throw UnknownLocationException(s"$name is not a known location for this campaign"))
+  }
 
-  def locationsWithVenuesList: Future[List[LocationWithVenue]] = locationsAndVenuesCached
+  def allVenues: Set[Venue] = allVenuesCached
+
+  def venue(name: String): Try[Venue] = Try {
+    allVenues.find(_.name == name).getOrElse(throw UnknownVenueException(s"$name is not a known venue for this campaign"))
+  }
+
+  def locationsWithVenuesList: List[LocationWithVenue] = locationsAndVenuesCached
 
   def asLocationWithVenues[A](obj: A): List[LocationWithVenue] = {
     // TODO: This java library forces creation of this complex statement. Investigate alternatives.

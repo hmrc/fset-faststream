@@ -16,14 +16,19 @@
 
 package services.assessoravailability
 
+import common.{ FutureEx, TryEx }
 import model.Exceptions.AssessorNotFoundException
+import model.persisted.AssessorAvailability
 import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
 import repositories._
 import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository }
 
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{ Failure, Success, Try }
 
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
@@ -34,7 +39,7 @@ trait AssessorService {
   val assessorRepository: AssessorRepository
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
 
-  lazy val locations: Future[Set[Location]] = locationsWithVenuesRepo.allLocations
+  lazy val locations: Set[Location] = locationsWithVenuesRepo.allLocations
 
   def saveAssessor(userId: String, assessor: model.exchange.Assessor): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
@@ -43,21 +48,21 @@ trait AssessorService {
         val assessorToPersist = model.persisted.Assessor(
           userId, assessor.skills, assessor.civilServant, existing.availability
         )
-        assessorRepository.save(assessorToPersist).map( _ => () )
+        assessorRepository.save(assessorToPersist).map(_ => ())
       case _ =>
         val assessorToPersist = model.persisted.Assessor(
           userId, assessor.skills, assessor.civilServant, Nil
         )
-        assessorRepository.save(assessorToPersist).map( _ => () )
+        assessorRepository.save(assessorToPersist).map(_ => ())
     }
   }
 
-  def addAvailability(userId: String, assessorAvailability: model.exchange.AssessorAvailability): Future[Unit] = {
+  def addAvailability(userId: String, newAvailabilities: List[model.persisted.AssessorAvailability]): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
-        val mergedAvailability = existing.availability ++ assessorAvailability.availability
+        val mergedAvailability = existing.availability ++ newAvailabilities
         val assessorAvailabilityToPersist = model.persisted.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability)
-        assessorRepository.save(assessorAvailabilityToPersist).map(_ => () )
+        assessorRepository.save(assessorAvailabilityToPersist).map(_ => ())
       case _ => throw AssessorNotFoundException(userId)
     }
   }
@@ -66,26 +71,36 @@ trait AssessorService {
     for {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
-      assessorOpt.fold( throw AssessorNotFoundException(userId) ) { assessor =>
-        assessor.availability.groupBy(_.location)
-          model.exchange.AssessorAvailability(assessor.userId, assessor.availability)
+      assessorOpt.fold(throw AssessorNotFoundException(userId)) {
+        model.exchange.AssessorAvailability.apply
       }
     }
   }
 
-  def findAvailabilitiesForDate(date: LocalDate): Future[Seq[model.exchange.AssessorAvailability]]
+  def findAvailabilitiesForDate(date: LocalDate): Future[Seq[model.exchange.AssessorAvailability]] = ???
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {
     for {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
-      assessorOpt.fold( throw AssessorNotFoundException(userId) ) {
+      assessorOpt.fold(throw AssessorNotFoundException(userId)) {
         assessor => model.exchange.Assessor.apply(assessor)
       }
     }
   }
 
   def countSubmittedAvailability(): Future[Int] = {
-    assessorRepository.countSubmittedAvailability
+    //assessorRepository.countSubmittedAvailability
+    Future.successful(0)
   }
+
+  def exchangeToPersistedAvailability(a: model.exchange.AssessorAvailability): Try[List[model.persisted.AssessorAvailability]] = {
+    TryEx.traverseSerial(a.availability) { case (locationName, dates) =>
+      locationsWithVenuesRepo.location(locationName).map { location =>
+        dates.map(d => AssessorAvailability(location, d))
+      }
+    }.map(_.toList.flatten)
+  }
+
+
 }

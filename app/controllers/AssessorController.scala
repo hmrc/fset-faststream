@@ -45,9 +45,12 @@ trait AssessorController extends BaseController {
 
   def addAvailability(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[AssessorAvailability] { availability =>
-      assessorService.addAvailability(userId, availability).map(_ =>
-        Ok
-    )}
+      val result = assessorService.exchangeToPersistedAvailability(availability).map { newAvailability =>
+        assessorService.addAvailability(userId, newAvailability).map(_ => Ok)
+      }
+
+      Future.fromTry(result) flatMap identity
+    }
   }
 
   def findAssessor(userId: String): Action[AnyContent] = Action.async { implicit request =>

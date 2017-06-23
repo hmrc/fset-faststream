@@ -46,11 +46,7 @@ class AssessorMongoRepository(implicit mongo: () => DB)
       "userId" -> userId
     )
 
-    collection.find(query).one[BSONDocument].map { docOpt =>
-      docOpt.map { doc =>
-        assessorHandler.read(doc)
-      }
-    }
+    collection.find(query).one[Assessor]
   }
 
   override def save(assessor: Assessor): Future[Unit] = {
@@ -62,14 +58,13 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     collection.update(query, saveBson, upsert = insertIfNoRecordFound) map assessorValidator
   }
 
-  override def countSubmittedAvailability: Future[Int] = {
-    AssessorService.locations.map { locations =>
-      locations.map { location =>
-        s"availability.${location.name}" -> Json.toJsFieldJsValueWrapper(Json.obj("$exists" -> true))
-      }
-    }.flatMap { fields =>
-      val query = Json.obj(fields.toSeq: _*)
-      collection.count(Some(query))
-    }
-  }
+  // TODO Fix this when availability submission is complete
+  override def countSubmittedAvailability: Future[Int] = Future.successful(0)
+  //  AssessorService.locations.map { location =>
+  //      s"availability.${location.name}" -> Json.toJsFieldJsValueWrapper(Json.obj("$exists" -> true))
+  //  }.map { fields =>
+  //    val query = Json.obj(fields.toSeq: _*)
+  //    collection.count(Some(query))
+  //  }
+  //}
 }

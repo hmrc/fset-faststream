@@ -20,18 +20,16 @@ import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import repositories.events.LocationsWithVenuesRepository
 import services.BaseServiceSpec
 import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
 
 import scala.concurrent.Future
+import scala.util.Success
 
 class EventsParsingServiceSpec extends BaseServiceSpec {
   "processCentres" must {
     "successfully saves and loads the file contents" in new GoodTestFixture {
-      when(mockLocationsWithVenuesRepo.allVenues).thenReturn(Future.successful(
-        Set(Venue("london fsac", "bush house"), Venue("virtual", "virtual venue"))
-      ))
-      when(mockLocationsWithVenuesRepo.allLocations).thenReturn(Future.successful(
-        Set(Location("London"))
-      ))
+      when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Success(Venue("london fsac", "bush house")))
+      when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Success(Location("London")))
       val events: Seq[Event] = service.processCentres().futureValue
 
       events.size mustBe 2

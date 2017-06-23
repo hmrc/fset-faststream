@@ -16,27 +16,36 @@
 
 package model.persisted
 
+import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
 
 object AssessorExamples {
 
   val AssessorUserId = "USR1"
 
+  val london = Location("London")
+  val newcastle = Location("Newcastle")
+
+  val assessorAvailability = AssessorAvailability(london, new LocalDate(2017, 10, 10))
+
   val AssessorExisting = Assessor(AssessorUserId,
     skills = List("qac", "chair"),
     civilServant = true,
-    availability = Map(
-      "london" -> List(new LocalDate(2017, 10, 10), new LocalDate(2017, 10, 10)),
-      "newcastle" -> List(new LocalDate(2017, 5, 10), new LocalDate(2017, 5, 10))
-    ))
+    availability =
+      AssessorAvailability(london, new LocalDate(2017, 10, 10)) ::
+      AssessorAvailability(london, new LocalDate(2017, 11, 10)) ::
+      AssessorAvailability(newcastle, new LocalDate(2017, 5, 10)) ::
+      AssessorAvailability(newcastle, new LocalDate(2017, 6, 10)) ::
+      Nil
+    )
 
-  val AssessorNew: Assessor = AssessorExamples.AssessorExisting.copy(skills = List("assessor"), availability = Map())
-  val AssessorMerged: Assessor = AssessorExamples.AssessorExisting.copy(skills = List("assessor"))
+  val AssessorNew: Assessor = AssessorExisting.copy(skills = List("assessor"), availability = Nil)
+  val AssessorMerged: Assessor = AssessorExisting.copy(skills = List("assessor"))
 
 
   val AssessorWithAvailability: Assessor = AssessorExisting.copy(
     skills = List(),
-    availability = Map("london" -> List(new LocalDate(2017, 11, 11)))
+    availability = AssessorAvailability(london, new LocalDate(2017, 11, 11)) :: Nil
   )
 
   val AssessorWithAvailabilityMerged: Assessor = AssessorWithAvailability.copy(

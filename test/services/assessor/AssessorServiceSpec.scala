@@ -16,7 +16,6 @@
 
 package services.assessor
 
-import model.exchange.{ Assessor, AssessorAvailability }
 import model.persisted.AssessorExamples
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -27,6 +26,7 @@ import scala.concurrent.duration._
 import AssessorExamples._
 import model.Exceptions
 import model.Exceptions.AssessorNotFoundException
+import model.persisted.eventschedules.{ Location, Venue }
 import repositories.AssessorRepository
 import repositories.events.LocationsWithVenuesRepository
 
@@ -40,7 +40,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
       when(mockAssessorRepository.save(eqTo(AssessorNew))).thenReturn(Future.successful(()))
-      val response = service.saveAssessor(AssessorUserId, Assessor.apply(AssessorNew)).futureValue
+      val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor.apply(AssessorNew)).futureValue
       response mustBe unit
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
       verify(mockAssessorRepository).save(eqTo(AssessorNew))
@@ -50,7 +50,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorMerged))).thenReturn(Future.successful(()))
-      val response = service.saveAssessor(AssessorUserId, Assessor.apply(AssessorNew)).futureValue
+      val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor.apply(AssessorNew)).futureValue
       response mustBe unit
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
       verify(mockAssessorRepository).save(eqTo(AssessorMerged))
@@ -64,7 +64,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
 
       intercept[AssessorNotFoundException] {
-        Await.result(service.addAvailability(AssessorUserId, AssessorAvailability.apply(AssessorWithAvailability)), 10 seconds)
+        Await.result(service.addAvailability(AssessorUserId, AssessorExamples.assessorAvailability :: Nil), 10 seconds)
       }
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
@@ -74,7 +74,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorWithAvailabilityMerged))).thenReturn(Future.successful(()))
 
-      val result = service.addAvailability(AssessorUserId, AssessorAvailability.apply(AssessorWithAvailability)).futureValue
+      val result = service.addAvailability(AssessorUserId, AssessorExamples.AssessorWithAvailability.availability).futureValue
 
       result mustBe unit
 
@@ -124,13 +124,19 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
   }
 
-  trait TestFixture  {
+  trait TestFixture {
     val mockAssessorRepository = mock[AssessorRepository]
-    val mockAssessmentCentreYamlRepository = mock[LocationsWithVenuesRepository]
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
 
+    when(mockLocationsWithVenuesRepo.allVenues).thenReturn(
+      Set(Venue("london fsac", "bush house"), Venue("virtual", "virtual venue"))
+    )
+    when(mockLocationsWithVenuesRepo.allLocations).thenReturn(
+      Set(Location("London"))
+    )
     val service = new AssessorService {
       val assessorRepository: AssessorRepository = mockAssessorRepository
-      val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockAssessmentCentreYamlRepository
+      val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
 }

@@ -17,9 +17,10 @@
 package controllers
 
 import model.Exceptions._
-import model.exchange.{ Assessor, AssessorAvailability }
+import model.exchange.Assessor
 import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
+import model.persisted
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -29,6 +30,8 @@ import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 import testkit.MockitoImplicits._
+
+import scala.util.Success
 
 class AssessorControllerSpec extends UnitWithAppSpec {
   val mockAssessorService = mock[AssessorService]
@@ -50,7 +53,10 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     val Request = fakeRequest(AssessorAvailabilityInBothLondonAndNewcastle)
 
     "return Ok when save is successful" in {
-      when(mockAssessorService.addAvailability(any[String], any[AssessorAvailability])).thenReturn(emptyFuture)
+      when(mockAssessorService.addAvailability(any[String], any[List[persisted.AssessorAvailability]])).thenReturn(emptyFuture)
+      when(mockAssessorService.exchangeToPersistedAvailability(any[model.exchange.AssessorAvailability])).thenReturn(Success(
+        model.persisted.AssessorExamples.assessorAvailability :: Nil
+      ))
       val response = controller.addAvailability(UserId)(Request)
       status(response) mustBe OK
     }
@@ -78,7 +84,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       when(mockAssessorService.findAvailability(UserId)).thenReturnAsync(AssessorAvailabilityInBothLondonAndNewcastle)
       val response = controller.findAvailability(UserId)(fakeRequest)
       status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson[AssessorAvailability](AssessorAvailabilityInBothLondonAndNewcastle)
+      contentAsJson(response) mustBe Json.toJson[model.exchange.AssessorAvailability](AssessorAvailabilityInBothLondonAndNewcastle)
     }
 
     "return Not Found when availability cannot be found" in {

@@ -82,10 +82,8 @@ trait EventsParsingService {
                 case (skill, skillIdx) => skill -> stringToRequirement(items(skillIdx))
               }.toMap
             for {
-              location <- locationsWithVenuesRepo.allLocations.map(_.find(_.name == items(1))
-                .getOrElse(throw new Exception(s"Unknown location ${items(1)}")))
-              venue <- locationsWithVenuesRepo.allVenues.map(_.find(_.name == items(2))
-                .getOrElse(throw new Exception(s"Unknown venue type ${items(2)}")))
+              location <- locationsWithVenuesRepo.location(items(1))
+              venue <- locationsWithVenuesRepo.venue(items(2))
             } yield {
               Event(
                 id = UUIDFactory.generateUUID(),
@@ -100,11 +98,11 @@ trait EventsParsingService {
                 attendeeSafetyMargin = attendeeSafetyMargin,
                 skillRequirements = skillRequirements)
             }
-          }.recoverWith {
+          }.flatten.recoverWith {
             case ex =>
               Failure(new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}"))
           }
-          Future.fromTry(tryRes) flatMap identity
+          Future.fromTry(tryRes)
       }
     }
   }

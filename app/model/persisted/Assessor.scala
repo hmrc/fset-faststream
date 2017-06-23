@@ -19,12 +19,27 @@ package model.persisted
 import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler }
 
 case class Assessor(userId: String, skills: List[String], civilServant: Boolean,
   availability: List[AssessorAvailability])
 
 object Assessor {
   implicit val persistedAssessorFormat: OFormat[Assessor] = Json.format[Assessor]
+  implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
 }
 
-case class AssessorAvailability(location: Location, data: LocalDate)
+case class AssessorAvailability(
+  location: Location,
+  date: LocalDate
+)
+
+object AssessorAvailability {
+  implicit val persistedAssessorAvailabilityFormat = Json.format[AssessorAvailability]
+  implicit val persistedAssessorAvailabilityHander = Macros.handler[AssessorAvailability]
+
+  def toAvailabilityMap(o: Seq[AssessorAvailability]): Map[String, List[LocalDate]] = o groupBy(_.location) map { case (location, avail) =>
+    location.name -> avail.map(_.date).toList
+  }
+}

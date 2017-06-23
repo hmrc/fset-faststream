@@ -33,6 +33,12 @@ case class AssessorAvailability(userId: String, availability: Map[String, List[L
 object AssessorAvailability {
   implicit val assessorAvailabilityFormat = Json.format[AssessorAvailability]
 
-  def apply(assessor: model.persisted.Assessor): AssessorAvailability = AssessorAvailability(assessor.userId, assessor.availability)
+  def apply(assessor: model.persisted.Assessor): AssessorAvailability = {
+    val availability = assessor.availability.groupBy(_.location).map { case (location, availabilities) =>
+      location.name -> availabilities.map(_.date)
+    }
+
+    AssessorAvailability(assessor.userId, availability)
+  }
 
 }

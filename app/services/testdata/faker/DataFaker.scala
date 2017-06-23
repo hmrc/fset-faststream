@@ -109,23 +109,6 @@ object DataFaker {
 
     def passmark: Result = randOne(List(EvaluationResults.Green, EvaluationResults.Amber, EvaluationResults.Red))
 
-    def availableAssessmentVenueAndDate: Future[AvailableAssessmentSlot] = {
-      LocationsWithVenuesYamlRepository.allVenues.flatMap { allVenues =>
-
-        val randomisedVenues = util.Random.shuffle(allVenues)
-
-        val firstVenueWithSpace = randomisedVenues.foldLeft(Future.successful(Option.empty[AvailableAssessmentSlot])) {
-          case (acc, venue) =>
-            acc.flatMap {
-              case Some(accVenueAndDate) => Future.successful(Some(accVenueAndDate))
-              //case _ => venueHasFreeSlots(venue)
-              case _ => Future.successful(None)
-            }
-        }
-        firstVenueWithSpace.map(_.get)
-      }
-    }
-
     /* TODO Fix these again once the event allocation features have been done
 
     private def venueHasFreeSlots(venue: Venue): Future[Option[AvailableAssessmentSlot]] = {
