@@ -50,8 +50,6 @@ trait ReportingRepository {
 
   def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]]
 
-  def candidatesAwaitingAllocation(frameworkId: String): Future[List[CandidateAwaitingAllocation]]
-
   def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]]
 
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]]
@@ -347,51 +345,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       }
     }
   }
-
   //scalastyle:on method.length
-
-  override def candidatesAwaitingAllocation(frameworkId: String): Future[List[CandidateAwaitingAllocation]] = {
-    val query = BSONDocument("$and" ->
-      BSONArray(
-        BSONDocument("frameworkId" -> frameworkId),
-        BSONDocument("applicationStatus" -> "AWAITING_ALLOCATION")
-      ))
-
-    val projection = BSONDocument(
-      "userId" -> "1",
-      "personal-details.firstName" -> "1",
-      "personal-details.lastName" -> "1",
-      "personal-details.preferredName" -> "1",
-      "personal-details.dateOfBirth" -> "1",
-      "framework-preferences.firstLocation.location" -> "1",
-      "assistance-details.typeOfAdjustments" -> "1",
-      "assistance-details.otherAdjustments" -> "1"
-    )
-
-    reportQueryWithProjections[BSONDocument](query, projection).map { list =>
-      list.map { document =>
-
-        val userId = document.getAs[String]("userId").get
-        val personalDetails = document.getAs[BSONDocument]("personal-details").get
-        val firstName = personalDetails.getAs[String]("firstName").get
-        val lastName = personalDetails.getAs[String]("lastName").get
-        val preferredName = personalDetails.getAs[String]("preferredName").get
-        val dateOfBirth = personalDetails.getAs[LocalDate]("dateOfBirth").get
-        val frameworkPreferences = document.getAs[BSONDocument]("framework-preferences").get
-        val firstLocationDoc = frameworkPreferences.getAs[BSONDocument]("firstLocation").get
-        val firstLocation = firstLocationDoc.getAs[String]("location").get
-
-        val assistance = document.getAs[BSONDocument]("assistance-details")
-        val typesOfAdjustments = assistance.flatMap(_.getAs[List[String]]("typeOfAdjustments"))
-
-        val otherAdjustments = extract("otherAdjustments")(assistance)
-        val adjustments = typesOfAdjustments.getOrElse(Nil) ::: otherAdjustments.toList
-        val finalTOA = if (adjustments.isEmpty) None else Some(adjustments.mkString("|"))
-
-        CandidateAwaitingAllocation(userId, firstName, lastName, preferredName, firstLocation, finalTOA, dateOfBirth)
-      }
-    }
-  }
 
   override def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]] = {
     val query = BSONDocument("frameworkId" -> frameworkId)
@@ -488,8 +442,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
         BSONDocument("userId" -> BSONDocument("$exists" -> true)),
         BSONDocument("$or" ->
           BSONArray(
-            BSONDocument(s"progress-status.${ApplicationStatus.EXPORTED}" -> true),
-            BSONDocument(s"progress-status.${ApplicationStatus.UPDATE_EXPORTED}" -> true)
+            BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
+            BSONDocument(s"progress-status.${ApplicationStatus.PHASE1_TESTS_PASSED}" -> true)
           )
         )
       )
@@ -518,9 +472,11 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
 
         val preferredName = personalDetailsDoc.flatMap(_.getAs[String]("preferredName"))
         val maybeSubmittedTimestamp = getDate(doc, ApplicationStatus.SUBMITTED).orElse(getLegacyDate(doc, ApplicationStatus.SUBMITTED))
-        val maybeExportedTimestamp = getDate(doc, ApplicationStatus.EXPORTED).orElse(getLegacyDate(doc, ApplicationStatus.EXPORTED))
-        val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.UPDATE_EXPORTED).orElse(
-          getLegacyDate(doc, ApplicationStatus.UPDATE_EXPORTED)
+        val maybeExportedTimestamp = getDate(doc, ApplicationStatus.PHASE3_TESTS_PASSED).orElse(
+          getLegacyDate(doc, ApplicationStatus.PHASE3_TESTS_PASSED)
+        )
+        val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.PHASE1_TESTS_PASSED).orElse(
+          getLegacyDate(doc, ApplicationStatus.PHASE1_TESTS_PASSED)
         )
         val fsacIndicatorDoc = doc.getAs[BSONDocument]("fsac-indicator")
         val assessmentCentre = fsacIndicatorDoc.flatMap(_.getAs[String]("assessmentCentre"))
@@ -550,7 +506,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
     val latestProgressStatus = ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses)
 
-    UserApplicationProfile(userId, latestProgressStatus, firstName, lastName, dob, exportedToParity = candidateProgressStatuses.exported)
+    UserApplicationProfile(userId, latestProgressStatus, firstName, lastName, dob)
   }
 
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {

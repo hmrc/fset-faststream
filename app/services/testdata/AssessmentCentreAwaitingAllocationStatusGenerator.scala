@@ -29,12 +29,12 @@ import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object AwaitingAllocationStatusGenerator extends AwaitingAllocationStatusGenerator {
+object AssessmentCentreAwaitingAllocationStatusGenerator extends AssessmentCentreAwaitingAllocationStatusGenerator {
   override val previousStatusGenerator = CreatedStatusGenerator // TODO: Fix this in faststream once the appropriate prior stage is complete
   override val otRepository = phase1TestRepository
 }
 
-trait AwaitingAllocationStatusGenerator extends ConstructiveGenerator {
+trait AssessmentCentreAwaitingAllocationStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
