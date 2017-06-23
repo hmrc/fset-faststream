@@ -98,15 +98,10 @@ object SignUpForm {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] = {
       data.get(key) match {
         case Some(appRoute) if appRoute.nonEmpty =>
-
           ApplicationRoute.withName(appRoute) match {
-            case ApplicationRoute.Faststream => val fsEligable = data.getOrElse("faststreamEligible", "false").toBoolean
-              if (fsEligable) { Right(appRoute) }
-                else { Left(List(FormError("faststreamEligible", Messages("agree.faststreamEligible")))) }
+            case ApplicationRoute.Faststream => fastStreamCheck(appRoute, data)
 
-            case ApplicationRoute.Edip => val edipEligable = data.getOrElse("edipEligible", "false").toBoolean
-              if (edipEligable) { Right(appRoute) }
-                else { Left(List(FormError("edipEligible", Messages("agree.edipEligible")))) }
+            case ApplicationRoute.Edip => edipEligibilityCheck(data)
 
             case ApplicationRoute.Sdip => sdipEligibiliyCheck(data)
 
@@ -120,16 +115,45 @@ object SignUpForm {
     override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
   }
 
+  private def edipEligibilityCheck(data: Map[String, String]): Either[Seq[FormError], String] = {
+    data.get("edipEligible").map(_.toLowerCase) match {
+      case Some("true") => Right(ApplicationRoute.Edip)
+      case _ => Left(List(FormError("edipEligible", Messages("agree.edipEligible"))))
+    }
+  }
+
+  private def fastStreamCheck(appRoute: String, data: Map[String, String]): Either[Seq[FormError], String] = {
+    val fastStreamEligible = data.get("faststreamEligible").map(_.toLowerCase)
+    val sdipFastStreamConsider = data.get("sdipFastStreamConsider").map(_.toLowerCase)
+    (fastStreamEligible, sdipFastStreamConsider) match {
+      case (Some("true"), Some("false")) => Right(appRoute)
+      case (Some("true"), Some("true")) => sdipFsCheck(data)
+      case (Some("true"), None) => Left(List(FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider"))))
+      case (_ , _) => Left(List(
+        FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider")),
+        FormError("faststreamEligible", Messages("agree.faststreamEligible"))
+      ))
+    }
+
+  }
+
+  private def sdipFsCheck(data: Map[String, String]): Either[Seq[FormError], String] = {
+    data.get("sdipFastStreamEligible").map(_.toLowerCase) match {
+      case Some("true") => Right(ApplicationRoute.SdipFaststream)
+      case _ => Left(List(FormError("sdipFastStreamEligible", Messages("agree.sdipEligible"))))
+    }
+  }
+
   private def sdipEligibiliyCheck(postData: Map[String, String]): Either[Seq[FormError], String] = {
-    val sdipEligable = postData.getOrElse("sdipEligible", "false").toBoolean
-    val hasAppliedtoFaststream = postData.lift("hasAppliedToFaststream").map(_.toBoolean)
+    val sdipEligible = postData.get("sdipEligible").map(_.toLowerCase)
+    val hasAppliedtoFaststream = postData.lift("hasAppliedToFaststream").map(_.toLowerCase)
 
     val errors = (hasAppliedtoFaststream match {
-                    case Some(true) => List(FormError("hasAppliedToFaststream", Messages("error.hasAppliedToFaststream")))
-                    case Some(false) => Nil
-                    case None => List(FormError("hasAppliedToFaststream", Messages("agree.hasAppliedToFaststream")))
+                    case Some("true") => List(FormError("hasAppliedToFaststream", Messages("error.hasAppliedToFaststream")))
+                    case Some("false") => Nil
+                    case _ => List(FormError("hasAppliedToFaststream", Messages("agree.hasAppliedToFaststream")))
                   }) ++
-      (if (!sdipEligable) { List(FormError("sdipEligible", Messages("agree.sdipEligible"))) } else { Nil })
+      (if (!sdipEligible.contains("true")) { List(FormError("sdipEligible", Messages("agree.sdipEligible"))) } else { Nil })
 
     if (errors.isEmpty) {
       Right(ApplicationRoute.Sdip)
@@ -138,7 +162,7 @@ object SignUpForm {
     }
   }
 
-  def form = Form(
+  def form: Form[Data] = Form(
     mapping(
       "firstName" -> nonEmptyTrimmedText("error.firstName", 256),
       "lastName" -> nonEmptyTrimmedText("error.lastName", 256),
@@ -151,6 +175,8 @@ object SignUpForm {
       "applicationRoute" -> of(applicationRouteFormatter),
       "agree" -> checked(Messages("agree.accept")),
       "faststreamEligible" -> boolean,
+      "sdipFastStreamConsider" -> optional(boolean),
+      "sdipFastStreamEligible" -> optional(boolean),
       "edipEligible" -> boolean,
       "sdipEligible" -> boolean,
       "hasAppliedToFaststream" -> optional(boolean)
@@ -195,6 +221,8 @@ object SignUpForm {
     applicationRoute: String,
     agree: Boolean,
     faststreamEligible: Boolean,
+    sdipFastStreamConsider: Option[Boolean],
+    sdipFastStreamEligible: Option[Boolean],
     edipEligible: Boolean,
     sdipEligible: Boolean,
     hasAppliedToFaststream: Option[Boolean]

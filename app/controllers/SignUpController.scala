@@ -70,7 +70,11 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
           )
         },
         data => {
-          val appRoute = ApplicationRoute.withName(data.applicationRoute)
+          val selectedAppRoute = ApplicationRoute.withName(data.applicationRoute)
+          val appRoute = (selectedAppRoute, data.sdipFastStreamConsider) match {
+            case (ApplicationRoute.Faststream, Some(true)) => ApplicationRoute.SdipFaststream
+            case (_, _) => selectedAppRoute
+          }
           checkAppWindowBeforeProceeding(SignUpForm.form.fill(data).data, {
               userManagementClient.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
                 applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>

@@ -76,8 +76,31 @@ class SignUpFormSpec extends UnitWithAppSpec {
     "throw an error if I haven't clicked on the I am eligible for Fast Stream" in {
       val (_, signUpForm) = SignupFormGenerator(faststreamEligible = false).get
       signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(1)
+      signUpForm.errors.length must be(2)
       signUpForm.errors("faststreamEligible").head.messages must be(Seq(Messages("agree.faststreamEligible")))
+      signUpForm.errors("sdipFastStreamConsider").head.messages must be(Seq(Messages("sdipFastStream.consider")))
+    }
+
+    "throw an error if I have clicked on the I am eligible for Fast Stream but not confirmed if I want to be considered for SDIP" in {
+      val (_, signupForm) = SignupFormGenerator(faststreamEligible = true, sdipFastStreamConsider = None).get
+      signupForm.hasErrors must be(true)
+      signupForm.errors.length must be (1)
+      signupForm.errors("sdipFastStreamConsider").head.messages must be(Seq(Messages("sdipFastStream.consider")))
+    }
+
+    "throw an error if I have clicked on the I am eligible for Fast Stream and confirmed I want to be considered for SDIP," +
+      " but not confirmed I am eligible for SDIP" in {
+      val (_, signupForm) = SignupFormGenerator(
+        faststreamEligible = true, sdipFastStreamConsider = Some(true), sdipFastStreamEligible = None).get
+      signupForm.hasErrors must be(true)
+      signupForm.errors.length must be (1)
+      signupForm.errors("sdipFastStreamEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
+
+      val (_, signupForm2) = SignupFormGenerator(
+        faststreamEligible = true, sdipFastStreamConsider = Some(true), sdipFastStreamEligible = Some(false)).get
+      signupForm2.hasErrors must be(true)
+      signupForm2.errors.length must be (1)
+      signupForm2.errors("sdipFastStreamEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
     }
 
     "throw an error if I haven't clicked on the I am eligible for EDIP" in {
@@ -159,6 +182,8 @@ case class SignupFormGenerator(
   agree: Boolean = true,
   applicationRoute: Option[ApplicationRoute.ApplicationRoute] = Some(ApplicationRoute.Faststream),
   faststreamEligible: Boolean = true,
+  sdipFastStreamConsider: Option[Boolean] = Option(false),
+  sdipFastStreamEligible: Option[Boolean] = Option(false),
   edipEligible: Boolean = false,
   sdipEligible: Boolean = false,
   hasAppliedToFaststream: Option[Boolean] = None
@@ -176,6 +201,8 @@ case class SignupFormGenerator(
     applicationRoute.map(_.toString).getOrElse(""),
     agree,
     faststreamEligible,
+    sdipFastStreamConsider,
+    sdipFastStreamEligible,
     edipEligible,
     sdipEligible,
     hasAppliedToFaststream
@@ -195,7 +222,9 @@ case class SignupFormGenerator(
     "faststreamEligible" -> data.faststreamEligible.toString,
     "edipEligible" -> data.edipEligible.toString,
     "sdipEligible" -> data.sdipEligible.toString
-  ) ++ data.hasAppliedToFaststream.map( x => "hasAppliedToFaststream" -> x.toString )
+  ) ++ data.hasAppliedToFaststream.map(x => "hasAppliedToFaststream" -> x.toString) ++
+    data.sdipFastStreamConsider.map(x => "sdipFastStreamConsider" -> x.toString) ++
+    data.sdipFastStreamEligible.map(x => "sdipFastStreamEligible" -> x.toString)
 
   private def signUpForm = Form(SignUpForm.form.mapping).bind(validFormData)
 
