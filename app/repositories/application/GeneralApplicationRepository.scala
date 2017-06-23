@@ -23,7 +23,6 @@ import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
 import config.CubiksGatewayConfig
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions._
@@ -75,8 +74,6 @@ trait GeneralApplicationRepository {
 
   def findApplicationIdsByLocation(location: String): Future[List[String]]
 
-  def findApplicationsForAssessmentAllocation(locations: List[String], start: Int, end: Int): Future[ApplicationForAssessmentAllocationResult]
-
   def submit(applicationId: String): Future[Unit]
 
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
@@ -104,17 +101,6 @@ trait GeneralApplicationRepository {
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
 
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
-
-  def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]]
-
-  def applicationsPassedInAssessmentCentre(frameworkId: String): Future[List[ApplicationPreferencesWithTestResults]]
-
-  def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]]
-
-  def nextAssessmentCentrePassedOrFailedApplication(): Future[Option[ApplicationForNotification]]
-
-  def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,
-                                    evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: ApplicationStatus): Future[Unit]
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
@@ -303,40 +289,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     }
   }
 
-  override def findApplicationsForAssessmentAllocation(locations: List[String], start: Int,
-                                                       end: Int): Future[ApplicationForAssessmentAllocationResult] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> "AWAITING_ALLOCATION"),
-      BSONDocument("framework-preferences.firstLocation.location" -> BSONDocument("$in" -> locations))
-    ))
-
-    collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
-      val count = c.count
-      if (count == 0) {
-        Future.successful(ApplicationForAssessmentAllocationResult(List.empty, 0))
-      } else {
-        val projection = BSONDocument(
-          "userId" -> 1,
-          "applicationId" -> 1,
-          "personal-details.firstName" -> 1,
-          "personal-details.lastName" -> 1,
-          "assistance-details.needsSupportAtVenue" -> 1,
-          "online-tests.invitationDate" -> 1
-        )
-        val sort = JsObject(Seq("online-tests.invitationDate" -> JsNumber(1)))
-
-        collection.find(query, projection).sort(sort).options(QueryOpts(skipN = start)).cursor[BSONDocument]().collect[List](end - start + 1).
-          map { docList =>
-            docList.map { doc =>
-              toApplicationsForAssessmentAllocation.read(doc)
-            }
-          }.flatMap { result =>
-          Future.successful(ApplicationForAssessmentAllocationResult(result, count))
-        }
-      }
-    }
-  }
-
   override def submit(applicationId: String): Future[Unit] = {
     val guard = progressStatusGuardBSON(PREVIEW)
     val query = BSONDocument("applicationId" -> applicationId) ++ guard
@@ -385,13 +337,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     collection.update(query, progressStatusBSON) map validator
   }
-
-  override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] =
-    applicationPreferences(BSONDocument("$and" -> BSONArray(
-      BSONDocument("frameworkId" -> frameworkId),
-      BSONDocument(s"progress-status.${ASSESSMENT_SCORES_ACCEPTED.toLowerCase}" -> true),
-      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
-    )))
 
   override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
     val query = Try{ notificationType match {
@@ -502,16 +447,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       }
     }
   }
-
-  // scalstyle:on method.length
-  override def applicationsPassedInAssessmentCentre(frameworkId: String): Future[List[ApplicationPreferencesWithTestResults]] =
-    applicationPreferencesWithTestResults(BSONDocument("$and" -> BSONArray(
-      BSONDocument("frameworkId" -> frameworkId),
-      BSONDocument(s"progress-status.${ASSESSMENT_CENTRE_PASSED.toLowerCase}" -> true),
-      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN))
-    )))
-
-  // scalastyle:off method.length
 
   override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = {
     issue.fix match {
@@ -875,75 +810,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating submission deadline")
 
     collection.update(query, BSONDocument("$set" -> BSONDocument("submissionDeadline" -> newDeadline))) map validator
-  }
-
-  def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]] = {
-    val query =
-      BSONDocument("$or" ->
-        BSONArray(
-          BSONDocument(
-            "$and" -> BSONArray(
-              BSONDocument("applicationStatus" -> ASSESSMENT_SCORES_ACCEPTED),
-              BSONDocument("assessment-centre-passmark-evaluation.passmarkVersion" -> BSONDocument("$exists" -> false))
-            )
-          ),
-          BSONDocument(
-            "$and" -> BSONArray(
-              BSONDocument("applicationStatus" -> AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION),
-              BSONDocument("assessment-centre-passmark-evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
-            )
-          )
-        ))
-
-    implicit val reader = bsonReader { doc => doc.getAs[String]("applicationId").get }
-    selectOneRandom[String](query)
-  }
-
-  def nextAssessmentCentrePassedOrFailedApplication(): Future[Option[ApplicationForNotification]] = {
-    val query = BSONDocument(
-      "$and" -> BSONArray(
-        BSONDocument("online-tests.pdfReportSaved" -> true),
-        BSONDocument(
-          "$or" -> BSONArray(
-            BSONDocument("applicationStatus" -> ASSESSMENT_CENTRE_PASSED),
-            BSONDocument("applicationStatus" -> ASSESSMENT_CENTRE_FAILED)
-          )
-        )
-      )
-    )
-    selectOneRandom[ApplicationForNotification](query)
-  }
-
-  def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,
-                                    evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: ApplicationStatus): Future[Unit] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId),
-      BSONDocument(
-        "$or" -> BSONArray(
-          BSONDocument("applicationStatus" -> ASSESSMENT_SCORES_ACCEPTED),
-          BSONDocument("applicationStatus" -> AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
-        )
-      )
-    ))
-
-    val passMarkEvaluation = BSONDocument("$set" ->
-      BSONDocument(
-        "assessment-centre-passmark-evaluation" -> BSONDocument("passmarkVersion" -> passmarkVersion)
-          .add(booleanToBSON("passedMinimumCompetencyLevel", evaluationResult.passedMinimumCompetencyLevel))
-          .add(resultToBSON("location1Scheme1", evaluationResult.location1Scheme1))
-          .add(resultToBSON("location1Scheme2", evaluationResult.location1Scheme2))
-          .add(resultToBSON("location2Scheme1", evaluationResult.location2Scheme1))
-          .add(resultToBSON("location2Scheme2", evaluationResult.location2Scheme2))
-          .add(resultToBSON("alternativeScheme", evaluationResult.alternativeScheme))
-          .add(averageToBSON("competency-average", evaluationResult.competencyAverageResult))
-          .add(perSchemeToBSON("schemes-evaluation", evaluationResult.schemesEvaluation))
-      )
-        .add(applicationStatusBSON(newApplicationStatus))
-    )
-
-    val validator = singleUpdateValidator(applicationId, actionDesc = "saving pass marks", ignoreNotFound = true)
-
-    collection.update(query, passMarkEvaluation) map validator
   }
 
   override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {

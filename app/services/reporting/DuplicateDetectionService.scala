@@ -16,6 +16,7 @@
 
 package services.reporting
 
+import model.ProgressStatuses
 import model.persisted.{ UserApplicationProfile, UserIdWithEmail }
 import play.Logger
 import repositories.application.ReportingRepository
@@ -50,10 +51,10 @@ trait DuplicateDetectionService {
       allCandidates <- reportingRepository.candidatesForDuplicateDetectionReport
       candidatesEmails <- cdRepository.findEmails.map(toUserIdToEmailMap)
     } yield {
-      val exportedApplications = allCandidates.filter(_.exportedToParity)
+      val finishedApplications = allCandidates.filter(_.latestProgressStatus == ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED)
       Logger.debug(s"Detect duplications from ${allCandidates.length} candidates")
-      Logger.debug(s"Detect duplications for ${exportedApplications.length} exported candidates")
-      findDuplicates(exportedApplications, allCandidates, candidatesEmails)
+      Logger.debug(s"Detect duplications for ${finishedApplications.length} finished candidates")
+      findDuplicates(finishedApplications, allCandidates, candidatesEmails)
     }
   }
 
@@ -88,8 +89,8 @@ trait DuplicateDetectionService {
       // duplicates*InTwoFields lists. It needs to be added "manually" as the head to be present in the final report.
       val duplicatesInTwoFields = s ::
         duplicatesFirstNameLastName ++
-        duplicatesFirstNameDoB ++
-        duplicatesDoBLastName
+          duplicatesFirstNameDoB ++
+          duplicatesDoBLastName
 
       List(
         selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, duplicatesInThreeFields, userIdsToEmails),
@@ -117,4 +118,3 @@ trait DuplicateDetectionService {
     }
   }
 }
-

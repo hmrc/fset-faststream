@@ -423,7 +423,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "do NOT find a edip candidate that has already been notified of successful phase1 test results" in {
-      val progressStatuses = (PHASE1_TESTS_SUCCESS_NOTIFIED, true) :: Nil
+      val progressStatuses = (ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED, true) :: Nil
 
       testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
         additionalProgressStatuses = progressStatuses, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
@@ -432,7 +432,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "do NOT find a sdip candidate that has already been notified of successful phase1 test results" in {
-      val progressStatuses = (PHASE1_TESTS_SUCCESS_NOTIFIED, true) :: Nil
+      val progressStatuses = (ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED, true) :: Nil
 
       testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
         additionalProgressStatuses = progressStatuses, applicationRoute = Some(ApplicationRoute.Sdip)).futureValue
@@ -465,7 +465,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
     }
     "do NOT find a candidate that has already been notified of successful phase3 test results" in {
-      val progressStatuses = (PHASE3_TESTS_SUCCESS_NOTIFIED, true) :: Nil
+      val progressStatuses = (ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED, true) :: Nil
 
       testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
         additionalProgressStatuses = progressStatuses).futureValue

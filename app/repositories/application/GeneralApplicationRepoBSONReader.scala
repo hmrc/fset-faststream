@@ -19,7 +19,6 @@ package repositories.application
 import model.{ ApplicationRoute, Schemes }
 import model.ApplicationRoute._
 import model.ApplicationStatus.{ apply => _, _ }
-import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocation
 import model.CivilServiceExperienceType.{ apply => _ }
 import model.Commands.{ CandidateScoresSummary, PersonalInfo, SchemeEvaluation, _ }
 import model.EvaluationResults.Result
@@ -31,22 +30,7 @@ import repositories._
 
 trait GeneralApplicationRepoBSONReader extends CommonBSONDocuments {
 
-  implicit val toApplicationsForAssessmentAllocation = bsonReader {
-    (doc: BSONDocument) => {
-      val userId = doc.getAs[String]("userId").get
-      val applicationId = doc.getAs[String]("applicationId").get
-      val personalDetails = doc.getAs[BSONDocument]("personal-details").get
-      val firstName = personalDetails.getAs[String]("firstName").get
-      val lastName = personalDetails.getAs[String]("lastName").get
-      val assistanceDetails = doc.getAs[BSONDocument]("assistance-details").get
-      val needsSupportAtVenue = assistanceDetails.getAs[Boolean]("needsSupportAtVenue").flatMap(b => Some(booleanTranslator(b))).get
-      val onlineTestDetails = doc.getAs[BSONDocument]("online-tests").get
-      val invitationDate = onlineTestDetails.getAs[DateTime]("invitationDate").get
-      ApplicationForAssessmentAllocation(firstName, lastName, userId, applicationId, needsSupportAtVenue, invitationDate)
-    }
-  }
-
-  implicit val toApplicationForNotification = bsonReader {
+  implicit val toApplicationForNotification: BSONDocumentReader[ApplicationForNotification] = bsonReader {
     (doc: BSONDocument) => {
       val applicationId = doc.getAs[String]("applicationId").get
       val userId = doc.getAs[String]("userId").get
@@ -57,7 +41,7 @@ trait GeneralApplicationRepoBSONReader extends CommonBSONDocuments {
     }
   }
 
-  implicit val toCandidate = bsonReader {
+  implicit val toCandidate: BSONDocumentReader[Candidate] = bsonReader {
     (doc: BSONDocument) => {
       val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId")
