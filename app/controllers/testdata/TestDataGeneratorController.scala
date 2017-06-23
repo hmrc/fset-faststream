@@ -24,7 +24,7 @@ import model._
 import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
 import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
-import model.persisted.eventschedules.EventType
+import model.persisted.eventschedules.{ EventType, SkillType }
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
@@ -166,7 +166,7 @@ trait TestDataGeneratorController extends BaseController {
       attendeeSafetyMargin = Some(30),
       startTime = Some(LocalTime.now()),
       endTime = Some(LocalTime.now()),
-      skillRequirements = Some(Map("ASSESSOR" -> 4,
+      skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
       "CHAIR" -> 1))
     )
 

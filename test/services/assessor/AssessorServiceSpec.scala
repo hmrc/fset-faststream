@@ -18,7 +18,7 @@ package services.assessor
 
 import model.Exceptions
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.{ Assessor, AssessorAvailability, AssessorAvailabilityOld }
+import model.exchange.{ Assessor, AssessorAvailability }
 import model.persisted.AssessorExamples._
 import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
@@ -61,8 +61,10 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
 
+      val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply(_))
+
       intercept[AssessorNotFoundException] {
-        Await.result(service.addAvailability(AssessorUserId, AssessorAvailabilityOld.apply(AssessorWithAvailability)), 10 seconds)
+        Await.result(service.addAvailability(AssessorUserId, exchangeAvailability), 10 seconds)
       }
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
@@ -72,7 +74,9 @@ class AssessorServiceSpec extends BaseServiceSpec {
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorWithAvailabilityMerged))).thenReturn(Future.successful(()))
 
-      val result = service.addAvailability(AssessorUserId, AssessorAvailabilityOld.apply(AssessorWithAvailability)).futureValue
+      val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply(_))
+
+      val result = service.addAvailability(AssessorUserId, exchangeAvailability).futureValue
 
       result mustBe unit
 
@@ -103,12 +107,15 @@ class AssessorServiceSpec extends BaseServiceSpec {
   }
 
   "find assessor availability" should {
+
     "return assessor availability" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturn(Future.successful(Some(AssessorWithAvailability)))
 
       val response = service.findAvailability(AssessorUserId).futureValue
 
-      response mustBe model.exchange.AssessorAvailabilityOld(AssessorWithAvailability)
+      val expected = AssessorWithAvailability.availability.map { a => model.exchange.AssessorAvailability.apply(a)}
+
+      response mustBe expected
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
 

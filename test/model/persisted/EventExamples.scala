@@ -18,7 +18,7 @@ package model.persisted
 
 import controllers.DayAggregateEvent
 import factories.UUIDFactory
-import model.persisted.eventschedules.{ Event, EventType, VenueType }
+import model.persisted.eventschedules.{ Event, EventType, SkillType, VenueType }
 import org.joda.time.{ LocalDate, LocalTime }
 
 object EventExamples {
@@ -40,7 +40,8 @@ object EventExamples {
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.SKYPE_INTERVIEW, location = "Newcastle",
       venue = VenueType.NEWCASTLE_LONGBENTON, date = LocalDate.parse("2017-06-20"), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map("ASSESSOR" -> 1)),
+      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
+      skillRequirements = Map(SkillType.ASSESSOR.toString -> 1)),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = "Newcastle",
       venue = VenueType.NEWCASTLE_LONGBENTON, date = LocalDate.parse("2017-06-20"), capacity = 67, minViableAttendees = 60,

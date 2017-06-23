@@ -31,4 +31,8 @@ case class AssessorAvailability(location: String, date: LocalDate)
 
 object AssessorAvailability {
   implicit val persistedAssessorAvailabilityFormat: OFormat[AssessorAvailability] = Json.format[AssessorAvailability]
+
+  def apply(exchange: model.exchange.AssessorAvailability): AssessorAvailability = {
+    AssessorAvailability(exchange.location, exchange.date)
+  }
 }
