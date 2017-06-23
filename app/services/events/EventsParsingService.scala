@@ -22,6 +22,7 @@ import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
+import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository }
 import resource._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,13 +30,18 @@ import scala.concurrent.Future
 import scala.util.{ Failure, Try }
 
 object EventsParsingService extends EventsParsingService {
-  override def fileContents: Future[List[String]] = Future.successful {
+
+  val locationsWithVenuesRepo = LocationsWithVenuesYamlRepository
+
+  def fileContents: Future[List[String]] = Future.successful {
     val input = managed(Play.current.resourceAsStream("fset-faststream-event-schedule.csv").get)
     input.acquireAndGet(file => scala.io.Source.fromInputStream(file).getLines().toList.tail)
   }
 }
 
 trait EventsParsingService {
+
+  def locationsWithVenuesRepo: LocationsWithVenuesRepository
 
   private val skillsIdxTable = List(
     "ASSESSOR" -> 9,
@@ -63,8 +69,9 @@ trait EventsParsingService {
           val tryRes = Try {
             val items = line.split(", ?", -1)
             val eventType = EventType.withName(items.head.replaceAll("\\s|-", "_").toUpperCase)
-            val location = items(1)
-            val venue = VenueType.withName(items(2).replaceAll("\\s|-", "_").toUpperCase)
+            //val venue = VenueType.withName(items(2).replaceAll("\\s|-", "_").toUpperCase)
+            val venueName = items(2).replaceAll("\\s|-", "_").toUpperCase
+
             val date = LocalDate.parse(items(3), DateTimeFormat.forPattern("dd/MM/yy"))
             val startTime = df.parseLocalTime(items(4))
             val endTime = df.parseLocalTime(items(5))
@@ -76,24 +83,30 @@ trait EventsParsingService {
               skillsIdxTable.map {
                 case (skill, skillIdx) => skill -> stringToRequirement(items(skillIdx))
               }.toMap
-
-            Event(
-              id = UUIDFactory.generateUUID(),
-              eventType = eventType,
-              location = location,
-              venue = venue,
-              date = date,
-              startTime = startTime,
-              endTime = endTime,
-              capacity = capacity,
-              minViableAttendees = minViableAttendees,
-              attendeeSafetyMargin = attendeeSafetyMargin,
-              skillRequirements = skillRequirements)
+            for {
+              location <- locationsWithVenuesRepo.allLocations.map(_.find(_.name == items(1))
+                .getOrElse(throw new Exception(s"Unknown location ${items(1)}")))
+              venue <- locationsWithVenuesRepo.allVenues.map(_.find(_.name == venueName)
+                .getOrElse(throw new Exception(s"Unknown venue type $venueName")))
+            } yield {
+              Event(
+                id = UUIDFactory.generateUUID(),
+                eventType = eventType,
+                location = location,
+                venue = venue,
+                date = date,
+                startTime = startTime,
+                endTime = endTime,
+                capacity = capacity,
+                minViableAttendees = minViableAttendees,
+                attendeeSafetyMargin = attendeeSafetyMargin,
+                skillRequirements = skillRequirements)
+            }
           }.recoverWith {
             case ex =>
               Failure(new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}"))
           }
-          Future.fromTry(tryRes)
+          Future.fromTry(tryRes) flatMap identity
       }
     }
   }

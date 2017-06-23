@@ -19,6 +19,7 @@ package repositories.events
 import java.util
 
 import com.github.ghik.silencer.silent
+import model.persisted.eventschedules.{ Location, Venue }
 import org.yaml.snakeyaml.Yaml
 import play.api.Play
 import play.api.libs.json.{ Json, OFormat }
@@ -31,17 +32,6 @@ import scala.concurrent.Future
 
 case class LocationWithVenue(name: String, venues: List[Venue])
 object LocationWithVenue { implicit val locationWithVenueFormat: OFormat[LocationWithVenue] = Json.format[LocationWithVenue] }
-
-case class Location(name: String)
-object Location {
-  implicit val locationFormat: OFormat[Location] = Json.format[Location]
-
-  def apply(o: LocationWithVenue): Location = Location(o.name)
-}
-
-case class Venue(name: String, description: String)
-object Venue { implicit val venueFormat: OFormat[Venue] = Json.format[Venue] }
-
 
 trait LocationsWithVenuesRepository {
   def locationsWithVenuesList: Future[List[LocationWithVenue]]

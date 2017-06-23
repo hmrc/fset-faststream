@@ -17,9 +17,10 @@
 package services.assessoravailability
 
 import model.Exceptions.AssessorNotFoundException
+import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
 import repositories._
-import repositories.events.{ Location, LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository }
+import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

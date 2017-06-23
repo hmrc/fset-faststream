@@ -20,9 +20,10 @@ import model.EvaluationResults
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.SchemeType._
+import model.persisted.eventschedules.Venue
 import org.joda.time.LocalDate
 import repositories._
-import repositories.events.{ LocationsWithVenuesYamlRepository, Venue }
+import repositories.events.LocationsWithVenuesYamlRepository
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.ExecutionContext.Implicits.global
