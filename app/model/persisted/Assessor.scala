@@ -16,11 +16,15 @@
 
 package model.persisted
 
+import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
-case class Assessor(userId: String, skills: List[String], civilServant: Boolean, availability: Map[String, List[LocalDate]])
+case class Assessor(userId: String, skills: List[String], civilServant: Boolean,
+  availability: List[AssessorAvailability])
 
 object Assessor {
-  implicit val persistedAssessorFormat = Json.format[Assessor]
+  implicit val persistedAssessorFormat: OFormat[Assessor] = Json.format[Assessor]
 }
+
+case class AssessorAvailability(location: Location, data: LocalDate)

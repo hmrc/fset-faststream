@@ -46,7 +46,7 @@ trait AssessorService {
         assessorRepository.save(assessorToPersist).map( _ => () )
       case _ =>
         val assessorToPersist = model.persisted.Assessor(
-          userId, assessor.skills, assessor.civilServant, Map.empty[String, List[LocalDate]]
+          userId, assessor.skills, assessor.civilServant, Nil
         )
         assessorRepository.save(assessorToPersist).map( _ => () )
     }
@@ -66,11 +66,14 @@ trait AssessorService {
     for {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
-      assessorOpt.fold( throw AssessorNotFoundException(userId) ) {
-        assessor => model.exchange.AssessorAvailability(assessor.userId, assessor.availability)
+      assessorOpt.fold( throw AssessorNotFoundException(userId) ) { assessor =>
+        assessor.availability.groupBy(_.location)
+          model.exchange.AssessorAvailability(assessor.userId, assessor.availability)
       }
     }
   }
+
+  def findAvailabilitiesForDate(date: LocalDate): Future[Seq[model.exchange.AssessorAvailability]]
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {
     for {

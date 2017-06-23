@@ -18,7 +18,7 @@ package repositories.application
 
 import _root_.services.testdata.{ StatusGeneratorFactory, TestDataGeneratorService }
 import factories.UUIDFactory
-import model.ProgressStatuses.{ EXPORTED, PHASE3_TESTS_INVITED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
+import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model.SchemeType.SchemeType
 import model._
 import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
@@ -375,31 +375,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
   }
 
-  "manual assessment centre allocation report" must {
-    "return all candidates that are in awaiting allocation state" in {
-      val testData = new TestDataMongoRepository()
-      testData.createApplications(10, onlyAwaitingAllocation = true).futureValue
-
-      val result = repository.candidatesAwaitingAllocation(frameworkId).futureValue
-      result must have size 10
-    }
-
-    "not return candidates that are initially awaiting allocation but subsequently withdrawn" in {
-      val testData = new TestDataMongoRepository()
-      testData.createApplications(10, onlyAwaitingAllocation = true).futureValue
-
-      val result = repository.candidatesAwaitingAllocation(frameworkId).futureValue
-      result.foreach {
-        c =>
-          val appId = applicationRepo.findByUserId(c.userId, frameworkId).futureValue.applicationId
-          applicationRepo.withdraw(appId, WithdrawApplication("testing", None, "Candidate")).futureValue
-      }
-
-      val updatedResult = repository.candidatesAwaitingAllocation(frameworkId).futureValue
-      updatedResult mustBe empty
-    }
-  }
-
   "Candidates for duplicate detection report" must {
     "return empty list when there is no candidates" in {
       val candidates = repository.candidatesForDuplicateDetectionReport.futureValue
@@ -407,10 +382,10 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
 
     "return all candidates with personal-details" in {
-      val user1 = UserApplicationProfile("1", EXPORTED.key.toLowerCase, "first1", "last1",
-        factories.DateTimeFactory.nowLocalDate, exportedToParity = true)
+      val user1 = UserApplicationProfile("1", PHASE3_TESTS_PASSED_NOTIFIED.key.toLowerCase, "first1", "last1",
+        factories.DateTimeFactory.nowLocalDate)
       val user2 = UserApplicationProfile("2", SUBMITTED.key.toLowerCase, "first2", "last2",
-        factories.DateTimeFactory.nowLocalDate, exportedToParity = false)
+        factories.DateTimeFactory.nowLocalDate)
       create(user1)
       create(user2)
       createWithoutPersonalDetails("3", PHASE3_TESTS_INVITED.key)

@@ -25,7 +25,6 @@ PUT         /application/withdraw/:applicationId                         control
 GET         /application/schemeresults/:applicationId                    controllers.ApplicationController.getSchemeResults(applicationId: String)
 PUT         /application/consider-for-sdip/:applicationId                controllers.ApplicationController.considerForSdip(applicationId: String)
 PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
-PUT         /application/markForExport/:applicationId                    controllers.ApplicationController.markForExportToParity(applicationId: String)
 PUT         /application/overrideSubmissionDeadline/:applicationId       controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
 
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
@@ -103,10 +102,6 @@ PUT         /launchpad/:inviteId/questionCallback                        control
 PUT         /launchpad/:inviteId/finalCallback                           controllers.LaunchpadTestsController.finalCallback(inviteId: String)
 PUT         /launchpad/:inviteId/finishedCallback                        controllers.LaunchpadTestsController.finishedCallback(inviteId: String)
 PUT         /launchpad/:inviteId/reviewedCallback                        controllers.LaunchpadTestsController.reviewedCallback(inviteId: String)
-
-GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
-PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)
-PUT         /test-scores/accept/application/:applicationId               controllers.CandidateScoresController.acceptCandidateScoresAndFeedback(applicationId: String)
 
 GET         /application/:applicationId/issue                            controllers.FlagCandidateController.find(applicationId: String)
 PUT         /application/:applicationId/issue                            controllers.FlagCandidateController.save(applicationId: String)

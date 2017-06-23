@@ -18,7 +18,6 @@ package mocks.application
 
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
@@ -76,12 +75,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
       Future.successful(applicationCreated)
   }
 
-  override def findApplicationsForAssessmentAllocation(locations: List[String], start: Int,
-    end: Int): Future[ApplicationForAssessmentAllocationResult] = {
-    Future.successful(ApplicationForAssessmentAllocationResult(List(ApplicationForAssessmentAllocation("firstName", "lastName", "userId1",
-      "applicationId1", "No", DateTime.now)), 1))
-  }
-
   override def findStatus(applicationId: String): Future[ApplicationStatusDetails] = Future.successful(
     ApplicationStatusDetails("", ApplicationRoute.Faststream, None, None))
 
@@ -132,12 +125,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def allocationExpireDateByApplicationId(applicationId: String): Future[Option[LocalDate]] = ???
 
   override def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = ???
-
-  override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] = ???
-
-  override def nextAssessmentCentrePassedOrFailedApplication(): Future[Option[ApplicationForNotification]] = ???
-
-  override def applicationsPassedInAssessmentCentre(frameworkId: String): Future[List[ApplicationPreferencesWithTestResults]] = ???
 
   override def fix(application: Candidate, issue: FixBatch): Future[Option[Candidate]] = ???
 
