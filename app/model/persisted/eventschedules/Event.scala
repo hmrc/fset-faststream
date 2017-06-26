@@ -25,7 +25,7 @@ import reactivemongo.bson.Macros
 
 case class Event(id: String,
                  eventType: EventType,
-                 eventDescription: String,
+                 description: String,
                  location: String,
                  venue: VenueType,
                  date: LocalDate,

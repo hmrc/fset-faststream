@@ -60,7 +60,7 @@ trait EventsParsingService {
       FutureEx.traverseSerial(centres.zipWithIndex) {
         case (line, idx) =>
           val tryRes = Try {
-            event(line)
+            stringToEvent(line)
           }.recoverWith {
             case ex =>
               Failure(new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}"))
@@ -72,13 +72,10 @@ trait EventsParsingService {
 
   lazy val df = DateTimeFormat.forPattern("HH:mm")
 
-  private def event(items: String): Event = {
-    event(items.split(", ?", -1))
-  }
-
-  private def event(items: Array[String]): Event = {
+  private def stringToEvent(csvLine: String): Event = {
+    val items = csvLine.split(", ?", -1)
     val eventType = EventType.withName(items.head.replaceAll("\\s|-", "_").toUpperCase)
-    val eventDescription = items(1)
+    val description = items(1)
     val location = items(2)
     val venue = VenueType.withName(items(3).replaceAll("\\s|-", "_").toUpperCase)
     val date = LocalDate.parse(items(4), DateTimeFormat.forPattern("dd/MM/yy"))
@@ -88,7 +85,7 @@ trait EventsParsingService {
     val minViableAttendees = items(8).toInt
     val attendeeSafetyMargin = items(9).toInt
 
-    if(eventDescription.length > 10) throw new Exception("Event description cannot be more than 10 characters")
+    if(description.length > 10) throw new Exception("Event description cannot be more than 10 characters")
 
     val skillRequirements: Map[String, Int] =
       skillsIdxTable.map {
@@ -98,7 +95,7 @@ trait EventsParsingService {
     Event(
       id = UUIDFactory.generateUUID(),
       eventType = eventType,
-      eventDescription = eventDescription,
+      description = description,
       location = location,
       venue = venue,
       date = date,

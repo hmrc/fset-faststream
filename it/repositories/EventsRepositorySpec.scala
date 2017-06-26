@@ -10,25 +10,25 @@ class EventsRepositorySpec extends MongoRepositorySpec {
   override val collectionName: String = CollectionNames.ASSESSMENT_EVENTS
   lazy val repository = repositories.eventsRepository
   val events = List(
-    Event(id = UUIDFactory.generateUUID(), eventDescription = "SAMPLE", eventType = EventType.FSAC, location = "London",
+    Event(id = UUIDFactory.generateUUID(), description = "PDFS FSB", eventType = EventType.FSAC, location = "London",
       venue = VenueType.LONDON_FSAC, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
 
-    Event(id = UUIDFactory.generateUUID(), eventDescription = "SAMPLE", eventType = EventType.FSAC, location = "London",
+    Event(id = UUIDFactory.generateUUID(), description = "GCFS FSB", eventType = EventType.FSAC, location = "London",
       venue = VenueType.LONDON_FSAC, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
       skillRequirements = Map()),
 
-    Event(id = UUIDFactory.generateUUID(), eventDescription = "SAMPLE", eventType = EventType.TELEPHONE_INTERVIEW, location = "London",
+    Event(id = UUIDFactory.generateUUID(), description = "ORAC", eventType = EventType.TELEPHONE_INTERVIEW, location = "London",
       venue = VenueType.LONDON_FSAC, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
       skillRequirements = Map()),
 
-    Event(id = UUIDFactory.generateUUID(), eventDescription = "SAMPLE", eventType = EventType.SKYPE_INTERVIEW, location = "Newcastle",
+    Event(id = UUIDFactory.generateUUID(), description = "GCFS FSB", eventType = EventType.SKYPE_INTERVIEW, location = "Newcastle",
       venue = VenueType.NEWCASTLE_LONGBENTON, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
 
-    Event(id = UUIDFactory.generateUUID(), eventDescription = "SAMPLE", eventType = EventType.FSAC, location = "Newcastle",
+    Event(id = UUIDFactory.generateUUID(), description = "PDFS FSB", eventType = EventType.FSAC, location = "Newcastle",
       venue = VenueType.NEWCASTLE_LONGBENTON, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map())
 

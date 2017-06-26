@@ -35,11 +35,8 @@ class EventsParsingServiceSpec extends BaseServiceSpec {
       an[Exception] must be thrownBy service.processCentres().futureValue
     }
 
-    "fails gracefully when event description is longer than 10 malformed" in new LongEventDescription {
+    "fails gracefully when event description is longer than 10 characters" in new LongEventDescription {
       an[Exception] must be thrownBy service.processCentres().futureValue
-      the[Exception] thrownBy service.processCentres().futureValue must have message "The future returned an exception " +
-        "of type: java.lang.Exception, with message: Error on L3 of the CSV. Event description cannot be more than 10 " +
-        "characters. java.lang.Exception."
     }
   }
 
@@ -64,8 +61,6 @@ class EventsParsingServiceSpec extends BaseServiceSpec {
   trait LongEventDescription {
     val service = new EventsParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
-        "fsac,PDFS FSB,London,london fsac,03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2",
-        "telephone interview,ORAC,London,virtual,04/04/17,08:00,13:30,36,24,7,,,,,,",
         "Skype Interview,long event description,London,london fsac,03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2"
       ))
     }
