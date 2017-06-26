@@ -26,6 +26,7 @@ object CreateEventData {
 
   case class CreateEventData(id: String,
                              eventType: EventType.EventType,
+                             description: String,
                              location: String,
                              venue: String,
                              date: LocalDate,
@@ -36,7 +37,7 @@ object CreateEventData {
                              endTime: LocalTime,
                              skillRequirements: Map[String, Int]) extends CreateTestData {
     def toEvent: Event = {
-      Event(id, eventType, location, VenueType.withName(venue), date, capacity, minViableAttendees,
+      Event(id, eventType, description, location, VenueType.withName(venue), date, capacity, minViableAttendees,
         attendeeSafetyMargin, startTime, endTime, skillRequirements)
     }
   }
@@ -48,6 +49,7 @@ object CreateEventData {
 
       val id = createRequest.id.getOrElse(Random.Event.id)
       val eventType = createRequest.eventType.getOrElse(Random.Event.eventType)
+      val description = createRequest.description.getOrElse(Random.Event.description)
       val location = createRequest.location.getOrElse(Random.Event.location)
       val venue = createRequest.venue.getOrElse(Random.Event.venue)
       val date = createRequest.date.getOrElse(Random.Event.date)
@@ -58,7 +60,7 @@ object CreateEventData {
       val endTime = createRequest.endTime.getOrElse(Random.Event.endTime)
       val skillRequirements = createRequest.skillRequirements.getOrElse(Random.Event.skillRequirements)
 
-      CreateEventData(id, eventType, location, venue, date, capacity, minViableAttendees, attendeeSafetyMargin,
+      CreateEventData(id, eventType, description, location, venue, date, capacity, minViableAttendees, attendeeSafetyMargin,
         startTime, endTime, skillRequirements)
     }
   }

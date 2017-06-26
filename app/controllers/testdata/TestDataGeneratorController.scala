@@ -158,6 +158,7 @@ trait TestDataGeneratorController extends BaseController {
     val example = CreateEventRequest(
       id = Some(UUIDFactory.generateUUID()),
       eventType = Some(EventType.FSAC),
+      description = Some("PDFS FSB"),
       location = Some("London"),
       venue = Some("London venue 1"),
       date = Some(LocalDate.now),
