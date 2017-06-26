@@ -169,7 +169,9 @@ trait ApplicationService extends EventSink {
   private def getSdipFaststreamSchemes(applicationId: String): Future[List[SchemeType]] = for {
     phase1 <- evaluateP1ResultService.getPassmarkEvaluation(applicationId)
     phase3 <- evaluateP3ResultService.getPassmarkEvaluation(applicationId).recover{
-      case _: PassMarkEvaluationNotFound => PassmarkEvaluation(passmarkVersion = "", previousPhasePassMarkVersion = None, result = Nil)
+      case _: PassMarkEvaluationNotFound =>
+        PassmarkEvaluation(passmarkVersion = "", previousPhasePassMarkVersion = None, result = Nil,
+          resultVersion = "", previousPhaseResultVersion = None)
     }
   } yield {
     phase1.result.find(_.scheme == SchemeType.Sdip).toList.filter(r => r.result == Green.toString).map(_.scheme)
