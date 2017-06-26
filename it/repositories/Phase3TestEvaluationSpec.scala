@@ -31,7 +31,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "throw IllegalArgumentException if we require all score to be present and one score is missing" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Commercial, Green.toString),
-          SchemeEvaluationResult(DigitalAndTechnology, Green.toString)))
+          SchemeEvaluationResult(DigitalAndTechnology, Green.toString)), "phase2-version1-res", None)
         intercept[IllegalArgumentException] {
           applicationEvaluation("application-1", None, true, Commercial, DigitalAndTechnology) mustResultIn(
             PHASE3_TESTS_PASSED, Commercial -> Green, DigitalAndTechnology -> Green)
@@ -42,7 +42,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       "all scores are present" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Commercial, Red.toString),
-          SchemeEvaluationResult(DigitalAndTechnology, Red.toString)))
+          SchemeEvaluationResult(DigitalAndTechnology, Red.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-1", None, false, Commercial, DigitalAndTechnology) mustResultIn(
           PHASE3_TESTS_FAILED, Commercial -> Red, DigitalAndTechnology -> Red)
       }
@@ -50,17 +50,19 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give pass results when all schemes are green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Commercial, Green.toString),
-          SchemeEvaluationResult(DigitalAndTechnology, Green.toString)))
+          SchemeEvaluationResult(DigitalAndTechnology, Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-1", Some(80), true, Commercial, DigitalAndTechnology) mustResultIn(
           PHASE3_TESTS_PASSED, Commercial -> Green, DigitalAndTechnology -> Green)
       }
       {
-        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HousesOfParliament, Green.toString)))
+        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
+          List(SchemeEvaluationResult(HousesOfParliament, Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-2", Some(79.999), true, HousesOfParliament) mustResultIn(
           PHASE3_TESTS_PASSED, HousesOfParliament -> Green)
       }
       {
-        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Generalist, Green.toString)))
+        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
+          List(SchemeEvaluationResult(Generalist, Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-3", Some(30), true, Generalist) mustResultIn(
           PHASE3_TESTS_PASSED, Generalist -> Green)
       }
@@ -68,7 +70,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give pass results when there is no amber and at-least one scheme is green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Commercial, Red.toString),
-          SchemeEvaluationResult(DigitalAndTechnology, Green.toString)))
+          SchemeEvaluationResult(DigitalAndTechnology, Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-1", Some(80), true, Commercial, DigitalAndTechnology) mustResultIn(
           PHASE3_TESTS_PASSED, Commercial -> Red, DigitalAndTechnology -> Green)
       }
@@ -76,43 +78,45 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give fail results when all the schemes are red" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Green.toString),
-          SchemeEvaluationResult(ScienceAndEngineering, Green.toString)))
+          SchemeEvaluationResult(ScienceAndEngineering, Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-1", Some(35), true, European, ScienceAndEngineering) mustResultIn(
           PHASE3_TESTS_FAILED, European -> Red, ScienceAndEngineering -> Red)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Red.toString),
-          SchemeEvaluationResult(ScienceAndEngineering, Red.toString)))
+          SchemeEvaluationResult(ScienceAndEngineering, Red.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-2", Some(80), true, European, ScienceAndEngineering) mustResultIn(
           PHASE3_TESTS_FAILED, European -> Red, ScienceAndEngineering -> Red)
       }
     }
     "give no results when at-least one scheme is in amber" in new TestFixture {
       {
-        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Green.toString)))
+        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
+          List(SchemeEvaluationResult(European, Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-1", Some(40), true, European) mustResultIn(
           PHASE3_TESTS, European -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Amber.toString),
-          SchemeEvaluationResult(ScienceAndEngineering, Amber.toString)))
+          SchemeEvaluationResult(ScienceAndEngineering, Amber.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-2", Some(80), true, European, ScienceAndEngineering) mustResultIn(
           PHASE3_TESTS, European -> Amber, ScienceAndEngineering -> Amber)
       }
       {
-        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Green.toString)))
+        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
+          List(SchemeEvaluationResult(European, Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-3", Some(50), true, European) mustResultIn(
           PHASE3_TESTS, European -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Amber.toString),
-          SchemeEvaluationResult(ProjectDelivery, Amber.toString)))
+          SchemeEvaluationResult(ProjectDelivery, Amber.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-4", Some(50), true, European, ProjectDelivery) mustResultIn(
           PHASE3_TESTS, European -> Amber, ProjectDelivery -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HumanResources, Green.toString),
-          SchemeEvaluationResult(ProjectDelivery, Green.toString)))
+          SchemeEvaluationResult(ProjectDelivery, Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-5", Some(50), true, HumanResources, ProjectDelivery) mustResultIn(
           PHASE3_TESTS_PASSED_WITH_AMBER, HumanResources -> Green, ProjectDelivery -> Amber)
       }
@@ -121,7 +125,8 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
           List(SchemeEvaluationResult(DiplomaticServiceEconomics, Green.toString),
-            SchemeEvaluationResult(DiplomaticServiceEuropean, Green.toString)))
+            SchemeEvaluationResult(DiplomaticServiceEuropean, Green.toString)),
+          "phase2-version1-res", None)
 
         applicationEvaluation("application-1", Some(40), true, DiplomaticServiceEconomics, DiplomaticServiceEuropean) mustResultIn(
           PHASE3_TESTS, DiplomaticServiceEconomics -> Amber, DiplomaticServiceEuropean -> Amber)
@@ -135,7 +140,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give pass results on re-evaluation when at-least one scheme is green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HumanResources, Red.toString),
-          SchemeEvaluationResult(ProjectDelivery, Green.toString)))
+          SchemeEvaluationResult(ProjectDelivery, Green.toString)), "phase2-version1-res", None)
 
         applicationEvaluation("application-2", Some(50), true, HumanResources, ProjectDelivery) mustResultIn(
           PHASE3_TESTS, HumanResources -> Red, ProjectDelivery -> Amber)
@@ -147,7 +152,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
     "move candidate from PHASE3_TESTS_PASSED_WITH_AMBER to PHASE3_TESTS_PASSED " in new TestFixture {
       phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HumanResources, Green.toString),
-        SchemeEvaluationResult(ProjectDelivery, Green.toString)))
+        SchemeEvaluationResult(ProjectDelivery, Green.toString)), "phase2-version1-res", None)
       applicationEvaluation("application-4", Some(50), true, HumanResources, ProjectDelivery) mustResultIn(
         PHASE3_TESTS_PASSED_WITH_AMBER, HumanResources -> Green, ProjectDelivery -> Amber)
 

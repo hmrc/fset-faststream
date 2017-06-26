@@ -53,8 +53,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   def validEvaluationPhaseStatuses(phase: ApplicationStatus): Set[ApplicationStatus] = {
     val statusesToIgnore = List(ApplicationStatus.PHASE1_TESTS_FAILED, ApplicationStatus.PHASE2_TESTS_FAILED)
     ApplicationStatus.values.filter(s =>
-      s >= phase && s < ApplicationStatus.PHASE3_TESTS_PASSED)
-      .filterNot(statusesToIgnore.contains(_))
+      s >= phase && s < ApplicationStatus.PHASE3_TESTS_PASSED && !statusesToIgnore.contains(s))
   }
 
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] =
@@ -232,7 +231,14 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
     applicationEvaluationBuilder(Nil, phase3.activeTests.headOption, Some(phase2Evaluation))(doc)
   })
 
-  val nextApplicationQuery = (currentPassmarkVersion: String) =>
+  val nextApplicationQuery = (currentPassmarkVersion: String) => {
+    // The where clause specifies evaluation will trigger for this phase if the either the previous phase passmark version
+    // is changed or the previous phase result version is changed, which can happen if the phase 1 pass marks were changed.
+    // This allows us to trigger a phase 3 evaluation from a phase 1 pass mark change (and also a phase 2 evaluation)
+    val whereClause =
+      s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion" +
+        s" || this.testGroups.$phase.evaluation.previousPhaseResultVersion != this.testGroups.$prevPhase.evaluation.resultVersion"
+
     BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
       BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
@@ -242,17 +248,17 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
         BSONDocument("$elemMatch" -> BSONDocument(
           "usedForResults" -> true, "callbacks.reviewed" -> BSONDocument("$exists" -> true),
           "callbacks.reviewed" -> BSONDocument("$elemMatch" -> BSONDocument("received" -> BSONDocument("$lte" ->
-                dateTimeFactory.nowLocalTimeZone.minusHours(
-                  launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
-                ))))
-          )
+            dateTimeFactory.nowLocalTimeZone.minusHours(
+              launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
+            ))))
+        )
         )
       ),
       BSONDocument("$or" -> BSONArray(
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
-        BSONDocument("$where" ->
-          s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
-      )
+        BSONDocument("$where" -> whereClause)
+      ))
     ))
+  }
 }
