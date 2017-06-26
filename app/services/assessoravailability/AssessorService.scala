@@ -61,8 +61,11 @@ trait AssessorService {
   def addAvailability(userId: String, assessorAvailability: model.exchange.AssessorAvailabilityOld): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
-        val newAvailability = assessorAvailability.availability.flatMap { a => a._2.map { date =>
-          model.persisted.assessor.AssessorAvailability(a._1, date) }}.toList
+        val newAvailability = assessorAvailability.availability.flatMap { case (k, dates) =>
+          dates.map { date =>
+            model.persisted.assessor.AssessorAvailability(k, date)
+          }
+        }.toList
         val mergedAvailability = existing.availability ++ newAvailability
 
         val assessorAvailabilityToPersist = assessor.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability,
