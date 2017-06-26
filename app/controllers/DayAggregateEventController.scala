@@ -31,17 +31,17 @@ object DayAggregateEventController extends DayAggregateEventController {
 trait DayAggregateEventController extends BaseController {
   def eventsRepository: EventsRepository
 
-  def findBySkills(skills: String): Action[AnyContent] = Action.async { implicit request =>
-    find(Some(skills), None)
+  def findBySkillTypes(skillTypes: String): Action[AnyContent] = Action.async { implicit request =>
+    find(Some(skillTypes), None)
   }
 
-  def findBySkillsAndLocation(skills: String, location: String): Action[AnyContent] = Action.async { implicit request =>
-    find(Some(skills), Some(location))
+  def findBySkillTypesAndLocation(skillTypes: String, location: String): Action[AnyContent] = Action.async { implicit request =>
+    find(Some(skillTypes), Some(location))
   }
 
-  private def find(skills: Option[String], location: Option[String]) = {
-    val skillsList = skills.map(_.split(",").toList)
-    eventsRepository.fetchEvents(None, None, location, skillsList)
+  private def find(skillTypes: Option[String], location: Option[String]) = {
+    val skillTypesList = skillTypes.map(_.split(",").toList)
+    eventsRepository.fetchEvents(None, None, location, skillTypesList)
       .map { events =>
         val dayAggregateDays = events.groupBy(e => DayAggregateEvent(e.date, e.location)).keys.toList
         Ok(Json.toJson(dayAggregateDays))
