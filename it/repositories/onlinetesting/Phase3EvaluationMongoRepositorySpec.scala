@@ -23,9 +23,17 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   implicit val hrsBeforeLastReviewed = 72
 
   override val mockLaunchpadConfig = LaunchpadGatewayConfig("", Phase3TestsConfig(0, 0, "",
-    Map.empty[String, Int], 72, false))
+    Map.empty[String, Int], 72, verifyAllScoresArePresent = false))
 
   val collectionName: String = CollectionNames.APPLICATION
+
+  "dynamically specified evaluation application statuses collection" should {
+    "contain the expected phases that result in evaluation running" in {
+      phase3EvaluationRepo.evaluationApplicationStatuses mustBe Set(
+        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER
+      )
+    }
+  }
 
   "next Application Ready For Evaluation" must {
 
