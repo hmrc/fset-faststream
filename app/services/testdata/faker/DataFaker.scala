@@ -16,16 +16,19 @@
 
 package services.testdata.faker
 
+import factories.UUIDFactory
 import model.EvaluationResults
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.SchemeType._
-import org.joda.time.LocalDate
+import model.exchange.AssessorAvailability
+import org.joda.time.{ LocalDate, LocalTime }
 import repositories._
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import model.persisted.eventschedules.{ Event, EventType, SkillType }
 
 //scalastyle:off number.of.methods
 object DataFaker {
@@ -69,6 +72,7 @@ object DataFaker {
     def upperLetter: Char = randOne(('A' to 'Z').toList)
 
     def bool: Boolean = randOne(List(true, false))
+    def boolTrue20percent: Boolean = randOne(List(1,2,3,4,5)) == 5
 
     def number(limit: Option[Int] = None): Int = util.Random.nextInt(limit.getOrElse(2000000000))
 
@@ -653,7 +657,7 @@ object DataFaker {
       "Unknown"
     ))
 
-    def skills = randList(List("qac", "assessor", "chair"), 3)
+    def skills = randList(List("QUALITY_ASSURANCE_COORDINATOR", "ASSESSOR", "CHAIR"), 3)
 
     def parentsOccupationDetails = randOne(List(
       "Modern professional",
@@ -699,6 +703,51 @@ object DataFaker {
       "1. Provided limited specific, but some evidence of engagement.\n" +
       "2. Provided some limited evidence of focus on learning but none on personal development."
 
+    object Assessor {
+      private def location = randOne(List("London", "Newcastle"))
+
+      def availability: Option[List[AssessorAvailability]] = {
+        if (boolTrue20percent) {
+          Some(List.empty)
+        } else {
+          val dates = (15 to 25).map(i => LocalDate.parse(s"2017-06-$i")).toList
+          Option(dates.map { date =>
+            if (bool) {
+              Some(AssessorAvailability(location, date))
+            } else {
+              None
+            }
+          }.flatten)
+        }
+      }
+    }
+
+    object Event {
+      def id = UUIDFactory.generateUUID()
+      def eventType = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW,
+        EventType.SKYPE_INTERVIEW))
+      def location = randOne(List("London", "Newcastle"))
+      def venueLondon = randOne(List("London 1", "London 2", "London 3"))
+      def venueNewcastle = randOne(List("Newcastle 1", "Newcastle 2", "Newcastle 3"))
+      def venue = if (location == "London") { venueLondon } else { venueNewcastle }
+      def date = LocalDate.now()
+      def capacity = randOne(List(32, 24, 16, 8, 4, 30, 28))
+      def minViableAttendees = capacity - randOne(List(2, 3, 4, 1))
+      def attendeeSafetyMargin = randOne(List(1,2, 3))
+      def startTime = LocalTime.now()
+      def endTime = startTime.plusHours(1)
+      def skillRequirements = {
+        val skills = SkillType.values.toList.map(_.toString)
+        val numberOfSkills = randOne((1 to SkillType.values.size).map( i => i).toList)
+        val skillsSelected = randList(skills, numberOfSkills)
+
+        def numberOfPeopleWithSkillsRequired = randOne(List(1,2,3,4,8))
+
+        skillsSelected.map { skillSelected =>
+          skillSelected -> numberOfPeopleWithSkillsRequired
+        }.toMap
+      }
+    }
   }
 }
 //scalastyle:on number.of.methods

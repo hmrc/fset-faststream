@@ -16,7 +16,7 @@
 
 package model
 
-import services.testdata.ApplicationStatusOnlyForTest
+import services.testdata.candidate.ApplicationStatusOnlyForTest
 import testkit.UnitSpec
 
 class ProgressStatusesSpec extends UnitSpec {

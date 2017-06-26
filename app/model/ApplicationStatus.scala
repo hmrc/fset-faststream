@@ -18,7 +18,7 @@ package model
 
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
-import services.testdata.ApplicationStatusOnlyForTest
+import services.testdata.candidate.ApplicationStatusOnlyForTest
 
 import scala.language.implicitConversions
 

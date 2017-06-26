@@ -52,7 +52,6 @@ trait EventsController extends BaseController {
     val eventType = EventType.withName(eventTypeParam.toUpperCase)
     val venue = VenueType.withName(venueParam.toUpperCase)
 
-    assessmentEventsRepository.fetchEvents(eventType, venue)
-      .map(events => Ok(Json.toJson(events)))
+    assessmentEventsRepository.fetchEvents(Some(eventType), Some(venue), None, None).map(events => Ok(Json.toJson(events)))
   }
 }

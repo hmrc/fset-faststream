@@ -16,6 +16,7 @@
 
 package model.persisted.eventschedules
 
+import model.persisted.eventschedules.SkillType.SkillType
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
@@ -35,6 +36,7 @@ object SkillType extends Enumeration {
 
   implicit object BSONEnumHandler extends BSONHandler[BSONString, SkillType] {
     def read(doc: BSONString) = SkillType.withName(doc.value.toUpperCase())
+
     def write(skillType: SkillType) = BSON.write(skillType.toString)
   }
 }
