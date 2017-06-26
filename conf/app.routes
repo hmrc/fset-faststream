@@ -119,7 +119,14 @@ GET         /assessor-availability/countSubmitted                        control
 GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)
 GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
 
-# Assessment Events
+# Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.fetchEvents(eventType: String, venue: String)
+
+# Day aggregate events
+GET         /day-aggregate-events/skills/:skillTypes                     controllers.DayAggregateEventController.findBySkillTypes(skillTypes: String)
+GET         /day-aggregate-events/location/:location/skills/:skillTypes  controllers.DayAggregateEventController.findBySkillTypesAndLocation(skillTypes: String, location: String)
+
+# Reference data
+GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

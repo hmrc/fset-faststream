@@ -18,18 +18,25 @@ package services.testdata
 
 import connectors.AuthProviderClient
 import connectors.AuthProviderClient._
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.{ ApplicationRoute, ApplicationStatus }
-import model.command.testdata.{ GeneratorConfig, PersonalData, StatusData }
-import model.exchange.testdata.{ CreateAdminUserDataGenerationResponse, CreateAdminUserStatusData, CreateAdminUserStatusRequest }
+import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
+import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
+import model.exchange.testdata.CreateEventResponse.CreateEventResponse
+import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.CreateAdminData.CreateAdminData
+import model.exchange.testdata.CreateTestDataResponse
+import model.testdata.CreateEventData.CreateEventData
+import model.testdata.CreateTestData
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.MongoDbConnection
-import services.testdata.adminusers.AdminUserBaseGenerator
+import services.testdata.admin.AdminUserBaseGenerator
+import services.testdata.candidate.{ BaseGenerator, RegisteredStatusGenerator }
+import services.testdata.event.EventGenerator
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.parallel.ForkJoinTaskSupport
+import scala.collection.parallel.immutable.ParRange
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -74,12 +81,10 @@ trait TestDataGeneratorService extends MongoDbConnection {
   }
 
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String],
-                       role: UserRole)(implicit hc: HeaderCarrier): Future[List[DataGenerationResponse]] = {
+                       role: UserRole)(implicit hc: HeaderCarrier): Future[List[CreateCandidateResponse]] = {
     Future.successful {
-      val parNumbers = (1 to numberToGenerate).par
-      parNumbers.tasksupport = new ForkJoinTaskSupport(
-        new scala.concurrent.forkjoin.ForkJoinPool(2)
-      )
+      val parNumbers = getParNumbers(numberToGenerate)
+
       parNumbers.map { candidateGenerationId =>
         val fut = RegisteredStatusGenerator.createUser(
           candidateGenerationId,
@@ -94,54 +99,67 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-  def createCandidatesInSpecificStatus(numberToGenerate: Int,
-                                       generatorForStatus: (GeneratorConfig) => BaseGenerator,
-                                       configGenerator: (Int) => GeneratorConfig
-                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
+  def createCandidates(numberToGenerate: Int,
+                       generatorForStatus: (CreateCandidateData) => BaseGenerator,
+                       configGenerator: (Int) => CreateCandidateData
+                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateResponse]] = {
     Future.successful {
-
-      val parNumbers = (1 to numberToGenerate).par
-      parNumbers.tasksupport = new ForkJoinTaskSupport(
-        new scala.concurrent.forkjoin.ForkJoinPool(2)
-      )
+      val parNumbers = getParNumbers(numberToGenerate)
 
       // one wasted generation of config
       val config = configGenerator(parNumbers.head)
       val generator = generatorForStatus(config)
 
-      parNumbers.map { candidateGenerationId =>
-        Await.result(
-          generator.generate(candidateGenerationId, configGenerator(candidateGenerationId)),
-          10 seconds
-        )
-      }.toList
-
+      runInParallel(parNumbers, configGenerator, generator.generate)
     }
   }
 
-  def createAdminUserInSpecificStatus(numberToGenerate: Int,
-                                      generatorForStatus: (CreateAdminUserStatusData) => AdminUserBaseGenerator,
-                                      createData: (Int) => CreateAdminUserStatusData
-                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAdminUserDataGenerationResponse]] = {
+  def createAdmins(numberToGenerate: Int,
+                   generatorForStatus: (CreateAdminData) => AdminUserBaseGenerator,
+                   createData: (Int) => CreateAdminData
+                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAdminResponse]] = {
     Future.successful {
-
-      val parNumbers = (1 to numberToGenerate).par
-      parNumbers.tasksupport = new ForkJoinTaskSupport(
-        new scala.concurrent.forkjoin.ForkJoinPool(2)
-      )
+      val parNumbers = getParNumbers(numberToGenerate)
 
       // one wasted generation of config
       val config = createData(parNumbers.head)
       val generator = generatorForStatus(config)
 
-      parNumbers.map { candidateGenerationId =>
-        Await.result(
-          generator.generate(candidateGenerationId, createData(candidateGenerationId)),
-          10 seconds
-        )
-      }.toList
-
+      runInParallel(parNumbers, createData, generator.generate)
     }
+  }
+
+  def createEvents(numberToGenerate: Int, createData: (Int) => CreateEventData)(
+    implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateEventResponse]] = {
+    Future.successful {
+      val parNumbers = getParNumbers(numberToGenerate)
+
+      // one wasted generation of data
+      val data = createData(parNumbers.head)
+
+      runInParallel(parNumbers, createData, EventGenerator.generate)
+    }
+  }
+
+  private def getParNumbers(numberToGenerate: Int): ParRange = {
+    val parNumbers = (1 to numberToGenerate).par
+    parNumbers.tasksupport = new ForkJoinTaskSupport(
+      new scala.concurrent.forkjoin.ForkJoinPool(2)
+    )
+    parNumbers
+  }
+
+
+  private def runInParallel[D <: CreateTestData, R <: CreateTestDataResponse](parNumbers: ParRange,
+                                                                              createData: (Int => D),
+                                                                              block: (Int, D) => Future[R])
+  : List[R] = {
+    parNumbers.map { candidateGenerationId =>
+      Await.result(
+        block(candidateGenerationId, createData(candidateGenerationId)),
+        10 seconds
+      )
+    }.toList
   }
 
 }

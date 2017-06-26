@@ -16,7 +16,7 @@
 
 package repositories.application
 
-import _root_.services.testdata.{ StatusGeneratorFactory, TestDataGeneratorService }
+import _root_.services.testdata.TestDataGeneratorService
 import factories.UUIDFactory
 import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model.SchemeType.SchemeType
@@ -25,12 +25,13 @@ import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, Cand
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
-import model.command.testdata.GeneratorConfig
+import model.command.testdata.CreateCandidateRequest.{ AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest }
 import model.command.{ ProgressResponse, WithdrawApplication }
-import model.exchange.testdata.{ AssistanceDetailsRequest, CreateCandidateInStatusRequest, StatusDataRequest }
 import model.persisted._
+import model.testdata.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
 import repositories.{ CollectionNames, CommonBSONDocuments }
+import _root_.services.testdata.candidate.CandidateStatusGeneratorFactory
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -271,7 +272,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     // This test only works when run in isolation, change ignore to in for that
     "return candidate who requested online adjustments" ignore {
-      val request = CreateCandidateInStatusRequest.create("SUBMITTED", None, None).copy(
+      val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         assistanceDetails = Some(AssistanceDetailsRequest(
           hasDisability = Some("Yes"),
           onlineAdjustments = Some(true),
@@ -279,7 +280,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ))
       )
 
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidates(1,
+        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -294,14 +296,15 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     // This test only works when run in isolation, change ignore to in for that
     "return candidate who requested at venue adjustments" ignore {
-      val request = CreateCandidateInStatusRequest.create("SUBMITTED", None, None).copy(
+      val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         assistanceDetails = Some(AssistanceDetailsRequest(
           hasDisability = Some("Yes"),
           assessmentCentreAdjustments = Some(true),
           assessmentCentreAdjustmentsDescription = Some("I need a warm room and no sun light")
         ))
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidates(1,
+        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -316,7 +319,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     // This test only works when run in isolation, change ignore to in for that
     "return faststream candidate who did not requested adjustments but has adjustments confirmed" ignore {
-      val request = CreateCandidateInStatusRequest.create("SUBMITTED", None, None).copy(
+      val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         assistanceDetails = Some(AssistanceDetailsRequest(
           hasDisability = Some("No"),
           assessmentCentreAdjustments = Some(false),
@@ -330,7 +333,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidates(1,
+        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -346,7 +350,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     // This test only works when run in isolation, change ignore to in for that
     "do not return sdip candidate who requested adjustments and has confirmed adjustments" ignore {
-      val request = CreateCandidateInStatusRequest.create("SUBMITTED", None, None).copy(
+      val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         statusData = StatusDataRequest(
           applicationStatus = "SUBMITTED",
           progressStatus = None,
@@ -365,7 +369,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGeneratorForCandidates, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidates(1,
+        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
