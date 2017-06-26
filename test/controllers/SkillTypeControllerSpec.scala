@@ -17,7 +17,7 @@
 package controllers
 
 import config.TestFixtureBase
-import controllers.reference.ReferenceDataController
+import controllers.reference.SkillTypeController
 import model.exchange.AssessorSkill
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -27,7 +27,7 @@ import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
-class ReferenceDataControllerSpec extends UnitWithAppSpec {
+class SkillTypeControllerSpec extends UnitWithAppSpec {
 
   "all skills" must {
     "return all skills" in new TestFixture {
@@ -38,7 +38,7 @@ class ReferenceDataControllerSpec extends UnitWithAppSpec {
   }
 
   trait TestFixture extends TestFixtureBase {
-    val controller = ReferenceDataController
+    val controller = SkillTypeController
   }
 
 }

@@ -129,4 +129,4 @@ GET         /day-aggregate-events/skills/:skillTypes                     control
 GET         /day-aggregate-events/location/:location/skills/:skillTypes  controllers.DayAggregateEventController.findBySkillTypesAndLocation(skillTypes: String, location: String)
 
 # Reference data
-GET         /reference/skills                                            controllers.reference.ReferenceDataController.allSkills
+GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
