@@ -159,7 +159,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
 
   private def runInParallel[D <: CreateTestData, R <: CreateTestDataResponse](parNumbers: ParRange,
                                                                               createData: (Int => D),
-                                                                              block: ((Int, D) => Future[R]))
+                                                                              block: (Int, D) => Future[R])
   : List[R] = {
     parNumbers.map { candidateGenerationId =>
       Await.result(

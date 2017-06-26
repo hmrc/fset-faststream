@@ -38,7 +38,7 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
     "returns day aggregated events when search by skills" in new TestFixture {
       when(mockEventsRepo.fetchEvents(None, None, None, Some(MySkills)))
         .thenReturn(Future.successful(EventExamples.EventsNew))
-      val res = controller.findBySkills(MySkills.mkString(","))(FakeRequest())
+      val res = controller.findBySkillTypes(MySkills.mkString(","))(FakeRequest())
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
       resReal mustBe EventExamples.DayAggregateEventsNew
@@ -48,7 +48,7 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
       val location = "London"
       when(mockEventsRepo.fetchEvents(None, None, Some(location), Some(MySkills)))
         .thenReturn(Future.successful(EventExamples.EventsNew.filter(_.location == location)))
-      val res = controller.findBySkillsAndLocation(MySkills.mkString(","), location)(FakeRequest())
+      val res = controller.findBySkillTypesAndLocation(MySkills.mkString(","), location)(FakeRequest())
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
       resReal mustBe EventExamples.DayAggregateEventsNew.filter(_.location == location)
@@ -57,7 +57,7 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
     "return EMPTY list when nothing found" in new TestFixture {
       when(mockEventsRepo.fetchEvents(None, None, None, Some(MySkills)))
         .thenReturn(Future.successful(List.empty[Event]))
-      val res = controller.findBySkills(MySkills.mkString(","))(FakeRequest())
+      val res = controller.findBySkillTypes(MySkills.mkString(","))(FakeRequest())
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
       resReal mustBe List.empty[DayAggregateEvent]

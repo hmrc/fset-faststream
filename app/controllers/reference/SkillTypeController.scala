@@ -21,9 +21,9 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
-object ReferenceDataController extends ReferenceDataController
+object SkillTypeController extends SkillTypeController
 
-trait ReferenceDataController extends BaseController {
+trait SkillTypeController extends BaseController {
 
   def allSkills: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(AssessorSkill.AllSkillsWithLabels))
