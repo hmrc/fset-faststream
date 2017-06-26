@@ -2,7 +2,6 @@ package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
-import model.Phase3TestProfileExamples._
 import model.SchemeType._
 import model.persisted.{ ApplicationReadyForEvaluation, _ }
 import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType }
@@ -12,7 +11,6 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
-
 
 class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
 
@@ -201,5 +199,3 @@ object Phase2EvaluationMongoRepositorySpec {
     phase2Test.map(t => t.copy(testResult = Some(testResult)))
   }
 }
-
-

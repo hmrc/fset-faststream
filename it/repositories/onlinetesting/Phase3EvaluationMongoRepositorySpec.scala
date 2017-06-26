@@ -110,12 +110,26 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result mustBe empty
     }
 
-    "return evaluated application in PHASE3_TESTS status when phase2 results are re-evaluated" in {
+    "return evaluated application in PHASE3_TESTS status when phase2 results are re-evaluated because pass mark versions are different" in {
       val phase2Evaluation = PassmarkEvaluation("phase2_version2", None, resultToSave, "phase2_version2-res", None)
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
         Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
 
       val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave, "phase3_version1-res", None)
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
+
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version1", batchSize = 1).futureValue
+
+      assertApplication(result.head, phase2Evaluation)
+    }
+
+    "return evaluated application in PHASE3_TESTS status when phase2 results are re-evaluated because result versions are different" in {
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
+      insertApplication("app1", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
+        Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
+
+      val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
+        "phase3_version1-res", Some("phase2_version1-res"))
       phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
 
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version1", batchSize = 1).futureValue
