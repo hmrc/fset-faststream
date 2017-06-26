@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import model.persisted.Assessor
+import factories.DateTimeFactory
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
@@ -35,9 +35,9 @@ import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
+import model.persisted.assessor.{ Assessor, AssessorAvailability }
 import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
-import repositories.parity.ParityExportMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
@@ -83,7 +83,6 @@ package object repositories {
   lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
   lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
   lazy val stcEventMongoRepository = new StcEventMongoRepository
-  lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorRepository = new AssessorMongoRepository()
   lazy val eventsRepository = new EventsMongoRepository()
@@ -93,7 +92,6 @@ package object repositories {
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
-  lazy val candidateAllocationMongoRepository = new CandidateAllocationMongoRepository(DateTimeFactory)
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
 
 
@@ -215,6 +213,7 @@ package object repositories {
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
   implicit val adjustmentDetailHandler: BSONHandler[BSONDocument, AdjustmentDetail] = Macros.handler[AdjustmentDetail]
+  implicit val AssessorAvailabilityHandler: BSONHandler[BSONDocument, AssessorAvailability] = Macros.handler[AssessorAvailability]
   implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
 
   def bsonDocToOnlineTestApplication(doc: BSONDocument) = {

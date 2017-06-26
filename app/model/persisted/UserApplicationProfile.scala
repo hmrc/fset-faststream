@@ -23,8 +23,7 @@ case class UserApplicationProfile(userId: String,
                                   latestProgressStatus: String,
                                   firstName: String,
                                   lastName: String,
-                                  dateOfBirth: LocalDate,
-                                  exportedToParity: Boolean)
+                                  dateOfBirth: LocalDate)
 
 object UserApplicationProfile {
   import repositories.BSONLocalDateHandler
