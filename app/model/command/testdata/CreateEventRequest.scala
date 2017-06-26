@@ -24,6 +24,7 @@ object CreateEventRequest {
 
   case class CreateEventRequest(id: Option[String],
                                 eventType: Option[EventType],
+                                description: Option[String],
                                 location: Option[String],
                                 venue: Option[String],
                                 date: Option[LocalDate],
