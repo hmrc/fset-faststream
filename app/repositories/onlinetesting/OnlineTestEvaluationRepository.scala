@@ -53,8 +53,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   def validEvaluationPhaseStatuses(phase: ApplicationStatus): Set[ApplicationStatus] = {
     val statusesToIgnore = List(ApplicationStatus.PHASE1_TESTS_FAILED, ApplicationStatus.PHASE2_TESTS_FAILED)
     ApplicationStatus.values.filter(s =>
-      s >= phase && s < ApplicationStatus.PHASE3_TESTS_PASSED)
-      .filterNot(statusesToIgnore.contains(_))
+      s >= phase && s < ApplicationStatus.PHASE3_TESTS_PASSED && !statusesToIgnore.contains(s))
   }
 
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] =
