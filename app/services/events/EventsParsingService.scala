@@ -65,11 +65,9 @@ trait EventsParsingService {
     fileContents.flatMap { centres =>
 
       FutureEx.traverseSerial(centres.zipWithIndex) {
-        case (line, idx) =>
-          val tryRes = Try {
+        case (line, idx) => {
             val items = line.split(", ?", -1)
             val eventType = EventType.withName(items.head.replaceAll("\\s|-", "_").toUpperCase)
-            //val venue = VenueType.withName(items(2).replaceAll("\\s|-", "_").toUpperCase)
             val date = LocalDate.parse(items(3), DateTimeFormat.forPattern("dd/MM/yy"))
             val startTime = df.parseLocalTime(items(4))
             val endTime = df.parseLocalTime(items(5))
@@ -77,10 +75,10 @@ trait EventsParsingService {
             val minViableAttendees = items(7).toInt
             val attendeeSafetyMargin = items(8).toInt
 
-            val skillRequirements: Map[String, Int] =
-              skillsIdxTable.map {
-                case (skill, skillIdx) => skill -> stringToRequirement(items(skillIdx))
-              }.toMap
+            val skillRequirements: Map[String, Int] = skillsIdxTable.map {
+              case (skill, skillIdx) => skill -> stringToRequirement(items(skillIdx))
+            }.toMap
+
             for {
               location <- locationsWithVenuesRepo.location(items(1))
               venue <- locationsWithVenuesRepo.venue(items(2))
@@ -96,13 +94,12 @@ trait EventsParsingService {
                 capacity = capacity,
                 minViableAttendees = minViableAttendees,
                 attendeeSafetyMargin = attendeeSafetyMargin,
-                skillRequirements = skillRequirements)
+                skillRequirements = skillRequirements
+              )
             }
-          }.flatten.recoverWith {
-            case ex =>
-              Failure(new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}"))
+          }.recoverWith {
+            case ex => throw new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
           }
-          Future.fromTry(tryRes)
       }
     }
   }

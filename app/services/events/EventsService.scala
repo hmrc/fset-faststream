@@ -16,11 +16,10 @@
 
 package services.events
 
-import model.persisted.eventschedules.Event
+import model.persisted.eventschedules.{Event, Venue}
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.VenueType.VenueType
 import play.api.Logger
-import repositories.events.{ EventsMongoRepository, EventsRepository }
+import repositories.events.{EventsMongoRepository, EventsRepository}
 import repositories.eventsRepository
 
 import scala.concurrent.Future
@@ -47,7 +46,7 @@ trait EventsService {
     eventsRepo.getEvent(id)
   }
 
-  def fetchEvents(eventType: EventType, venue: VenueType): Future[List[Event]] = {
+  def fetchEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.fetchEvents(eventType, venue)
   }
 }

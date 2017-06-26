@@ -16,12 +16,12 @@
 
 package repositories.events
 
+import config.MicroserviceAppConfig
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{ Event, EventType, VenueType }
+import model.persisted.eventschedules.{Event, EventType, Venue}
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.VenueType.VenueType
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -32,7 +32,7 @@ import scala.concurrent.Future
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def getEvent(id: String): Future[Event]
-  def fetchEvents(eventType: EventType, venueType: VenueType) : Future[List[Event]]
+  def fetchEvents(eventType: EventType, venue: Venue) : Future[List[Event]]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -52,10 +52,10 @@ class EventsMongoRepository(implicit mongo: () => DB)
     }
   }
 
-  def fetchEvents(eventType: EventType, venue: VenueType): Future[List[Event]] = {
+  def fetchEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     val query = List(
       Option(eventType).filterNot(_ == EventType.ALL_EVENTS).map(e => BSONDocument("eventType" -> e)),
-      Option(venue).filterNot(_ == VenueType.ALL_VENUES).map(v => BSONDocument("venue" -> v))
+      Option(venue).filterNot(_ == MicroserviceAppConfig.AllVenues).map(v => BSONDocument("venue" -> v))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
     collection.find(query).cursor[Event]().collect[List]()
   }

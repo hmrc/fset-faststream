@@ -17,24 +17,26 @@
 package controllers
 
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{ EventType, VenueType }
-import play.api.Logger
+import model.persisted.eventschedules.EventType
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import repositories.events.EventsRepository
+import play.api.mvc.{Action, AnyContent}
+import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository}
+
 import scala.concurrent.Future
 import scala.util.Try
-import services.events.{ EventsParsingService, EventsService }
+import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
+  val locationsAndVenues: LocationsWithVenuesRepository = LocationsWithVenuesYamlRepository
 }
 
 trait EventsController extends BaseController {
   def eventsService: EventsService
+  def locationsAndVenues: LocationsWithVenuesRepository
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved")).recover { case _ => UnprocessableEntity }
@@ -51,10 +53,10 @@ trait EventsController extends BaseController {
   def fetchEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
     val events =  Try {
         val eventType = EventType.withName(eventTypeParam.toUpperCase)
-        val venueType = VenueType.withName(venueParam.toUpperCase)
-
-        eventsService.fetchEvents(eventType, venueType).map { events =>
-          Ok(Json.toJson(events))
+        locationsAndVenues.venue(venueParam).flatMap { venue =>
+          eventsService.fetchEvents(eventType, venue).map { events =>
+            Ok(Json.toJson(events))
+          }
         }
     }
 

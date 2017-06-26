@@ -28,8 +28,8 @@ import scala.util.Success
 class EventsParsingServiceSpec extends BaseServiceSpec {
   "processCentres" must {
     "successfully saves and loads the file contents" in new GoodTestFixture {
-      when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Success(Venue("london fsac", "bush house")))
-      when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Success(Location("London")))
+      when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Future.successful(Venue("london fsac", "bush house")))
+      when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(Location("London")))
       val events: Seq[Event] = service.processCentres().futureValue
 
       events.size mustBe 2

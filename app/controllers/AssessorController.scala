@@ -17,10 +17,11 @@
 package controllers
 
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.{ Assessor, AssessorAvailability }
+import model.exchange.{Assessor, AssessorAvailability}
+import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent}
 import services.assessoravailability.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -45,11 +46,9 @@ trait AssessorController extends BaseController {
 
   def addAvailability(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[AssessorAvailability] { availability =>
-      val result = assessorService.exchangeToPersistedAvailability(availability).map { newAvailability =>
+      assessorService.exchangeToPersistedAvailability(availability).flatMap { newAvailability =>
         assessorService.addAvailability(userId, newAvailability).map(_ => Ok)
       }
-
-      Future.fromTry(result) flatMap identity
     }
   }
 
@@ -77,7 +76,8 @@ trait AssessorController extends BaseController {
     }
   }
 
-  def findAvailableAssessors(locationName: String, date: LocalDate): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(""))
+  def findAvailableAssessorsForLocationAndDate(locationName: String, date: LocalDate,
+    skills: List[SkillType]): Action[AnyContent] = Action.async { implicit request =>
+    assessorService.findAvailabilitiesForLocationAndDate(locationName, date, skills).map { a => Ok(Json.toJson(a)) }
   }
 }

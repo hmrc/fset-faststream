@@ -54,7 +54,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
 
     "return Ok when save is successful" in {
       when(mockAssessorService.addAvailability(any[String], any[List[persisted.AssessorAvailability]])).thenReturn(emptyFuture)
-      when(mockAssessorService.exchangeToPersistedAvailability(any[model.exchange.AssessorAvailability])).thenReturn(Success(
+      when(mockAssessorService.exchangeToPersistedAvailability(any[model.exchange.AssessorAvailability])).thenReturn(Future.successful(
         model.persisted.AssessorExamples.assessorAvailability :: Nil
       ))
       val response = controller.addAvailability(UserId)(Request)

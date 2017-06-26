@@ -16,19 +16,23 @@
 
 package repositories.events
 
+import java.io.InputStream
 import java.util
 
 import com.github.ghik.silencer.silent
-import model.persisted.eventschedules.{ Location, Venue }
+import config.MicroserviceAppConfig
+import model.persisted.eventschedules.{Location, Venue}
 import org.yaml.snakeyaml.Yaml
 import play.api.Play
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
 import resource._
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import scala.util.Try
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.language.postfixOps
+
 
 case class LocationWithVenue(name: String, venues: List[Venue])
 object LocationWithVenue { implicit val locationWithVenueFormat: OFormat[LocationWithVenue] = Json.format[LocationWithVenue] }
@@ -37,11 +41,11 @@ case class UnknownLocationException(m: String) extends Exception(m)
 case class UnknownVenueException(m: String) extends Exception(m)
 
 trait LocationsWithVenuesRepository {
-  def locationsWithVenuesList: List[LocationWithVenue]
-  def allLocations: Set[Location]
-  def location(name: String): Try[Location]
-  def allVenues: Set[Venue]
-  def venue(name: String): Try[Venue]
+  def locationsWithVenuesList: Future[List[LocationWithVenue]]
+  def locations: Future[Set[Location]]
+  def location(name: String): Future[Location]
+  def venues: Future[Set[Venue]]
+  def venue(name: String): Future[Venue]
 }
 
 trait LocationsWithVenuesRepositoryImpl extends LocationsWithVenuesRepository {
@@ -50,28 +54,32 @@ trait LocationsWithVenuesRepositoryImpl extends LocationsWithVenuesRepository {
 
   val locationsAndVenuesFilePath: String
 
-  private lazy val locationsAndVenuesCached = {
+  private lazy val locationsAndVenuesCached = Future {
     @silent val input = managed(Play.application.resourceAsStream(locationsAndVenuesFilePath).get)
     input.acquireAndGet(file => asLocationWithVenues(new Yaml().load(file)))
   }
 
-  private lazy val allLocationsCached = locationsAndVenuesCached.map(Location.apply).toSet
-
-  private lazy val allVenuesCached = locationsAndVenuesCached.flatMap(_.venues).toSet
-
-  def allLocations: Set[Location] = allLocationsCached
-
-  def location(name: String): Try[Location] = Try {
-    allLocations.find(_.name == name).getOrElse(throw UnknownLocationException(s"$name is not a known location for this campaign"))
+  private lazy val allLocationsCached = locationsAndVenuesCached.map { lv =>
+    lv.map(Location.apply) :+ MicroserviceAppConfig.AllLocations toSet
   }
 
-  def allVenues: Set[Venue] = allVenuesCached
-
-  def venue(name: String): Try[Venue] = Try {
-    allVenues.find(_.name == name).getOrElse(throw UnknownVenueException(s"$name is not a known venue for this campaign"))
+  private lazy val allVenuesCached = locationsAndVenuesCached.map { lv =>
+    lv.flatMap(_.venues) :+ MicroserviceAppConfig.AllVenues toSet
   }
 
-  def locationsWithVenuesList: List[LocationWithVenue] = locationsAndVenuesCached
+  def locations: Future[Set[Location]] = allLocationsCached
+
+  def location(name: String): Future[Location] = {
+    locations.map(_.find(_.name == name).getOrElse(throw UnknownLocationException(s"$name is not a known location for this campaign")))
+  }
+
+  def venues: Future[Set[Venue]] = allVenuesCached
+
+  def venue(name: String): Future[Venue] = {
+    venues.map(_.find(_.name == name).getOrElse(throw UnknownVenueException(s"$name is not a known venue for this campaign")))
+  }
+
+  def locationsWithVenuesList: Future[List[LocationWithVenue]] = locationsAndVenuesCached
 
   def asLocationWithVenues[A](obj: A): List[LocationWithVenue] = {
     // TODO: This java library forces creation of this complex statement. Investigate alternatives.
@@ -95,6 +103,5 @@ trait LocationsWithVenuesRepositoryImpl extends LocationsWithVenuesRepository {
 
 object LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepositoryImpl {
   import config.MicroserviceAppConfig.locationsAndVenuesConfig
-
   val locationsAndVenuesFilePath: String = locationsAndVenuesConfig.yamlFilePath
 }

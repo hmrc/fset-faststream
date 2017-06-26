@@ -128,12 +128,12 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val mockAssessorRepository = mock[AssessorRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
 
-    when(mockLocationsWithVenuesRepo.allVenues).thenReturn(
+    when(mockLocationsWithVenuesRepo.venues).thenReturn(Future.successful(
       Set(Venue("london fsac", "bush house"), Venue("virtual", "virtual venue"))
-    )
-    when(mockLocationsWithVenuesRepo.allLocations).thenReturn(
+    ))
+    when(mockLocationsWithVenuesRepo.locations).thenReturn(Future.successful(
       Set(Location("London"))
-    )
+    ))
     val service = new AssessorService {
       val assessorRepository: AssessorRepository = mockAssessorRepository
       val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo

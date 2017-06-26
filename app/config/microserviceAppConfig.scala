@@ -20,12 +20,13 @@ import java.io.File
 
 import com.github.ghik.silencer.silent
 import com.typesafe.config.ConfigFactory
+import model.persisted.eventschedules.{Location, Venue}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
 import play.api.Play
-import play.api.Play.{ configuration, current }
+import play.api.Play.{configuration, current}
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.config.{ RunMode, ServicesConfig }
+import uk.gov.hmrc.play.config.{RunMode, ServicesConfig}
 
 case class FrameworksConfig(yamlFilePath: String)
 
@@ -156,6 +157,11 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
 
   lazy val locationsAndVenuesConfig =
     underlyingConfiguration.as[LocationsAndVenuesConfig]("scheduling.online-testing.locations-and-venues")
+
+  val AllLocations = Location("All")
+  val AllVenues = Venue("All", "All venues")
+
+
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
     underlyingConfiguration
       .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")
