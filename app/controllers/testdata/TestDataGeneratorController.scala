@@ -175,6 +175,31 @@ trait TestDataGeneratorController extends BaseController {
     Ok(Json.toJson(example))
   }
 
+  def exampleCreateEvents = Action { implicit request =>
+    val example1 = CreateEventRequest(
+      id = Some(UUIDFactory.generateUUID()),
+      eventType = Some(EventType.FSAC),
+      description = Some("PDFS FSB"),
+      location = Some("London"),
+      venue = Some("London venue 1"),
+      date = Some(LocalDate.now),
+      capacity = Some(32),
+      minViableAttendees = Some(24),
+      attendeeSafetyMargin = Some(30),
+      startTime = Some(LocalTime.now()),
+      endTime = Some(LocalTime.now()),
+      skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
+        "CHAIR" -> 1))
+    )
+    val example2 = example1.copy(
+      id = Some(UUIDFactory.generateUUID()),
+      location = Some("Newcastle"),
+      venue = Some("New castle 1")
+      )
+
+    Ok(Json.toJson(List(example1, example2)))
+  }
+
   def createAdmins(numberToGenerate: Int, emailPrefix: Option[String], role: String): Action[AnyContent] = Action.async { implicit request =>
     try {
       TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>

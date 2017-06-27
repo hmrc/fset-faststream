@@ -22,6 +22,7 @@ POST    /candidate-application/test-data-generator/create-events            cont
 GET     /candidate-application/test-data-generator/example-candidate        controllers.testdata.TestDataGeneratorController.exampleCreateCandidate
 GET     /candidate-application/test-data-generator/example-admin            controllers.testdata.TestDataGeneratorController.exampleCreateAdmin
 GET     /candidate-application/test-data-generator/example-event            controllers.testdata.TestDataGeneratorController.exampleCreateEvent
+GET     /candidate-application/test-data-generator/example-events           controllers.testdata.TestDataGeneratorController.exampleCreateEvents
 GET     /candidate-application/evaluate-phase1-candidate                    controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
 GET     /candidate-application/evaluate-phase2-candidate                    controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
 GET     /candidate-application/evaluate-phase3-candidate                    controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
