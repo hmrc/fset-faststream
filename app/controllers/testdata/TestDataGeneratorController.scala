@@ -258,8 +258,8 @@ trait TestDataGeneratorController extends BaseController {
         Ok(Json.toJson(events))
       }
     } catch {
-      case _: Throwable => Future.successful(Conflict(JsObject(List(("message",
-        JsString("There was an exception creating the event"))))))
+      case ex: Throwable => Future.successful(Conflict(JsObject(List(("message",
+        JsString(s"There was an exception creating the events: ${ex.getMessage}"))))))
     }
   }
 
@@ -273,8 +273,8 @@ trait TestDataGeneratorController extends BaseController {
         Ok(Json.toJson(events))
       }
     } catch {
-      case _: Throwable => Future.successful(Conflict(JsObject(List(("message",
-        JsString("There was an exception creating the event"))))))
+      case ex: Throwable => Future.successful(Conflict(JsObject(List(("message",
+        JsString(s"There was an exception creating the events: ${ex.getMessage}"))))))
     }
   }
 }
