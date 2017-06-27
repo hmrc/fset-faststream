@@ -129,4 +129,11 @@ trait ApplicationController extends BaseController {
         }
     }
   }
+
+  def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String, start: Int, end: Int) = Action.async {
+    implicit request =>
+      appRepository.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation), start, end) map { apps =>
+        Ok(Json.toJson(apps))
+      }
+  }
 }

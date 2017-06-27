@@ -29,6 +29,7 @@ import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.PREVIEW
 import model.command._
+import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
 import model.persisted._
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
@@ -126,7 +127,9 @@ trait GeneralApplicationRepository {
 
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
               frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
-}
+
+  def findCandidatesEligibleForEventAllocation(locations: List[String], start: Int, end: Int): Future[CandidatesEligibleForEventResponse]
+  }
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
@@ -882,6 +885,54 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     collection.update(query, updateWithArchiveUserId) map validator
   }
 
+  override def findCandidatesEligibleForEventAllocation(locations: List[String], start: Int,
+                                                       end: Int): Future[CandidatesEligibleForEventResponse] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED)//,
+      //TODO: put this back in when the requirement is clear
+//      BSONDocument("assessment-centre-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
+    ))
+
+    collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
+      val count = c.count
+
+      if (count == 0) {
+        Future.successful(CandidatesEligibleForEventResponse(List.empty, 0))
+      } else {
+        val projection = BSONDocument(
+          "userId" -> true,
+          "applicationId" -> true,
+          "personal-details.firstName" -> true,
+          "personal-details.lastName" -> true,
+          "assistance-details.needsSupportAtVenue" -> true
+        )
+
+        val ascending = JsNumber(1)
+        val sort = new JsObject(Map("personal-details.lastName" -> ascending))
+
+        collection.find(query, projection).sort(sort).options(QueryOpts(skipN = start)).cursor[BSONDocument]().collect[List](end - start + 1)
+          .map { docList =>
+            docList.map { doc =>
+              bsonDocToCandidatesEligibleForEvent(doc)
+            }
+          }.flatMap { result =>
+          Future.successful(CandidatesEligibleForEventResponse(result, count))
+        }
+      }
+    }
+  }
+
+  private def bsonDocToCandidatesEligibleForEvent(doc: BSONDocument) = {
+    val userId = doc.getAs[String]("userId").get
+    val applicationId = doc.getAs[String]("applicationId").get
+    val personalDetails = doc.getAs[BSONDocument]("personal-details").get
+    val firstName = personalDetails.getAs[String]("firstName").get
+    val lastName = personalDetails.getAs[String]("lastName").get
+    val needsAdjustment = doc.getAs[BSONDocument]("assistance-details").flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)
+
+    CandidateEligibleForEvent(userId, applicationId, firstName, lastName, needsAdjustment)
+  }
+
   private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
     case ApplicationRoute.Faststream =>
       BSONDocument("$or" -> BSONArray(
@@ -913,5 +964,4 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument(name -> schemesDoc)
     case _ => BSONDocument.empty
   }
-
 }

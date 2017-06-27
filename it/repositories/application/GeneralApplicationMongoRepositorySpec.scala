@@ -19,6 +19,7 @@ package repositories.application
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.ApplicationStatus._
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
+import model.exchange.CandidatesEligibleForEventResponse
 import model.{ ApplicationStatus, _ }
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
@@ -35,7 +36,7 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.Await
+import scala.concurrent.{ Future, Await }
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
 
@@ -312,7 +313,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
   }
-
 
   "fix a ResetPhase1TestInvitedSubmitted issue" should {
     "update the renove PHASE1_TESTS_INVITED and the test group" in {
@@ -635,6 +635,64 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  private def createApplications(num: Int): Future[Unit] =
+    Future.sequence(
+      (0 until num).map { i =>
+        testDataRepo.createApplicationWithAllFields(
+          UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
+          firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d")
+      ) }
+    ).map(_ => ())
+
+  "find candidates eligible for event allocation" should {
+    "return an empty list when there are no applications" in {
+      createApplications(0).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), 0, 4).futureValue
+      result mustBe a[CandidatesEligibleForEventResponse]
+      result.candidates mustBe empty
+    }
+
+    "return an empty list when there are no eligible candidates" in {
+      testDataRepo.createApplications(10).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), 0, 4).futureValue
+      result.candidates mustBe empty
+    }
+
+    "return a one item list when there are eligible candidates and start item and end item is the same" in {
+      createApplications(10).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), 0, 0).futureValue
+      result.candidates must have size 1
+    }
+
+    "return an empty list when start is beyond the number of results" in {
+      testDataRepo.createApplications(10).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), Int.MaxValue, Int.MaxValue).futureValue
+      result.candidates mustBe empty
+    }
+
+    "return an empty list when start is higher than end" in {
+      testDataRepo.createApplications(10).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), 2, 1).futureValue
+      result.candidates mustBe empty
+    }
+
+    "fetch 2 pages of candidates and verify the pages contain different candidates and are sorted" in {
+      createApplications(10).futureValue
+      val page1 = repository.findCandidatesEligibleForEventAllocation(List("London"), 0, 4).futureValue
+      page1.candidates must have size 5
+      page1.candidates.map{ _.lastName} mustBe List("Jetson01", "Jetson02", "Jetson03", "Jetson04", "Jetson05")
+      page1.totalCandidates mustBe 10
+
+      val page2 = repository.findCandidatesEligibleForEventAllocation(List("London"), 5, 9).futureValue
+      page2.candidates must have size 5
+      page2.candidates.map{ _.lastName} mustBe List("Jetson06", "Jetson07", "Jetson08", "Jetson09", "Jetson10")
+      page2.totalCandidates mustBe 10
+
+      val pagesContainDifferentCandidates = page1.candidates.exists { c => !page2.candidates.contains(c) }
+      pagesContainDifferentCandidates mustBe true
+    }
+  }
+
   private def createAppWithTestResult(progressStatuses: List[(ProgressStatus, Boolean)], testResult: Option[TestResult]) = {
     testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, ApplicationStatus.PHASE2_TESTS,
       additionalProgressStatuses = progressStatuses).futureValue
@@ -694,5 +752,4 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       )
     )
   )
-
 }
