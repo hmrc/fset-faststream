@@ -46,7 +46,6 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
   val auditDetails = Map("applicationId" -> ApplicationId, "withdrawRequest" -> aWithdrawApplicationRequest.toString)
 
   "Create Application" must {
-
     "create an application" in new TestFixture {
       val result = TestApplicationController.createApplication(createApplicationRequest(
         s"""
@@ -59,8 +58,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       ))
       val jsonResponse = contentAsJson(result)
 
-      (jsonResponse \ "applicationStatus").as[String] must be("CREATED")
-      (jsonResponse \ "userId").as[String] must be("1234")
+      (jsonResponse \ "applicationStatus").as[String] mustBe "CREATED"
+      (jsonResponse \ "userId").as[String] mustBe "1234"
 
       verify(mockAuditService).logEvent(eqTo("ApplicationCreated"))(any[HeaderCarrier], any[RequestHeader])
     }
@@ -76,31 +75,29 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
           """.stripMargin
         ))
 
-      status(result) must be(400)
+      status(result) mustBe BAD_REQUEST
     }
   }
 
   "Application Progress" must {
-
     "return the progress of an application" in new TestFixture {
       val result = TestApplicationController.applicationProgress(ApplicationId)(applicationProgressRequest(ApplicationId)).run
       val jsonResponse = contentAsJson(result)
 
-      (jsonResponse \ "applicationId").as[String] must be(ApplicationId)
-      (jsonResponse \ "personalDetails").as[Boolean] must be(true)
+      (jsonResponse \ "applicationId").as[String] mustBe ApplicationId
+      (jsonResponse \ "personalDetails").as[Boolean] mustBe true
 
-      status(result) must be(200)
+      status(result) mustBe OK
     }
 
     "return a system error when applicationId doesn't exists" in new TestFixture {
       val result = TestApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
 
-      status(result) must be(404)
+      status(result) mustBe NOT_FOUND
     }
   }
 
   "Find application" must {
-
     "return the application" in new TestFixture {
       val result = TestApplicationController.findApplication(
         "validUser",
@@ -108,11 +105,11 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       )(findApplicationRequest("validUser", "validFramework")).run
       val jsonResponse = contentAsJson(result)
 
-      (jsonResponse \ "applicationId").as[String] must be(ApplicationId)
-      (jsonResponse \ "applicationStatus").as[String] must be("CREATED")
-      (jsonResponse \ "userId").as[String] must be("validUser")
+      (jsonResponse \ "applicationId").as[String] mustBe ApplicationId
+      (jsonResponse \ "applicationStatus").as[String] mustBe "CREATED"
+      (jsonResponse \ "userId").as[String] mustBe "validUser"
 
-      status(result) must be(200)
+      status(result) mustBe OK
     }
 
     "return a system error when application doesn't exists" in new TestFixture {
@@ -121,7 +118,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
         "invalidFramework"
       )(findApplicationRequest("invalidUser", "invalidFramework")).run
 
-      status(result) must be(404)
+      status(result) mustBe NOT_FOUND
     }
   }
 
@@ -136,7 +133,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
            |}
         """.stripMargin
       ))
-      status(result) must be(200)
+      status(result) mustBe OK
     }
   }
 
@@ -149,28 +146,27 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
            |}
         """.stripMargin
       ))
-      status(result) must be(200)
+      status(result) mustBe OK
       verify(mockAuditService).logEvent(eqTo("ApplicationPreviewed"))(any[HeaderCarrier], any[RequestHeader])
     }
   }
 
   "Get Scheme Results" must {
-
     "return the scheme results for an application" in new TestFixture {
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version2", None)
       when(mockPassmarkService.getPassmarkEvaluation(any[String])).thenReturn(Future.successful(evaluation))
 
       val result = TestApplicationController.getSchemeResults(ApplicationId)(getSchemeResultsRequest(ApplicationId)).run
       val jsonResponse = contentAsJson(result)
 
       jsonResponse mustBe Json.toJson(resultToSave)
-      status(result) must be(200)
+      status(result) mustBe OK
     }
 
     "Return a 404 if no results are found for the application Id" in new TestFixture {
       val result = TestApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
-      status(result) must be(404)
+      status(result) mustBe NOT_FOUND
     }
   }
 

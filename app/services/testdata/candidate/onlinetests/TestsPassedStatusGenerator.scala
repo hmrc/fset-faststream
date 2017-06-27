@@ -44,7 +44,8 @@ object Phase1TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
       .getOrElse {
         val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme, "Green"))).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
-        PassmarkEvaluation(passmarkVersion, None, schemeEvaluation)
+        val resultVersion = UUIDFactory.generateUUID().toString
+        PassmarkEvaluation(passmarkVersion, None, schemeEvaluation, resultVersion, None)
       }
   }
 
@@ -63,7 +64,9 @@ object Phase2TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
       .getOrElse {
         val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme, "Green"))).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
-        PassmarkEvaluation(passmarkVersion, dgr.phase1TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)), schemeEvaluation)
+        val resultVersion = UUIDFactory.generateUUID().toString
+        PassmarkEvaluation(passmarkVersion, dgr.phase1TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)),
+          schemeEvaluation, resultVersion, dgr.phase1TestGroup.flatMap(_.schemeResult.map(_.resultVersion)))
       }
 
   def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse = dgr.copy(
@@ -82,7 +85,9 @@ object Phase3TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
       .getOrElse {
         val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme, "Green"))).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
-        PassmarkEvaluation(passmarkVersion, dgr.phase2TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)), schemeEvaluation)
+        val resultVersion = UUIDFactory.generateUUID().toString
+        PassmarkEvaluation(passmarkVersion, dgr.phase2TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)),
+          schemeEvaluation, resultVersion, dgr.phase2TestGroup.flatMap(_.schemeResult.map(_.resultVersion)))
       }
 
   def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse = dgr.copy(
