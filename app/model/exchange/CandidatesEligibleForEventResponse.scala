@@ -16,4 +16,10 @@
 
 package model.exchange
 
+import play.api.libs.json.Json
+
 case class CandidatesEligibleForEventResponse(candidates: List[CandidateEligibleForEvent], totalCandidates: Int)
+
+object CandidatesEligibleForEventResponse {
+  implicit val responseFormat = Json.format[CandidatesEligibleForEventResponse]
+}
