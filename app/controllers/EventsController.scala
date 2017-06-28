@@ -63,6 +63,9 @@ trait EventsController extends BaseController {
   // scalastyle:off method.length
   def getEventsWithAllocationsSummary(venueType: VenueType, eventType: EventType): Action[AnyContent] = Action.async { implicit request =>
 
+    // 1st get events
+    // 2nd get allocations for every event
+
     // Example: 8 events in different event types, locations and venues on the same day.
     val event1LondonFSAC = Event("1", EventType.FSAC, "Description", "London", VenueType.LONDON_FSAC,
       new LocalDate("2017-07-02"), 24, 10, 1, LocalTime.now(), LocalTime.now().plusHours(1),
