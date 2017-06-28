@@ -17,7 +17,7 @@
 package repositories
 
 import model.AllocationStatuses
-import model.persisted.{Assessor, AssessorAvailability}
+import model.persisted.assessor.{ Assessor, AssessorAvailability }
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
@@ -37,6 +37,7 @@ trait AssessorRepository {
   def save(settings: Assessor): Future[Unit]
   def countSubmittedAvailability: Future[Int]
   def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]]
+  def assessorsForEvent(eventId: String): Future[Seq[Assessor]]
 }
 
 class AssessorMongoRepository(implicit mongo: () => DB)
@@ -69,13 +70,18 @@ class AssessorMongoRepository(implicit mongo: () => DB)
           BSONDocument("location" -> location),
           BSONDocument("date" -> date),
           BSONDocument("allocation" -> BSONDocument("$exists" -> false))
-        ))
-      )
+        )))
     ))
 
-    val projection = BSONDocument("_id" -> false)
+    collection.find(query).cursor[Assessor]().collect[Seq]()
+  }
 
-    collection.find(query, projection).cursor[Assessor]().collect[Seq]()
+  def assessorsForEvent(eventId: String): Future[Seq[Assessor]] = {
+    val query = BSONDocument("allocation" -> BSONDocument("$elemMatch" -> BSONDocument(
+      "id" -> eventId
+    )))
+
+    collection.find(query).cursor[Assessor]().collect[Seq]()
   }
 
   // TODO Fix this when availability submission is complete

@@ -72,12 +72,17 @@ trait AssessorController extends BaseController {
     assessorService.countSubmittedAvailability().map { count =>
       Ok(Json.obj("size" -> count))
     } recover {
-      case ex: Throwable => InternalServerError("Could not retrieve a count of submitted assessor availabilities")
+      case _: Throwable => InternalServerError("Could not retrieve a count of submitted assessor availabilities")
     }
   }
 
   def findAvailableAssessorsForLocationAndDate(locationName: String, date: LocalDate,
     skills: List[SkillType]): Action[AnyContent] = Action.async { implicit request =>
     assessorService.findAvailabilitiesForLocationAndDate(locationName, date, skills).map { a => Ok(Json.toJson(a)) }
+  }
+
+  def allocateToEvent(assessorId: String, eventId: String): Action[AnyContent] = Action.async { implicit request =>
+
+    Future.successful(Ok(""))
   }
 }

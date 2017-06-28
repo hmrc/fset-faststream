@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.persisted.assessor
 
-import model.AllocationStatuses.AllocationStatus
-import model.persisted.eventschedules.{Event, Location}
+import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
-import play.api.libs.json.{Json, OFormat}
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 import repositories.{BSONLocalDateHandler, BSONLocalTimeHandler}
-
-case class AssessorAllocation(
-  status: AllocationStatus,
-  event: Event
-)
-
-object AssessorAllocation {
-  implicit val assessorAllocationFormat = Json.format[AssessorAllocation]
-  implicit val assessorAllocationHandler = Macros.handler[AssessorAllocation]
-}
 
 case class AssessorAvailability(
   location: Location,
-  date: LocalDate,
-  allocation: Option[AssessorAllocation] = None
+  date: LocalDate
 )
 
 object AssessorAvailability {
@@ -47,16 +35,3 @@ object AssessorAvailability {
     location.name -> avail.map(_.date).toList
   }
 }
-
-case class Assessor(
-  userId: String,
-  skills: List[String],
-  civilServant: Boolean,
-  availability: List[AssessorAvailability] = Nil
-)
-
-object Assessor {
-  implicit val persistedAssessorFormat: OFormat[Assessor] = Json.format[Assessor]
-  implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
-}
-

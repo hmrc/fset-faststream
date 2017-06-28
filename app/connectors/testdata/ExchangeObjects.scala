@@ -65,9 +65,9 @@ object ExchangeObjects {
       AssessorResponse(exchange.userId, exchange.skills, exchange.civilServant, Map.empty)
     }
 
-    def apply(persisted: model.persisted.Assessor): AssessorResponse = {
+    def apply(persisted: model.persisted.assessor.Assessor): AssessorResponse = {
       AssessorResponse(persisted.userId, persisted.skills, persisted.civilServant,
-        model.persisted.AssessorAvailability.toAvailabilityMap(persisted.availability)
+        model.persisted.assessor.AssessorAvailability.toAvailabilityMap(persisted.availability)
       )
     }
   }

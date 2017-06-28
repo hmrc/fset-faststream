@@ -26,16 +26,25 @@ package object controllers {
 
     val pathDateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd")
 
-    implicit def localDatePathBinder(implicit stringBinder: PathBindable[String]) = new PathBindable.Parsing[LocalDate](
+    implicit val localDatePathBinder = new PathBindable.Parsing[LocalDate](
       parse = (dateVal: String) => LocalDate.parse(dateVal, pathDateFormat),
       serialize = _.toString(pathDateFormat),
       error = (m: String, e: Exception) => "Can't parse %s as LocalDate(%s): %s".format(m, pathDateFormat.toString, e.getMessage)
     )
 
-    implicit object skillTypeQueryBinder extends QueryStringBindable.Parsing[SkillType](
+    /*implicit object skillTypeQueryBinder extends QueryStringBindable.Parsing[SkillType](
        parse = SkillType.withName(_),
        serialize = _.toString,
        error = (m: String, e: Exception) => "Can't parse %s as SchemeType : %s".format(m, e.getMessage)
-     )
+    )*/
+    private def enumQueryBinder[E <: Enumeration](enum: E) = {
+      new QueryStringBindable.Parsing[E#Value](
+        parse = enum.withName(_),
+        serialize = _.toString,
+        error = (m: String, e: Exception) => "Can't parse %s as SchemeType : %s".format(m, e.getMessage)
+      )
+    }
+
+    implicit val skillTypeQueryBinder = enumQueryBinder(SkillType)
   }
 }

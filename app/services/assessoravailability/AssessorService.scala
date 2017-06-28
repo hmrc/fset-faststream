@@ -18,7 +18,7 @@ package services.assessoravailability
 
 import common.{FutureEx, TryEx}
 import model.Exceptions.AssessorNotFoundException
-import model.persisted.AssessorAvailability
+import model.persisted.assessor.AssessorAvailability
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
@@ -46,23 +46,23 @@ trait AssessorService {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
         // TODO: If we change skills, we have to decide if we want to reset the availability
-        val assessorToPersist = model.persisted.Assessor(
+        val assessorToPersist = model.persisted.assessor.Assessor(
           userId, assessor.skills, assessor.civilServant, existing.availability
         )
         assessorRepository.save(assessorToPersist).map(_ => ())
       case _ =>
-        val assessorToPersist = model.persisted.Assessor(
+        val assessorToPersist = model.persisted.assessor.Assessor(
           userId, assessor.skills, assessor.civilServant, Nil
         )
         assessorRepository.save(assessorToPersist).map(_ => ())
     }
   }
 
-  def addAvailability(userId: String, newAvailabilities: List[model.persisted.AssessorAvailability]): Future[Unit] = {
+  def addAvailability(userId: String, newAvailabilities: List[model.persisted.assessor.AssessorAvailability]): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
         val mergedAvailability = existing.availability ++ newAvailabilities
-        val assessorAvailabilityToPersist = model.persisted.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability)
+        val assessorAvailabilityToPersist = model.persisted.assessor.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability)
         assessorRepository.save(assessorAvailabilityToPersist).map(_ => ())
       case _ => throw AssessorNotFoundException(userId)
     }
@@ -101,7 +101,11 @@ trait AssessorService {
     Future.successful(0)
   }
 
-  def exchangeToPersistedAvailability(a: model.exchange.AssessorAvailability): Future[List[model.persisted.AssessorAvailability]] = {
+  def allocateToEvent(assessorIds: List[String], eventId: String, version: String): Future[Unit] = {
+    Future.successful(())
+  }
+
+  def exchangeToPersistedAvailability(a: model.exchange.AssessorAvailability): Future[List[model.persisted.assessor.AssessorAvailability]] = {
     FutureEx.traverseSerial(a.availability) { case (locationName, dates) =>
       locationsWithVenuesRepo.location(locationName).map { location =>
         dates.map(d => AssessorAvailability(location, d))

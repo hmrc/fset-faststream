@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-package model.persisted.eventschedules
+package model.persisted.assessor
 
-import model.persisted.eventschedules.EventType.EventType
-import org.joda.time.{ LocalDate, LocalTime }
+import model.AllocationStatuses.AllocationStatus
+import model.persisted.eventschedules.SkillType.SkillType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 
-case class Event(id: String,
-  eventType: EventType,
-  location: Location,
-  venue: Venue,
-  date: LocalDate,
-  capacity: Int,
-  minViableAttendees: Int,
-  attendeeSafetyMargin: Int,
-  startTime: LocalTime,
-  endTime: LocalTime,
-  skillRequirements: Map[String, Int]
+
+case class AssessorAllocation(
+  assessorId: String,
+  eventId: String,
+  status: AllocationStatus,
+  allocatedAs: SkillType,
+  version: String
 )
 
-object Event {
-  implicit val eventFormat = Json.format[Event]
-  implicit val eventHandler = Macros.handler[Event]
+object Allocation {
+  implicit val allocationFormat = Json.format[AssessorAllocation]
+  implicit val allocationHandler = Macros.handler[AssessorAllocation]
 }

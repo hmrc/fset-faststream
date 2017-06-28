@@ -1,7 +1,7 @@
 package repositories
 
 import model.persisted.eventschedules.Location
-import model.persisted.{Assessor, AssessorAvailability}
+import model.persisted.assessor.{Assessor, AssessorAvailability}
 import org.joda.time.LocalDate
 import testkit.MongoRepositorySpec
 

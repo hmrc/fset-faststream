@@ -18,15 +18,16 @@ package controllers
 
 import config.TestFixtureBase
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{ Event, Location, Venue }
+import model.persisted.eventschedules.{Event, Location, Venue}
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.VenueType
-import org.joda.time.{ LocalDate, LocalTime }
+import org.joda.time.{LocalDate, LocalTime}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.json.Json
+import repositories.events.{LocationsWithVenuesRepository, UnknownVenueException}
 import services.events.EventsService
 import testkit.UnitWithAppSpec
 
@@ -49,24 +50,29 @@ class EventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return OK with all events" in new TestFixture {
-      when(mockEventsService.fetchEvents(any[EventType.EventType], any[VenueType.VenueType])).thenReturn(Future.successful(
-        event :: Nil
+      when(mockEventsService.fetchEvents(any[EventType.EventType], any[Venue])).thenReturn(Future.successful(
+        MockEvent :: Nil
       ))
+
       val res = controller.fetchEvents("FSAC","LONDON_FSAC")(FakeRequest())
       status(res) mustBe OK
     }
 
-     "return 400 for invalid event or venue types" in new TestFixture {
+     "return 400 for invalid event" in new TestFixture {
        status(controller.fetchEvents("blah","LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
+    }
+
+     "return 400 for invalid venue type" in new TestFixture {
+       when(mockLocationsWithVenuesRepo.venue("blah")).thenReturn(Future.failed(UnknownVenueException("")))
        status(controller.fetchEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
     }
 
     "return 200 for an event for an id" in new TestFixture {
-      when(mockEventsService.getEvent(any[String])).thenReturn(Future.successful(event))
+      when(mockEventsService.getEvent(any[String])).thenReturn(Future.successful(MockEvent))
 
       val result = controller.getEvent("id")(FakeRequest())
       status(result) mustBe OK
-      contentAsJson(result) mustBe Json.toJson(event)
+      contentAsJson(result) mustBe Json.toJson(MockEvent)
     }
 
     "return a 404 if no event is found" in new TestFixture {
@@ -79,12 +85,19 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockEventsService = mock[EventsService]
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
+    val MockVenue = Venue("London FSAC", "Bush House")
+    val MockLocation = Location("London")
 
-    val event = Event("id", EventType.FSAC, Location("London"), Venue("London FSAC", "Bush House"),
+    when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(MockLocation))
+    when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Future.successful(MockVenue))
+
+    val MockEvent = Event("id", EventType.FSAC, MockLocation, MockVenue,
             LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty)
 
     val controller = new EventsController {
       val eventsService = mockEventsService
+      val locationsAndVenues: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
 }

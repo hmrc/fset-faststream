@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.persisted.assessor
 
 import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate

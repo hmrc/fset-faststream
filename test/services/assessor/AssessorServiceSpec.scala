@@ -16,21 +16,21 @@
 
 package services.assessor
 
-import model.persisted.AssessorExamples
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import services.BaseServiceSpec
 import services.assessoravailability.AssessorService
 
 import scala.concurrent.duration._
-import AssessorExamples._
 import model.Exceptions
 import model.Exceptions.AssessorNotFoundException
-import model.persisted.eventschedules.{ Location, Venue }
+import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.assessor.AssessorExamples
+import model.persisted.assessor.AssessorExamples._
 import repositories.AssessorRepository
 import repositories.events.LocationsWithVenuesRepository
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 
 class AssessorServiceSpec extends BaseServiceSpec {
 

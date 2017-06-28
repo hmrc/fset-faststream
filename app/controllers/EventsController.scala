@@ -20,7 +20,7 @@ import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.EventType
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent}
-import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository}
+import repositories.events.{LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository, UnknownVenueException}
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -37,6 +37,14 @@ object EventsController extends EventsController {
 trait EventsController extends BaseController {
   def eventsService: EventsService
   def locationsAndVenues: LocationsWithVenuesRepository
+
+  def venuesForEvents: Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenues.venues.map(x => Ok(Json.toJson(x)))
+  }
+
+  def locationsForEvents: Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenues.locations.map(x => Ok(Json.toJson(x)))
+  }
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved")).recover { case _ => UnprocessableEntity }
@@ -63,7 +71,8 @@ trait EventsController extends BaseController {
     play.api.Logger.debug(s"$events")
 
     Future.fromTry(events) flatMap identity recover {
-      case e: NoSuchElementException => BadRequest(e.getMessage)
+      case _: NoSuchElementException => BadRequest(s"$eventTypeParam is not a valid event type")
+      case _: UnknownVenueException => BadRequest(s"$venueParam is not a valid venue")
     }
   }
 }

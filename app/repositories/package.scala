@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import model.persisted.Assessor
+import model.persisted.assessor.Assessor
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate

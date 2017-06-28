@@ -21,8 +21,9 @@ import model.exchange.Assessor
 import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
 import model.persisted
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
+import persisted.assessor
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import services.assessoravailability.AssessorService
@@ -53,9 +54,9 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     val Request = fakeRequest(AssessorAvailabilityInBothLondonAndNewcastle)
 
     "return Ok when save is successful" in {
-      when(mockAssessorService.addAvailability(any[String], any[List[persisted.AssessorAvailability]])).thenReturn(emptyFuture)
+      when(mockAssessorService.addAvailability(any[String], any[List[persisted.assessor.AssessorAvailability]])).thenReturn(emptyFuture)
       when(mockAssessorService.exchangeToPersistedAvailability(any[model.exchange.AssessorAvailability])).thenReturn(Future.successful(
-        model.persisted.AssessorExamples.assessorAvailability :: Nil
+        assessor.AssessorExamples.assessorAvailability :: Nil
       ))
       val response = controller.addAvailability(UserId)(Request)
       status(response) mustBe OK
