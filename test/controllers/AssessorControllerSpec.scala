@@ -18,6 +18,8 @@ package controllers
 
 import model.Exceptions._
 import model.exchange.Assessor
+import model.exchange.{ Assessor, AssessorAvailability }
+import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
 import model.persisted
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
@@ -40,7 +42,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     override val assessorService = mockAssessorService
   }
 
-  "save assessor" should {
+  "save assessor" must {
     "return OK when save is successful" in {
       val Request = fakeRequest(AssessorExamples.Assessor1)
       when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(Future.successful(()))
@@ -49,7 +51,17 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "find assessor" should {
+  "add availability" must {
+    val Request = fakeRequest(AssessorAvailabilityInBothLondonAndNewcastle)
+
+    "return Ok when availability is added" in {
+      when(mockAssessorService.addAvailability(any[String], any[List[AssessorAvailability]])).thenReturn(emptyFuture)
+      val response = controller.addAvailability(UserId)(Request)
+      status(response) mustBe OK
+    }
+  }
+
+  "find assessor" must {
     "return Assessor when is successful" in {
       when(mockAssessorService.findAssessor(eqTo(AssessorExamples.UserId1))).thenReturn(Future.successful(AssessorExamples.Assessor1))
       val response = controller.findAssessor(AssessorExamples.UserId1)(fakeRequest)
@@ -66,7 +78,23 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "count submitted" should {
+  "find availability" must {
+
+    "return an assessor's availability" in {
+      when(mockAssessorService.findAvailability(UserId)).thenReturnAsync(AssessorAvailabilityInBothLondonAndNewcastle)
+      val response = controller.findAvailability(UserId)(fakeRequest)
+      status(response) mustBe OK
+      contentAsJson(response) mustBe Json.toJson[List[AssessorAvailability]](AssessorAvailabilityInBothLondonAndNewcastle)
+    }
+
+    "return Not Found when availability cannot be found" in {
+      when(mockAssessorService.findAvailability(UserId)).thenReturn(Future.failed(AssessorNotFoundException(UserId)))
+      val response = controller.findAvailability(UserId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
+    }
+  }
+
+  "count submitted" must {
     "return zero if there are none submitted" in {
       when(mockAssessorService.countSubmittedAvailability()).thenReturnAsync(0)
       val response = controller.countSubmittedAvailability()(fakeRequest)

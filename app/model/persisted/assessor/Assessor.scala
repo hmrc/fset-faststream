@@ -19,7 +19,6 @@ package model.persisted.assessor
 import model.persisted.assessor.AssessorStatus.AssessorStatus
 import play.api.libs.json.{Json, OFormat}
 import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
-import repositories.{BSONLocalDateHandler, BSONLocalTimeHandler}
 
 case class Assessor(
   userId: String,
@@ -33,4 +32,3 @@ object Assessor {
   implicit val persistedAssessorFormat: OFormat[Assessor] = Json.format[Assessor]
   implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
 }
-

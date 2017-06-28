@@ -18,8 +18,8 @@ package model.persisted
 
 import controllers.DayAggregateEvent
 import factories.UUIDFactory
-import model.persisted.eventschedules._
-import org.joda.time.{LocalDate, LocalTime}
+import model.persisted.eventschedules.{ Event, EventType, SkillType, Venue, Location }
+import org.joda.time.{ LocalDate, LocalTime }
 
 object EventExamples {
   val VenueAll = Venue("All", "All venues")
@@ -46,13 +46,13 @@ object EventExamples {
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.SKYPE_INTERVIEW, description = "GCFS FSB", location = LocationNewcastle,
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
+      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
+      skillRequirements = Map(SkillType.ASSESSOR.toString -> 1)),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "DFS FSB", location = LocationNewcastle,
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(
-        "QAC" -> 1,
-        "ASSESSOR" -> 2
+        "QAC" -> 1
       ))
 
   )

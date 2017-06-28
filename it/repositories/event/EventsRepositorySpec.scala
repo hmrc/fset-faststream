@@ -4,7 +4,7 @@ import model.Exceptions.EventNotFoundException
 import repositories.CollectionNames
 import model.persisted.eventschedules._
 import model.persisted.EventExamples
-import model.persisted.eventschedules.{ EventType, VenueType }
+import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import testkit.MongoRepositorySpec
 
 class EventsRepositorySpec extends MongoRepositorySpec {
@@ -58,9 +58,8 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "filter by skills and Location" in {
-      val result = repository.fetchEvents(None, None, Some(EventExamples.LocationNewcastle), Some(List("ASSESSOR"))).futureValue
-
-      result.size mustBe 1
+      val result = repository.fetchEvents(None, None, Some(EventExamples.LocationNewcastle), Some(List(SkillType.ASSESSOR.toString))).futureValue
+      ret sult.size mustBe 1
 
       result.head.venue mustBe EventExamples.VenueNewcastle
     }

@@ -17,11 +17,11 @@
 package controllers
 
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.{Assessor, AssessorAvailabilities, AssessorAvailability}
+import model.exchange.{Assessor, AssessorAvailability}
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, AnyContent}
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Action, AnyContent }
 import services.assessoravailability.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -36,19 +36,15 @@ trait AssessorController extends BaseController {
 
   val assessorService: AssessorService
 
-
   def saveAssessor(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Assessor] { assessor =>
-      assessorService.saveAssessor(userId, assessor).map(_ =>
-        Ok
-    )}
+      assessorService.saveAssessor(userId, assessor).map(_ => Ok)
+    }
   }
 
   def addAvailability(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[AssessorAvailabilities] { availabilities =>
-      assessorService.exchangeToPersistedAvailability(availabilities).flatMap { newAvailability =>
-        assessorService.addAvailability(userId, newAvailability).map(_ => Ok)
-      }
+    withJsonBody[List[AssessorAvailability]] { availability =>
+      assessorService.addAvailability(userId, availability).map(_ => Ok)
     }
   }
 

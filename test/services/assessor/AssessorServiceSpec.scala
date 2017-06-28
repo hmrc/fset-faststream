@@ -16,28 +16,29 @@
 
 package services.assessor
 
-import org.mockito.ArgumentMatchers.{ eq => eqTo }
+import org.mockito.ArgumentMatchers.{eq => eqTo}
 import org.mockito.Mockito._
 import services.BaseServiceSpec
 import services.assessoravailability.AssessorService
+import org.mockito.ArgumentMatchers._
 
 import scala.concurrent.duration._
 import model.Exceptions
 import model.Exceptions.AssessorNotFoundException
+import model.persisted.EventExamples
 import model.persisted.eventschedules.{Location, Venue}
-import model.persisted.assessor.AssessorExamples
 import model.persisted.assessor.AssessorExamples._
 import repositories.AssessorRepository
 import repositories.events.LocationsWithVenuesRepository
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 class AssessorServiceSpec extends BaseServiceSpec {
 
   "save assessor" must {
 
-    "save NEW assessors must be successful" in new TestFixture {
+    "save NEW assessor when assessor is new" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
       when(mockAssessorRepository.save(eqTo(AssessorNew))).thenReturn(Future.successful(()))
@@ -47,7 +48,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       verify(mockAssessorRepository).save(eqTo(AssessorNew))
     }
 
-    "update EXISTING assessors must update skills and respect availability" in new TestFixture {
+    "update skills and do not update availability when assessor previously EXISTED" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorMerged))).thenReturn(Future.successful(()))
@@ -60,22 +61,27 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
   "add availability" must {
 
-    "add availability to NON-EXISTING assessors must fail" in new TestFixture {
+    "throw assessor not found exception when assessor cannot be found" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
 
+      val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
+
       intercept[AssessorNotFoundException] {
-        Await.result(service.addAvailability(AssessorUserId, AssessorExamples.assessorAvailability :: Nil), 10 seconds)
+        Await.result(service.addAvailability(AssessorUserId, exchangeAvailability), 10 seconds)
       }
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
 
-    "add availability to EXISTING assessors" in new TestFixture {
+    "merge availability to EXISTING assessor" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorWithAvailabilityMerged))).thenReturn(Future.successful(()))
+      when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(EventExamples.LocationLondon))
 
-      val result = service.addAvailability(AssessorUserId, AssessorExamples.AssessorWithAvailability.availability).futureValue
+      val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
+
+      val result = service.addAvailability(AssessorUserId, exchangeAvailability).futureValue
 
       result mustBe unit
 
@@ -95,7 +101,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
 
-    "throw exception when there are no assessor" in new TestFixture {
+    "throw exception when there is no assessor" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturn(Future.successful(None))
 
       intercept[Exceptions.AssessorNotFoundException] {
@@ -105,16 +111,20 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
   }
 
-  "find assessor availability" ignore {
+  "find assessor availability" should {
+
     "return assessor availability" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturn(Future.successful(Some(AssessorWithAvailability)))
 
       val response = service.findAvailability(AssessorUserId).futureValue
 
+      val expected = AssessorWithAvailability.availability.map { a => model.exchange.AssessorAvailability.apply(a)}
+
+      response mustBe expected
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
 
-    "throw exception when there are no assessor" in new TestFixture {
+    "throw exception when there are is assessor" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturn(Future.successful(None))
 
       intercept[Exceptions.AssessorNotFoundException] {

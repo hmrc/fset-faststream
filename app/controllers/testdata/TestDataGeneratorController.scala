@@ -24,7 +24,7 @@ import model._
 import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
 import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
-import model.persisted.eventschedules.EventType
+import model.persisted.eventschedules.{ EventType, SkillType }
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
@@ -57,12 +57,12 @@ trait TestDataGeneratorController extends BaseController {
   // scalastyle:off method.length
   def exampleCreateCandidate = Action { implicit request =>
     val example = CreateCandidateRequest(
-     statusData = StatusDataRequest(
-       applicationStatus = ApplicationStatus.SUBMITTED.toString,
-       previousApplicationStatus = Some(ApplicationStatus.REGISTERED.toString),
-       progressStatus = Some(ProgressStatuses.SUBMITTED.toString),
-       applicationRoute = Some(ApplicationRoute.Faststream.toString)
-     ),
+      statusData = StatusDataRequest(
+        applicationStatus = ApplicationStatus.SUBMITTED.toString,
+        previousApplicationStatus = Some(ApplicationStatus.REGISTERED.toString),
+        progressStatus = Some(ProgressStatuses.SUBMITTED.toString),
+        applicationRoute = Some(ApplicationRoute.Faststream.toString)
+      ),
       personalData = Some(PersonalDataRequest(
         emailPrefix = Some(s"testf${Random.number()}"),
         firstName = Some("Kathryn"),
@@ -131,6 +131,7 @@ trait TestDataGeneratorController extends BaseController {
 
     Ok(Json.toJson(example))
   }
+
   // scalastyle:on method.length
 
   def exampleCreateAdmin = Action { implicit request =>
@@ -167,11 +168,36 @@ trait TestDataGeneratorController extends BaseController {
       attendeeSafetyMargin = Some(30),
       startTime = Some(LocalTime.now()),
       endTime = Some(LocalTime.now()),
-      skillRequirements = Some(Map("ASSESSOR" -> 4,
-      "CHAIR" -> 1))
+      skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
+        "CHAIR" -> 1))
     )
 
     Ok(Json.toJson(example))
+  }
+
+  def exampleCreateEvents = Action { implicit request =>
+    val example1 = CreateEventRequest(
+      id = Some(UUIDFactory.generateUUID()),
+      eventType = Some(EventType.FSAC),
+      description = Some("PDFS FSB"),
+      location = Some("London"),
+      venue = Some("London venue 1"),
+      date = Some(LocalDate.now),
+      capacity = Some(32),
+      minViableAttendees = Some(24),
+      attendeeSafetyMargin = Some(30),
+      startTime = Some(LocalTime.now()),
+      endTime = Some(LocalTime.now()),
+      skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
+        "CHAIR" -> 1))
+    )
+    val example2 = example1.copy(
+      id = Some(UUIDFactory.generateUUID()),
+      location = Some("Newcastle"),
+      venue = Some("New castle 1")
+      )
+
+    Ok(Json.toJson(List(example1, example2)))
   }
 
   def createAdmins(numberToGenerate: Int, emailPrefix: Option[String], role: String): Action[AnyContent] = Action.async { implicit request =>
@@ -181,7 +207,7 @@ trait TestDataGeneratorController extends BaseController {
       }
     } catch {
       case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
-          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+        JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
   }
 
@@ -199,15 +225,25 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  def createEventsPOST(numberToGenerate: Int) : Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def createEventsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[List[CreateEventRequest]] { createRequests =>
+      val createDatas: List[(Int) => CreateEventData] = createRequests.map { createRequest =>
+        val createData: (Int) => CreateEventData = CreateEventData.apply(createRequest)
+        createData
+      }
+      createEvents(createDatas, numberToGenerate)
+    }
+  }
+
+  def createEventPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateEventRequest] { createRequest =>
-      createEvents(CreateEventData.apply(createRequest), numberToGenerate)
+      createEvent(CreateEventData.apply(createRequest), numberToGenerate)
     }
   }
 
 
   private def createCandidates(config: (Int) => CreateCandidateData, numberToGenerate: Int)
-    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+                              (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createCandidates(
         numberToGenerate, CandidateStatusGeneratorFactory.getGenerator,
@@ -217,12 +253,12 @@ trait TestDataGeneratorController extends BaseController {
       }
     } catch {
       case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
-          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+        JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
   }
 
   private def createAdmins(createData: (Int) => CreateAdminData, numberToGenerate: Int)
-                                     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+                          (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createAdmins(
         numberToGenerate,
@@ -237,18 +273,33 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createEvents(createData: (Int) => CreateEventData, numberToGenerate: Int)
-                                     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createEvent(createData: (Int) => CreateEventData, numberToGenerate: Int)
+                         (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createEvents(
+      TestDataGeneratorService.createEvent(
         numberToGenerate,
         createData
       ).map { events =>
         Ok(Json.toJson(events))
       }
     } catch {
-      case _: Throwable => Future.successful(Conflict(JsObject(List(("message",
-        JsString("There was an exception creating the event"))))))
+      case ex: Throwable => Future.successful(Conflict(JsObject(List(("message",
+        JsString(s"There was an exception creating the events: ${ex.getMessage}"))))))
+    }
+  }
+
+  private def createEvents(createDatas: List[(Int) => CreateEventData], numberToGenerate: Int)
+                          (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    try {
+      TestDataGeneratorService.createEvents(
+        numberToGenerate,
+        createDatas
+      ).map { events =>
+        Ok(Json.toJson(events))
+      }
+    } catch {
+      case ex: Throwable => Future.successful(Conflict(JsObject(List(("message",
+        JsString(s"There was an exception creating the events: ${ex.getMessage}"))))))
     }
   }
 }

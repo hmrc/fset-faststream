@@ -20,7 +20,7 @@ import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
-import repositories.{BSONLocalDateHandler, BSONLocalTimeHandler}
+import repositories.BSONLocalDateHandler
 
 case class AssessorAvailability(
   location: Location,
