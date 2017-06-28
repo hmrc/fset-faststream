@@ -167,7 +167,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
         SchemeEvaluationResult(SchemeType.Sdip, Green.toString)
       )
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       createApplicationWithAllFields("userId1", "app1", appStatus = ApplicationStatus.PHASE1_TESTS,
         phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.SdipFaststream.toString
       ).futureValue
@@ -184,7 +184,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
         SchemeEvaluationResult(SchemeType.Sdip, Amber.toString)
       )
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       createApplicationWithAllFields("userId1", "app1", appStatus = ApplicationStatus.PHASE1_TESTS,
         phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.SdipFaststream.toString
       ).futureValue
@@ -502,7 +502,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Red.toString))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
       phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ProgressStatuses.PHASE1_TESTS_FAILED)).futureValue
 

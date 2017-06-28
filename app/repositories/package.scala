@@ -15,6 +15,7 @@
  */
 
 import model.persisted.assessor.Assessor
+import factories.DateTimeFactory
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
@@ -35,6 +36,7 @@ import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
+import model.persisted.assessor.{ Assessor, AssessorAvailability }
 import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }

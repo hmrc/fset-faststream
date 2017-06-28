@@ -17,7 +17,7 @@
 package controllers
 
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.{Assessor, AssessorAvailability}
+import model.exchange.{Assessor, AssessorAvailabilities, AssessorAvailability}
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{JsValue, Json}
@@ -45,8 +45,8 @@ trait AssessorController extends BaseController {
   }
 
   def addAvailability(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[AssessorAvailability] { availability =>
-      assessorService.exchangeToPersistedAvailability(availability).flatMap { newAvailability =>
+    withJsonBody[AssessorAvailabilities] { availabilities =>
+      assessorService.exchangeToPersistedAvailability(availabilities).flatMap { newAvailability =>
         assessorService.addAvailability(userId, newAvailability).map(_ => Ok)
       }
     }

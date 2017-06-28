@@ -16,6 +16,7 @@
 
 package scheduler.onlinetesting
 
+import factories.UUIDFactory
 import model.Phase
 import model.exchange.passmarksettings.PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
@@ -53,7 +54,7 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
       evaluationRepository.savePassmarkEvaluation(
         application.applicationId,
         PassmarkEvaluation(passMarkSettings.version, application.prevPhaseEvaluation.map(_.passmarkVersion),
-          schemeResults),
+          schemeResults, UUIDFactory.generateUUID().toString, application.prevPhaseEvaluation.map(_.resultVersion)),
         determineApplicationStatus(application.applicationRoute, application.applicationStatus, schemeResults, phase)
       )
     } else {

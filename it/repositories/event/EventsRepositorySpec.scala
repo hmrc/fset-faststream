@@ -1,17 +1,17 @@
 package repositories.events
 
-import factories.UUIDFactory
 import model.Exceptions.EventNotFoundException
 import repositories.CollectionNames
 import model.persisted.eventschedules._
-import org.joda.time.{LocalDate, LocalTime}
+import model.persisted.EventExamples
+import model.persisted.eventschedules.{ EventType, VenueType }
 import testkit.MongoRepositorySpec
 
 class EventsRepositorySpec extends MongoRepositorySpec {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    repository.save(events).futureValue
+    repository.save(EventExamples.EventsNew).futureValue
   }
 
   override def afterAll(): Unit = {
@@ -23,35 +23,6 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.ASSESSMENT_EVENTS
   lazy val repository = repositories.eventsRepository
-  val venueLondon = Venue("London FSAC", "Bush House")
-  val venueNewcastle = Venue("Newcastle FSAC", "Longbenton")
-
-  val london = Location("London")
-  val newcastle = Location("Newcastle")
-  val events = List(
-    Event(id = "1", eventType = EventType.FSAC, location = london,
-      venue = venueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
-
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = london,
-      venue = venueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      skillRequirements = Map()),
-
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.TELEPHONE_INTERVIEW, location = london,
-      venue = venueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      skillRequirements = Map()),
-
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.SKYPE_INTERVIEW, location = newcastle,
-      venue = venueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
-
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, location = newcastle,
-      venue = venueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map())
-
-  )
 
   "Events" should {
     "create indexes for the repository" in {
@@ -61,26 +32,41 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "save and fetch events" in {
-      val result = repository.fetchEvents(EventType.FSAC, venueLondon).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 2
     }
 
     "filter FSAC in LONDON_FSAC events" in {
-      val result = repository.fetchEvents(EventType.FSAC, venueLondon).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 2
-      result.contains(events.head) mustBe true
-      result.contains(events.tail.head) mustBe true
+      result.contains(EventExamples.EventsNew.head) mustBe true
+      result.contains(EventExamples.EventsNew.tail.head) mustBe true
     }
 
     "filter SKYPE_INTERVIEW in NEWCASTLE_LONGBENTON " in {
-      val result = repository.fetchEvents(EventType.SKYPE_INTERVIEW, venueNewcastle).futureValue
+      val result = repository.fetchEvents(Some(EventType.SKYPE_INTERVIEW), Some(EventExamples.VenueNewcastle)).futureValue
+      result.size mustBe 1
+      result.head.venue mustBe EventExamples.VenueNewcastle
+    }
+
+    "filter by skills" in {
+      val result = repository.fetchEvents(None, None, None, Some(List("QAC"))).futureValue
 
       result.size mustBe 1
-      result.head.venue mustBe venueNewcastle
+      result.head.venue mustBe EventExamples.VenueNewcastle
+
+    }
+
+    "filter by skills and Location" in {
+      val result = repository.fetchEvents(None, None, Some(EventExamples.LocationNewcastle), Some(List("ASSESSOR"))).futureValue
+
+      result.size mustBe 1
+
+      result.head.venue mustBe EventExamples.VenueNewcastle
     }
 
     "filter ALL_EVENTS in LONDON_FSAC" in {
-      val result = repository.fetchEvents(EventType.ALL_EVENTS, venueLondon).futureValue
+      val result = repository.fetchEvents(Some(EventType.ALL_EVENTS), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 3
       result.exists(_.eventType == EventType.TELEPHONE_INTERVIEW) mustBe true
       result.forall(_.venue == VenueType.LONDON_FSAC)
@@ -88,19 +74,19 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "filter FSAC in ALL_VENUES"  in {
-      val result = repository.fetchEvents(EventType.FSAC, Venue("All", "All venues")).futureValue
+      val result = repository.fetchEvents(Some(EventType.FSAC), Some(EventExamples.VenueAll)).futureValue
       result.size mustBe 3
     }
 
-    "filter and return empty list" in {
-      val result = repository.fetchEvents(EventType.TELEPHONE_INTERVIEW, venueNewcastle).futureValue
 
+    "filter and return empty list" in {
+      val result = repository.fetchEvents(Some(EventType.TELEPHONE_INTERVIEW), Some(EventExamples.VenueNewcastle)).futureValue
       result.size mustBe 0
     }
 
     "return a single event by Id" in {
-      val result = repository.getEvent(events.head.id).futureValue
-      result mustBe events.head
+      val result = repository.getEvent(EventExamples.EventsNew.head.id).futureValue
+      result mustBe EventExamples.EventsNew.head
     }
 
     "return an exception if not event is found by Id" in {

@@ -18,7 +18,6 @@ package controllers
 
 import model.Exceptions._
 import model.exchange.Assessor
-import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
 import model.persisted
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
@@ -50,19 +49,6 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "add availability" should {
-    val Request = fakeRequest(AssessorAvailabilityInBothLondonAndNewcastle)
-
-    "return Ok when save is successful" in {
-      when(mockAssessorService.addAvailability(any[String], any[List[persisted.assessor.AssessorAvailability]])).thenReturn(emptyFuture)
-      when(mockAssessorService.exchangeToPersistedAvailability(any[model.exchange.AssessorAvailability])).thenReturn(Future.successful(
-        assessor.AssessorExamples.assessorAvailability :: Nil
-      ))
-      val response = controller.addAvailability(UserId)(Request)
-      status(response) mustBe OK
-    }
-  }
-
   "find assessor" should {
     "return Assessor when is successful" in {
       when(mockAssessorService.findAssessor(eqTo(AssessorExamples.UserId1))).thenReturn(Future.successful(AssessorExamples.Assessor1))
@@ -77,21 +63,6 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       val response = controller.findAssessor(UserId)(fakeRequest)
       status(response) mustBe NOT_FOUND
       verify(mockAssessorService).findAssessor(eqTo(UserId))
-    }
-  }
-
-  "find availability" should {
-    "return an assessor's availability" in {
-      when(mockAssessorService.findAvailability(UserId)).thenReturnAsync(AssessorAvailabilityInBothLondonAndNewcastle)
-      val response = controller.findAvailability(UserId)(fakeRequest)
-      status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson[model.exchange.AssessorAvailability](AssessorAvailabilityInBothLondonAndNewcastle)
-    }
-
-    "return Not Found when availability cannot be found" in {
-      when(mockAssessorService.findAvailability(UserId)).thenReturn(Future.failed(AssessorNotFoundException(UserId)))
-      val response = controller.findAvailability(UserId)(fakeRequest)
-      status(response) mustBe NOT_FOUND
     }
   }
 

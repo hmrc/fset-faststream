@@ -16,10 +16,7 @@
 
 package model.persisted.assessor
 
-import model.AllocationStatuses.AllocationStatus
-import model.persisted.eventschedules.{ Event, Location }
-import model.persisted.eventschedules.SkillType.SkillType
-import org.joda.time.LocalDate
+import model.persisted.assessor.AssessorStatus.AssessorStatus
 import play.api.libs.json.{Json, OFormat}
 import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 import repositories.{BSONLocalDateHandler, BSONLocalTimeHandler}
@@ -28,10 +25,12 @@ case class Assessor(
   userId: String,
   skills: List[String],
   civilServant: Boolean,
-  availability: List[AssessorAvailability] = Nil
+  availability: List[AssessorAvailability] = Nil,
+  status: AssessorStatus
 )
 
 object Assessor {
   implicit val persistedAssessorFormat: OFormat[Assessor] = Json.format[Assessor]
   implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
 }
+

@@ -22,8 +22,10 @@ import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 
-case class Event(id: String,
+case class Event(
+  id: String,
   eventType: EventType,
+  description: String,
   location: Location,
   venue: Venue,
   date: LocalDate,

@@ -16,20 +16,11 @@
 
 package model.exchange.assessor
 
-import model.exchange.{ Assessor, AssessorAvailability }
+import model.exchange.{Assessor, AssessorAvailability}
 import org.joda.time.LocalDate
 
 object AssessorExamples {
   val UserId1 = "57364"
-  val Assessor1 = Assessor(UserId1, List("assessor", "qac"), true)
+  val Assessor1 = Assessor(UserId1, List("assessor", "qac"), civilServant = true)
 }
 
-object AssessorAvailabilityExamples {
-  val AssessorAvailabilityInBothLondonAndNewcastle = AssessorAvailability(
-    userId = "userId",
-    availability = Map(
-      "london" -> List(new LocalDate(2017, 10, 10), new LocalDate(2017, 10, 10)),
-      "newcastle" -> List(new LocalDate(2017, 5, 10), new LocalDate(2017, 5, 10))
-    )
-  )
-}

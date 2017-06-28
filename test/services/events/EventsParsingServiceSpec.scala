@@ -40,15 +40,18 @@ class EventsParsingServiceSpec extends BaseServiceSpec {
     "fails gracefully when any field is malformed" in new MalformedTestFixture {
       an[Exception] must be thrownBy service.processCentres().futureValue
     }
-  }
 
+    "fails gracefully when event description is longer than 10 characters" in new LongEventDescription {
+      an[Exception] must be thrownBy service.processCentres().futureValue
+    }
+  }
 
   trait MalformedTestFixture {
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val service = new EventsParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
-        "fsac,london,london fsac,03/04/17,09:0,12:00,36,4,5,6,1,1,1,1,2", // malformed starttime
-        "telephone interview,london,virtual,,08:00,13:30,36,24,7,,,,,," // missing date
+        "fsac,PDFS FSB,london,london fsac,03/04/17,09:0,12:00,36,4,5,6,1,1,1,1,2", // malformed starttime
+        "telephone interview,ORAC,london,virtual,,08:00,13:30,36,24,7,,,,,," // missing date
       ))
       def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
@@ -58,10 +61,22 @@ class EventsParsingServiceSpec extends BaseServiceSpec {
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val service = new EventsParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
-        "fsac,London,london fsac,03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2",
-        "telephone interview,London,virtual,04/04/17,08:00,13:30,36,24,7,,,,,,"
+        "fsac,PDFS FSB,London,london fsac,03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2",
+        "telephone interview,ORAC,London,virtual,04/04/17,08:00,13:30,36,24,7,,,,,,"
       ))
       def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
+
+  trait LongEventDescription {
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
+    val service = new EventsParsingService {
+      val fileContents: Future[List[String]] = Future.successful(List(
+        "Skype Interview,long event description,London,london fsac,03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2"
+      ))
+
+      def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
+    }
+  }
+
 }

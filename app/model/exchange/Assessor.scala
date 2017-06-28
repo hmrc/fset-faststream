@@ -16,6 +16,7 @@
 
 package model.exchange
 
+import model.command.testdata.CreateAdminRequest.AssessorAvailabilityRequest
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
@@ -27,18 +28,25 @@ object Assessor {
   def apply(assessor: model.persisted.assessor.Assessor): Assessor = Assessor(assessor.userId, assessor.skills, assessor.civilServant)
 }
 
-
-case class AssessorAvailability(userId: String, availability: Map[String, List[LocalDate]])
+case class AssessorAvailability(location: String, date: LocalDate)
 
 object AssessorAvailability {
   implicit val assessorAvailabilityFormat = Json.format[AssessorAvailability]
 
-  def apply(assessor: model.persisted.assessor.Assessor): AssessorAvailability = {
-    val availability = assessor.availability.groupBy(_.location).map { case (location, availabilities) =>
-      location.name -> availabilities.map(_.date)
-    }
-
-    AssessorAvailability(assessor.userId, availability)
+  def apply(persisted: model.persisted.assessor.AssessorAvailability): AssessorAvailability = {
+    AssessorAvailability(persisted.location.name, persisted.date)
   }
 
+  def apply(request: AssessorAvailabilityRequest): AssessorAvailability = {
+    AssessorAvailability(request.location, request.date)
+  }
+}
+
+case class AssessorAvailabilities(userId: String, availability: List[AssessorAvailability])
+
+object AssessorAvailabilities {
+  implicit val assessorAvailabilityFormat = Json.format[AssessorAvailabilities]
+
+  def apply(assessor: model.persisted.assessor.Assessor): AssessorAvailabilities =
+    AssessorAvailabilities(assessor.userId, assessor.availability.map(a => AssessorAvailability.apply(a)))
 }

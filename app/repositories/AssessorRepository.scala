@@ -17,14 +17,13 @@
 package repositories
 
 import model.AllocationStatuses
-import model.persisted.assessor.{ Assessor, AssessorAvailability }
+import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.bson._
-import services.assessoravailability.AssessorService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -54,6 +53,8 @@ class AssessorMongoRepository(implicit mongo: () => DB)
   }
 
   def save(assessor: Assessor): Future[Unit] = {
+    require(assessor.availability.isEmpty || assessor.status == AssessorStatus.AVAILABILITIES_SUBMITTED,
+      "Can't submit assessor availabilities with new status")
     val query = BSONDocument("userId" -> assessor.userId)
     val saveBson: BSONDocument = BSONDocument("$set" -> assessor)
     val insertIfNoRecordFound = true

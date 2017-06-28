@@ -44,11 +44,11 @@ trait EventsParsingService {
   def locationsWithVenuesRepo: LocationsWithVenuesRepository
 
   private val skillsIdxTable = List(
-    "ASSESSOR" -> 9,
-    "CHAIR" -> 10,
-    "DEPARTMENTAL_ASSESSOR" -> 11,
-    "EXERCISE_MARKER" -> 12,
-    "QUALITY_ASSURANCE_COORDINATOR" -> 13
+    "ASSESSOR" -> 10,
+    "CHAIR" -> 11,
+    "DEPARTMENTAL_ASSESSOR" -> 12,
+    "EXERCISE_MARKER" -> 13,
+    "QUALITY_ASSURANCE_COORDINATOR" -> 14
   )
 
   def fileContents: Future[List[String]]
@@ -60,47 +60,54 @@ trait EventsParsingService {
     }
 
   def processCentres(): Future[List[Event]] = {
-    val df = DateTimeFormat.forPattern("HH:mm")
 
     fileContents.flatMap { centres =>
 
-      FutureEx.traverseSerial(centres.zipWithIndex) {
-        case (line, idx) => {
-            val items = line.split(", ?", -1)
-            val eventType = EventType.withName(items.head.replaceAll("\\s|-", "_").toUpperCase)
-            val date = LocalDate.parse(items(3), DateTimeFormat.forPattern("dd/MM/yy"))
-            val startTime = df.parseLocalTime(items(4))
-            val endTime = df.parseLocalTime(items(5))
-            val capacity = items(6).toInt
-            val minViableAttendees = items(7).toInt
-            val attendeeSafetyMargin = items(8).toInt
-
-            val skillRequirements: Map[String, Int] = skillsIdxTable.map {
-              case (skill, skillIdx) => skill -> stringToRequirement(items(skillIdx))
-            }.toMap
-
-            for {
-              location <- locationsWithVenuesRepo.location(items(1))
-              venue <- locationsWithVenuesRepo.venue(items(2))
-            } yield {
-              Event(
-                id = UUIDFactory.generateUUID(),
-                eventType = eventType,
-                location = location,
-                venue = venue,
-                date = date,
-                startTime = startTime,
-                endTime = endTime,
-                capacity = capacity,
-                minViableAttendees = minViableAttendees,
-                attendeeSafetyMargin = attendeeSafetyMargin,
-                skillRequirements = skillRequirements
-              )
-            }
-          }.recoverWith {
-            case ex => throw new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
-          }
+      FutureEx.traverseSerial(centres.zipWithIndex) { case (line, idx) =>
+        stringToEvent(line).recoverWith {
+          case ex => throw new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
+        }
       }
     }
   }
+
+  lazy val df = DateTimeFormat.forPattern("HH:mm")
+
+  private def stringToEvent(csvLine: String): Future[Event] = {
+    val items = csvLine.split(", ?", -1)
+    val eventType = EventType.withName(items.head.replaceAll("\\s|-", "_").toUpperCase)
+    val description = items(1)
+    val date = LocalDate.parse(items(4), DateTimeFormat.forPattern("dd/MM/yy"))
+    val startTime = df.parseLocalTime(items(5))
+    val endTime = df.parseLocalTime(items(6))
+    val capacity = items(7).toInt
+    val minViableAttendees = items(8).toInt
+    val attendeeSafetyMargin = items(9).toInt
+
+    if(description.length > 10) throw new Exception("Event description cannot be more than 10 characters")
+
+    val skillRequirements: Map[String, Int] =
+      skillsIdxTable.map {
+        case (skill, skillIdx) => skill -> stringToRequirement(items(skillIdx))
+      }.toMap
+
+    for {
+      location <- locationsWithVenuesRepo.location(items(2))
+      venue <- locationsWithVenuesRepo.venue(items(3))
+    } yield Event(
+      id = UUIDFactory.generateUUID(),
+      eventType = eventType,
+      description = description,
+      location = location,
+      venue = venue,
+      date = date,
+      startTime = startTime,
+      endTime = endTime,
+      capacity = capacity,
+      minViableAttendees = minViableAttendees,
+      attendeeSafetyMargin = attendeeSafetyMargin,
+      skillRequirements = skillRequirements
+    )
+  }
+
 }
