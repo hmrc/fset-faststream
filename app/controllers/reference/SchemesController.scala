@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package model
+package controllers.reference
 
+import model.Scheme
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import play.api.mvc.{ Action, AnyContent }
+import repositories.SchemeYamlRepository
+import uk.gov.hmrc.play.microservice.controller.BaseController
 
-case class Scheme(id: String, code: String, name: String)
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.util.Success
 
-object Scheme {
-  implicit val jsonFormat = Json.format[Scheme]
-  implicit val bsonFormat = Macros.handler[Scheme]
+object SchemesController extends SchemesController
+
+trait SchemesController extends BaseController {
+
+  def allSchemes: Action[AnyContent] = Action.async { implicit request =>
+    SchemeYamlRepository.schemes.map(s => Ok(Json.toJson(s)))
+  }
 }
