@@ -129,7 +129,15 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-  def createEvents(numberToGenerate: Int, createData: (Int) => CreateEventData)(
+  def createEvents(numberToGenerate: Int, createDatas: List[(Int) => CreateEventData])(
+    implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateEventResponse]] = {
+    val listOfFutures = createDatas.map { createData =>
+      createEvent(numberToGenerate, createData)
+    }
+    Future.sequence(listOfFutures).map(_.flatten)
+  }
+
+  def createEvent(numberToGenerate: Int, createData: (Int) => CreateEventData)(
     implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateEventResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
@@ -148,7 +156,6 @@ trait TestDataGeneratorService extends MongoDbConnection {
     )
     parNumbers
   }
-
 
   private def runInParallel[D <: CreateTestData, R <: CreateTestDataResponse](parNumbers: ParRange,
                                                                               createData: (Int => D),

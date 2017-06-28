@@ -17,7 +17,7 @@
 package controllers
 
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.{ Assessor, AssessorAvailability, AssessorAvailabilityOld }
+import model.exchange.{ Assessor, AssessorAvailability }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import services.assessoravailability.AssessorService
@@ -33,19 +33,16 @@ trait AssessorController extends BaseController {
 
   val assessorService: AssessorService
 
-
   def saveAssessor(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Assessor] { assessor =>
-      assessorService.saveAssessor(userId, assessor).map(_ =>
-        Ok
-    )}
+      assessorService.saveAssessor(userId, assessor).map(_ => Ok)
+    }
   }
 
   def addAvailability(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[AssessorAvailabilityOld] { availability =>
-      assessorService.addAvailability(userId, availability).map(_ =>
-        Ok
-    )}
+    withJsonBody[List[AssessorAvailability]] { availability =>
+      assessorService.addAvailability(userId, availability).map(_ => Ok)
+    }
   }
 
   def findAssessor(userId: String): Action[AnyContent] = Action.async { implicit request =>

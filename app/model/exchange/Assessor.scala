@@ -50,25 +50,3 @@ object AssessorAvailabilities {
   def apply(assessor: model.persisted.assessor.Assessor): AssessorAvailabilities =
     AssessorAvailabilities(assessor.userId, assessor.availability.map(a => AssessorAvailability.apply(a)))
 }
-
-
-
-case class AssessorOld(userId: String, skills: List[String], civilServant: Boolean)
-
-object AssessorOld {
-  implicit val assessorFormat = Json.format[AssessorOld]
-
-  def apply(assessor: model.persisted.assessor.Assessor): AssessorOld = AssessorOld(assessor.userId, assessor.skills, assessor.civilServant)
-}
-
-
-case class AssessorAvailabilityOld(userId: String, availability: Map[String, List[LocalDate]])
-
-object AssessorAvailabilityOld {
-  implicit val assessorAvailabilityOldFormat = Json.format[AssessorAvailabilityOld]
-
-  def apply(assessor: model.persisted.assessor.Assessor): AssessorAvailabilityOld = {
-    val availabityMap = assessor.availability.groupBy(_.location).map { a => (a._1 -> a._2.map(_.date)) }
-    AssessorAvailabilityOld(assessor.userId, availabityMap)
-  }
-}
