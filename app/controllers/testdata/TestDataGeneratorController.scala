@@ -218,6 +218,8 @@ trait TestDataGeneratorController extends BaseController {
     } catch {
       case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+      case ex: Throwable => Future.successful(Conflict(JsObject(List(("message",
+        JsString(s"There was an exception creating the candidate. Message=[${ex.getMessage}]"))))))
     }
   }
 

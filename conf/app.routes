@@ -123,6 +123,7 @@ GET         /assessment-schedule                                         control
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.fetchEvents(eventType: String, venue: String)
+GET         /events-with-allocations-summary/:venueType/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueType: model.persisted.eventschedules.VenueType.VenueType, eventType: model.persisted.eventschedules.EventType.EventType)
 
 # Day aggregate events
 GET         /day-aggregate-events/skills/:skillTypes                     controllers.DayAggregateEventController.findBySkillTypes(skillTypes: String)
