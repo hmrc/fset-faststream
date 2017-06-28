@@ -113,7 +113,7 @@ POST        /assessor/save/:userId                                       control
 GET         /assessor/find/:userId                                       controllers.AssessorController.findAssessor(userId: String)
 POST        /assessor/availability/save/:userId                          controllers.AssessorController.addAvailability(userId: String)
 GET         /assessor/availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
-GET         /assessor/availability/countSubmitted                        controllers.AssessorController.countSubmittedAvailability()
+GET         /assessor/availability/count-submitted                       controllers.AssessorController.countSubmittedAvailability()
 
 # Assessment Centres
 GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)
