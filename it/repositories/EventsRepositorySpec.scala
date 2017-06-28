@@ -1,7 +1,7 @@
 package repositories
 
 import model.persisted.EventExamples
-import model.persisted.eventschedules.{ EventType, VenueType }
+import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import testkit.MongoRepositorySpec
 
 class EventsRepositorySpec extends MongoRepositorySpec {
@@ -49,7 +49,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "filter by skills and Location" in {
       repository.save(EventExamples.EventsNew).futureValue
-      val result = repository.fetchEvents(None, None, Some("Newcastle"), Some(List("ASSESSOR"))).futureValue
+      val result = repository.fetchEvents(None, None, Some("Newcastle"), Some(List(SkillType.ASSESSOR.toString))).futureValue
 
       result.size mustBe 1
 

@@ -58,29 +58,29 @@ trait AssessorService {
     }
   }
 
-  def addAvailability(userId: String, assessorAvailability: model.exchange.AssessorAvailabilityOld): Future[Unit] = {
+  def addAvailability(userId: String, assessorAvailabilities: List[model.exchange.AssessorAvailability]): Future[Unit] = {
+    def toPersisted(availabilities: List[model.exchange.AssessorAvailability]) =
+      availabilities.map { exchange => model.persisted.assessor.AssessorAvailability.apply(exchange) }
+
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
-        val newAvailability = assessorAvailability.availability.flatMap { case (k, dates) =>
-          dates.map { date =>
-            model.persisted.assessor.AssessorAvailability(k, date)
-          }
-        }.toList
-        val mergedAvailability = existing.availability ++ newAvailability
-
-        val assessorAvailabilityToPersist = assessor.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability,
+        val newAvailabilities = toPersisted(assessorAvailabilities)
+        val mergedAvailability = existing.availability ++ newAvailabilities
+        val assessorToPersist = assessor.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability,
           AssessorStatus.AVAILABILITIES_SUBMITTED)
-        assessorRepository.save(assessorAvailabilityToPersist).map(_ => ())
+        assessorRepository.save(assessorToPersist).map(_ => ())
       case _ => throw AssessorNotFoundException(userId)
     }
   }
 
-  def findAvailability(userId: String): Future[model.exchange.AssessorAvailabilityOld] = {
+  def findAvailability(userId: String): Future[List[model.exchange.AssessorAvailability]] = {
     for {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
       assessorOpt.fold(throw AssessorNotFoundException(userId)) {
-        assessor => model.exchange.AssessorAvailabilityOld.apply(assessor)
+        assessor => assessor.availability.map { availability =>
+          model.exchange.AssessorAvailability.apply(availability)
+        }
       }
     }
   }

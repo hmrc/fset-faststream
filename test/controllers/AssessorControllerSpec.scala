@@ -17,7 +17,7 @@
 package controllers
 
 import model.Exceptions._
-import model.exchange.{ Assessor, AssessorAvailability, AssessorAvailabilityOld }
+import model.exchange.{ Assessor, AssessorAvailability }
 import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -49,8 +49,8 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   "add availability" should {
     val Request = fakeRequest(AssessorAvailabilityInBothLondonAndNewcastle)
 
-    "return Ok when save is successful" in {
-      when(mockAssessorService.addAvailability(any[String], any[AssessorAvailabilityOld])).thenReturn(emptyFuture)
+    "return Ok when availability is added" in {
+      when(mockAssessorService.addAvailability(any[String], any[List[AssessorAvailability]])).thenReturn(emptyFuture)
       val response = controller.addAvailability(UserId)(Request)
       status(response) mustBe OK
     }
@@ -74,11 +74,12 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   }
 
   "find availability" should {
+
     "return an assessor's availability" in {
       when(mockAssessorService.findAvailability(UserId)).thenReturnAsync(AssessorAvailabilityInBothLondonAndNewcastle)
       val response = controller.findAvailability(UserId)(fakeRequest)
       status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson[AssessorAvailabilityOld](AssessorAvailabilityInBothLondonAndNewcastle)
+      contentAsJson(response) mustBe Json.toJson[List[AssessorAvailability]](AssessorAvailabilityInBothLondonAndNewcastle)
     }
 
     "return Not Found when availability cannot be found" in {
