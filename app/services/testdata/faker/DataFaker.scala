@@ -21,21 +21,22 @@ import model.EvaluationResults
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.SchemeType._
+import model.persisted.eventschedules._
 import model.exchange.AssessorAvailability
-import org.joda.time.{ LocalDate, LocalTime }
+import org.joda.time.{LocalDate, LocalTime}
 import repositories._
+import repositories.events.LocationsWithVenuesInMemoryRepository
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import model.persisted.eventschedules.{ Event, EventType, SkillType }
 
 //scalastyle:off number.of.methods
 object DataFaker {
 
   object ExchangeObjects {
 
-    case class AvailableAssessmentSlot(venue: AssessmentCentreVenue, date: LocalDate, session: String)
+    case class AvailableAssessmentSlot(venue: Venue, date: LocalDate, session: String)
 
   }
 
@@ -111,24 +112,10 @@ object DataFaker {
 
     def passmark: Result = randOne(List(EvaluationResults.Green, EvaluationResults.Amber, EvaluationResults.Red))
 
-    def availableAssessmentVenueAndDate: Future[AvailableAssessmentSlot] = {
-      AssessmentCentreYamlRepository.assessmentCentreCapacities.flatMap { assessmentCentreLocations =>
+    /* TODO Fix these again once the event allocation features have been done
 
-        val randomisedVenues = util.Random.shuffle(assessmentCentreLocations.flatMap(_.venues))
-
-        val firstVenueWithSpace = randomisedVenues.foldLeft(Future.successful(Option.empty[AvailableAssessmentSlot])) {
-          case (acc, venue) =>
-            acc.flatMap {
-              case Some(accVenueAndDate) => Future.successful(Some(accVenueAndDate))
-              case _ => venueHasFreeSlots(venue)
-            }
-        }
-        firstVenueWithSpace.map(_.get)
-      }
-    }
-
-    private def venueHasFreeSlots(venue: AssessmentCentreVenue): Future[Option[AvailableAssessmentSlot]] = {
-      applicationAssessmentRepository.applicationAssessmentsForVenue(venue.venueName).map { assessments =>
+    private def venueHasFreeSlots(venue: Venue): Future[Option[AvailableAssessmentSlot]] = {
+      applicationAssessmentRepository.applicationAssessmentsForVenue(venue.name).map { assessments =>
         val takenSlotsByDateAndSession = assessments.groupBy(slot => slot.date -> slot.session).map {
           case (date, numOfAssessments) => (date, numOfAssessments.length)
         }
@@ -147,19 +134,21 @@ object DataFaker {
       }
     }
 
+
     def region: Future[String] = {
-      AssessmentCentreYamlRepository.locationsAndAssessmentCentreMapping.map { locationsToAssessmentCentres =>
+      LocationsWithVenuesYamlRepository.locationsAndAssessmentCentreMapping.map { locationsToAssessmentCentres =>
         val locationToRegion = locationsToAssessmentCentres.values.filterNot(_.startsWith("TestAssessment"))
         randOne(locationToRegion.toList)
       }
     }
 
     def location(region: String, cannotBe: List[String] = Nil): Future[String] = {
-      AssessmentCentreYamlRepository.locationsAndAssessmentCentreMapping.map { locationsToAssessmentCentres =>
+      LocationsWithVenuesYamlRepository.locationsWithVenuesList.map { locationsToAssessmentCentres =>
         val locationsInRegion = locationsToAssessmentCentres.filter(_._2 == region).keys.toList
         randOne(locationsInRegion, cannotBe)
       }
     }
+    */
 
     def schemeTypes = randList(List(
       Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,
@@ -714,13 +703,13 @@ object DataFaker {
           Some(List.empty)
         } else {
           val dates = (15 to 25).map(i => LocalDate.parse(s"2017-06-$i")).toList
-          Option(dates.map { date =>
+          Option(dates.flatMap { date =>
             if (bool) {
               Some(AssessorAvailability(location, date))
             } else {
               None
             }
-          }.flatten)
+          })
         }
       }
     }
@@ -730,10 +719,14 @@ object DataFaker {
       def eventType = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW,
         EventType.SKYPE_INTERVIEW))
       def description = randOne(List("GSFS FSB", "ORAC", "PDFS FSB"))
-      def location = randOne(List("London", "Newcastle"))
-      def venueLondon = randOne(List("London 1", "London 2", "London 3"))
-      def venueNewcastle = randOne(List("Newcastle 1", "Newcastle 2", "Newcastle 3"))
-      def venue = if (location == "London") { venueLondon } else { venueNewcastle }
+      def location = randOne(List(Location("London"), Location("Newcastle")))
+      def venueLondon = randOne(List(Venue("London 1", "Bush House"), Venue("London 2", "Parliament Street"),
+        Venue("London 3", "Somewhere fancy"))
+      )
+      def venueNewcastle = randOne(List(Venue("Newcastle 1", "Longbenton"), Venue("Newcastle 2", "Benton Park View"),
+        Venue("Newcastle 3", "Cathedral Square"))
+      )
+      def venue = if (location.name == "London") { venueLondon } else { venueNewcastle }
       def date = LocalDate.now()
       def capacity = randOne(List(32, 24, 16, 8, 4, 30, 28))
       def minViableAttendees = capacity - randOne(List(2, 3, 4, 1))

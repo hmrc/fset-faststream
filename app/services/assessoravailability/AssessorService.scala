@@ -16,59 +16,58 @@
 
 package services.assessoravailability
 
-import model.Exceptions.AssessorNotFoundException
-import model.exchange.AssessorAvailability
+import common.FutureEx
+import model.exchange
 import model.persisted
-import model.persisted.assessor
-import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.Exceptions.AssessorNotFoundException
+import model.persisted.eventschedules.Location
+import model.persisted.eventschedules.SkillType.SkillType
+import model.persisted.assessor.AssessorStatus
 import org.joda.time.LocalDate
 import repositories._
+import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
-  val assessmentCentreYamlRepository: AssessmentCentreRepository = AssessmentCentreYamlRepository
+  val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
 }
 
 trait AssessorService {
   val assessorRepository: AssessorRepository
-  val assessmentCentreYamlRepository: AssessmentCentreRepository
+  val locationsWithVenuesRepo: LocationsWithVenuesRepository
 
-  lazy val regions: Future[Set[String]] = assessmentCentreYamlRepository.assessmentCentreCapacities.map(
-    _.map(
-      _.regionName.toLowerCase
-    ).toSet
-  )
+  lazy val locations: Future[Set[Location]] = locationsWithVenuesRepo.locations
 
   def saveAssessor(userId: String, assessor: model.exchange.Assessor): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
         // TODO: If we change skills, we have to decide if we want to reset the availability
-        val assessorToPersist = Assessor(
+        val assessorToPersist = model.persisted.assessor.Assessor(
           userId, assessor.skills, assessor.civilServant, existing.availability, existing.status
         )
         assessorRepository.save(assessorToPersist).map(_ => ())
       case _ =>
-        val assessorToPersist = persisted.assessor.Assessor(
-          userId, assessor.skills, assessor.civilServant, List.empty, AssessorStatus.CREATED
+        val assessorToPersist = model.persisted.assessor.Assessor(
+          userId, assessor.skills, assessor.civilServant, Nil, AssessorStatus.CREATED
         )
         assessorRepository.save(assessorToPersist).map(_ => ())
     }
   }
 
   def addAvailability(userId: String, assessorAvailabilities: List[model.exchange.AssessorAvailability]): Future[Unit] = {
-    def toPersisted(availabilities: List[model.exchange.AssessorAvailability]) =
-      availabilities.map { exchange => model.persisted.assessor.AssessorAvailability.apply(exchange) }
-
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
-        val newAvailabilities = toPersisted(assessorAvailabilities)
-        val mergedAvailability = existing.availability ++ newAvailabilities
-        val assessorToPersist = assessor.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability,
-          AssessorStatus.AVAILABILITIES_SUBMITTED)
-        assessorRepository.save(assessorToPersist).map(_ => ())
+        exchangeToPersistedAvailability(assessorAvailabilities).flatMap { newAvailabilities =>
+          val mergedAvailability = existing.availability ++ newAvailabilities
+          val assessorToPersist = model.persisted.assessor.Assessor(userId, existing.skills, existing.civilServant, mergedAvailability,
+            AssessorStatus.AVAILABILITIES_SUBMITTED
+          )
+
+          assessorRepository.save(assessorToPersist).map(_ => ())
+        }
       case _ => throw AssessorNotFoundException(userId)
     }
   }
@@ -85,6 +84,14 @@ trait AssessorService {
     }
   }
 
+  def findAvailabilitiesForLocationAndDate(locationName: String, date: LocalDate,
+    skills: Seq[SkillType]): Future[Seq[model.exchange.Assessor]] = for {
+    location <- locationsWithVenuesRepo.location(locationName)
+    assessorList <- assessorRepository.findAvailabilitiesForLocationAndDate(location, date, skills)
+  } yield assessorList.map { assessor =>
+      model.exchange.Assessor(assessor.userId, assessor.skills, assessor.civilServant)
+  }
+
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {
     for {
       assessorOpt <- assessorRepository.find(userId)
@@ -96,6 +103,21 @@ trait AssessorService {
   }
 
   def countSubmittedAvailability(): Future[Int] = {
-    assessorRepository.countSubmittedAvailability
+    //assessorRepository.countSubmittedAvailability
+    Future.successful(0)
   }
+
+  def allocateToEvent(assessorIds: List[String], eventId: String, version: String): Future[Unit] = {
+    Future.successful(())
+  }
+
+  private def exchangeToPersistedAvailability(a: Seq[exchange.AssessorAvailability]): Future[Seq[persisted.assessor.AssessorAvailability]] = {
+    FutureEx.traverseSerial(a) { availability =>
+      locationsWithVenuesRepo.location(availability.location).map { location =>
+        model.persisted.assessor.AssessorAvailability(location, availability.date)
+      }
+    }
+  }
+
+
 }

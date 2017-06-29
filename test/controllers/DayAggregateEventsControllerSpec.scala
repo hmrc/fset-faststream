@@ -23,7 +23,7 @@ import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.events.EventsRepository
+import repositories.events.{EventsRepository, LocationsWithVenuesRepository}
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -36,26 +36,29 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
   "find" should {
 
     "returns day aggregated events when search by skills" in new TestFixture {
-      when(mockEventsRepo.fetchEvents(None, None, None, Some(MySkills)))
+      when(mockEventsRepo.getEvents(None, None, None, Some(MySkills)))
         .thenReturn(Future.successful(EventExamples.EventsNew))
       val res = controller.findBySkillTypes(MySkills.mkString(","))(FakeRequest())
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
-      resReal mustBe EventExamples.DayAggregateEventsNew
+      resReal must contain theSameElementsAs EventExamples.DayAggregateEventsNew
     }
 
-    "returns day aggregated events when search by location and skills§" in new TestFixture {
-      val location = "London"
-      when(mockEventsRepo.fetchEvents(None, None, Some(location), Some(MySkills)))
+    "returns day aggregated events when search by location and skills" in new TestFixture {
+      val location = EventExamples.LocationLondon
+      when(mockLocationsWithVenuesRepo.location(location.name)).thenReturn(Future.successful(location))
+      when(mockEventsRepo.getEvents(None, None, Some(location), Some(MySkills)))
         .thenReturn(Future.successful(EventExamples.EventsNew.filter(_.location == location)))
-      val res = controller.findBySkillTypesAndLocation(MySkills.mkString(","), location)(FakeRequest())
+
+      val res = controller.findBySkillTypesAndLocation(MySkills.mkString(","), location.name)(FakeRequest())
+
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
-      resReal mustBe EventExamples.DayAggregateEventsNew.filter(_.location == location)
+      resReal must contain theSameElementsAs EventExamples.DayAggregateEventsNew.filter(_.location == location)
     }
 
     "return EMPTY list when nothing found" in new TestFixture {
-      when(mockEventsRepo.fetchEvents(None, None, None, Some(MySkills)))
+      when(mockEventsRepo.getEvents(None, None, None, Some(MySkills)))
         .thenReturn(Future.successful(List.empty[Event]))
       val res = controller.findBySkillTypes(MySkills.mkString(","))(FakeRequest())
       status(res) mustBe OK
@@ -66,8 +69,10 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockEventsRepo: EventsRepository = mock[EventsRepository]
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val controller = new DayAggregateEventController {
-      override val eventsRepository: EventsRepository = mockEventsRepo
+      val eventsRepository: EventsRepository = mockEventsRepo
+      val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
 }

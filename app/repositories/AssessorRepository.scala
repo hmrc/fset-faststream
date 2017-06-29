@@ -16,7 +16,11 @@
 
 package repositories
 
-import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.AllocationStatuses
+import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
+import model.persisted.eventschedules.Location
+import model.persisted.eventschedules.SkillType.SkillType
+import org.joda.time.LocalDate
 import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.bson._
@@ -29,10 +33,10 @@ import scala.concurrent.Future
 trait AssessorRepository {
 
   def find(userId: String): Future[Option[Assessor]]
-
   def save(settings: Assessor): Future[Unit]
-
   def countSubmittedAvailability: Future[Int]
+  def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]]
+  def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]]
 }
 
 class AssessorMongoRepository(implicit mongo: () => DB)
@@ -40,19 +44,15 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     Assessor.persistedAssessorFormat,
     ReactiveMongoFormats.objectIdFormats) with AssessorRepository with ReactiveRepositoryHelpers {
 
-  override def find(userId: String): Future[Option[Assessor]] = {
+  def find(userId: String): Future[Option[Assessor]] = {
     val query = BSONDocument(
       "userId" -> userId
     )
 
-    collection.find(query).one[BSONDocument].map { docOpt =>
-      docOpt.map { doc =>
-        assessorHandler.read(doc)
-      }
-    }
+    collection.find(query).one[Assessor]
   }
 
-  override def save(assessor: Assessor): Future[Unit] = {
+  def save(assessor: Assessor): Future[Unit] = {
     require(assessor.availability.isEmpty || assessor.status == AssessorStatus.AVAILABILITIES_SUBMITTED,
       "Can't submit assessor availabilities with new status")
     val query = BSONDocument("userId" -> assessor.userId)
@@ -63,9 +63,30 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     collection.update(query, saveBson, upsert = insertIfNoRecordFound) map assessorValidator
   }
 
-  override def countSubmittedAvailability: Future[Int] = {
+  def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("skills" -> BSONDocument("$in" -> skills)),
+      BSONDocument("availability" ->
+        BSONDocument("$elemMatch" -> BSONArray(
+          BSONDocument("location" -> location),
+          BSONDocument("date" -> date),
+          BSONDocument("allocation" -> BSONDocument("$exists" -> false))
+        )))
+    ))
+
+    collection.find(query).cursor[Assessor]().collect[Seq]()
+  }
+
+  def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]] = {
+    val query = BSONDocument("allocation" -> BSONDocument("$elemMatch" -> BSONDocument(
+      "id" -> eventId
+    )))
+
+    collection.find(query).cursor[Assessor]().collect[Seq]()
+  }
+
+  def countSubmittedAvailability: Future[Int] = {
     val query = Json.obj(Seq("status" -> Json.toJsFieldJsValueWrapper(AssessorStatus.AVAILABILITIES_SUBMITTED.toString)): _*)
     collection.count(Some(query))
   }
-
 }

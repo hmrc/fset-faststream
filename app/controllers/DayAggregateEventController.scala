@@ -16,40 +16,45 @@
 
 package controllers
 
+import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
-import play.api.libs.json.{ Json, OFormat }
-import play.api.mvc.{ Action, AnyContent }
-import repositories.events.EventsRepository
+import play.api.libs.json.{Json, OFormat}
+import play.api.mvc.{Action, AnyContent}
+import repositories.events.{ EventsRepository, LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object DayAggregateEventController extends DayAggregateEventController {
-  override val eventsRepository: EventsRepository = repositories.eventsRepository
+  val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository
+  val eventsRepository: EventsRepository = repositories.eventsRepository
 }
 
 trait DayAggregateEventController extends BaseController {
+  def locationsWithVenuesRepo: LocationsWithVenuesRepository
   def eventsRepository: EventsRepository
 
   def findBySkillTypes(skillTypes: String): Action[AnyContent] = Action.async { implicit request =>
-    find(Some(skillTypes), None)
+    find(Some(skillTypes), None).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )
   }
 
   def findBySkillTypesAndLocation(skillTypes: String, location: String): Action[AnyContent] = Action.async { implicit request =>
-    find(Some(skillTypes), Some(location))
+    locationsWithVenuesRepo.location(location).flatMap { location =>
+      find(Some(skillTypes), Some(location))
+    }.map(dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)))
   }
 
-  private def find(skillTypes: Option[String], location: Option[String]) = {
+  private def find(skillTypes: Option[String], location: Option[Location]) = {
     val skillTypesList = skillTypes.map(_.split(",").toList)
-    eventsRepository.fetchEvents(None, None, location, skillTypesList)
-      .map { events =>
-        val dayAggregateDays = events.groupBy(e => DayAggregateEvent(e.date, e.location)).keys.toList
-        Ok(Json.toJson(dayAggregateDays))
-      }
+
+    eventsRepository.getEvents(None, None, location, skillTypesList).map {
+      _.groupBy(e => DayAggregateEvent(e.date, e.location)).keys.toList
+    }
   }
 }
 
-case class DayAggregateEvent(date: LocalDate, location: String)
+case class DayAggregateEvent(date: LocalDate, location: Location)
 
 object DayAggregateEvent {
   implicit val dayAggregateEventFormat: OFormat[DayAggregateEvent] = Json.format[DayAggregateEvent]

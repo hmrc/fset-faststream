@@ -16,29 +16,33 @@
 
 package services.assessor
 
-import model.Exceptions
-import model.Exceptions.AssessorNotFoundException
-import model.exchange.{ Assessor, AssessorAvailability }
-import model.persisted.AssessorExamples._
-import org.mockito.ArgumentMatchers.{ eq => eqTo }
+import org.mockito.ArgumentMatchers.{eq => eqTo}
 import org.mockito.Mockito._
-import repositories.{ AssessmentCentreRepository, AssessorRepository }
 import services.BaseServiceSpec
 import services.assessoravailability.AssessorService
+import org.mockito.ArgumentMatchers._
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import model.Exceptions
+import model.Exceptions.AssessorNotFoundException
+import model.persisted.EventExamples
+import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.assessor.AssessorExamples._
+import repositories.AssessorRepository
+import repositories.events.LocationsWithVenuesRepository
+
+import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 class AssessorServiceSpec extends BaseServiceSpec {
 
-  "save assessor" should {
+  "save assessor" must {
 
     "save NEW assessor when assessor is new" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
       when(mockAssessorRepository.save(eqTo(AssessorNew))).thenReturn(Future.successful(()))
-      val response = service.saveAssessor(AssessorUserId, Assessor.apply(AssessorNew)).futureValue
+      val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor.apply(AssessorNew)).futureValue
       response mustBe unit
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
       verify(mockAssessorRepository).save(eqTo(AssessorNew))
@@ -48,20 +52,20 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorMerged))).thenReturn(Future.successful(()))
-      val response = service.saveAssessor(AssessorUserId, Assessor.apply(AssessorNew)).futureValue
+      val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor.apply(AssessorNew)).futureValue
       response mustBe unit
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
       verify(mockAssessorRepository).save(eqTo(AssessorMerged))
     }
   }
 
-  "add availability" should {
+  "add availability" must {
 
     "throw assessor not found exception when assessor cannot be found" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
 
-      val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply(_))
+      val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
 
       intercept[AssessorNotFoundException] {
         Await.result(service.addAvailability(AssessorUserId, exchangeAvailability), 10 seconds)
@@ -73,8 +77,9 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(Some(AssessorExisting)))
       when(mockAssessorRepository.save(eqTo(AssessorWithAvailabilityMerged))).thenReturn(Future.successful(()))
+      when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(EventExamples.LocationLondon))
 
-      val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply(_))
+      val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
 
       val result = service.addAvailability(AssessorUserId, exchangeAvailability).futureValue
 
@@ -86,7 +91,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
   }
 
 
-  "find assessor" should {
+  "find assessor" must {
     "return assessor details" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturn(Future.successful(Some(AssessorExisting)))
 
@@ -129,13 +134,19 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
   }
 
-  trait TestFixture  {
+  trait TestFixture {
     val mockAssessorRepository = mock[AssessorRepository]
-    val mockAssessmentCentreYamlRepository = mock[AssessmentCentreRepository]
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
 
+    when(mockLocationsWithVenuesRepo.venues).thenReturn(Future.successful(
+      Set(Venue("london fsac", "bush house"), Venue("virtual", "virtual venue"))
+    ))
+    when(mockLocationsWithVenuesRepo.locations).thenReturn(Future.successful(
+      Set(Location("London"))
+    ))
     val service = new AssessorService {
-      override val assessorRepository: AssessorRepository = mockAssessorRepository
-      override val assessmentCentreYamlRepository: AssessmentCentreRepository = mockAssessmentCentreYamlRepository
+      val assessorRepository: AssessorRepository = mockAssessorRepository
+      val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
 }

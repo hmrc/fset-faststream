@@ -16,19 +16,21 @@
 
 package model.persisted.assessor
 
-import model.persisted.assessor.AssessorStatus.AssessorStatus
-import play.api.libs.json.{Json, OFormat}
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import model.AllocationStatuses.AllocationStatus
+import model.persisted.eventschedules.SkillType.SkillType
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-case class Assessor(
-  userId: String,
-  skills: List[String],
-  civilServant: Boolean,
-  availability: List[AssessorAvailability] = Nil,
-  status: AssessorStatus
+
+case class AssessorAllocation(
+  assessorId: String,
+  eventId: String,
+  status: AllocationStatus,
+  allocatedAs: SkillType,
+  version: String
 )
 
-object Assessor {
-  implicit val persistedAssessorFormat: OFormat[Assessor] = Json.format[Assessor]
-  implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
+object AssessorAllocation {
+  implicit val allocationFormat = Json.format[AssessorAllocation]
+  implicit val allocationHandler = Macros.handler[AssessorAllocation]
 }

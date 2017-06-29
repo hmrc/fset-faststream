@@ -1,6 +1,8 @@
 package repositories
 
-import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
+import model.persisted.EventExamples
+import model.persisted.eventschedules.Location
+import model.persisted.assessor.{Assessor, AssessorAvailability, AssessorStatus}
 import org.joda.time.LocalDate
 import testkit.MongoRepositorySpec
 
@@ -13,7 +15,8 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
   private val userId = "123"
   private val AssessorWithAvailabilities = Assessor(userId,
     List("assessor", "qac"), true,
-    List(AssessorAvailability("london", new LocalDate(2017, 9, 11)), AssessorAvailability("newcastle", new LocalDate(2017, 9, 12))),
+    List(AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
+      AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))),
     AssessorStatus.AVAILABILITIES_SUBMITTED
   )
 
@@ -29,7 +32,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
     }
 
     "save and find the assessor" in {
-
+      val userId = "123"
       repository.save(AssessorWithAvailabilities).futureValue
 
       val result = repository.find(userId).futureValue
@@ -44,9 +47,9 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
       val updated = AssessorWithAvailabilities.copy(
         availability = List(
-          AssessorAvailability("london", new LocalDate(2017, 9, 11)),
-          AssessorAvailability("london", new LocalDate(2017, 10, 11)),
-          AssessorAvailability("newcastle", new LocalDate(2017, 9, 12)))
+          AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
+          AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 10, 11)),
+          AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12)))
       )
       repository.save(updated).futureValue
 

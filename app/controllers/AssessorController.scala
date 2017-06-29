@@ -17,13 +17,16 @@
 package controllers
 
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.{ Assessor, AssessorAvailability }
+import model.exchange.{Assessor, AssessorAvailability}
+import model.persisted.eventschedules.SkillType.SkillType
+import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import services.assessoravailability.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object AssessorController extends AssessorController {
   val assessorService = AssessorService
@@ -65,7 +68,17 @@ trait AssessorController extends BaseController {
     assessorService.countSubmittedAvailability().map { count =>
       Ok(Json.obj("size" -> count))
     } recover {
-      case ex: Throwable => InternalServerError("Could not retrieve a count of submitted assessor availabilities")
+      case e: Throwable => InternalServerError(s"Could not retrieve a count of submitted assessor availabilities: ${e.getMessage}")
     }
+  }
+
+  def findAvailableAssessorsForLocationAndDate(locationName: String, date: LocalDate,
+    skills: List[SkillType]): Action[AnyContent] = Action.async { implicit request =>
+    assessorService.findAvailabilitiesForLocationAndDate(locationName, date, skills).map { a => Ok(Json.toJson(a)) }
+  }
+
+  def allocateToEvent(assessorId: String, eventId: String): Action[AnyContent] = Action.async { implicit request =>
+
+    Future.successful(Ok(""))
   }
 }

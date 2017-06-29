@@ -18,40 +18,48 @@ package model.persisted
 
 import controllers.DayAggregateEvent
 import factories.UUIDFactory
-import model.persisted.eventschedules.{ Event, EventType, SkillType, VenueType }
+import model.persisted.eventschedules.{ Event, EventType, SkillType, Venue, Location }
 import org.joda.time.{ LocalDate, LocalTime }
 
 object EventExamples {
+  val VenueAll = Venue("All", "All venues")
+  val VenueLondon = Venue("London FSAC", "Bush House")
+  val VenueNewcastle = Venue("Newcastle FSAC", "Longbenton")
 
+  val LocationAll = Location("All")
+  val LocationLondon = Location("London")
+  val LocationNewcastle = Location("Newcastle")
   val EventsNew = List(
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "PDFS FSB", location = "London",
-      venue = VenueType.LONDON_FSAC, date = LocalDate.parse("2017-06-20"), capacity = 67, minViableAttendees = 60,
+    Event(id = "1", eventType = EventType.FSAC, description = "PDFS FSB", location = LocationLondon,
+      venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
 
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "GCFS FSB", location = "London",
-      venue = VenueType.LONDON_FSAC, date = LocalDate.parse("2017-06-20"), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      skillRequirements = Map("QAC" -> 18)),
-
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.TELEPHONE_INTERVIEW, description = "ORAC", location = "London",
-      venue = VenueType.LONDON_FSAC, date = LocalDate.parse("2017-06-20"), capacity = 67, minViableAttendees = 60,
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "GCFS FSB", location = LocationLondon,
+      venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
       skillRequirements = Map()),
 
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.SKYPE_INTERVIEW, description = "GCFS FSB", location = "Newcastle",
-      venue = VenueType.NEWCASTLE_LONGBENTON, date = LocalDate.parse("2017-06-20"), capacity = 67, minViableAttendees = 60,
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.TELEPHONE_INTERVIEW, description = "ORAC", location = LocationLondon,
+      venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
+      skillRequirements = Map()),
+
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.SKYPE_INTERVIEW, description = "GCFS FSB", location = LocationNewcastle,
+      venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
       skillRequirements = Map(SkillType.ASSESSOR.toString -> 1)),
 
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "PDFS FSB", location = "Newcastle",
-      venue = VenueType.NEWCASTLE_LONGBENTON, date = LocalDate.parse("2017-06-20"), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map())
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "DFS FSB", location = LocationNewcastle,
+      venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(
+        "QAC" -> 1
+      ))
 
   )
 
   val DayAggregateEventsNew = List(
-    DayAggregateEvent(new LocalDate("2017-06-20"), "London"),
-    DayAggregateEvent(new LocalDate("2017-06-20"), "Newcastle")
+    DayAggregateEvent(LocalDate.now, LocationLondon),
+    DayAggregateEvent(LocalDate.now, LocationNewcastle)
   )
 
 }

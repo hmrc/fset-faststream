@@ -16,42 +16,63 @@
 
 package controllers
 
-import model.persisted.eventschedules.{ EventType, VenueType }
-import play.api.Logger
+import model.Exceptions.EventNotFoundException
+import model.persisted.eventschedules.EventType
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import repositories.events.EventsRepository
-import services.events.EventsParsingService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.mvc.{Action, AnyContent}
+import repositories.events.{LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository, UnknownVenueException}
 
 import scala.concurrent.Future
+import scala.util.Try
+import services.events.EventsService
+import uk.gov.hmrc.play.microservice.controller.BaseController
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
-  val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
-  val assessmentCenterParsingService: EventsParsingService = EventsParsingService
+  val eventsService: EventsService = EventsService
+  val locationsAndVenues: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
 }
 
 trait EventsController extends BaseController {
-  val assessmentEventsRepository: EventsRepository
-  val assessmentCenterParsingService: EventsParsingService
+  def eventsService: EventsService
+  def locationsAndVenues: LocationsWithVenuesRepository
+
+  def venuesForEvents: Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenues.venues.map(x => Ok(Json.toJson(x)))
+  }
+
+  def locationsForEvents: Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenues.locations.map(x => Ok(Json.toJson(x)))
+  }
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
-    assessmentCenterParsingService.processCentres().flatMap{ events =>
-      Logger.debug("Events have been processed!")
-      assessmentEventsRepository.save(events)
-    }.map(_ => Created).recover { case _ => UnprocessableEntity }
+    eventsService.saveAssessmentEvents().map(_ => Created("Events saved")).recover { case _ => UnprocessableEntity }
   }
 
   def getEvent(eventId: String): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(""))
+    eventsService.getEvent(eventId).map { event =>
+      Ok(Json.toJson(event))
+    }.recover {
+      case _: EventNotFoundException => NotFound(s"No event found with id $eventId")
+    }
   }
 
-  def fetchEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
-    // convert params to native enum type
-    val eventType = EventType.withName(eventTypeParam.toUpperCase)
-    val venue = VenueType.withName(venueParam.toUpperCase)
+  def getEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
+    val events =  Try {
+        val eventType = EventType.withName(eventTypeParam.toUpperCase)
+        locationsAndVenues.venue(venueParam).flatMap { venue =>
+          eventsService.getEvents(eventType, venue).map { events =>
+            Ok(Json.toJson(events))
+          }
+        }
+    }
 
-    assessmentEventsRepository.fetchEvents(Some(eventType), Some(venue), None, None).map(events => Ok(Json.toJson(events)))
+    play.api.Logger.debug(s"$events")
+
+    Future.fromTry(events) flatMap identity recover {
+      case _: NoSuchElementException => BadRequest(s"$eventTypeParam is not a valid event type")
+      case _: UnknownVenueException => BadRequest(s"$venueParam is not a valid venue")
+    }
   }
 }
