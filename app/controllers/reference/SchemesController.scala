@@ -19,7 +19,7 @@ package controllers.reference
 import model.Scheme
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import repositories.SchemeYamlRepository
+import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.Await
@@ -27,11 +27,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.Success
 
-object SchemesController extends SchemesController
+object SchemesController extends SchemesController{
+  val repo = SchemeYamlRepository
+}
 
 trait SchemesController extends BaseController {
+  def repo: SchemeRepositoryImpl
 
   def allSchemes: Action[AnyContent] = Action.async { implicit request =>
-    SchemeYamlRepository.schemes.map(s => Ok(Json.toJson(s)))
+    repo.schemes.map(s => Ok(Json.toJson(s)))
   }
 }

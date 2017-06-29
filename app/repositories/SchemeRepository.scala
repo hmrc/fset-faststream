@@ -40,7 +40,7 @@ trait SchemeRepositoryImpl {
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
 
-  lazy val schemes = Future.successful {
+  lazy val schemes = Future {
     import SchemeConfigProtocol._
 
     rawConfig.parseYaml.convertTo[List[Scheme]]

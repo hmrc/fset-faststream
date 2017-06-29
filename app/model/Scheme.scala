@@ -22,6 +22,6 @@ import reactivemongo.bson.Macros
 case class Scheme(id: String, code: String, name: String)
 
 object Scheme {
-  implicit val jsonFormat = Json.format[Scheme]
-  implicit val bsonFormat = Macros.handler[Scheme]
+  implicit val schemeFormat = Json.format[Scheme]
+  implicit val schemeHandler = Macros.handler[Scheme]
 }
