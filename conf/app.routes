@@ -125,6 +125,7 @@ GET         /assessor/availability/count-submitted                       control
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
+GET         /events/venues-for-events                                    controllers.EventsController.venuesForEvents
 
 # Day aggregate events
 GET         /day-aggregate-events/skills/:skillTypes                     controllers.DayAggregateEventController.findBySkillTypes(skillTypes: String)
