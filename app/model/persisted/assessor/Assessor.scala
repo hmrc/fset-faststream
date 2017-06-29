@@ -17,18 +17,28 @@
 package model.persisted.assessor
 
 import model.persisted.assessor.AssessorStatus.AssessorStatus
-import play.api.libs.json.{Json, OFormat}
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import org.joda.time.LocalDate
+import play.api.libs.json._
 
 case class Assessor(
-  userId: String,
-  skills: List[String],
+  userId: String, 
+  skills: List[String], 
   civilServant: Boolean,
-  availability: List[AssessorAvailability] = Nil,
+  sifterSchemes: List[String],
+  availability: List[AssessorAvailability] = Nil, 
   status: AssessorStatus
 )
 
 object Assessor {
   implicit val persistedAssessorFormat: OFormat[Assessor] = Json.format[Assessor]
-  implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
+}
+
+case class AssessorAvailability(location: String, date: LocalDate)
+
+object AssessorAvailability {
+  implicit val persistedAssessorAvailabilityFormat: OFormat[AssessorAvailability] = Json.format[AssessorAvailability]
+
+  def apply(exchange: model.exchange.AssessorAvailability): AssessorAvailability = {
+    AssessorAvailability(exchange.location, exchange.date)
+  }
 }
