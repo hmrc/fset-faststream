@@ -49,6 +49,9 @@ PUT         /questionnaire/:applicationId/:sectionKey                    control
 
 GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
 POST        /search/find-by-criteria                                     controllers.SearchForApplicantsController.findByCriteria
+
+GET         /applications/sifting/:schema                                controllers.SiftingController.findSiftingEligible(schema: String)
+PUT         /applications/:applicationId/sifting/:siftingPass            controllers.SiftingController.submitSifting(applicationId: String, siftingPass: Boolean)
 GET         /report/diversity/:frameworkId                               controllers.ReportingController.diversityReport(frameworkId: String)
 GET         /report/time-to-offer/:frameworkId                           controllers.ReportingController.timeToOfferReport(frameworkId: String)
 GET         /report/adjustments/:frameworkId                             controllers.ReportingController.adjustmentReport(frameworkId: String)
