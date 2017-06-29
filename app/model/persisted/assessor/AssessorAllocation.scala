@@ -30,7 +30,7 @@ case class AssessorAllocation(
   version: String
 )
 
-object Allocation {
+object AssessorAllocation {
   implicit val allocationFormat = Json.format[AssessorAllocation]
   implicit val allocationHandler = Macros.handler[AssessorAllocation]
 }
