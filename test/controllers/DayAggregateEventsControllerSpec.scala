@@ -41,7 +41,7 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
       val res = controller.findBySkillTypes(MySkills.mkString(","))(FakeRequest())
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
-      resReal mustBe EventExamples.DayAggregateEventsNew
+      resReal must contain theSameElementsAs EventExamples.DayAggregateEventsNew
     }
 
     "returns day aggregated events when search by location and skills" in new TestFixture {
@@ -54,7 +54,7 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
 
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
-      resReal mustBe EventExamples.DayAggregateEventsNew.filter(_.location == location)
+      resReal must contain theSameElementsAs EventExamples.DayAggregateEventsNew.filter(_.location == location)
     }
 
     "return EMPTY list when nothing found" in new TestFixture {

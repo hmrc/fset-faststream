@@ -65,6 +65,8 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       repository.save(availability2).futureValue
 
       val result = repository.countSubmittedAvailability.futureValue
+
+      result mustBe 2
     }
   }
 }

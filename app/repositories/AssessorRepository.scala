@@ -85,13 +85,8 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     collection.find(query).cursor[Assessor]().collect[Seq]()
   }
 
-  // TODO Fix this when availability submission is complete
-  def countSubmittedAvailability: Future[Int] = Future.successful(0)
-  //  AssessorService.locations.map { location =>
-  //      s"availability.${location.name}" -> Json.toJsFieldJsValueWrapper(Json.obj("$exists" -> true))
-  //  }.map { fields =>
-  //    val query = Json.obj(fields.toSeq: _*)
-  //    collection.count(Some(query))
-  //  }
-  //}
+  def countSubmittedAvailability: Future[Int] = {
+    val query = Json.obj(Seq("status" -> Json.toJsFieldJsValueWrapper(AssessorStatus.AVAILABILITIES_SUBMITTED.toString)): _*)
+    collection.count(Some(query))
+  }
 }
