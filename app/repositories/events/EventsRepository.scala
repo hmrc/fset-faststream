@@ -32,7 +32,7 @@ import scala.concurrent.Future
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def getEvent(id: String): Future[Event]
-  def fetchEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
+  def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Option[List[String]] = None): Future[List[Event]]
 }
 
@@ -53,7 +53,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
     }
   }
 
-  def fetchEvents(eventType: Option[EventType] = None, venueType: Option[Venue] = None,
+  def getEvents(eventType: Option[EventType] = None, venueType: Option[Venue] = None,
     location: Option[Location] = None, skills: Option[List[String]] = None
   ): Future[List[Event]] = {
     val query = List(

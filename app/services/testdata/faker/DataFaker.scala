@@ -25,7 +25,7 @@ import model.persisted.eventschedules._
 import model.exchange.AssessorAvailability
 import org.joda.time.{LocalDate, LocalTime}
 import repositories._
-import repositories.events.LocationsWithVenuesYamlRepository
+import repositories.events.LocationsWithVenuesInMemoryRepository
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.ExecutionContext.Implicits.global

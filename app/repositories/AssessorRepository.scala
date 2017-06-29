@@ -36,7 +36,7 @@ trait AssessorRepository {
   def save(settings: Assessor): Future[Unit]
   def countSubmittedAvailability: Future[Int]
   def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]]
-  def assessorsForEvent(eventId: String): Future[Seq[Assessor]]
+  def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]]
 }
 
 class AssessorMongoRepository(implicit mongo: () => DB)
@@ -77,7 +77,7 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     collection.find(query).cursor[Assessor]().collect[Seq]()
   }
 
-  def assessorsForEvent(eventId: String): Future[Seq[Assessor]] = {
+  def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]] = {
     val query = BSONDocument("allocation" -> BSONDocument("$elemMatch" -> BSONDocument(
       "id" -> eventId
     )))

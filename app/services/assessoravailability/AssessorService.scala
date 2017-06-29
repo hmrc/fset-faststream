@@ -25,14 +25,14 @@ import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.assessor.AssessorStatus
 import org.joda.time.LocalDate
 import repositories._
-import repositories.events.{LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository}
+import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
-  val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesYamlRepository
+  val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
 }
 
 trait AssessorService {
@@ -111,7 +111,7 @@ trait AssessorService {
     Future.successful(())
   }
 
-  def exchangeToPersistedAvailability(a: Seq[exchange.AssessorAvailability]): Future[Seq[persisted.assessor.AssessorAvailability]] = {
+  private def exchangeToPersistedAvailability(a: Seq[exchange.AssessorAvailability]): Future[Seq[persisted.assessor.AssessorAvailability]] = {
     FutureEx.traverseSerial(a) { availability =>
       locationsWithVenuesRepo.location(availability.location).map { location =>
         model.persisted.assessor.AssessorAvailability(location, availability.date)

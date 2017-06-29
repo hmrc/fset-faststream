@@ -22,7 +22,7 @@ import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
-import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository }
+import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
 import resource._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,7 +31,7 @@ import scala.util.{ Failure, Try }
 
 object EventsParsingService extends EventsParsingService {
 
-  val locationsWithVenuesRepo = LocationsWithVenuesYamlRepository
+  val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository
 
   def fileContents: Future[List[String]] = Future.successful {
     val input = managed(Play.current.resourceAsStream("fset-faststream-event-schedule.csv").get)

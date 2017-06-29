@@ -68,7 +68,7 @@ trait AssessorController extends BaseController {
     assessorService.countSubmittedAvailability().map { count =>
       Ok(Json.obj("size" -> count))
     } recover {
-      case _: Throwable => InternalServerError("Could not retrieve a count of submitted assessor availabilities")
+      case e: Throwable => InternalServerError(s"Could not retrieve a count of submitted assessor availabilities: ${e.getMessage}")
     }
   }
 

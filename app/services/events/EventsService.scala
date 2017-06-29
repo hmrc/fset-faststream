@@ -46,7 +46,7 @@ trait EventsService {
     eventsRepo.getEvent(id)
   }
 
-  def fetchEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
-    eventsRepo.fetchEvents(Some(eventType), Some(venue))
+  def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
+    eventsRepo.getEvents(Some(eventType), Some(venue))
   }
 }

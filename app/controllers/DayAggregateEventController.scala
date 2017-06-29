@@ -20,14 +20,14 @@ import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent}
-import repositories.events.{EventsRepository, LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository}
+import repositories.events.{ EventsRepository, LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object DayAggregateEventController extends DayAggregateEventController {
-  val locationsWithVenuesRepo = LocationsWithVenuesYamlRepository
+  val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository
   val eventsRepository: EventsRepository = repositories.eventsRepository
 }
 
@@ -48,7 +48,7 @@ trait DayAggregateEventController extends BaseController {
   private def find(skillTypes: Option[String], location: Option[Location]) = {
     val skillTypesList = skillTypes.map(_.split(",").toList)
 
-    eventsRepository.fetchEvents(None, None, location, skillTypesList).map {
+    eventsRepository.getEvents(None, None, location, skillTypesList).map {
       _.groupBy(e => DayAggregateEvent(e.date, e.location)).keys.toList
     }
   }

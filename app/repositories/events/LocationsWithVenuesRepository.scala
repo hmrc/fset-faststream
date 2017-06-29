@@ -48,7 +48,7 @@ trait LocationsWithVenuesRepository {
   def venue(name: String): Future[Venue]
 }
 
-trait LocationsWithVenuesRepositoryImpl extends LocationsWithVenuesRepository {
+trait LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepository {
 
   import play.api.Play.current
 
@@ -83,9 +83,7 @@ trait LocationsWithVenuesRepositoryImpl extends LocationsWithVenuesRepository {
 
   def asLocationWithVenues[A](obj: A): List[LocationWithVenue] = {
     // TODO: This java library forces creation of this complex statement. Investigate alternatives.
-    // scalastyle:off
     val root = obj.asInstanceOf[util.LinkedHashMap[String, util.ArrayList[util.LinkedHashMap[String, util.LinkedHashMap[String, _]]]]].asScala
-    // scalastyle:on
 
     val locations = root.map {
       case (loc, venues) =>
@@ -101,7 +99,7 @@ trait LocationsWithVenuesRepositoryImpl extends LocationsWithVenuesRepository {
   }
 }
 
-object LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepositoryImpl {
+object LocationsWithVenuesInMemoryRepository extends LocationsWithVenuesYamlRepository {
   import config.MicroserviceAppConfig.locationsAndVenuesConfig
   val locationsAndVenuesFilePath: String = locationsAndVenuesConfig.yamlFilePath
 }

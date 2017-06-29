@@ -20,7 +20,7 @@ import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.EventType
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent}
-import repositories.events.{LocationsWithVenuesRepository, LocationsWithVenuesYamlRepository, UnknownVenueException}
+import repositories.events.{LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository, UnknownVenueException}
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
-  val locationsAndVenues: LocationsWithVenuesRepository = LocationsWithVenuesYamlRepository
+  val locationsAndVenues: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
 }
 
 trait EventsController extends BaseController {
@@ -58,11 +58,11 @@ trait EventsController extends BaseController {
     }
   }
 
-  def fetchEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
+  def getEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
     val events =  Try {
         val eventType = EventType.withName(eventTypeParam.toUpperCase)
         locationsAndVenues.venue(venueParam).flatMap { venue =>
-          eventsService.fetchEvents(eventType, venue).map { events =>
+          eventsService.getEvents(eventType, venue).map { events =>
             Ok(Json.toJson(events))
           }
         }

@@ -50,21 +50,21 @@ class EventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return OK with all events" in new TestFixture {
-      when(mockEventsService.fetchEvents(any[EventType.EventType], any[Venue])).thenReturn(Future.successful(
+      when(mockEventsService.getEvents(any[EventType.EventType], any[Venue])).thenReturn(Future.successful(
         MockEvent :: Nil
       ))
 
-      val res = controller.fetchEvents("FSAC","LONDON_FSAC")(FakeRequest())
+      val res = controller.getEvents("FSAC","LONDON_FSAC")(FakeRequest())
       status(res) mustBe OK
     }
 
      "return 400 for invalid event" in new TestFixture {
-       status(controller.fetchEvents("blah","LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
+       status(controller.getEvents("blah","LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
     }
 
      "return 400 for invalid venue type" in new TestFixture {
        when(mockLocationsWithVenuesRepo.venue("blah")).thenReturn(Future.failed(UnknownVenueException("")))
-       status(controller.fetchEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
+       status(controller.getEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
     }
 
     "return 200 for an event for an id" in new TestFixture {

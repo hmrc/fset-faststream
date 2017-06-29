@@ -32,25 +32,25 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "save and fetch events" in {
-      val result = repository.fetchEvents(Some(EventType.FSAC), Some(EventExamples.VenueLondon)).futureValue
+      val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 2
     }
 
     "filter FSAC in LONDON_FSAC events" in {
-      val result = repository.fetchEvents(Some(EventType.FSAC), Some(EventExamples.VenueLondon)).futureValue
+      val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 2
       result.contains(EventExamples.EventsNew.head) mustBe true
       result.contains(EventExamples.EventsNew.tail.head) mustBe true
     }
 
     "filter SKYPE_INTERVIEW in NEWCASTLE_LONGBENTON " in {
-      val result = repository.fetchEvents(Some(EventType.SKYPE_INTERVIEW), Some(EventExamples.VenueNewcastle)).futureValue
+      val result = repository.getEvents(Some(EventType.SKYPE_INTERVIEW), Some(EventExamples.VenueNewcastle)).futureValue
       result.size mustBe 1
       result.head.venue mustBe EventExamples.VenueNewcastle
     }
 
     "filter by skills" in {
-      val result = repository.fetchEvents(None, None, None, Some(List("QAC"))).futureValue
+      val result = repository.getEvents(None, None, None, Some(List("QAC"))).futureValue
 
       result.size mustBe 1
       result.head.venue mustBe EventExamples.VenueNewcastle
@@ -58,14 +58,14 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "filter by skills and Location" in {
-      val result = repository.fetchEvents(None, None, Some(EventExamples.LocationNewcastle), Some(List(SkillType.ASSESSOR.toString))).futureValue
-      ret sult.size mustBe 1
+      val result = repository.getEvents(None, None, Some(EventExamples.LocationNewcastle), Some(List(SkillType.ASSESSOR.toString))).futureValue
+      result.size mustBe 1
 
       result.head.venue mustBe EventExamples.VenueNewcastle
     }
 
     "filter ALL_EVENTS in LONDON_FSAC" in {
-      val result = repository.fetchEvents(Some(EventType.ALL_EVENTS), Some(EventExamples.VenueLondon)).futureValue
+      val result = repository.getEvents(Some(EventType.ALL_EVENTS), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 3
       result.exists(_.eventType == EventType.TELEPHONE_INTERVIEW) mustBe true
       result.forall(_.venue == VenueType.LONDON_FSAC)
@@ -73,13 +73,13 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "filter FSAC in ALL_VENUES"  in {
-      val result = repository.fetchEvents(Some(EventType.FSAC), Some(EventExamples.VenueAll)).futureValue
+      val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueAll)).futureValue
       result.size mustBe 3
     }
 
 
     "filter and return empty list" in {
-      val result = repository.fetchEvents(Some(EventType.TELEPHONE_INTERVIEW), Some(EventExamples.VenueNewcastle)).futureValue
+      val result = repository.getEvents(Some(EventType.TELEPHONE_INTERVIEW), Some(EventExamples.VenueNewcastle)).futureValue
       result.size mustBe 0
     }
 
