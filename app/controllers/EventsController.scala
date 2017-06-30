@@ -17,10 +17,13 @@
 package controllers
 
 import model.Exceptions.EventNotFoundException
+import model.exchange
+import model.command
 import model.persisted.eventschedules.EventType
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent}
-import repositories.events.{LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository, UnknownVenueException}
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Action, AnyContent }
+import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
+import services.allocation.AssessorAllocationService
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -32,11 +35,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
   val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+  val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
 }
 
 trait EventsController extends BaseController {
   def eventsService: EventsService
   def locationsAndVenuesRepository: LocationsWithVenuesRepository
+  def assessorAllocationService: AssessorAllocationService
 
   def venuesForEvents: Action[AnyContent] = Action.async { implicit request =>
     locationsAndVenuesRepository.venues.map(x => Ok(Json.toJson(x)))
@@ -75,4 +80,12 @@ trait EventsController extends BaseController {
       case _: UnknownVenueException => BadRequest(s"$venueParam is not a valid venue")
     }
   }
+
+  def allocate(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
+      val newAllocations = model.command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
+      assessorAllocationService.allocate(newAllocations).map( _ => Ok)
+    }
+  }
+
 }

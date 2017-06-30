@@ -16,10 +16,11 @@
 
 package services.events
 
-import model.persisted.eventschedules.{Event, Venue}
+import model.exchange.AssessorAllocation
+import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.Logger
-import repositories.events.{EventsMongoRepository, EventsRepository}
+import repositories.events.{ EventsMongoRepository, EventsRepository }
 import repositories.eventsRepository
 
 import scala.concurrent.Future
@@ -49,4 +50,5 @@ trait EventsService {
   def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue))
   }
+
 }
