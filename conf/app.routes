@@ -117,14 +117,11 @@ GET         /assessor/availability/find/:userId                          control
 GET         /assessor/availability/:locationName/:date                   controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: List[model.persisted.eventschedules.SkillType.SkillType])
 GET         /assessor/availability/count-submitted                       controllers.AssessorController.countSubmittedAvailability()
 
-# Assessment Centres
-#GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)
-#GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
-
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
+PUT         /events/:eventId/allocate                                    controllers.EventsController.allocate(eventId: String)
 
 # Day aggregate events
 GET         /day-aggregate-events/skills/:skillTypes                     controllers.DayAggregateEventController.findBySkillTypes(skillTypes: String)
