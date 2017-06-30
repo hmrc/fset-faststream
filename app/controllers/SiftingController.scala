@@ -17,20 +17,16 @@
 package controllers
 
 import model.Commands._
-import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
-import model.{ ApplicationRoute, SchemeType }
+import model.{ EvaluationResults, SchemeType }
+import model.exchange.ApplicationSifting
+import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import repositories._
-import repositories.application.GeneralApplicationRepository
-import repositories.contactdetails.ContactDetailsRepository
-import repositories.personaldetails.PersonalDetailsRepository
 import repositories.sifting.SiftingRepository
-import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object SiftingController extends SiftingController {
   val siftAppRepository = siftingRepository
@@ -48,8 +44,17 @@ trait SiftingController extends BaseController {
     }
   }
 
-  def submitSifting(applicationId: String, siftingPass: Boolean) = Action.async { implicit request =>
-    siftAppRepository.siftCandidate(applicationId, siftingPass).map(_ => Ok(""))
+  def fromPassMark(s: String): EvaluationResults.Result = s match {
+    case "Pass" => EvaluationResults.Green
+    case "Fail" => EvaluationResults.Red
+    case _ => sys.error(s"Unsupported evaluation result $s for sifting")
   }
 
+
+  def submitSifting: Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[ApplicationSifting] { sift =>
+      siftAppRepository.siftCandidate(sift.applicationId,
+        SchemeEvaluationResult(sift.scheme, fromPassMark(sift.result).toString)).map(_ => Ok)
+    }
+  }
 }
