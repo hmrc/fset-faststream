@@ -97,7 +97,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
     val controller = new EventsController {
       val eventsService = mockEventsService
-      val locationsAndVenues: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
+      val locationsAndVenuesRepository: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
 }

@@ -31,19 +31,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
-  val locationsAndVenues: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
 }
 
 trait EventsController extends BaseController {
   def eventsService: EventsService
-  def locationsAndVenues: LocationsWithVenuesRepository
+  def locationsAndVenuesRepository: LocationsWithVenuesRepository
 
   def venuesForEvents: Action[AnyContent] = Action.async { implicit request =>
-    locationsAndVenues.venues.map(x => Ok(Json.toJson(x)))
+    locationsAndVenuesRepository.venues.map(x => Ok(Json.toJson(x)))
   }
 
   def locationsForEvents: Action[AnyContent] = Action.async { implicit request =>
-    locationsAndVenues.locations.map(x => Ok(Json.toJson(x)))
+    locationsAndVenuesRepository.locations.map(x => Ok(Json.toJson(x)))
   }
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
@@ -61,7 +61,7 @@ trait EventsController extends BaseController {
   def getEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
     val events =  Try {
         val eventType = EventType.withName(eventTypeParam.toUpperCase)
-        locationsAndVenues.venue(venueParam).flatMap { venue =>
+        locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
           eventsService.getEvents(eventType, venue).map { events =>
             Ok(Json.toJson(events))
           }
