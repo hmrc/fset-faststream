@@ -13,6 +13,7 @@ import reactivemongo.json.ImplicitBSONHandlers
 
 import scala.concurrent.Future
 import config.MicroserviceAppConfig.cubiksGatewayConfig
+import model.SchemeType
 import repositories.CollectionNames
 
 trait ApplicationDataFixture {
@@ -175,6 +176,7 @@ trait ApplicationDataFixture {
         needsSupportAtVenue, isGis, typeOfEtrayOnlineAdjustments),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
+      "scheme-preferences" -> schemes,
       "testGroups" -> testGroups(phase1TestProfile, phase2TestGroup, phase3TestGroup)
     )
 
@@ -182,6 +184,8 @@ trait ApplicationDataFixture {
   }
   // scalastyle:on method.length
   // scalastyle:on parameter.number
+
+  private def schemes: BSONDocument = BSONDocument("schemes" -> List(SchemeType.Commercial, SchemeType.Edip, SchemeType.Finance))
 
   private def testGroups(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup], p3: Option[Phase3TestGroup]): BSONDocument = {
     BSONDocument("PHASE1" -> p1.map(Phase1TestProfile.bsonHandler.write),

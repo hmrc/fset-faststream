@@ -16,10 +16,9 @@
 
 package repositories.sifting
 
-import config.CubiksGatewayConfig
 import model.Commands.{ Candidate, CreateApplicationRequest }
 import model.EvaluationResults.Green
-import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId }
+import model.Exceptions.ApplicationNotFound
 import model.SchemeType.SchemeType
 import model.persisted.SchemeEvaluationResult
 import model.{ ApplicationStatus, Commands }
@@ -27,7 +26,6 @@ import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{ CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
-import services.TimeZoneService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -41,11 +39,9 @@ trait SiftingRepository {
   def findSiftingEligible(chosenSchema: SchemeType): Future[List[Candidate]]
 
   def siftCandidate(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
-
 }
 
-class SiftingMongoRepository(timeZoneService: TimeZoneService,
-                             gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
+class SiftingMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with SiftingRepository with RandomSelection with CommonBSONDocuments
@@ -77,12 +73,13 @@ class SiftingMongoRepository(timeZoneService: TimeZoneService,
     ))
 
     val query = BSONDocument("$and" -> BSONArray(
-      // doesn't work - BSONDocument(s"application-status" -> ApplicationStatus.PHASE3_TESTS_PASSED),
+      BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED),
       BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
       BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(chosenSchema))),
       BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
       videoInterviewPassed,
-      notSiftedOnScheme))
+      notSiftedOnScheme
+    ))
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
   }
 
