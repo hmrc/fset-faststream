@@ -28,11 +28,19 @@ class SiftingRepositorySpec extends MongoRepositorySpec with CommonRepository {
       candidate.applicationId mustBe Some(AppId)
     }
 
-    "mark as Passed sifting" in {
+    "sift candidate as Passed" in {
       createSiftEligibleCandidates(UserId, AppId)
       repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.Commercial, "Green")).futureValue
       val candidates = repository.findSiftingEligible(SchemeType.Commercial).futureValue
       candidates.size mustBe 0
+    }
+
+    "not able to submit sifting for the same scheme twice" in {
+      createSiftEligibleCandidates(UserId, AppId)
+      repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.Commercial, "Green")).futureValue
+      intercept[Exception] {
+        repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.Commercial, "Red")).futureValue
+      }
     }
   }
 
