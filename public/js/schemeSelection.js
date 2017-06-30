@@ -1,8 +1,7 @@
 $(function () {
   var schemePrefArray = ['Empty'];
-  var firstEmptyPosition = $.inArray('Empty', schemePrefArray);
   var maxSchemes = 3;
-  var numberOfSchemas = $('[data-schemename]').length;
+  var numberOfSchemes = $('[data-schemename]').length;
 
   function getGetOrdinal(n) {
     var s=["th","st","nd","rd"],
@@ -63,7 +62,7 @@ $(function () {
       $this.closest('.scheme-container').addClass('selected-scheme')
         .find('.selected-preference').text(getGetOrdinal(arrayPositionNow + 1)).removeClass('invisible');
 
-      if($('[data-schemename]:checked').length == maxSchemes) {
+      if($('[data-schemename]:checked').length === maxSchemes) {
         $('[data-schemename]:not(:checked)').attr('disabled', true).closest('label').addClass('disabled');
         $('#selectedPrefList').after('<div id="schemeWarning" class="panel-info standard-panel"><p>You\'ve chosen the maximum number of schemes</p></div>');
       }
@@ -83,21 +82,8 @@ $(function () {
       $('#schemeWarning').remove();
     }
 
-    var chosenPreferences = $('[data-schemeorder]').map(function () {
-      return $(this).text();
-    }).get();
-
-    var arrayOfChosen = $.makeArray(chosenPreferences);
-    var differenceArray = [];
-    var initialVal = 0;
-
-    if (differenceArray[0] === undefined) {
-      $('#chosenLimit').removeClass('hidden');
-      $('#chooseYourPrefs').addClass('hidden');
-    } else {
-      $('#chosenLimit').addClass('hidden');
-      $('#chooseYourPrefs').removeClass('hidden');
-    }
+    $('#chosenLimit').addClass('hidden');
+    $('#chooseYourPrefs').removeClass('hidden');
 
     if ($('input[data-schemename]:checked').length > 0) {
       $('[data-scheme-placeholder]').addClass(
@@ -122,14 +108,14 @@ $(function () {
 
     schemesAfter.each(function () {
       var schemeID = $(this).attr('data-scheme-id');
-
-      $('#' + schemeID).trigger('click');
-      $('#' + schemeID).trigger('click');
+      var scheme = $('#' + schemeID);
+      scheme.trigger('click');
+      scheme.trigger('click');
     });
   });
 
   function selectSchemes() {
-    for (i = 0; i < numberOfSchemes; i++) {
+    for (var i = 0; i < numberOfSchemes; i++) {
       var scheme = $('#scheme_' + i).val();
       if (scheme !== '') {
         var sid = "#schemes_" + scheme;
