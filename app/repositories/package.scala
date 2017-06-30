@@ -126,7 +126,12 @@ package object repositories {
     assessorRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
 
     eventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending),
-      ("location", Ascending), ("venue", Ascending)), unique = false))
+      ("location", Ascending), ("venue", Ascending)), unique = false)),
+
+    assessorAllocationRepository.collection.indexesManager.create(Index(
+      Seq("id"-> Ascending, "eventId" -> Ascending),
+      unique = false
+    ))
   )), 20 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
