@@ -152,4 +152,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String], start: Int,
                                                         end: Int): Future[CandidatesEligibleForEventResponse] = ???
+
+  override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = ???
 }

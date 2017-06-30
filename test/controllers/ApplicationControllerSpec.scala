@@ -200,8 +200,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
 
     "handle candidates" in new TestFixture {
-      val candidate = CandidateEligibleForEvent(userId = "userId", applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
-        needsAdjustment = true)
+      val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
+        needsAdjustment = true, dateReadyString = "16 Sep 2017")
       when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]], any[Int], any[Int]))
         .thenReturn(Future.successful(CandidatesEligibleForEventResponse(List(candidate), 1)))
 

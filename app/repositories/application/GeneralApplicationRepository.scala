@@ -129,6 +129,8 @@ trait GeneralApplicationRepository {
               frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
 
   def findCandidatesEligibleForEventAllocation(locations: List[String], start: Int, end: Int): Future[CandidatesEligibleForEventResponse]
+
+  def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse]
   }
 
 // scalastyle:off number.of.methods
@@ -904,7 +906,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           "applicationId" -> true,
           "personal-details.firstName" -> true,
           "personal-details.lastName" -> true,
-          "assistance-details.needsSupportAtVenue" -> true
+          "assistance-details.needsSupportAtVenue" -> true,
+          "progress-status-timestamp" -> true
         )
 
         val ascending = JsNumber(1)
@@ -922,15 +925,51 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     }
   }
 
+  override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED)//,
+      //TODO: put this back in when the requirement is clear
+//      BSONDocument("assessment-centre-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
+    ))
+
+    collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
+      val count = c.count
+
+      if (count == 0) {
+        Future.successful(CandidatesEligibleForEventResponse(List.empty, 0))
+      } else {
+        val projection = BSONDocument(
+          "applicationId" -> true,
+          "personal-details.firstName" -> true,
+          "personal-details.lastName" -> true,
+          "assistance-details.needsSupportAtVenue" -> true,
+          "progress-status-timestamp" -> true
+        )
+
+        val ascending = JsNumber(1)
+        val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
+
+        collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List]()
+          .map { docList =>
+            docList.map { doc =>
+              bsonDocToCandidatesEligibleForEvent(doc)
+            }
+          }.flatMap { result =>
+          Future.successful(CandidatesEligibleForEventResponse(result, count))
+        }
+      }
+    }
+  }
+
   private def bsonDocToCandidatesEligibleForEvent(doc: BSONDocument) = {
-    val userId = doc.getAs[String]("userId").get
     val applicationId = doc.getAs[String]("applicationId").get
     val personalDetails = doc.getAs[BSONDocument]("personal-details").get
     val firstName = personalDetails.getAs[String]("firstName").get
     val lastName = personalDetails.getAs[String]("lastName").get
     val needsAdjustment = doc.getAs[BSONDocument]("assistance-details").flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)
+    val dateReady = doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](ApplicationStatus.PHASE3_TESTS_PASSED))
 
-    CandidateEligibleForEvent(userId, applicationId, firstName, lastName, needsAdjustment)
+    CandidateEligibleForEvent(applicationId, firstName, lastName, needsAdjustment, dateReady.map(_.toString("dd MMM yyyy")).getOrElse(""))
   }
 
   private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {

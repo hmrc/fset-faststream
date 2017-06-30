@@ -19,14 +19,12 @@ package model.exchange
 import play.api.libs.json.{ Format, Json }
 
 case class CandidateEligibleForEvent(
-  userId: String,
   applicationId: String,
   firstName: String,
   lastName: String,
-  needsAdjustment: Boolean)
+  needsAdjustment: Boolean,
+  dateReadyString: String)
 
 object CandidateEligibleForEvent {
-  implicit val CandidateEligibleForEventFormats: Format[CandidateEligibleForEvent] = Json.format[CandidateEligibleForEvent]
-//  implicit val ApplicationForAssessmentFormats = Json.format[ApplicationForAssessmentAllocation]
-//  implicit val ApplicationForAssessmentAllocationResultFormats = Json.format[ApplicationForAssessmentAllocationResult]
+  implicit val CandidateEligibleForEventFormat: Format[CandidateEligibleForEvent] = Json.format[CandidateEligibleForEvent]
 }

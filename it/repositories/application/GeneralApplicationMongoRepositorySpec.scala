@@ -22,7 +22,7 @@ import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
 import model.exchange.CandidatesEligibleForEventResponse
 import model.{ ApplicationStatus, _ }
 import org.joda.time.{ DateTime, LocalDate }
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+import reactivemongo.bson.{ BSONDocument, BSONArray }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ ApplicationRoute, apply => _ }
@@ -635,14 +635,24 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-  private def createApplications(num: Int): Future[Unit] =
+  private def createApplications(num: Int): Future[Unit] = {
+    import repositories.BSONDateTimeHandler
+    val timestampDocument = BSONDocument(
+      "progress-status-timestamp" -> BSONDocument(
+        s"${ProgressStatuses.PHASE3_TESTS_PASSED}" -> DateTime.now()
+      )
+    )
+
     Future.sequence(
       (0 until num).map { i =>
         testDataRepo.createApplicationWithAllFields(
           UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
-          firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d")
-      ) }
+          firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d"),
+          additionalDoc = timestampDocument
+        )
+      }
     ).map(_ => ())
+  }
 
   "find candidates eligible for event allocation" should {
     "return an empty list when there are no applications" in {
