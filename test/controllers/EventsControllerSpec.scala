@@ -18,16 +18,17 @@ package controllers
 
 import config.TestFixtureBase
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{Event, Location, Venue}
+import model.persisted.eventschedules.{ Event, Location, Venue }
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.VenueType
-import org.joda.time.{LocalDate, LocalTime}
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
-import repositories.events.{LocationsWithVenuesRepository, UnknownVenueException}
+import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
+import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import testkit.UnitWithAppSpec
 
@@ -85,6 +86,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockEventsService = mock[EventsService]
+    val mockAssessorAllocationService = mock[AssessorAllocationService]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val MockVenue = Venue("London FSAC", "Bush House")
     val MockLocation = Location("London")
@@ -97,6 +99,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
     val controller = new EventsController {
       val eventsService = mockEventsService
+      val assessorAllocationService = mockAssessorAllocationService
       val locationsAndVenues: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }

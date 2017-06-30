@@ -20,7 +20,7 @@ import model.Exceptions.EventNotFoundException
 import model.exchange
 import model.command
 import model.persisted.eventschedules.EventType
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
@@ -81,9 +81,9 @@ trait EventsController extends BaseController {
     }
   }
 
-  def allocate(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+  def allocate(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
-      val newAllocations = command.AssessorAllocations.fromExchange(assessorAllocations)
+      val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
       assessorAllocationService.allocate(newAllocations).map( _ => Ok(""))
     }
   }
