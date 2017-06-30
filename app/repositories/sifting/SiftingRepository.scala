@@ -90,19 +90,8 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
       "$set" -> BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "1")
     )
 
+    val find = BSONDocument("applicationId" -> applicationId)
 
-    val notSiftedOnScheme = BSONDocument("$or" -> BSONArray(
-      BSONDocument(s"testGroups.$phaseName.evaluation.result" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"testGroups.$phaseName.evaluation.result" ->
-        BSONDocument("$elemMatch" -> BSONDocument("scheme" -> BSONDocument("$exists" -> false))))
-    ))
-
-    val find = BSONDocument("$and" ->
-      BSONArray(
-        BSONDocument("applicationId" -> applicationId),
-        notSiftedOnScheme
-      )
-    )
     val validator = singleUpdateValidator(applicationId, s"submitting $phaseName results", ApplicationNotFound(applicationId))
     collection.update(find, update) map validator
   }
