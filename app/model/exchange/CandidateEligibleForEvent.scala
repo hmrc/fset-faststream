@@ -16,6 +16,7 @@
 
 package model.exchange
 
+import org.joda.time.DateTime
 import play.api.libs.json.{ Format, Json }
 
 case class CandidateEligibleForEvent(
@@ -23,7 +24,7 @@ case class CandidateEligibleForEvent(
   firstName: String,
   lastName: String,
   needsAdjustment: Boolean,
-  dateReadyString: String)
+  dateReady: DateTime)
 
 object CandidateEligibleForEvent {
   implicit val CandidateEligibleForEventFormat: Format[CandidateEligibleForEvent] = Json.format[CandidateEligibleForEvent]

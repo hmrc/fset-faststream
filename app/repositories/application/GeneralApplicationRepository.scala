@@ -969,7 +969,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val needsAdjustment = doc.getAs[BSONDocument]("assistance-details").flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)
     val dateReady = doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](ApplicationStatus.PHASE3_TESTS_PASSED))
 
-    CandidateEligibleForEvent(applicationId, firstName, lastName, needsAdjustment, dateReady.map(_.toString("dd MMM yyyy")).getOrElse(""))
+    CandidateEligibleForEvent(applicationId, firstName, lastName, needsAdjustment, dateReady.getOrElse(DateTime.now()))
   }
 
   private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
