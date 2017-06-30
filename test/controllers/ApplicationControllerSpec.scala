@@ -24,6 +24,7 @@ import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventRes
 import model.{ ApplicationRoute, SchemeType }
 import model.command.WithdrawApplication
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -201,7 +202,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
     "handle candidates" in new TestFixture {
       val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
-        needsAdjustment = true, dateReadyString = "16 Sep 2017")
+        needsAdjustment = true, dateReady = DateTime.now())
       when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]], any[Int], any[Int]))
         .thenReturn(Future.successful(CandidatesEligibleForEventResponse(List(candidate), 1)))
 
