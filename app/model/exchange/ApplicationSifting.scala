@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package model
+package model.exchange
 
-import model.Commands.Candidate
+import model.SchemeType._
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-object CandidateExamples {
-  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+case class ApplicationSifting(applicationId: String, scheme: SchemeType, result: String)
 
+object ApplicationSifting {
+  implicit val schemeEvaluationResultFormat = Json.format[ApplicationSifting]
+  implicit val schemeEvaluationResultHandler = Macros.handler[ApplicationSifting]
 
-  val NewCandidates = List(minCandidate("John"), minCandidate("Galt"))
 }

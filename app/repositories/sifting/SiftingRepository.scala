@@ -19,7 +19,9 @@ package repositories.sifting
 import config.CubiksGatewayConfig
 import model.Commands.{ Candidate, CreateApplicationRequest }
 import model.EvaluationResults.Green
+import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId }
 import model.SchemeType.SchemeType
+import model.persisted.SchemeEvaluationResult
 import model.{ ApplicationStatus, Commands }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
@@ -34,9 +36,11 @@ import scala.concurrent.Future
 
 trait SiftingRepository {
 
+  val phaseName = "SIFT_PHASE"
+
   def findSiftingEligible(chosenSchema: SchemeType): Future[List[Candidate]]
 
-  def siftCandidate(applicationId: String, siftingPassed: Boolean): Future[Unit]
+  def siftCandidate(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
 
 }
 
@@ -63,26 +67,34 @@ class SiftingMongoRepository(timeZoneService: TimeZoneService,
     */
 
   override def findSiftingEligible(chosenSchema: SchemeType): Future[List[Candidate]] = {
+    val videoInterviewPassed = BSONDocument("testGroups.PHASE3.evaluation.result" ->
+      BSONDocument("$elemMatch" -> BSONDocument("scheme" -> chosenSchema, "result" -> Green.toString)))
+
+    val notSiftedOnScheme = BSONDocument("$or" -> BSONArray(
+      BSONDocument(s"testGroups.$phaseName.evaluation.result" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"testGroups.$phaseName.evaluation.result" ->
+        BSONDocument("$elemMatch" -> BSONDocument("scheme" -> BSONDocument("$exists" -> false))))
+    ))
+
     val query = BSONDocument("$and" -> BSONArray(
       // doesn't work - BSONDocument(s"application-status" -> ApplicationStatus.PHASE3_TESTS_PASSED),
       BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
-      // ??? BSONDocument(s"progress-status.SILFT_FILTER_COMPLETED" -> BSONDocument("$ne" -> true)),
       BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(chosenSchema))),
-      BSONDocument("testGroups.PHASE3.evaluation.result" ->
-        BSONDocument("$elemMatch" -> BSONDocument("scheme" -> chosenSchema, "result" -> Green.toString))),
       BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"siftingPassed" -> BSONDocument("$exists" -> false))
-    ))
+      videoInterviewPassed,
+      notSiftedOnScheme))
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
   }
 
-  override def siftCandidate(applicationId: String, siftingPassed: Boolean): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val applicationBSON = BSONDocument("$set" -> BSONDocument(
-      "siftingPassed" -> siftingPassed
-    ))
+  override def siftCandidate(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
 
-    val validator = singleUpdateValidator(applicationId, actionDesc = "sifting")
-    collection.update(query, applicationBSON) map validator
+    val update = BSONDocument(
+      "$addToSet" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result),
+      "$set" -> BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "1")
+    )
+
+    val find = BSONDocument("applicationId" -> applicationId)
+    val validator = singleUpdateValidator(applicationId, s"submitting $phaseName results", ApplicationNotFound(applicationId))
+    collection.update(find, update) map validator
   }
 }
