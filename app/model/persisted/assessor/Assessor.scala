@@ -23,8 +23,8 @@ import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 case class Assessor(
   userId: String,
   skills: List[String],
-  civilServant: Boolean,
   sifterSchemes: List[String],
+  civilServant: Boolean,
   availability: List[AssessorAvailability] = Nil,
   status: AssessorStatus
 )

@@ -24,6 +24,7 @@ import play.api.Play
 import resource._
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
 

@@ -46,7 +46,7 @@ trait AssessorService {
       case Some(existing) =>
         // TODO: If we change skills, we have to decide if we want to reset the availability
         val assessorToPersist = model.persisted.assessor.Assessor(
-          userId, assessor.skills, assessor.civilServant, existing.availability, existing.status
+          userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, existing.availability, existing.status
         )
         assessorRepository.save(assessorToPersist).map(_ => ())
       case _ =>
@@ -89,7 +89,7 @@ trait AssessorService {
     location <- locationsWithVenuesRepo.location(locationName)
     assessorList <- assessorRepository.findAvailabilitiesForLocationAndDate(location, date, skills)
   } yield assessorList.map { assessor =>
-      model.exchange.Assessor(assessor.userId, assessor.skills, assessor.civilServant)
+      model.exchange.Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
   }
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {
