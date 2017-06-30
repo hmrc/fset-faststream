@@ -38,10 +38,10 @@ trait AssessorAllocationService {
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
-    getAllocations(newAllocations.eventId).map { existingAllocation =>
+    getAllocations(newAllocations.eventId).flatMap { existingAllocation =>
       existingAllocation.allocations match {
-        case Nil => allocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations))
-        case _ => updateExistingAllocations(existingAllocation, newAllocations)
+        case Nil => allocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
+        case _ => updateExistingAllocations(existingAllocation, newAllocations).map(_ => ())
 
       }
     }

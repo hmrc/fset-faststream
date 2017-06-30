@@ -19,8 +19,9 @@ package repositories
 import common.FutureEx
 import model.Exceptions.TooManyEventIdsException
 import model.persisted.{ Allocation, AssessorAllocation, CandidateAllocation }
-import play.api.libs.json.OFormat
+import play.api.libs.json.{ JsObject, OFormat }
 import reactivemongo.api.DB
+import reactivemongo.api.commands.MultiBulkWriteResult
 import reactivemongo.bson._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -28,22 +29,19 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { this: ReactiveRepository[_, _] =>
+trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { this: ReactiveRepository[T, BSONObjectID] =>
+
+  val format: OFormat[T]
 
   val projection = BSONDocument("_id" -> false)
 
-  def find(id: String)(implicit jsonFormat: OFormat[T]): Future[Option[T]] = {
+  def find(id: String): Future[Option[T]] = {
     collection.find(BSONDocument("id" -> id), projection).one[T]
   }
 
-  // TODO what do we do when one of these upserts fails?
-  def save(allocations: Seq[T])(implicit jsonFormat: OFormat[T]): Future[Unit] = {
-    FutureEx.traverseSerial(allocations) { allocation =>
-      collection.update(BSONDocument("eventId" -> allocation.eventId, "id" -> allocation.id), allocation, upsert = true)
-        .map { result =>
-          ()
-        }
-    }.map { _ => () }
+  def save(allocations: Seq[T]): Future[Unit] = {
+    val jsObjects = allocations.map(format.writes)
+    collection.bulkInsert(jsObjects.toStream, ordered = false) map (_ => ())
   }
 
   def delete(allocations: Seq[T]): Future[Unit] = {
@@ -64,7 +62,7 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
 
   }
 
-  def allocationsForEvent(eventId: String)(implicit jsonFormat: OFormat[T]): Future[Seq[T]] = {
+  def allocationsForEvent(eventId: String): Future[Seq[T]] = {
     collection.find(BSONDocument("eventId" -> eventId), projection).cursor[T]().collect[Seq]()
   }
 
@@ -73,9 +71,13 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
 class AssessorAllocationMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[AssessorAllocation, BSONObjectID](CollectionNames.ALLOCATION, mongo, AssessorAllocation.assessorAllocationFormat,
     ReactiveMongoFormats.objectIdFormats
-  ) with AllocationRepository[AssessorAllocation] with ReactiveRepositoryHelpers { }
+  ) with AllocationRepository[AssessorAllocation] with ReactiveRepositoryHelpers {
+  val format = AssessorAllocation.assessorAllocationFormat
+}
 
 class CandidateAllocationMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[CandidateAllocation, BSONObjectID](CollectionNames.ALLOCATION, mongo, CandidateAllocation.candidateAllocationFormat,
     ReactiveMongoFormats.objectIdFormats
-  ) with AllocationRepository[CandidateAllocation] with ReactiveRepositoryHelpers { }
+  ) with AllocationRepository[CandidateAllocation] with ReactiveRepositoryHelpers {
+  val format = CandidateAllocation.candidateAllocationFormat
+}

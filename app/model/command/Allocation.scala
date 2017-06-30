@@ -51,8 +51,8 @@ object AssessorAllocations {
 
   def apply(o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
     val (opLock, eventId) = o.map( a => a.version -> a.eventId).distinct match {
-      case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions or event Ids ${head +: tail}")
       case head :: Nil => head
+      case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions or event Ids ${head +: tail}")
     }
 
     AssessorAllocations(opLock, eventId, o.map { a => AssessorAllocation(a.id, a.status, a.allocatedAs) })
