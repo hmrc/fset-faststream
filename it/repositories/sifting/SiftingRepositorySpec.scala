@@ -35,14 +35,14 @@ class SiftingRepositorySpec extends MongoRepositorySpec with CommonRepository {
       candidates.size mustBe 0
     }
 
-//    TODO: implement this case
+    //    TODO: implement this case
     // "not able to submit sifting for the same scheme twice" in {
-//      createSiftEligibleCandidates(UserId, AppId)
-//      repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.Commercial, "Green")).futureValue
-//      intercept[Exception] {
-//        repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.Commercial, "Red")).futureValue
-//      }
-//    }
+    //      createSiftEligibleCandidates(UserId, AppId)
+    //      repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.Commercial, "Green")).futureValue
+    //      intercept[Exception] {
+    //        repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.Commercial, "Red")).futureValue
+    //      }
+    //    }
 
     "submit difference schemes" in {
       createSiftEligibleCandidates(UserId, AppId)
@@ -53,22 +53,27 @@ class SiftingRepositorySpec extends MongoRepositorySpec with CommonRepository {
     "eligible for other schema after sifting on one" in {
       createSiftEligibleCandidates(UserId, AppId)
       repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.European, "Red")).futureValue
-      val candidates = repository.findSiftingEligible(SchemeType.Commercial).futureValue
+      val candidates = repository.findSiftingEligible(SchemeType.Sdip).futureValue
       candidates.size mustBe 1
     }
 
   }
 
+  import SchemeType._
+
   private def createSiftEligibleCandidates(userId: String, appId: String) = {
     val resultToSave = List(
-      SchemeEvaluationResult(SchemeType.Commercial, Green.toString),
-      SchemeEvaluationResult(SchemeType.Sdip, Green.toString),
-      SchemeEvaluationResult(SchemeType.European, Green.toString)
+      SchemeEvaluationResult(Commercial, Green.toString),
+      SchemeEvaluationResult(Sdip, Green.toString),
+      SchemeEvaluationResult(European, Green.toString)
     )
 
     val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
-    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
-      Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
+    insertApplication(appId,
+      ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
+      Some(phase3TestWithResult),
+      schemes = List(Commercial, Sdip, European),
+      phase2Evaluation = Some(phase2Evaluation))
 
     val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
       "phase3_version1-res", Some("phase2_version1-res"))
