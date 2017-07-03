@@ -123,8 +123,8 @@ GET         /events/venues-for-events                                    control
 GET         /events/locations-for-events                                 controllers.EventsController.locationsForEvents
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
-PUT         /events/:eventId/allocate                                    controllers.EventsController.allocate(eventId: String)
-GET         /events/:eventId/allocations                                 controllers.EventsController.allocations(eventId: String)
+PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
+GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
 GET         /events-with-allocations-summary/:venueType/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueType: model.persisted.eventschedules.VenueType.VenueType, eventType: model.persisted.eventschedules.EventType.EventType)
 
 # Day aggregate events
