@@ -33,8 +33,8 @@ trait AssessorAllocationService {
 
   def allocationRepo: AssessorAllocationMongoRepository
 
-  def getAllocations(eventId: String): Future[command.AssessorAllocations] = {
-    allocationRepo.allocationsForEvent(eventId).map { a => command.AssessorAllocations.apply(a) }
+  def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
+    allocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
@@ -47,10 +47,10 @@ trait AssessorAllocationService {
     }
   }
 
-  private def updateExistingAllocations(existingAllocation: command.AssessorAllocations,
+  private def updateExistingAllocations(existingAllocation: exchange.AssessorAllocations,
     newAllocations: command.AssessorAllocations): Future[Unit] = {
 
-    if (newAllocations.version == existingAllocation.version) {
+    if (existingAllocation.version.forall(_ == newAllocations.version)) {
       // no prior update since reading so do update
       // check what's been updated here so we can send email notifications
       val toPersist = persisted.AssessorAllocation.fromCommand(newAllocations)

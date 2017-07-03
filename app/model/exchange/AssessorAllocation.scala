@@ -44,12 +44,13 @@ object AssessorAllocations {
   implicit val assessorAllocationsFormat = Json.format[AssessorAllocations]
 
   def apply(o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
-    val opLock = o.map(_.version).distinct match {
-      case head :: Nil => head
-      case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
-    }
+      val opLock = o.map(_.version).distinct match {
+        case head :: Nil => Some(head)
+        case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
+        case Nil => None
+      }
 
-    AssessorAllocations(Some(opLock), o.map { a => AssessorAllocation(a.id, a.status, a.allocatedAs) })
+      AssessorAllocations(opLock, o.map { a => AssessorAllocation(a.id, a.status, a.allocatedAs) })
   }
 }
 
@@ -61,7 +62,7 @@ case class CandidateAllocation(
 
 object CandidateAllocation {
   implicit val candidateAllocationFormat = Json.format[CandidateAllocation]
-  implicit def fromPersisted(o: model.persisted.CandidateAllocation): CandidateAllocation = {
+  def fromPersisted(o: model.persisted.CandidateAllocation): CandidateAllocation = {
     CandidateAllocation(o.id, o.status)
   }
 }

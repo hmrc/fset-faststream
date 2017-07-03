@@ -49,10 +49,11 @@ case class AssessorAllocations(
 object AssessorAllocations {
   implicit val assessorAllocationsFormat = Json.format[AssessorAllocations]
 
-  def apply(o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
-    val (opLock, eventId) = o.map( a => a.version -> a.eventId).distinct match {
+  def apply(eventId: String, o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
+    val opLock = o.map(_.version).distinct match {
       case head :: Nil => head
-      case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions or event Ids ${head +: tail}")
+      case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
+      case Nil => UUIDFactory.generateUUID()
     }
 
     AssessorAllocations(opLock, eventId, o.map { a => AssessorAllocation(a.id, a.status, a.allocatedAs) })
