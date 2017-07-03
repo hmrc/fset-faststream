@@ -68,7 +68,11 @@ trait EventsController extends BaseController {
         val eventType = EventType.withName(eventTypeParam.toUpperCase)
         locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
           eventsService.getEvents(eventType, venue).map { events =>
-            Ok(Json.toJson(events))
+            if (events.isEmpty) {
+              NotFound
+            } else {
+              Ok(Json.toJson(events))
+            }
           }
         }
     }
@@ -81,10 +85,20 @@ trait EventsController extends BaseController {
     }
   }
 
+  def allocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.getAllocations(eventId).map { allocations =>
+      if (allocations.allocations.isEmpty) {
+        NotFound
+      } else {
+        Ok(Json.toJson(allocations))
+      }
+    }
+  }
+
   def allocate(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
-      assessorAllocationService.allocate(newAllocations).map( _ => Ok(""))
+      assessorAllocationService.allocate(newAllocations).map( _ => Ok)
     }
   }
 
