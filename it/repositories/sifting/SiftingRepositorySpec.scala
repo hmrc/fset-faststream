@@ -49,6 +49,14 @@ class SiftingRepositorySpec extends MongoRepositorySpec with CommonRepository {
       repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.European, "Red")).futureValue
       repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.Commercial, "Green")).futureValue
     }
+
+    "eligible for other schema after sifting on one" in {
+      createSiftEligibleCandidates(UserId, AppId)
+      repository.siftCandidate(AppId, SchemeEvaluationResult(SchemeType.European, "Red")).futureValue
+      val candidates = repository.findSiftingEligible(SchemeType.Commercial).futureValue
+      candidates.size mustBe 1
+    }
+
   }
 
   private def createSiftEligibleCandidates(userId: String, appId: String) = {
