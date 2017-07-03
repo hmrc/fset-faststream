@@ -57,7 +57,6 @@ object AssessorAllocations {
   }
 }
 
-
 case class CandidateAllocation(
   id: String,
   status: AllocationStatus
@@ -72,7 +71,7 @@ object CandidateAllocation {
 
 // TODO there must be a way to collapse these two case classes to a generic and infer the target type of the allocations member
 case class CandidateAllocations(
-  version: String,
+  version: Option[String],
   allocations: Seq[CandidateAllocation]
 )
 
@@ -81,8 +80,9 @@ object CandidateAllocations {
 
   def apply(o: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
     val opLock = o.map(_.version).distinct match {
-      case head :: Nil => head
+      case head :: Nil => Some(head)
       case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
+      case Nil => None
     }
     CandidateAllocations(opLock, o.map { a => CandidateAllocation(a.id, a.status) })
   }

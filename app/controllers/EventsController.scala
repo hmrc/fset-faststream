@@ -103,4 +103,10 @@ trait EventsController extends BaseController {
     }
   }
 
+  def allocateCandidates(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
+      val newAllocations = command.CandidateAllocations.fromExchange(eventId, candidateAllocations)
+        assessorAllocationService.allocateCandidates(newAllocations).map( _ => Ok)
+    }
+  }
 }

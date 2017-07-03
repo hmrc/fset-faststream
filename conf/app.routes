@@ -127,6 +127,7 @@ GET         /events/:eventId/allocations                                 control
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
+PUT         /events/:eventId/allocateCandidates                          controllers.EventsController.allocateCandidates(eventId: String)
 
 # Day aggregate events
 GET         /day-aggregate-events/skills/:skillTypes                     controllers.DayAggregateEventController.findBySkillTypes(skillTypes: String)

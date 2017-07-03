@@ -56,6 +56,11 @@ case class CandidateAllocation(
 object CandidateAllocation {
   implicit val candidateAllocationFormat = Json.format[CandidateAllocation]
   implicit val candidateAllocationHandler = Macros.handler[CandidateAllocation]
+
+  def fromCommand(o: model.command.CandidateAllocations): Seq[CandidateAllocation] = {
+    val opLockVersion = UUIDFactory.generateUUID()
+    o.allocations.map { a => CandidateAllocation(a.id, o.eventId, a.status, opLockVersion) }
+  }
 }
 
 

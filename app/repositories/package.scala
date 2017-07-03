@@ -87,6 +87,7 @@ package object repositories {
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorRepository = new AssessorMongoRepository()
   lazy val assessorAllocationRepository = new AssessorAllocationMongoRepository()
+  lazy val candidateAllocationRepository = new CandidateAllocationMongoRepository()
   lazy val eventsRepository = new EventsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
