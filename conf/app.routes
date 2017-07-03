@@ -111,18 +111,20 @@ GET         /schools                                                     control
 
 POST        /assessor/save/:userId                                       controllers.AssessorController.saveAssessor(userId: String)
 GET         /assessor/find/:userId                                       controllers.AssessorController.findAssessor(userId: String)
+
 POST        /assessor/availability/save/:userId                          controllers.AssessorController.addAvailability(userId: String)
 GET         /assessor/availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
+GET         /assessor/availability/:locationName/:date                   controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: List[model.persisted.eventschedules.SkillType.SkillType])
 GET         /assessor/availability/count-submitted                       controllers.AssessorController.countSubmittedAvailability()
-
-# Assessment Centres
-GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)
-GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
 
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
+GET         /events/venues-for-events                                    controllers.EventsController.venuesForEvents
+GET         /events/locations-for-events                                 controllers.EventsController.locationsForEvents
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
-GET         /events/:venue/:eventType                                    controllers.EventsController.fetchEvents(eventType: String, venue: String)
+GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
+PUT         /events/:eventId/allocate                                    controllers.EventsController.allocate(eventId: String)
+GET         /events/:eventId/allocations                                 controllers.EventsController.allocations(eventId: String)
 GET         /events-with-allocations-summary/:venueType/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueType: model.persisted.eventschedules.VenueType.VenueType, eventType: model.persisted.eventschedules.EventType.EventType)
 
 # Day aggregate events

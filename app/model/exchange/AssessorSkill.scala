@@ -20,7 +20,7 @@ import model.persisted.eventschedules.SkillType._
 import play.api.libs.json.Json
 
 
-case class AssessorSkill(name: SkillType, label: String)
+case class AssessorSkill(name: SkillType, displayText: String)
 
 object AssessorSkill {
 

@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package model.persisted.eventschedules
+package model.persisted.assessor
 
-import model.persisted.eventschedules.EventType.EventType
-import org.joda.time.{ LocalDate, LocalTime }
+import model.persisted.eventschedules.Location
+import org.joda.time.LocalDate
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
+import repositories.BSONLocalDateHandler
 
-case class Event(
-  id: String,
-  eventType: EventType,
-  description: String,
+case class AssessorAvailability(
   location: Location,
-  venue: Venue,
-  date: LocalDate,
-  capacity: Int,
-  minViableAttendees: Int,
-  attendeeSafetyMargin: Int,
-  startTime: LocalTime,
-  endTime: LocalTime,
-  skillRequirements: Map[String, Int]
+  date: LocalDate
 )
 
-object Event {
-  implicit val eventFormat = Json.format[Event]
-  implicit val eventHandler = Macros.handler[Event]
+object AssessorAvailability {
+  implicit val persistedAssessorAvailabilityFormat = Json.format[AssessorAvailability]
+  implicit val persistedAssessorAvailabilityHandler = Macros.handler[AssessorAvailability]
+
+  def toAvailabilityMap(o: Seq[AssessorAvailability]): Map[String, List[LocalDate]] = o groupBy(_.location) map { case (location, avail) =>
+    location.name -> avail.map(_.date).toList
+  }
 }

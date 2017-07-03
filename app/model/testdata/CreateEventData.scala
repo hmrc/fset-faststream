@@ -17,9 +17,9 @@
 package model.testdata
 
 import model.command.testdata.CreateEventRequest.CreateEventRequest
-import model.persisted.eventschedules.{ Event, EventType, VenueType }
-import org.joda.time.{ LocalDate, LocalTime }
-import play.api.libs.json.{ Json, OFormat }
+import model.persisted.eventschedules._
+import org.joda.time.{LocalDate, LocalTime}
+import play.api.libs.json.{Json, OFormat}
 import services.testdata.faker.DataFaker.Random
 
 object CreateEventData {
@@ -27,8 +27,8 @@ object CreateEventData {
   case class CreateEventData(id: String,
                              eventType: EventType.EventType,
                              description: String,
-                             location: String,
-                             venue: String,
+                             location: Location,
+                             venue: Venue,
                              date: LocalDate,
                              capacity: Int,
                              minViableAttendees: Int,
@@ -37,7 +37,7 @@ object CreateEventData {
                              endTime: LocalTime,
                              skillRequirements: Map[String, Int]) extends CreateTestData {
     def toEvent: Event = {
-      Event(id, eventType, description, location, VenueType.withName(venue), date, capacity, minViableAttendees,
+      Event(id, eventType, description, location, venue, date, capacity, minViableAttendees,
         attendeeSafetyMargin, startTime, endTime, skillRequirements)
     }
   }
@@ -50,8 +50,8 @@ object CreateEventData {
       val id = createRequest.id.getOrElse(Random.Event.id)
       val eventType = createRequest.eventType.getOrElse(Random.Event.eventType)
       val description = createRequest.description.getOrElse(Random.Event.description)
-      val location = createRequest.location.getOrElse(Random.Event.location)
-      val venue = createRequest.venue.getOrElse(Random.Event.venue)
+      val location = createRequest.location.map(l => Location(l)).getOrElse(Random.Event.location)
+      val venue = createRequest.venue.map(v => Venue(v, s"$v")).getOrElse(Random.Event.venue)
       val date = createRequest.date.getOrElse(Random.Event.date)
       val capacity = createRequest.capacity.getOrElse(Random.Event.capacity)
       val minViableAttendees = createRequest.minViableAttendees.getOrElse(Random.Event.minViableAttendees)

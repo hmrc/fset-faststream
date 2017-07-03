@@ -22,6 +22,7 @@ import model.persisted.eventschedules.{ Event, EventType, VenueType }
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
+import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
 import resource._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,13 +30,18 @@ import scala.concurrent.Future
 import scala.util.{ Failure, Try }
 
 object EventsParsingService extends EventsParsingService {
-  override def fileContents: Future[List[String]] = Future.successful {
+
+  val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository
+
+  def fileContents: Future[List[String]] = Future.successful {
     val input = managed(Play.current.resourceAsStream("fset-faststream-event-schedule.csv").get)
     input.acquireAndGet(file => scala.io.Source.fromInputStream(file).getLines().toList.tail)
   }
 }
 
 trait EventsParsingService {
+
+  def locationsWithVenuesRepo: LocationsWithVenuesRepository
 
   private val skillsIdxTable = List(
     "ASSESSOR" -> 10,
@@ -57,27 +63,20 @@ trait EventsParsingService {
 
     fileContents.flatMap { centres =>
 
-      FutureEx.traverseSerial(centres.zipWithIndex) {
-        case (line, idx) =>
-          val tryRes = Try {
-            stringToEvent(line)
-          }.recoverWith {
-            case ex =>
-              Failure(new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}"))
-          }
-          Future.fromTry(tryRes)
+      FutureEx.traverseSerial(centres.zipWithIndex) { case (line, idx) =>
+        stringToEvent(line).recoverWith {
+          case ex => throw new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
+        }
       }
     }
   }
 
   lazy val df = DateTimeFormat.forPattern("HH:mm")
 
-  private def stringToEvent(csvLine: String): Event = {
+  private def stringToEvent(csvLine: String): Future[Event] = {
     val items = csvLine.split(", ?", -1)
     val eventType = EventType.withName(items.head.replaceAll("\\s|-", "_").toUpperCase)
     val description = items(1)
-    val location = items(2)
-    val venue = VenueType.withName(items(3).replaceAll("\\s|-", "_").toUpperCase)
     val date = LocalDate.parse(items(4), DateTimeFormat.forPattern("dd/MM/yy"))
     val startTime = df.parseLocalTime(items(5))
     val endTime = df.parseLocalTime(items(6))
@@ -92,7 +91,10 @@ trait EventsParsingService {
         case (skill, skillIdx) => skill -> stringToRequirement(items(skillIdx))
       }.toMap
 
-    Event(
+    for {
+      location <- locationsWithVenuesRepo.location(items(2))
+      venue <- locationsWithVenuesRepo.venue(items(3))
+    } yield Event(
       id = UUIDFactory.generateUUID(),
       eventType = eventType,
       description = description,

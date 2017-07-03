@@ -34,7 +34,7 @@ object AssessorAvailability {
   implicit val assessorAvailabilityFormat = Json.format[AssessorAvailability]
 
   def apply(persisted: model.persisted.assessor.AssessorAvailability): AssessorAvailability = {
-    AssessorAvailability(persisted.location, persisted.date)
+    AssessorAvailability(persisted.location.name, persisted.date)
   }
 
   def apply(request: AssessorAvailabilityRequest): AssessorAvailability = {

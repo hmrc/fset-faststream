@@ -31,7 +31,7 @@ trait MicroService {
   import DefaultBuildSettings._
   import TestPhases._
   import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
-  import play.sbt.routes.RoutesKeys.routesGenerator
+  import play.sbt.routes.RoutesKeys.{ routesImport, routesGenerator }
 
   import scalariform.formatter.preferences._
 
@@ -55,6 +55,7 @@ trait MicroService {
     .settings(defaultSettings(): _*)
     .settings(
       routesGenerator := StaticRoutesGenerator,
+      routesImport += "controllers.Binders._",
       targetJvm := "jvm-1.8",
       scalaVersion := "2.11.8",
       libraryDependencies ++= appDependencies,

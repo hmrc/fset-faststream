@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import model.persisted.assessor.Assessor
 import factories.DateTimeFactory
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults._
@@ -85,6 +86,7 @@ package object repositories {
   lazy val stcEventMongoRepository = new StcEventMongoRepository
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorRepository = new AssessorMongoRepository()
+  lazy val assessorAllocationRepository = new AssessorAllocationMongoRepository()
   lazy val eventsRepository = new EventsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
@@ -124,7 +126,12 @@ package object repositories {
     assessorRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
 
     eventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending),
-      ("location", Ascending), ("venue", Ascending)), unique = false))
+      ("location", Ascending), ("venue", Ascending)), unique = false)),
+
+    assessorAllocationRepository.collection.indexesManager.create(Index(
+      Seq("id"-> Ascending, "eventId" -> Ascending),
+      unique = false
+    ))
   )), 20 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
@@ -213,8 +220,6 @@ package object repositories {
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
   implicit val adjustmentDetailHandler: BSONHandler[BSONDocument, AdjustmentDetail] = Macros.handler[AdjustmentDetail]
-  implicit val AssessorAvailabilityHandler: BSONHandler[BSONDocument, AssessorAvailability] = Macros.handler[AssessorAvailability]
-  implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
 
   def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get

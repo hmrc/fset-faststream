@@ -20,12 +20,13 @@ import java.io.File
 
 import com.github.ghik.silencer.silent
 import com.typesafe.config.ConfigFactory
+import model.persisted.eventschedules.{Location, Venue}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
 import play.api.Play
-import play.api.Play.{ configuration, current }
+import play.api.Play.{configuration, current}
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.config.{ RunMode, ServicesConfig }
+import uk.gov.hmrc.play.config.{RunMode, ServicesConfig}
 
 case class FrameworksConfig(yamlFilePath: String)
 
@@ -125,8 +126,7 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
                              evaluationWaitTimeAfterResultsReceivedInHours: Int,
                              verifyAllScoresArePresent: Boolean)
 
-case class AssessmentCentresLocationsConfig(yamlFilePath: String)
-case class AssessmentCentresConfig(yamlFilePath: String)
+case class LocationsAndVenuesConfig(yamlFilePath: String)
 
 case class AssessmentEvaluationMinimumCompetencyLevel(enabled: Boolean, minimumCompetencyLevelScore: Option[Double],
   motivationalFitMinimumCompetencyLevelScore: Option[Double]) {
@@ -155,10 +155,13 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val parityGatewayConfig = underlyingConfiguration.as[ParityGatewayConfig]("microservice.services.parity-gateway")
   lazy val maxNumberOfDocuments = underlyingConfiguration.as[Int]("maxNumberOfDocuments")
 
-  lazy val assessmentCentresLocationsConfig =
-    underlyingConfiguration.as[AssessmentCentresLocationsConfig]("scheduling.online-testing.assessment-centres-locations")
-  lazy val assessmentCentresConfig =
-    underlyingConfiguration.as[AssessmentCentresConfig]("scheduling.online-testing.assessment-centres")
+  lazy val locationsAndVenuesConfig =
+    underlyingConfiguration.as[LocationsAndVenuesConfig]("scheduling.online-testing.locations-and-venues")
+
+  val AllLocations = Location("All")
+  val AllVenues = Venue("ALL_VENUES", "ALL_VENUES")
+
+
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
     underlyingConfiguration
       .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")

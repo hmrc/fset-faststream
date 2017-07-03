@@ -17,11 +17,14 @@
 package controllers
 
 import model.Exceptions._
+import model.exchange.Assessor
 import model.exchange.{ Assessor, AssessorAvailability }
 import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import model.persisted
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
+import persisted.assessor
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import services.assessoravailability.AssessorService
@@ -30,6 +33,8 @@ import testkit.UnitWithAppSpec
 import scala.concurrent.Future
 import testkit.MockitoImplicits._
 
+import scala.util.Success
+
 class AssessorControllerSpec extends UnitWithAppSpec {
   val mockAssessorService = mock[AssessorService]
 
@@ -37,7 +42,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     override val assessorService = mockAssessorService
   }
 
-  "save assessor" should {
+  "save assessor" must {
     "return OK when save is successful" in {
       val Request = fakeRequest(AssessorExamples.Assessor1)
       when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(Future.successful(()))
@@ -46,7 +51,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "add availability" should {
+  "add availability" must {
     val Request = fakeRequest(AssessorAvailabilityInBothLondonAndNewcastle)
 
     "return Ok when availability is added" in {
@@ -56,7 +61,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "find assessor" should {
+  "find assessor" must {
     "return Assessor when is successful" in {
       when(mockAssessorService.findAssessor(eqTo(AssessorExamples.UserId1))).thenReturn(Future.successful(AssessorExamples.Assessor1))
       val response = controller.findAssessor(AssessorExamples.UserId1)(fakeRequest)
@@ -73,7 +78,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "find availability" should {
+  "find availability" must {
 
     "return an assessor's availability" in {
       when(mockAssessorService.findAvailability(UserId)).thenReturnAsync(AssessorAvailabilityInBothLondonAndNewcastle)
@@ -89,7 +94,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "count submitted" should {
+  "count submitted" must {
     "return zero if there are none submitted" in {
       when(mockAssessorService.countSubmittedAvailability()).thenReturnAsync(0)
       val response = controller.countSubmittedAvailability()(fakeRequest)

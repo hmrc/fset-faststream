@@ -19,44 +19,84 @@ package controllers
 import model.exchange.{ EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.VenueType.VenueType
-import model.persisted.eventschedules.{ Event, EventType, SkillType, VenueType }
+import model.persisted.eventschedules._
 import org.joda.time.{ LocalDate, LocalTime }
-import play.api.Logger
-import play.api.libs.json.Json
+import model.Exceptions.EventNotFoundException
+import model.exchange
+import model.command
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
-import repositories.events.EventsRepository
-import services.events.EventsParsingService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
+import services.allocation.AssessorAllocationService
 
 import scala.concurrent.Future
+import scala.util.Try
+import services.events.EventsService
+import uk.gov.hmrc.play.microservice.controller.BaseController
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsController extends EventsController {
-  val assessmentEventsRepository: EventsRepository = repositories.eventsRepository
-  val assessmentCenterParsingService: EventsParsingService = EventsParsingService
+  val eventsService: EventsService = EventsService
+  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+  val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
 }
 
 trait EventsController extends BaseController {
-  val assessmentEventsRepository: EventsRepository
-  val assessmentCenterParsingService: EventsParsingService
+  def eventsService: EventsService
+  def locationsAndVenuesRepository: LocationsWithVenuesRepository
+  def assessorAllocationService: AssessorAllocationService
+
+  def venuesForEvents: Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenuesRepository.venues.map(x => Ok(Json.toJson(x)))
+  }
+
+  def locationsForEvents: Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenuesRepository.locations.map(x => Ok(Json.toJson(x)))
+  }
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
-    assessmentCenterParsingService.processCentres().flatMap{ events =>
-      Logger.debug("Events have been processed!")
-      assessmentEventsRepository.save(events)
-    }.map(_ => Created).recover { case _ => UnprocessableEntity }
+    eventsService.saveAssessmentEvents().map(_ => Created("Events saved")).recover { case _ => UnprocessableEntity }
   }
 
   def getEvent(eventId: String): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(""))
+    eventsService.getEvent(eventId).map { event =>
+      Ok(Json.toJson(event))
+    }.recover {
+      case _: EventNotFoundException => NotFound(s"No event found with id $eventId")
+    }
   }
 
-  def fetchEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
-    // convert params to native enum type
-    val eventType = EventType.withName(eventTypeParam.toUpperCase)
-    val venue = VenueType.withName(venueParam.toUpperCase)
+  def getEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
+    val events =  Try {
+        val eventType = EventType.withName(eventTypeParam.toUpperCase)
+        locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
+          eventsService.getEvents(eventType, venue).map { events =>
+            if (events.isEmpty) {
+              NotFound
+            } else {
+              Ok(Json.toJson(events))
+            }
+          }
+        }
+    }
 
-    assessmentEventsRepository.fetchEvents(Some(eventType), Some(venue), None, None).map(events => Ok(Json.toJson(events)))
+    play.api.Logger.debug(s"$events")
+
+    Future.fromTry(events) flatMap identity recover {
+      case _: NoSuchElementException => BadRequest(s"$eventTypeParam is not a valid event type")
+      case _: UnknownVenueException => BadRequest(s"$venueParam is not a valid venue")
+    }
+  }
+
+  def allocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.getAllocations(eventId).map { allocations =>
+      if (allocations.allocations.isEmpty) {
+        NotFound
+      } else {
+        Ok(Json.toJson(allocations))
+      }
+    }
   }
 
   // TODO MIGUEL: Decide if this should go here or a separate eventsAllocations controller
@@ -67,7 +107,11 @@ trait EventsController extends BaseController {
     // 2nd get allocations for every event
 
     // Example: 8 events in different event types, locations and venues on the same day.
-    val event1LondonFSAC = Event("1", EventType.FSAC, "Description", "London", VenueType.LONDON_FSAC,
+    val londonFsacVenue = Venue("LONDON_FSAC", "London FSAC")
+    val newcastleFsacVenue = Venue("NEWCASTLE_FSAC", "Newcastle FSAC")
+    val newcastleLongbentonVenue = Venue("NEWCASTLE_FSAC", "Newcastle FSAC")
+
+    val event1LondonFSAC = Event("1", EventType.FSAC, "Description", Location("London"), londonFsacVenue,
       new LocalDate("2017-07-02"), 24, 10, 1, LocalTime.now(), LocalTime.now().plusHours(1),
       Map(
         SkillType.ASSESSOR.toString -> 6,
@@ -75,8 +119,8 @@ trait EventsController extends BaseController {
         SkillType.CHAIR.toString -> 2))
 
     val event2LondonFSAC = event1LondonFSAC.copy(id = "2")
-    val event1NewcastleFSAC = event2LondonFSAC.copy(id = "3", location = "Newcastle", venue = VenueType.NEWCASTLE_FSAC)
-    val event2NewcastleFSAC = event1NewcastleFSAC.copy(id = "4", venue = VenueType.NEWCASTLE_LONGBENTON)
+    val event1NewcastleFSAC = event2LondonFSAC.copy(id = "3", location = Location("Newcastle"), venue = newcastleFsacVenue)
+    val event2NewcastleFSAC = event1NewcastleFSAC.copy(id = "4", venue = newcastleLongbentonVenue)
     val event1LondonSkype = event1LondonFSAC.copy(id = "5", eventType = EventType.SKYPE_INTERVIEW)
     val event2LondonSkype = event2LondonFSAC.copy(id = "6", eventType = EventType.SKYPE_INTERVIEW)
     val event1NewcastleSkype = event2NewcastleFSAC.copy(id = "7", eventType = EventType.SKYPE_INTERVIEW)
@@ -130,4 +174,11 @@ trait EventsController extends BaseController {
     Future.successful(Ok(Json.toJson(eventsWithAllocationSummary)))
   }
   // scalastyle:on method.length
+  def allocate(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
+      val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
+      assessorAllocationService.allocate(newAllocations).map( _ => Ok)
+    }
+  }
+
 }

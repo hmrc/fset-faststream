@@ -16,14 +16,20 @@
 
 package services.events
 
-import model.persisted.eventschedules.{ Event, EventType }
+import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
+import repositories.events.LocationsWithVenuesRepository
 import services.BaseServiceSpec
+import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
 
 import scala.concurrent.Future
+import scala.util.Success
 
 class EventsParsingServiceSpec extends BaseServiceSpec {
   "processCentres" must {
     "successfully saves and loads the file contents" in new GoodTestFixture {
+      when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Future.successful(Venue("london fsac", "bush house")))
+      when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(Location("London")))
       val events: Seq[Event] = service.processCentres().futureValue
 
       events.size mustBe 2
@@ -41,28 +47,35 @@ class EventsParsingServiceSpec extends BaseServiceSpec {
   }
 
   trait MalformedTestFixture {
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val service = new EventsParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
         "fsac,PDFS FSB,london,london fsac,03/04/17,09:0,12:00,36,4,5,6,1,1,1,1,2", // malformed starttime
         "telephone interview,ORAC,london,virtual,,08:00,13:30,36,24,7,,,,,," // missing date
       ))
+      def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
 
   trait GoodTestFixture {
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val service = new EventsParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
         "fsac,PDFS FSB,London,london fsac,03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2",
         "telephone interview,ORAC,London,virtual,04/04/17,08:00,13:30,36,24,7,,,,,,"
       ))
+      def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
 
   trait LongEventDescription {
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val service = new EventsParsingService {
       val fileContents: Future[List[String]] = Future.successful(List(
         "Skype Interview,long event description,London,london fsac,03/04/17,09:00,12:00,36,4,5,6,1,1,1,1,2"
       ))
+
+      def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
 

@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package model.persisted.assessor
+package model.persisted.eventschedules
 
-import model.persisted.assessor.AssessorStatus.AssessorStatus
-import play.api.libs.json.{Json, OFormat}
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.Macros
+import repositories.events.LocationWithVenue
 
-case class Assessor(
-  userId: String,
-  skills: List[String],
-  civilServant: Boolean,
-  availability: List[AssessorAvailability] = Nil,
-  status: AssessorStatus
-)
+case class Location(name: String)
 
-object Assessor {
-  implicit val persistedAssessorFormat: OFormat[Assessor] = Json.format[Assessor]
-  implicit val assessorHandler: BSONHandler[BSONDocument, Assessor] = Macros.handler[Assessor]
+object Location {
+  implicit val locationFormat: OFormat[Location] = Json.format[Location]
+  implicit val locationHandler = Macros.handler[Location]
+
+  def apply(o: LocationWithVenue): Location = Location(o.name)
 }
