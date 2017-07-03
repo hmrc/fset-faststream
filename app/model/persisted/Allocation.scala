@@ -43,7 +43,8 @@ object AssessorAllocation {
   implicit val assessorAllocationHandler = Macros.handler[AssessorAllocation]
 
   def fromCommand(o: model.command.AssessorAllocations): Seq[AssessorAllocation] = {
-    o.allocations.map { a => AssessorAllocation(a.id, o.eventId, AllocationStatuses.UNCONFIRMED, a.allocatedAs, UUIDFactory.generateUUID()) }
+    val opLockVerion = UUIDFactory.generateUUID()
+    o.allocations.map { a => AssessorAllocation(a.id, o.eventId, AllocationStatuses.UNCONFIRMED, a.allocatedAs, opLockVerion) }
   }
 }
 
