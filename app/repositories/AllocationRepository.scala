@@ -45,18 +45,22 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
   }
 
   def delete(allocations: Seq[T]): Future[Unit] = {
-    val eventId = allocations.map(_.eventId).distinct match {
-      case head :: tail => throw TooManyEventIdsException(s"The delete request contained too many event Ids [${head ++ tail}]")
-      case head :: Nil => head
+    val eventIds = allocations.map(_.eventId).distinct
+
+    val eventId = if (eventIds.size > 1) {
+      throw TooManyEventIdsException(s"The delete request contained too many event Ids [$eventIds]")
+    } else {
+      eventIds.head
     }
+
     val assessorOrApplicationId = allocations.map(_.id)
 
-    val query = BSONDocument(
-      "id" -> BSONDocument("$in" -> assessorOrApplicationId),
-      "eventId" -> eventId
-    )
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("id" -> BSONDocument("$in" -> assessorOrApplicationId)),
+      BSONDocument("eventId" -> eventId)
+    ))
 
-    val validator = multipleRemoveValidator(allocations.size, "Deleting allocations before updating")
+    val validator = multipleRemoveValidator(allocations.size, "Deleting allocations")
 
     collection.remove(query) map validator
 
