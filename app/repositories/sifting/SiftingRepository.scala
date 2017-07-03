@@ -69,8 +69,8 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
     val notSiftedOnScheme = BSONDocument("$or" -> BSONArray(
       BSONDocument(s"testGroups.$phaseName.evaluation.result" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"testGroups.$phaseName.evaluation.result" ->
-        BSONDocument("$elemMatch" -> BSONDocument("scheme" -> BSONDocument("$exists" -> false))))
-    ))
+        BSONDocument("$elemMatch" -> BSONDocument("scheme" -> chosenSchema, "$exists" -> false))
+    )))
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED),
