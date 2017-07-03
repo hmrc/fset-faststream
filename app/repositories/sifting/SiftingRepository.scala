@@ -17,11 +17,11 @@
 package repositories.sifting
 
 import model.Commands.{ Candidate, CreateApplicationRequest }
-import model.EvaluationResults.Green
+import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.ApplicationNotFound
 import model.SchemeType.SchemeType
 import model.persisted.SchemeEvaluationResult
-import model.{ ApplicationStatus, Commands }
+import model.{ ApplicationStatus, Commands, SchemeType }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
@@ -66,11 +66,9 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
     val videoInterviewPassed = BSONDocument("testGroups.PHASE3.evaluation.result" ->
       BSONDocument("$elemMatch" -> BSONDocument("scheme" -> chosenSchema, "result" -> Green.toString)))
 
-    val notSiftedOnScheme = BSONDocument("$or" -> BSONArray(
-      BSONDocument(s"testGroups.$phaseName.evaluation.result" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"testGroups.$phaseName.evaluation.result" ->
-        BSONDocument("$elemMatch" -> BSONDocument("scheme" -> chosenSchema, "$exists" -> false))
-    )))
+    val notSiftedOnScheme = BSONDocument(
+      s"testGroups.$phaseName.evaluation.result.scheme" -> BSONDocument("$nin" -> BSONArray(chosenSchema))
+    )
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED),
