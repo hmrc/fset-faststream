@@ -22,7 +22,7 @@ import model.persisted.eventschedules.{ Event, EventType, SkillType, Venue, Loca
 import org.joda.time.{ LocalDate, LocalTime }
 
 object EventExamples {
-  val VenueAll = Venue("All", "All venues")
+  val VenueAll = Venue("ALL_VENUES", "ALL_VENUES")
   val VenueLondon = Venue("London FSAC", "Bush House")
   val VenueNewcastle = Venue("Newcastle FSAC", "Longbenton")
 
