@@ -58,6 +58,7 @@ private object AppDependencies {
     "com.github.ghik" %% "silencer-lib" % "0.5",
     "org.yaml" % "snakeyaml" % "1.16",
     "com.jsuereth" %% "scala-arm" % "1.4",
+    "net.jcazevedo" %% "moultingyaml" % "0.4.0",
     filters,
     cache,
     ws

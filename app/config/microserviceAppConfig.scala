@@ -30,6 +30,8 @@ import uk.gov.hmrc.play.config.{RunMode, ServicesConfig}
 
 case class FrameworksConfig(yamlFilePath: String)
 
+case class SchemeConfig(yamlFilePath: String)
+
 case class AuthConfig(host: String, port: Int, serviceName: String)
 
 case class EmailConfig(url: String)
@@ -149,6 +151,7 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val emailConfig = underlyingConfiguration.as[EmailConfig]("microservice.services.email")
   lazy val authConfig = underlyingConfiguration.as[AuthConfig](s"microservice.services.auth")
   lazy val frameworksConfig = underlyingConfiguration.as[FrameworksConfig]("microservice.frameworks")
+  lazy val schemeConfig = underlyingConfiguration.as[SchemeConfig]("microservice.schemes")
   lazy val userManagementConfig = underlyingConfiguration.as[UserManagementConfig]("microservice.services.user-management")
   lazy val cubiksGatewayConfig = underlyingConfiguration.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
   lazy val launchpadGatewayConfig = underlyingConfiguration.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")

@@ -651,6 +651,8 @@ object DataFaker {
       SkillType.ASSESSOR.toString,
       SkillType.CHAIR.toString), 3)
 
+    def sifterSchemes = randList(List("GovernmentEconomicsService", "ProjectDelivery", "Sdip"), 3)
+
     def parentsOccupationDetails = randOne(List(
       "Modern professional",
       "Clerical (office work) and intermediate",

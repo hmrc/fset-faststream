@@ -1,0 +1,57 @@
+- id: Commercial
+  code: CFS
+  name: Commercial
+- id: DigitalAndTechnology
+  code: DaT
+  name: Digital And Technology
+- id: DiplomaticService
+  code: DS
+  name: Diplomatic Service
+- id: DiplomaticServiceEconomics
+  code: DSE
+  name: Diplomatic Service Economics
+- id: DiplomaticServiceEuropean
+  code: EFSDS
+  name: Diplomatic Service European
+- id: European
+  code: EFS
+  name: European
+- id: Finance
+  code: FIFS
+  name: Finance
+- id: Generalist
+  code: GFS
+  name: Generalist
+- id: GovernmentCommunicationService
+  code: GCFS
+  name: Government Communication Service
+- id: GovernmentEconomicsService
+  code: GES
+  name: Government Economics Service
+- id: GovernmentOperationalResearchService
+  code: GORS
+  name: Government Operational Research Service
+- id: GovernmentSocialResearchService
+  code: GSR
+  name: Government Social Research Service
+- id: GovernmentStatisticalService
+  code: GSS
+  name: Government Statistical Service
+- id: HousesOfParliament
+  code: HoP
+  name: Houses Of Parliament
+- id: HumanResources
+  code: HRFS
+  name: Human Resources
+- id: ProjectDelivery
+  code: PDFS
+  name: Project Delivery
+- id: ScienceAndEngineering
+  code: SEFS
+  name: Science And Engineering
+- id: Edip
+  code: EDIP
+  name: Early Diversity Internship Programme
+- id: Sdip
+  code: SDIP
+  name: Summer Diversity Internship Programme
