@@ -159,7 +159,7 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
     underlyingConfiguration.as[LocationsAndVenuesConfig]("scheduling.online-testing.locations-and-venues")
 
   val AllLocations = Location("All")
-  val AllVenues = Venue("All", "All venues")
+  val AllVenues = Venue("ALL_VENUES", "ALL_VENUES")
 
 
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
