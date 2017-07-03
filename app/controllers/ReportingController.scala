@@ -16,14 +16,17 @@
 
 package controllers
 
+import akka.stream.scaladsl.Source
 import connectors.AuthProviderClient
-import model.Commands._
-import model.command.ProgressResponse
+import model.Commands.{ IsNonSubmitted, PreferencesWithContactDetails }
+import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse }
 import model.persisted.ContactDetailsWithId
 import model.report._
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, Request }
-import repositories.application.{ ReportingMongoRepository, ReportingRepository }
+import play.api.libs.streams.Streams
+import play.api.mvc.{ Action, AnyContent, Request, Result }
+import repositories.application.{ PreviousYearCandidatesDetailsMongoRepository, PreviousYearCandidatesDetailsRepository, ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -36,6 +39,7 @@ object ReportingController extends ReportingController {
   val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresMongoRepository = repositories.applicationAssessmentScoresRepository
+  val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsMongoRepository = repositories.previousYearCandidatesDetailsRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
   val indicatorRepository: _root_.repositories.NorthSouthIndicatorCSVRepository.type = repositories.northSouthIndicatorRepository
   val authProviderClient = AuthProviderClient
@@ -43,12 +47,13 @@ object ReportingController extends ReportingController {
 
 trait ReportingController extends BaseController {
 
-  import Implicits._
+  import model.Commands.Implicits._
 
   val reportingRepository: ReportingRepository
   val contactDetailsRepository: contactdetails.ContactDetailsRepository
   val questionnaireRepository: QuestionnaireRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresRepository
+  val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsRepository
   val mediaRepository: MediaRepository
   val indicatorRepository: NorthSouthIndicatorCSVRepository
   val authProviderClient: AuthProviderClient
@@ -86,6 +91,53 @@ trait ReportingController extends BaseController {
     reportFut.map { report =>
       Ok(Json.toJson(report))
     }
+  }
+
+  def streamPreviousYearCandidatesDetailsReport: Action[AnyContent] = Action.async { implicit request =>
+    enrichPreviousYearCandidateDetails {
+      (contactDetails, questionnaireDetails, assessmentCenterDetails, assessmentScores) =>
+      {
+        val header = Enumerator(
+          (prevYearCandidatesDetailsRepository.applicationDetailsHeader ::
+            prevYearCandidatesDetailsRepository.contactDetailsHeader ::
+            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+            prevYearCandidatesDetailsRepository.assessmentCenterDetailsHeader ::
+            prevYearCandidatesDetailsRepository.assessmentScoresHeader :: Nil).mkString(",") + "\n"
+        )
+        val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream().map { app =>
+          createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails,
+            assessmentCenterDetails, assessmentScores) + "\n"
+        }
+        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+      }
+    }
+  }
+
+  // scalastyle:off line.size.limit
+  private def enrichPreviousYearCandidateDetails(block: (CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result) = {
+    val candidateDetailsFut = prevYearCandidatesDetailsRepository.findContactDetails()
+    val questionnaireDetailsFut = prevYearCandidatesDetailsRepository.findQuestionnaireDetails()
+    val assessmentCenterDetailsFut = prevYearCandidatesDetailsRepository.findAssessmentCenterDetails()
+    val assessmentScoresFut = prevYearCandidatesDetailsRepository.findAssessmentScores()
+    for {
+      contactDetails <- candidateDetailsFut
+      questionnaireDetails <- questionnaireDetailsFut
+      assessmentCenterDetails <- assessmentCenterDetailsFut
+      assessmentScores <- assessmentScoresFut
+    } yield {
+      block(contactDetails, questionnaireDetails, assessmentCenterDetails, assessmentScores)
+    }
+  }
+  // scalastyle:on
+
+  private def createCandidateInfoBackUpRecord(candidateDetails: CandidateDetailsReportItem, contactDetails: CsvExtract[String],
+                                              questionnaireDetails: CsvExtract[String],
+                                              assessmentCenterDetails: CsvExtract[String], assessmentScores: CsvExtract[String]) = {
+    (candidateDetails.csvRecord ::
+      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
+      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+      assessmentCenterDetails.records.getOrElse(candidateDetails.appId, assessmentCenterDetails.emptyRecord) ::
+      assessmentScores.records.getOrElse(candidateDetails.appId, assessmentScores.emptyRecord) :: Nil).mkString(",")
   }
 
   private def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],

@@ -79,6 +79,7 @@ package object repositories {
   lazy val eventMongoRepository = new EventMongoRepository
   lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
+  lazy val previousYearCandidatesDetailsRepository = new PreviousYearCandidatesDetailsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()

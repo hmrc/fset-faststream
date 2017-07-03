@@ -59,6 +59,7 @@ GET         /report/candidate-deferral/:frameworkId                      control
 GET         /report/internship/:frameworkId                              controllers.ReportingController.internshipReport(frameworkId: String)
 GET         /report/analytical-schemes/:frameworkId                      controllers.ReportingController.analyticalSchemesReport(frameworkId: String)
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
+GET         /report/candidates-details-stream/previous-year              controllers.ReportingController.streamPreviousYearCandidatesDetailsReport()
 #GET         /report/assessment-centre-allocation/:frameworkId            controllers.ReportingController.createAssessmentCentreAllocationReport(frameworkId: String)
 #GET         /report/pass-mark-personal-data/:frameworkId                 controllers.ReportingController.createPassMarkWithPersonalDataReport(frameworkId: S#tring)
 #GET         /report/non-submitted-applications/:frameworkId              controllers.ReportingController.createNonSubmittedAppsReports(frameworkId: String)
