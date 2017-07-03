@@ -16,7 +16,6 @@
 
 package controllers
 
-
 import model.command.FastPassEvaluation
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -33,17 +32,16 @@ class FastPassApprovalControllerSpec extends UnitWithAppSpec {
 
   "FastPassApprovalController" should {
     "respond ok" in new TestFixture {
-      when(mockFastPassService.processFastPassCandidate(any[String], any[String], any[Boolean], any[String])
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(serviceResponse)
+      when(mockFastPassService.processFastPassCandidate(any[String], any[String], any[Boolean], any[String])(any[HeaderCarrier], any[RequestHeader])).thenReturn(serviceResponse)
       val response = controllerUnderTest.processFastPassCandidate("userId", "appId")(fakeRequest(request))
       status(response) mustBe OK
 
       verify(mockFastPassService).processFastPassCandidate(eqTo("userId"), eqTo("appId"), eqTo(true), eqTo("adminId"))(
-        any[HeaderCarrier](), any[RequestHeader])
+        any[HeaderCarrier](), any[RequestHeader]
+      )
       verifyNoMoreInteractions(mockFastPassService)
     }
   }
-
 
   trait TestFixture {
     implicit val hc = new HeaderCarrier()

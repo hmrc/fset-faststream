@@ -21,10 +21,10 @@ import java.util
 
 import com.github.ghik.silencer.silent
 import config.MicroserviceAppConfig
-import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.eventschedules.{ Location, Venue }
 import org.yaml.snakeyaml.Yaml
 import play.api.Play
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{ Json, OFormat }
 import resource._
 
 import scala.collection.JavaConversions._
@@ -32,7 +32,6 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
-
 
 case class LocationWithVenue(name: String, venues: List[Venue])
 object LocationWithVenue { implicit val locationWithVenueFormat: OFormat[LocationWithVenue] = Json.format[LocationWithVenue] }

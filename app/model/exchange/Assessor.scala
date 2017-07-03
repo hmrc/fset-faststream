@@ -25,8 +25,8 @@ case class Assessor(userId: String, skills: List[String], sifterSchemes: List[St
 object Assessor {
   implicit val assessorFormat = Json.format[Assessor]
 
-  def apply(assessor: model.persisted.assessor.Assessor): Assessor
-    = Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
+  def apply(assessor: model.persisted.assessor.Assessor): Assessor =
+    Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
 }
 
 case class AssessorAvailability(location: String, date: LocalDate)

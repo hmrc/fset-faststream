@@ -30,7 +30,7 @@ object FSACIndicatorCSVRepository extends FSACIndicatorCSVRepository {
 
   import play.api.Play.current
 
-  override private[repositories] val indicators: Map[String, FSACIndicator] =  {
+  override private[repositories] val indicators: Map[String, FSACIndicator] = {
     @silent val input = managed(Play.application.resourceAsStream(CsvFileName).get)
     input.acquireAndGet { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines.map(parseLine).toList
@@ -38,8 +38,10 @@ object FSACIndicatorCSVRepository extends FSACIndicatorCSVRepository {
       val values = rawData.tail
 
       def toMap(m: Map[String, FSACIndicator], line: Array[String]): Map[String, FSACIndicator] = {
-        require(headers.length == line.length,
-          s"Number of columns must be equal to number of headers. Incorrect line: ${line.mkString("|")}")
+        require(
+          headers.length == line.length,
+          s"Number of columns must be equal to number of headers. Incorrect line: ${line.mkString("|")}"
+        )
         m + ((line(0), FSACIndicator(line(1), line(2))))
       }
 

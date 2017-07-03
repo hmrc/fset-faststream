@@ -62,15 +62,23 @@ trait FastPassService extends EventSink {
 
   val acceptedTemplate = "fset_faststream_app_online_fast-pass_accepted"
 
-
-  def processFastPassCandidate(userId: String, applicationId: String, accepted: Boolean, actionTriggeredBy: String)
-                              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
-    if (accepted) { acceptFastPassCandidate(userId, applicationId, actionTriggeredBy) }
-    else {rejectFastPassCandidate(userId, applicationId, actionTriggeredBy)}
+  def processFastPassCandidate(
+    userId: String,
+    applicationId: String,
+    accepted: Boolean,
+    actionTriggeredBy: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
+    if (accepted) {
+      acceptFastPassCandidate(userId, applicationId, actionTriggeredBy)
+    } else {
+      rejectFastPassCandidate(userId, applicationId, actionTriggeredBy)
+    }
   }
 
-  def promoteToFastPassCandidate(applicationId: String, actionTriggeredBy: String)
-                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def promoteToFastPassCandidate(
+    applicationId: String,
+    actionTriggeredBy: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     val eventMap = Map("createdBy" -> actionTriggeredBy, "applicationId" -> applicationId)
     for {
@@ -82,8 +90,11 @@ trait FastPassService extends EventSink {
     } yield ()
   }
 
-  private def acceptFastPassCandidate(userId: String, applicationId: String, actionTriggeredBy: String)
-                                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
+  private def acceptFastPassCandidate(
+    userId: String,
+    applicationId: String,
+    actionTriggeredBy: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
 
     val emailFut = cdRepository.find(userId).map(_.email)
     val personalDetailsFut = personalDetailsService.find(applicationId, userId)
@@ -97,12 +108,16 @@ trait FastPassService extends EventSink {
       _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
       _ <- emailClient.sendEmailWithName(email, personalDetail.preferredName, acceptedTemplate)
       _ <- eventSink(FastPassUserAcceptedEmailSent(
-        Map("email" -> email, "name" -> personalDetail.preferredName, "template" -> acceptedTemplate)) :: Nil)
+        Map("email" -> email, "name" -> personalDetail.preferredName, "template" -> acceptedTemplate)
+      ) :: Nil)
     } yield (personalDetail.firstName, personalDetail.lastName)
   }
 
-  private def rejectFastPassCandidate(userId: String, applicationId: String, actionTriggeredBy: String)
-                                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
+  private def rejectFastPassCandidate(
+    userId: String,
+    applicationId: String,
+    actionTriggeredBy: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
 
     val eventMap = Map("createdBy" -> actionTriggeredBy, "candidate" -> userId)
     for {

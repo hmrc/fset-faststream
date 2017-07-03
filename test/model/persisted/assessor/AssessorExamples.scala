@@ -28,7 +28,8 @@ object AssessorExamples {
 
   val assessorAvailability = AssessorAvailability(london, new LocalDate(2017, 10, 10))
 
-  val AssessorExisting = Assessor(AssessorUserId,
+  val AssessorExisting = Assessor(
+    AssessorUserId,
     skills = List("qac", "chair"),
     sifterSchemes = List("Sdip"),
     civilServant = true,
@@ -40,9 +41,11 @@ object AssessorExamples {
       Nil
   )
 
-  val AssessorNew: Assessor = AssessorExamples.AssessorExisting.copy(skills = List("assessor"),
+  val AssessorNew: Assessor = AssessorExamples.AssessorExisting.copy(
+    skills = List("assessor"),
     availability = List.empty,
-    status = AssessorStatus.CREATED)
+    status = AssessorStatus.CREATED
+  )
 
   val AssessorMerged: Assessor = AssessorExamples.AssessorExisting.copy(skills = List("assessor"))
 

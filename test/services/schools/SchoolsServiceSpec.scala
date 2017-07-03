@@ -55,7 +55,7 @@ class SchoolsServiceSpec extends UnitWithAppSpec with ShortTimeout {
 
       val service = new SchoolsService {
         override val schoolsRepo: SchoolsRepository = new SchoolsRepository {
-          def schools: Future[List[School]] =  Future.successful(List(
+          def schools: Future[List[School]] = Future.successful(List(
             school1WithGrammarName,
             schoolWithoutGrammarName,
             school2WithGrammarName

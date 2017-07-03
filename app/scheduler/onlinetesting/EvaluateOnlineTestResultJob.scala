@@ -54,8 +54,8 @@ object EvaluatePhase3ResultJob extends EvaluateOnlineTestResultJob[Phase3PassMar
   val config = EvaluatePhase3ResultJobConfig
 }
 
-abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonFormat: Format[T]) extends
-  SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonFormat: Format[T])
+    extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
 
   val evaluateService: EvaluateOnlineTestResultService[T]
   val phase: Phase
@@ -74,8 +74,10 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
   val errorLog = (app: ApplicationReadyForEvaluation) =>
     s"${app.applicationId}, cubiks Ids: ${app.activeCubiksTests.map(_.cubiksUserId).mkString(",")}"
 
-  private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation],
-                              passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
+  private def evaluateInBatch(
+    apps: List[ApplicationReadyForEvaluation],
+    passmarkSettings: T
+  )(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.debug(s"Evaluate $phase Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
       Try(evaluateService.evaluate(app, passmarkSettings)) match {

@@ -38,7 +38,6 @@ object AdminStatusGeneratorFactory {
 
 object CandidateStatusGeneratorFactory {
 
-
   // scalastyle:off cyclomatic.complexity method.length
   def getGenerator(generatorConfig: CreateCandidateData) = {
 
@@ -128,7 +127,6 @@ object CandidateStatusGeneratorFactory {
 
 trait ApplicationStatusOnlyForTest {
   this: Enumeration =>
-  val REGISTERED, IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES,
-  IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES, IN_PROGRESS_ASSISTANCE_DETAILS,
-  IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
+  val REGISTERED, IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES, IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES = Value
+  val IN_PROGRESS_ASSISTANCE_DETAILS, IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
 }

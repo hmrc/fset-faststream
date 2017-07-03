@@ -98,14 +98,12 @@ object ProgressStatusesReportLabelsSpec {
   val progressResponse = ProgressResponse("1", personalDetails = true, schemePreferences = true,
     partnerGraduateProgrammes = true, assistanceDetails = true, preview = true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"),
-    submitted = true, withdrawn = true
-  )
+    submitted = true, withdrawn = true)
 
   val completeProgressResponse = ProgressResponse("1", personalDetails = true, schemePreferences = true,
     partnerGraduateProgrammes = true, assistanceDetails = true, preview = true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"),
-    submitted = true, withdrawn = true
-  )
+    submitted = true, withdrawn = true)
 
   val expiredProgressResponse = progressResponse.copy(phase3ProgressResponse = Phase3ProgressResponse(
     phase3TestsInvited = true,
@@ -115,7 +113,7 @@ object ProgressStatusesReportLabelsSpec {
     phase3TestsCompleted = true,
     phase3TestsExpired = true,
     phase3TestsResultsReceived = true,
-    phase3TestsPassedWithAmber= false,
+    phase3TestsPassedWithAmber = false,
     phase3TestsPassed = false,
     phase3TestsFailed = false,
     phase3TestsFailedNotified = false,

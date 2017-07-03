@@ -19,7 +19,6 @@ package model.persisted
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import reactivemongo.bson.Macros
 
-
 trait TestGroupWithIds[U <: Test, T <: TestProfile[U]] {
   def applicationId: String
   def testGroup: T
@@ -35,7 +34,8 @@ object Phase1TestGroupWithUserIds {
   implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestGroupWithUserIds]
 }
 
-case class Phase2TestGroupWithAppId(applicationId: String,
+case class Phase2TestGroupWithAppId(
+  applicationId: String,
   testGroup: Phase2TestGroup
 ) extends TestGroupWithIds[CubiksTest, Phase2TestGroup]
 

@@ -16,8 +16,8 @@
 
 package model
 
-import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
-import reactivemongo.bson.{BSON, BSONHandler, BSONString}
+import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object AllocationStatuses extends Enumeration {
   type AllocationStatus = Value

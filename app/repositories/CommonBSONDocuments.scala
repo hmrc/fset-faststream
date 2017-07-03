@@ -39,8 +39,8 @@ trait CommonBSONDocuments extends BaseBSONReader {
           s"progress-status.${progressStatus.key}" -> true,
           s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
         )
-        // For in progress application status we store application status in
-        // progress-status-timestamp.
+      // For in progress application status we store application status in
+      // progress-status-timestamp.
       case _ if applicationStatus == ApplicationStatus.IN_PROGRESS =>
         BSONDocument(
           "applicationStatus" -> applicationStatus,
@@ -63,7 +63,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
   }
 
   def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {
-     BSONDocument(
+    BSONDocument(
       s"progress-status.${progressStatus.key}" -> true,
       s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
     )
@@ -78,89 +78,90 @@ trait CommonBSONDocuments extends BaseBSONReader {
 
   // scalastyle:off method.length
   def toProgressResponse(applicationId: String): BSONDocumentReader[ProgressResponse] = bsonReader {
-    (doc: BSONDocument) => {
-      (doc.getAs[BSONDocument]("progress-status") map { root =>
+    (doc: BSONDocument) =>
+      {
+        (doc.getAs[BSONDocument]("progress-status") map { root =>
 
-        def getProgress(key: String) = {
-          root.getAs[Boolean](key)
-            .orElse(root.getAs[Boolean](key.toUpperCase))
-            .orElse(root.getAs[Boolean](key.toLowerCase))
-            .getOrElse(false)
-        }
+          def getProgress(key: String) = {
+            root.getAs[Boolean](key)
+              .orElse(root.getAs[Boolean](key.toUpperCase))
+              .orElse(root.getAs[Boolean](key.toLowerCase))
+              .getOrElse(false)
+          }
 
-        def questionnaire = root.getAs[BSONDocument]("questionnaire").map { doc =>
-          doc.elements.collect {
-            case (name, BSONBoolean(true)) => name
-          }.toList
-        }.getOrElse(Nil)
+          def questionnaire = root.getAs[BSONDocument]("questionnaire").map { doc =>
+            doc.elements.collect {
+              case (name, BSONBoolean(true)) => name
+            }.toList
+          }.getOrElse(Nil)
 
-        ProgressResponse(
-          applicationId,
-          personalDetails = getProgress(ProgressStatuses.PERSONAL_DETAILS.key),
-          partnerGraduateProgrammes = getProgress(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES.key),
-          schemePreferences = getProgress(ProgressStatuses.SCHEME_PREFERENCES.key),
-          assistanceDetails = getProgress(ProgressStatuses.ASSISTANCE_DETAILS.key),
-          preview = getProgress(ProgressStatuses.PREVIEW.key),
-          questionnaire = questionnaire,
-          submitted = getProgress(ProgressStatuses.SUBMITTED.key),
-          fastPassAccepted = getProgress(ProgressStatuses.FAST_PASS_ACCEPTED.key),
-          withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
-          applicationArchived = getProgress(ProgressStatuses.APPLICATION_ARCHIVED.key),
-          phase1ProgressResponse = Phase1ProgressResponse(
-            phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
-            phase1TestsFirstReminder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
-            phase1TestsSecondReminder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.key),
-            phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.key),
-            phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.key),
-            phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.key),
-            phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.key),
-            phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.key),
-            phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.key),
-            phase1TestsSuccessNotified = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED.key),
-            phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key),
-            phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key),
-            sdipFSFailed = getProgress(FailedSdipFsTestType.progressStatus),
-            sdipFSFailedNotified = getProgress(FailedSdipFsTestType.notificationProgress),
-            sdipFSSuccessful = getProgress(SuccessfulSdipFsTestType.progressStatus),
-            sdipFSSuccessfulNotified = getProgress(SuccessfulSdipFsTestType.notificationProgress)
-          ),
-          phase2ProgressResponse = Phase2ProgressResponse(
-            phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
-            phase2TestsFirstReminder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.key),
-            phase2TestsSecondReminder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.key),
-            phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.key),
-            phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.key),
-            phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.key),
-            phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.key),
-            phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.key),
-            phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
-            phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key),
-            phase2TestsFailedNotified = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED.key)
-          ),
-          phase3ProgressResponse = Phase3ProgressResponse(
-            phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
-            phase3TestsFirstReminder = getProgress(ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER.toString),
-            phase3TestsSecondReminder = getProgress(ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER.toString),
-            phase3TestsStarted = getProgress(ProgressStatuses.PHASE3_TESTS_STARTED.toString),
-            phase3TestsCompleted = getProgress(ProgressStatuses.PHASE3_TESTS_COMPLETED.toString),
-            phase3TestsExpired = getProgress(ProgressStatuses.PHASE3_TESTS_EXPIRED.toString),
-            phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
-            phase3TestsPassedWithAmber = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_WITH_AMBER.toString),
-            phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
-            phase3TestsSuccessNotified = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED.key),
-            phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString),
-            phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key)
-          ),
-          assessmentCentre = AssessmentCentre(
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED_NOTIFIED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key)
+          ProgressResponse(
+            applicationId,
+            personalDetails = getProgress(ProgressStatuses.PERSONAL_DETAILS.key),
+            partnerGraduateProgrammes = getProgress(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES.key),
+            schemePreferences = getProgress(ProgressStatuses.SCHEME_PREFERENCES.key),
+            assistanceDetails = getProgress(ProgressStatuses.ASSISTANCE_DETAILS.key),
+            preview = getProgress(ProgressStatuses.PREVIEW.key),
+            questionnaire = questionnaire,
+            submitted = getProgress(ProgressStatuses.SUBMITTED.key),
+            fastPassAccepted = getProgress(ProgressStatuses.FAST_PASS_ACCEPTED.key),
+            withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
+            applicationArchived = getProgress(ProgressStatuses.APPLICATION_ARCHIVED.key),
+            phase1ProgressResponse = Phase1ProgressResponse(
+              phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
+              phase1TestsFirstReminder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
+              phase1TestsSecondReminder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.key),
+              phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.key),
+              phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.key),
+              phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.key),
+              phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.key),
+              phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.key),
+              phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.key),
+              phase1TestsSuccessNotified = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED.key),
+              phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key),
+              phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key),
+              sdipFSFailed = getProgress(FailedSdipFsTestType.progressStatus),
+              sdipFSFailedNotified = getProgress(FailedSdipFsTestType.notificationProgress),
+              sdipFSSuccessful = getProgress(SuccessfulSdipFsTestType.progressStatus),
+              sdipFSSuccessfulNotified = getProgress(SuccessfulSdipFsTestType.notificationProgress)
+            ),
+            phase2ProgressResponse = Phase2ProgressResponse(
+              phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
+              phase2TestsFirstReminder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.key),
+              phase2TestsSecondReminder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.key),
+              phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.key),
+              phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.key),
+              phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.key),
+              phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.key),
+              phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.key),
+              phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
+              phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key),
+              phase2TestsFailedNotified = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED.key)
+            ),
+            phase3ProgressResponse = Phase3ProgressResponse(
+              phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
+              phase3TestsFirstReminder = getProgress(ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER.toString),
+              phase3TestsSecondReminder = getProgress(ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER.toString),
+              phase3TestsStarted = getProgress(ProgressStatuses.PHASE3_TESTS_STARTED.toString),
+              phase3TestsCompleted = getProgress(ProgressStatuses.PHASE3_TESTS_COMPLETED.toString),
+              phase3TestsExpired = getProgress(ProgressStatuses.PHASE3_TESTS_EXPIRED.toString),
+              phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
+              phase3TestsPassedWithAmber = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_WITH_AMBER.toString),
+              phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
+              phase3TestsSuccessNotified = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED.key),
+              phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString),
+              phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key)
+            ),
+            assessmentCentre = AssessmentCentre(
+              getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
+              getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
+              getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key),
+              getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED_NOTIFIED.key),
+              getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key)
+            )
           )
-        )
-      }).getOrElse(ProgressResponse(applicationId))
-    }
+        }).getOrElse(ProgressResponse(applicationId))
+      }
   }
   // scalastyle:on method.length
 }

@@ -16,7 +16,7 @@
 
 package model
 
-// scalastyle:off number.of.methods
+// scalastyle:off
 object Exceptions {
   sealed class ConnectorException(message: String) extends Exception(message)
 
@@ -103,4 +103,4 @@ object Exceptions {
   case class EventNotFoundException(m: String) extends Exception(m)
 }
 
-// scalastyle:on number.of.methods
+//scalastyle:on

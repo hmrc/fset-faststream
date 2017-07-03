@@ -32,7 +32,7 @@ trait Phase2TestGroupController extends BaseController {
   def extend(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>
       phase2TestService.extendTestGroupExpiryTime(applicationId, extension.extraDays,
-        extension.actionTriggeredBy) map ( _ => Ok )
+        extension.actionTriggeredBy) map (_ => Ok)
     }
   }
 }

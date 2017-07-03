@@ -19,7 +19,6 @@ package model.persisted
 import play.api.libs.json.Json
 
 case class QuestionnaireAnswer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
-object QuestionnaireAnswer
-{
+object QuestionnaireAnswer {
   implicit val answerFormats = Json.format[QuestionnaireAnswer]
 }

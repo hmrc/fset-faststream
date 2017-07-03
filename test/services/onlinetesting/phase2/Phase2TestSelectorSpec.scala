@@ -45,7 +45,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
 
       def createSchedules(startingSchedule: List[(String, Phase2Schedule)]) = {
         (1 to schedules.size).foldLeft(startingSchedule)((list, _) =>
-          list :+ selector.getNextSchedule(list.map{case(_, s) => s.scheduleId}))
+          list :+ selector.getNextSchedule(list.map { case (_, s) => s.scheduleId }))
       }
 
       val randomSchedules = createSchedules(List.empty[(String, Phase2Schedule)])
@@ -57,7 +57,6 @@ class Phase2TestSelectorSpec extends UnitSpec {
       randomSchedulesCombined must be(randomSchedules ::: randomSchedules)
     }
   }
-
 
   private def createSelector(schedules: Map[String, Phase2Schedule]): Phase2TestSelector = new Phase2TestSelector {
     def testConfig = Phase2TestsConfig(1, 90, schedules)

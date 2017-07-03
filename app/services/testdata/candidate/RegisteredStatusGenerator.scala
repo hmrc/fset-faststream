@@ -45,7 +45,6 @@ trait RegisteredStatusGenerator extends BaseGenerator {
   val medRepository: MediaRepository
   val assessorGenerator: AssessorCreatedStatusGenerator
 
-
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     val firstName = generatorConfig.personalData.firstName
@@ -65,10 +64,10 @@ trait RegisteredStatusGenerator extends BaseGenerator {
   }
 
   def createUser(
-                  generationId: Int,
-                  email: String,
-                  firstName: String, lastName: String, preferredName: Option[String], role: AuthProviderClient.UserRole
-                )(implicit hc: HeaderCarrier) = {
+    generationId: Int,
+    email: String,
+    firstName: String, lastName: String, preferredName: Option[String], role: AuthProviderClient.UserRole
+  )(implicit hc: HeaderCarrier) = {
 
     val userFuture = for {
       user <- authProviderClient.addUser(email, "Service01", firstName, lastName, role)

@@ -26,7 +26,7 @@ case class ExpiringOnlineTest(
 )
 
 object ExpiringOnlineTest {
-   def fromBson(doc: BSONDocument): ExpiringOnlineTest = {
+  def fromBson(doc: BSONDocument): ExpiringOnlineTest = {
     val applicationId = doc.getAs[String]("applicationId").get
     val userId = doc.getAs[String]("userId").get
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get

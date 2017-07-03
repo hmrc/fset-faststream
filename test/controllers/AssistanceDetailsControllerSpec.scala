@@ -37,8 +37,7 @@ class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
 
     "return CREATED and update the details and audit AssistanceDetailsSaved event" in new TestFixture {
       val Request = fakeRequest(AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments)
-      when(mockAssistanceDetailsService.update(AppId, UserId, AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments)
-      ).thenReturn(Future.successful(()))
+      when(mockAssistanceDetailsService.update(AppId, UserId, AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments)).thenReturn(Future.successful(()))
       val result = controller.update(UserId, AppId)(Request)
       status(result) must be(CREATED)
       verify(mockAuditService).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])

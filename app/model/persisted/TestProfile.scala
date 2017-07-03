@@ -18,9 +18,8 @@ package model.persisted
 
 import org.joda.time.DateTime
 
-abstract class CubiksTestProfile(
-) extends TestProfile[CubiksTest] {
-  def hasNotResultReadyToDownloadForAllTestsYet =  activeTests.exists(!_.resultsReadyToDownload)
+abstract class CubiksTestProfile() extends TestProfile[CubiksTest] {
+  def hasNotResultReadyToDownloadForAllTestsYet = activeTests.exists(!_.resultsReadyToDownload)
 }
 
 trait TestProfile[T <: Test] {
@@ -28,7 +27,7 @@ trait TestProfile[T <: Test] {
   def tests: List[T]
   def activeTests = tests.filter(_.usedForResults)
   def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
-  def hasNotCompletedYet =  activeTests.exists(_.completedDateTime.isEmpty)
+  def hasNotCompletedYet = activeTests.exists(_.completedDateTime.isEmpty)
   def evaluation: Option[PassmarkEvaluation]
 }
 

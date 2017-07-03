@@ -19,8 +19,8 @@ package controllers
 import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.EventType
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent}
-import repositories.events.{LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository, UnknownVenueException}
+import play.api.mvc.{ Action, AnyContent }
+import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository, UnknownVenueException }
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -59,13 +59,13 @@ trait EventsController extends BaseController {
   }
 
   def getEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
-    val events =  Try {
-        val eventType = EventType.withName(eventTypeParam.toUpperCase)
-        locationsAndVenues.venue(venueParam).flatMap { venue =>
-          eventsService.getEvents(eventType, venue).map { events =>
-            Ok(Json.toJson(events))
-          }
+    val events = Try {
+      val eventType = EventType.withName(eventTypeParam.toUpperCase)
+      locationsAndVenues.venue(venueParam).flatMap { venue =>
+        eventsService.getEvents(eventType, venue).map { events =>
+          Ok(Json.toJson(events))
         }
+      }
     }
 
     play.api.Logger.debug(s"$events")

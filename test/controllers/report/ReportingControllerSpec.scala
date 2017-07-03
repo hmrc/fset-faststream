@@ -106,19 +106,19 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       when(reportingRepositoryMock.candidateDeferralReport(any[String])).thenReturn(
         Future.successful(List(
-        ApplicationDeferralPartialItem("userId1", "Bob", "Bobson", "prefBob", List("Police Now")),
-        ApplicationDeferralPartialItem("userId2", "Dave", "Daveson", "prefDave", List("Teach First"))
-      )))
+          ApplicationDeferralPartialItem("userId1", "Bob", "Bobson", "prefBob", List("Police Now")),
+          ApplicationDeferralPartialItem("userId2", "Dave", "Daveson", "prefDave", List("Teach First"))
+        ))
+      )
 
       when(mockContactDetailsRepository.findAll).thenReturn(
         Future.successful(List(
           ContactDetailsWithId(userId = "userId1", address = Address("1 Test Street"), postCode = Some("QQ1 1QQ"), outsideUk = false,
-            email = "blah@blah.com", phone = Some("07707717711")
-          ),
-            ContactDetailsWithId(userId = "userId2", address = Address("1 Fake Street"), postCode = Some("QQ1 1QQ"), outsideUk = false,
-              email = "blah@blah.com", phone = Some("07707727722")
-          )
-      )))
+            email = "blah@blah.com", phone = Some("07707717711")),
+          ContactDetailsWithId(userId = "userId2", address = Address("1 Fake Street"), postCode = Some("QQ1 1QQ"), outsideUk = false,
+            email = "blah@blah.com", phone = Some("07707727722"))
+        ))
+      )
 
       val controller = new TestableReportingController
       val result = controller.candidateDeferralReport("frameworkId")(candidateDeferralRequest("frameworkId")).run
@@ -475,7 +475,6 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val frameworkId = "FastStream-2016"
-
 
     val SuccessfulAdjustmentReportResponse = Future.successful(
       List(

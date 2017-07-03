@@ -22,13 +22,13 @@ import repositories.csv.SchoolsRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SchoolsService extends SchoolsService{
+object SchoolsService extends SchoolsService {
   val schoolsRepo = schoolsRepository
 }
 
 trait SchoolsService {
   val MaxNumberOfSchools = 16
-  val schoolsRepo : SchoolsRepository
+  val schoolsRepo: SchoolsRepository
 
   def getSchools(term: String) = {
 
@@ -42,8 +42,8 @@ trait SchoolsService {
 
   private def sanitize(str: String) = {
     str.replaceAll("""([\p{Punct}])*""", "")
-        .replaceAll("""\s*""","")
-        .toLowerCase()
+      .replaceAll("""\s*""", "")
+      .toLowerCase()
   }
 
   private def applyLimit(allSchools: List[School]) = allSchools.take(MaxNumberOfSchools)

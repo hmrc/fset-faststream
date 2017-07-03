@@ -32,15 +32,14 @@ import services.onlinetesting.ApplicationStatusCalculator
 import scala.concurrent.Future
 
 object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
-  val evaluationRepository: OnlineTestEvaluationRepository
-    = repositories.faststreamPhase3EvaluationRepository
+  val evaluationRepository: OnlineTestEvaluationRepository = repositories.faststreamPhase3EvaluationRepository
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
   val launchpadGWConfig = launchpadGatewayConfig
   val phase = Phase.PHASE3
 }
 
 trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
-  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator {
+    with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator {
 
   val launchpadGWConfig: LaunchpadGatewayConfig
 
@@ -53,8 +52,10 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
 
     val optLatestReviewed = optLaunchpadTest.map(_.callbacks.reviewed).flatMap(getLatestReviewed)
     if (launchpadGWConfig.phase3Tests.verifyAllScoresArePresent) {
-      require(optLatestReviewed.exists(_.allQuestionsReviewed),
-        s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId}")
+      require(
+        optLatestReviewed.exists(_.allQuestionsReviewed),
+        s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId}"
+      )
     }
 
     val schemeResults = (optLatestReviewed, application.prevPhaseEvaluation) match {

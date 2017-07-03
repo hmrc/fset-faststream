@@ -18,24 +18,26 @@ package model.testdata
 
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.persisted.eventschedules._
-import org.joda.time.{LocalDate, LocalTime}
-import play.api.libs.json.{Json, OFormat}
+import org.joda.time.{ LocalDate, LocalTime }
+import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker.Random
 
 object CreateEventData {
 
-  case class CreateEventData(id: String,
-                             eventType: EventType.EventType,
-                             description: String,
-                             location: Location,
-                             venue: Venue,
-                             date: LocalDate,
-                             capacity: Int,
-                             minViableAttendees: Int,
-                             attendeeSafetyMargin: Int,
-                             startTime: LocalTime,
-                             endTime: LocalTime,
-                             skillRequirements: Map[String, Int]) extends CreateTestData {
+  case class CreateEventData(
+      id: String,
+      eventType: EventType.EventType,
+      description: String,
+      location: Location,
+      venue: Venue,
+      date: LocalDate,
+      capacity: Int,
+      minViableAttendees: Int,
+      attendeeSafetyMargin: Int,
+      startTime: LocalTime,
+      endTime: LocalTime,
+      skillRequirements: Map[String, Int]
+  ) extends CreateTestData {
     def toEvent: Event = {
       Event(id, eventType, description, location, venue, date, capacity, minViableAttendees,
         attendeeSafetyMargin, startTime, endTime, skillRequirements)

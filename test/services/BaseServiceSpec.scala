@@ -22,8 +22,8 @@ import testkit.{ FutureHelper, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 /**
-  * Common base class for all service tests
-  */
+ * Common base class for all service tests
+ */
 class BaseServiceSpec extends UnitSpec with FutureHelper {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
   implicit val hc = new HeaderCarrier()

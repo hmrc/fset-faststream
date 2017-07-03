@@ -27,9 +27,8 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
-
 object SchemeConfigProtocol extends DefaultYamlProtocol {
-  implicit val schemeFormat = yamlFormat3((a: String, b: String ,c: String) => Scheme(a,b,c))
+  implicit val schemeFormat = yamlFormat3((a: String, b: String, c: String) => Scheme(a, b, c))
 }
 
 trait SchemeRepositoryImpl {

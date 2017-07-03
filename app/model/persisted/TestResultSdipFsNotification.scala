@@ -20,12 +20,12 @@ import model.ApplicationStatus.ApplicationStatus
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONDocument
 
-
 case class TestResultSdipFsNotification(
   applicationId: String,
   userId: String,
   applicationStatus: ApplicationStatus,
-  preferredName: String)
+  preferredName: String
+)
 
 object TestResultSdipFsNotification {
   def fromBson(doc: BSONDocument) = {

@@ -27,7 +27,7 @@ sealed abstract class AuditEventWithAppId(applicationId: String) extends AuditEv
 
 sealed abstract class AuditEventNoRequest(details: Map[String, String]) extends AuditEvent(details)
 
-//scalastyle:off number.of.methods
+//scalastyle:off
 object AuditEvents {
   // NOTICE. The name for the case class is important and is used when the event is emitted.
   // In other words: Renaming the case class here, impacts in renaming the event name in Audit service.
@@ -74,4 +74,4 @@ object AuditEvents {
   case class FastPassUserRejected(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
 
 }
-// scalastyle:on number.of.methods
+// scalastyle:on

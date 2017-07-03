@@ -40,7 +40,8 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
       val passMarkSettingsServiceMockWithNoSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
       when(passMarkSettingsServiceMockWithNoSettings.getLatestPassMarkSettings(
-        any[Format[Phase1PassMarkSettings]])).thenReturn(Future.successful(None))
+        any[Format[Phase1PassMarkSettings]]
+      )).thenReturn(Future.successful(None))
 
       val passMarkSettingsControllerWithNoSettings = buildPMS(passMarkSettingsServiceMockWithNoSettings)
 
@@ -54,7 +55,8 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
       val passMarkSettingsServiceMockWithSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
       when(passMarkSettingsServiceMockWithSettings.getLatestPassMarkSettings(any[Format[Phase1PassMarkSettings]])).thenReturn(
-        Future.successful(Some(mockSettings)))
+        Future.successful(Some(mockSettings))
+      )
 
       val passMarkSettingsControllerWithSettings = buildPMS(passMarkSettingsServiceMockWithSettings)
 
@@ -129,7 +131,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
       val auditService = mockAuditService
       val uuidFactory = mockUUIDFactory
       val passMarksCreatedEvent = "Phase1PassMarksCreated"
-      def upgradeVersion(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
+      def upgradeVersion(passMarkSettings: Phase1PassMarkSettings, newVersionUUID: String) =
         passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
     }
 

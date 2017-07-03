@@ -19,11 +19,13 @@ package model.persisted
 import org.joda.time.LocalDate
 import reactivemongo.bson.Macros
 
-case class UserApplicationProfile(userId: String,
-                                  latestProgressStatus: String,
-                                  firstName: String,
-                                  lastName: String,
-                                  dateOfBirth: LocalDate)
+case class UserApplicationProfile(
+  userId: String,
+  latestProgressStatus: String,
+  firstName: String,
+  lastName: String,
+  dateOfBirth: LocalDate
+)
 
 object UserApplicationProfile {
   import repositories.BSONLocalDateHandler

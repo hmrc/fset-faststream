@@ -20,7 +20,8 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class Phase2TestGroup(expirationDate: DateTime,
+case class Phase2TestGroup(
+  expirationDate: DateTime,
   tests: List[CubiksTest],
   evaluation: Option[PassmarkEvaluation] = None
 ) extends CubiksTestProfile

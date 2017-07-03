@@ -16,18 +16,17 @@
 
 package model
 
-import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
-import reactivemongo.bson.{BSON, BSONHandler, BSONString}
+import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 @deprecated("Use the config Schemes instead", "June 2017")
 object SchemeType extends Enumeration {
   type SchemeType = Value
 
-  val Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,
-  DiplomaticServiceEuropean, European, Finance, Generalist,
-  GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService,
-  GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
-  ProjectDelivery, ScienceAndEngineering, Edip, Sdip = Value
+  val Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics, DiplomaticServiceEuropean, European = Value
+  val Finance, Generalist, GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService = Value
+  val GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources, ProjectDelivery = Value
+  val ScienceAndEngineering, Edip, Sdip = Value
 
   implicit val schemeFormat = new Format[SchemeType] {
     def reads(json: JsValue) = JsSuccess(SchemeType.withName(json.as[String]))
@@ -40,4 +39,5 @@ object SchemeType extends Enumeration {
 
     def write(stats: SchemeType) = BSON.write(stats.toString)
   }
+
 }

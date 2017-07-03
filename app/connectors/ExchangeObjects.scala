@@ -16,11 +16,10 @@
 
 package connectors
 
-import java.util.UUID
-
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, Json, OFormat }
 
+// scalastyle:off number.of.types
 object ExchangeObjects {
 
   val frameworkId = "FastStream-2016"
@@ -46,15 +45,15 @@ object ExchangeObjects {
   case class RegisterApplicant(firstName: String, lastName: String, email: String)
   object RegisterApplicant { implicit val registerApplicantFormat: OFormat[RegisterApplicant] = Json.format[RegisterApplicant] }
 
-
-  case class TimeAdjustments(assessmentId: Int,
+  case class TimeAdjustments(
+    assessmentId: Int,
     sectionId: Int,
     absoluteTime: Int
   )
   object TimeAdjustments { implicit val timeAdjustmentsFormat: OFormat[TimeAdjustments] = Json.format[TimeAdjustments] }
 
   case class InviteApplicant(scheduleID: Int, userId: Int, scheduleCompletionURL: String, resultsURL: Option[String] = None,
-                             timeAdjustments: List[TimeAdjustments] = Nil)
+    timeAdjustments: List[TimeAdjustments] = Nil)
   object InviteApplicant { implicit val inviteApplicantFormat: OFormat[InviteApplicant] = Json.format[InviteApplicant] }
 
   case class ReportNorm(assessmentId: Int, normId: Int)
@@ -64,7 +63,8 @@ object ExchangeObjects {
   case class Registration(userId: Int)
   object Registration { implicit val registrationFormat: OFormat[Registration] = Json.format[Registration] }
 
-  case class Invitation(userId: Int,
+  case class Invitation(
+    userId: Int,
     email: String, accessCode: String, logonUrl: String, authenticateUrl: String,
     participantScheduleId: Int
   )
@@ -77,8 +77,8 @@ object ExchangeObjects {
   object AddUserRequest { implicit val addUserRequestFormat: OFormat[AddUserRequest] = Json.format[AddUserRequest] }
 
   case class UserResponse(firstName: String, lastName: String, preferredName: Option[String],
-                          isActive: Boolean, userId: String, email: String, disabled: Boolean, lockStatus: String,
-                          role: String, service: String, phoneNumber: Option[String], detailsConfirmed: Option[Boolean])
+    isActive: Boolean, userId: String, email: String, disabled: Boolean, lockStatus: String,
+    role: String, service: String, phoneNumber: Option[String], detailsConfirmed: Option[Boolean])
   object UserResponse { implicit val userResponseFormat: OFormat[UserResponse] = Json.format[UserResponse] }
 
   case class ActivateEmailRequest(email: String, token: String, service: String)
@@ -86,16 +86,19 @@ object ExchangeObjects {
 
   // Find by first/last
   case class FindByFirstNameRequest(roles: List[String], firstName: String)
-  object FindByFirstNameRequest { implicit val findByFirstNameRequestFormat: OFormat[FindByFirstNameRequest] =
-    Json.format[FindByFirstNameRequest]
+  object FindByFirstNameRequest {
+    implicit val findByFirstNameRequestFormat: OFormat[FindByFirstNameRequest] =
+      Json.format[FindByFirstNameRequest]
   }
 
   case class FindByLastNameRequest(roles: List[String], lastName: String)
   object FindByLastNameRequest { implicit val findByLastNameRequestFormat: OFormat[FindByLastNameRequest] = Json.format[FindByLastNameRequest] }
 
   case class FindByFirstNameLastNameRequest(roles: List[String], firstName: String, lastName: String)
-  object FindByFirstNameLastNameRequest { implicit val findByFirstNameLastNameRequestFormat: OFormat[FindByFirstNameLastNameRequest] =
-    Json.format[FindByFirstNameLastNameRequest]
+  object FindByFirstNameLastNameRequest {
+    implicit val findByFirstNameLastNameRequestFormat: OFormat[FindByFirstNameLastNameRequest] =
+      Json.format[FindByFirstNameLastNameRequest]
   }
 
 }
+// scalastyle:on

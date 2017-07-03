@@ -36,12 +36,13 @@ trait DiagnosticReportingRepository {
 }
 
 class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
+    extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
 
   private val defaultExclusions = Json.obj(
     "_id" -> 0,
-    "personal-details" -> 0)  // these reports should not export personally identifiable data
+    "personal-details" -> 0
+  ) // these reports should not export personally identifiable data
 
   private val largeFields = Json.obj(
     "progress-status-timestamp" -> 0, // this is quite a bit of data, that is not really used for queries as progress-status is easier

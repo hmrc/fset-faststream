@@ -43,34 +43,35 @@ trait Phase2TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase2TestRepository
   val otService: Phase2TestService
 
-
-    def insertTests(applicationId: String, testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
-      Future.sequence(testResults.map {
-        case (result, phase2Test) => otRepository.insertTestResult(applicationId,
-          phase2Test, model.persisted.TestResult.fromCommandObject(result)
-        )
-      }).map(_ => ())
-    }
-
-    val now = DateTime.now().withZone(DateTimeZone.UTC)
-    def getPhase2Test(cubiksUserId: Int) = CubiksTest(0, usedForResults = true, cubiksUserId, "", "", "", now, 0)
-    def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(Some(10.0)), Some(20.0), Some(30.0), Some(40.0))
-
-
-    def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
-      for {
-        candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-        _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests) { test =>
-          val id = test.testId
-          val result = CubiksTestResultReady(Some(id * 123), "Ready", Some(s"http://fakeurl.com/report$id"))
-          otService.markAsReportReadyToDownload(id, result)
-        }
-        cubiksUserIds <- Future.successful(candidate.phase2TestGroup.get.tests.map(_.testId))
-        testResults <- Future.successful(cubiksUserIds.map { id => {
-          (getTestResult(generatorConfig.phase2TestData.flatMap(_.tscore)), getPhase2Test(id))}
-        })
-        _ <- insertTests(candidate.applicationId.get, testResults)
-        _ <- otRepository.updateProgressStatus(candidate.applicationId.get, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED)
-      } yield candidate
-    }
+  def insertTests(applicationId: String, testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
+    Future.sequence(testResults.map {
+      case (result, phase2Test) => otRepository.insertTestResult(
+        applicationId,
+        phase2Test, model.persisted.TestResult.fromCommandObject(result)
+      )
+    }).map(_ => ())
   }
+
+  val now = DateTime.now().withZone(DateTimeZone.UTC)
+  def getPhase2Test(cubiksUserId: Int) = CubiksTest(0, usedForResults = true, cubiksUserId, "", "", "", now, 0)
+  def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(Some(10.0)), Some(20.0), Some(30.0), Some(40.0))
+
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    for {
+      candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
+      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests) { test =>
+        val id = test.testId
+        val result = CubiksTestResultReady(Some(id * 123), "Ready", Some(s"http://fakeurl.com/report$id"))
+        otService.markAsReportReadyToDownload(id, result)
+      }
+      cubiksUserIds <- Future.successful(candidate.phase2TestGroup.get.tests.map(_.testId))
+      testResults <- Future.successful(cubiksUserIds.map { id =>
+        {
+          (getTestResult(generatorConfig.phase2TestData.flatMap(_.tscore)), getPhase2Test(id))
+        }
+      })
+      _ <- insertTests(candidate.applicationId.get, testResults)
+      _ <- otRepository.updateProgressStatus(candidate.applicationId.get, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED)
+    } yield candidate
+  }
+}

@@ -38,8 +38,8 @@ trait FlagCandidateRepository {
 }
 
 class FlagCandidateMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[FlagCandidate, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    FlagCandidate.FlagCandidateFormats, ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository
+    extends ReactiveRepository[FlagCandidate, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      FlagCandidate.FlagCandidateFormats, ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository
     with ReactiveRepositoryHelpers {
 
   def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = {

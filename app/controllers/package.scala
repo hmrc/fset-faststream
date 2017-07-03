@@ -17,8 +17,8 @@
 import model.persisted.eventschedules.SkillType
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import play.api.mvc.{PathBindable, QueryStringBindable}
+import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
+import play.api.mvc.{ PathBindable, QueryStringBindable }
 
 package object controllers {
 

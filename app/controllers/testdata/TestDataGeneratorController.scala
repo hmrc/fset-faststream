@@ -56,6 +56,9 @@ trait TestDataGeneratorController extends BaseController {
 
   // scalastyle:off method.length
   def exampleCreateCandidate = Action { implicit request =>
+    val comment1 = "Some comments here"
+    val comment2 = "Some other comments here"
+    val adjustment = AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some(comment1), otherInfo = Some(comment2))
     val example = CreateCandidateRequest(
       statusData = StatusDataRequest(
         applicationStatus = ApplicationStatus.SUBMITTED.toString,
@@ -122,10 +125,8 @@ trait TestDataGeneratorController extends BaseController {
       adjustmentInformation = Some(Adjustments(
         adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
         adjustmentsConfirmed = Some(true),
-        etray = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
-          , otherInfo = Some("Some other comments here"))),
-        video = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
-          , otherInfo = Some("Some other comments here")))
+        etray = Some(adjustment),
+        video = Some(adjustment)
       ))
     )
 
@@ -168,8 +169,10 @@ trait TestDataGeneratorController extends BaseController {
       attendeeSafetyMargin = Some(30),
       startTime = Some(LocalTime.now()),
       endTime = Some(LocalTime.now()),
-      skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
-        "CHAIR" -> 1))
+      skillRequirements = Some(Map(
+        SkillType.ASSESSOR.toString -> 4,
+        "CHAIR" -> 1
+      ))
     )
 
     Ok(Json.toJson(example))
@@ -188,14 +191,16 @@ trait TestDataGeneratorController extends BaseController {
       attendeeSafetyMargin = Some(30),
       startTime = Some(LocalTime.now()),
       endTime = Some(LocalTime.now()),
-      skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
-        "CHAIR" -> 1))
+      skillRequirements = Some(Map(
+        SkillType.ASSESSOR.toString -> 4,
+        "CHAIR" -> 1
+      ))
     )
     val example2 = example1.copy(
       id = Some(UUIDFactory.generateUUID()),
       location = Some("Newcastle"),
       venue = Some("New castle 1")
-      )
+    )
 
     Ok(Json.toJson(List(example1, example2)))
   }
@@ -241,9 +246,7 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-
-  private def createCandidates(config: (Int) => CreateCandidateData, numberToGenerate: Int)
-                              (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createCandidates(config: (Int) => CreateCandidateData, numberToGenerate: Int)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createCandidates(
         numberToGenerate, CandidateStatusGeneratorFactory.getGenerator,
@@ -257,8 +260,7 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createAdmins(createData: (Int) => CreateAdminData, numberToGenerate: Int)
-                          (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createAdmins(createData: (Int) => CreateAdminData, numberToGenerate: Int)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createAdmins(
         numberToGenerate,
@@ -273,8 +275,7 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createEvent(createData: (Int) => CreateEventData, numberToGenerate: Int)
-                         (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createEvent(createData: (Int) => CreateEventData, numberToGenerate: Int)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createEvent(
         numberToGenerate,
@@ -288,8 +289,10 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createEvents(createDatas: List[(Int) => CreateEventData], numberToGenerate: Int)
-                          (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createEvents(
+    createDatas: List[(Int) => CreateEventData],
+    numberToGenerate: Int
+  )(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createEvents(
         numberToGenerate,

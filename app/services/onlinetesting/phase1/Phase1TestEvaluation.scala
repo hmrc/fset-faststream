@@ -26,17 +26,17 @@ import services.onlinetesting.OnlineTestResultsCalculator
 trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
 
   def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult,
-                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+    passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     evaluate(isGis = true, schemes, passmark, sjqTestResult)
   }
 
   def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult,
-                        passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+    passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     evaluate(isGis = false, schemes, passmark, sjqTestResult, Some(bqTestResult))
   }
 
   private def evaluate(isGis: Boolean, schemes: List[SchemeType], passmark: Phase1PassMarkSettings,
-               sjqTestResult: TestResult, bqTestResultOpt: Option[TestResult] = None) = {
+    sjqTestResult: TestResult, bqTestResultOpt: Option[TestResult] = None) = {
     for {
       schemeToEvaluate <- schemes
       schemePassmark <- passmark.schemes find (_.schemeName == schemeToEvaluate)
@@ -51,8 +51,7 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
         s"bq score = ${bqTestResultOpt.map(_.tScore).getOrElse(None)}, " +
         s"bq fail = ${schemePassmark.schemeThresholds.behavioural.failThreshold}, " +
         s"bq pass = ${schemePassmark.schemeThresholds.behavioural.passThreshold}, " +
-        s"bq result = $bqResult"
-      )
+        s"bq result = $bqResult")
       SchemeEvaluationResult(schemeToEvaluate, combineTestResults(sjqResult, bqResult).toString)
     }
   }

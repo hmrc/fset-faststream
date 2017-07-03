@@ -21,7 +21,6 @@ import model.persisted.eventschedules.SkillType.SkillType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-
 case class AssessorAllocation(
   assessorId: String,
   eventId: String,

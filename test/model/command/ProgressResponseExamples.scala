@@ -19,7 +19,8 @@ package model.command
 import java.util.UUID
 
 object ProgressResponseExamples {
-  val Initial = ProgressResponse(applicationId = UUID.randomUUID().toString,
+  val Initial = ProgressResponse(
+    applicationId = UUID.randomUUID().toString,
     questionnaire = Nil,
     phase1ProgressResponse = Phase1ProgressResponse(),
     phase2ProgressResponse = Phase2ProgressResponse(),

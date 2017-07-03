@@ -20,7 +20,7 @@ import factories.DateTimeFactory
 import model.persisted.Phase1TestProfile
 import model.ProgressStatuses._
 import model.command.ProgressResponse
-import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
+import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.{ Phase1FirstReminder, Phase1SecondReminder }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -28,7 +28,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.stc.{ StcEventService, EventSink}
+import services.stc.{ StcEventService, EventSink }
 import services.onlinetesting.Exceptions.TestExtensionException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -50,8 +50,11 @@ trait OnlineTestExtensionService extends EventSink {
   val dateTimeFactory: DateTimeFactory
   import OnlineTestExtensionServiceImpl._
 
-  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  def extendTestGroupExpiryTime(
+    applicationId: String,
+    extraDays: Int,
+    actionTriggeredBy: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
 
     val extension = for {
       progressResponse <- appRepository.findProgress(applicationId)
@@ -76,8 +79,8 @@ trait OnlineTestExtensionService extends EventSink {
       _ <- getProgressStatusesToRemove(date, profile, progress).fold(NoOp)(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
       audit(expired, applicationId) ::
-      DataStoreEvents.OnlineExerciseExtended(applicationId, actionTriggeredBy) ::
-      Nil
+        DataStoreEvents.OnlineExerciseExtended(applicationId, actionTriggeredBy) ::
+        Nil
     }
 
   }
@@ -98,18 +101,20 @@ object OnlineTestExtensionServiceImpl {
 
   val NoOp: Future[Unit] = Future.successful(())
 
-  def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
-                                  profile: Phase1TestProfile,
-                                  progress: ProgressResponse): Option[List[ProgressStatus]] = {
+  def getProgressStatusesToRemove(
+    extendedExpiryDate: DateTime,
+    profile: Phase1TestProfile,
+    progress: ProgressResponse
+  ): Option[List[ProgressStatus]] = {
 
     val today = DateTime.now()
     val progressList = (Set.empty[ProgressStatus]
-        ++ cond(progress.phase1ProgressResponse.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
-        ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)
-        ++ cond(extendedExpiryDate.minusHours(Phase1SecondReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_SECOND_REMINDER)
-        ++ cond(extendedExpiryDate.minusHours(Phase1FirstReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_FIRST_REMINDER)).toList
-    if(progressList.isEmpty) { None } else { Some(progressList) }
+      ++ cond(progress.phase1ProgressResponse.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
+      ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)
+      ++ cond(extendedExpiryDate.minusHours(Phase1SecondReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_SECOND_REMINDER)
+      ++ cond(extendedExpiryDate.minusHours(Phase1FirstReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_FIRST_REMINDER)).toList
+    if (progressList.isEmpty) { None } else { Some(progressList) }
   }
 
-  private[this] def cond[T]( lazyCondition : => Boolean, value : T ) : Set[T] = if(lazyCondition) Set(value) else Set.empty
+  private[this] def cond[T](lazyCondition: => Boolean, value: T): Set[T] = if (lazyCondition) Set(value) else Set.empty
 }

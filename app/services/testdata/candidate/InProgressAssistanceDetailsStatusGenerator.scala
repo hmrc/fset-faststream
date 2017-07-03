@@ -93,7 +93,6 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
         None
       }
 
-
     AssistanceDetails(
       hasDisabilityFinalValue,
       hasDisabilityDescriptionFinalValue,

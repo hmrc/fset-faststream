@@ -28,8 +28,10 @@ trait CsvHelper {
 
       val parsedLine = sanitized(0) + sanitized(1).replaceAll(",", "|") + sanitized(2)
       val fixedColumns = parsedLine.split(",")
-      require(fixedColumns.length == expectedNumberOfHeaders,
-        "Line with commas as values need to have space after each coma which is not a delimiter")
+      require(
+        fixedColumns.length == expectedNumberOfHeaders,
+        "Line with commas as values need to have space after each coma which is not a delimiter"
+      )
 
       fixedColumns.map(_.replaceAll("\\|", ","))
     } else {

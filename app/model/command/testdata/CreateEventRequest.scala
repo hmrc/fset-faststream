@@ -22,18 +22,20 @@ import play.api.libs.json.{ Json, OFormat }
 
 object CreateEventRequest {
 
-  case class CreateEventRequest(id: Option[String],
-                                eventType: Option[EventType],
-                                description: Option[String],
-                                location: Option[String],
-                                venue: Option[String],
-                                date: Option[LocalDate],
-                                capacity: Option[Int],
-                                minViableAttendees: Option[Int],
-                                attendeeSafetyMargin: Option[Int],
-                                startTime: Option[LocalTime],
-                                endTime: Option[LocalTime],
-                                skillRequirements: Option[Map[String, Int]]) extends CreateTestDataRequest {
+  case class CreateEventRequest(
+    id: Option[String],
+      eventType: Option[EventType],
+      description: Option[String],
+      location: Option[String],
+      venue: Option[String],
+      date: Option[LocalDate],
+      capacity: Option[Int],
+      minViableAttendees: Option[Int],
+      attendeeSafetyMargin: Option[Int],
+      startTime: Option[LocalTime],
+      endTime: Option[LocalTime],
+      skillRequirements: Option[Map[String, Int]]
+  ) extends CreateTestDataRequest {
   }
 
   object CreateEventRequest {

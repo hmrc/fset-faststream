@@ -197,8 +197,8 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       override def bq = BqId
 
-      override def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult,bqTestResult: TestResult,
-                                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+      override def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult,
+        passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
         Nil
       }
     }
@@ -213,8 +213,8 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     }
 
     trait StubbedPhase1TestEvaluation extends Phase1TestEvaluation {
-      override def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult,bqTestResult: TestResult,
-                                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+      override def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult,
+        passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
         EvaluateForNonGis
       }
     }

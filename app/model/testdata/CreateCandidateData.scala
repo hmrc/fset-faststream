@@ -32,16 +32,16 @@ import services.testdata.faker.DataFaker.Random
 object CreateCandidateData {
 
   case class AssistanceDetails(
-                                hasDisability: String = Random.yesNoPreferNotToSay,
-                                hasDisabilityDescription: String = Random.hasDisabilityDescription,
-                                setGis: Boolean = false,
-                                onlineAdjustments: Boolean = Random.bool,
-                                onlineAdjustmentsDescription: String = Random.onlineAdjustmentsDescription,
-                                assessmentCentreAdjustments: Boolean = Random.bool,
-                                assessmentCentreAdjustmentsDescription: String = Random.assessmentCentreAdjustmentDescription,
-                                phoneAdjustments: Boolean = Random.bool,
-                                phoneAdjustmentsDescription: String = Random.phoneAdjustmentsDescription
-                              )
+    hasDisability: String = Random.yesNoPreferNotToSay,
+    hasDisabilityDescription: String = Random.hasDisabilityDescription,
+    setGis: Boolean = false,
+    onlineAdjustments: Boolean = Random.bool,
+    onlineAdjustmentsDescription: String = Random.onlineAdjustmentsDescription,
+    assessmentCentreAdjustments: Boolean = Random.bool,
+    assessmentCentreAdjustmentsDescription: String = Random.assessmentCentreAdjustmentDescription,
+    phoneAdjustments: Boolean = Random.bool,
+    phoneAdjustmentsDescription: String = Random.phoneAdjustmentsDescription
+  )
 
   object AssistanceDetails {
     def apply(o: AssistanceDetailsRequest): AssistanceDetails = {
@@ -62,14 +62,14 @@ object CreateCandidateData {
   }
 
   case class DiversityDetails(
-                               genderIdentity: String = Random.gender,
-                               sexualOrientation: String = Random.sexualOrientation,
-                               ethnicity: String = Random.ethnicGroup,
-                               universityAttended: String = Random.university._2,
-                               parentalEmployedOrSelfEmployed: String = Random.parentsOccupation,
-                               parentalEmployment: Option[String] = Some(Random.parentsOccupationDetails),
-                               parentalCompanySize: Option[String] = Some(Random.sizeParentsEmployeer)
-                             )
+    genderIdentity: String = Random.gender,
+    sexualOrientation: String = Random.sexualOrientation,
+    ethnicity: String = Random.ethnicGroup,
+    universityAttended: String = Random.university._2,
+    parentalEmployedOrSelfEmployed: String = Random.parentsOccupation,
+    parentalEmployment: Option[String] = Some(Random.parentsOccupationDetails),
+    parentalCompanySize: Option[String] = Some(Random.sizeParentsEmployeer)
+  )
 
   object DiversityDetails {
     def apply(o: DiversityDetailsRequest): DiversityDetails = {
@@ -108,13 +108,13 @@ object CreateCandidateData {
   }
 
   case class Phase1TestData(
-                             start: Option[DateTime] = None,
-                             expiry: Option[DateTime] = None,
-                             completion: Option[DateTime] = None,
-                             bqtscore: Option[Double] = None,
-                             sjqtscore: Option[Double] = None,
-                             passmarkEvaluation: Option[PassmarkEvaluation] = None
-                           ) extends TestDates
+    start: Option[DateTime] = None,
+    expiry: Option[DateTime] = None,
+    completion: Option[DateTime] = None,
+    bqtscore: Option[Double] = None,
+    sjqtscore: Option[Double] = None,
+    passmarkEvaluation: Option[PassmarkEvaluation] = None
+  ) extends TestDates
 
   object Phase1TestData {
     def apply(testDataRequest: Phase1TestDataRequest): Phase1TestData = {
@@ -130,12 +130,12 @@ object CreateCandidateData {
   }
 
   case class Phase2TestData(
-                             start: Option[DateTime] = None,
-                             expiry: Option[DateTime] = None,
-                             completion: Option[DateTime] = None,
-                             tscore: Option[Double] = None,
-                             passmarkEvaluation: Option[PassmarkEvaluation] = None
-                           ) extends TestDates with TestResult
+    start: Option[DateTime] = None,
+    expiry: Option[DateTime] = None,
+    completion: Option[DateTime] = None,
+    tscore: Option[Double] = None,
+    passmarkEvaluation: Option[PassmarkEvaluation] = None
+  ) extends TestDates with TestResult
 
   object Phase2TestData {
     def apply(o: Phase2TestDataRequest): Phase2TestData = {
@@ -150,14 +150,14 @@ object CreateCandidateData {
   }
 
   case class Phase3TestData(
-                             start: Option[DateTime] = None,
-                             expiry: Option[DateTime] = None,
-                             completion: Option[DateTime] = None,
-                             score: Option[Double] = None,
-                             generateNullScoresForFewQuestions: Option[Boolean] = None,
-                             receivedBeforeInHours: Option[Int] = None,
-                             passmarkEvaluation: Option[PassmarkEvaluation] = None
-                           )
+    start: Option[DateTime] = None,
+    expiry: Option[DateTime] = None,
+    completion: Option[DateTime] = None,
+    score: Option[Double] = None,
+    generateNullScoresForFewQuestions: Option[Boolean] = None,
+    receivedBeforeInHours: Option[Int] = None,
+    passmarkEvaluation: Option[PassmarkEvaluation] = None
+  )
 
   object Phase3TestData {
     def apply(o: Phase3TestDataRequest): Phase3TestData = {
@@ -174,16 +174,16 @@ object CreateCandidateData {
   }
 
   case class PersonalData(
-                           emailPrefix: String = s"tesf${Random.number() - 1}",
-                           firstName: String = Random.getFirstname(1),
-                           lastName: String = Random.getLastname(1),
-                           preferredName: Option[String] = None,
-                           dob: LocalDate = new LocalDate(1981, 5, 21),
-                           postCode: Option[String] = None,
-                           country: Option[String] = None,
-                           edipCompleted: Option[Boolean] = None,
-                           role: Option[UserRole] = None
-                         ) {
+      emailPrefix: String = s"tesf${Random.number() - 1}",
+      firstName: String = Random.getFirstname(1),
+      lastName: String = Random.getLastname(1),
+      preferredName: Option[String] = None,
+      dob: LocalDate = new LocalDate(1981, 5, 21),
+      postCode: Option[String] = None,
+      country: Option[String] = None,
+      edipCompleted: Option[Boolean] = None,
+      role: Option[UserRole] = None
+  ) {
     def getPreferredName: String = preferredName.getOrElse(s"Pref$firstName")
   }
 
@@ -208,15 +208,16 @@ object CreateCandidateData {
   }
 
   case class StatusData(
-                         applicationStatus: ApplicationStatus = ApplicationStatus.REGISTERED,
-                         previousApplicationStatus: Option[ApplicationStatus] = None,
-                         progressStatus: Option[ProgressStatus] = None,
-                         applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream
-                       )
+    applicationStatus: ApplicationStatus = ApplicationStatus.REGISTERED,
+    previousApplicationStatus: Option[ApplicationStatus] = None,
+    progressStatus: Option[ProgressStatus] = None,
+    applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream
+  )
 
   object StatusData {
     def apply(o: StatusDataRequest): StatusData = {
-      StatusData(applicationStatus = ApplicationStatus.withName(o.applicationStatus),
+      StatusData(
+        applicationStatus = ApplicationStatus.withName(o.applicationStatus),
         previousApplicationStatus = o.previousApplicationStatus.map(ApplicationStatus.withName),
         progressStatus = o.progressStatus.map(ProgressStatuses.nameToProgressStatus),
         applicationRoute = o.applicationRoute.map(ApplicationRoute.withName).getOrElse(ApplicationRoute.Faststream)
@@ -224,22 +225,23 @@ object CreateCandidateData {
     }
   }
 
-  case class CreateCandidateData(statusData: StatusData,
-                                 personalData: PersonalData = PersonalData(),
-                                 diversityDetails: DiversityDetails = DiversityDetails(),
-                                 assistanceDetails: AssistanceDetails = AssistanceDetails(),
-                                 cubiksUrl: String,
-                                 schemeTypes: Option[List[SchemeType]] = None,
-                                 isCivilServant: Boolean = false,
-                                 hasFastPass: Boolean = false,
-                                 hasDegree: Boolean = Random.bool,
-                                 region: Option[String] = None,
-                                 phase1TestData: Option[Phase1TestData] = None,
-                                 phase2TestData: Option[Phase2TestData] = None,
-                                 phase3TestData: Option[Phase3TestData] = None,
-                                 adjustmentInformation: Option[Adjustments] = None,
-                                 assessorDetails: Option[AssessorData] = None
-                                        ) extends CreateTestData
+  case class CreateCandidateData(
+    statusData: StatusData,
+    personalData: PersonalData = PersonalData(),
+    diversityDetails: DiversityDetails = DiversityDetails(),
+    assistanceDetails: AssistanceDetails = AssistanceDetails(),
+    cubiksUrl: String,
+    schemeTypes: Option[List[SchemeType]] = None,
+    isCivilServant: Boolean = false,
+    hasFastPass: Boolean = false,
+    hasDegree: Boolean = Random.bool,
+    region: Option[String] = None,
+    phase1TestData: Option[Phase1TestData] = None,
+    phase2TestData: Option[Phase2TestData] = None,
+    phase3TestData: Option[Phase3TestData] = None,
+    adjustmentInformation: Option[Adjustments] = None,
+    assessorDetails: Option[AssessorData] = None
+  ) extends CreateTestData
 
   object CreateCandidateData {
     def apply(cubiksUrlFromConfig: String, o: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {

@@ -18,7 +18,7 @@ package mocks
 
 import config.EmailConfig
 import connectors.CSREmailClient
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.TimeUnit
@@ -53,7 +53,7 @@ object EmailClientStub extends CSREmailClient {
   override def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
 
   override def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
-                               timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
+    timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
 
   override def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
 }

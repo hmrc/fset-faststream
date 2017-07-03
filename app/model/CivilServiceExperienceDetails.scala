@@ -21,9 +21,8 @@ import model.CivilServiceExperienceType.CivilServiceExperienceType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-
 case class CivilServiceExperienceDetails(
-  applicable:Boolean,
+  applicable: Boolean,
   civilServiceExperienceType: Option[CivilServiceExperienceType] = None,
   internshipTypes: Option[Seq[InternshipType]] = None,
   fastPassReceived: Option[Boolean] = None,

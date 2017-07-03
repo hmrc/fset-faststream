@@ -19,16 +19,16 @@ package model.report
 import play.api.libs.json.Json
 
 case class QuestionnaireReportItem(
-                                    gender: Option[String],
-                                    sexualOrientation: Option[String],
-                                    ethnicity: Option[String],
-                                    parentEmploymentStatus: Option[String],
-                                    parentOccupation: Option[String],
-                                    parentEmployedOrSelf: Option[String],
-                                    parentCompanySize: Option[String],
-                                    socioEconomicScore: String,
-                                    university: Option[String]
-                                  )
+  gender: Option[String],
+  sexualOrientation: Option[String],
+  ethnicity: Option[String],
+  parentEmploymentStatus: Option[String],
+  parentOccupation: Option[String],
+  parentEmployedOrSelf: Option[String],
+  parentCompanySize: Option[String],
+  socioEconomicScore: String,
+  university: Option[String]
+)
 
 object QuestionnaireReportItem {
   implicit val questionnaireReportItemFormat = Json.format[QuestionnaireReportItem]

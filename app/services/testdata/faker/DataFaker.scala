@@ -23,7 +23,7 @@ import model.Exceptions.DataFakingException
 import model.SchemeType._
 import model.persisted.eventschedules._
 import model.exchange.AssessorAvailability
-import org.joda.time.{LocalDate, LocalTime}
+import org.joda.time.{ LocalDate, LocalTime }
 import repositories._
 import repositories.events.LocationsWithVenuesInMemoryRepository
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
@@ -73,7 +73,7 @@ object DataFaker {
     def upperLetter: Char = randOne(('A' to 'Z').toList)
 
     def bool: Boolean = randOne(List(true, false))
-    def boolTrue20percent: Boolean = randOne(List(1,2,3,4,5)) == 5
+    def boolTrue20percent: Boolean = randOne(List(1, 2, 3, 4, 5)) == 5
 
     def number(limit: Option[Int] = None): Int = util.Random.nextInt(limit.getOrElse(2000000000))
 
@@ -98,12 +98,14 @@ object DataFaker {
     def onlineAdjustmentsDescription: String = randOne(List(
       "I am too sensitive to the light from screens",
       "I am allergic to electronic-magnetic waves",
-      "I am a convicted cracker who was asked by the court to be away from computers for 5 years"))
+      "I am a convicted cracker who was asked by the court to be away from computers for 5 years"
+    ))
 
     def assessmentCentreAdjustmentDescription: String = randOne(List(
       "I am very weak, I need constant support",
       "I need a comfortable chair because of my back problem",
-      "I need to take a rest every 10 minutes"))
+      "I need to take a rest every 10 minutes"
+    ))
 
     def phoneAdjustmentsDescription: String = randOne(List(
       "I need a very loud speaker",
@@ -150,26 +152,31 @@ object DataFaker {
     }
     */
 
-    def schemeTypes = randList(List(
+    def schemeTypes = randList(
+      List(
       Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,
       DiplomaticServiceEuropean, European, Finance, Generalist,
       GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService,
       GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
-      ProjectDelivery, ScienceAndEngineering),
-      randNumberOfSchemes())
+      ProjectDelivery, ScienceAndEngineering
+    ),
+      randNumberOfSchemes()
+    )
 
     def gender = randOne(List(
       "Male",
       "Female",
       "Other",
-      "I don't know/prefer not to say"))
+      "I don't know/prefer not to say"
+    ))
 
     def sexualOrientation = randOne(List(
       "Heterosexual/straight",
       "Gay/lesbian",
       "Bisexual",
       "Other",
-      "I don't know/prefer not to say"))
+      "I don't know/prefer not to say"
+    ))
 
     def ethnicGroup = randOne(List(
       "English/Welsh/Scottish/Northern Irish/British",
@@ -201,8 +208,6 @@ object DataFaker {
       "indyOrFeePaying-bursary",
       "indyOrFeePaying-noBursary"
     ))
-
-
 
     def age16to18School = randOne(List("Advanced Skills School", "Extremely Advanced School", "A-Level Specialist School", "14 to 18 School"))
 
@@ -600,7 +605,8 @@ object DataFaker {
       ("The University of York", "Y50-YORK"),
       ("York College (York)", "Y70-YCOLL"),
       ("York St John University", "Y75-YSJ"),
-      ("Other", "Others")))
+      ("Other", "Others")
+    ))
 
     // scalastyle:on method.length
 
@@ -623,7 +629,8 @@ object DataFaker {
       ("Subjects Allied to Medicine", "(2)"),
       ("Physical Science", "(6)"),
       ("Social, Economic & Political Studies", "(B)"),
-      ("Veterinary Sciences", "(4)")))
+      ("Veterinary Sciences", "(4)")
+    ))
 
     def homePostcode = randOne(List("AB1 2CD", "BC11 4DE", "CD6 2EF", "DE2F 1GH", "I don't know/prefer not to say"))
 
@@ -635,7 +642,8 @@ object DataFaker {
       "Employee",
       "Self-employed with employees",
       "Self-employed/freelancer without employees",
-      "I don't know/prefer not to say"))
+      "I don't know/prefer not to say"
+    ))
 
     def sizeOfPlaceOfWork = randOne(List("Small (1 - 24 employees)", "Large (over 24 employees)"))
 
@@ -649,7 +657,8 @@ object DataFaker {
     def skills = randList(List(
       SkillType.QUALITY_ASSURANCE_COORDINATOR.toString,
       SkillType.ASSESSOR.toString,
-      SkillType.CHAIR.toString), 3)
+      SkillType.CHAIR.toString
+    ), 3)
 
     def sifterSchemes = randList(List("GovernmentEconomicsService", "ProjectDelivery", "Sdip"), 3)
 
@@ -723,24 +732,22 @@ object DataFaker {
       def description = randOne(List("GSFS FSB", "ORAC", "PDFS FSB"))
       def location = randOne(List(Location("London"), Location("Newcastle")))
       def venueLondon = randOne(List(Venue("London 1", "Bush House"), Venue("London 2", "Parliament Street"),
-        Venue("London 3", "Somewhere fancy"))
-      )
+        Venue("London 3", "Somewhere fancy")))
       def venueNewcastle = randOne(List(Venue("Newcastle 1", "Longbenton"), Venue("Newcastle 2", "Benton Park View"),
-        Venue("Newcastle 3", "Cathedral Square"))
-      )
+        Venue("Newcastle 3", "Cathedral Square")))
       def venue = if (location.name == "London") { venueLondon } else { venueNewcastle }
       def date = LocalDate.now()
       def capacity = randOne(List(32, 24, 16, 8, 4, 30, 28))
       def minViableAttendees = capacity - randOne(List(2, 3, 4, 1))
-      def attendeeSafetyMargin = randOne(List(1,2, 3))
+      def attendeeSafetyMargin = randOne(List(1, 2, 3))
       def startTime = LocalTime.now()
       def endTime = startTime.plusHours(1)
       def skillRequirements = {
         val skills = SkillType.values.toList.map(_.toString)
-        val numberOfSkills = randOne((1 to SkillType.values.size).map( i => i).toList)
+        val numberOfSkills = randOne((1 to SkillType.values.size).map(i => i).toList)
         val skillsSelected = randList(skills, numberOfSkills)
 
-        def numberOfPeopleWithSkillsRequired = randOne(List(1,2,3,4,8))
+        def numberOfPeopleWithSkillsRequired = randOne(List(1, 2, 3, 4, 8))
 
         skillsSelected.map { skillSelected =>
           skillSelected -> numberOfPeopleWithSkillsRequired

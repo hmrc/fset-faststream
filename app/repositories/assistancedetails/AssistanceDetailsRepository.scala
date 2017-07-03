@@ -35,8 +35,8 @@ trait AssistanceDetailsRepository {
 }
 
 class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[AssistanceDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    AssistanceDetails.assistanceDetailsFormat, ReactiveMongoFormats.objectIdFormats) with AssistanceDetailsRepository
+    extends ReactiveRepository[AssistanceDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      AssistanceDetails.assistanceDetailsFormat, ReactiveMongoFormats.objectIdFormats) with AssistanceDetailsRepository
     with ReactiveRepositoryHelpers {
 
   val AssistanceDetailsDocumentKey = "assistance-details"

@@ -23,13 +23,12 @@ import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.events.{EventsRepository, LocationsWithVenuesRepository}
+import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
 class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
-
 
   val MySkills = List("QAC", "CHAIR")
 

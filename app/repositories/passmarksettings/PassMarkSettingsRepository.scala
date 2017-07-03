@@ -28,20 +28,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import repositories.{ CollectionNames, OFormatHelper }
 
+import Phase1PassMarkSettings._
+import Phase3PassMarkSettings._
+import Phase2PassMarkSettings._
+import ReactiveMongoFormats._
+
 class Phase1PassMarkSettingsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Phase1PassMarkSettings, BSONObjectID](CollectionNames.PHASE1_PASS_MARK_SETTINGS, mongo,
-    Phase1PassMarkSettings.phase1PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
-  ) with PassMarkSettingsRepository[Phase1PassMarkSettings]
+    phase1PassMarkSettingsFormat, objectIdFormats) with PassMarkSettingsRepository[Phase1PassMarkSettings]
 
 class Phase2PassMarkSettingsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Phase2PassMarkSettings, BSONObjectID](CollectionNames.PHASE2_PASS_MARK_SETTINGS, mongo,
-    Phase2PassMarkSettings.phase2PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
-  ) with PassMarkSettingsRepository[Phase2PassMarkSettings]
+    phase2PassMarkSettingsFormat, objectIdFormats) with PassMarkSettingsRepository[Phase2PassMarkSettings]
 
 class Phase3PassMarkSettingsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Phase3PassMarkSettings, BSONObjectID](CollectionNames.PHASE3_PASS_MARK_SETTINGS, mongo,
-    Phase3PassMarkSettings.phase3PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
-  ) with PassMarkSettingsRepository[Phase3PassMarkSettings]
+    phase3PassMarkSettingsFormat, objectIdFormats) with PassMarkSettingsRepository[Phase3PassMarkSettings]
 
 trait PassMarkSettingsRepository[T <: PassMarkSettings] {
   this: ReactiveRepository[T, _] =>
@@ -54,8 +56,7 @@ trait PassMarkSettingsRepository[T <: PassMarkSettings] {
         PassMarkSettingsCreateResponse(
           createResponse.map(_.version).get,
           createResponse.map(_.createDate).get
-        )
-      )
+        ))
     }
   }
 

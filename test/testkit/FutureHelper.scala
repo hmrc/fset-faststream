@@ -17,7 +17,7 @@
 package testkit
 
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Seconds, Span}
+import org.scalatest.time.{ Seconds, Span }
 import org.scalatestplus.play.PlaySpec
 
 import scala.concurrent.Future

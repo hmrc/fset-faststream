@@ -131,8 +131,9 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
 
   private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
 
-  override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def registerAndInviteForTestGroup(
+    applications: List[OnlineTestApplication]
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     Future.sequence(applications.map { application =>
       registerAndInviteForTestGroup(application)
     }).map(_ => ())
@@ -149,8 +150,11 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     }
   }
 
-  def resetTests(application: OnlineTestApplication, testNamesToRemove: List[String], actionTriggeredBy: String)
-                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  def resetTests(
+    application: OnlineTestApplication,
+    testNamesToRemove: List[String],
+    actionTriggeredBy: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       _ <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
@@ -160,8 +164,10 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     }
   }
 
-  def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String])
-                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def registerAndInviteForTestGroup(
+    application: OnlineTestApplication,
+    scheduleNames: List[String]
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase1Tests.expiryTimeInDays)
 
     // TODO work out a better way to do this
@@ -265,8 +271,12 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     }
   }
 
-  private def inviteApplicant(application: OnlineTestApplication, authToken: String, userId: Int, scheduleId: Int)
-    (implicit hc: HeaderCarrier): Future[Invitation] = {
+  private def inviteApplicant(
+    application: OnlineTestApplication,
+    authToken: String,
+    userId: Int,
+    scheduleId: Int
+  )(implicit hc: HeaderCarrier): Future[Invitation] = {
 
     val inviteApplicant = buildInviteApplication(application, authToken, userId, scheduleId)
     cubiksGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
@@ -284,7 +294,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   }
 
   private def insertOrAppendNewTests(applicationId: String, currentProfile: Option[Phase1TestProfile],
-                    newProfile: Phase1TestProfile): Future[Phase1TestProfile] = {
+    newProfile: Phase1TestProfile): Future[Phase1TestProfile] = {
     (currentProfile match {
       case None => testRepository.insertOrUpdateTestGroup(applicationId, newProfile)
       case Some(profile) =>
@@ -333,9 +343,11 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     }
   }
 
-  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
-                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase1Test(cubiksUserId, testRepository.updateTestStartTime(_:Int, startedTime)) flatMap { u =>
+  def markAsStarted(
+    cubiksUserId: Int,
+    startedTime: DateTime = dateTimeFactory.nowLocalTimeZone
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    updatePhase1Test(cubiksUserId, testRepository.updateTestStartTime(_: Int, startedTime)) flatMap { u =>
       testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
         DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
       }
@@ -366,7 +378,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   }
 
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
-    updatePhase1Test(cubiksUserId, testRepository.updateTestReportReady(_:Int, reportReady)).flatMap { updated =>
+    updatePhase1Test(cubiksUserId, testRepository.updateTestReportReady(_: Int, reportReady)).flatMap { updated =>
       val allResultReadyToDownload = updated.testGroup.activeTests forall (_.resultsReadyToDownload)
       if (allResultReadyToDownload) {
         testRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)

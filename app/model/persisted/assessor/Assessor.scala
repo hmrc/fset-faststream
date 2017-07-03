@@ -17,8 +17,8 @@
 package model.persisted.assessor
 
 import model.persisted.assessor.AssessorStatus.AssessorStatus
-import play.api.libs.json.{Json, OFormat}
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class Assessor(
   userId: String,

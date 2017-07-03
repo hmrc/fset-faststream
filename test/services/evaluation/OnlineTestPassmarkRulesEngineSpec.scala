@@ -17,7 +17,7 @@
 package services.evaluation
 
 import fixture.PreferencesFixture
-import model.EvaluationResults.{RuleCategoryResult, _}
+import model.EvaluationResults.{ RuleCategoryResult, _ }
 import model.OnlineTestCommands._
 import model.Schemes
 import org.joda.time.DateTime

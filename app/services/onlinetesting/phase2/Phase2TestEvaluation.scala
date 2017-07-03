@@ -26,8 +26,8 @@ import services.onlinetesting.OnlineTestResultsCalculator
 trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
 
   def evaluate(schemes: List[SchemeType], etrayTestResult: TestResult,
-               phase1SchemesEvaluation: List[SchemeEvaluationResult],
-               passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
+    phase1SchemesEvaluation: List[SchemeEvaluationResult],
+    passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
     for {
       schemeToEvaluate <- schemes
       schemePassmark <- passmark.schemes find (_.schemeName == schemeToEvaluate)

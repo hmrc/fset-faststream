@@ -38,24 +38,26 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
   // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getSchemePreferences: Future[SelectedSchemes] = {
-       Future.successful(
-         generatorConfig.schemeTypes.map { schemeTypesList =>
-           generatorConfig.statusData.applicationRoute match {
-             case ApplicationRoute.SdipFaststream => SelectedSchemes(model.SchemeType.Sdip :: schemeTypesList,
-               orderAgreed = true, eligible = true)
-             case _ => SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
-           }
+      Future.successful(
+        generatorConfig.schemeTypes.map { schemeTypesList =>
+          generatorConfig.statusData.applicationRoute match {
+            case ApplicationRoute.SdipFaststream => SelectedSchemes(
+              model.SchemeType.Sdip :: schemeTypesList,
+              orderAgreed = true, eligible = true
+            )
+            case _ => SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
+          }
 
-         }.getOrElse {
-           generatorConfig.statusData.applicationRoute match {
-             case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeType.Edip), orderAgreed = true, eligible = true)
-             case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeType.Sdip), orderAgreed = true, eligible = true)
-             case ApplicationRoute.SdipFaststream => SelectedSchemes(List(model.SchemeType.Sdip, model.SchemeType.Commercial,
-               model.SchemeType.DigitalAndTechnology, model.SchemeType.Finance), orderAgreed = true, eligible = true)
-             case _ => SelectedSchemes(Random.schemeTypes, orderAgreed = true, eligible = true)
-           }
-         }
-       )
+        }.getOrElse {
+          generatorConfig.statusData.applicationRoute match {
+            case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeType.Edip), orderAgreed = true, eligible = true)
+            case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeType.Sdip), orderAgreed = true, eligible = true)
+            case ApplicationRoute.SdipFaststream => SelectedSchemes(List(model.SchemeType.Sdip, model.SchemeType.Commercial,
+              model.SchemeType.DigitalAndTechnology, model.SchemeType.Finance), orderAgreed = true, eligible = true)
+            case _ => SelectedSchemes(Random.schemeTypes, orderAgreed = true, eligible = true)
+          }
+        }
+      )
     }
 
     for {

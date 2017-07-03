@@ -49,18 +49,24 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "send audit events" in new Phase3TestServiceFixture {
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
-      verifyDataStoreEvents(4,
-        List("VideoInterviewCandidateRegistered",
+      verifyDataStoreEvents(
+        4,
+        List(
+          "VideoInterviewCandidateRegistered",
           "VideoInterviewInvited",
           "VideoInterviewRegistrationAndInviteComplete",
-          "VideoInterviewInvitationEmailSent")
+          "VideoInterviewInvitationEmailSent"
+        )
       )
 
-      verifyAuditEvents(4,
-        List("VideoInterviewCandidateRegistered",
+      verifyAuditEvents(
+        4,
+        List(
+          "VideoInterviewCandidateRegistered",
           "VideoInterviewInvited",
           "VideoInterviewRegistrationAndInviteComplete",
-          "VideoInterviewInvitationEmailSent")
+          "VideoInterviewInvitationEmailSent"
+        )
       )
     }
 
@@ -172,19 +178,26 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "send audit events" in new Phase3TestServiceFixture {
 
       phase3TestServiceForReschedule.registerAndInviteForTestGroup(
-        onlineTestApplicationWithThirtyThreeTimeAdjustment, thirtyThreePCAdjustedInterviewId, Some(phase3TestGroupNotCompleted)).futureValue
+        onlineTestApplicationWithThirtyThreeTimeAdjustment, thirtyThreePCAdjustedInterviewId, Some(phase3TestGroupNotCompleted)
+      ).futureValue
 
-      verifyDataStoreEvents(4,
-        List("VideoInterviewRegistrationAndInviteComplete",
+      verifyDataStoreEvents(
+        4,
+        List(
+          "VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
           "VideoInterviewInvitationEmailSent",
           "VideoInterviewExtended"
-        ))
-      verifyAuditEvents(4,
-        List("VideoInterviewRegistrationAndInviteComplete",
+        )
+      )
+      verifyAuditEvents(
+        4,
+        List(
+          "VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
           "VideoInterviewInvitationEmailSent",
-          "VideoInterviewExtended")
+          "VideoInterviewExtended"
+        )
       )
     }
 
@@ -214,20 +227,27 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "send audit events" in new Phase3TestServiceFixture {
 
       phase3TestServiceForReschedule.registerAndInviteForTestGroup(
-        onlineTestApplication, testInterviewId, Some(phase3TestGroupNotCompleted)).futureValue
+        onlineTestApplication, testInterviewId, Some(phase3TestGroupNotCompleted)
+      ).futureValue
 
-      verifyDataStoreEvents(4,
-        List("VideoInterviewRegistrationAndInviteComplete",
+      verifyDataStoreEvents(
+        4,
+        List(
+          "VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
           "VideoInterviewInvitationEmailSent",
-          "VideoInterviewExtended")
+          "VideoInterviewExtended"
+        )
       )
 
-      verifyAuditEvents(4,
-        List("VideoInterviewRegistrationAndInviteComplete",
+      verifyAuditEvents(
+        4,
+        List(
+          "VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
           "VideoInterviewInvitationEmailSent",
-          "VideoInterviewExtended")
+          "VideoInterviewExtended"
+        )
       )
     }
 
@@ -257,20 +277,27 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "send audit events" in new Phase3TestServiceFixture {
 
       phase3TestServiceForReschedule.registerAndInviteForTestGroup(
-        onlineTestApplication, testInterviewId, Some(phase3TestGroupNotCompleted)).futureValue
+        onlineTestApplication, testInterviewId, Some(phase3TestGroupNotCompleted)
+      ).futureValue
 
-      verifyDataStoreEvents(4,
-        List("VideoInterviewRegistrationAndInviteComplete",
+      verifyDataStoreEvents(
+        4,
+        List(
+          "VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
           "VideoInterviewInvitationEmailSent",
-          "VideoInterviewExtended")
+          "VideoInterviewExtended"
+        )
       )
 
-      verifyAuditEvents(4,
-        List("VideoInterviewRegistrationAndInviteComplete",
+      verifyAuditEvents(
+        4,
+        List(
+          "VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
           "VideoInterviewInvitationEmailSent",
-          "VideoInterviewExtended")
+          "VideoInterviewExtended"
+        )
       )
     }
 
@@ -295,7 +322,6 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
     }
   }
-
 
   "mark as started" should {
     "change progress to started" in new Phase3TestServiceFixture {
@@ -430,7 +456,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val testFirstName = "Optimus"
     val testLastName = "Prime"
 
-    val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
+    val onlineTestApplication = OnlineTestApplication(
+      applicationId = "appId",
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
       guaranteedInterview = false,

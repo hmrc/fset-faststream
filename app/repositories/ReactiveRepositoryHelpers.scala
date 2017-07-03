@@ -27,9 +27,11 @@ trait ReactiveRepositoryHelpers {
 
   protected lazy val bsonCollection = collection.db.collection[BSONCollection](collection.name)
 
-  def singleUpdateValidator(id: String,
-                            actionDesc: String,
-                            notFound: => Exception): UpdateWriteResult => Unit = {
+  def singleUpdateValidator(
+    id: String,
+    actionDesc: String,
+    notFound: => Exception
+  ): UpdateWriteResult => Unit = {
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = false, notFound, upsert = false)
   }
 
@@ -39,8 +41,10 @@ trait ReactiveRepositoryHelpers {
       new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false)
   }
 
-  def singleUpsertValidator(id: String,
-                            actionDesc: String): UpdateWriteResult => Unit = {
+  def singleUpsertValidator(
+    id: String,
+    actionDesc: String
+  ): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true)
   }
@@ -63,7 +67,7 @@ trait ReactiveRepositoryHelpers {
   }
 
   private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean,
-                                              notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult) = {
+    notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult) = {
     if (result.ok) {
       if (result.n == 1) {
         ()

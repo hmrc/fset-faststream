@@ -16,7 +16,7 @@
 
 package model.exchange.assessor
 
-import model.exchange.{Assessor, AssessorAvailability}
+import model.exchange.{ Assessor, AssessorAvailability }
 import model.persisted.EventExamples
 import org.joda.time.LocalDate
 

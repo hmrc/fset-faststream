@@ -29,8 +29,7 @@ class AssistanceDetailsServiceSpec extends BaseServiceSpec {
 
   "update" should {
     "update assistance details successfully" in new TestFixture {
-      when(mockAdRepository.update(eqTo(AppId), eqTo(UserId), eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
-      ).thenReturn(Future.successful(()))
+      when(mockAdRepository.update(eqTo(AppId), eqTo(UserId), eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))).thenReturn(Future.successful(()))
 
       val response = service.update(AppId, UserId, AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments).futureValue
       response mustBe unit
@@ -47,7 +46,7 @@ class AssistanceDetailsServiceSpec extends BaseServiceSpec {
     }
   }
 
-  trait TestFixture  {
+  trait TestFixture {
     val mockAdRepository = mock[AssistanceDetailsRepository]
 
     val service = new AssistanceDetailsService {

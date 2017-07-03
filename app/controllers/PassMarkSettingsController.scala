@@ -33,7 +33,7 @@ object Phase1PassMarkSettingsController extends PassMarkSettingsController[Phase
   val auditService = AuditService
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase1PassMarkSettingsCreated"
-  def upgradeVersion(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
+  def upgradeVersion(passMarkSettings: Phase1PassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
 
@@ -42,7 +42,7 @@ object Phase2PassMarkSettingsController extends PassMarkSettingsController[Phase
   val auditService = AuditService
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase2PassMarkSettingsCreated"
-  def upgradeVersion(passMarkSettings:Phase2PassMarkSettings, newVersionUUID: String) =
+  def upgradeVersion(passMarkSettings: Phase2PassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
 
@@ -51,22 +51,22 @@ object Phase3PassMarkSettingsController extends PassMarkSettingsController[Phase
   val auditService = AuditService
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase3PassMarkSettingsCreated"
-  def upgradeVersion(passMarkSettings:Phase3PassMarkSettings, newVersionUUID: String) =
+  def upgradeVersion(passMarkSettings: Phase3PassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
 
-abstract class PassMarkSettingsController[T <: PassMarkSettings]
-(implicit manifest: Manifest[T], jsonFormat: Format[T]) extends BaseController {
+abstract class PassMarkSettingsController[T <: PassMarkSettings](implicit manifest: Manifest[T], jsonFormat: Format[T]) extends BaseController {
 
   val passMarkService: PassMarkSettingsService[T]
   val auditService: AuditService
   val uuidFactory: UUIDFactory
-  val passMarksCreatedEvent : String
+  val passMarksCreatedEvent: String
 
-  def upgradeVersion(passMarkSettings:T, newVersionUUID: String) : T
+  def upgradeVersion(passMarkSettings: T, newVersionUUID: String): T
 
   def create = Action.async(parse.json) { implicit request =>
-    withJsonBody[T] { passMarkSettings => {
+    withJsonBody[T] { passMarkSettings =>
+      {
         val newVersionUUID = uuidFactory.generateUUID()
         val newPassMarkSettings = upgradeVersion(passMarkSettings, newVersionUUID)
         for {

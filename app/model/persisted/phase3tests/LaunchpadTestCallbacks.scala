@@ -19,17 +19,17 @@ package model.persisted.phase3tests
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class LaunchpadTestCallbacks(
-                                 viewBrandedVideo: List[ViewBrandedVideoCallbackRequest] = Nil,
-                                 setupProcess: List[SetupProcessCallbackRequest] = Nil,
-                                 viewPracticeQuestion: List[ViewPracticeQuestionCallbackRequest] = Nil,
-                                 question: List[ViewPracticeQuestionCallbackRequest] = Nil,
-                                 finalCallback: List[FinalCallbackRequest] = Nil,
-                                 finished: List[FinishedCallbackRequest] = Nil,
-                                 reviewed: List[ReviewedCallbackRequest] = Nil
-                     )
+  viewBrandedVideo: List[ViewBrandedVideoCallbackRequest] = Nil,
+  setupProcess: List[SetupProcessCallbackRequest] = Nil,
+  viewPracticeQuestion: List[ViewPracticeQuestionCallbackRequest] = Nil,
+  question: List[ViewPracticeQuestionCallbackRequest] = Nil,
+  finalCallback: List[FinalCallbackRequest] = Nil,
+  finished: List[FinishedCallbackRequest] = Nil,
+  reviewed: List[ReviewedCallbackRequest] = Nil
+)
 
 object LaunchpadTestCallbacks {
   implicit val launchpadTestCallbacksFormat = Json.format[LaunchpadTestCallbacks]

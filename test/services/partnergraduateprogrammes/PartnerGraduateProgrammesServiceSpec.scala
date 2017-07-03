@@ -29,8 +29,7 @@ class PartnerGraduateProgrammesServiceSpec extends BaseServiceSpec {
 
   "update" should {
     "update partner graduate programmes successfully" in new TestFixture {
-      when(mockPgpRepository.update(eqTo(AppId), eqTo(PartnerGraduateProgrammesExamples.InterestedNotAll))
-      ).thenReturn(Future.successful(()))
+      when(mockPgpRepository.update(eqTo(AppId), eqTo(PartnerGraduateProgrammesExamples.InterestedNotAll))).thenReturn(Future.successful(()))
 
       val response = service.update(AppId, PartnerGraduateProgrammesExchangeExamples.InterestedNotAll).futureValue
       response mustBe unit
@@ -47,7 +46,7 @@ class PartnerGraduateProgrammesServiceSpec extends BaseServiceSpec {
     }
   }
 
-  trait TestFixture  {
+  trait TestFixture {
     val mockPgpRepository = mock[PartnerGraduateProgrammesRepository]
 
     val service = new PartnerGraduateProgrammesService {

@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.command.{ FastPassEvaluation, ProcessedFastPassCandidate}
+import model.command.{ FastPassEvaluation, ProcessedFastPassCandidate }
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.fastpass.FastPassService

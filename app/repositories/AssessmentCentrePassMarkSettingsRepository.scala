@@ -36,9 +36,9 @@ trait AssessmentCentrePassMarkSettingsRepository {
 
 //scalastyle:off
 class AssessmentCentrePassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[PassmarkPersistedObjects.AssessmentCentrePassMarkSettings, BSONObjectID](CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS, mongo,
-    PassmarkPersistedObjects.Implicits.PersistedAssessmentCentrePassMarkSettingsFormat,
-    ReactiveMongoFormats.objectIdFormats) with AssessmentCentrePassMarkSettingsRepository {
+    extends ReactiveRepository[PassmarkPersistedObjects.AssessmentCentrePassMarkSettings, BSONObjectID](CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS, mongo,
+      PassmarkPersistedObjects.Implicits.PersistedAssessmentCentrePassMarkSettingsFormat,
+      ReactiveMongoFormats.objectIdFormats) with AssessmentCentrePassMarkSettingsRepository {
   //scalastyle:on
 
   def tryGetLatestVersion: Future[Option[AssessmentCentrePassMarkSettings]] = {

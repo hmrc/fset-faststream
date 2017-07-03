@@ -19,19 +19,20 @@ package model.command
 import play.api.libs.json.Json
 
 case class AssessmentScores(
-                             entered: Boolean = false,
-                             accepted: Boolean = false
-                           )
+  entered: Boolean = false,
+  accepted: Boolean = false
+)
 
 case class AssessmentCentre(
-                             awaitingReevaluation: Boolean = false,
-                             passed: Boolean = false,
-                             passedNotified: Boolean = false,
-                             failed: Boolean = false,
-                             failedNotified: Boolean = false
-                           )
+  awaitingReevaluation: Boolean = false,
+  passed: Boolean = false,
+  passedNotified: Boolean = false,
+  failed: Boolean = false,
+  failedNotified: Boolean = false
+)
 
-case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
+case class Phase1ProgressResponse(
+  phase1TestsInvited: Boolean = false,
   phase1TestsFirstRemainder: Boolean = false,
   phase1TestsSecondRemainder: Boolean = false,
   phase1TestsFirstReminder: Boolean = false,
@@ -51,7 +52,8 @@ case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   sdipFSSuccessfulNotified: Boolean = false
 )
 
-case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
+case class Phase2ProgressResponse(
+  phase2TestsInvited: Boolean = false,
   phase2TestsFirstRemainder: Boolean = false,
   phase2TestsSecondRemainder: Boolean = false,
   phase2TestsFirstReminder: Boolean = false,
@@ -66,7 +68,8 @@ case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
   phase2TestsFailedNotified: Boolean = false
 )
 
-case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
+case class Phase3ProgressResponse(
+  phase3TestsInvited: Boolean = false,
   phase3TestsFirstReminder: Boolean = false,
   phase3TestsSecondReminder: Boolean = false,
   phase3TestsStarted: Boolean = false,
@@ -101,7 +104,6 @@ case class ProgressResponse(
   assessmentScores: AssessmentScores = AssessmentScores(),
   assessmentCentre: AssessmentCentre = AssessmentCentre()
 )
-
 
 object ProgressResponse {
   implicit val assessmentScoresFormat = Json.format[AssessmentScores]

@@ -19,7 +19,6 @@ package model
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
-
 object ApplicationRoute extends Enumeration {
 
   type ApplicationRoute = Value

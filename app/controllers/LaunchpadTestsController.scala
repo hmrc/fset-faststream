@@ -98,7 +98,7 @@ trait LaunchpadTestsController extends BaseController {
   }
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
-    case e@CannotFindTestByLaunchpadInviteId(msg) =>
+    case e @ CannotFindTestByLaunchpadInviteId(msg) =>
       Logger.warn(msg, e)
       NotFound
   }

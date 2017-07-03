@@ -35,7 +35,6 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
 
   val assessorService: AssessorService
 
-
   def generate(generationId: Int, createData: CreateAdminData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     previousStatusGenerator.generate(generationId, createData).flatMap { userInPrevStatus =>
       createData.assessor match {
@@ -49,8 +48,10 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
     }
   }
 
-  def createAssessor(userId: String, assessor: AssessorData)(
-    implicit hc: HeaderCarrier): Future[model.exchange.Assessor] = {
+  def createAssessor(
+    userId: String,
+    assessor: AssessorData
+  )(implicit hc: HeaderCarrier): Future[model.exchange.Assessor] = {
     val assessorE = model.exchange.Assessor(userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
     assessorService.saveAssessor(userId, assessorE).map(_ => assessorE)
   }

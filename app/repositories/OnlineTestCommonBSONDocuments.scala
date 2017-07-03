@@ -28,9 +28,10 @@ trait OnlineTestCommonBSONDocuments {
         BSONDocument("$and" -> BSONArray(
           BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
           BSONDocument("assistance-details.needsSupportAtVenue" -> false),
-          BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true)))),
+          BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true))
+        )),
         BSONDocument("assistance-details.adjustmentsConfirmed" -> true)
-        ))
       ))
+    ))
   }
 }

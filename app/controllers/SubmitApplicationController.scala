@@ -73,14 +73,17 @@ trait SubmitApplicationController extends BaseController with EventSink {
     result flatMap identity
   }
 
-  private def submit(applicationId: String, email: String, preferredName: String)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  private def submit(
+    applicationId: String,
+    email: String,
+    preferredName: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     // Usually events are created in Service layer. Due to lack of Service layer for submit, they are created here
     appRepository.submit(applicationId) map { _ =>
       DataStoreEvents.ApplicationSubmitted(applicationId) ::
-      EmailEvents.ApplicationSubmitted(email, preferredName) ::
-      AuditEvents.ApplicationSubmitted(applicationId) ::
-      Nil
+        EmailEvents.ApplicationSubmitted(email, preferredName) ::
+        AuditEvents.ApplicationSubmitted(applicationId) ::
+        Nil
     }
   }
 }

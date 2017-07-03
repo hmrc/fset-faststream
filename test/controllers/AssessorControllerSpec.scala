@@ -22,7 +22,7 @@ import model.exchange.{ Assessor, AssessorAvailability }
 import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
 import model.persisted
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import persisted.assessor
 import play.api.libs.json.Json

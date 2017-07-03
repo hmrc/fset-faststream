@@ -17,7 +17,7 @@
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class ReviewSectionQuestionRequest(id: Int, reviewCriteria1: ReviewSectionCriteriaRequest,
   reviewCriteria2: ReviewSectionCriteriaRequest)

@@ -36,10 +36,10 @@ sealed trait NotificationTestTypeSdipFs {
 }
 
 sealed case class FailedTestType(appStatus: ApplicationStatus, notificationProgress: ProgressStatus,
-                                 receiveStatus: ProgressStatus, template: String) extends NotificationTestType
+  receiveStatus: ProgressStatus, template: String) extends NotificationTestType
 
 sealed case class SuccessTestType(appStatus: ApplicationStatus, notificationProgress: ProgressStatus,
-                                  newApplicationStatus: ApplicationStatus, template: String) extends NotificationTestType
+  newApplicationStatus: ApplicationStatus, template: String) extends NotificationTestType
 
 sealed case class FailedTestTypeSdipFs(template: String, applicationRoute: ApplicationRoute) extends NotificationTestTypeSdipFs {
   // Using a bogus ApplicationStatus just to get the progress status key
@@ -63,11 +63,11 @@ object Phase2FailedTestType
 
 object Phase3FailedTestType
   extends FailedTestType(PHASE3_TESTS_FAILED, PHASE3_TESTS_FAILED_NOTIFIED, PHASE3_TESTS_RESULTS_RECEIVED,
-      "fset_faststream_app_online_phase3_test_failed")
+    "fset_faststream_app_online_phase3_test_failed")
 
 object Phase1SuccessTestType
-  extends SuccessTestType(ApplicationStatus.PHASE1_TESTS_PASSED, PHASE1_TESTS_PASSED_NOTIFIED,
-    ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED, "fset_faststream_app_online_phase1_test_success") {
+    extends SuccessTestType(ApplicationStatus.PHASE1_TESTS_PASSED, PHASE1_TESTS_PASSED_NOTIFIED,
+      ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED, "fset_faststream_app_online_phase1_test_success") {
   override val applicationRoutes = List(ApplicationRoute.Edip, ApplicationRoute.Sdip)
 }
 

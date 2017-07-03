@@ -51,7 +51,7 @@ trait Phase3TestCallbackService {
   val eventService: StcEventService
 
   def recordCallback(callbackData: SetupProcessCallbackRequest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    for{
+    for {
       _ <- phase3TestRepo.appendCallback(callbackData.customInviteId, SetupProcessCallbackRequest.key, callbackData)
       _ <- phase3TestService.addResetEventMayBe(callbackData.customInviteId)
     } yield {}

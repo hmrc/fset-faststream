@@ -42,23 +42,24 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   val phase3TestRepo: Phase3TestRepository
 
   def getCallbackData(receivedBeforeInHours: Int, score: Option[Double],
-                      generateNullScoresForFewQuestions: Boolean = false): ReviewedCallbackRequest = {
+    generateNullScoresForFewQuestions: Boolean = false): ReviewedCallbackRequest = {
     ReviewedCallbackRequest(DateTime.now.minusHours(receivedBeforeInHours), "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6",
       "FSCND-f9cf395d-df9d-4037-9fbf-9b3aa9d86c16", 46, None, "FSINV-28d52608-95e0-4d3a-93e7-0881cd2bc78b",
       LocalDate.now().plusDays(3), ReviewSectionRequest(
         ReviewSectionTotalAverageRequest("videoInterview", "50%", 50.0), // TODO: 50.0 should be calculated
         ReviewSectionReviewersRequest(
           reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost", score,
-            score,  generateNullScoresForFewQuestions),
+            score, generateNullScoresForFewQuestions),
           reviewer2 = Some(getReviewSectionReviewersRequest("John Doe2", "johnDoe2@localhost", score,
             score, generateNullScoresForFewQuestions)),
           reviewer3 = Some(getReviewSectionReviewersRequest("John Doe3", "johnDoe3@localhost", score,
-            score, generateNullScoresForFewQuestions)))
+            score, generateNullScoresForFewQuestions))
+        )
       ))
   }
 
   def getReviewSectionReviewersRequest(name: String, email: String, criteria1Score: Option[Double] = None,
-                                       criteria2Score: Option[Double] = None, generateNullScoresForFewQuestions: Boolean) = {
+    criteria2Score: Option[Double] = None, generateNullScoresForFewQuestions: Boolean) = {
     ReviewSectionReviewerRequest(name, email, Some(Random.videoInterviewFeedback),
       question1 = getReviewSectionQuestionRequest(100, criteria1Score, criteria2Score, generateNullScoresForFewQuestions),
       question2 = getReviewSectionQuestionRequest(101, criteria1Score, criteria2Score, generateNullScoresForFewQuestions),
@@ -67,18 +68,18 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
       question5 = getReviewSectionQuestionRequest(104, criteria1Score, criteria2Score),
       question6 = getReviewSectionQuestionRequest(105, criteria1Score, criteria2Score),
       question7 = getReviewSectionQuestionRequest(106, criteria1Score, criteria2Score),
-      question8 = getReviewSectionQuestionRequest(107, criteria1Score, criteria2Score)
-    )
+      question8 = getReviewSectionQuestionRequest(107, criteria1Score, criteria2Score))
   }
 
   def getReviewSectionQuestionRequest(questionId: Int, criteria1Score: Option[Double] = None, criteria2Score: Option[Double] = None,
-                                      setNullScores: Boolean = false) = {
+    setNullScores: Boolean = false) = {
     val (score1, score2) = if (setNullScores) {
       None -> None
     } else {
       Some(criteria1Score.getOrElse(Random.getVideoInterviewScore)) -> Some(criteria2Score.getOrElse(Random.getVideoInterviewScore))
     }
-    ReviewSectionQuestionRequest(questionId,
+    ReviewSectionQuestionRequest(
+      questionId,
       ReviewSectionCriteriaRequest("numeric", score1),
       ReviewSectionCriteriaRequest("numeric", score2)
     )
@@ -93,12 +94,12 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
     val callbackData2 = getCallbackData(receivedBeforeInHours, score, generateNullScoresForFewQuestions)
     val callbackData3 = getCallbackData(receivedBeforeInHours, score, generateNullScoresForFewQuestions)
     for {
-        candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-        token <- Future.successful(candidate.phase3TestGroup.get.tests.head.token)
-        _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData1)
-        _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData2)
-        _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData3)
-        _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, PHASE3_TESTS_RESULTS_RECEIVED)
-      } yield candidate
-    }
+      candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
+      token <- Future.successful(candidate.phase3TestGroup.get.tests.head.token)
+      _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData1)
+      _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData2)
+      _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData3)
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, PHASE3_TESTS_RESULTS_RECEIVED)
+    } yield candidate
   }
+}

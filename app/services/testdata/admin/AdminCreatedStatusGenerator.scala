@@ -34,8 +34,7 @@ trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
 
   val authProviderClient: AuthProviderClient.type
 
-  def generate(generationId: Int, createData: CreateAdminData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminResponse] = {
+  def generate(generationId: Int, createData: CreateAdminData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminResponse] = {
     for {
       user <- createUser(generationId, createData)
     } yield {
@@ -43,8 +42,7 @@ trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
     }
   }
 
-  def createUser(generationId: Int, data: CreateAdminData)
-                (implicit hc: HeaderCarrier): Future[CreateAdminResponse] = {
+  def createUser(generationId: Int, data: CreateAdminData)(implicit hc: HeaderCarrier): Future[CreateAdminResponse] = {
     for {
       user <- authProviderClient.addUser(data.email, "Service01", data.firstName, data.lastName,
         AuthProviderClient.getRole(data.role))

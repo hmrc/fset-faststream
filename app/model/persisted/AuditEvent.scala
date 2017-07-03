@@ -20,11 +20,13 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class AuditEvent(name: String,
-                      created: DateTime,
-                      applicationId: Option[String],
-                      userId: Option[String],
-                      createdBy: Option[String] = None)
+case class AuditEvent(
+  name: String,
+  created: DateTime,
+  applicationId: Option[String],
+  userId: Option[String],
+  createdBy: Option[String] = None
+)
 
 object AuditEvent {
   import repositories.BSONDateTimeHandler

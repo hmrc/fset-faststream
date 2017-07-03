@@ -21,13 +21,13 @@ import model.Commands.{ PhoneNumber, PostCode }
 import play.api.libs.json.Json
 
 case class ContactDetailsWithId(
-                                 userId: String,
-                                 address: Address,
-                                 postCode: Option[PostCode],
-                                 outsideUk: Boolean,
-                                 email: String,
-                                 phone: Option[PhoneNumber]
-                               )
+  userId: String,
+  address: Address,
+  postCode: Option[PostCode],
+  outsideUk: Boolean,
+  email: String,
+  phone: Option[PhoneNumber]
+)
 
 object ContactDetailsWithId {
   implicit val contactDetailsWithIdFormat = Json.format[ContactDetailsWithId]

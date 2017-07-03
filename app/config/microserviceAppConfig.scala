@@ -20,13 +20,13 @@ import java.io.File
 
 import com.github.ghik.silencer.silent
 import com.typesafe.config.ConfigFactory
-import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.eventschedules.{ Location, Venue }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
 import play.api.Play
-import play.api.Play.{configuration, current}
+import play.api.Play.{ configuration, current }
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.config.{ RunMode, ServicesConfig }
 
 case class FrameworksConfig(yamlFilePath: String)
 
@@ -75,7 +75,8 @@ object WaitingScheduledJobConfig {
   }
 }
 
-case class CubiksGatewayConfig(url: String,
+case class CubiksGatewayConfig(
+  url: String,
   phase1Tests: Phase1TestsConfig,
   phase2Tests: Phase2TestsConfig,
   competenceAssessment: CubiksGatewayStandardAssessment,
@@ -85,21 +86,26 @@ case class CubiksGatewayConfig(url: String,
   emailDomain: String
 )
 
-case class Phase1TestsConfig(expiryTimeInDays: Int,
-                             scheduleIds: Map[String, Int],
-                             standard: List[String],
-                             gis: List[String])
+case class Phase1TestsConfig(
+  expiryTimeInDays: Int,
+  scheduleIds: Map[String, Int],
+  standard: List[String],
+  gis: List[String]
+)
 
 case class Phase2Schedule(scheduleId: Int, assessmentId: Int, normId: Int)
 
-case class Phase2TestsConfig(expiryTimeInDays: Int,
-                             expiryTimeInDaysForInvigilatedETray: Int,
-                             schedules: Map[String, Phase2Schedule]) {
+case class Phase2TestsConfig(
+  expiryTimeInDays: Int,
+    expiryTimeInDaysForInvigilatedETray: Int,
+    schedules: Map[String, Phase2Schedule]
+) {
   require(schedules.contains("daro"), "Daro schedule must be present as it is used for the invigilated e-tray applications")
 
   def scheduleNameByScheduleId(scheduleId: Int): String = {
-    val scheduleNameOpt = schedules.find { case (_, s) =>
-      s.scheduleId == scheduleId
+    val scheduleNameOpt = schedules.find {
+      case (_, s) =>
+        s.scheduleId == scheduleId
     }
     val (scheduleName, _) = scheduleNameOpt.getOrElse(throw new IllegalArgumentException(s"Schedule id cannot be found: $scheduleId"))
     scheduleName
@@ -121,17 +127,19 @@ case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
 
 case class ParityGatewayConfig(url: String, upstreamAuthToken: String)
 
-case class Phase3TestsConfig(timeToExpireInDays: Int,
-                             invigilatedTimeToExpireInDays: Int,
-                             candidateCompletionRedirectUrl: String,
-                             interviewsByAdjustmentPercentage: Map[String, Int],
-                             evaluationWaitTimeAfterResultsReceivedInHours: Int,
-                             verifyAllScoresArePresent: Boolean)
+case class Phase3TestsConfig(
+  timeToExpireInDays: Int,
+  invigilatedTimeToExpireInDays: Int,
+  candidateCompletionRedirectUrl: String,
+  interviewsByAdjustmentPercentage: Map[String, Int],
+  evaluationWaitTimeAfterResultsReceivedInHours: Int,
+  verifyAllScoresArePresent: Boolean
+)
 
 case class LocationsAndVenuesConfig(yamlFilePath: String)
 
 case class AssessmentEvaluationMinimumCompetencyLevel(enabled: Boolean, minimumCompetencyLevelScore: Option[Double],
-  motivationalFitMinimumCompetencyLevelScore: Option[Double]) {
+    motivationalFitMinimumCompetencyLevelScore: Option[Double]) {
   require(!enabled || (minimumCompetencyLevelScore.isDefined && motivationalFitMinimumCompetencyLevelScore.isDefined))
 }
 
@@ -163,7 +171,6 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
 
   val AllLocations = Location("All")
   val AllVenues = Venue("All", "All venues")
-
 
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
     underlyingConfiguration

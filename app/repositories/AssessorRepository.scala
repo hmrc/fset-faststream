@@ -40,9 +40,9 @@ trait AssessorRepository {
 }
 
 class AssessorMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Assessor, BSONObjectID](CollectionNames.ASSESSOR, mongo,
-    Assessor.persistedAssessorFormat,
-    ReactiveMongoFormats.objectIdFormats) with AssessorRepository with ReactiveRepositoryHelpers {
+    extends ReactiveRepository[Assessor, BSONObjectID](CollectionNames.ASSESSOR, mongo,
+      Assessor.persistedAssessorFormat,
+      ReactiveMongoFormats.objectIdFormats) with AssessorRepository with ReactiveRepositoryHelpers {
 
   def find(userId: String): Future[Option[Assessor]] = {
     val query = BSONDocument(
@@ -53,8 +53,10 @@ class AssessorMongoRepository(implicit mongo: () => DB)
   }
 
   def save(assessor: Assessor): Future[Unit] = {
-    require(assessor.availability.isEmpty || assessor.status == AssessorStatus.AVAILABILITIES_SUBMITTED,
-      "Can't submit assessor availabilities with new status")
+    require(
+      assessor.availability.isEmpty || assessor.status == AssessorStatus.AVAILABILITIES_SUBMITTED,
+      "Can't submit assessor availabilities with new status"
+    )
     val query = BSONDocument("userId" -> assessor.userId)
     val saveBson: BSONDocument = BSONDocument("$set" -> assessor)
     val insertIfNoRecordFound = true

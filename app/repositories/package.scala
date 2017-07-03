@@ -95,14 +95,14 @@ package object repositories {
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
 
-
   /** Create indexes */
   Await.result(Future.sequence(List(
     applicationRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true)),
     applicationRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true)),
     applicationRepository.collection.indexesManager.create(Index(Seq(("applicationStatus", Ascending)), unique = false)),
     applicationRepository.collection.indexesManager.create(Index(
-      Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false)),
+      Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false
+    )),
     applicationRepository.collection.indexesManager.create(Index(Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false)),
     applicationRepository.collection.indexesManager.create(Index(Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)),
 
@@ -173,7 +173,7 @@ package object repositories {
           nameValue2Producer(key -> value)
       }.toSeq
 
-      BSONDocument(elements:_*)
+      BSONDocument(elements: _*)
     }
 
     override def read(bson: BSONDocument): Map[String, List[LocalDate]] = {
@@ -186,8 +186,8 @@ package object repositories {
   }
 
   implicit object OFormatHelper {
-    def oFormat[T](implicit format:Format[T]) : OFormat[T] = {
-      val oFormat: OFormat[T] = new OFormat[T](){
+    def oFormat[T](implicit format: Format[T]): OFormat[T] = {
+      val oFormat: OFormat[T] = new OFormat[T]() {
         override def writes(o: T): JsObject = format.writes(o).as[JsObject]
         override def reads(json: JsValue): JsResult[T] = format.reads(json)
       }

@@ -54,8 +54,8 @@ trait ContactDetailsRepository {
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.CONTACT_DETAILS, mongo, ContactDetails.contactDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with ReactiveRepositoryHelpers {
+    extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.CONTACT_DETAILS, mongo, ContactDetails.contactDetailsFormat,
+      ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with ReactiveRepositoryHelpers {
 
   val ContactDetailsDocumentKey = "contact-details"
 
@@ -111,8 +111,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     val projection = BSONDocument("userId" -> 1, "contact-details.postCode" -> 1)
     implicit val tupleReads: Reads[(String, String)] = (
       (JsPath \ "userId").read[String] and
-        (JsPath \ "contact-details" \ "postCode").read[String]
-      )((_, _))
+      (JsPath \ "contact-details" \ "postCode").read[String]
+    )((_, _))
     val result = collection.find(query, projection).cursor[(String, String)](ReadPreference.nearest).collect[List]()
     result.map(_.toMap)
   }

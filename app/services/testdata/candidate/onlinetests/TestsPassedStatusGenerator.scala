@@ -24,7 +24,7 @@ import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationMongoRepository
-import repositories.onlinetesting.{ OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository, Phase2EvaluationMongoRepository, Phase3EvaluationMongoRepository }
+import repositories.onlinetesting._
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.phase1.Phase1TestsResultsReceivedStatusGenerator
 import services.testdata.candidate.onlinetests.phase2.Phase2TestsResultsReceivedStatusGenerator
@@ -50,7 +50,7 @@ object Phase1TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   }
 
   def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse = dgr.copy(
-    phase1TestGroup = dgr.phase1TestGroup.map( p1 => p1.copy(schemeResult = Some(pme)))
+    phase1TestGroup = dgr.phase1TestGroup.map(p1 => p1.copy(schemeResult = Some(pme)))
   )
 }
 
@@ -70,7 +70,7 @@ object Phase2TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
       }
 
   def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse = dgr.copy(
-    phase2TestGroup = dgr.phase2TestGroup.map( p2 => p2.copy(schemeResult = Some(pme)))
+    phase2TestGroup = dgr.phase2TestGroup.map(p2 => p2.copy(schemeResult = Some(pme)))
   )
 }
 
@@ -91,7 +91,7 @@ object Phase3TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
       }
 
   def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse = dgr.copy(
-    phase3TestGroup = dgr.phase3TestGroup.map( p3 => p3.copy(schemeResult = Some(pme)))
+    phase3TestGroup = dgr.phase3TestGroup.map(p3 => p3.copy(schemeResult = Some(pme)))
   )
 }
 
@@ -101,8 +101,10 @@ trait TestsPassedStatusGenerator extends ConstructiveGenerator {
   def passmarkEvaluation(generatorConfig: CreateCandidateData, dgr: CreateCandidateResponse): PassmarkEvaluation
   def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+  def generate(
+    generationId: Int,
+    generatorConfig: CreateCandidateData
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     previousStatusGenerator.generate(generationId, generatorConfig).flatMap { candidate =>
       val evaluation = passmarkEvaluation(generatorConfig, candidate)

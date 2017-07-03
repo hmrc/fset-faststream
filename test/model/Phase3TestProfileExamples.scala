@@ -24,7 +24,7 @@ import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 
 object Phase3TestProfileExamples {
 
-  val Now =  DateTime.now(DateTimeZone.UTC)
+  val Now = DateTime.now(DateTimeZone.UTC)
   val DatePlus7Days = Now.plusDays(7)
   val Token = newToken
   val sampleCandidateId = UUID.randomUUID().toString
@@ -120,7 +120,8 @@ object Phase3TestProfileExamples {
     val launchPadTestWithResult = launchPadTest.copy(callbacks =
       LaunchpadTestCallbacks(reviewed = List(
         sampleReviewedCallback(videoInterviewScore).copy(received = DateTime.now().minusHours(hrsBeforeLastReviewed)),
-        sampleReviewedCallback(videoInterviewScore).copy(received = DateTime.now()))))
+        sampleReviewedCallback(videoInterviewScore).copy(received = DateTime.now())
+      )))
     Phase3TestGroup(expirationDate = DatePlus7Days, tests = List(launchPadTestWithResult))
   }
 

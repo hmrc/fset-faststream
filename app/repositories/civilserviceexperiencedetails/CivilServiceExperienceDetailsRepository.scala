@@ -38,10 +38,10 @@ trait CivilServiceExperienceDetailsRepository {
   def evaluateFastPassCandidate(applicationId: String, accepted: Boolean): Future[Unit]
 }
 
-class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) extends
-  ReactiveRepository[CivilServiceExperienceDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    CivilServiceExperienceDetails.civilServiceExperienceDetailsFormat, ReactiveMongoFormats.objectIdFormats)
-  with CivilServiceExperienceDetailsRepository with ReactiveRepositoryHelpers {
+class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB)
+    extends ReactiveRepository[CivilServiceExperienceDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      CivilServiceExperienceDetails.civilServiceExperienceDetailsFormat, ReactiveMongoFormats.objectIdFormats)
+    with CivilServiceExperienceDetailsRepository with ReactiveRepositoryHelpers {
 
   override def update(applicationId: String, civilServiceExperienceDetails: CivilServiceExperienceDetails): Future[Unit] = {
 

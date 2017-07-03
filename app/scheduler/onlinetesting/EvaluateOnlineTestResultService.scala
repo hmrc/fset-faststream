@@ -28,7 +28,6 @@ import services.passmarksettings.PassMarkSettingsService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends ApplicationStatusCalculator {
   this: PassMarkSettingsService[T] =>
 
@@ -36,8 +35,9 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
 
   val phase: Phase.Phase
 
-  def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T]):
-  Future[Option[(List[ApplicationReadyForEvaluation], T)]] = {
+  def nextCandidatesReadyForEvaluation(
+    batchSize: Int
+  )(implicit jsonFormat: Format[T]): Future[Option[(List[ApplicationReadyForEvaluation], T)]] = {
     getLatestPassMarkSettings flatMap {
       case Some(passmark) =>
         evaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
@@ -47,9 +47,11 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
     }
   }
 
-  def savePassMarkEvaluation(application: ApplicationReadyForEvaluation,
-                             schemeResults: List[SchemeEvaluationResult],
-                             passMarkSettings: T) = {
+  def savePassMarkEvaluation(
+    application: ApplicationReadyForEvaluation,
+    schemeResults: List[SchemeEvaluationResult],
+    passMarkSettings: T
+  ) = {
     if (schemeResults.nonEmpty) {
       evaluationRepository.savePassmarkEvaluation(
         application.applicationId,
@@ -62,9 +64,11 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
     }
   }
 
-  def updatePassMarkEvaluation(application: ApplicationReadyForEvaluation,
-                             schemeResults: List[SchemeEvaluationResult],
-                             passMarkSettings: T) = {
+  def updatePassMarkEvaluation(
+    application: ApplicationReadyForEvaluation,
+    schemeResults: List[SchemeEvaluationResult],
+    passMarkSettings: T
+  ) = {
     if (schemeResults.nonEmpty) {
       evaluationRepository.addSchemeResultToPassmarkEvaluation(application.applicationId, schemeResults.head, passMarkSettings.version)
     } else {

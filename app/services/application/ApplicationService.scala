@@ -69,22 +69,23 @@ trait ApplicationService extends EventSink {
 
   val Candidate_Role = "Candidate"
 
-  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    appRepository.find(applicationId).flatMap{
+    appRepository.find(applicationId).flatMap {
       case Some(candidate) =>
-        cdRepository.find(candidate.userId).flatMap{ cd =>
+        cdRepository.find(candidate.userId).flatMap { cd =>
           eventSink {
             appRepository.withdraw(applicationId, withdrawRequest).map { _ =>
               val commonEventList =
-                  DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
+                DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
                   AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
                   Nil
               withdrawRequest.withdrawer match {
                 case Candidate_Role => commonEventList
-                case _ => EmailEvents.ApplicationWithdrawn(cd.email,
-                  candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
+                case _ => EmailEvents.ApplicationWithdrawn(
+                  cd.email,
+                  candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))
+                ) :: commonEventList
               }
             }
           }
@@ -114,7 +115,7 @@ trait ApplicationService extends EventSink {
     (for {
       application <- appRepository.findByUserId(userId, ExchangeObjects.frameworkId)
       _ <- appRepository.archive(application.applicationId, userId, userIdToArchiveWith,
-            ExchangeObjects.frameworkId, ApplicationRoute.Faststream)
+        ExchangeObjects.frameworkId, ApplicationRoute.Faststream)
       _ <- cdRepository.archive(userId, userIdToArchiveWith)
       _ <- mediaCloningAndSdipAppCreation()
     } yield {
@@ -131,8 +132,9 @@ trait ApplicationService extends EventSink {
     appRepository.fixDataByRemovingVideoInterviewFailed(appId)
   }
 
-  def fixDataByRemovingProgressStatus(appId: String, progressStatusToRemove: String)(implicit hc: HeaderCarrier,
-                                                                                     rh: RequestHeader): Future[Unit] = {
+  def fixDataByRemovingProgressStatus(appId: String, progressStatusToRemove: String)(implicit
+    hc: HeaderCarrier,
+    rh: RequestHeader): Future[Unit] = {
     appRepository.fixDataByRemovingProgressStatus(appId, progressStatusToRemove)
   }
 
@@ -146,25 +148,25 @@ trait ApplicationService extends EventSink {
 
   def getPassedSchemes(userId: String, frameworkId: String): Future[List[SchemeType]] = {
 
-      val passedSchemes = (_:PassmarkEvaluation).result.filter(result => result.result == Green.toString).map(_.scheme)
+    val passedSchemes = (_: PassmarkEvaluation).result.filter(result => result.result == Green.toString).map(_.scheme)
 
-      appRepository.findByUserId(userId, frameworkId).flatMap { appResponse =>
-        (appResponse.progressResponse.fastPassAccepted, appResponse.applicationRoute) match {
-          case (true, _) => schemeRepository.find(appResponse.applicationId).map(_.schemes)
+    appRepository.findByUserId(userId, frameworkId).flatMap { appResponse =>
+      (appResponse.progressResponse.fastPassAccepted, appResponse.applicationRoute) match {
+        case (true, _) => schemeRepository.find(appResponse.applicationId).map(_.schemes)
 
-          case (_, ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
-            evaluateP1ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
+        case (_, ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
+          evaluateP1ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
 
-          case (_, ApplicationRoute.SdipFaststream) => getSdipFaststreamSchemes(appResponse.applicationId)
+        case (_, ApplicationRoute.SdipFaststream) => getSdipFaststreamSchemes(appResponse.applicationId)
 
-          case _ => evaluateP3ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
-        }
+        case _ => evaluateP3ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
       }
+    }
   }
 
   private def getSdipFaststreamSchemes(applicationId: String): Future[List[SchemeType]] = for {
     phase1 <- evaluateP1ResultService.getPassmarkEvaluation(applicationId)
-    phase3 <- evaluateP3ResultService.getPassmarkEvaluation(applicationId).recover{
+    phase3 <- evaluateP3ResultService.getPassmarkEvaluation(applicationId).recover {
       case _: PassMarkEvaluationNotFound =>
         PassmarkEvaluation(passmarkVersion = "", previousPhasePassMarkVersion = None, result = Nil,
           resultVersion = "", previousPhaseResultVersion = None)
@@ -182,10 +184,12 @@ trait ApplicationService extends EventSink {
 
   private def toEvents(seq: Seq[Try[Option[Candidate]]], fixBatch: FixBatch): StcEvents = {
     seq.flatMap {
-      case Success(Some(app)) => Some(AuditEvents.FixedProdData(Map("issue" -> fixBatch.fix.name,
+      case Success(Some(app)) => Some(AuditEvents.FixedProdData(Map(
+        "issue" -> fixBatch.fix.name,
         "applicationId" -> app.applicationId.getOrElse(""),
         "email" -> app.email.getOrElse(""),
-        "applicationRoute" -> app.applicationRoute.getOrElse("").toString)))
+        "applicationRoute" -> app.applicationRoute.getOrElse("").toString
+      )))
       case Success(None) => None
       case Failure(e) =>
         Logger.error(s"Failed to update ${fixBatch.fix.name}", e)

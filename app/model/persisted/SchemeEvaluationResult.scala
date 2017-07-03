@@ -20,8 +20,10 @@ import model.SchemeType._
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class SchemeEvaluationResult(scheme: SchemeType,
-                                  result: String)
+case class SchemeEvaluationResult(
+  scheme: SchemeType,
+  result: String
+)
 
 object SchemeEvaluationResult {
   implicit val schemeEvaluationResultFormat = Json.format[SchemeEvaluationResult]

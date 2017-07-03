@@ -24,19 +24,19 @@ object RequiredFixes {
   sealed abstract class Fix(val name: String)
 
   /**
-    * This fix will take care of all those candidates who's progress status is PHASE2_TESTS_INVITED but the application
-    * status is still PHASE1_TESTS (instead of PHASE2_TESTS). Basically the passed the phase 1 test, they've been invited
-    * to phase 2 but they can't proceed as there is no button for phase 2 test on the dashboard.
-    */
+   * This fix will take care of all those candidates who's progress status is PHASE2_TESTS_INVITED but the application
+   * status is still PHASE1_TESTS (instead of PHASE2_TESTS). Basically the passed the phase 1 test, they've been invited
+   * to phase 2 but they can't proceed as there is no button for phase 2 test on the dashboard.
+   */
   object PassToPhase2 extends Fix("PassToPhase2")
   object PassToPhase1TestPassed extends Fix("PassToPhase1TestPassed")
   object ResetPhase1TestInvitedSubmitted extends Fix("ResetPhase1TestInvitedSubmitted")
   object AddMissingPhase2ResultReceived extends Fix("AddMissingPhase2ResultReceived")
 
   /**
-    * If a further fix is needed, add it to the list. If not needed remove it from the list and possibly
-    * remove it's implementation.
-    */
+   * If a further fix is needed, add it to the list. If not needed remove it from the list and possibly
+   * remove it's implementation.
+   */
   val allFixes = PassToPhase2 :: PassToPhase1TestPassed :: ResetPhase1TestInvitedSubmitted ::
     AddMissingPhase2ResultReceived :: Nil
 }

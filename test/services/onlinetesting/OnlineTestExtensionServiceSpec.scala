@@ -41,8 +41,8 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     "return a successful Future" when {
       "add extra days onto expiry, from today's date, if expired" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(
-          createSuccessfulProgressResponse(Phase1ProgressResponse(phase1TestsExpired = true)
-          ))
+          createSuccessfulProgressResponse(Phase1ProgressResponse(phase1TestsExpired = true))
+        )
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
         when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
@@ -61,8 +61,10 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
       "add extra days onto expiry, from the expiry time, if not expired" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(
-          createSuccessfulProgressResponse(Phase1ProgressResponse(phase1TestsExpired = false,
-          phase1TestsStarted = true))
+          createSuccessfulProgressResponse(Phase1ProgressResponse(
+            phase1TestsExpired = false,
+            phase1TestsStarted = true
+          ))
         )
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(false)
@@ -136,10 +138,10 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
       import OnlineTestExtensionServiceImpl.getProgressStatusesToRemove
 
       "the new expiry date is more than 3 days ahead" in new TestFixture {
-         when(mockProgressResponse.phase1ProgressResponse).thenReturn(new Phase1ProgressResponse)
+        when(mockProgressResponse.phase1ProgressResponse).thenReturn(new Phase1ProgressResponse)
 
-         val result = getProgressStatusesToRemove(InMoreThanThreeDays, mockProfile, mockProgressResponse)
-         result mustBe Some(statusToRemoveWhenExpiryInMoreThanThreeDays)
+        val result = getProgressStatusesToRemove(InMoreThanThreeDays, mockProfile, mockProgressResponse)
+        result mustBe Some(statusToRemoveWhenExpiryInMoreThanThreeDays)
       }
 
       "the new expiry date is more than 3 days ahead and the test was expired and not started" in new TestFixture {
@@ -175,7 +177,8 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val statusToRemoveWhenExpiryInMoreThanThreeDays = List(PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_FIRST_REMINDER)
     val statusToRemoveWhenExpiryInMoreThanOneDay = List(PHASE1_TESTS_SECOND_REMINDER)
     val statusToRemoveWhenExpiryInMoreThanThreeDaysExpiredNotStarted = List(
-      PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_FIRST_REMINDER)
+      PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_FIRST_REMINDER
+    )
     val invalidStatusError = TestExtensionException("Application is in an invalid status for test extension")
     val noTestProfileFoundError = TestExtensionException("No Phase1TestGroupAvailable for the given application")
     val genericError = new Exception("Dummy error!")

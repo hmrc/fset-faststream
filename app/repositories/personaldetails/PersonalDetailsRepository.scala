@@ -30,7 +30,7 @@ import scala.concurrent.Future
 
 trait PersonalDetailsRepository {
   def update(appId: String, userId: String, personalDetails: PersonalDetails,
-             requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit]
+    requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit]
 
   def updateWithoutStatusChange(appid: String, userId: String, personalDetails: PersonalDetails): Future[Unit]
 
@@ -38,12 +38,12 @@ trait PersonalDetailsRepository {
 }
 
 class PersonalDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[PersonalDetails, BSONObjectID](CollectionNames.APPLICATION, mongo, PersonalDetails.personalDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
+    extends ReactiveRepository[PersonalDetails, BSONObjectID](CollectionNames.APPLICATION, mongo, PersonalDetails.personalDetailsFormat,
+      ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
   val PersonalDetailsCollection = "personal-details"
 
   def update(applicationId: String, userId: String, personalDetails: PersonalDetails,
-             requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit] = {
+    requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId, "userId" -> userId),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> requiredStatuses))
@@ -54,9 +54,8 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
         "progress-status.personal-details" -> true,
         PersonalDetailsCollection -> personalDetails
       ).add(
-        applicationStatusBSON(newApplicationStatus)
-      )
-    )
+          applicationStatusBSON(newApplicationStatus)
+        ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating personal details",
       PersonalDetailsNotFound(applicationId))

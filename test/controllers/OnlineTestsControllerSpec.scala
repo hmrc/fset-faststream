@@ -43,7 +43,8 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
   val mockPhase2TestService = mock[Phase2TestService]
   val mockPhase3TestService = mock[Phase3TestService]
   val mockApplicationRepository = mock[GeneralApplicationRepository]
-  val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
+  val onlineTestApplication = OnlineTestApplication(
+    applicationId = "appId",
     applicationStatus = ApplicationStatus.SUBMITTED,
     userId = "userId",
     guaranteedInterview = false,
@@ -66,8 +67,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     "return OK when candidate is reset" in {
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
 
-      when(mockPhase1TestService.resetTests(any[OnlineTestApplication], any[List[String]], any[String])
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
+      when(mockPhase1TestService.resetTests(any[OnlineTestApplication], any[List[String]], any[String])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       val response = controller.resetPhase1OnlineTests(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe OK
@@ -83,8 +83,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
   "reset phase2 tests" should {
     "register user with new test" in {
-      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
+      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
@@ -92,8 +91,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     }
 
     "return the response as reset limit exceeded" in {
-      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
+      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
@@ -101,8 +99,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     }
 
     "return cannot reset phase2 tests exception" in {
-      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotResetPhase2Tests()))
+      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotResetPhase2Tests()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
@@ -110,8 +107,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     }
 
     "return not found exception" in {
-      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
+      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(None))
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
@@ -123,8 +119,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     "return OK when candidate is reset" in {
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
 
-      when(mockPhase3TestService.resetTests(any[OnlineTestApplication], any[String])
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
+      when(mockPhase3TestService.resetTests(any[OnlineTestApplication], any[String])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       val response = controller.resetPhase3OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe OK
@@ -133,8 +128,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     "return CONFLICT when test cannot be reset" in {
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
 
-      when(mockPhase3TestService.resetTests(any[OnlineTestApplication], any[String])
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotResetPhase3Tests()))
+      when(mockPhase3TestService.resetTests(any[OnlineTestApplication], any[String])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotResetPhase3Tests()))
 
       val response = controller.resetPhase3OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe CONFLICT
