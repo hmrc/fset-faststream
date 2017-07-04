@@ -19,6 +19,7 @@ package model
 import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
 import reactivemongo.bson.{BSON, BSONHandler, BSONString}
 
+@deprecated("Use the config Schemes instead", "June 2017")
 object SchemeType extends Enumeration {
   type SchemeType = Value
 

@@ -16,11 +16,12 @@
 
 package model
 
-import model.SchemeType.SchemeType
 import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-case class Scheme(schemeId: SchemeType)
+case class Scheme(id: String, code: String, name: String)
 
 object Scheme {
-  implicit val schemeQualificationFormat = Json.format[Scheme]
+  implicit val schemeFormat = Json.format[Scheme]
+  implicit val schemeHandler = Macros.handler[Scheme]
 }

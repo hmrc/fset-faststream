@@ -32,6 +32,7 @@ object CreateAdminRequest {
   }
 
   case class AssessorRequest(skills: Option[List[String]] = None,
+                             sifterSchemes: Option[List[String]] = None,
                              civilServant: Option[Boolean] = None,
                              availability: Option[List[AssessorAvailabilityRequest]] = None)
 
