@@ -121,10 +121,10 @@ GET         /assessor/availability/count-submitted                       control
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
 GET         /events/venues-for-events                                    controllers.EventsController.venuesForEvents
 GET         /events/locations-for-events                                 controllers.EventsController.locationsForEvents
+GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
-GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
 
 # Day aggregate events
 GET         /day-aggregate-events/skills/:skillTypes                     controllers.DayAggregateEventController.findBySkillTypes(skillTypes: String)
