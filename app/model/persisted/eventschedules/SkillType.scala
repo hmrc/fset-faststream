@@ -21,6 +21,8 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 import scala.language.implicitConversions
 
+// TODO MIGUEL: Remove this SkillType and change code accordingly. We should use AssessorSkill, once SkillType is
+// removed, rename AssessorSkill to SkillType or Skill.
 object SkillType extends Enumeration {
   type SkillType = Value
 

@@ -103,13 +103,15 @@ trait EventsController extends BaseController {
 
   // TODO MIGUEL: Decide if this should go here or a separate eventsAllocations controller
   // scalastyle:off method.length
-  def getEventsWithAllocationsSummary(venueType: VenueType, eventType: EventType): Action[AnyContent] = Action.async { implicit request =>
-
+  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.getEventsWithAllocationsSummary(venue, eventType).map { eventsWithAllocations =>
+      Ok(Json.toJson(eventsWithAllocations))
+    }
     // 1st get events
     // 2nd get allocations for every event
 
     // Example: 8 events in different event types, locations and venues on the same day.
-    val londonFsacVenue = Venue("LONDON_FSAC", "London FSAC")
+/*    val londonFsacVenue = Venue("LONDON_FSAC", "London FSAC")
     val newcastleFsacVenue = Venue("NEWCASTLE_FSAC", "Newcastle FSAC")
     val newcastleLongbentonVenue = Venue("NEWCASTLE_FSAC", "Newcastle FSAC")
 
@@ -173,7 +175,7 @@ trait EventsController extends BaseController {
       event2NewcastleSkypeAllocations
     )
 
-    Future.successful(Ok(Json.toJson(eventsWithAllocationSummary)))
+    Future.successful(Ok(Json.toJson(eventsWithAllocationSummary)))*/
   }
   // scalastyle:on method.length
   def allocateAssessor(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>

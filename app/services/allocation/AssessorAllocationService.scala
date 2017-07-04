@@ -17,21 +17,26 @@
 package services.allocation
 
 import model.Exceptions.OptimisticLockException
-import model.exchange
-import model.persisted
-import model.command
+import model.{ AllocationStatuses, command, exchange, persisted }
+import model.exchange.{ EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
+import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.Venue
 import repositories.AssessorAllocationMongoRepository
+import services.events.EventsService
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AssessorAllocationService extends AssessorAllocationService {
   def allocationRepo = repositories.assessorAllocationRepository
+  override val eventsService = EventsService
 }
 
 trait AssessorAllocationService {
 
   def allocationRepo: AssessorAllocationMongoRepository
+  val eventsService: EventsService = EventsService
+
 
   def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
     allocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
@@ -59,6 +64,26 @@ trait AssessorAllocationService {
       }
     } else {
         throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
+    }
+  }
+
+  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
+    eventsService.getEvents(eventType, venue).flatMap { events =>
+      val res = events.map { event =>
+        getAllocations(event.id).map { allocations =>
+          val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)
+          val allocationsGroupedBySkillWithSummary = allocationsGroupedBySkill.map { allocationGroupedBySkill =>
+            val assessorAllocation = allocationGroupedBySkill._2
+            val skill = allocationGroupedBySkill._1.name
+            val allocated = assessorAllocation.length
+            val confirmed = assessorAllocation.filter(_.status == AllocationStatuses.CONFIRMED).length
+            EventAssessorAllocationsSummaryPerSkill(skill, allocated, confirmed)
+          }.toList
+          EventWithAllocationsSummary(event, 0, allocationsGroupedBySkillWithSummary)
+        }
+      }
+      // TODO MIGUEL: Check what happens with Thread pool
+      Future.sequence(res)
     }
   }
 }
