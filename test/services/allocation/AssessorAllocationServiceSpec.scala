@@ -16,6 +16,7 @@
 
 package services.allocation
 
+import model.exchange.AssessorSkill
 import model.persisted.eventschedules.SkillType
 import repositories.AssessorAllocationMongoRepository
 import services.BaseServiceSpec
@@ -35,7 +36,8 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
       val allocations = command.AssessorAllocations(
         version = "version1",
         eventId = "eventId1",
-        allocations = command.AssessorAllocation("id", AllocationStatuses.CONFIRMED, allocatedAs = SkillType.ASSESSOR) :: Nil
+        allocations = command.AssessorAllocation("id", AllocationStatuses.CONFIRMED,
+          allocatedAs = AssessorSkill(SkillType.ASSESSOR, "Assessor")) :: Nil
       )
       val result = service.allocate(allocations).futureValue
       result mustBe unit
@@ -52,7 +54,8 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
       val allocations = command.AssessorAllocations(
         version = "version1",
         eventId = "eventId1",
-        allocations = command.AssessorAllocation("id", AllocationStatuses.CONFIRMED, allocatedAs = SkillType.ASSESSOR) :: Nil
+        allocations = command.AssessorAllocation("id", AllocationStatuses.CONFIRMED,
+          allocatedAs = AssessorSkill(SkillType.ASSESSOR, "Assessor")) :: Nil
       )
       val result = service.allocate(allocations).futureValue
       result mustBe unit
