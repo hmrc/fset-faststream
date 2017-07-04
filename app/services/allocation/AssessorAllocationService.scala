@@ -45,9 +45,17 @@ trait AssessorAllocationService {
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
+<<<<<<< HEAD
     allocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
       case Nil => allocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
       case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations).map(_ => ())
+=======
+    getAllocations(newAllocations.eventId).flatMap { existingAllocation =>
+      existingAllocation.allocations match {
+        case Nil => allocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
+        case _ => updateExistingAllocations(existingAllocation, newAllocations).map(_ => ())
+      }
+>>>>>>> Changes to support changing the application status for the candidates allocated to fsac event
     }
   }
 
