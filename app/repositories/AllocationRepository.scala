@@ -16,7 +16,6 @@
 
 package repositories
 
-import common.FutureEx
 import model.Exceptions.TooManyEventIdsException
 import model.persisted.{ Allocation, AssessorAllocation, CandidateAllocation }
 import play.api.libs.json.{ JsObject, OFormat }
@@ -46,7 +45,6 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
 
   def delete(allocations: Seq[T]): Future[Unit] = {
     val eventIds = allocations.map(_.eventId).distinct
-
     val eventId = if (eventIds.size > 1) {
       throw TooManyEventIdsException(s"The delete request contained too many event Ids [$eventIds]")
     } else {
@@ -54,7 +52,6 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
     }
 
     val assessorOrApplicationId = allocations.map(_.id)
-
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("id" -> BSONDocument("$in" -> assessorOrApplicationId)),
       BSONDocument("eventId" -> eventId)

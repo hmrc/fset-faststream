@@ -18,6 +18,7 @@ package model.command
 
 import factories.UUIDFactory
 import model.AllocationStatuses.AllocationStatus
+import model.exchange.AssessorSkill
 import model.persisted.eventschedules.SkillType.SkillType
 import play.api.libs.json.Json
 
@@ -29,7 +30,7 @@ trait Allocation {
 case class AssessorAllocation(
   id: String,
   status: AllocationStatus,
-  allocatedAs: SkillType
+  allocatedAs: AssessorSkill
 ) extends Allocation
 
 object AssessorAllocation {
@@ -56,7 +57,10 @@ object AssessorAllocations {
       case Nil => UUIDFactory.generateUUID()
     }
 
-    AssessorAllocations(opLock, eventId, o.map { a => AssessorAllocation(a.id, a.status, a.allocatedAs) })
+    AssessorAllocations(opLock, eventId, o.map { a =>
+      val allocatedSkill = AssessorSkill.SkillMap(a.allocatedAs)
+      AssessorAllocation(a.id, a.status, allocatedSkill)
+    })
   }
 
   def fromExchange(eventId: String, o: model.exchange.AssessorAllocations): AssessorAllocations = {

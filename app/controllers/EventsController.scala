@@ -24,6 +24,8 @@ import org.joda.time.{ LocalDate, LocalTime }
 import model.Exceptions.EventNotFoundException
 import model.exchange
 import model.command
+import model.exchange.AssessorAllocations
+import model.persisted.eventschedules.EventType
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
@@ -92,7 +94,7 @@ trait EventsController extends BaseController {
   def getAssessorAllocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
     assessorAllocationService.getAllocations(eventId).map { allocations =>
       if (allocations.allocations.isEmpty) {
-        NotFound
+        Ok(Json.toJson(AssessorAllocations(version = None, allocations = Nil)))
       } else {
         Ok(Json.toJson(allocations))
       }

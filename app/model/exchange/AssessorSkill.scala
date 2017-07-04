@@ -34,4 +34,6 @@ object AssessorSkill {
     AssessorSkill(QUALITY_ASSURANCE_COORDINATOR, "Quality Assurance Coordinator"),
     AssessorSkill(SIFTER, "Sifter")
   )
+
+  val SkillMap = AllSkillsWithLabels.map( s => s.name.toString -> s)(scala.collection.breakOut): Map[String, AssessorSkill]
 }

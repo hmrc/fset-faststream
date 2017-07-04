@@ -19,7 +19,6 @@ package model.persisted
 import factories.UUIDFactory
 import model.AllocationStatuses
 import model.AllocationStatuses.AllocationStatus
-import model.persisted.eventschedules.SkillType.SkillType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
@@ -34,7 +33,7 @@ case class AssessorAllocation(
   id: String,
   eventId: String,
   status: AllocationStatus,
-  allocatedAs: SkillType,
+  allocatedAs: String,
   version: String
 ) extends Allocation
 
@@ -43,8 +42,8 @@ object AssessorAllocation {
   implicit val assessorAllocationHandler = Macros.handler[AssessorAllocation]
 
   def fromCommand(o: model.command.AssessorAllocations): Seq[AssessorAllocation] = {
-    val opLockVerion = UUIDFactory.generateUUID()
-    o.allocations.map { a => AssessorAllocation(a.id, o.eventId, AllocationStatuses.UNCONFIRMED, a.allocatedAs, opLockVerion) }
+    val opLockVersion = UUIDFactory.generateUUID()
+    o.allocations.map { a => AssessorAllocation(a.id, o.eventId, AllocationStatuses.UNCONFIRMED, a.allocatedAs.name, opLockVersion) }
   }
 }
 

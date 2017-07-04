@@ -28,7 +28,7 @@ trait Allocation {
 case class AssessorAllocation(
   id: String,
   status: AllocationStatus,
-  allocatedAs: SkillType
+  allocatedAs: AssessorSkill
 ) extends Allocation
 
 object AssessorAllocation {
@@ -50,7 +50,10 @@ object AssessorAllocations {
         case Nil => None
       }
 
-      AssessorAllocations(opLock, o.map { a => AssessorAllocation(a.id, a.status, a.allocatedAs) })
+      AssessorAllocations(opLock, o.map { a =>
+        val allocatedSkill = AssessorSkill.SkillMap(a.allocatedAs)
+        AssessorAllocation(a.id, a.status, allocatedSkill)
+      })
   }
 }
 
