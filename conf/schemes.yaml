@@ -7,15 +7,6 @@
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
-- id: DiplomaticServiceEconomics
-  code: DSE
-  name: Diplomatic Service Economics
-- id: DiplomaticServiceEuropean
-  code: EFSDS
-  name: Diplomatic Service European
-- id: European
-  code: EFS
-  name: European
 - id: Finance
   code: FIFS
   name: Finance
@@ -28,6 +19,9 @@
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
+- id: GovernmentEconomicsServiceDiplomaticService
+  code: GESDS
+  name: Government Economics Service - Diplomatic Service
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -43,6 +37,9 @@
 - id: HumanResources
   code: HRFS
   name: Human Resources
+- id: International
+  code: INT
+  name: International
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
