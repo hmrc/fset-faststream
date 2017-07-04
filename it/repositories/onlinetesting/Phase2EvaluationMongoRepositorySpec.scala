@@ -2,9 +2,9 @@ package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
-import model.SchemeType._
+import model.SchemeId._
 import model.persisted.{ ApplicationReadyForEvaluation, _ }
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType }
+import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
@@ -31,7 +31,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   "next Application Ready For Evaluation" should {
 
-    val resultToSave = List(SchemeEvaluationResult(SchemeType.Commercial, Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(SchemeId.Commercial, Green.toString))
 
     "return nothing if application does not have PHASE2_TESTS" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
@@ -162,7 +162,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "save passmark evaluation" should {
-    val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(SchemeId.DigitalAndTechnology, Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
@@ -175,7 +175,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE2_TESTS_PASSED
       result.evaluation mustBe Some(PassmarkEvaluation("version1", None, List(
-        SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString)
+        SchemeEvaluationResult(SchemeId.DigitalAndTechnology, Green.toString)
       ), "version1-res", None))
     }
   }

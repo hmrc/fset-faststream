@@ -16,9 +16,8 @@
 
 package model.command.testdata
 
-import model.Adjustments
+import model.{ Adjustments, SchemeId }
 import model.ApplicationRoute.ApplicationRoute
-import model.SchemeType.SchemeType
 import model.persisted.PassmarkEvaluation
 import play.api.libs.json.{ Json, OFormat }
 
@@ -135,7 +134,7 @@ object CreateCandidateRequest {
                                              personalData: Option[PersonalDataRequest],
                                              diversityDetails: Option[DiversityDetailsRequest],
                                              assistanceDetails: Option[AssistanceDetailsRequest],
-                                             schemeTypes: Option[List[SchemeType]],
+                                             schemeTypes: Option[List[SchemeId]],
                                              isCivilServant: Option[Boolean],
                                              hasFastPass: Option[Boolean],
                                              hasDegree: Option[Boolean],

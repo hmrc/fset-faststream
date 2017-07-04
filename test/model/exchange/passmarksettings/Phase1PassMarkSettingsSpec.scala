@@ -16,8 +16,8 @@
 
 package model.exchange.passmarksettings
 
-import model.SchemeType
-import model.SchemeType._
+import model.SchemeId
+import model.SchemeId._
 import model.exchange.passmarksettings.Phase1PassMarkSettingsExamples._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -81,7 +81,7 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
           (DiplomaticServiceEuropean, 20.0, 80.0),
           (DiplomaticService, 20.0, 80.0)))
       )
-      merged.schemes.map(_.schemeName) mustBe List(
+      merged.schemes.map(_.schemeId) mustBe List(
         Commercial,
         DigitalAndTechnology,
         DiplomaticService,

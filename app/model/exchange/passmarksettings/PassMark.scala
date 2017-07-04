@@ -16,17 +16,17 @@
 
 package model.exchange.passmarksettings
 
-import model.SchemeType.SchemeType
+import model.SchemeId
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 trait PassMark {
-  def schemeName: SchemeType
+  def schemeId: SchemeId
   def schemeThresholds: PassMarkThresholds
 }
 
 case class Phase1PassMark(
-  schemeName: SchemeType,
+  schemeId: SchemeId,
   schemeThresholds: Phase1PassMarkThresholds
 ) extends PassMark
 
@@ -36,7 +36,7 @@ object Phase1PassMark {
 }
 
 case class Phase2PassMark(
-  schemeName: SchemeType,
+  schemeId: SchemeId,
   schemeThresholds: Phase2PassMarkThresholds
 ) extends PassMark
 
@@ -46,7 +46,7 @@ object Phase2PassMark {
 }
 
 case class Phase3PassMark(
-  schemeName: SchemeType,
+  schemeId: SchemeId,
   schemeThresholds: Phase3PassMarkThresholds
 ) extends PassMark
 

@@ -3,7 +3,7 @@ package repositories
 import config.{ LaunchpadGatewayConfig, Phase2TestsConfig, Phase3TestsConfig }
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
-import model.SchemeType._
+import model.SchemeId._
 import model.exchange.passmarksettings._
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationStatus, Phase }
@@ -165,7 +165,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   trait TestFixture {
 
     // format: OFF
-    val phase3PassMarkSettingsTable = Table[SchemeType, Double, Double](
+    val phase3PassMarkSettingsTable = Table[SchemeId, Double, Double](
       ("Scheme Name", "Video Interview Fail Threshold", "Video Interview Pass threshold"),
       (Commercial, 20.0, 80.0),
       (DigitalAndTechnology, 20.001, 20.001),
@@ -196,14 +196,14 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     var phase2PassMarkEvaluation: PassmarkEvaluation = _
 
     def applicationEvaluation(applicationId: String, videoInterviewScore: Option[Double],
-                              verifyAllScoresArePresent: Boolean, selectedSchemes: SchemeType*): TestFixture = {
+                              verifyAllScoresArePresent: Boolean, selectedSchemes: SchemeId*): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase3TestResults(applicationId, videoInterviewScore,
         phase2PassMarkEvaluation)(selectedSchemes: _*)
       phase3TestEvaluationService(verifyAllScoresArePresent).evaluate(applicationReadyForEvaluation, phase3PassMarkSettings).futureValue
       this
     }
 
-    def mustResultIn(expApplicationStatus: ApplicationStatus.ApplicationStatus, expSchemeResults: (SchemeType, Result)*): TestFixture = {
+    def mustResultIn(expApplicationStatus: ApplicationStatus.ApplicationStatus, expSchemeResults: (SchemeId, Result)*): TestFixture = {
       passMarkEvaluation = phase3EvaluationRepo.getPassMarkEvaluation(applicationReadyForEvaluation.applicationId).futureValue
       val applicationStatus = ApplicationStatus.withName(
         applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue.status)
@@ -220,7 +220,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       this
     }
 
-    def applicationReEvaluationWithSettings(newSchemeSettings: (SchemeType, Double, Double)*): TestFixture = {
+    def applicationReEvaluationWithSettings(newSchemeSettings: (SchemeId, Double, Double)*): TestFixture = {
       val schemePassMarkSettings = phase3PassMarkSettingsTable.filterNot(schemeSetting =>
         newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
       phase3PassMarkSettings = createPhase3PassMarkSettings(schemePassMarkSettings)
@@ -229,7 +229,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     private def createPhase3PassMarkSettings(phase3PassMarkSettingsTable:
-                                             TableFor3[SchemeType, Double, Double]): Phase3PassMarkSettings = {
+                                             TableFor3[SchemeId, Double, Double]): Phase3PassMarkSettings = {
       val schemeThresholds = phase3PassMarkSettingsTable.map {
         fields => Phase3PassMark(fields._1,
           Phase3PassMarkThresholds(PassMarkThreshold(fields._2, fields._3)))

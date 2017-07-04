@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.SchemeType._
+import model.SchemeId._
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
 import org.scalatestplus.play.OneAppPerTest

@@ -17,13 +17,12 @@
 package services.testdata.faker
 
 import factories.UUIDFactory
-import model.EvaluationResults
+import model.{ EvaluationResults, Scheme }
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
-import model.SchemeType._
 import model.persisted.eventschedules._
 import model.exchange.AssessorAvailability
-import org.joda.time.{LocalDate, LocalTime}
+import org.joda.time.{ LocalDate, LocalTime }
 import repositories._
 import repositories.events.LocationsWithVenuesInMemoryRepository
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
@@ -151,12 +150,26 @@ object DataFaker {
     */
 
     def schemeTypes = randList(List(
-      Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,
-      DiplomaticServiceEuropean, European, Finance, Generalist,
-      GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService,
-      GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
-      ProjectDelivery, ScienceAndEngineering),
-      randNumberOfSchemes())
+        Scheme("Commercial", "CFS", "Commercial"),
+        Scheme("DigitalAndTechnology", "DaT", "Digital And Technology"),
+        Scheme("DiplomaticService", "DS", "Diplomatic Service"),
+        Scheme("DiplomaticServiceEconomics", "DSE", "Diplomatic Service Economics"),
+        Scheme("DiplomaticServiceEuropean", "EFSDS", "Diplomatic Service European"),
+        Scheme("European", "EFS", "European"),
+        Scheme("Finance", "FIFS", "Finance"),
+        Scheme("Generalist", "GFS", "Generalist"),
+        Scheme("GovernmentCommunicationService", "GCFS", "Government Communication Service"),
+        Scheme("GovernmentEconomicsService", "GES", "Government Economics Service"),
+        Scheme("GovernmentOperationalResearchService", "GORS", "Government Operational Research Service"),
+        Scheme("GovernmentSocialResearchService", "GSR", "Government Social Research Service"),
+        Scheme("GovernmentStatisticalService", "GSS", "Government Statistical Service"),
+        Scheme("HousesOfParliament", "HoP", "Houses Of Parliament"),
+        Scheme("HumanResources", "HRFS", "Human Resources"),
+        Scheme("ProjectDelivery", "PDFS", "Project Delivery"),
+        Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering"),
+        Scheme("Edip", "EDIP", "Early Diversity Internship Programme"),
+        Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme")
+    ), randNumberOfSchemes())
 
     def gender = randOne(List(
       "Male",

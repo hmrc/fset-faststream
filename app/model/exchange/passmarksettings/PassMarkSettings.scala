@@ -16,7 +16,7 @@
 
 package model.exchange.passmarksettings
 
-import model.SchemeType.SchemeType
+import model.SchemeId
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
@@ -42,11 +42,11 @@ object Phase1PassMarkSettings {
 
   def merge(oldPassMarkSettings: Option[Phase1PassMarkSettings],
             newPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = {
-    def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeName).mapValues { v =>
+    def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeId).mapValues { v =>
       require(v.size == 1, s"Scheme name must be non empty and must be unique: ${v.mkString(",")}")
       v.head
     }
-    def toSchemeNames(passmark: Phase1PassMarkSettings) = passmark.schemes.map(_.schemeName)
+    def toSchemeNames(passmark: Phase1PassMarkSettings) = passmark.schemes.map(_.schemeId)
 
     oldPassMarkSettings match {
       case Some(latest) =>
@@ -62,8 +62,8 @@ object Phase1PassMarkSettings {
     }
   }
 
-  private def mergeToListInOrder[T](originalMap: Map[SchemeType, T], toUpdateMap: Map[SchemeType, T],
-                                               order: List[SchemeType]): List[T] = {
+  private def mergeToListInOrder[T](originalMap: Map[SchemeId, T], toUpdateMap: Map[SchemeId, T],
+                                               order: List[SchemeId]): List[T] = {
     val mergedMaps = originalMap ++ toUpdateMap
     order.map(schemeName => mergedMaps(schemeName))
   }

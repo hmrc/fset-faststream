@@ -5,7 +5,7 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults._
 import model.{ ApplicationRoute, ApplicationStatus, Phase }
-import model.SchemeType._
+import model.SchemeId._
 import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds }
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import org.joda.time.DateTime
@@ -141,7 +141,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   trait TestFixture {
 
     // format: OFF
-    val phase1PassMarkSettingsTable = Table[SchemeType, Double, Double, Double, Double](
+    val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double](
       ("Scheme Name",                       "SJQ Fail Threshold",   "SJQ Pass threshold",   "BQ Fail Threshold",    "BQ Pass Threshold"),
       (Commercial,                            20.0,                    80.0,                   30.0,                   70.0),
       (DigitalAndTechnology,                  20.001,                  20.001,                 20.01,                  20.05),
@@ -169,13 +169,13 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     var passMarkEvaluation: PassmarkEvaluation = _
 
-    def gisApplicationEvaluation(applicationId:String, sjqScore: Double, selectedSchemes: SchemeType*): TestFixture = {
+    def gisApplicationEvaluation(applicationId:String, sjqScore: Double, selectedSchemes: SchemeId*): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(applicationId, sjqScore, None, isGis = true)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
       this
     }
 
-    def applicationEvaluation(applicationId:String, sjqScore: Double, bjqScore: Double, selectedSchemes: SchemeType*)
+    def applicationEvaluation(applicationId:String, sjqScore: Double, bjqScore: Double, selectedSchemes: SchemeId*)
                              (implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(applicationId, sjqScore, Some(bjqScore),
         isGis = false, applicationRoute = applicationRoute)(selectedSchemes: _*)
@@ -183,7 +183,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       this
     }
 
-    def mustResultIn(expApplicationStatus: ApplicationStatus.ApplicationStatus, expSchemeResults: (SchemeType , Result)*): TestFixture = {
+    def mustResultIn(expApplicationStatus: ApplicationStatus.ApplicationStatus, expSchemeResults: (SchemeId , Result)*): TestFixture = {
       passMarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation(applicationReadyForEvaluation.applicationId).futureValue
       val applicationStatus = ApplicationStatus.withName(
         applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue.status)
@@ -201,7 +201,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       this
     }
 
-    def applicationReEvaluationWithSettings(newSchemeSettings: (SchemeType, Double, Double, Double, Double)*): TestFixture = {
+    def applicationReEvaluationWithSettings(newSchemeSettings: (SchemeId, Double, Double, Double, Double)*): TestFixture = {
       val schemePassMarkSettings = phase1PassMarkSettingsTable.filterNot(schemeSetting =>
         newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
       phase1PassMarkSettings = createPhase1PassMarkSettings(schemePassMarkSettings).futureValue
@@ -210,7 +210,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     private def createPhase1PassMarkSettings(phase1PassMarkSettingsTable:
-                                             TableFor5[SchemeType, Double, Double, Double, Double]): Future[Phase1PassMarkSettings] = {
+                                             TableFor5[SchemeId, Double, Double, Double, Double]): Future[Phase1PassMarkSettings] = {
       val schemeThresholds = phase1PassMarkSettingsTable.map {
         fields => Phase1PassMark(fields._1,
           Phase1PassMarkThresholds(PassMarkThreshold(fields._2, fields._3), PassMarkThreshold(fields._4, fields._5)))

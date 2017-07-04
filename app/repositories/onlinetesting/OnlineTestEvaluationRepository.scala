@@ -86,7 +86,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 
     val removeEvaluationIfExists = BSONDocument(
       "$pull" -> BSONDocument(s"testGroups.$phase.evaluation.result" ->
-        BSONDocument("scheme" -> SchemeType.Sdip)))
+        BSONDocument("scheme" -> SchemeId("Sdip"))))
 
     val passMarkEvaluation = BSONDocument(
       "$addToSet" -> BSONDocument(s"testGroups.$phase.evaluation.result" -> schemeEvaluationResult),
@@ -162,7 +162,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
       BSONDocument(s"testGroups.$phase.evaluation.result" ->
         BSONDocument("$not" -> BSONDocument("$elemMatch" ->
-          BSONDocument("scheme" -> SchemeType.Sdip,
+          BSONDocument("scheme" -> SchemeId("Sdip"),
             "result" -> BSONDocument("$in" -> List(Green.toString, Red.toString))
           ))))
     ))

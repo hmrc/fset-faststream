@@ -19,7 +19,7 @@ package controllers
 import config.TestFixtureBase
 import factories.UUIDFactory
 import model.Commands.PassMarkSettingsCreateResponse
-import model.SchemeType._
+import model.SchemeId._
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor

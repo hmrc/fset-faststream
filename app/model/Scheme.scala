@@ -19,9 +19,26 @@ package model
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class Scheme(id: String, code: String, name: String)
+case class SchemeId(value: String)
+
+object SchemeId {
+  implicit val schemeIdFormat = Json.format[SchemeId]
+  implicit val schemeIdHandler = Macros.handler[SchemeId]
+}
+
+/** Wrapper for scheme data
+  *
+  * @param id The scheme ID to be delivered across the wire/stored in DB etc.
+  * @param code The abbreviated form
+  * @param name The form displayed to end users
+  */
+case class Scheme(id: SchemeId, code: String, name: String)
+
+
 
 object Scheme {
   implicit val schemeFormat = Json.format[Scheme]
   implicit val schemeHandler = Macros.handler[Scheme]
+
+  def apply(id: String, code: String, name: String): Scheme = Scheme(SchemeId(id), code, name)
 }

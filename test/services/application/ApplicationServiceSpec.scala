@@ -22,7 +22,7 @@ import model.command.ProgressResponse
 import model.stc.AuditEvents
 import org.joda.time.DateTime
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, SchemeType, SelectedSchemes }
+import model.{ ApplicationRoute, SchemeId, SelectedSchemes }
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -89,8 +89,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
         userId,ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None,
-        List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
-          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red")),
+        List(SchemeEvaluationResult(SchemeId.Commercial, "Green"),
+          SchemeEvaluationResult(SchemeId.GovernmentOperationalResearchService, "Red")),
         "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
@@ -98,7 +98,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
-      passedSchemes mustBe List(SchemeType.Commercial)
+      passedSchemes mustBe List(SchemeId.Commercial)
     }
 
     "retrieve passed schemes for Faststream application with fast pass approved" in new TestFixture {
@@ -106,51 +106,51 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         userId,ProgressResponse(applicationId, fastPassAccepted = true), None, None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
-      when(schemeRepositoryMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(List(SchemeType.Commercial),
+      when(schemeRepositoryMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(List(SchemeId.Commercial),
         orderAgreed = true, eligible = true)))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
-      passedSchemes mustBe List(SchemeType.Commercial)
+      passedSchemes mustBe List(SchemeId.Commercial)
     }
 
     "retrieve passed schemes for Edip application" in new TestFixture {
       val edipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Edip, userId,
         ProgressResponse(applicationId), None, None)
-      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Edip, "Green")), "", None)
+      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId.Edip, "Green")), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(edipApplication))
       when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(passmarkEvaluation))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
-      passedSchemes mustBe List(SchemeType.Edip)
+      passedSchemes mustBe List(SchemeId.Edip)
     }
 
     "retrieve passed schemes for Sdip application" in new TestFixture {
       val sdipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Sdip, userId,
         ProgressResponse(applicationId), None, None)
-      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green")), "", None)
+      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId.Sdip, "Green")), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(sdipApplication))
       when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(passmarkEvaluation))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
-      passedSchemes mustBe List(SchemeType.Sdip)
+      passedSchemes mustBe List(SchemeId.Sdip)
     }
 
     "retrieve passed schemes for SdipFaststream application" in new TestFixture {
       val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId,
         ProgressResponse(applicationId), None, None
       )
-      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green"),
-        SchemeEvaluationResult(SchemeType.Finance, "Green")), "", None)
+      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId.Sdip, "Green"),
+        SchemeEvaluationResult(SchemeId.Finance, "Green")), "", None)
 
       val phase3PassmarkEvaluation = PassmarkEvaluation("", None,
-        List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
-          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red"),
-          SchemeEvaluationResult(SchemeType.Finance, "Red")
+        List(SchemeEvaluationResult(SchemeId.Commercial, "Green"),
+          SchemeEvaluationResult(SchemeId.GovernmentOperationalResearchService, "Red"),
+          SchemeEvaluationResult(SchemeId.Finance, "Red")
         ), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))
@@ -159,14 +159,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
-      passedSchemes mustBe List(SchemeType.Sdip)
+      passedSchemes mustBe List(SchemeId.Sdip)
     }
 
     "retrieve schemes for SdipFaststream when the applicant has failed Faststream prior to Phase 3 tests" in new TestFixture {
       val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId,
         ProgressResponse(applicationId), None, None
       )
-      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green")), "", None)
+      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId.Sdip, "Green")), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))
       when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.failed(PassMarkEvaluationNotFound(applicationId)))
@@ -174,7 +174,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
-      passedSchemes mustBe List(SchemeType.Sdip)
+      passedSchemes mustBe List(SchemeId.Sdip)
     }
   }
 

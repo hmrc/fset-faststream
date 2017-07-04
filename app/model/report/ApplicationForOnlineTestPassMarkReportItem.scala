@@ -17,14 +17,14 @@
 package model.report
 
 import model.ApplicationRoute._
-import model.SchemeType.SchemeType
+import model.SchemeId
 import model.persisted.ApplicationForOnlineTestPassMarkReport
 import play.api.libs.json.Json
 
 case class ApplicationForOnlineTestPassMarkReportItem(
                                                        progress: String,
                                                        applicationRoute: ApplicationRoute,
-                                                       schemes: List[SchemeType],
+                                                       schemes: List[SchemeId],
                                                        disability: Option[String],
                                                        gis: Option[Boolean],
                                                        onlineAdjustments: Option[String],

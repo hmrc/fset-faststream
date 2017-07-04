@@ -62,9 +62,8 @@ trait AssessorService {
       case Some(existing) =>
         exchangeToPersistedAvailability(assessorAvailabilities).flatMap { newAvailabilities =>
           val mergedAvailability = existing.availability ++ newAvailabilities
-          val assessorToPersist = model.persisted.assessor.Assessor(userId, existing.skills, existing.sifterSchemes, existing.civilServant, mergedAvailability,
-            AssessorStatus.AVAILABILITIES_SUBMITTED
-          )
+          val assessorToPersist = model.persisted.assessor.Assessor(userId, existing.skills, existing.sifterSchemes,
+            existing.civilServant, mergedAvailability, AssessorStatus.AVAILABILITIES_SUBMITTED)
 
           assessorRepository.save(assessorToPersist).map(_ => ())
         }

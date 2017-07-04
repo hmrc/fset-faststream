@@ -138,8 +138,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
         BSONDocument("frameworkId" -> frameworkId),
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED}" -> true),
         BSONDocument("$or" -> BSONArray(
-          BSONDocument(firstSchemePreference -> SchemeType.GovernmentOperationalResearchService.toString),
-          BSONDocument(firstSchemePreference -> SchemeType.GovernmentStatisticalService.toString)
+          BSONDocument(firstSchemePreference -> SchemeId("GovernmentOperationalResearchService").value),
+          BSONDocument(firstSchemePreference -> SchemeId("GovernmentStatisticalService").value)
         ))
       ))
 

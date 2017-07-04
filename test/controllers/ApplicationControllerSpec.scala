@@ -20,7 +20,7 @@ import config.TestFixtureBase
 import mocks.application.DocumentRootInMemoryRepository
 import model.EvaluationResults.Green
 import model.Exceptions.NotFoundException
-import model.{ ApplicationRoute, SchemeType }
+import model.{ ApplicationRoute, SchemeId }
 import model.command.WithdrawApplication
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -153,7 +153,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
   "Get Scheme Results" must {
     "return the scheme results for an application" in new TestFixture {
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(SchemeId.DigitalAndTechnology, Green.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version2", None)
       when(mockPassmarkService.getPassmarkEvaluation(any[String])).thenReturn(Future.successful(evaluation))
 

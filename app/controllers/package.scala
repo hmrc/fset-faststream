@@ -35,13 +35,13 @@ package object controllers {
     /*implicit object skillTypeQueryBinder extends QueryStringBindable.Parsing[SkillType](
        parse = SkillType.withName(_),
        serialize = _.toString,
-       error = (m: String, e: Exception) => "Can't parse %s as SchemeType : %s".format(m, e.getMessage)
+       error = (m: String, e: Exception) => "Can't parse %s as SchemeId : %s".format(m, e.getMessage)
     )*/
     private def enumQueryBinder[E <: Enumeration](enum: E) = {
       new QueryStringBindable.Parsing[E#Value](
         parse = enum.withName(_),
         serialize = _.toString,
-        error = (m: String, e: Exception) => "Can't parse %s as SchemeType : %s".format(m, e.getMessage)
+        error = (m: String, e: Exception) => "Can't parse %s as SchemeId : %s".format(m, e.getMessage)
       )
     }
 

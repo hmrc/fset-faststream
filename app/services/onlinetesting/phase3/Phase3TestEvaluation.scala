@@ -18,24 +18,25 @@ package services.onlinetesting.phase3
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import model.EvaluationResults.Result
-import model.SchemeType._
+import model.SchemeId
 import model.exchange.passmarksettings.Phase3PassMarkSettings
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import play.api.Logger
 import repositories.onlinetesting.Phase3EvaluationMongoRepository
+
 import scala.concurrent.Future
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluate(schemes: List[SchemeType], launchpadTestResult: ReviewedCallbackRequest,
+  def evaluate(schemes: List[SchemeId], launchpadTestResult: ReviewedCallbackRequest,
                phase2SchemesEvaluation: List[SchemeEvaluationResult],
                passmark: Phase3PassMarkSettings): List[SchemeEvaluationResult] = {
 
     for {
       schemeToEvaluate <- schemes
-      schemePassmark <- passmark.schemes find (_.schemeName == schemeToEvaluate)
-      phase2SchemeEvaluation <- phase2SchemesEvaluation.find(_.scheme == schemeToEvaluate)
+      schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
+      phase2SchemeEvaluation <- phase2SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
       val phase3Result = evaluateTestResult(schemePassmark.schemeThresholds.videoInterview)(
         Some(launchpadTestResult.calculateTotalScore()))
