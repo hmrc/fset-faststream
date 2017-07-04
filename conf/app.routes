@@ -132,3 +132,4 @@ GET         /day-aggregate-events/location/:location/skills/:skillTypes  control
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
+GET         /reference/schemes                                            controllers.reference.SchemesController.allSchemes

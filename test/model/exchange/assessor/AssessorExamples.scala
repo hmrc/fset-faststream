@@ -22,7 +22,7 @@ import org.joda.time.LocalDate
 
 object AssessorExamples {
   val UserId1 = "57364"
-  val Assessor1 = Assessor(UserId1, List("assessor", "qac"), civilServant = true)
+  val Assessor1 = Assessor(UserId1, List("assessor", "qac"), List("Sdip"), civilServant = true)
 }
 
 object AssessorAvailabilityExamples {

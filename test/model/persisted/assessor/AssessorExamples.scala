@@ -30,6 +30,7 @@ object AssessorExamples {
 
   val AssessorExisting = Assessor(AssessorUserId,
     skills = List("qac", "chair"),
+    sifterSchemes = List("Sdip"),
     civilServant = true,
     status = AssessorStatus.AVAILABILITIES_SUBMITTED,
     availability = AssessorAvailability(london, new LocalDate(2017, 10, 10)) ::
