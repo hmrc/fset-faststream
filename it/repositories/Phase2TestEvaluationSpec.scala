@@ -6,7 +6,7 @@ import model.EvaluationResults.{ Amber, _ }
 import model.SchemeId._
 import model.exchange.passmarksettings._
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationStatus, Phase }
+import model.{ ApplicationStatus, Phase, SchemeId }
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.scalatest.prop._

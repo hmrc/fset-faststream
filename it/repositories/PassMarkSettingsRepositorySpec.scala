@@ -16,6 +16,7 @@
 
 package repositories
 
+import model.SchemeId
 import model.SchemeId._
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime

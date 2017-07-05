@@ -6,7 +6,7 @@ import model.EvaluationResults.{ Amber, _ }
 import model.SchemeId._
 import model.exchange.passmarksettings._
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationStatus, Phase }
+import model.{ ApplicationStatus, Phase, SchemeId }
 import org.joda.time.DateTime
 import org.scalatest.prop._
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
@@ -30,8 +30,8 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   "phase3 evaluation process" should {
     "throw IllegalArgumentException if we require all score to be present and one score is missing" in new TestFixture {
       {
-        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
+        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"),
+          Green.toString), SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
         intercept[IllegalArgumentException] {
           applicationEvaluation("application-1", None, true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn(
             PHASE3_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
@@ -49,8 +49,8 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
     "give pass results when all schemes are green" in new TestFixture {
       {
-        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
+        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"),
+          Green.toString), SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-1", Some(80), true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn(
           PHASE3_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
       }
@@ -115,8 +115,8 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
           PHASE3_TESTS, SchemeId("European") -> Amber, SchemeId("ProjectDelivery") -> Amber)
       }
       {
-        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"), Green.toString),
-          SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)), "phase2-version1-res", None)
+        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"),
+          Green.toString), SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)), "phase2-version1-res", None)
         applicationEvaluation("application-5", Some(50), true,SchemeId("HumanResources"), SchemeId("ProjectDelivery")) mustResultIn(
           PHASE3_TESTS_PASSED_WITH_AMBER, SchemeId("HumanResources") -> Green, SchemeId("ProjectDelivery") -> Amber)
       }
@@ -128,8 +128,8 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
             SchemeEvaluationResult(SchemeId("DiplomaticServiceEuropean"), Green.toString)),
           "phase2-version1-res", None)
 
-        applicationEvaluation("application-1", Some(40), true,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn(
-          PHASE3_TESTS, SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+        applicationEvaluation("application-1", Some(40), true,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
+        mustResultIn(PHASE3_TESTS, SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
         applicationReEvaluationWithSettings(
           (SchemeId("DiplomaticServiceEconomics"), 40, 40),
@@ -139,8 +139,8 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
     "give pass results on re-evaluation when at-least one scheme is green" in new TestFixture {
       {
-        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"), Red.toString),
-          SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)), "phase2-version1-res", None)
+        phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"),
+          Red.toString), SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)), "phase2-version1-res", None)
 
         applicationEvaluation("application-2", Some(50), true,SchemeId("HumanResources"), SchemeId("ProjectDelivery")) mustResultIn(
           PHASE3_TESTS, SchemeId("HumanResources") -> Red, SchemeId("ProjectDelivery") -> Amber)
@@ -151,8 +151,8 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
     }
     "move candidate from PHASE3_TESTS_PASSED_WITH_AMBER to PHASE3_TESTS_PASSED " in new TestFixture {
-      phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"), Green.toString),
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)), "phase2-version1-res", None)
+      phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"),
+        Green.toString), SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)), "phase2-version1-res", None)
       applicationEvaluation("application-4", Some(50), true,SchemeId("HumanResources"), SchemeId("ProjectDelivery")) mustResultIn(
         PHASE3_TESTS_PASSED_WITH_AMBER, SchemeId("HumanResources") -> Green, SchemeId("ProjectDelivery") -> Amber)
 
