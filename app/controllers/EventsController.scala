@@ -96,21 +96,7 @@ trait EventsController extends BaseController {
     }
   }
 
-<<<<<<< HEAD
   def allocateAssessor(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-=======
-  def candidateAllocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
-    assessorAllocationService.getCandidateAllocations(eventId).map { allocations =>
-      if (allocations.allocations.isEmpty) {
-        NotFound
-      } else {
-        Ok(Json.toJson(allocations))
-      }
-    }
-  }
-
-  def allocate(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
->>>>>>> Changes to support changing the application status for the candidates allocated to fsac event
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
       assessorAllocationService.allocate(newAllocations).map( _ => Ok)
@@ -120,7 +106,17 @@ trait EventsController extends BaseController {
   def allocateCandidates(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
       val newAllocations = command.CandidateAllocations.fromExchange(eventId, candidateAllocations)
-        assessorAllocationService.allocateCandidates(newAllocations).map( _ => Ok)
+      assessorAllocationService.allocateCandidates(newAllocations).map( _ => Ok)
+    }
+  }
+
+  def candidateAllocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.getCandidateAllocations(eventId).map { allocations =>
+      if (allocations.allocations.isEmpty) {
+        NotFound
+      } else {
+        Ok(Json.toJson(allocations))
+      }
     }
   }
 }
