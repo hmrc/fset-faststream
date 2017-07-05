@@ -16,11 +16,14 @@
 
 package repositories.application
 
-import model.{ CivilServiceExperienceType, InternshipType, SchemeType }
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewSectionReviewerRequest, ReviewedCallbackRequest }
+import model.{ CivilServiceExperienceType, InternshipType, ProgressStatuses, SchemeType }
 import model.CivilServiceExperienceType.CivilServiceExperienceType
 import model.InternshipType.InternshipType
 import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse }
+import org.joda.time.DateTime
 import play.api.Logger
+import repositories.BSONDateTimeHandler
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import reactivemongo.api.{ DB, ReadPreference }
@@ -39,12 +42,16 @@ trait PreviousYearCandidatesDetailsRepository {
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
     "EDIP,SDIP 2016 (previous years),Fast Pass (sdip 2017),Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
     "Do you want to defer,Deferal selections,Do you have a disability,Provide more info,GIS,Extra support online tests," +
-    "What adjustments will you need,Extra support f2f,What adjustments will you need,I understand this wont affect application," +
+    "What adjustments will you need,Extra support f2f,What adjustments will you need,Phone Interview Adjustments?,Phone Interview adjustments info,E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes,Video other notes,Additional comments,Adjustments confirmed,I understand this wont affect application," +
+    "PHASE1 tests scheduleId,cubiksUserId,Cubiks token," +
+  "Behavioural testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,reportLinkURL," +
     "Behavioural T-score," +
-  "Behavioural Percentile,Behavioural Raw,Behavioural STEN,Situational T-score,Situational Percentile,Situational Raw,Situational STEN," +
-    "E-Tray time extension," +
-    "E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated," +
-    "Video invigilated notes,Video other notes,Additional comments,Adjustments confirmed,e-Tray T-score,e-Tray Raw,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
+  "Behavioural Percentile,Behavioural Raw,Behavioural STEN,Situational T-score," +
+    "Situational testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,reportLinkURL,reportId," +
+    "reportLinkURL," +
+  "Situational Percentile,Situational Raw,Situational STEN," +
+  "PHASE_2 scheduleId,cubiksUserId,token,testUrl,invitiationDate,participantScheduleId,startedDateTime,completedDateTime,reportLinkURL,reportId," +
+    "e-Tray T-score,e-Tray Raw,interviewId,token,candidateId,customCandidateId,comment,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
     "IN_PROGRESS,SUBMITTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_RESULTS_READY," +
@@ -52,12 +59,10 @@ trait PreviousYearCandidatesDetailsRepository {
     "PHASE2_TESTS_SECOND_REMINDER,PHASE2_TESTS_STARTED,PHASE2_TESTS_COMPLETED,PHASE2_TESTS_RESULTS_READY," +
     "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
     "PHASE3_TESTS_SECOND_REMINDER,PHASE3_TESTS_STARTED,PHASE3_TESTS_COMPLETED,PHASE3_TESTS_RESULTS_RECEIVED," +
-    "PHASE3_TESTS_PASSED,PHASE3_TESTS_SUCCESS_NOTIFIED,EXPORTED,PHASE1 tests scheduleId,cubiksUserId,Cubiks token," +
-    "testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,reportLinkURL,reportId," +
-    "reportLinkURL,result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
-    "result,result,result,PHASE_2 scheduleId,cubiksUserId,token,testUrl,participantScheduleId,reportId,reportLinkURL," +
-    "result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
-    "interviewId,token,candidateId,customCandidateId,comment,result,result,result,result,result,result,result,result,result," +
+    "PHASE3_TESTS_PASSED,PHASE3_TESTS_SUCCESS_NOTIFIED,EXPORTED,PHASE 1 result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
+    "result,result,result," +
+    "PHASE 2 result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
+    "PHASE 3,result,result,result,result,result,result,result,result,result," +
     "result,result,result,result,result,result,result,result,"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
@@ -138,9 +143,10 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
             assistanceDetails(doc) :::
             List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) :::
             onlineTestResults("bq") :::
-            onlineTestResults("sjq")
-            // eTray(doc) :::
-            // videoInterview(doc) :::
+            onlineTestResults("sjq") :::
+            onlineTestResults("etray") :::
+            videoInterview(doc) :::
+            progressStatusTimestamps(doc)
             : _*
         )
         CandidateDetailsReportItem(
@@ -148,6 +154,38 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
           doc.getAs[String]("userId").getOrElse(""), csvContent
         )
       }
+  }
+
+  private def progressStatusTimestamps(doc: BSONDocument): List[Option[String]] = {
+    val statusTimestamps = doc.getAs[BSONDocument]("progress-status-timestamp")
+
+    List(
+      statusTimestamps.flatMap(_.getAs[DateTime]("IN_PROGRESS").map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.SUBMITTED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_INVITED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_STARTED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_COMPLETED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_RESULTS_READY).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_PASSED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_INVITED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_STARTED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_COMPLETED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_RESULTS_READY).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_PASSED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_INVITED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_STARTED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_COMPLETED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_PASSED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_SUCCESS_NOTIFIED).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.EXPORTED).map(_.toString))
+    )
   }
 
   private def civilServiceExperienceCheckExpType(civilServExperienceType: Option[String], typeToMatch: String) =
@@ -233,20 +271,102 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
       }
   }
 
-  private def onlineTests(doc: BSONDocument) = {
+  private def videoInterview(doc: BSONDocument): List[Option[String]] = {
+    val testGroups = doc.getAs[BSONDocument]("testGroups")
+    val videoTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE3"))
+    val videoTests = videoTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
+    val activeVideoTest = videoTests.map(_.filter(_.getAs[Boolean]("usedForResults").getOrElse(false)).head)
+    val activeVideoTestCallbacks = activeVideoTest.flatMap(_.getAs[BSONDocument]("callbacks"))
+    val activeVideoTestReviewedCallbacks = activeVideoTestCallbacks.flatMap(_.getAs[List[BSONDocument]]("reviewed"))
+    val latestAVTRCallback = activeVideoTestReviewedCallbacks.map {
+      reviewedCallbacks =>
+         reviewedCallbacks.sortWith { (r1, r2) =>
+           r1.getAs[DateTime]("received").get.isAfter(r2.getAs[DateTime]("received").get)
+         }.head.as[ReviewedCallbackRequest]
+    }
+
+    val latestReviewer = latestAVTRCallback.map {
+        callback =>
+          callback.reviewers.reviewer3.getOrElse(
+            callback.reviewers.reviewer2.getOrElse(
+              callback.reviewers.reviewer1
+        )
+      )
+    }
+
+    def scoreForQuestion(question: ReviewSectionQuestionRequest) = {
+      BigDecimal(question.reviewCriteria1.score.getOrElse(0.0)) + BigDecimal(question.reviewCriteria2.score.getOrElse(0.0))
+    }
+
+    def totalForQuestions(reviewer: ReviewSectionReviewerRequest): BigDecimal = {
+        scoreForQuestion(reviewer.question1) +
+        scoreForQuestion(reviewer.question2) +
+        scoreForQuestion(reviewer.question3) +
+        scoreForQuestion(reviewer.question4) +
+        scoreForQuestion(reviewer.question5) +
+        scoreForQuestion(reviewer.question6) +
+        scoreForQuestion(reviewer.question7) +
+        scoreForQuestion(reviewer.question8)
+    }
+
+      List(
+        activeVideoTest.flatMap(_.getAs[Int]("interviewId").map(_.toString)),
+        activeVideoTest.flatMap(_.getAs[String]("token")),
+        activeVideoTest.flatMap(_.getAs[String]("candidateId")),
+        activeVideoTest.flatMap(_.getAs[String]("customCandidateId")),
+        latestReviewer.flatMap(_.comment.map(comment => "\"" + comment.replace(""""""", """\"""") + "\"")),
+        latestReviewer.flatMap(_.question1.reviewCriteria1.score.map(_.toString)),
+        latestReviewer.flatMap(_.question1.reviewCriteria2.score.map(_.toString)),
+        latestReviewer.flatMap(_.question2.reviewCriteria1.score.map(_.toString)),
+        latestReviewer.flatMap(_.question2.reviewCriteria2.score.map(_.toString)),
+        latestReviewer.flatMap(_.question3.reviewCriteria1.score.map(_.toString)),
+        latestReviewer.flatMap(_.question3.reviewCriteria2.score.map(_.toString)),
+        latestReviewer.flatMap(_.question4.reviewCriteria1.score.map(_.toString)),
+        latestReviewer.flatMap(_.question4.reviewCriteria2.score.map(_.toString)),
+        latestReviewer.flatMap(_.question5.reviewCriteria1.score.map(_.toString)),
+        latestReviewer.flatMap(_.question5.reviewCriteria2.score.map(_.toString)),
+        latestReviewer.flatMap(_.question6.reviewCriteria1.score.map(_.toString)),
+        latestReviewer.flatMap(_.question6.reviewCriteria2.score.map(_.toString)),
+        latestReviewer.flatMap(_.question7.reviewCriteria1.score.map(_.toString)),
+        latestReviewer.flatMap(_.question7.reviewCriteria2.score.map(_.toString)),
+        latestReviewer.flatMap(_.question8.reviewCriteria1.score.map(_.toString)),
+        latestReviewer.flatMap(_.question8.reviewCriteria2.score.map(_.toString)),
+        latestReviewer.map(reviewer => totalForQuestions(reviewer).toString)
+      )
+  }
+
+  private def onlineTests(doc: BSONDocument): Map[String, List[Option[String]]] = {
     val testGroups = doc.getAs[BSONDocument]("testGroups")
     val onlineTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
     val onlineTests = onlineTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
+    val etrayTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE2"))
+    val etrayTests = etrayTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
-    val bqTest = onlineTests.flatMap(_.find(_.getAs[Int]("scheduleId").get == cubiksGatewayConfig.phase1Tests.scheduleIds("bq")))
+    val bqTest = onlineTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == cubiksGatewayConfig.phase1Tests.scheduleIds("bq") && test.getAs[Boolean]("usedForResults").getOrElse(false)))
     val bqTestResults = bqTest.flatMap { _.getAs[BSONDocument]("testResult") }
 
-    val sjqTest = onlineTests.flatMap(_.find(_.getAs[Int]("scheduleId").get == cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")))
+    val sjqTest = onlineTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == cubiksGatewayConfig.phase1Tests.scheduleIds("sjq") && test.getAs[Boolean]("usedForResults").getOrElse(false)))
     val sjqTestResults = sjqTest.flatMap { _.getAs[BSONDocument]("testResult") }
+
+    val validEtrayScheduleIds = cubiksGatewayConfig.phase2Tests.schedules.values.map(_.scheduleId).toList
+
+    val etrayTest = etrayTests.flatMap(_.find(test => validEtrayScheduleIds.contains(test.getAs[Int]("scheduleId").get) && test.getAs[Boolean]("usedForResults").getOrElse(false)))
+
+    val etrayResults = etrayTest.flatMap { _.getAs[BSONDocument]("testResult") }
 
     Map(
       "bq" ->
         List(
+          bqTest.flatMap(_.getAs[Int]("scheduleId").map(_.toString)),
+          bqTest.flatMap(_.getAs[Int]("cubiksUserId").map(_.toString)),
+          bqTest.flatMap(_.getAs[String]("token")),
+          bqTest.flatMap(_.getAs[String]("testUrl")),
+          bqTest.flatMap(_.getAs[DateTime]("invitationDate").map(_.toString)),
+          bqTest.flatMap(_.getAs[Int]("participantScheduleId").map(_.toString)),
+          bqTest.flatMap(_.getAs[DateTime]("startedDateTime").map(_.toString)),
+          bqTest.flatMap(_.getAs[DateTime]("completedDateTime").map(_.toString)),
+          bqTest.flatMap(_.getAs[Int]("reportId").map(_.toString)),
+          bqTest.flatMap(_.getAs[String]("reportLinkURL")),
           bqTestResults.flatMap(_.getAs[Double]("tScore").map(_.toString)),
           bqTestResults.flatMap(_.getAs[Double]("percentile").map(_.toString)),
           bqTestResults.flatMap(_.getAs[Double]("raw").map(_.toString)),
@@ -254,36 +374,66 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
         ),
       "sjq" ->
         List(
+          sjqTest.flatMap(_.getAs[Int]("scheduleId").map(_.toString)),
+          sjqTest.flatMap(_.getAs[Int]("cubiksUserId").map(_.toString)),
+          sjqTest.flatMap(_.getAs[String]("token")),
+          sjqTest.flatMap(_.getAs[String]("testUrl")),
+          sjqTest.flatMap(_.getAs[DateTime]("invitationDate").map(_.toString)),
+          sjqTest.flatMap(_.getAs[Int]("participantScheduleId").map(_.toString)),
+          sjqTest.flatMap(_.getAs[DateTime]("startedDateTime").map(_.toString)),
+          sjqTest.flatMap(_.getAs[DateTime]("completedDateTime").map(_.toString)),
+          sjqTest.flatMap(_.getAs[Int]("reportId").map(_.toString)),
+          sjqTest.flatMap(_.getAs[String]("reportLinkURL")),
           sjqTestResults.flatMap(_.getAs[Double]("tScore").map(_.toString)),
           sjqTestResults.flatMap(_.getAs[Double]("percentile").map(_.toString)),
           sjqTestResults.flatMap(_.getAs[Double]("raw").map(_.toString)),
           sjqTestResults.flatMap(_.getAs[Double]("sten").map(_.toString))
+        ),
+      "etray" ->
+        List(
+          etrayTest.flatMap(_.getAs[Int]("scheduleId").map(_.toString)),
+          etrayTest.flatMap(_.getAs[Int]("cubiksUserId").map(_.toString)),
+          etrayTest.flatMap(_.getAs[String]("token")),
+          etrayTest.flatMap(_.getAs[String]("testUrl")),
+          etrayTest.flatMap(_.getAs[DateTime]("invitationDate").map(_.toString)),
+          etrayTest.flatMap(_.getAs[Int]("participantScheduleId").map(_.toString)),
+          etrayTest.flatMap(_.getAs[DateTime]("startedDateTime").map(_.toString)),
+          etrayTest.flatMap(_.getAs[DateTime]("completedDateTime").map(_.toString)),
+          etrayTest.flatMap(_.getAs[Int]("reportId").map(_.toString)),
+          etrayTest.flatMap(_.getAs[String]("reportLinkURL")),
+          etrayResults.flatMap(_.getAs[Double]("tScore").map(_.toString)),
+          etrayResults.flatMap(_.getAs[Double]("raw").map(_.toString))
         )
     )
   }
 
-  private def assistanceDetails(doc: BSONDocument) = {
+  private def assistanceDetails(doc: BSONDocument): List[Option[String]] = {
     val assistanceDetails = doc.getAs[BSONDocument]("assistance-details")
     val etrayAdjustments = assistanceDetails.flatMap(_.getAs[BSONDocument]("etray"))
     val videoAdjustments = assistanceDetails.flatMap(_.getAs[BSONDocument]("video"))
+    val phoneInterviewAdjustments = assistanceDetails.flatMap(_.getAs[BSONDocument]("video"))
     val typeOfAdjustments = assistanceDetails.flatMap(_.getAs[List[String]]("typeOfAdjustments")).getOrElse(Nil)
 
     List(
       assistanceDetails.flatMap(_.getAs[String]("hasDisability")),
       assistanceDetails.flatMap(_.getAs[String]("hasDisabilityDescription")),
       assistanceDetails.map(ad => if (ad.getAs[Boolean]("guaranteedInterview").getOrElse(false)) "Yes" else "No"),
-      assistanceDetails.flatMap(_.getAs[String]("needsSupportForOnlineAssessment")),
+      if (assistanceDetails.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).getOrElse(false)) optYes else optNo,
       assistanceDetails.flatMap(_.getAs[String]("needsSupportForOnlineAssessmentDescription")),
-      assistanceDetails.flatMap(_.getAs[String]("needsSupportAtVenue")),
+      if (assistanceDetails.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)) optYes else optNo,
       assistanceDetails.flatMap(_.getAs[String]("needsSupportAtVenueDescription")),
-      etrayAdjustments.flatMap(_.getAs[String]("timeNeeded")) + "%",
-      if (typeOfAdjustments.contains("etrayInvigilated")) "Yes" else "No",
+      if (phoneInterviewAdjustments.flatMap(_.getAs[Boolean]("needsSupportForPhoneInterview")).getOrElse(false)) optYes else optNo,
+      phoneInterviewAdjustments.flatMap(_.getAs[String]("needsSupportForPhoneInterviewDescription")),
+      etrayAdjustments.flatMap(_.getAs[Int]("timeNeeded").map(_ + "%")),
+      if (typeOfAdjustments.contains("etrayInvigilated")) optYes else optNo,
       etrayAdjustments.flatMap(_.getAs[String]("invigilatedInfo")),
       etrayAdjustments.flatMap(_.getAs[String]("otherInfo")),
-      videoAdjustments.flatMap(_.getAs[String]("timeNeeded")) + "%",
-      // TODO: Additional Comments
-      if (assistanceDetails.flatMap(_.getAs[Boolean]("adjustmentsConfirmed")).getOrElse(false)) "Yes" else "No",
-      typeOfAdjustments.contains("videoInvigilated")
+      videoAdjustments.flatMap(_.getAs[Int]("timeNeeded").map(_ + "%")),
+      if (typeOfAdjustments.contains("videoInvigilated")) optYes else optNo,
+      videoAdjustments.flatMap(_.getAs[String]("invigilatedInfo")),
+      videoAdjustments.flatMap(_.getAs[String]("otherInfo")),
+      assistanceDetails.flatMap(_.getAs[String]("adjustmentsComment")),
+      if (assistanceDetails.flatMap(_.getAs[Boolean]("adjustmentsConfirmed")).getOrElse(false)) optYes else optNo
     )
   }
 
