@@ -2,7 +2,6 @@ package repositories.events
 
 import model.Exceptions.EventNotFoundException
 import repositories.CollectionNames
-import model.persisted.eventschedules._
 import model.persisted.EventExamples
 import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import testkit.MongoRepositorySpec

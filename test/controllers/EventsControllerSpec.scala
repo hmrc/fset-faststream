@@ -20,11 +20,9 @@ import config.TestFixtureBase
 import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.{ Event, Location, Venue }
 import model.persisted.eventschedules.EventType
-import model.persisted.eventschedules.VenueType
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
