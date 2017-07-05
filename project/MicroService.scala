@@ -39,11 +39,7 @@ trait MicroService {
   val appDependencies : Seq[ModuleID]
 
   lazy val plugins : Seq[Plugins] = Seq(SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
-  lazy val playSettings : Seq[Setting[_]] = Seq(routesImport ++= Seq("binders.CustomBinders._",
-    "model.persisted.eventschedules.VenueType._",
-    "model.persisted.eventschedules.EventType._",
-    "model.persisted.eventschedules.SkillType._"
-  ))
+  lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
   lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 
