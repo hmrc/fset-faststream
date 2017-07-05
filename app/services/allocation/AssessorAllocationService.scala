@@ -68,10 +68,17 @@ trait AssessorAllocationService {
     }
   }
 
+<<<<<<< HEAD
   private def updateExistingAllocations(existingAllocations: Seq[persisted.AssessorAllocation],
     newAllocations: command.AssessorAllocations): Future[Unit] = {
 
     if (existingAllocations.forall(_.version == newAllocations.version)) {
+=======
+  private def updateExistingAllocations(existingAllocations: exchange.AssessorAllocations,
+    newAllocations: command.AssessorAllocations): Future[Unit] = {
+
+    if (existingAllocations.version.forall(_ == newAllocations.version)) {
+>>>>>>> Optimistic locking for assigning candidates to events
       // no prior update since reading so do update
       // check what's been updated here so we can send email notifications
       val toPersist = persisted.AssessorAllocation.fromCommand(newAllocations)
@@ -89,8 +96,12 @@ trait AssessorAllocationService {
     if (existingAllocations.version.forall(_ == newAllocations.version)) {
       // no prior update since reading so do update
       // check what's been updated here so we can send email notifications
+
+      // Convert the existing exchange allocations to persisted objects so we can delete what is currently in the db
+      val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId)
+
       val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
-      candidateAllocationRepo.delete(toPersist).flatMap { _ =>
+      candidateAllocationRepo.delete(toDelete).flatMap { _ =>
         candidateAllocationRepo.save(toPersist).map( _ => ())
       }
     } else {

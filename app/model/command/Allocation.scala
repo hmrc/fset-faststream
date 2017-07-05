@@ -69,9 +69,9 @@ object AssessorAllocations {
 }
 
 case class CandidateAllocation(
-                               id: String,
-                               status: AllocationStatus
-                             ) extends Allocation
+  id: String,
+  status: AllocationStatus
+) extends Allocation
 
 object CandidateAllocation {
   implicit val candidateAllocationFormat = Json.format[CandidateAllocation]
@@ -82,10 +82,10 @@ object CandidateAllocation {
 }
 
 case class CandidateAllocations(
-                                version: String,
-                                eventId: String,
-                                allocations: Seq[CandidateAllocation]
-                              )
+  version: String,
+  eventId: String,
+  allocations: Seq[CandidateAllocation]
+)
 
 object CandidateAllocations {
   implicit val candidateAllocationsFormat = Json.format[CandidateAllocations]

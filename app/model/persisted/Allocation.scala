@@ -61,6 +61,8 @@ object CandidateAllocation {
     val opLockVersion = UUIDFactory.generateUUID()
     o.allocations.map { a => CandidateAllocation(a.id, o.eventId, a.status, opLockVersion) }
   }
+
+  def fromExchange(o: model.exchange.CandidateAllocations, eventId: String) : Seq[CandidateAllocation] = {
+    o.allocations.map { a => CandidateAllocation(a.id, eventId, a.status, o.version.getOrElse(UUIDFactory.generateUUID()))}
+  }
 }
-
-
