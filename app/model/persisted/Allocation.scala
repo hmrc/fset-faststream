@@ -41,8 +41,7 @@ object AssessorAllocation {
   implicit val assessorAllocationFormat = Json.format[AssessorAllocation]
   implicit val assessorAllocationHandler = Macros.handler[AssessorAllocation]
 
-  def fromCommand(o: model.command.AssessorAllocations): Seq[AssessorAllocation] = {
-    val opLockVersion = UUIDFactory.generateUUID()
+  def fromCommand(o: model.command.AssessorAllocations, opLockVersion: String = UUIDFactory.generateUUID()): Seq[AssessorAllocation] = {
     o.allocations.map { a => AssessorAllocation(a.id, o.eventId, AllocationStatuses.UNCONFIRMED, a.allocatedAs.name, opLockVersion) }
   }
 }
