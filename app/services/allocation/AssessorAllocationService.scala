@@ -43,23 +43,20 @@ trait AssessorAllocationService {
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
-    getAllocations(newAllocations.eventId).flatMap { existingAllocation =>
-      existingAllocation.allocations match {
-        case Nil => allocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
-        case _ => updateExistingAllocations(existingAllocation, newAllocations).map(_ => ())
-
-      }
+    allocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
+      case Nil => allocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
+      case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations).map(_ => ())
     }
   }
 
-  private def updateExistingAllocations(existingAllocation: exchange.AssessorAllocations,
+  private def updateExistingAllocations(existingAllocations: Seq[persisted.AssessorAllocation],
     newAllocations: command.AssessorAllocations): Future[Unit] = {
 
-    if (existingAllocation.version.forall(_ == newAllocations.version)) {
+    if (existingAllocations.forall(_.version == newAllocations.version)) {
       // no prior update since reading so do update
       // check what's been updated here so we can send email notifications
       val toPersist = persisted.AssessorAllocation.fromCommand(newAllocations)
-      allocationRepo.delete(toPersist).flatMap { _ =>
+      allocationRepo.delete(existingAllocations).flatMap { _ =>
         allocationRepo.save(toPersist).map( _ => ())
       }
     } else {

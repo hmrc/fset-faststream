@@ -16,6 +16,7 @@
 
 package services.allocation
 
+import model.Exceptions.OptimisticLockException
 import model.exchange.AssessorSkill
 import model.persisted.eventschedules.SkillType
 import repositories.AssessorAllocationMongoRepository
@@ -48,7 +49,7 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
 
     "delete existing allocations and save new ones" in new TestFixture {
       when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
-        persisted.AssessorAllocation("id", "eventId", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version1") :: Nil
+        persisted.AssessorAllocation("id", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version1") :: Nil
       ))
       when(mockAllocationRepository.save(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
       when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
@@ -62,6 +63,20 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
       result mustBe unit
       verify(mockAllocationRepository).delete(any[Seq[persisted.AssessorAllocation]])
       verify(mockAllocationRepository).save(any[Seq[persisted.AssessorAllocation]])
+    }
+
+    "throw an optimistic lock exception if data has changed before saving" in new TestFixture {
+       when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
+        persisted.AssessorAllocation("id", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version5") :: Nil
+      ))
+      val allocations = command.AssessorAllocations(
+        version = "version1",
+        eventId = "eventId1",
+        allocations = command.AssessorAllocation("id", AllocationStatuses.CONFIRMED,
+          allocatedAs = AssessorSkill(SkillType.ASSESSOR, "Assessor")) :: Nil
+      )
+      val result = service.allocate(allocations).failed.futureValue
+      result mustBe an[OptimisticLockException]
     }
   }
 
