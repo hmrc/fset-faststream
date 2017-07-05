@@ -110,7 +110,7 @@ trait EventsController extends BaseController {
     }
   }
 
-  def candidateAllocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getCandidateAllocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
     assessorAllocationService.getCandidateAllocations(eventId).map { allocations =>
       if (allocations.allocations.isEmpty) {
         NotFound
