@@ -47,7 +47,8 @@ trait EventsController extends BaseController {
   }
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
-    eventsService.saveAssessmentEvents().map(_ => Created("Events saved")).recover { case _ => UnprocessableEntity }
+    eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
+      .recover { case e: Exception => UnprocessableEntity(e.getMessage) }
   }
 
   def getEvent(eventId: String): Action[AnyContent] = Action.async { implicit request =>
