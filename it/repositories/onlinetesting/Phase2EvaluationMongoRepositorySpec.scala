@@ -31,7 +31,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   "next Application Ready For Evaluation" should {
 
-    val resultToSave = List(SchemeEvaluationResult(SchemeId.Commercial, Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
 
     "return nothing if application does not have PHASE2_TESTS" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
@@ -54,7 +54,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
         Some(phase1Evaluation),
-        selectedSchemes(List(Commercial)))
+        selectedSchemes(List(SchemeId("Commercial"))))
     }
 
     "return application in PHASE2_TESTS with results when applicationRoute is not set" in {
@@ -72,7 +72,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
         Some(phase1Evaluation),
-        selectedSchemes(List(Commercial)))
+        selectedSchemes(List(SchemeId("Commercial"))))
     }
 
     "return nothing when PHASE2_TESTS are already evaluated" in {
@@ -115,7 +115,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
         Some(phase1Evaluation),
-        selectedSchemes(List(Commercial)))
+        selectedSchemes(List(SchemeId("Commercial"))))
     }
 
     "return evaluated application in PHASE2_TESTS status when phase1 results are re-evaluated" in {
@@ -135,7 +135,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
         Some(phase1Evaluation),
-        selectedSchemes(List(Commercial)))
+        selectedSchemes(List(SchemeId("Commercial"))))
     }
 
     "limit number of next applications to the batch size limit" in {
@@ -162,7 +162,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "save passmark evaluation" should {
-    val resultToSave = List(SchemeEvaluationResult(SchemeId.DigitalAndTechnology, Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
@@ -175,7 +175,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE2_TESTS_PASSED
       result.evaluation mustBe Some(PassmarkEvaluation("version1", None, List(
-        SchemeEvaluationResult(SchemeId.DigitalAndTechnology, Green.toString)
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)
       ), "version1-res", None))
     }
   }

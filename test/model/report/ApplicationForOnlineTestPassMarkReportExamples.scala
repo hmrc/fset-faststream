@@ -36,7 +36,7 @@ object ApplicationForOnlineTestPassMarkReportExamples {
       rnd("AppId"),
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
-      List(SchemeId.Commercial, SchemeId.DigitalAndTechnology),
+      List(SchemeId("Commercial"), SchemeId("DigitalAndTechnology")),
       None,
       None,
       None,

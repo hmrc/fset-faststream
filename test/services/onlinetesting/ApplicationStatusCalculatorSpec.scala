@@ -41,7 +41,7 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
 
     "fail application for all faststream Reds and SDIP green" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
-        List(red, SchemeEvaluationResult(SchemeId.Sdip, Green.toString)), Phase.PHASE1)
+        List(red, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_FAILED)
     }
   }
@@ -221,9 +221,9 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
     }
   }
 
-  def red = SchemeEvaluationResult(Commercial, Red.toString)
-  def sdipRed = SchemeEvaluationResult(Sdip, Red.toString)
-  def amber = SchemeEvaluationResult(Commercial, Amber.toString)
-  def green = SchemeEvaluationResult(Commercial, Green.toString)
-  def sdipGreen = SchemeEvaluationResult(Sdip, Green.toString)
+  def red = SchemeEvaluationResult(SchemeId("Commercial"), Red.toString)
+  def sdipRed = SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)
+  def amber = SchemeEvaluationResult(SchemeId("Commercial"), Amber.toString)
+  def green = SchemeEvaluationResult(SchemeId("Commercial"), Green.toString)
+  def sdipGreen = SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
 }

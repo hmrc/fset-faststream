@@ -19,5 +19,5 @@ package model
 import model.SchemeId._
 
 object SelectedSchemesExamples {
-  val TwoSchemes = SelectedSchemes(List(DigitalAndTechnology, Commercial), orderAgreed = true, eligible = true)
+  val TwoSchemes = SelectedSchemes(List(SchemeId("DigitalAndTechnology"), SchemeId("Commercial")), orderAgreed = true, eligible = true)
 }

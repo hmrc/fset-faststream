@@ -657,8 +657,8 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       when(otRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
-        evaluation = Some(PassmarkEvaluation("version", None, result = List(SchemeEvaluationResult(SchemeId.Finance, "Green"),
-          SchemeEvaluationResult(SchemeId.Sdip, "Green")), "version-res", None
+        evaluation = Some(PassmarkEvaluation("version", None, result = List(SchemeEvaluationResult(SchemeId("Finance"), "Green"),
+          SchemeEvaluationResult(SchemeId("Sdip"), "Green")), "version-res", None
         ))
       )
 
@@ -678,7 +678,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
         evaluation = Some(PassmarkEvaluation("version", None,
-          result = List(SchemeEvaluationResult(SchemeId.Finance, "Green"), SchemeEvaluationResult(SchemeId.Sdip, "Red")),
+          result = List(SchemeEvaluationResult(SchemeId("Finance"), "Green"), SchemeEvaluationResult(SchemeId("Sdip"), "Red")),
           "version-res", None
         ))
       )

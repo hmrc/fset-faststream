@@ -19,7 +19,6 @@ package repositories.application
 import _root_.services.testdata.TestDataGeneratorService
 import factories.UUIDFactory
 import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
-import model.SchemeId.SchemeId
 import model._
 import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
 import services.GBTimeZoneService
@@ -63,7 +62,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId, appId, Some("submitted"),
-        List(SchemeId.DiplomaticService, SchemeId.GovernmentOperationalResearchService), Some("Yes"),
+        List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
         Some("No"), Some("No"), None, Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"),
         Some("1234567"), None, ApplicationRoute.Faststream)
     }
@@ -133,17 +132,17 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must contain theSameElementsAs Seq(
         ApplicationForDiversityReport(appId1, userId1, ApplicationRoute.Faststream, Some("submitted"),
-          List(SchemeId.DiplomaticService, SchemeId.GovernmentOperationalResearchService),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
         ApplicationForDiversityReport(
           appId2, userId2, ApplicationRoute.Faststream, Some("submitted"),
-          List(SchemeId.DiplomaticService, SchemeId.GovernmentOperationalResearchService),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
         ApplicationForDiversityReport(
           appId3, userId3, ApplicationRoute.Faststream, Some("submitted"),
-          List(SchemeId.DiplomaticService, SchemeId.GovernmentOperationalResearchService),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
       )

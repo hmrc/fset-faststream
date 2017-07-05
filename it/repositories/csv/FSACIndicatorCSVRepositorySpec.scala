@@ -55,7 +55,7 @@ class FSACIndicatorCSVRepositorySpec extends UnitWithAppSpec with ShortTimeout {
 object TestFixture {
 
   val CandidateProgressReportItemFaststreamBase = CandidateProgressReportItem("user123", "app123", Some("submitted"),
-    List(SchemeId.DiplomaticService, SchemeId.GovernmentOperationalResearchService), Some("Yes"),
+    List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
     Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"),
     None, ApplicationRoute.Faststream)
   val CandidateProgressReportItemFaststream = CandidateProgressReportItemFaststreamBase.copy(applicationRoute = ApplicationRoute.Faststream)

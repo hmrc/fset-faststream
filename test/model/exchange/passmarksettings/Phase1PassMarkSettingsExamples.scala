@@ -18,7 +18,7 @@ package model.exchange.passmarksettings
 
 import java.util.UUID
 
-import model.SchemeId.{ SchemeId, _ }
+import model.SchemeId
 import org.joda.time.DateTime
 
 object Phase1PassMarkSettingsExamples {

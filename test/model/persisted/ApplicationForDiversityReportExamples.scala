@@ -23,7 +23,7 @@ object ApplicationForDiversityReportExamples {
 
   val Example1 =
     ApplicationForDiversityReport("appId5", "userId10", ApplicationRoute.Faststream,  Some("phase1_tests_completed"),
-      List(SchemeId.DiplomaticService, SchemeId.Commercial), Some("No"), Some(false), Some("No"), Some("No"),
+      List(SchemeId("DiplomaticService"), SchemeId("Commercial")), Some("No"), Some(false), Some("No"), Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"),
         Some(""))
       )
@@ -31,8 +31,8 @@ object ApplicationForDiversityReportExamples {
 
   val Example2 =
     ApplicationForDiversityReport("appId6", "userId11", ApplicationRoute.Faststream, Some("submitted"),
-      List(SchemeId.DiplomaticServiceEconomics, SchemeId.Commercial, SchemeId.GovernmentCommunicationService,
-        SchemeId.European), Some("Yes"), Some(true), Some("Yes"), Some("No"),
+      List(SchemeId("DiplomaticServiceEconomics"), SchemeId("Commercial"), SchemeId("GovernmentCommunicationService"),
+        SchemeId("European")), Some("Yes"), Some(true), Some("Yes"), Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"),
         Some("fastPass-101"))
       )
