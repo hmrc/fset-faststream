@@ -35,7 +35,7 @@ object AssessorAllocationService extends AssessorAllocationService {
 trait AssessorAllocationService {
 
   def allocationRepo: AssessorAllocationMongoRepository
-  val eventsService: EventsService = EventsService
+  val eventsService: EventsService
 
 
   def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
@@ -67,8 +67,8 @@ trait AssessorAllocationService {
     }
   }
 
-  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
-    eventsService.getEvents(eventType, venue).flatMap { events =>
+  def getEventsWithAllocationsSummary(venueName: String, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
+    eventsService.getEvents(eventType, Venue(venueName, "")).flatMap { events =>
       val res = events.map { event =>
         getAllocations(event.id).map { allocations =>
           val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)
@@ -76,7 +76,7 @@ trait AssessorAllocationService {
             val assessorAllocation = allocationGroupedBySkill._2
             val skill = allocationGroupedBySkill._1.name
             val allocated = assessorAllocation.length
-            val confirmed = assessorAllocation.filter(_.status == AllocationStatuses.CONFIRMED).length
+            val confirmed = assessorAllocation.count(_.status == AllocationStatuses.CONFIRMED)
             EventAssessorAllocationsSummaryPerSkill(skill, allocated, confirmed)
           }.toList
           EventWithAllocationsSummary(event, 0, allocationsGroupedBySkillWithSummary)

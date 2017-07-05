@@ -16,7 +16,6 @@
 
 package services.events
 
-import model.exchange.{ AssessorAllocation, EventWithAllocationsSummary }
 import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.Logger

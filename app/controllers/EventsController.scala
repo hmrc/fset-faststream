@@ -105,8 +105,8 @@ trait EventsController extends BaseController {
     }
   }
 
-  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Action[AnyContent] = Action.async { implicit request =>
-    assessorAllocationService.getEventsWithAllocationsSummary(venue, eventType).map { eventsWithAllocations =>
+  def getEventsWithAllocationsSummary(venueName: String, eventType: EventType): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.getEventsWithAllocationsSummary(venueName, eventType).map { eventsWithAllocations =>
       Ok(Json.toJson(eventsWithAllocations))
     }
   }

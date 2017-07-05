@@ -125,7 +125,7 @@ GET         /events/:eventId/allocations                                 control
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
-GET         /events-with-allocations-summary/:venue/:eventType           controllers.EventsController.getEventsWithAllocationsSummary(venue: model.persisted.eventschedules.Venue, eventType: model.persisted.eventschedules.EventType.EventType)
+GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
 
 # Day aggregate events
 GET         /day-aggregate-events/skills/:skillTypes                     controllers.DayAggregateEventController.findBySkillTypes(skillTypes: String)
