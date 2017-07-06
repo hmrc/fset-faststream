@@ -107,10 +107,6 @@ trait AssessorService {
     Future.successful(0)
   }
 
-  def allocateToEvent(assessorIds: List[String], eventId: String, version: String): Future[Unit] = {
-    Future.successful(())
-  }
-
   private def exchangeToPersistedAvailability(a: Seq[exchange.AssessorAvailability]): Future[Seq[persisted.assessor.AssessorAvailability]] = {
     FutureEx.traverseSerial(a) { availability =>
       locationsWithVenuesRepo.location(availability.location).map { location =>

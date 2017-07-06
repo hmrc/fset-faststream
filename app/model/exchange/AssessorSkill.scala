@@ -20,7 +20,7 @@ import model.persisted.eventschedules.SkillType._
 import play.api.libs.json.Json
 
 
-case class AssessorSkill(name: SkillType, label: String)
+case class AssessorSkill(name: SkillType, displayText: String)
 
 object AssessorSkill {
 
@@ -34,4 +34,6 @@ object AssessorSkill {
     AssessorSkill(QUALITY_ASSURANCE_COORDINATOR, "Quality Assurance Coordinator"),
     AssessorSkill(SIFTER, "Sifter")
   )
+
+  val SkillMap = AllSkillsWithLabels.map( s => s.name.toString -> s)(scala.collection.breakOut): Map[String, AssessorSkill]
 }

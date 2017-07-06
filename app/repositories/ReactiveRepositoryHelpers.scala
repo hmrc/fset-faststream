@@ -45,6 +45,25 @@ trait ReactiveRepositoryHelpers {
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true)
   }
 
+  def multipleRemoveValidator(expected: Int, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
+    if (result.ok) {
+      if (result.n == expected) {
+        ()
+      } else if (result.n == 0) {
+        throw new NotFoundException(s"No documents found whilst $actionDesc")
+      } else if (result.n > expected) {
+        throw TooManyEntries(s"Deletion successful, but too many documents deleted whilst $actionDesc")
+      } else if (result.n < expected) {
+        Logger.error(s"Not enough documents deleted for $actionDesc")
+      }
+    } else {
+      val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
+      val msg = s"Failed to $actionDesc -> $mongoError"
+      Logger.error(msg)
+      throw CannotUpdateRecord(msg)
+    }
+  }
+
   def singleRemovalValidator(id: String, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
     if (result.ok) {
       if (result.n == 1) {

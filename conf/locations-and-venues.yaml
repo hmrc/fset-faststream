@@ -1,10 +1,13 @@
 London:
-  - London FSAC:
+  - LONDON_FSAC:
       description: Bush House
-  - London FSAC 2:
+  - LONDON_FSAC_2:
       description: Parliament Square
 Newcastle:
-  - Newcastle FSAC:
+  - NEWCASTLE_FSAC:
       description: Cathedral Square Jobcentre
-  - Newcastle Longbenton:
+  - NEWCASTLE_LONGBENTON:
       description: Longbenton
+Virtual:
+  - Virtual:
+      description: Virtual
