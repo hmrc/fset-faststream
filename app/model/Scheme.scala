@@ -17,13 +17,18 @@
 package model
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString, Macros }
 
 case class SchemeId(value: String)
 
 object SchemeId {
   implicit val schemeIdFormat = Json.format[SchemeId]
-  implicit val schemeIdHandler = Macros.handler[SchemeId]
+
+  // Custom formatter to prevent a nested case object in BSON
+  implicit object SchemeIdHandler extends BSONHandler[BSONString, SchemeId] {
+      override def write(schemeId: SchemeId): BSONString = BSON.write(schemeId.value)
+      override def read(bson: BSONString): SchemeId = SchemeId(bson.value)
+  }
 }
 
 /** Wrapper for scheme data
