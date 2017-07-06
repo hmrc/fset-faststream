@@ -16,7 +16,8 @@
 
 package controllers
 
-import model.Exceptions.{ OptimisticLockException, EventNotFoundException }
+import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
+
 import model.exchange
 import model.command
 import model.exchange.AssessorAllocations
@@ -53,7 +54,8 @@ trait EventsController extends BaseController {
   }
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
-    eventsService.saveAssessmentEvents().map(_ => Created("Events saved")).recover { case _ => UnprocessableEntity }
+    eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
+      .recover { case e: Exception => UnprocessableEntity(e.getMessage) }
   }
 
   def getEvent(eventId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -100,6 +102,9 @@ trait EventsController extends BaseController {
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
       assessorAllocationService.allocate(newAllocations).map( _ => Ok)
+          .recover {
+            case e: OptimisticLockException => Conflict(e.getMessage)
+          }
     }
   }
 
@@ -109,11 +114,7 @@ trait EventsController extends BaseController {
       assessorAllocationService.allocateCandidates(newAllocations).map {
         _ => Ok
       }.recover {
-        case e: OptimisticLockException =>
-          //scalastyle:off
-          println(s"**** EventsController caught OptimisticLockException with message ${e.getMessage}")
-          //scalastyle:on
-          Conflict(e.getMessage)
+        case e: OptimisticLockException => Conflict(e.getMessage)
       }
     }
   }
