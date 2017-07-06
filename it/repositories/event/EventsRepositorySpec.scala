@@ -1,4 +1,4 @@
-package repositories.events
+package repositories.event
 
 import model.Exceptions.EventNotFoundException
 import repositories.CollectionNames

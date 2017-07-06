@@ -58,7 +58,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
   ): Future[List[Event]] = {
     val query = List(
       eventType.filterNot(_ == EventType.ALL_EVENTS).map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) },
-      venueType.filterNot(_ == MicroserviceAppConfig.AllVenues).map { v => BSONDocument("venue" -> v) },
+      venueType.filterNot(_.name == MicroserviceAppConfig.AllVenues.name).map { v => BSONDocument("venue.name" -> v.name) },
       location.map { locationVal => BSONDocument("location" -> locationVal) },
       skills.map { skillsVal =>
         val skillsPartialQueries = skillsVal.map { skillVal =>
