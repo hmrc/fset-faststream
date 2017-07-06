@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.EventNotFoundException
+import model.Exceptions.{ OptimisticLockException, EventNotFoundException }
 import model.exchange
 import model.command
 import model.exchange.AssessorAllocations
@@ -106,7 +106,15 @@ trait EventsController extends BaseController {
   def allocateCandidates(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
       val newAllocations = command.CandidateAllocations.fromExchange(eventId, candidateAllocations)
-      assessorAllocationService.allocateCandidates(newAllocations).map( _ => Ok)
+      assessorAllocationService.allocateCandidates(newAllocations).map {
+        _ => Ok
+      }.recover {
+        case e: OptimisticLockException =>
+          //scalastyle:off
+          println(s"**** EventsController caught OptimisticLockException with message ${e.getMessage}")
+          //scalastyle:on
+          Conflict(e.getMessage)
+      }
     }
   }
 
