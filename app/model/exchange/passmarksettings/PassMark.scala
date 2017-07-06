@@ -21,13 +21,13 @@ import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 trait PassMark {
-  def schemeId: SchemeId
+  def scheme: SchemeId
   def schemeThresholds: PassMarkThresholds
 }
 
 case class Phase1PassMark(
-  schemeId: SchemeId,
-  schemeThresholds: Phase1PassMarkThresholds
+                           scheme: SchemeId,
+                           schemeThresholds: Phase1PassMarkThresholds
 ) extends PassMark
 
 object Phase1PassMark {
@@ -36,8 +36,8 @@ object Phase1PassMark {
 }
 
 case class Phase2PassMark(
-  schemeId: SchemeId,
-  schemeThresholds: Phase2PassMarkThresholds
+                           scheme: SchemeId,
+                           schemeThresholds: Phase2PassMarkThresholds
 ) extends PassMark
 
 object Phase2PassMark {
@@ -46,8 +46,8 @@ object Phase2PassMark {
 }
 
 case class Phase3PassMark(
-  schemeId: SchemeId,
-  schemeThresholds: Phase3PassMarkThresholds
+                           scheme: SchemeId,
+                           schemeThresholds: Phase3PassMarkThresholds
 ) extends PassMark
 
 object Phase3PassMark {

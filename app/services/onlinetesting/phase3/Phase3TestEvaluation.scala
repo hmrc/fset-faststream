@@ -35,7 +35,7 @@ trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
 
     for {
       schemeToEvaluate <- schemes
-      schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
+      schemePassmark <- passmark.schemes find (_.scheme == schemeToEvaluate)
       phase2SchemeEvaluation <- phase2SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
       val phase3Result = evaluateTestResult(schemePassmark.schemeThresholds.videoInterview)(

@@ -146,7 +146,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
                      |    "version" : "version-0",
                      |    "schemes": [
                      |        {
-                     |            "schemeName": "Finance",
+                     |            "scheme": {"id": "Finance"},
                      |            "schemeThresholds": {
                      |                "situational": {
                      |                    "failThreshold": 20.0,
@@ -159,7 +159,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
                      |            }
                      |        },
                      |        {
-                     |            "schemeName": "Commercial",
+                     |            "scheme": {"id": "Commercial"},
                      |            "schemeThresholds": {
                      |                "situational": {
                      |                    "failThreshold": 20.0,
@@ -172,7 +172,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
                      |            }
                      |        },
                      |        {
-                     |            "schemeName": "Generalist",
+                     |            "scheme": {"id": "Generalist"},
                      |            "schemeThresholds": {
                      |                "situational": {
                      |                    "failThreshold": 20.0,

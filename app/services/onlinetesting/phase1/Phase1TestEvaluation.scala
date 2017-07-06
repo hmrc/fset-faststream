@@ -39,7 +39,7 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
                sjqTestResult: TestResult, bqTestResultOpt: Option[TestResult] = None) = {
     for {
       schemeToEvaluate <- schemes
-      schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
+      schemePassmark <- passmark.schemes find (_.scheme == schemeToEvaluate)
     } yield {
       val sjqResult = evaluateTestResult(schemePassmark.schemeThresholds.situational)(sjqTestResult.tScore)
       val bqResult = bqTestResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.behavioural)).getOrElse(Green)

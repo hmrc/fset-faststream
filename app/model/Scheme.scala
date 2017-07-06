@@ -16,13 +16,16 @@
 
 package model
 
-import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString, Macros }
 
 case class SchemeId(value: String)
 
 object SchemeId {
-  implicit val schemeIdFormat = Json.format[SchemeId]
+  implicit val rds: Reads[SchemeId] = (__ \ "id").read[String].map{ id => new SchemeId(id) }
+  implicit val wrs: Writes[SchemeId] = (__ \ "id").write[String].contramap{ (scheme: SchemeId) => scheme.value }
+  implicit val fmt: Format[SchemeId] = Format(rds, wrs)
 
   // Custom formatter to prevent a nested case object in BSON
   implicit object SchemeIdHandler extends BSONHandler[BSONString, SchemeId] {

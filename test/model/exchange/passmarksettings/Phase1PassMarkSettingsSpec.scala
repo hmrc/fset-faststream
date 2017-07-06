@@ -81,7 +81,7 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
           (SchemeId("DiplomaticServiceEuropean"), 20.0, 80.0),
           (SchemeId("DiplomaticService"), 20.0, 80.0)))
       )
-      merged.schemes.map(_.schemeId) mustBe List(
+      merged.schemes.map(_.scheme) mustBe List(
         SchemeId("Commercial"),
         SchemeId("DigitalAndTechnology"),
         SchemeId("DiplomaticService"),
