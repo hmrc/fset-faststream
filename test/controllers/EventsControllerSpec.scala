@@ -20,6 +20,10 @@ import config.TestFixtureBase
 import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.{ Event, Location, Venue }
 import model.persisted.eventschedules.EventType
+import model.AllocationStatuses
+import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
+import model.exchange.{ AssessorAllocation, AssessorAllocations, AssessorSkill }
+import model.persisted.eventschedules._
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -35,7 +39,7 @@ import scala.concurrent.Future
 
 class EventsControllerSpec extends UnitWithAppSpec {
 
-  "Upload assessment events" should {
+  "Upload assessment events" must {
     "return CREATED with valid input" in new TestFixture {
       when(mockEventsService.saveAssessmentEvents()).thenReturn(Future.successful(unit))
       val res = controller.saveAssessmentEvents()(FakeRequest())
@@ -43,7 +47,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return UNPROCESSABLE_ENTITY when parsing goes wrong" in new TestFixture {
-      when(mockEventsService.saveAssessmentEvents()).thenReturn(Future.failed(new Exception()))
+      when(mockEventsService.saveAssessmentEvents()).thenReturn(Future.failed(new Exception("Error")))
 
       val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
@@ -80,6 +84,20 @@ class EventsControllerSpec extends UnitWithAppSpec {
       val result = controller.getEvent("id")(FakeRequest())
 
       status(result) mustBe NOT_FOUND
+    }
+  }
+
+  "Allocate assessor" must {
+    "return a 409 if an op lock exception occurs" in new TestFixture {
+      when(mockAssessorAllocationService.allocate(any[model.command.AssessorAllocations]))
+        .thenReturn(Future.failed(OptimisticLockException("error")))
+
+      val request = fakeRequest(AssessorAllocations(
+        version = Some("version1"),
+        AssessorAllocation("id", AllocationStatuses.CONFIRMED, AssessorSkill(SkillType.ASSESSOR,"Assessor")) :: Nil
+      ))
+      val result = controller.allocateAssessor("eventId")(request)
+      status(result) mustBe CONFLICT
     }
   }
 

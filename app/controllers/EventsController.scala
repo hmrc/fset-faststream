@@ -19,6 +19,7 @@ package controllers
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules._
 import model.Exceptions.EventNotFoundException
+import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.exchange
 import model.command
 import model.exchange.AssessorAllocations
@@ -57,7 +58,8 @@ trait EventsController extends BaseController {
   }
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
-    eventsService.saveAssessmentEvents().map(_ => Created("Events saved")).recover { case _ => UnprocessableEntity }
+    eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
+      .recover { case e: Exception => UnprocessableEntity(e.getMessage) }
   }
 
   def getEvent(eventId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -104,6 +106,9 @@ trait EventsController extends BaseController {
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
       assessorAllocationService.allocate(newAllocations).map(_ => Ok)
+          .recover {
+            case e: OptimisticLockException => Conflict(e.getMessage)
+          }
     }
   }
 
