@@ -59,11 +59,11 @@ trait LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepository {
   }
 
   private lazy val allLocationsCached = locationsAndVenuesCached.map { lv =>
-    lv.map(Location.apply) :+ MicroserviceAppConfig.AllLocations toSet
+    MicroserviceAppConfig.AllLocations :: lv.map(Location.apply) toSet
   }
 
   private lazy val allVenuesCached = locationsAndVenuesCached.map { lv =>
-    lv.flatMap(_.venues) :+ MicroserviceAppConfig.AllVenues toSet
+    MicroserviceAppConfig.AllVenues :: lv.flatMap(_.venues) toSet
   }
 
   def locations: Future[Set[Location]] = allLocationsCached

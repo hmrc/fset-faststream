@@ -16,15 +16,15 @@
 
 package controllers
 
+import config.MicroserviceAppConfig
 import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
-import play.api.libs.json.{Json, OFormat}
-import play.api.mvc.{Action, AnyContent}
-import repositories.events.{ EventsRepository, LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
+import play.api.libs.json.{ Json, OFormat }
+import play.api.mvc.{ Action, AnyContent }
+import repositories.events.{ EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object DayAggregateEventController extends DayAggregateEventController {
   val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository
@@ -41,7 +41,8 @@ trait DayAggregateEventController extends BaseController {
 
   def findBySkillTypesAndLocation(skillTypes: String, location: String): Action[AnyContent] = Action.async { implicit request =>
     locationsWithVenuesRepo.location(location).flatMap { location =>
-      find(Some(skillTypes), Some(location))
+      val loc = if (location == MicroserviceAppConfig.AllLocations) None else Some(location)
+      find(Some(skillTypes), loc)
     }.map(dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)))
   }
 
