@@ -927,9 +927,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED)//,
-      //TODO: put this back in when the requirement is clear
-//      BSONDocument("assessment-centre-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
+      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED),
+      BSONDocument("fsac-indicator.area" -> BSONDocument("$in" -> locations))
     ))
 
     collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
