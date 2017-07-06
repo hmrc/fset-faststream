@@ -154,7 +154,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
 
     List(
       statusTimestamps.flatMap(_.getAs[DateTime]("IN_PROGRESS").map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime]("SUBMITTED").map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.SUBMITTED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_INVITED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_STARTED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_COMPLETED.toString).map(_.toString)),
