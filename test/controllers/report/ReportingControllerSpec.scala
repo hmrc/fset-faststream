@@ -23,13 +23,13 @@ import controllers.ReportingController
 import mocks._
 import model._
 import model.persisted.ContactDetailsWithId
-import model.report.{CandidateProgressReportItem, _}
+import model.report.{ CandidateProgressReportItem, _ }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.{ JsArray, Json }
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest, Helpers}
-import repositories.application.ReportingRepository
+import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import repositories.application.{ PreviousYearCandidatesDetailsRepository, ReportingRepository }
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
 import testkit.UnitWithAppSpec
@@ -50,6 +50,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
     override val mediaRepository: MediaRepository = MediaInMemoryRepository
     override val indicatorRepository = NorthSouthIndicatorCSVRepository
+    override val prevYearCandidatesDetailsRepository = mock[PreviousYearCandidatesDetailsRepository]
     override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
   }
 
