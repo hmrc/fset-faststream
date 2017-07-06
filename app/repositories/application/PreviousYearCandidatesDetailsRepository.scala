@@ -49,7 +49,7 @@ trait PreviousYearCandidatesDetailsRepository {
   "Behavioural Percentile,Behavioural Raw,Behavioural STEN,Situational T-score," +
     "Situational testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,reportLinkURL,reportId," +
     "reportLinkURL," +
-  "Situational Percentile,Situational Raw,Situational STEN," +
+  "Situational T-score,Situational Percentile,Situational Raw,Situational STEN," +
   "PHASE_2 scheduleId,cubiksUserId,token,testUrl,invitiationDate,participantScheduleId,startedDateTime,completedDateTime,reportLinkURL,reportId," +
     "e-Tray T-score,e-Tray Raw,interviewId,token,candidateId,customCandidateId,comment,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
@@ -62,23 +62,15 @@ trait PreviousYearCandidatesDetailsRepository {
     "PHASE3_TESTS_PASSED,PHASE3_TESTS_SUCCESS_NOTIFIED,EXPORTED,PHASE 1 result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
     "result,result,result," +
     "PHASE 2 result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
-    "PHASE 3,result,result,result,result,result,result,result,result,result," +
-    "result,result,result,result,result,result,result,result,"
+    "PHASE 3 result,result,result,result,result,result,result,result,result," +
+    "result,result,result,result,result,result,result,result"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
-  val questionnaireDetailsHeader = "Sexual Orientation,Ethnic Group,Live in UK between 14-18?,Home postcode at 14," +
-    "Name of school 14-16,What type of school,Name of school 16-18,University name,Category of degree," +
-    "Parent guardian completed Uni?,At age 14 - parents employed?,Parents job at 14,Employee?,Size," +
+  val questionnaireDetailsHeader = "Gender Identity,Sexual Orientation,Ethnic Group,Live in UK between 14-18?,Home postcode at 14," +
+    "Name of school 14-16,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
+    "Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
     "Supervise employees,SE 1-5,Oxbridge,Russell Group,Hesa Code"
-
-    /*What is your gender identity?,What is your sexual orientation?,What is your ethnic group?," +
-    "Between the ages of 11 to 16 in which school did you spend most of your education?," +
-    "Between the ages of 16 to 18 in which school did you spend most of your education?," +
-    "What was your home postcode when you were 14?,During your school years were you at any time eligible for free school meals?," +
-    "Did any of your parent(s) or guardian(s) complete a university degree course or equivalent?,Parent/guardian work status," +
-    "Which type of occupation did they have?,Did they work as an employee or were they self-employed?," +
-    "Which size would best describe their place of work?,Did they supervise any other employees?" */
 
   val mediaDetailsHeader = "How did you hear about us?"
 
@@ -146,7 +138,8 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
             onlineTestResults("sjq") :::
             onlineTestResults("etray") :::
             videoInterview(doc) :::
-            progressStatusTimestamps(doc)
+            progressStatusTimestamps(doc) :::
+            testEvaluations(doc)
             : _*
         )
         CandidateDetailsReportItem(
@@ -161,30 +154,30 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
 
     List(
       statusTimestamps.flatMap(_.getAs[DateTime]("IN_PROGRESS").map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.SUBMITTED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_INVITED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_STARTED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_COMPLETED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_RESULTS_READY).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_PASSED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_INVITED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_STARTED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_COMPLETED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_RESULTS_READY).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_PASSED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_INVITED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_STARTED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_COMPLETED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_PASSED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_SUCCESS_NOTIFIED).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.EXPORTED).map(_.toString))
+      statusTimestamps.flatMap(_.getAs[DateTime]("SUBMITTED").map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_INVITED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_STARTED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_COMPLETED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_PASSED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_INVITED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_STARTED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_COMPLETED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_RESULTS_READY.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_PASSED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_INVITED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_STARTED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_COMPLETED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_PASSED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_SUCCESS_NOTIFIED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.EXPORTED.toString).map(_.toString))
     )
   }
 
@@ -224,6 +217,8 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
             address.flatMap(_.getAs[String]("line3")),
             address.flatMap(_.getAs[String]("line4")),
             contactDetails.flatMap(_.getAs[String]("postCode")),
+            contactDetails.flatMap(_.getAs[Boolean]("outsideUk").map(outside => if (outside) "Yes" else "No")),
+            contactDetails.flatMap(_.getAs[String]("country")),
             contactDetails.flatMap(_.getAs[String]("phone"))
           )
           doc.getAs[String]("userId").getOrElse("") -> csvRecord
@@ -254,16 +249,23 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
             getAnswer("What is your gender identity?", questions),
             getAnswer("What is your sexual orientation?", questions),
             getAnswer("What is your ethnic group?", questions),
-            getAnswer("Between the ages of 11 to 16, in which school did you spend most of your education?", questions),
-            getAnswer("Between the ages of 16 to 18, in which school did you spend most of your education?", questions),
+            getAnswer("Did you live in the UK between the ages of 14 and 18?", questions),
             getAnswer("What was your home postcode when you were 14?", questions),
-            getAnswer("During your school years, were you at any time eligible for free school meals?", questions),
-            getAnswer("Did any of your parent(s) or guardian(s) complete a university degree course or equivalent?", questions),
-            getAnswer("Parent/guardian work status", questions),
-            getAnswer("Which type of occupation did they have?", questions),
+            getAnswer("Aged 14 to 16 what was the name of your school?", questions),
+            getAnswer("Aged 16 to 18 what was the name of your school?", questions),
+            getAnswer("Were you at any time eligible for free school meals?", questions),
+            getAnswer("What is the name of the university you received your degree from?", questions),
+            getAnswer("Which category best describes your degree?", questions),
+            getAnswer("Do you have a parent or guardian that has completed a university degree course or equivalent?", questions),
+            getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?", questions),
             getAnswer("Did they work as an employee or were they self-employed?", questions),
+
             getAnswer("Which size would best describe their place of work?", questions),
-            getAnswer("Did they supervise any other employees?", questions)
+            getAnswer("Did they supervise employees?", questions),
+            Some(""), // SE
+            Some(""), // Oxb
+            Some(""), // Russell
+            Some("") // Hesa
           )
           doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
         }
@@ -333,6 +335,37 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
         latestReviewer.flatMap(_.question8.reviewCriteria2.score.map(_.toString)),
         latestReviewer.map(reviewer => totalForQuestions(reviewer).toString)
       )
+  }
+
+  private def testEvaluations(doc: BSONDocument): List[Option[String]] = {
+    val testGroups = doc.getAs[BSONDocument]("testGroups")
+
+    val onlineTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
+    val onlineTestsEvaluation = onlineTestSection.flatMap(_.getAs[BSONDocument]("evaluation"))
+    val onlineTestEvalResults = onlineTestsEvaluation.flatMap(_.getAs[List[BSONDocument]]("result"))
+
+    val etrayTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE2"))
+    val etrayEvaluation = etrayTestSection.flatMap(_.getAs[BSONDocument]("evaluation"))
+    val etrayEvalResults = etrayEvaluation.flatMap(_.getAs[List[BSONDocument]]("result"))
+
+    val videoInterviewSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE3"))
+    val videoEvaluation = videoInterviewSection.flatMap(_.getAs[BSONDocument]("evaluation"))
+    val videoEvalResults = videoEvaluation.flatMap(_.getAs[List[BSONDocument]]("result"))
+
+    val otEvalResultsMap = onlineTestEvalResults.map(resultList => resultList.map(result => result.getAs[String]("scheme").get -> result.getAs[String]("result").get).toMap)
+    val etrayEvalResultsMap = etrayEvalResults.map(resultList => resultList.map(result => result.getAs[String]("scheme").get -> result.getAs[String]("result").get).toMap)
+    val videoEvalResultsMap = videoEvalResults.map(resultList => resultList.map(result => result.getAs[String]("scheme").get -> result.getAs[String]("result").get).toMap)
+
+    val otSchemeResults = otEvalResultsMap.map(_.values.toList).getOrElse(Nil)
+    val etraySchemeResults = etrayEvalResultsMap.map(_.values.toList).getOrElse(Nil)
+    val videoSchemeResults = videoEvalResultsMap.map(_.values.toList).getOrElse(Nil)
+
+    otSchemeResults.map(Option(_)) :::
+    (1 to (17 - otSchemeResults.size)).toList.map(_ => Some("")) :::
+    etraySchemeResults.map(Option(_)) :::
+    (1 to (17 - etraySchemeResults.size)).toList.map(_ => Some("")) :::
+    videoSchemeResults.map(Option(_)) :::
+    (1 to (17 - videoSchemeResults.size)).toList.map(_ => Some(""))
   }
 
   private def onlineTests(doc: BSONDocument): Map[String, List[Option[String]]] = {
