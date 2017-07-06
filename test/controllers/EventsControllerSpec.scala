@@ -17,19 +17,16 @@
 package controllers
 
 import config.TestFixtureBase
-import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{ Event, Location, Venue }
-import model.persisted.eventschedules.EventType
 import model.AllocationStatuses
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.exchange.{ AssessorAllocation, AssessorAllocations, AssessorSkill }
-import model.persisted.eventschedules._
+import model.persisted.eventschedules.{ Event, EventType, Location, Venue, _ }
 import org.joda.time.{ LocalDate, LocalTime }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.Mockito._
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.Mockito._
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import play.api.libs.json.Json
 import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
 import services.events.EventsService

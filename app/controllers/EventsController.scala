@@ -16,25 +16,21 @@
 
 package controllers
 
-import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules._
-import model.Exceptions.EventNotFoundException
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
-import model.exchange
-import model.command
+import model.{ command, exchange }
 import model.exchange.AssessorAllocations
 import model.persisted.eventschedules.EventType
+import model.persisted.eventschedules.EventType.EventType
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
-
-import scala.concurrent.Future
-import scala.util.Try
 import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.Try
 
 object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
