@@ -39,11 +39,11 @@ trait LockKeeper {
       .flatMap { acquired =>
         if (acquired) {
           body.flatMap { x =>
-              if (greedyLockingEnabled) {
-                Future.successful(Some(x))
-              } else {
-                repo.releaseLock(lockId, serverId).map(_ => Some(x))
-              }
+            if (greedyLockingEnabled) {
+              Future.successful(Some(x))
+            } else {
+              repo.releaseLock(lockId, serverId).map(_ => Some(x))
+            }
           }.recoverWith { case ex if !greedyLockingEnabled => repo.releaseLock(lockId, serverId).flatMap(_ => Future.failed(ex)) }
         } else {
           Future.successful(None)

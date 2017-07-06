@@ -19,6 +19,7 @@ import play.routes.compiler.StaticRoutesGenerator
 import sbt.Keys._
 import sbt.Tests.{ Group, SubProcess }
 import sbt._
+import com.typesafe.sbt.SbtScalariform._
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
@@ -77,8 +78,8 @@ trait MicroService {
 //     .settings(excludeFilter in ScalariformKeys.format := ((excludeFilter in ScalariformKeys.format).value ||
 //        "Firstnames.scala" ||
 //       "Lastnames.scala"))
-//    .settings(compileScalastyle := org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Compile).toTask("").value,
-//      (compile in Compile) <<= (compile in Compile) dependsOn compileScalastyle)
+    .settings(compileScalastyle := org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Compile).toTask("").value,
+      (compile in Compile) <<= (compile in Compile) dependsOn compileScalastyle)
     .settings(
       Keys.fork in IntegrationTest := false,
       unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(

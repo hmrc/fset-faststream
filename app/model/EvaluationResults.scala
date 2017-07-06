@@ -42,9 +42,9 @@ object EvaluationResults {
     location2Scheme1: Option[Result], location2Scheme2: Option[Result], alternativeScheme: Option[Result])
 
   case class CompetencyAverageResult(leadingAndCommunicatingAverage: Double, collaboratingAndPartneringAverage: Double,
-    deliveringAtPaceAverage: Double, makingEffectiveDecisionsAverage: Double,
-    changingAndImprovingAverage: Double, buildingCapabilityForAllAverage: Double,
-    motivationFitAverage: Double, overallScore: Double) {
+      deliveringAtPaceAverage: Double, makingEffectiveDecisionsAverage: Double,
+      changingAndImprovingAverage: Double, buildingCapabilityForAllAverage: Double,
+      motivationFitAverage: Double, overallScore: Double) {
 
     def scoresWithWeightOne = List(
       leadingAndCommunicatingAverage,

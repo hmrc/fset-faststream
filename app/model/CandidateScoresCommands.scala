@@ -24,9 +24,9 @@ object CandidateScoresCommands {
   case class RecordCandidateScores(firstName: String, lastName: String, venueName: String, date: LocalDate)
 
   case class CandidateScores(
-    interview: Option[Double] = None,
-    groupExercise: Option[Double] = None,
-    writtenExercise: Option[Double] = None
+      interview: Option[Double] = None,
+      groupExercise: Option[Double] = None,
+      writtenExercise: Option[Double] = None
   ) {
     def sum = (BigDecimal(interview.getOrElse(0.0)) + BigDecimal(groupExercise.getOrElse(0.0)) +
       BigDecimal(writtenExercise.getOrElse(0.0))).toDouble
@@ -41,17 +41,17 @@ object CandidateScoresCommands {
   )
 
   case class CandidateScoresAndFeedback(
-    applicationId: String,
-    attendancy: Option[Boolean],
-    assessmentIncomplete: Boolean,
-    leadingAndCommunicating: CandidateScores = CandidateScores(),
-    collaboratingAndPartnering: CandidateScores = CandidateScores(),
-    deliveringAtPace: CandidateScores = CandidateScores(),
-    makingEffectiveDecisions: CandidateScores = CandidateScores(),
-    changingAndImproving: CandidateScores = CandidateScores(),
-    buildingCapabilityForAll: CandidateScores = CandidateScores(),
-    motivationFit: CandidateScores = CandidateScores(),
-    feedback: CandidateScoreFeedback = CandidateScoreFeedback()
+      applicationId: String,
+      attendancy: Option[Boolean],
+      assessmentIncomplete: Boolean,
+      leadingAndCommunicating: CandidateScores = CandidateScores(),
+      collaboratingAndPartnering: CandidateScores = CandidateScores(),
+      deliveringAtPace: CandidateScores = CandidateScores(),
+      makingEffectiveDecisions: CandidateScores = CandidateScores(),
+      changingAndImproving: CandidateScores = CandidateScores(),
+      buildingCapabilityForAll: CandidateScores = CandidateScores(),
+      motivationFit: CandidateScores = CandidateScores(),
+      feedback: CandidateScoreFeedback = CandidateScoreFeedback()
   ) {
     def allScoresWithWeightOne = List(leadingAndCommunicating, collaboratingAndPartnering, deliveringAtPace,
       makingEffectiveDecisions, changingAndImproving, buildingCapabilityForAll)

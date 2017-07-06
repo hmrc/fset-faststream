@@ -22,28 +22,30 @@ import model.SchemeType._
 import model.persisted.ApplicationForDiversityReport
 
 case class ApplicationForDiversityReportItem(
-                                              progress: Option[String],
-                                              applicationRoute: ApplicationRoute,
-                                              schemes: List[SchemeType],
-                                              disability: Option[String],
-                                              gis: Option[Boolean],
-                                              onlineAdjustments: Option[String],
-                                              assessmentCentreAdjustments: Option[String],
-                                              civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsReportItem]
-                                            ) {
+    progress: Option[String],
+    applicationRoute: ApplicationRoute,
+    schemes: List[SchemeType],
+    disability: Option[String],
+    gis: Option[Boolean],
+    onlineAdjustments: Option[String],
+    assessmentCentreAdjustments: Option[String],
+    civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsReportItem]
+) {
 
 }
 
 case class DiversityReportItem(
-                                application: ApplicationForDiversityReportItem,
-                                questionnaire: Option[QuestionnaireReportItem],
-                                media: Option[MediaReportItem])
+  application: ApplicationForDiversityReportItem,
+  questionnaire: Option[QuestionnaireReportItem],
+  media: Option[MediaReportItem]
+)
 
 object ApplicationForDiversityReportItem {
   implicit val applicationForDiversityReportItemFormat = Json.format[ApplicationForDiversityReportItem]
 
   def create(a: ApplicationForDiversityReport): ApplicationForDiversityReportItem = {
-    ApplicationForDiversityReportItem(progress = a.progress,
+    ApplicationForDiversityReportItem(
+      progress = a.progress,
       applicationRoute = a.applicationRoute,
       schemes = a.schemes,
       disability = a.disability,

@@ -27,8 +27,8 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 import play.modules.reactivemongo.ReactiveMongoHmrcModule
 
 /**
-  * Common base class for all controller tests
-  */
+ * Common base class for all controller tests
+ */
 abstract class UnitWithAppSpec extends UnitSpec with OneAppPerSuite with Results with FutureHelper {
   val AppId = "AppId"
   val UserId = "UserId"

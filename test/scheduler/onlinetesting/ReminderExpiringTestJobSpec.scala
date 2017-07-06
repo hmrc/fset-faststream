@@ -31,7 +31,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 Test only one type of reminder as the difference is only in the kind of reminder notice they
 pass to the service.
  */
-class ReminderExpiringTestJobSpec  extends UnitWithAppSpec with ShortTimeout {
+class ReminderExpiringTestJobSpec extends UnitWithAppSpec with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val serviceMock = mock[OnlineTestService]
@@ -50,14 +50,12 @@ class ReminderExpiringTestJobSpec  extends UnitWithAppSpec with ShortTimeout {
 
   "send first reminder job" should {
     "complete successfully when service completes successfully" in {
-      when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
+      when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
       TestableFirstReminderExpiringTestJob.tryExecute().futureValue mustBe unit
     }
 
     "fail when the service fails" in {
-      when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))
-      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(new Exception))
+      when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(new Exception))
       TestableFirstReminderExpiringTestJob.tryExecute().failed.futureValue mustBe an[Exception]
     }
   }

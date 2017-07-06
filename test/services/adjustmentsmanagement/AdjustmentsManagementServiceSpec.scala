@@ -59,7 +59,7 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ShortTimeout
       verifyEmailEvent("AdjustmentsChanged")
     }
 
-    "remove adjustments"in new TestFixture {
+    "remove adjustments" in new TestFixture {
       when(mockAppRepository.findAdjustments(AppId)).thenReturn(Future.successful(Some(ETrayTimeExtensionAdjustments)))
       service.confirmAdjustment(AppId, EmptyAdjustments).futureValue
 

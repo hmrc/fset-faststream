@@ -32,140 +32,140 @@
 
 //class OnlineTestExpiryServiceSpec extends UnitSpec {
 
-  //"when processing the next expiring test" should {
-  //  "do nothing when there are no expiring tests" in new ProcessNextExpiredFixture {
-  //    when(otRepository.nextApplicationPendingExpiry).thenReturnAsync(None)
+//"when processing the next expiring test" should {
+//  "do nothing when there are no expiring tests" in new ProcessNextExpiredFixture {
+//    when(otRepository.nextApplicationPendingExpiry).thenReturnAsync(None)
 
-  //    service.processNextExpiredTest().futureValue mustBe (())
-  //  }
+//    service.processNextExpiredTest().futureValue mustBe (())
+//  }
 
-  //  "process the next expiring test" in new ProcessNextExpiredFixture {
-  //    when(otRepository.nextApplicationPendingExpiry).thenReturnAsync(Some(expiringTest))
+//  "process the next expiring test" in new ProcessNextExpiredFixture {
+//    when(otRepository.nextApplicationPendingExpiry).thenReturnAsync(Some(expiringTest))
 
-  //    service.processNextExpiredTest().futureValue mustBe (())
+//    service.processNextExpiredTest().futureValue mustBe (())
 
-  //    verify(service).processExpiredTest(expiringTest)
-  //  }
-  //}
+//    verify(service).processExpiredTest(expiringTest)
+//  }
+//}
 
-  //"when processing an expiring test" should {
-  //  "email the candidate about their expired online test" in new ProcessExpiredFixture {
-  //    service.processExpiredTest(expiringTest).futureValue mustBe (())
+//"when processing an expiring test" should {
+//  "email the candidate about their expired online test" in new ProcessExpiredFixture {
+//    service.processExpiredTest(expiringTest).futureValue mustBe (())
 
-  //    verify(service).emailCandidate(expiringTest, emailAddress)
-  //  }
+//    verify(service).emailCandidate(expiringTest, emailAddress)
+//  }
 
-  //  "update the application status on success" in new ProcessExpiredFixture {
-  //    service.processExpiredTest(expiringTest).futureValue mustBe (())
+//  "update the application status on success" in new ProcessExpiredFixture {
+//    service.processExpiredTest(expiringTest).futureValue mustBe (())
 
-  //    verify(service).commitExpiredStatus(expiringTest)
-  //  }
+//    verify(service).commitExpiredStatus(expiringTest)
+//  }
 
-  //  "not update the application status on failure" in new ProcessExpiredFixture {
-  //    doThrowAsync().when(service).emailCandidate(any(), any())
+//  "not update the application status on failure" in new ProcessExpiredFixture {
+//    doThrowAsync().when(service).emailCandidate(any(), any())
 
-  //    val result = service.processExpiredTest(expiringTest).failed.futureValue
+//    val result = service.processExpiredTest(expiringTest).failed.futureValue
 
-  //    result mustBe an[Exception]
-  //    verify(service).emailCandidate(expiringTest, emailAddress)
-  //    verify(service, never).commitExpiredStatus(expiringTest)
-  //  }
-  //}
+//    result mustBe an[Exception]
+//    verify(service).emailCandidate(expiringTest, emailAddress)
+//    verify(service, never).commitExpiredStatus(expiringTest)
+//  }
+//}
 
-  //"when emailing a candidate" should {
-  //  "send the email to their email address" in new EmailCandidateFixture {
-  //    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
+//"when emailing a candidate" should {
+//  "send the email to their email address" in new EmailCandidateFixture {
+//    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
 
-  //    verify(emailClient).sendOnlineTestExpired(eqTo(emailAddress), any())(any())
-  //  }
+//    verify(emailClient).sendOnlineTestExpired(eqTo(emailAddress), any())(any())
+//  }
 
-  //  "greet candidate by their preferred name" in new EmailCandidateFixture {
-  //    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
+//  "greet candidate by their preferred name" in new EmailCandidateFixture {
+//    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
 
-  //    verify(emailClient).sendOnlineTestExpired(any(), eqTo(preferredName))(any())
-  //  }
+//    verify(emailClient).sendOnlineTestExpired(any(), eqTo(preferredName))(any())
+//  }
 
-  //  "attach a 'header carrier' with the current timestamp" in new EmailCandidateFixture {
-  //    // Test ensures we're not making the mistake of caching the HeaderCarrier, which
-  //    // would result in an incorrect timestamp being passed on to other components.
-  //    val hc1 = HeaderCarrier(nsStamp = 1)
-  //    val hc2 = HeaderCarrier(nsStamp = 2)
-  //    val hcs = List(hc1, hc2).iterator
-  //    override def hc = hcs.next()
+//  "attach a 'header carrier' with the current timestamp" in new EmailCandidateFixture {
+//    // Test ensures we're not making the mistake of caching the HeaderCarrier, which
+//    // would result in an incorrect timestamp being passed on to other components.
+//    val hc1 = HeaderCarrier(nsStamp = 1)
+//    val hc2 = HeaderCarrier(nsStamp = 2)
+//    val hcs = List(hc1, hc2).iterator
+//    override def hc = hcs.next()
 
-  //    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
-  //    verify(emailClient).sendOnlineTestExpired(any(), any())(eqTo(hc1))
+//    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
+//    verify(emailClient).sendOnlineTestExpired(any(), any())(eqTo(hc1))
 
-  //    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
-  //    verify(emailClient).sendOnlineTestExpired(any(), any())(eqTo(hc2))
-  //  }
+//    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
+//    verify(emailClient).sendOnlineTestExpired(any(), any())(eqTo(hc2))
+//  }
 
-  //  "audit an event after sending" in new EmailCandidateFixture {
-  //    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
+//  "audit an event after sending" in new EmailCandidateFixture {
+//    service.emailCandidate(expiringTest, emailAddress).futureValue mustBe (())
 
-  //    verify(audit).logEventNoRequest(
-  //      "ExpiredOnlineTestNotificationEmailed",
-  //      Map("userId" -> userId, "email" -> emailAddress)
-  //    )
-  //  }
-  //}
+//    verify(audit).logEventNoRequest(
+//      "ExpiredOnlineTestNotificationEmailed",
+//      Map("userId" -> userId, "email" -> emailAddress)
+//    )
+//  }
+//}
 
-  //"when updating the application status" should {
-  //  "mark the relevant application as expired" in new CommitExpiredStatusFixture {
-  //    service.commitExpiredStatus(expiringTest).futureValue mustBe (())
+//"when updating the application status" should {
+//  "mark the relevant application as expired" in new CommitExpiredStatusFixture {
+//    service.commitExpiredStatus(expiringTest).futureValue mustBe (())
 
-  //    verify(otRepository).updateStatus(userId, "ONLINE_TEST_EXPIRED")
-  //  }
+//    verify(otRepository).updateStatus(userId, "ONLINE_TEST_EXPIRED")
+//  }
 
-  //  "audit an event after updating the application status" in new CommitExpiredStatusFixture {
-  //    service.commitExpiredStatus(expiringTest).futureValue mustBe (())
+//  "audit an event after updating the application status" in new CommitExpiredStatusFixture {
+//    service.commitExpiredStatus(expiringTest).futureValue mustBe (())
 
-  //    verify(audit).logEventNoRequest(
-  //      "ExpiredOnlineTest",
-  //      Map("userId" -> userId)
-  //    )
-  //  }
-  //}
+//    verify(audit).logEventNoRequest(
+//      "ExpiredOnlineTest",
+//      Map("userId" -> userId)
+//    )
+//  }
+//}
 
-  // The call to `Logger.info` within our implementation appears to add sufficient latency
-  // to cause timeouts using the default configuration for the `futureValue` helper method.
-  //override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(2000, Millis)))
+// The call to `Logger.info` within our implementation appears to add sufficient latency
+// to cause timeouts using the default configuration for the `futureValue` helper method.
+//override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(2000, Millis)))
 
-  //trait Fixture {
-  //  val applicationId = "abc"
-  //  val userId = "xyz"
-  //  val preferredName = "Jon"
-  //  val emailAddress = "jon@test.com"
-  //  val contactDetails = ContactDetails(Address("line 1"), "HP27 9JU", emailAddress, None)
-  //  val expiringTest = ExpiringOnlineTest(applicationId, userId, preferredName)
-  //  def hc = HeaderCarrier()
+//trait Fixture {
+//  val applicationId = "abc"
+//  val userId = "xyz"
+//  val preferredName = "Jon"
+//  val emailAddress = "jon@test.com"
+//  val contactDetails = ContactDetails(Address("line 1"), "HP27 9JU", emailAddress, None)
+//  val expiringTest = ExpiringOnlineTest(applicationId, userId, preferredName)
+//  def hc = HeaderCarrier()
 
-  //  val ec = scala.concurrent.ExecutionContext.Implicits.global
-  //  val otRepository = mock[OnlineTestRepository]
-  //  val cdRepository = mock[ContactDetailsRepository]
-  //  val emailClient = mock[EmailClient]
-  //  val audit = mock[AuditService]
-  //  val service = spy(new OnlineTestExpiryServiceImpl(otRepository, cdRepository, emailClient, audit, hc)(ec))
-  //}
+//  val ec = scala.concurrent.ExecutionContext.Implicits.global
+//  val otRepository = mock[OnlineTestRepository]
+//  val cdRepository = mock[ContactDetailsRepository]
+//  val emailClient = mock[EmailClient]
+//  val audit = mock[AuditService]
+//  val service = spy(new OnlineTestExpiryServiceImpl(otRepository, cdRepository, emailClient, audit, hc)(ec))
+//}
 
-  //trait ProcessNextExpiredFixture extends Fixture {
-  //  doReturnAsync()
-  //    .when(service).processExpiredTest(any())
-  //}
+//trait ProcessNextExpiredFixture extends Fixture {
+//  doReturnAsync()
+//    .when(service).processExpiredTest(any())
+//}
 
-  //trait ProcessExpiredFixture extends Fixture {
-  //  when(cdRepository.find(any())).thenReturnAsync(contactDetails)
-  //  doReturnAsync()
-  //    .when(service).emailCandidate(any(), any())
-  //  doReturnAsync()
-  //    .when(service).commitExpiredStatus(any())
-  //}
+//trait ProcessExpiredFixture extends Fixture {
+//  when(cdRepository.find(any())).thenReturnAsync(contactDetails)
+//  doReturnAsync()
+//    .when(service).emailCandidate(any(), any())
+//  doReturnAsync()
+//    .when(service).commitExpiredStatus(any())
+//}
 
-  //trait EmailCandidateFixture extends Fixture {
-  //  when(emailClient.sendOnlineTestExpired(any(), any())(any())).thenReturnAsync()
-  //}
+//trait EmailCandidateFixture extends Fixture {
+//  when(emailClient.sendOnlineTestExpired(any(), any())(any())).thenReturnAsync()
+//}
 
-  //trait CommitExpiredStatusFixture extends Fixture {
-  //  when(otRepository.updateStatus(any(), any())).thenReturnAsync()
-  //}
+//trait CommitExpiredStatusFixture extends Fixture {
+//  when(otRepository.updateStatus(any(), any())).thenReturnAsync()
+//}
 //}

@@ -23,14 +23,14 @@ import model.persisted.phase3tests.LaunchpadTest
 import play.api.libs.json._
 
 case class ApplicationReadyForEvaluation(
-  applicationId: String,
-  applicationStatus: ApplicationStatus,
-  applicationRoute: ApplicationRoute,
-  isGis: Boolean,
-  activeCubiksTests: List[CubiksTest],
-  activeLaunchpadTest: Option[LaunchpadTest],
-  prevPhaseEvaluation: Option[PassmarkEvaluation],
-  preferences: SelectedSchemes
+    applicationId: String,
+    applicationStatus: ApplicationStatus,
+    applicationRoute: ApplicationRoute,
+    isGis: Boolean,
+    activeCubiksTests: List[CubiksTest],
+    activeLaunchpadTest: Option[LaunchpadTest],
+    prevPhaseEvaluation: Option[PassmarkEvaluation],
+    preferences: SelectedSchemes
 ) {
   def nonGis = !isGis
 }

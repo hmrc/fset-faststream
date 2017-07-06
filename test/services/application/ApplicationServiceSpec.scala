@@ -43,7 +43,6 @@ import services.stc.StcEventServiceFixture
 
 import scala.concurrent.Future
 
-
 class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "fix" must {
@@ -87,10 +86,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "retrieve passed schemes for Faststream application" in new TestFixture {
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
-        userId,ProgressResponse(applicationId), None, None)
+        userId, ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None,
-        List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
-          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red")),
+        List(
+          SchemeEvaluationResult(SchemeType.Commercial, "Green"),
+          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red")
+        ),
         "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
@@ -103,11 +104,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "retrieve passed schemes for Faststream application with fast pass approved" in new TestFixture {
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
-        userId,ProgressResponse(applicationId, fastPassAccepted = true), None, None)
+        userId, ProgressResponse(applicationId, fastPassAccepted = true), None, None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
-      when(schemeRepositoryMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(List(SchemeType.Commercial),
-        orderAgreed = true, eligible = true)))
+      when(schemeRepositoryMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(
+        List(SchemeType.Commercial),
+        orderAgreed = true, eligible = true
+      )))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
@@ -142,13 +145,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "retrieve passed schemes for SdipFaststream application" in new TestFixture {
       val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId,
-        ProgressResponse(applicationId), None, None
-      )
-      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green"),
-        SchemeEvaluationResult(SchemeType.Finance, "Green")), "", None)
+        ProgressResponse(applicationId), None, None)
+      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(
+        SchemeEvaluationResult(SchemeType.Sdip, "Green"),
+        SchemeEvaluationResult(SchemeType.Finance, "Green")
+      ), "", None)
 
       val phase3PassmarkEvaluation = PassmarkEvaluation("", None,
-        List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
+        List(
+          SchemeEvaluationResult(SchemeType.Commercial, "Green"),
           SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red"),
           SchemeEvaluationResult(SchemeType.Finance, "Red")
         ), "", None)
@@ -164,8 +169,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "retrieve schemes for SdipFaststream when the applicant has failed Faststream prior to Phase 3 tests" in new TestFixture {
       val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId,
-        ProgressResponse(applicationId), None, None
-      )
+        ProgressResponse(applicationId), None, None)
       val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green")), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))

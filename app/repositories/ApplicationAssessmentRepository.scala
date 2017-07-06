@@ -16,9 +16,9 @@
 
 package repositories
 
-import model.Commands
 import model.Commands.ApplicationAssessment
-import model.Exceptions.{ NotFoundException, TooManyEntries }
+import model.Commands.ApplicationAssessment._
+import model.Exceptions.NotFoundException
 import org.joda.time.LocalDate
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
@@ -40,9 +40,8 @@ trait ApplicationAssessmentRepository {
 }
 
 class ApplicationAssessmentMongoRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationAssessment, BSONObjectID](CollectionNames.APPLICATION_ASSESSMENT, mongo,
-    Commands.ApplicationAssessment.applicationAssessmentFormat, ReactiveMongoFormats.objectIdFormats) with
-    ApplicationAssessmentRepository with ReactiveRepositoryHelpers {
+    extends ReactiveRepository[ApplicationAssessment, BSONObjectID](CollectionNames.APPLICATION_ASSESSMENT, mongo,
+      applicationAssessmentFormat, ReactiveMongoFormats.objectIdFormats) with ApplicationAssessmentRepository with ReactiveRepositoryHelpers {
 
   def find(applicationId: String): Future[ApplicationAssessment] = {
     val query = BSONDocument(

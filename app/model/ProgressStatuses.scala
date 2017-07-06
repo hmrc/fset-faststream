@@ -22,7 +22,7 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 import scala.language.implicitConversions
 
-// scalastyle:off number.of.methods
+// scalastyle:off
 object ProgressStatuses {
   sealed abstract class ProgressStatus(val applicationStatus: ApplicationStatus) {
     def key = toString
@@ -43,22 +43,28 @@ object ProgressStatuses {
   }
 
   case object CREATED extends ProgressStatus(ApplicationStatus.CREATED) {
-    override def key = "created"}
+    override def key = "created"
+  }
 
   case object PERSONAL_DETAILS extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
-    override def key = "personal-details"}
+    override def key = "personal-details"
+  }
 
   case object PARTNER_GRADUATE_PROGRAMMES extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
-    override def key = "partner-graduate-programmes"}
+    override def key = "partner-graduate-programmes"
+  }
 
   case object SCHEME_PREFERENCES extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
-    override def key = "scheme-preferences"}
+    override def key = "scheme-preferences"
+  }
 
   case object ASSISTANCE_DETAILS extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
-    override def key = "assistance-details"}
+    override def key = "assistance-details"
+  }
 
   case object PREVIEW extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
-    override def key = "preview"}
+    override def key = "preview"
+  }
 
   case object SUBMITTED extends ProgressStatus(ApplicationStatus.SUBMITTED)
 

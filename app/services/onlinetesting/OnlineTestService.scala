@@ -39,7 +39,6 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
-
 trait OnlineTestService extends TimeExtension with EventSink {
   type U <: Test
   type T <: TestProfile[U]
@@ -59,8 +58,11 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-  def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
-                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def emailCandidateForExpiringTestReminder(
+    expiringTest: NotificationExpiringOnlineTest,
+    emailAddress: String,
+    reminder: ReminderNotice
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]
   def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit]
 
@@ -72,8 +74,9 @@ trait OnlineTestService extends TimeExtension with EventSink {
     }
   }
 
-  def processNextTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs)
-                                          (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def processNextTestForSdipFsNotification(
+    notificationType: NotificationTestTypeSdipFs
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     appRepository.findTestForSdipFsNotification(notificationType).flatMap {
       case Some(test) => processTestForSdipFsNotification(test, notificationType)
@@ -81,8 +84,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
     }
   }
 
-  def processNextExpiredTest(expiryTest: TestExpirationEvent)
-                                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     testRepository.nextExpiringApplication(expiryTest).flatMap {
       case Some(expired) => processExpiredTest(expired, expiryTest)
       case None => Future.successful(())
@@ -95,8 +97,10 @@ trait OnlineTestService extends TimeExtension with EventSink {
       case None => Future.successful(())
     }
 
-  protected def processTestForNotification(toNotify: TestResultNotification, `type`: NotificationTestType)
-                                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  protected def processTestForNotification(
+    toNotify: TestResultNotification,
+    `type`: NotificationTestType
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       emailAddress <- candidateEmailAddress(toNotify.userId)
       _ <- commitProgressStatus(toNotify.applicationId, `type`.notificationProgress)
@@ -104,15 +108,19 @@ trait OnlineTestService extends TimeExtension with EventSink {
     } yield ()
   }
 
-  protected def processTestForSdipFsNotification(toNotify: TestResultSdipFsNotification, `type`: NotificationTestTypeSdipFs)
-                                          (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  protected def processTestForSdipFsNotification(
+    toNotify: TestResultSdipFsNotification,
+    `type`: NotificationTestTypeSdipFs
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    val notificationProgressStatus = Try{(`type`, toNotify.applicationStatus) match {
-      case(n: FailedTestTypeSdipFs, status) =>
-        getProgressStatusForSdipFsFailedNotified(status)
-      case(n: SuccessfulTestTypeSdipFs, status) =>
-        getProgressStatusForSdipFsPassedNotified(status)
-    }}
+    val notificationProgressStatus = Try {
+      (`type`, toNotify.applicationStatus) match {
+        case (n: FailedTestTypeSdipFs, status) =>
+          getProgressStatusForSdipFsFailedNotified(status)
+        case (n: SuccessfulTestTypeSdipFs, status) =>
+          getProgressStatusForSdipFsPassedNotified(status)
+      }
+    }
 
     for {
       notificationStatus <- Future.fromTry(notificationProgressStatus)
@@ -123,8 +131,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
   }
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-    invitationDate: DateTime, expirationDate: DateTime
-  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    invitationDate: DateTime, expirationDate: DateTime)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
       audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))
@@ -147,8 +154,10 @@ trait OnlineTestService extends TimeExtension with EventSink {
     )
   }
 
-  protected def processExpiredTest(expiringTest: ExpiringOnlineTest, expiryType: TestExpirationEvent)
-                                  (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  protected def processExpiredTest(
+    expiringTest: ExpiringOnlineTest,
+    expiryType: TestExpirationEvent
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
       _ <- commitProgressStatus(expiringTest.applicationId, expiryType.expiredStatus)
@@ -164,8 +173,8 @@ trait OnlineTestService extends TimeExtension with EventSink {
   )
 
   def updateCubiksTestsById(cubiksUserId: Int, cubiksTests: List[CubiksTest], updateFn: CubiksTest => CubiksTest) = cubiksTests.collect {
-      case t if t.cubiksUserId == cubiksUserId => updateFn(t)
-      case t => t
+    case t if t.cubiksUserId == cubiksUserId => updateFn(t)
+    case t => t
   }
 
   def assertUniqueTestByCubiksUserId(cubiksTests: List[CubiksTest], cubiksUserId: Int) = {
@@ -179,15 +188,16 @@ trait OnlineTestService extends TimeExtension with EventSink {
   }
 
   private def emailCandidate(applicationId: String, preferredName: String, emailAddress: String, template: String,
-                             status: ProgressStatuses.ProgressStatus)
-                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    status: ProgressStatuses.ProgressStatus)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     emailClient.sendEmailWithName(emailAddress, preferredName, template).map {
       _ => generateEmailEvents(applicationId, status, emailAddress, preferredName, template)
     }
   }
 
-  def commitProgressStatus(applicationId: String, status: ProgressStatuses.ProgressStatus)
-                          (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  def commitProgressStatus(
+    applicationId: String,
+    status: ProgressStatuses.ProgressStatus
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     appRepository.addProgressStatusAndUpdateAppStatus(applicationId, status).map { _ =>
       generateStatusEvents(applicationId, status: ProgressStatuses.ProgressStatus)
     }
@@ -198,43 +208,42 @@ trait OnlineTestService extends TimeExtension with EventSink {
     val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
     val passedStates = PHASE3_TESTS_PASSED_NOTIFIED :: Nil
 
-    if(expiredStates.contains(status)) {
-      AuditEvents.ApplicationExpired(Map("applicationId" -> applicationId, "status" -> status )) ::
+    if (expiredStates.contains(status)) {
+      AuditEvents.ApplicationExpired(Map("applicationId" -> applicationId, "status" -> status)) ::
         DataStoreEvents.ApplicationExpired(applicationId) :: Nil
-    }
-    else if(passedStates.contains(status)) {
-      AuditEvents.ApplicationReadyForExport(Map("applicationId" -> applicationId, "status" -> status )) ::
+    } else if (passedStates.contains(status)) {
+      AuditEvents.ApplicationReadyForExport(Map("applicationId" -> applicationId, "status" -> status)) ::
         DataStoreEvents.ApplicationReadyForExport(applicationId) :: Nil
-    }
-    else { Nil }
+    } else { Nil }
 
   }
 
-  private[onlinetesting] def generateEmailEvents(applicationId: String,
-                                                 status: ProgressStatuses.ProgressStatus,
-                                                 email: String, to: String, template: String): StcEvents = {
+  private[onlinetesting] def generateEmailEvents(
+    applicationId: String,
+    status: ProgressStatuses.ProgressStatus,
+    email: String, to: String, template: String
+  ): StcEvents = {
 
     val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
     val failedStates = PHASE1_TESTS_FAILED_NOTIFIED :: PHASE2_TESTS_FAILED_NOTIFIED :: PHASE3_TESTS_FAILED_NOTIFIED :: Nil
     val passedStates = PHASE3_TESTS_PASSED_NOTIFIED :: Nil
     val data = Map("applicationId" -> applicationId, "emailAddress" -> email, "to" -> to, "template" -> template)
-    if(expiredStates.contains(status)) {
+    if (expiredStates.contains(status)) {
       AuditEvents.ExpiredTestEmailSent(data) :: Nil
-    }
-    else if (failedStates.contains(status)) {
+    } else if (failedStates.contains(status)) {
       AuditEvents.FailedTestEmailSent(data) :: Nil
-    }
-    else if(passedStates.contains(status)) {
+    } else if (passedStates.contains(status)) {
       AuditEvents.SuccessTestEmailSent(data) :: Nil
-    }
-    else { Nil }
+    } else { Nil }
 
   }
 
   protected def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
 
-  protected def processReminder(expiringTest: NotificationExpiringOnlineTest,
-                                reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+  protected def processReminder(
+    expiringTest: NotificationExpiringOnlineTest,
+    reminder: ReminderNotice
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
       _ <- commitNotificationExpiringTestProgressStatus(expiringTest, reminder, emailAddress)
@@ -244,9 +253,10 @@ trait OnlineTestService extends TimeExtension with EventSink {
   private def commitNotificationExpiringTestProgressStatus(
     expiringTest: NotificationExpiringOnlineTest,
     reminder: ReminderNotice,
-    email: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    email: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     appRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, reminder.progressStatuses).map { _ =>
-      AuditEvents.ApplicationExpiryReminder(Map("applicationId" -> expiringTest.applicationId, "status" -> reminder.progressStatuses )) ::
+      AuditEvents.ApplicationExpiryReminder(Map("applicationId" -> expiringTest.applicationId, "status" -> reminder.progressStatuses)) ::
         DataStoreEvents.ApplicationExpiryReminder(expiringTest.applicationId) :: Nil
     }
   }

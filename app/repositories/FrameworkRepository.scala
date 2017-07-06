@@ -63,14 +63,14 @@ object FrameworkRepository {
     val MAX = 3
 
     def from(personalDetails: PersonalDetails): CandidateHighestQualification =
-    /* From fasttrack
+      /* From fasttrack
       if (personalDetails.stemLevel) {
         CandidateHighestQualification.A_LEVELS_C_PLUS_STEM
       } else if (personalDetails.aLevel) {
         CandidateHighestQualification.A_LEVELS_D_PLUS
       } else { */
-        CandidateHighestQualification.GCSE
-      // }
+      CandidateHighestQualification.GCSE
+    // }
   }
 }
 

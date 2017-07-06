@@ -63,10 +63,11 @@ trait EventsParsingService {
 
     fileContents.flatMap { centres =>
 
-      FutureEx.traverseSerial(centres.zipWithIndex) { case (line, idx) =>
-        stringToEvent(line).recoverWith {
-          case ex => throw new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
-        }
+      FutureEx.traverseSerial(centres.zipWithIndex) {
+        case (line, idx) =>
+          stringToEvent(line).recoverWith {
+            case ex => throw new Exception(s"Error on L${idx + 1} of the CSV. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
+          }
       }
     }
   }
@@ -84,7 +85,7 @@ trait EventsParsingService {
     val minViableAttendees = items(8).toInt
     val attendeeSafetyMargin = items(9).toInt
 
-    if(description.length > 10) throw new Exception("Event description cannot be more than 10 characters")
+    if (description.length > 10) throw new Exception("Event description cannot be more than 10 characters")
 
     val skillRequirements: Map[String, Int] =
       skillsIdxTable.map {

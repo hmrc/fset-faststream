@@ -19,13 +19,15 @@ package model.report
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class TimeToOfferPartialItem(userId: String,
-                                  fullName: Option[String],
-                                  preferredName: Option[String],
-                                  submittedDate: Option[DateTime],
-                                  exportedDate: Option[DateTime],
-                                  updateExported: Option[DateTime],
-                                  fsacIndicator: Option[String])
+case class TimeToOfferPartialItem(
+  userId: String,
+  fullName: Option[String],
+  preferredName: Option[String],
+  submittedDate: Option[DateTime],
+  exportedDate: Option[DateTime],
+  updateExported: Option[DateTime],
+  fsacIndicator: Option[String]
+)
 
 object TimeToOfferPartialItem {
   implicit val timeToOfferPartialItemFormat = Json.format[TimeToOfferPartialItem]

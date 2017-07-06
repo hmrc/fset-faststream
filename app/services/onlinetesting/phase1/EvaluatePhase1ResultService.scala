@@ -34,8 +34,8 @@ object EvaluatePhase1ResultService extends EvaluatePhase1ResultService {
   val phase = Phase.PHASE1
 }
 
-trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
-  Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] {
+trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1PassMarkSettings]
+    with Phase1TestSelector with Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] {
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase1 appId=${application.applicationId}")
@@ -52,8 +52,10 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
     }
   }
 
-  private def getSchemeResults(sjqTestOpt: Option[CubiksTest], bqTestOpt: Option[CubiksTest])
-                              (implicit application: ApplicationReadyForEvaluation,passmark: Phase1PassMarkSettings) =
+  private def getSchemeResults(
+    sjqTestOpt: Option[CubiksTest],
+    bqTestOpt: Option[CubiksTest]
+  )(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings) =
     (sjqTestOpt, bqTestOpt) match {
       case (Some(sjqTest), None) if application.isGis && sjqTest.testResult.isDefined =>
         evaluateForGis(getSchemesToEvaluate(application), sjqTest.testResult.get, passmark)
@@ -61,7 +63,7 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
         evaluateForNonGis(getSchemesToEvaluate(application), sjqTest.testResult.get, bqTest.testResult.get, passmark)
       case _ =>
         throw new IllegalStateException(s"Illegal number of active tests with results for this application: ${application.applicationId}")
-  }
+    }
 
   private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation) = {
     if (evaluateSdipOnly(application)) {

@@ -30,7 +30,6 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
-
 class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
 

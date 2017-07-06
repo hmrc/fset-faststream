@@ -19,16 +19,17 @@ package model.report
 import model.persisted.ContactDetailsWithId
 import play.api.libs.json.Json
 
-case class AnalyticalSchemesReportItem(firstName: Option[String],
-                                       lastName: Option[String],
-                                       email: Option[String],
-                                       firstSchemePreference: Option[String],
-                                       guaranteedInterviewScheme: Option[String],
-                                       behaviouralTScore: Option[String],
-                                       situationalTScore: Option[String],
-                                       etrayTScore: Option[String],
-                                       overallVideoInterviewScore: Option[String]
-                         )
+case class AnalyticalSchemesReportItem(
+  firstName: Option[String],
+  lastName: Option[String],
+  email: Option[String],
+  firstSchemePreference: Option[String],
+  guaranteedInterviewScheme: Option[String],
+  behaviouralTScore: Option[String],
+  situationalTScore: Option[String],
+  etrayTScore: Option[String],
+  overallVideoInterviewScore: Option[String]
+)
 
 object AnalyticalSchemesReportItem {
   def apply(application: ApplicationForAnalyticalSchemesReport, contactDetails: ContactDetailsWithId): AnalyticalSchemesReportItem = {

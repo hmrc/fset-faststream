@@ -18,7 +18,7 @@ package model.persisted
 
 import play.api.libs.json.Json
 import repositories.csv.FSACIndicatorCSVRepository
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class FSACIndicator(area: String, assessmentCentre: String, version: String)
 

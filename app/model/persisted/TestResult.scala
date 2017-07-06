@@ -20,7 +20,8 @@ import controllers.OnlineTest
 import play.api.libs.json.{ Format, Json }
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class TestResult(status: String,
+case class TestResult(
+  status: String,
   norm: String,
   tScore: Option[Double],
   percentile: Option[Double],
@@ -31,7 +32,8 @@ case class TestResult(status: String,
 object TestResult {
 
   def fromCommandObject(o: model.OnlineTestCommands.TestResult): TestResult = {
-    TestResult(status = o.status,
+    TestResult(
+      status = o.status,
       norm = o.norm,
       tScore = o.tScore,
       percentile = o.percentile,

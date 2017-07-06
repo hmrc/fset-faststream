@@ -21,11 +21,11 @@ import play.api.libs.json.Json
 import model.OnlineTestCommands.Implicits._
 
 case class TestResultsForOnlineTestPassMarkReportItem(
-                                                      behavioural: Option[TestResult],
-                                                      situational: Option[TestResult],
-                                                      etray: Option[TestResult],
-                                                      videoInterview: Option[VideoInterviewTestResult]
-                                                     )
+  behavioural: Option[TestResult],
+  situational: Option[TestResult],
+  etray: Option[TestResult],
+  videoInterview: Option[VideoInterviewTestResult]
+)
 
 object TestResultsForOnlineTestPassMarkReportItem {
   implicit val testResultsForOnlineTestPassMarkReportItemFormat = Json.format[TestResultsForOnlineTestPassMarkReportItem]

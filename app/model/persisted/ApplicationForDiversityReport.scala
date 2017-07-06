@@ -20,17 +20,18 @@ import model.ApplicationRoute._
 import model.SchemeType._
 import play.api.libs.json.Json
 
-case class ApplicationForDiversityReport(applicationId: String,
-                                             userId: String,
-                                             applicationRoute: ApplicationRoute,
-                                             progress: Option[String],
-                                             schemes: List[SchemeType],
-                                             disability: Option[String],
-                                             gis: Option[Boolean],
-                                             onlineAdjustments: Option[String],
-                                             assessmentCentreAdjustments: Option[String],
-                                             civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsForDiversityReport]
-                                            )
+case class ApplicationForDiversityReport(
+  applicationId: String,
+  userId: String,
+  applicationRoute: ApplicationRoute,
+  progress: Option[String],
+  schemes: List[SchemeType],
+  disability: Option[String],
+  gis: Option[Boolean],
+  onlineAdjustments: Option[String],
+  assessmentCentreAdjustments: Option[String],
+  civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsForDiversityReport]
+)
 
 object ApplicationForDiversityReport {
   implicit val applicationForDiversityReportFormat = Json.format[ApplicationForDiversityReport]

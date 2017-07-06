@@ -21,8 +21,8 @@ import model.{ ApplicationRoute, SchemeType }
 object ApplicationForDiversityReportItemExamples {
 
   val Example1 = ApplicationForDiversityReportItem(Some("phase1_tests_completed"), ApplicationRoute.Faststream,
-      List(SchemeType.DiplomaticService, SchemeType.Commercial), Some("No"), Some(false), Some("No"), Some("No"),
-      Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some(""))))
+    List(SchemeType.DiplomaticService, SchemeType.Commercial), Some("No"), Some(false), Some("No"), Some("No"),
+    Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some(""))))
 
   val Example2 =
     ApplicationForDiversityReportItem(Some("submitted"), ApplicationRoute.Faststream,

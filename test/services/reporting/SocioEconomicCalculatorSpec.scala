@@ -37,43 +37,43 @@ class SocioEconomicCalculatorSpec extends UnitSpec {
     }
 
     "calculate the employment status size of '7- Other employees" in {
-      calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant1) must be (SocioEconomicCalculator.OtherEmployees)
-      calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant2) must be (SocioEconomicCalculator.OtherEmployees)
+      calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant1) must be(SocioEconomicCalculator.OtherEmployees)
+      calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant2) must be(SocioEconomicCalculator.OtherEmployees)
     }
 
     "calculate the employment status size of '6- Supervisors" in {
-      calculator.calculateEmploymentStatusSize(supervisors_6_Variant1) must be (SocioEconomicCalculator.Supervisors)
-      calculator.calculateEmploymentStatusSize(supervisors_6_Variant2) must be (SocioEconomicCalculator.Supervisors)
+      calculator.calculateEmploymentStatusSize(supervisors_6_Variant1) must be(SocioEconomicCalculator.Supervisors)
+      calculator.calculateEmploymentStatusSize(supervisors_6_Variant2) must be(SocioEconomicCalculator.Supervisors)
     }
 
     "calculate the employment status size of '5- Managers-small organisations" in {
-      calculator.calculateEmploymentStatusSize(managers_5_Variant1) must be (SocioEconomicCalculator.ManagersSmallOrganisations)
-      calculator.calculateEmploymentStatusSize(managers_5_Variant2) must be (SocioEconomicCalculator.ManagersSmallOrganisations)
-      calculator.calculateEmploymentStatusSize(managers_5_Variant2) must be (SocioEconomicCalculator.ManagersSmallOrganisations)
+      calculator.calculateEmploymentStatusSize(managers_5_Variant1) must be(SocioEconomicCalculator.ManagersSmallOrganisations)
+      calculator.calculateEmploymentStatusSize(managers_5_Variant2) must be(SocioEconomicCalculator.ManagersSmallOrganisations)
+      calculator.calculateEmploymentStatusSize(managers_5_Variant2) must be(SocioEconomicCalculator.ManagersSmallOrganisations)
     }
 
     "calculate the employment status size of '4- Managers-large organisations" in {
-      calculator.calculateEmploymentStatusSize(managers_4_Variant1) must be (SocioEconomicCalculator.ManagersLargeOrganisations)
-      calculator.calculateEmploymentStatusSize(managers_4_Variant2) must be (SocioEconomicCalculator.ManagersLargeOrganisations)
-      calculator.calculateEmploymentStatusSize(managers_4_Variant2) must be (SocioEconomicCalculator.ManagersLargeOrganisations)
+      calculator.calculateEmploymentStatusSize(managers_4_Variant1) must be(SocioEconomicCalculator.ManagersLargeOrganisations)
+      calculator.calculateEmploymentStatusSize(managers_4_Variant2) must be(SocioEconomicCalculator.ManagersLargeOrganisations)
+      calculator.calculateEmploymentStatusSize(managers_4_Variant2) must be(SocioEconomicCalculator.ManagersLargeOrganisations)
     }
 
     "calculate the employment status size of '3- Self-employed, no employees" in {
-      calculator.calculateEmploymentStatusSize(self_employed_3_Variant1) must be (SocioEconomicCalculator.SelfEmployedNoEmployees)
-      calculator.calculateEmploymentStatusSize(self_employed_3_Variant2) must be (SocioEconomicCalculator.SelfEmployedNoEmployees)
-      calculator.calculateEmploymentStatusSize(self_employed_3_Variant3) must be (SocioEconomicCalculator.SelfEmployedNoEmployees)
+      calculator.calculateEmploymentStatusSize(self_employed_3_Variant1) must be(SocioEconomicCalculator.SelfEmployedNoEmployees)
+      calculator.calculateEmploymentStatusSize(self_employed_3_Variant2) must be(SocioEconomicCalculator.SelfEmployedNoEmployees)
+      calculator.calculateEmploymentStatusSize(self_employed_3_Variant3) must be(SocioEconomicCalculator.SelfEmployedNoEmployees)
     }
 
     "calculate the employment status size of '2- Employers-small organisations" in {
-      calculator.calculateEmploymentStatusSize(employers_2_Variant1) must be (SocioEconomicCalculator.EmployersSmallOrganisations)
-      calculator.calculateEmploymentStatusSize(employers_2_Variant2) must be (SocioEconomicCalculator.EmployersSmallOrganisations)
-      calculator.calculateEmploymentStatusSize(employers_2_Variant3) must be (SocioEconomicCalculator.EmployersSmallOrganisations)
+      calculator.calculateEmploymentStatusSize(employers_2_Variant1) must be(SocioEconomicCalculator.EmployersSmallOrganisations)
+      calculator.calculateEmploymentStatusSize(employers_2_Variant2) must be(SocioEconomicCalculator.EmployersSmallOrganisations)
+      calculator.calculateEmploymentStatusSize(employers_2_Variant3) must be(SocioEconomicCalculator.EmployersSmallOrganisations)
     }
 
     "calculate the employment status size of '1- Employers-large organisations" in {
-      calculator.calculateEmploymentStatusSize(employers_1_Variant1) must be (SocioEconomicCalculator.EmployersLargeOrganisations)
-      calculator.calculateEmploymentStatusSize(employers_1_Variant2) must be (SocioEconomicCalculator.EmployersLargeOrganisations)
-      calculator.calculateEmploymentStatusSize(employers_1_Variant3) must be (SocioEconomicCalculator.EmployersLargeOrganisations)
+      calculator.calculateEmploymentStatusSize(employers_1_Variant1) must be(SocioEconomicCalculator.EmployersLargeOrganisations)
+      calculator.calculateEmploymentStatusSize(employers_1_Variant2) must be(SocioEconomicCalculator.EmployersLargeOrganisations)
+      calculator.calculateEmploymentStatusSize(employers_1_Variant3) must be(SocioEconomicCalculator.EmployersLargeOrganisations)
     }
 
     "calculate the socio-economic score of unemployed" in {

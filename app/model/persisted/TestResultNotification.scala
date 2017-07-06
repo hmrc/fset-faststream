@@ -19,11 +19,11 @@ package model.persisted
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONDocument
 
-
 case class TestResultNotification(
   applicationId: String,
   userId: String,
-  preferredName: String)
+  preferredName: String
+)
 
 object TestResultNotification {
   def fromBson(doc: BSONDocument) = {

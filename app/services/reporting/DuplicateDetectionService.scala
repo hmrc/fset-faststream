@@ -59,7 +59,7 @@ trait DuplicateDetectionService {
   }
 
   private def findDuplicates(source: List[UserApplicationProfile], population: List[UserApplicationProfile],
-                             userIdsToEmails: Map[String, String]) = {
+    userIdsToEmails: Map[String, String]) = {
     def normalise(s: String) = s.trim.toLowerCase()
     def takeThreeFields(u: UserApplicationProfile) = (normalise(u.firstName), normalise(u.lastName), u.dateOfBirth)
     def takeFirstNameAndLastName(u: UserApplicationProfile) = (normalise(u.firstName), normalise(u.lastName))
@@ -89,8 +89,8 @@ trait DuplicateDetectionService {
       // duplicates*InTwoFields lists. It needs to be added "manually" as the head to be present in the final report.
       val duplicatesInTwoFields = s ::
         duplicatesFirstNameLastName ++
-          duplicatesFirstNameDoB ++
-          duplicatesDoBLastName
+        duplicatesFirstNameDoB ++
+        duplicatesDoBLastName
 
       List(
         selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, duplicatesInThreeFields, userIdsToEmails),
@@ -100,7 +100,7 @@ trait DuplicateDetectionService {
   }
 
   private def selectDuplicatesOnlyOpt(matchGroup: Int, duplicatesGroup: List[UserApplicationProfile],
-                                      userIdsToEmails: Map[String, String]) = {
+    userIdsToEmails: Map[String, String]) = {
     def toDuplicateCandidate(app: UserApplicationProfile) = {
       DuplicateCandidate(
         userIdsToEmails.getOrElse(app.userId, ""),

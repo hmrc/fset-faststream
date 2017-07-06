@@ -18,8 +18,10 @@ package model.exchange
 
 import play.api.libs.json.Json
 
-case class PartnerGraduateProgrammesExchange(interested: Boolean,
-                                             partnerGraduateProgrammes: Option[List[String]])
+case class PartnerGraduateProgrammesExchange(
+  interested: Boolean,
+  partnerGraduateProgrammes: Option[List[String]]
+)
 
 object PartnerGraduateProgrammesExchange {
   implicit val partnerGraduateProgrammesExchangeFormat = Json.format[PartnerGraduateProgrammesExchange]

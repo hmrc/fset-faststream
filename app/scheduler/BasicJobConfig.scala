@@ -27,8 +27,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.util.Try
 
-case class BasicJobConfig[T <: ScheduledJobConfigurable] (configPrefix: String, name: String)
-                                                         (implicit reader: ValueReader[T]){
+case class BasicJobConfig[T <: ScheduledJobConfigurable](configPrefix: String, name: String)(implicit reader: ValueReader[T]) {
   import play.api.Play.current
 
   lazy val conf: T = configuration.underlying.as[T](configPrefix)

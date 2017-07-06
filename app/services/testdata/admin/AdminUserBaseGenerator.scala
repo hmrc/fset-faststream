@@ -24,6 +24,5 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 
 trait AdminUserBaseGenerator {
-  def generate(generationId: Int, generatorData: CreateAdminData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminResponse]
+  def generate(generationId: Int, generatorData: CreateAdminData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminResponse]
 }

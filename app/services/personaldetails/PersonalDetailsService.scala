@@ -66,8 +66,10 @@ trait PersonalDetailsService {
   }
 
   def update(applicationId: String, userId: String, personalDetails: model.command.GeneralDetails): Future[Unit] = {
-    val personalDetailsToPersist = model.persisted.PersonalDetails(personalDetails.firstName,
-      personalDetails.lastName, personalDetails.preferredName, personalDetails.dateOfBirth, personalDetails.edipCompleted)
+    val personalDetailsToPersist = model.persisted.PersonalDetails(
+      personalDetails.firstName,
+      personalDetails.lastName, personalDetails.preferredName, personalDetails.dateOfBirth, personalDetails.edipCompleted
+    )
     val contactDetails = ContactDetails(personalDetails.outsideUk, personalDetails.address, personalDetails.postCode,
       personalDetails.country, personalDetails.email, personalDetails.phone)
 
@@ -80,8 +82,8 @@ trait PersonalDetailsService {
     val contactDetailsUpdateFut = cdRepository.update(userId, contactDetails)
     val fsacIndicator = fsacIndicatorCSVRepository.find(personalDetails.postCode, personalDetails.outsideUk)
     val fsacIndicatorUpdateFut = fsacIndicator.map { fsacIndicatorVal =>
-       fsacIndicatorRepository.update(applicationId, userId,
-         model.persisted.FSACIndicator(fsacIndicatorVal))
+      fsacIndicatorRepository.update(applicationId, userId,
+        model.persisted.FSACIndicator(fsacIndicatorVal))
     }.getOrElse(Future.failed(new FSACCSVIndicatorNotFound(applicationId)))
     val civilServiceExperienceDetailsUpdateFut = personalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
       csedRepository.update(applicationId, civilServiceExperienceDetails)

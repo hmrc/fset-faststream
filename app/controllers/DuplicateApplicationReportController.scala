@@ -33,8 +33,9 @@ trait DuplicateApplicationReportController extends BaseController {
 
   def findPotentialDuplicates = Action.async { implicit request =>
     duplicateDetectionService.findAll.map { potentialDuplications =>
-      val result = potentialDuplications.zipWithIndex.flatMap { case (dup, matchGroup) =>
-        toReportItem(dup, matchGroup)
+      val result = potentialDuplications.zipWithIndex.flatMap {
+        case (dup, matchGroup) =>
+          toReportItem(dup, matchGroup)
       }
       Ok(Json.toJson(result))
     }

@@ -37,6 +37,8 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+import model.persisted.phase3tests.Phase3TestGroup._
+
 object Phase3TestRepository {
   case class CannotFindTestByLaunchpadId(message: String) extends NotFoundException(message)
 }
@@ -61,9 +63,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase3TestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    model.persisted.phase3tests.Phase3TestGroup.phase3TestGroupFormat, ReactiveMongoFormats.objectIdFormats
-  ) with Phase3TestRepository with CommonBSONDocuments {
+    extends ReactiveRepository[Phase3TestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      phase3TestGroupFormat, ReactiveMongoFormats.objectIdFormats) with Phase3TestRepository with CommonBSONDocuments {
 
   override val phaseName = "PHASE3"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE3_TESTS
@@ -79,8 +80,11 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
 
-  override def appendCallback[A](token: String, callbacksKey: String, callback: A)
-                                (implicit handler: BSONHandler[BSONDocument, A]): Future[Unit] = {
+  override def appendCallback[A](
+    token: String,
+    callbacksKey: String,
+    callback: A
+  )(implicit handler: BSONHandler[BSONDocument, A]): Future[Unit] = {
     val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
       "$elemMatch" -> BSONDocument("token" -> token)
     ))
@@ -103,8 +107,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument("applicationId" -> applicationId)
 
     val appStatusBSON = BSONDocument("$set" ->
-      (applicationStatusBSON(PHASE3_TESTS_INVITED) ++ BSONDocument(s"testGroups.$phaseName" -> phase3TestGroup))
-    )
+      (applicationStatusBSON(PHASE3_TESTS_INVITED) ++ BSONDocument(s"testGroups.$phaseName" -> phase3TestGroup)))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
 
@@ -112,15 +115,18 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   def removeTestGroup(applicationId: String): Future[Unit] = {
-    val appStatuses = List(ApplicationStatus.PHASE3_TESTS,
+    val appStatuses = List(
+      ApplicationStatus.PHASE3_TESTS,
       ApplicationStatus.PHASE3_TESTS_FAILED,
-      ApplicationStatus.PHASE3_TESTS_PASSED)
+      ApplicationStatus.PHASE3_TESTS_PASSED
+    )
 
     val phase3Progresses = ProgressStatuses.progressesByApplicationStatus(appStatuses: _*)
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))))
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))
+    ))
 
     val progressesToRemove = phase3Progresses map (p => s"progress-status.$p" -> BSONString(""))
 
@@ -181,8 +187,8 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   private def findAndUpdateLaunchpadTest(launchpadInviteId: String, update: BSONDocument,
-                                         query: BSONDocument = BSONDocument.empty,
-                                         ignoreNotFound: Boolean = false): Future[Unit] = {
+    query: BSONDocument = BSONDocument.empty,
+    ignoreNotFound: Boolean = false): Future[Unit] = {
     val find = query ++ BSONDocument(
       s"testGroups.$phaseName.tests" -> BSONDocument(
         "$elemMatch" -> BSONDocument("token" -> launchpadInviteId)

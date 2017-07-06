@@ -65,11 +65,13 @@ trait ReportingController extends BaseController {
 
   private def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
 
-  private def buildInternshipReportItems(applications: List[ApplicationForInternshipReport],
+  private def buildInternshipReportItems(
+    applications: List[ApplicationForInternshipReport],
     contactDetailsMap: Map[String, ContactDetailsWithId]
   ): List[InternshipReportItem] = {
     applications.map { application =>
-      val contactDetails = contactDetailsMap.getOrElse(application.userId,
+      val contactDetails = contactDetailsMap.getOrElse(
+        application.userId,
         throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
       )
       InternshipReportItem(application, contactDetails)
@@ -89,10 +91,13 @@ trait ReportingController extends BaseController {
     }
   }
 
-  private def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],
-                                   contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
+  private def buildAnalyticalSchemesReportItems(
+    applications: List[ApplicationForAnalyticalSchemesReport],
+    contactDetailsMap: Map[String, ContactDetailsWithId]
+  ): List[AnalyticalSchemesReportItem] = {
     applications.map { application =>
-      val contactDetails = contactDetailsMap.getOrElse(application.userId,
+      val contactDetails = contactDetailsMap.getOrElse(
+        application.userId,
         throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
       )
       AnalyticalSchemesReportItem(application, contactDetails)
@@ -122,7 +127,7 @@ trait ReportingController extends BaseController {
   def candidateProgressReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val candidatesFut: Future[List[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
 
-    for{
+    for {
       candidates <- candidatesFut
     } yield Ok(Json.toJson(candidates))
   }
@@ -161,7 +166,8 @@ trait ReportingController extends BaseController {
         DiversityReportItem(
           ApplicationForDiversityReportItem.create(application),
           questionnaires.get(application.applicationId),
-          medias.get(application.userId).map { m => MediaReportItem(m.media) })
+          medias.get(application.userId).map { m => MediaReportItem(m.media) }
+        )
       }
     }
     reports.map { list =>
@@ -232,10 +238,10 @@ trait ReportingController extends BaseController {
   //scalastyle:off method.length
   private def preferencesAndContactReports(nonSubmittedOnly: Boolean)(frameworkId: String) = Action.async { implicit request =>
     def mergeApplications(
-                           users: Map[String, PreferencesWithContactDetails],
-                           contactDetails: List[ContactDetailsWithId],
-                           applications: List[(String, IsNonSubmitted, PreferencesWithContactDetails)]
-                         ) = {
+      users: Map[String, PreferencesWithContactDetails],
+      contactDetails: List[ContactDetailsWithId],
+      applications: List[(String, IsNonSubmitted, PreferencesWithContactDetails)]
+    ) = {
       def getStatus(progress: Option[ProgressResponse]): String = progress match {
         case Some(p) => ProgressStatusesReportLabels.progressStatusNameInReports(p)
         case None => ProgressStatusesReportLabels.RegisteredProgress
@@ -270,9 +276,9 @@ trait ReportingController extends BaseController {
       }
     }
     def getApplicationsNotToIncludeInReport(
-                                             createdApplications: List[(String, IsNonSubmitted, PreferencesWithContactDetails)],
-                                             nonSubmittedOnly: Boolean
-                                           ) = {
+      createdApplications: List[(String, IsNonSubmitted, PreferencesWithContactDetails)],
+      nonSubmittedOnly: Boolean
+    ) = {
       if (nonSubmittedOnly) {
         createdApplications.collect { case (userId, false, _) => userId }.toSet
       } else {

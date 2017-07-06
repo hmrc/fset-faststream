@@ -29,7 +29,9 @@ object Phase1PassMarkSettingsService extends PassMarkSettingsService[Phase1PassM
   val passMarkSettingsRepo = phase1PassMarkSettingsRepository
 
   override def createPassMarkSettings(passMarkSettings: Phase1PassMarkSettings)(
-    implicit jsonFormat: Format[Phase1PassMarkSettings]): Future[PassMarkSettingsCreateResponse] = {
+    implicit
+    jsonFormat: Format[Phase1PassMarkSettings]
+  ): Future[PassMarkSettingsCreateResponse] = {
     for {
       latestPassMarkSettingsOpt <- getLatestPassMarkSettings
       merged = Phase1PassMarkSettings.merge(latestPassMarkSettingsOpt, passMarkSettings)
@@ -51,6 +53,7 @@ trait PassMarkSettingsService[T <: PassMarkSettings] {
 
   def getLatestPassMarkSettings(implicit jsonFormat: Format[T]): Future[Option[T]] = passMarkSettingsRepo.getLatestVersion
 
-  def createPassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T]):Future[PassMarkSettingsCreateResponse]
-      = passMarkSettingsRepo.create(passMarkSettings)
+  def createPassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T]): Future[PassMarkSettingsCreateResponse] = {
+    passMarkSettingsRepo.create(passMarkSettings)
+  }
 }

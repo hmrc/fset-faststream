@@ -20,12 +20,13 @@ import model.persisted.CivilServiceExperienceDetailsForDiversityReport
 import play.api.libs.json.Json
 
 case class CivilServiceExperienceDetailsReportItem(
-                                                    isCivilServant: Option[String],
-                                                    isFastTrack: Option[String],
-                                                    isEDIP: Option[String],
-                                                    isSDIPPre2016: Option[String],
-                                                    isSDIP2016: Option[String],
-                                                    fastPassCertificate: Option[String])
+  isCivilServant: Option[String],
+  isFastTrack: Option[String],
+  isEDIP: Option[String],
+  isSDIPPre2016: Option[String],
+  isSDIP2016: Option[String],
+  fastPassCertificate: Option[String]
+)
 
 object CivilServiceExperienceDetailsReportItem {
   implicit val civilServiceExperienceDetailsReportItemFormat = Json.format[CivilServiceExperienceDetailsReportItem]
@@ -38,6 +39,7 @@ object CivilServiceExperienceDetailsReportItem {
       isEDIP = civilServiceExperience.isEDIP,
       isSDIPPre2016 = civilServiceExperience.isSDIPPre2016,
       isSDIP2016 = civilServiceExperience.isSDIP2016,
-      fastPassCertificate = civilServiceExperience.fastPassCertificate)
+      fastPassCertificate = civilServiceExperience.fastPassCertificate
+    )
   }
 }

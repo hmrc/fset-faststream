@@ -16,7 +16,7 @@
 
 package model.report
 
-import model.Commands.{PhoneAndEmail, ReportWithPersonalDetails}
+import model.Commands.{ PhoneAndEmail, ReportWithPersonalDetails }
 import model.OnlineTestCommands.TestResult
 import play.api.libs.json.Json
 import model.Commands.Implicits._
@@ -24,12 +24,15 @@ import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
 
 case class OnlineTestPassMarkReportItem(
-                           application: ApplicationForOnlineTestPassMarkReportItem,
-                           questionnaire: QuestionnaireReportItem)
+  application: ApplicationForOnlineTestPassMarkReportItem,
+  questionnaire: QuestionnaireReportItem
+)
 
-case class PassMarkReportWithPersonalData(application: ReportWithPersonalDetails,
-                                          testResults: TestResultsForOnlineTestPassMarkReportItem,
-                                          contactDetails: PhoneAndEmail)
+case class PassMarkReportWithPersonalData(
+  application: ReportWithPersonalDetails,
+  testResults: TestResultsForOnlineTestPassMarkReportItem,
+  contactDetails: PhoneAndEmail
+)
 
 object PassMarkReportWithPersonalData {
   implicit val passMarkReportWithPersonalDetailsFormat = Json.format[PassMarkReportWithPersonalData]

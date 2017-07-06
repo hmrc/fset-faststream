@@ -35,8 +35,8 @@ sealed trait DataStoreEvent extends StcEventType {
 object DataStoreEvent {
   import scala.language.implicitConversions
 
-  implicit def toDataStoreEvent(dataStoreEvent: DataStoreEvent): model.persisted.StcEvent =
-    StcEvent(dataStoreEvent.eventName, dataStoreEvent.eventCreated, dataStoreEvent.applicationId, dataStoreEvent.userId, dataStoreEvent.createdBy)
+  implicit def toDataStoreEvent(event: DataStoreEvent): model.persisted.StcEvent =
+    StcEvent(event.eventName, event.eventCreated, event.applicationId, event.userId, event.createdBy)
 }
 
 sealed trait DataStoreEventWithAppId extends DataStoreEvent {
@@ -93,14 +93,12 @@ object DataStoreEvents {
   case class VideoInterviewRemoved(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewRescheduled(appId: String, createdByUser: String) extends DataStoreEventWithAppId
 
-
   case class ManageAdjustmentsUpdated(appId: String) extends DataStoreEventWithAppId
   case class FastPassApproved(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class FastPassRejected(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class AdjustmentsCommentUpdated(appId: String) extends DataStoreEventWithAppId
   case class AdjustmentsCommentRemoved(appId: String) extends DataStoreEventWithAppId
   // scalastyle:on
-
 
   // scalastyle:on number.of.methods
 }

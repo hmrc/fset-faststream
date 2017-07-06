@@ -23,16 +23,18 @@ import play.api.libs.json.Json
 
 object OnlineTestCommands {
 
-  case class OnlineTestApplication(applicationId: String,
-                                   applicationStatus: String,
-                                   userId: String,
-                                   guaranteedInterview: Boolean,
-                                   needsOnlineAdjustments: Boolean,
-                                   needsAtVenueAdjustments: Boolean,
-                                   preferredName: String,
-                                   lastName: String,
-                                   eTrayAdjustments: Option[AdjustmentDetail],
-                                   videoInterviewAdjustments: Option[AdjustmentDetail]) {
+  case class OnlineTestApplication(
+    applicationId: String,
+      applicationStatus: String,
+      userId: String,
+      guaranteedInterview: Boolean,
+      needsOnlineAdjustments: Boolean,
+      needsAtVenueAdjustments: Boolean,
+      preferredName: String,
+      lastName: String,
+      eTrayAdjustments: Option[AdjustmentDetail],
+      videoInterviewAdjustments: Option[AdjustmentDetail]
+  ) {
     def isInvigilatedETray = eTrayAdjustments.exists(_.invigilatedInfo.isDefined)
     def isInvigilatedVideo = videoInterviewAdjustments.exists(_.invigilatedInfo.isDefined)
   }
@@ -46,17 +48,19 @@ object OnlineTestCommands {
   case class OnlineTestReport(xml: Option[String])
 
   case class CandidateScoresWithPreferencesAndPassmarkSettings(
-                                                                passmarkSettings: Phase1PassMarkSettings, // pass and fail mark
-                                                                preferences: Preferences, // preferences which scheme candidates like
-                                                                scores: CandidateTestReport, // applicationId + scores
-                                                                applicationStatus: String
-                                                              )
+    passmarkSettings: Phase1PassMarkSettings, // pass and fail mark
+    preferences: Preferences, // preferences which scheme candidates like
+    scores: CandidateTestReport, // applicationId + scores
+    applicationStatus: String
+  )
 
-  case class TimeAdjustmentsOnlineTestApplication(etrayTimeAdjustmentPercentage: Int,
-                                                  videoInterviewTimeAdjustmentPercentage: Int)
+  case class TimeAdjustmentsOnlineTestApplication(
+    etrayTimeAdjustmentPercentage: Int,
+    videoInterviewTimeAdjustmentPercentage: Int
+  )
 
   case class TestResult(status: String, norm: String,
-                        tScore: Option[Double], percentile: Option[Double], raw: Option[Double], sten: Option[Double])
+    tScore: Option[Double], percentile: Option[Double], raw: Option[Double], sten: Option[Double])
 
   object Implicits {
     implicit val TimeAdjustmentsOnlineTestApplicationFormats = Json.format[TimeAdjustmentsOnlineTestApplication]

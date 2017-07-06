@@ -19,11 +19,13 @@ package model.persisted
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class PassmarkEvaluation(passmarkVersion: String,
-                              previousPhasePassMarkVersion: Option[String],
-                              result: List[SchemeEvaluationResult],
-                              resultVersion: String,
-                              previousPhaseResultVersion: Option[String])
+case class PassmarkEvaluation(
+  passmarkVersion: String,
+  previousPhasePassMarkVersion: Option[String],
+  result: List[SchemeEvaluationResult],
+  resultVersion: String,
+  previousPhaseResultVersion: Option[String]
+)
 
 object PassmarkEvaluation {
   implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]

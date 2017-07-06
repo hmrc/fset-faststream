@@ -19,21 +19,23 @@ package model.report
 import model.Adjustments
 import play.api.libs.json.Json
 
-final case class AdjustmentReportItem(userId: String,
-                                      applicationId: Option[String],
-                                      firstName: Option[String],
-                                      lastName: Option[String],
-                                      preferredName: Option[String],
-                                      email: Option[String],
-                                      telephone: Option[String],
-                                      gis: Option[String],
-                                      applicationStatus: Option[String],
-                                      needsSupportForOnlineAssessmentDescription: Option[String],
-                                      needsSupportAtVenueDescription: Option[String],
-                                      hasDisability: Option[String],
-                                      hasDisabilityDescription: Option[String],
-                                      adjustments: Option[Adjustments],
-                                      adjustmentsComment: Option[String])
+final case class AdjustmentReportItem(
+  userId: String,
+  applicationId: Option[String],
+  firstName: Option[String],
+  lastName: Option[String],
+  preferredName: Option[String],
+  email: Option[String],
+  telephone: Option[String],
+  gis: Option[String],
+  applicationStatus: Option[String],
+  needsSupportForOnlineAssessmentDescription: Option[String],
+  needsSupportAtVenueDescription: Option[String],
+  hasDisability: Option[String],
+  hasDisabilityDescription: Option[String],
+  adjustments: Option[Adjustments],
+  adjustmentsComment: Option[String]
+)
 
 object AdjustmentReportItem {
   implicit val adjustmentReportFormat = Json.format[AdjustmentReportItem]

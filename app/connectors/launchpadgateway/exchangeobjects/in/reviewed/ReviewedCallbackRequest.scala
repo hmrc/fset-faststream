@@ -21,14 +21,15 @@ import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class ReviewedCallbackRequest(
-  received: DateTime,
-  candidateId: String,
-  customCandidateId: String,
-  interviewId: Int,
-  customInterviewId: Option[String],
-  customInviteId: String,
-  deadline: LocalDate,
-  reviews: ReviewSectionRequest) {
+    received: DateTime,
+    candidateId: String,
+    customCandidateId: String,
+    interviewId: Int,
+    customInterviewId: Option[String],
+    customInviteId: String,
+    deadline: LocalDate,
+    reviews: ReviewSectionRequest
+) {
 
   val reviewers = reviews.reviewers
   val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))

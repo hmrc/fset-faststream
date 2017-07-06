@@ -34,8 +34,7 @@ class PartnerGraduateProgrammesControllerSpec extends UnitWithAppSpec {
 
   "Update" should {
     "return CREATED and update the partnet graduate programmes and audit PartnerGraduateProgrammesSaved event" in new TestFixture {
-      when(mockPartnerGraduateProgrammesService.update(AppId, PartnerGraduateProgrammesExchangeExamples.InterestedNotAll)
-      ).thenReturn(Future.successful(()))
+      when(mockPartnerGraduateProgrammesService.update(AppId, PartnerGraduateProgrammesExchangeExamples.InterestedNotAll)).thenReturn(Future.successful(()))
       val result = controller.update(AppId)(Request)
       status(result) must be(CREATED)
       verify(mockAuditService).logEvent(eqTo("PartnerGraduateProgrammesSaved"))(any[HeaderCarrier], any[RequestHeader])

@@ -62,9 +62,15 @@ trait AssessorService {
       case Some(existing) =>
         exchangeToPersistedAvailability(assessorAvailabilities).flatMap { newAvailabilities =>
           val mergedAvailability = existing.availability ++ newAvailabilities
-          val assessorToPersist = model.persisted.assessor.Assessor(userId, existing.skills, existing.sifterSchemes, existing.civilServant, mergedAvailability,
-            AssessorStatus.AVAILABILITIES_SUBMITTED
-          )
+          val assessorToPersist =
+            model.persisted.assessor.Assessor(
+              userId,
+              existing.skills,
+              existing.sifterSchemes,
+              existing.civilServant,
+              mergedAvailability,
+              AssessorStatus.AVAILABILITIES_SUBMITTED
+            )
 
           assessorRepository.save(assessorToPersist).map(_ => ())
         }
@@ -77,9 +83,10 @@ trait AssessorService {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
       assessorOpt.fold(throw AssessorNotFoundException(userId)) {
-        assessor => assessor.availability.map { availability =>
-          model.exchange.AssessorAvailability.apply(availability)
-        }
+        assessor =>
+          assessor.availability.map { availability =>
+            model.exchange.AssessorAvailability.apply(availability)
+          }
       }
     }
   }
@@ -89,7 +96,7 @@ trait AssessorService {
     location <- locationsWithVenuesRepo.location(locationName)
     assessorList <- assessorRepository.findAvailabilitiesForLocationAndDate(location, date, skills)
   } yield assessorList.map { assessor =>
-      model.exchange.Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
+    model.exchange.Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
   }
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {
@@ -118,6 +125,5 @@ trait AssessorService {
       }
     }
   }
-
 
 }

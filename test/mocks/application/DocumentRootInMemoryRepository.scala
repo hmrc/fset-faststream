@@ -45,11 +45,11 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime) = ???
 
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
-              frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = ???
+    frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = ???
 
   override def find(applicationId: String): Future[Option[Candidate]] = ???
 
-  override def create(userId: String, frameworkId: String, applicationRoute:ApplicationRoute): Future[ApplicationResponse] = {
+  override def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse] = {
 
     val applicationId = java.util.UUID.randomUUID().toString
     val applicationCreated = ApplicationResponse(applicationId, "CREATED", ApplicationRoute.Faststream, userId,
@@ -76,7 +76,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   }
 
   override def findStatus(applicationId: String): Future[ApplicationStatusDetails] = Future.successful(
-    ApplicationStatusDetails("", ApplicationRoute.Faststream, None, None))
+    ApplicationStatusDetails("", ApplicationRoute.Faststream, None, None)
+  )
 
   override def submit(applicationId: String): Future[Unit] = Future.successful(Unit)
 
@@ -86,9 +87,11 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def preview(applicationId: String): Future[Unit] = Future.successful(Unit)
 
-  override def findByCriteria(firstOrPreferredName: Option[String],
+  override def findByCriteria(
+    firstOrPreferredName: Option[String],
     lastName: Option[String], dateOfBirth: Option[LocalDate],
-    userIds: List[String] = List.empty): Future[List[Candidate]] = Future.successful(List.empty[Candidate])
+    userIds: List[String] = List.empty
+  ): Future[List[Candidate]] = Future.successful(List.empty[Candidate])
 
   override def findCandidateByUserId(userId: String): Future[Option[Candidate]] = Future.successful(None)
 
@@ -116,8 +119,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]] = {
     Future.successful(Some(TestResultSdipFsNotification(
-      "31009ccc-1ac3-4d55-9c53-1908a13dc5e1", "fbb466a3-13a3-4dd0-93d6-9dfa764a5555", ApplicationStatus.PHASE2_TESTS_FAILED, "George")
-    ))
+      "31009ccc-1ac3-4d55-9c53-1908a13dc5e1", "fbb466a3-13a3-4dd0-93d6-9dfa764a5555", ApplicationStatus.PHASE2_TESTS_FAILED, "George"
+    )))
   }
 
   override def gisByApplication(applicationId: String): Future[Boolean] = ???

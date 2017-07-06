@@ -78,7 +78,7 @@ class Phase1TestEvaluationSpec extends BaseServiceSpec with TableDrivenPropertyC
 
   "evaluate phase1 tests" should {
     "evaluate schemes for Passmark with AMBER gap" in {
-      forAll (Phase1EvaluationData) { (schemes: List[SchemeType], sjqResult, bqResultOpt: Option[Double], expected: List[Result]) =>
+      forAll(Phase1EvaluationData) { (schemes: List[SchemeType], sjqResult, bqResultOpt: Option[Double], expected: List[Result]) =>
         val result = bqResultOpt match {
           case Some(bqResult) =>
             evaluation.evaluateForNonGis(schemes, createTestResult(sjqResult), createTestResult(bqResult), CurrentPassmarkWithAmbers)
@@ -91,7 +91,7 @@ class Phase1TestEvaluationSpec extends BaseServiceSpec with TableDrivenPropertyC
     }
 
     "evaluate schemes for Passmark without AMBER gap" in {
-      forAll (Phase1EvaluationDataWithoutAmbers) { (schemes: List[SchemeType], sjqResult, bqResultOpt: Option[Double], expected: List[Result]) =>
+      forAll(Phase1EvaluationDataWithoutAmbers) { (schemes: List[SchemeType], sjqResult, bqResultOpt: Option[Double], expected: List[Result]) =>
         val result = bqResultOpt match {
           case Some(bqResult) =>
             evaluation.evaluateForNonGis(schemes, createTestResult(sjqResult), createTestResult(bqResult), CurrentPassmarkWithoutAmbers)

@@ -20,10 +20,10 @@ import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 case class Preferences(
-  firstLocation: LocationPreference,
-  secondLocation: Option[LocationPreference] = None,
-  secondLocationIntended: Option[Boolean] = None,
-  alternatives: Option[Alternatives] = None
+    firstLocation: LocationPreference,
+    secondLocation: Option[LocationPreference] = None,
+    secondLocationIntended: Option[Boolean] = None,
+    alternatives: Option[Alternatives] = None
 ) {
   lazy val isValid: Boolean =
     hasValidLocations &&

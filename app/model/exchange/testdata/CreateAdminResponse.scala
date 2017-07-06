@@ -24,9 +24,9 @@ import play.api.libs.json.{ Json, OFormat }
 object CreateAdminResponse {
 
   case class CreateAdminResponse(generationId: Int, userId: String,
-                                 preferedName: Option[String], email: String,
-                                 firstName: String, lastName: String, phone: Option[String] = None,
-                                 assessor: Option[AssessorResponse] = None) extends CreateTestDataResponse
+    preferedName: Option[String], email: String,
+    firstName: String, lastName: String, phone: Option[String] = None,
+    assessor: Option[AssessorResponse] = None) extends CreateTestDataResponse
 
   object CreateAdminResponse {
     implicit val createAdminResponseFormat: OFormat[CreateAdminResponse] =

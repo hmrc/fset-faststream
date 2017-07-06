@@ -66,9 +66,9 @@ trait ReportingRepository {
 }
 
 class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with ReportingRepository with RandomSelection with
-    CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
+    extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats)
+    with ReportingRepository with RandomSelection with CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
     candidateProgressReport(BSONDocument("$and" -> BSONArray(
@@ -107,7 +107,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
         BSONDocument("$or" -> BSONArray(
           BSONDocument("applicationRoute" -> ApplicationRoute.Edip),
           BSONDocument("applicationRoute" -> ApplicationRoute.Sdip),
-          BSONDocument("applicationRoute" ->  ApplicationRoute.SdipFaststream)
+          BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream)
         )),
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_COMPLETED}" -> true),
         BSONDocument("personal-details" -> BSONDocument("$exists" -> true)),
@@ -161,7 +161,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       "$and" -> BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
         BSONDocument("partner-graduate-programmes.interested" -> true)
-    ))
+      )
+    )
 
     val projection = BSONDocument("userId" -> true, "personal-details" -> true, "partner-graduate-programmes" -> true)
 
@@ -221,7 +222,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
   }
 
-
   // scalstyle:on method.length
   private def overallReportWithPersonalDetails(query: BSONDocument): Future[List[ReportWithPersonalDetails]] = {
     val projection = BSONDocument(
@@ -265,20 +265,16 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
               BSONArray(
                 BSONDocument("applicationRoute" -> "Faststream"),
                 BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
-              )
-            ),
+              )),
             BSONDocument("$or" ->
               BSONArray(
                 BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
                 BSONDocument("assistance-details.needsSupportAtVenue" -> true),
                 BSONDocument("assistance-details.guaranteedInterview" -> true),
                 BSONDocument("assistance-details.adjustmentsConfirmed" -> true)
-              )
-            )
-          )
-        )
-      )
-    )
+              ))
+          ))
+      ))
 
     val projection = BSONDocument(
       "userId" -> "1",
@@ -341,7 +337,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
           hasDisability,
           hasDisabilityDescription,
           adjustments,
-          adjustmentsComment)
+          adjustmentsComment
+        )
       }
     }
   }
@@ -444,10 +441,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
           BSONArray(
             BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
             BSONDocument(s"progress-status.${ApplicationStatus.PHASE1_TESTS_PASSED}" -> true)
-          )
-        )
-      )
-    )
+          ))
+      ))
 
     val projection = BSONDocument(
       "userId" -> true,
@@ -525,21 +520,21 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     timeZoneService.localize(utcMillis).toString("yyyy-MM-dd HH:mm:ss")
 
   private def reportQueryWithProjections[A](
-                                             query: BSONDocument,
-                                             prj: BSONDocument,
-                                             upTo: Int = Int.MaxValue,
-                                             stopOnError: Boolean = true
-                                           )(implicit reader: Format[A]): Future[List[A]] =
+    query: BSONDocument,
+    prj: BSONDocument,
+    upTo: Int = Int.MaxValue,
+    stopOnError: Boolean = true
+  )(implicit reader: Format[A]): Future[List[A]] =
     collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
 
   private def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
 
   private def reportQueryWithProjectionsBSON[A](
-                                                 query: BSONDocument,
-                                                 prj: BSONDocument,
-                                                 upTo: Int = Int.MaxValue,
-                                                 stopOnError: Boolean = true
-                                               )(implicit reader: BSONDocumentReader[A]): Future[List[A]] =
+    query: BSONDocument,
+    prj: BSONDocument,
+    upTo: Int = Int.MaxValue,
+    stopOnError: Boolean = true
+  )(implicit reader: BSONDocumentReader[A]): Future[List[A]] =
     bsonCollection.find(query).projection(prj)
       .cursor[A](ReadPreference.nearest)
       .collect[List](Int.MaxValue, stopOnError = true)

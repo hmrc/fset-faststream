@@ -34,8 +34,8 @@ trait PartnerGraduateProgrammesRepository {
 }
 
 class PartnerGraduateProgrammesMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[PartnerGraduateProgrammes, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    PartnerGraduateProgrammes.partnerGraduateProgrammesFormat, ReactiveMongoFormats.objectIdFormats) with PartnerGraduateProgrammesRepository
+    extends ReactiveRepository[PartnerGraduateProgrammes, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      PartnerGraduateProgrammes.partnerGraduateProgrammesFormat, ReactiveMongoFormats.objectIdFormats) with PartnerGraduateProgrammesRepository
     with ReactiveRepositoryHelpers {
 
   val PartnerGraduateProgrammesCollection = "partner-graduate-programmes"

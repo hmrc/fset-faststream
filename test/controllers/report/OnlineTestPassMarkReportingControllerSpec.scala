@@ -70,10 +70,12 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       result must have size 2
       result must contain(OnlineTestPassMarkReportItem(
         ApplicationForOnlineTestPassMarkReportItemExamples.applicationWithNoTestResult1,
-        QuestionnaireReportItemExamples.questionnaire1))
+        QuestionnaireReportItemExamples.questionnaire1
+      ))
       result must contain(OnlineTestPassMarkReportItem(
         ApplicationForOnlineTestPassMarkReportItemExamples.applicationWithNoTestResult2,
-        QuestionnaireReportItemExamples.questionnaire2))
+        QuestionnaireReportItemExamples.questionnaire2
+      ))
     }
 
     "return applications with questionnaire and test results" in new TestFixture {
@@ -86,10 +88,14 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
 
       status(response) mustBe OK
       result mustBe List(
-        OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItemExamples.application1,
-          QuestionnaireReportItemExamples.questionnaire1),
-        OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItemExamples.application2,
-          QuestionnaireReportItemExamples.questionnaire2)
+        OnlineTestPassMarkReportItem(
+          ApplicationForOnlineTestPassMarkReportItemExamples.application1,
+          QuestionnaireReportItemExamples.questionnaire1
+        ),
+        OnlineTestPassMarkReportItem(
+          ApplicationForOnlineTestPassMarkReportItemExamples.application2,
+          QuestionnaireReportItemExamples.questionnaire2
+        )
       )
     }
   }
@@ -114,25 +120,30 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       ApplicationForOnlineTestPassMarkReportExamples.application1.applicationId ->
         TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
       ApplicationForOnlineTestPassMarkReportExamples.application2.applicationId ->
-        TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
+        TestResultsForOnlineTestPassMarkReportItemExamples.testResults2
+    )
 
     lazy val applications = List(
       ApplicationForOnlineTestPassMarkReportExamples.application1,
-      ApplicationForOnlineTestPassMarkReportExamples.application2)
+      ApplicationForOnlineTestPassMarkReportExamples.application2
+    )
     lazy val applicationsWithNoTestResults = List(
       ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult1,
-      ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult2)
+      ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult2
+    )
 
     lazy val questionnaires = Map(
       ApplicationForOnlineTestPassMarkReportExamples.application1.applicationId ->
         QuestionnaireReportItemExamples.questionnaire1,
       ApplicationForOnlineTestPassMarkReportExamples.application2.applicationId ->
-        QuestionnaireReportItemExamples.questionnaire2)
+        QuestionnaireReportItemExamples.questionnaire2
+    )
     lazy val questionnairesForNoTestResults = Map(
       ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult1.applicationId ->
         QuestionnaireReportItemExamples.questionnaire1,
       ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult2.applicationId ->
-        QuestionnaireReportItemExamples.questionnaire2)
+        QuestionnaireReportItemExamples.questionnaire2
+    )
 
     def request = {
       FakeRequest(Helpers.GET, controllers.routes.ReportingController.onlineTestPassMarkReport(frameworkId).url, FakeHeaders(), "")

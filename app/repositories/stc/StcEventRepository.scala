@@ -32,8 +32,8 @@ trait StcEventRepository {
 }
 
 class StcEventMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[StcEvent, BSONObjectID](CollectionNames.EVENT, mongo, StcEvent.eventFormat,
-    ReactiveMongoFormats.objectIdFormats) with StcEventRepository {
+    extends ReactiveRepository[StcEvent, BSONObjectID](CollectionNames.EVENT, mongo, StcEvent.eventFormat,
+      ReactiveMongoFormats.objectIdFormats) with StcEventRepository {
 
   def create(event: StcEvent): Future[Unit] = {
     val doc = StcEvent.eventHandler.write(event)

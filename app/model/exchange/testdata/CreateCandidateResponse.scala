@@ -26,25 +26,25 @@ import play.api.libs.json.{ Json, OFormat }
 object CreateCandidateResponse {
 
   case class CreateCandidateResponse(
-                                              generationId: Int,
-                                              userId: String,
-                                              applicationId: Option[String],
-                                              email: String,
-                                              firstName: String,
-                                              lastName: String,
-                                              mediaReferrer: Option[String] = None,
-                                              personalDetails: Option[GeneralDetails] = None,
-                                              diversityDetails: Option[List[QuestionnaireQuestion]] = None,
-                                              assistanceDetails: Option[AssistanceDetails] = None,
-                                              phase1TestGroup: Option[TestGroupResponse] = None,
-                                              phase2TestGroup: Option[TestGroupResponse] = None,
-                                              phase3TestGroup: Option[TestGroupResponse] = None,
-                                              applicationAssessment: Option[ApplicationAssessment] = None,
-                                              schemePreferences: Option[SelectedSchemes] = None,
-                                              accessCode: Option[String] = None,
-                                              adjustmentInformation: Option[Adjustments] = None,
-                                              assessor: Option[AssessorResponse] = None
-                                            ) extends CreateTestDataResponse
+    generationId: Int,
+    userId: String,
+    applicationId: Option[String],
+    email: String,
+    firstName: String,
+    lastName: String,
+    mediaReferrer: Option[String] = None,
+    personalDetails: Option[GeneralDetails] = None,
+    diversityDetails: Option[List[QuestionnaireQuestion]] = None,
+    assistanceDetails: Option[AssistanceDetails] = None,
+    phase1TestGroup: Option[TestGroupResponse] = None,
+    phase2TestGroup: Option[TestGroupResponse] = None,
+    phase3TestGroup: Option[TestGroupResponse] = None,
+    applicationAssessment: Option[ApplicationAssessment] = None,
+    schemePreferences: Option[SelectedSchemes] = None,
+    accessCode: Option[String] = None,
+    adjustmentInformation: Option[Adjustments] = None,
+    assessor: Option[AssessorResponse] = None
+  ) extends CreateTestDataResponse
 
   object CreateCandidateResponse {
     implicit val createCandidateResponseFormat: OFormat[CreateCandidateResponse] =

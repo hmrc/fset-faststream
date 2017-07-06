@@ -21,20 +21,22 @@ import model.Commands.{ PhoneNumber, PostCode }
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
-case class GeneralDetails(firstName: String,
-                          lastName: String,
-                          preferredName: String,
-                          email: String,
-                          dateOfBirth: LocalDate,
-                          outsideUk: Boolean,
-                          address: Address,
-                          postCode: Option[PostCode],
-                          fsacIndicator: Option[FSACIndicator],
-                          country: Option[String],
-                          phone: PhoneNumber,
-                          civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
-                          edipCompleted: Option[Boolean],
-                          updateApplicationStatus: Option[Boolean] = None)
+case class GeneralDetails(
+  firstName: String,
+  lastName: String,
+  preferredName: String,
+  email: String,
+  dateOfBirth: LocalDate,
+  outsideUk: Boolean,
+  address: Address,
+  postCode: Option[PostCode],
+  fsacIndicator: Option[FSACIndicator],
+  country: Option[String],
+  phone: PhoneNumber,
+  civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
+  edipCompleted: Option[Boolean],
+  updateApplicationStatus: Option[Boolean] = None
+)
 
 object GeneralDetails {
   implicit val generalDetailsFormat = Json.format[GeneralDetails]

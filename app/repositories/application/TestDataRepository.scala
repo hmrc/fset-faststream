@@ -17,17 +17,19 @@
 package repositories.application
 
 import connectors.ExchangeObjects
-import model.{ ApplicationStatus, _ }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.ContactDetails
+import model.persisted.ContactDetails._
+import model.{ ApplicationStatus, _ }
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.json.ReactiveMongoFormats._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -47,9 +49,8 @@ trait TestDataContactDetailsRepository {
 }
 
 class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.CONTACT_DETAILS, mongo,
-    ContactDetails.contactDetailsFormat, ReactiveMongoFormats.objectIdFormats) with
-    TestDataContactDetailsRepository with ReactiveRepositoryHelpers {
+    extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.CONTACT_DETAILS, mongo,
+      contactDetailsFormat, objectIdFormats) with TestDataContactDetailsRepository with ReactiveRepositoryHelpers {
 
   import Utils.chooseOne
 
@@ -74,8 +75,8 @@ class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
 }
 
 class TestDataMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    ContactDetails.contactDetailsFormat, ReactiveMongoFormats.objectIdFormats) with TestDataRepository
+    extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      ContactDetails.contactDetailsFormat, ReactiveMongoFormats.objectIdFormats) with TestDataRepository
     with ReactiveRepositoryHelpers {
 
   import Utils.chooseOne
@@ -112,8 +113,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
     additionalDoc: BSONDocument = BSONDocument.empty,
     applicationRoute: Option[ApplicationRoute] = None,
-    partnerProgrammes: List[String] = Nil
-  ) = {
+    partnerProgrammes: List[String] = Nil) = {
     import repositories.BSONLocalDateHandler
     val document = BSONDocument(
       "applicationId" -> appId,
@@ -207,11 +207,11 @@ class TestDataMongoRepository(implicit mongo: () => DB)
   }
 
   private def createProgress(
-                              personalDetails: Option[BSONDocument],
-                              assistance: Option[BSONDocument],
-                              isSubmitted: Option[Boolean],
-                              isWithdrawn: Option[Boolean]
-                            ) = {
+    personalDetails: Option[BSONDocument],
+    assistance: Option[BSONDocument],
+    isSubmitted: Option[Boolean],
+    isWithdrawn: Option[Boolean]
+  ) = {
     var progress = BSONDocument.empty
 
     progress = personalDetails.map(_ => progress ++ ("personal-details" -> true)).getOrElse(progress)

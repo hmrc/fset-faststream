@@ -42,15 +42,21 @@ class FastPassServiceSpec extends UnitSpec {
       name mustBe completePersonalDetails.firstName
       surname mustBe completePersonalDetails.lastName
 
-      verifyDataStoreEvents(2,
-        List("FastPassApproved",
-          "ApplicationReadyForExport")
+      verifyDataStoreEvents(
+        2,
+        List(
+          "FastPassApproved",
+          "ApplicationReadyForExport"
+        )
       )
 
-      verifyAuditEvents(3,
-        List("FastPassUserAccepted",
+      verifyAuditEvents(
+        3,
+        List(
+          "FastPassUserAccepted",
           "ApplicationReadyForExport",
-          "FastPassUserAcceptedEmailSent")
+          "FastPassUserAcceptedEmailSent"
+        )
       )
 
       verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
@@ -58,7 +64,8 @@ class FastPassServiceSpec extends UnitSpec {
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
       verify(emailClientMock).sendEmailWithName(
-        eqTo(ContactDetailsUK.email), eqTo(completePersonalDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+        eqTo(ContactDetailsUK.email), eqTo(completePersonalDetails.preferredName), eqTo(underTest.acceptedTemplate)
+      )(any[HeaderCarrier])
       verifyNoMoreInteractions(csedRepositoryMock, appRepoMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
 
     }
@@ -69,11 +76,13 @@ class FastPassServiceSpec extends UnitSpec {
       name mustBe completePersonalDetails.firstName
       surname mustBe completePersonalDetails.lastName
 
-      verifyDataStoreEvents(1,
+      verifyDataStoreEvents(
+        1,
         List("FastPassRejected")
       )
 
-      verifyAuditEvents(1,
+      verifyAuditEvents(
+        1,
         List("FastPassUserRejected")
       )
 
@@ -90,16 +99,17 @@ class FastPassServiceSpec extends UnitSpec {
       when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
       when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceError)
 
-
       val result = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue
 
       result mustBe error
 
-      verifyDataStoreEvents(1,
+      verifyDataStoreEvents(
+        1,
         List("ApplicationReadyForExport")
       )
 
-      verifyAuditEvents(1,
+      verifyAuditEvents(
+        1,
         List("ApplicationReadyForExport")
       )
     }
@@ -109,14 +119,20 @@ class FastPassServiceSpec extends UnitSpec {
     "force a candidate to a fast pass accepted state" in new TextFixtureWithMockResponses {
       underTest.promoteToFastPassCandidate(appId, triggeredBy).futureValue
 
-      verifyDataStoreEvents(2,
-        List("FastPassApproved",
-          "ApplicationReadyForExport")
+      verifyDataStoreEvents(
+        2,
+        List(
+          "FastPassApproved",
+          "ApplicationReadyForExport"
+        )
       )
 
-      verifyAuditEvents(2,
-        List("FastPassUserAccepted",
-          "ApplicationReadyForExport")
+      verifyAuditEvents(
+        2,
+        List(
+          "FastPassUserAccepted",
+          "ApplicationReadyForExport"
+        )
       )
 
       verify(csedRepositoryMock).update(eqTo(appId), eqTo(underTest.fastPassDetails))

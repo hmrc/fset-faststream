@@ -26,8 +26,8 @@ import services.testdata.faker.DataFaker.Random
 object CreateAdminData {
 
   case class CreateAdminData(email: String, firstName: String, lastName: String,
-                             preferredName: String, role: String, phone: Option[String],
-                             assessor: Option[AssessorData]) extends CreateTestData
+    preferredName: String, role: String, phone: Option[String],
+    assessor: Option[AssessorData]) extends CreateTestData
 
   object CreateAdminData {
     def apply(createRequest: CreateAdminRequest)(generatorId: Int): CreateAdminData = {
@@ -44,11 +44,16 @@ object CreateAdminData {
         val sifterSchemes = createRequest.assessor.flatMap(_.sifterSchemes).getOrElse(DataFaker.Random.sifterSchemes)
         val civilServant = createRequest.assessor.flatMap(_.civilServant).getOrElse(DataFaker.Random.bool)
         val availability: Option[List[AssessorAvailability]] = createRequest.assessor.flatMap(assessorRequest => {
-            assessorRequest.availability.map { assessorAvailabilityRequests => {
-              assessorAvailabilityRequests.map { assessorAvailabilityRequest => {
-                AssessorAvailability.apply(assessorAvailabilityRequest)
+          assessorRequest.availability.map { assessorAvailabilityRequests =>
+            {
+              assessorAvailabilityRequests.map { assessorAvailabilityRequest =>
+                {
+                  AssessorAvailability.apply(assessorAvailabilityRequest)
+                }
               }
-            }}}}).orElse(DataFaker.Random.Assessor.availability)
+            }
+          }
+        }).orElse(DataFaker.Random.Assessor.availability)
         Some(AssessorData(skills, sifterSchemes, civilServant, availability))
       } else {
         None
@@ -58,7 +63,12 @@ object CreateAdminData {
 
   }
 
-  case class AssessorData(skills: List[String], sifterSchemes: List[String], civilServant: Boolean, availability: Option[List[AssessorAvailability]])
+  case class AssessorData(
+    skills: List[String],
+    sifterSchemes: List[String],
+    civilServant: Boolean,
+    availability: Option[List[AssessorAvailability]]
+  )
 
   object AssessorData {
     implicit val assessorDataFormat: OFormat[AssessorData] = Json.format[AssessorData]

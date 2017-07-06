@@ -27,14 +27,14 @@ case class ApplicationForNotification(
 )
 
 object ApplicationForNotification {
- def fromBson(doc: BSONDocument) = {
+  def fromBson(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val userId = doc.getAs[String]("userId").get
     val applicationStatus = doc.getAs[String]("applicationStatus").get
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
     ApplicationForNotification(applicationId, userId, preferredName, applicationStatus)
- }
+  }
 
   implicit val applicationForNotificationFormats = Json.format[ApplicationForNotification]
 }

@@ -41,32 +41,35 @@ trait CubiksTestsController extends BaseController {
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId started")
     phase1TestService.markAsStarted(cubiksUserId)
-      .recoverWith { case _: CannotFindTestByCubiksId =>
+      .recoverWith {
+        case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsStarted(cubiksUserId)
-      }.map( _ => Ok )
+      }.map(_ => Ok)
       .recover(recoverNotFound)
   }
 
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId completed")
     phase1TestService.markAsCompleted(cubiksUserId)
-      .recoverWith { case _: CannotFindTestByCubiksId =>
+      .recoverWith {
+        case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsCompleted(cubiksUserId)
-      }.map( _ => Ok )
+      }.map(_ => Ok)
       .recover(recoverNotFound)
   }
 
   /**
-    * Note that this function will result with an ok even if the token is invalid.
-    * This is done on purpose. We want to update the status of the user if the token is correct, but if for
-    * any reason the token is wrong we still want to display the success page.
-    */
+   * Note that this function will result with an ok even if the token is invalid.
+   * This is done on purpose. We want to update the status of the user if the token is correct, but if for
+   * any reason the token is wrong we still want to display the success page.
+   */
   def completeTestByToken(token: String) = Action.async { implicit request =>
     Logger.info(s"Complete test by token $token")
     phase1TestService.markAsCompleted(token)
-      .recoverWith { case _: CannotFindTestByCubiksId =>
+      .recoverWith {
+        case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsCompleted(token)
-      }.map( _ => Ok )
+      }.map(_ => Ok)
       .recover(recoverNotFound)
   }
 
@@ -74,9 +77,10 @@ trait CubiksTestsController extends BaseController {
     withJsonBody[CubiksTestResultReady] { testResultReady =>
       Logger.info(s"Assessment $cubiksUserId has report [$testResultReady] ready to download")
       phase1TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
-        .recoverWith { case _: CannotFindTestByCubiksId =>
+        .recoverWith {
+          case _: CannotFindTestByCubiksId =>
             phase2TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
-        }.map( _ => Ok )
+        }.map(_ => Ok)
         .recover(recoverNotFound)
     }
   }

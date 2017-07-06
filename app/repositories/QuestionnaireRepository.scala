@@ -36,7 +36,6 @@ trait QuestionnaireRepository {
   def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]]
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
 
-
   val GenderQuestionText = "What is your gender identity?"
   val SexualOrientationQuestionText = "What is your sexual orientation?"
   val EthnicityQuestionText = "What is your ethnic group?"
@@ -52,8 +51,8 @@ trait QuestionnaireRepository {
 }
 
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
-  extends ReactiveRepository[QuestionnaireAnswer, BSONObjectID](CollectionNames.QUESTIONNAIRE, mongo,
-    QuestionnaireAnswer.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
+    extends ReactiveRepository[QuestionnaireAnswer, BSONObjectID](CollectionNames.QUESTIONNAIRE, mongo,
+      QuestionnaireAnswer.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
     with ReactiveRepositoryHelpers with BaseBSONReader {
 
   override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = {
@@ -125,7 +124,8 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     def getAnswer(question: String): Option[String] = {
       val questionDoc = questionsDoc.flatMap(_.getAs[BSONDocument](question))
       questionDoc.flatMap(_.getAs[String]("answer")).orElse(
-        questionDoc.flatMap(_.getAs[Boolean]("unknown")).map { unknown => if (unknown) { DontKnowAnswerText } else {""}})
+        questionDoc.flatMap(_.getAs[Boolean]("unknown")).map { unknown => if (unknown) { DontKnowAnswerText } else { "" } }
+      )
     }
     val applicationId = document.getAs[String]("applicationId").get
     val gender = getAnswer(GenderQuestionText)
@@ -135,7 +135,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     val university = getAnswer(UniversityQuestionText)
 
     val employmentStatus = getAnswer(EmploymentStatusQuestionText)
-    val isEmployed = employmentStatus.exists (s => !s.startsWith(UnemployedAnswerText) && !s.startsWith(UnknownAnswerText))
+    val isEmployed = employmentStatus.exists(s => !s.startsWith(UnemployedAnswerText) && !s.startsWith(UnknownAnswerText))
 
     val parentEmploymentStatus = if (isEmployed) Some(EmployedAnswerText) else employmentStatus
     val parentOccupation = if (isEmployed) employmentStatus else None

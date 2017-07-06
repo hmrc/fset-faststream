@@ -33,8 +33,8 @@ object PersistedObjects {
   case class UserIdAndPhoneNumber(userId: String, phoneNumber: Option[PhoneNumber])
 
   case class CandidateTestReport(applicationId: String, reportType: String,
-    competency: Option[TestResult] = None, numerical: Option[TestResult] = None,
-    verbal: Option[TestResult] = None, situational: Option[TestResult] = None) {
+      competency: Option[TestResult] = None, numerical: Option[TestResult] = None,
+      verbal: Option[TestResult] = None, situational: Option[TestResult] = None) {
 
     def isValid(gis: Boolean) = {
       val competencyValid = competency.exists(testIsValid(tScore = true))

@@ -16,7 +16,7 @@
 
 package services.assessor
 
-import org.mockito.ArgumentMatchers.{eq => eqTo}
+import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import services.BaseServiceSpec
 import services.assessoravailability.AssessorService
@@ -26,12 +26,12 @@ import scala.concurrent.duration._
 import model.Exceptions
 import model.Exceptions.AssessorNotFoundException
 import model.persisted.EventExamples
-import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.eventschedules.{ Location, Venue }
 import model.persisted.assessor.AssessorExamples._
 import repositories.AssessorRepository
 import repositories.events.LocationsWithVenuesRepository
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
 class AssessorServiceSpec extends BaseServiceSpec {
@@ -90,7 +90,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
   }
 
-
   "find assessor" must {
     "return assessor details" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturn(Future.successful(Some(AssessorExisting)))
@@ -118,7 +117,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       val response = service.findAvailability(AssessorUserId).futureValue
 
-      val expected = AssessorWithAvailability.availability.map { a => model.exchange.AssessorAvailability.apply(a)}
+      val expected = AssessorWithAvailability.availability.map { a => model.exchange.AssessorAvailability.apply(a) }
 
       response mustBe expected
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))

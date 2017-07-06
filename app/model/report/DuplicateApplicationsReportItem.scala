@@ -16,12 +16,14 @@
 
 package model.report
 
-case class DuplicateApplicationsReportItem(firstName: String,
-                                           lastName: String,
-                                           email: String,
-                                           progress: String,
-                                           matchType: Int,
-                                           matchGroup: Int)
+case class DuplicateApplicationsReportItem(
+  firstName: String,
+  lastName: String,
+  email: String,
+  progress: String,
+  matchType: Int,
+  matchGroup: Int
+)
 
 object DuplicateApplicationsReportItem {
   implicit val duplicateApplicationsReportItemFormat = play.api.libs.json.Json.format[DuplicateApplicationsReportItem]

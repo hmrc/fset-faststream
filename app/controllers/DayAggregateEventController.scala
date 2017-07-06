@@ -18,8 +18,8 @@ package controllers
 
 import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
-import play.api.libs.json.{Json, OFormat}
-import play.api.mvc.{Action, AnyContent}
+import play.api.libs.json.{ Json, OFormat }
+import play.api.mvc.{ Action, AnyContent }
 import repositories.events.{ EventsRepository, LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -36,7 +36,7 @@ trait DayAggregateEventController extends BaseController {
   def eventsRepository: EventsRepository
 
   def findBySkillTypes(skillTypes: String): Action[AnyContent] = Action.async { implicit request =>
-    find(Some(skillTypes), None).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )
+    find(Some(skillTypes), None).map(dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)))
   }
 
   def findBySkillTypesAndLocation(skillTypes: String, location: String): Action[AnyContent] = Action.async { implicit request =>

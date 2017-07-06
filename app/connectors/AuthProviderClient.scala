@@ -69,7 +69,7 @@ trait AuthProviderClient {
     }
 
   def addUser(email: String, password: String, firstName: String,
-              lastName: String, role: UserRole)(implicit hc: HeaderCarrier): Future[UserResponse] =
+    lastName: String, role: UserRole)(implicit hc: HeaderCarrier): Future[UserResponse] =
     WSHttp.POST(s"$url/add", AddUserRequest(email.toLowerCase, password, firstName, lastName, role.name, ServiceName)).map { response =>
       response.json.as[UserResponse]
     }.recover {
@@ -123,18 +123,22 @@ trait AuthProviderClient {
     }
   }
 
-  def findByFirstNameAndLastName(firstName: String, lastName: String, roles: List[String])
-                                (implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    WSHttp.POST(s"$url/service/$ServiceName/findByFirstNameLastName",
+  def findByFirstNameAndLastName(
+    firstName: String,
+    lastName: String,
+    roles: List[String]
+  )(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
+    WSHttp.POST(
+      s"$url/service/$ServiceName/findByFirstNameLastName",
       FindByFirstNameLastNameRequest(roles, firstName, lastName)
     ).map { response =>
-      response.json.as[List[Candidate]]
-    }.recover {
-      case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
-        throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
-      case errorResponse =>
-        throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
-    }
+        response.json.as[List[Candidate]]
+      }.recover {
+        case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
+          throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
+        case errorResponse =>
+          throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
+      }
   }
 
   def generateAccessCode(implicit hc: HeaderCarrier): Future[SimpleTokenResponse] = {

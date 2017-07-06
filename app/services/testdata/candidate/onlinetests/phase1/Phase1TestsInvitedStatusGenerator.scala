@@ -79,9 +79,9 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
         TestGroupResponse(
           List(TestResponse(sjq.cubiksUserId, "sjq", sjq.token, sjq.testUrl)) ++
-          bq.map { b =>
-            List(TestResponse(b.cubiksUserId, "bq", b.token, b.testUrl))
-          }.getOrElse(Nil),
+            bq.map { b =>
+              List(TestResponse(b.cubiksUserId, "bq", b.token, b.testUrl))
+            }.getOrElse(Nil),
           None
         )
       ))

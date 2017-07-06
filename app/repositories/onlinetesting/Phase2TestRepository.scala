@@ -59,9 +59,8 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
 }
 
 class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase2TestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    model.persisted.Phase2TestGroup.phase2TestProfileFormat, ReactiveMongoFormats.objectIdFormats
-  ) with Phase2TestRepository {
+    extends ReactiveRepository[Phase2TestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      model.persisted.Phase2TestGroup.phase2TestProfileFormat, ReactiveMongoFormats.objectIdFormats) with Phase2TestRepository {
 
   override val phaseName = "PHASE2"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE2_TESTS
@@ -86,9 +85,9 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val projection = BSONDocument(s"testGroups.PHASE2" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map { optDocument =>
-      optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
-        .flatMap {_.getAs[BSONDocument]("PHASE2")}
-        .map {x => bsonHandler.read(x)}
+      optDocument.flatMap { _.getAs[BSONDocument]("testGroups") }
+        .flatMap { _.getAs[BSONDocument]("PHASE2") }
+        .map { x => bsonHandler.read(x) }
     }
   }
 
@@ -127,8 +126,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument("applicationId" -> applicationId)
 
     val updateBson = BSONDocument("$set" ->
-      (applicationStatusBSON(PHASE2_TESTS_INVITED) ++ BSONDocument("testGroups.PHASE2" -> phase2TestProfile))
-    )
+      (applicationStatusBSON(PHASE2_TESTS_INVITED) ++ BSONDocument("testGroups.PHASE2" -> phase2TestProfile)))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
 

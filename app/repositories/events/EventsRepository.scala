@@ -18,10 +18,10 @@ package repositories.events
 
 import config.MicroserviceAppConfig
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{Event, EventType, Location, Venue}
+import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -37,8 +37,10 @@ trait EventsRepository {
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Event, BSONObjectID](CollectionNames.ASSESSMENT_EVENTS,
-    mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
+    extends ReactiveRepository[Event, BSONObjectID](
+      CollectionNames.ASSESSMENT_EVENTS,
+      mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats
+    )
     with EventsRepository {
 
   def save(events: List[Event]): Future[Unit] = {
@@ -54,8 +56,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
   }
 
   def getEvents(eventType: Option[EventType] = None, venueType: Option[Venue] = None,
-    location: Option[Location] = None, skills: Option[List[String]] = None
-  ): Future[List[Event]] = {
+    location: Option[Location] = None, skills: Option[List[String]] = None): Future[List[Event]] = {
     val query = List(
       eventType.filterNot(_ == EventType.ALL_EVENTS).map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) },
       venueType.filterNot(_ == MicroserviceAppConfig.AllVenues).map { v => BSONDocument("venue" -> v) },

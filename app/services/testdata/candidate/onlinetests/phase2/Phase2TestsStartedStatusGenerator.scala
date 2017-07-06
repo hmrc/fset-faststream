@@ -40,13 +40,14 @@ trait Phase2TestsStartedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase2TestRepository
   val otService: Phase2TestService
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)
-      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+  def generate(
+    generationId: Int,
+    generatorConfig: CreateCandidateData
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.testId))(id =>
-        otService.markAsStarted(id, generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now))
-      )
+        otService.markAsStarted(id, generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now)))
     } yield candidate
   }
 }

@@ -30,7 +30,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     }
   }
 
-  lazy val scheduledJobs: List[ScheduledJob] =  List(
+  lazy val scheduledJobs: List[ScheduledJob] = List(
     maybeInitScheduler(SendPhase1InvitationJobConfig, SendPhase1InvitationJob),
     maybeInitScheduler(SendPhase2InvitationJobConfig, SendPhase2InvitationJob),
     maybeInitScheduler(SendPhase3InvitationJobConfig, SendPhase3InvitationJob),

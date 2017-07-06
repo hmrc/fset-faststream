@@ -23,18 +23,20 @@ import play.api.libs.json.{ Json, OFormat }
 object CreateAdminRequest {
 
   case class CreateAdminRequest(emailPrefix: Option[String], firstName: Option[String], lastName: Option[String],
-                                preferredName: Option[String], role: Option[String], phone: Option[String],
-                                assessor: Option[AssessorRequest]) extends CreateTestDataRequest {
+      preferredName: Option[String], role: Option[String], phone: Option[String],
+      assessor: Option[AssessorRequest]) extends CreateTestDataRequest {
   }
 
   object CreateAdminRequest {
     implicit val createAdminRequestFormat: OFormat[CreateAdminRequest] = Json.format[CreateAdminRequest]
   }
 
-  case class AssessorRequest(skills: Option[List[String]] = None,
-                             sifterSchemes: Option[List[String]] = None,
-                             civilServant: Option[Boolean] = None,
-                             availability: Option[List[AssessorAvailabilityRequest]] = None)
+  case class AssessorRequest(
+    skills: Option[List[String]] = None,
+    sifterSchemes: Option[List[String]] = None,
+    civilServant: Option[Boolean] = None,
+    availability: Option[List[AssessorAvailabilityRequest]] = None
+  )
 
   object AssessorRequest {
     implicit val assessorTestDataFormat: OFormat[AssessorRequest] = Json.format[AssessorRequest]

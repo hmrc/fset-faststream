@@ -49,8 +49,10 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
   val p3TestService: Phase3TestService
   val gatewayConfig: LaunchpadGatewayConfig
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+  def generate(
+    generationId: Int,
+    generatorConfig: CreateCandidateData
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     val launchpad = LaunchpadTest(
       interviewId = 12345,

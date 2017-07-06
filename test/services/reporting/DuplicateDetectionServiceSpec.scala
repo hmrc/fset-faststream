@@ -31,7 +31,7 @@ import scala.concurrent.Future
 // TODO: Resurrect as part of duplications ticket
 
 class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
-/*
+  /*
   "Find all" should {
     "detect no duplications if no applications" in new TestFixture {
       override val allApplications = Nil

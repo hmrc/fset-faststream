@@ -22,15 +22,15 @@ import model.persisted.ApplicationForOnlineTestPassMarkReport
 import play.api.libs.json.Json
 
 case class ApplicationForOnlineTestPassMarkReportItem(
-                                                       progress: String,
-                                                       applicationRoute: ApplicationRoute,
-                                                       schemes: List[SchemeType],
-                                                       disability: Option[String],
-                                                       gis: Option[Boolean],
-                                                       onlineAdjustments: Option[String],
-                                                       assessmentCentreAdjustments: Option[String],
-                                                       testResults: TestResultsForOnlineTestPassMarkReportItem
-                                                     )
+  progress: String,
+  applicationRoute: ApplicationRoute,
+  schemes: List[SchemeType],
+  disability: Option[String],
+  gis: Option[Boolean],
+  onlineAdjustments: Option[String],
+  assessmentCentreAdjustments: Option[String],
+  testResults: TestResultsForOnlineTestPassMarkReportItem
+)
 
 object ApplicationForOnlineTestPassMarkReportItem {
   implicit val applicationForOnlineTestReportItemFormat = Json.format[ApplicationForOnlineTestPassMarkReportItem]

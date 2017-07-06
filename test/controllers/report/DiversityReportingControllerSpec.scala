@@ -65,35 +65,37 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
       status(response) mustBe OK
       result mustBe List(
         DiversityReportItemExamples.OnlyApplicationAndQuestionnaire1,
-        DiversityReportItemExamples.OnlyApplicationAndQuestionnaire2)
+        DiversityReportItemExamples.OnlyApplicationAndQuestionnaire2
+      )
     }
 
     "return applications with no questionnaires or no media when passing questionnaires" +
       " that dont belong to applications and no media" in new DiversityReportTestFixture {
-      when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
-      when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(notFoundQuestionnaires)
+        when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
+        when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(notFoundQuestionnaires)
 
-      val response = controller.diversityReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[DiversityReportItem]]
+        val response = controller.diversityReport(frameworkId)(request).run
+        val result = contentAsJson(response).as[List[DiversityReportItem]]
 
-      status(response) mustBe OK
-      result mustBe List(DiversityReportItemExamples.OnlyApplication1, DiversityReportItemExamples.OnlyApplication2)
-    }
+        status(response) mustBe OK
+        result mustBe List(DiversityReportItemExamples.OnlyApplication1, DiversityReportItemExamples.OnlyApplication2)
+      }
 
     "return applications with questionnaires and no media when passing questionnaires" +
       " and media that dont belong to the applications" in new DiversityReportTestFixture {
-      when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
-      when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(questionnaires)
-      when(mockMediaRepository.findAll()).thenReturnAsync(notFoundMedias)
+        when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
+        when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(questionnaires)
+        when(mockMediaRepository.findAll()).thenReturnAsync(notFoundMedias)
 
-      val response = controller.diversityReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[DiversityReportItem]]
+        val response = controller.diversityReport(frameworkId)(request).run
+        val result = contentAsJson(response).as[List[DiversityReportItem]]
 
-      status(response) mustBe OK
-      result mustBe List(
-        DiversityReportItemExamples.OnlyApplicationAndQuestionnaire1,
-        DiversityReportItemExamples.OnlyApplicationAndQuestionnaire2)
-    }
+        status(response) mustBe OK
+        result mustBe List(
+          DiversityReportItemExamples.OnlyApplicationAndQuestionnaire1,
+          DiversityReportItemExamples.OnlyApplicationAndQuestionnaire2
+        )
+      }
 
     "return applications with no questionnaires and with media when passing media but no questionnaires" in new DiversityReportTestFixture {
       when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
@@ -135,26 +137,32 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
       val authProviderClient = mock[AuthProviderClient]
     }
 
-    val applications = List(ApplicationForDiversityReportExamples.Example1,
-      ApplicationForDiversityReportExamples.Example2)
+    val applications = List(
+      ApplicationForDiversityReportExamples.Example1,
+      ApplicationForDiversityReportExamples.Example2
+    )
 
     val questionnaires = Map(
       ApplicationForDiversityReportExamples.Example1.applicationId ->
         QuestionnaireReportItemExamples.NoParentOccupation1,
       ApplicationForDiversityReportExamples.Example2.applicationId ->
-        QuestionnaireReportItemExamples.NoParentOccupation2)
+        QuestionnaireReportItemExamples.NoParentOccupation2
+    )
 
     val notFoundQuestionnaires = Map(
       "NotFoundApplicationId1" -> QuestionnaireReportItemExamples.NoParentOccupation1,
-      "NotFoundApplicationId2" -> QuestionnaireReportItemExamples.NoParentOccupation2)
+      "NotFoundApplicationId2" -> QuestionnaireReportItemExamples.NoParentOccupation2
+    )
 
     val medias = Map(
       ApplicationForDiversityReportExamples.Example1.userId -> MediaExamples.Example1,
-      ApplicationForDiversityReportExamples.Example2.userId -> MediaExamples.Example2)
+      ApplicationForDiversityReportExamples.Example2.userId -> MediaExamples.Example2
+    )
 
     val notFoundMedias = Map(
       "NotFoundUserId1" -> MediaExamples.Example1,
-      "NotFoundUserId2" -> MediaExamples.Example2)
+      "NotFoundUserId2" -> MediaExamples.Example2
+    )
 
     when(mockReportRepository.diversityReport(any())).thenReturnAsync(List.empty)
     when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(Map.empty)

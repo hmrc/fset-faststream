@@ -18,16 +18,17 @@ package model.report
 
 import play.api.libs.json.Json
 
-case class ApplicationForAnalyticalSchemesReport(userId: String,
-                                                 firstName: Option[String],
-                                                 lastName: Option[String],
-                                                 firstSchemePreference: Option[String],
-                                                 guaranteedInterviewScheme: Option[Boolean],
-                                                 behaviouralTScore: Option[Double],
-                                                 situationalTScore: Option[Double],
-                                                 etrayTScore: Option[Double],
-                                                 overallVideoScore: Option[Double]
-                                                )
+case class ApplicationForAnalyticalSchemesReport(
+  userId: String,
+  firstName: Option[String],
+  lastName: Option[String],
+  firstSchemePreference: Option[String],
+  guaranteedInterviewScheme: Option[Boolean],
+  behaviouralTScore: Option[Double],
+  situationalTScore: Option[Double],
+  etrayTScore: Option[Double],
+  overallVideoScore: Option[Double]
+)
 
 object ApplicationForAnalyticalSchemesReport {
   implicit val applicationForAnalyticalSchemesReportFormat = Json.format[ApplicationForAnalyticalSchemesReport]

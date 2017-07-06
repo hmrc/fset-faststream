@@ -18,16 +18,16 @@ package controllers
 
 import config.TestFixtureBase
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{Event, Location, Venue}
+import model.persisted.eventschedules.{ Event, Location, Venue }
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.VenueType
-import org.joda.time.{LocalDate, LocalTime}
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
-import repositories.events.{LocationsWithVenuesRepository, UnknownVenueException}
+import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
 import services.events.EventsService
 import testkit.UnitWithAppSpec
 
@@ -54,17 +54,17 @@ class EventsControllerSpec extends UnitWithAppSpec {
         MockEvent :: Nil
       ))
 
-      val res = controller.getEvents("FSAC","LONDON_FSAC")(FakeRequest())
+      val res = controller.getEvents("FSAC", "LONDON_FSAC")(FakeRequest())
       status(res) mustBe OK
     }
 
-     "return 400 for invalid event" in new TestFixture {
-       status(controller.getEvents("blah","LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
+    "return 400 for invalid event" in new TestFixture {
+      status(controller.getEvents("blah", "LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
     }
 
-     "return 400 for invalid venue type" in new TestFixture {
-       when(mockLocationsWithVenuesRepo.venue("blah")).thenReturn(Future.failed(UnknownVenueException("")))
-       status(controller.getEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
+    "return 400 for invalid venue type" in new TestFixture {
+      when(mockLocationsWithVenuesRepo.venue("blah")).thenReturn(Future.failed(UnknownVenueException("")))
+      status(controller.getEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
     }
 
     "return 200 for an event for an id" in new TestFixture {
@@ -93,7 +93,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
     when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Future.successful(MockVenue))
 
     val MockEvent = Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
-            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty)
+      LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty)
 
     val controller = new EventsController {
       val eventsService = mockEventsService

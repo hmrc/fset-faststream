@@ -35,17 +35,17 @@ trait Phase3TestGroupController extends BaseController {
 
   def getTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     phase3TestService.getTestGroup(applicationId).map {
-        case Some(testGroup) =>
-          Ok(Json.toJson(testGroup))
-        case None =>
-          NotFound
+      case Some(testGroup) =>
+        Ok(Json.toJson(testGroup))
+      case None =>
+        NotFound
     }
   }
 
   def extend(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>
       phase3TestService.extendTestGroupExpiryTime(applicationId, extension.extraDays,
-        extension.actionTriggeredBy) map ( _ => Ok )
+        extension.actionTriggeredBy) map (_ => Ok)
     }
   }
 }

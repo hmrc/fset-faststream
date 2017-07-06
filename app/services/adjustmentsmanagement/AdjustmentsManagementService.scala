@@ -42,13 +42,15 @@ trait AdjustmentsManagementService extends EventSink {
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
 
-  def confirmAdjustment(applicationId: String, adjustmentInformation: Adjustments)
-                       (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def confirmAdjustment(
+    applicationId: String,
+    adjustmentInformation: Adjustments
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     val adjustmentsDataStoreAndAuditEvents: StcEvents =
       DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
-      AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
-      Nil
+        AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
+        Nil
 
     appRepository.find(applicationId).flatMap {
       case Some(candidate) => eventSink {
@@ -74,7 +76,7 @@ trait AdjustmentsManagementService extends EventSink {
   }
 
   private def createEmailEvents(candidate: Candidate, adjustmentInformation: Adjustments,
-                                hasPreviousAdjustments: Boolean, cd: ContactDetails) = {
+    hasPreviousAdjustments: Boolean, cd: ContactDetails) = {
     if (hasPreviousAdjustments) {
       EmailEvents.AdjustmentsChanged(
         cd.email,
@@ -95,7 +97,7 @@ trait AdjustmentsManagementService extends EventSink {
   private def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String = {
 
     def mkString(ad: Option[AdjustmentDetail]): Option[String] =
-      ad.map(e => List(e.timeNeeded.map( tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
+      ad.map(e => List(e.timeNeeded.map(tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
 
     mkString(adjustmentDetail) match {
       case Some(txt) if !txt.isEmpty => s"$header $txt"
@@ -107,12 +109,14 @@ trait AdjustmentsManagementService extends EventSink {
     appRepository.findAdjustments(applicationId)
   }
 
-  def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment)
-                              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def updateAdjustmentsComment(
+    applicationId: String,
+    adjustmentsComment: AdjustmentsComment
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     eventSink {
       appRepository.updateAdjustmentsComment(applicationId, adjustmentsComment).map { _ =>
         DataStoreEvents.AdjustmentsCommentUpdated(applicationId) ::
-        AuditEvents.AdjustmentsCommentUpdated(Map("applicationId" -> applicationId, "adjustmentsComment" -> adjustmentsComment.toString)) ::
+          AuditEvents.AdjustmentsCommentUpdated(Map("applicationId" -> applicationId, "adjustmentsComment" -> adjustmentsComment.toString)) ::
           Nil
       }
     }

@@ -63,7 +63,6 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
     }
   }
 
-
   trait TestFixture {
     val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase1PassMarkSettings]]
     val profile = Phase1TestProfileExamples.profile

@@ -24,7 +24,7 @@ class RandomSelectionSpec extends UnitSpec {
   "RandomSelection" should {
     "calculate the correct batch size and random offset" in {
 
-      RandomSelection.calculateBatchSize(1, 1) mustBe ((0,1))
+      RandomSelection.calculateBatchSize(1, 1) mustBe ((0, 1))
       val (offset, size) = RandomSelection.calculateBatchSize(1, 9)
       offset must (be >= 0 and be <= 8)
       size mustBe 1
@@ -41,12 +41,12 @@ class RandomSelectionSpec extends UnitSpec {
             size mustBe numberOfDocs
           }
         }
-     }
+      }
     }
   }
 
   def calculateRepeats(limit: Int): Int = {
     val adjusted = limit + 1
-    1 to adjusted map (x=> adjusted / x) sum
+    1 to adjusted map (x => adjusted / x) sum
   }
 }

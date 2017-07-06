@@ -50,16 +50,12 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     val sampleDeadline = LocalDate.now.plusDays(7)
 
     when(mockPhase3TestCallbackService.recordCallback(any[QuestionCallbackRequest]())).thenReturn(Future.successful(()))
-    when(mockPhase3TestCallbackService.recordCallback(any[FinishedCallbackRequest]())
-    (any[HeaderCarrier](), any[RequestHeader])).thenReturn(Future.successful(()))
-    when(mockPhase3TestCallbackService.recordCallback(any[FinalCallbackRequest]())
-    (any[HeaderCarrier](), any[RequestHeader])).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[FinishedCallbackRequest]())(any[HeaderCarrier](), any[RequestHeader])).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[FinalCallbackRequest]())(any[HeaderCarrier](), any[RequestHeader])).thenReturn(Future.successful(()))
     when(mockPhase3TestCallbackService.recordCallback(any[ViewPracticeQuestionCallbackRequest]())).thenReturn(Future.successful(()))
-    when(mockPhase3TestCallbackService.recordCallback(any[SetupProcessCallbackRequest]())
-    (any[HeaderCarrier](), any[RequestHeader]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[SetupProcessCallbackRequest]())(any[HeaderCarrier](), any[RequestHeader]())).thenReturn(Future.successful(()))
     when(mockPhase3TestCallbackService.recordCallback(any[ViewBrandedVideoCallbackRequest]())).thenReturn(Future.successful(()))
-    when(mockPhase3TestCallbackService.recordCallback(any[ReviewedCallbackRequest]())
-    (any[HeaderCarrier](), any[RequestHeader]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[ReviewedCallbackRequest]())(any[HeaderCarrier](), any[RequestHeader]())).thenReturn(Future.successful(()))
 
     def controllerUnderTest = new LaunchpadTestsController {
       val phase3TestService = mockPhase3TestService
@@ -171,8 +167,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
       val response = controllerUnderTest.setupProcessCallback(sampleInviteId)(fakeRequest(sampleSetupProcessCallback))
       status(response) mustBe OK
 
-      verify(mockPhase3TestCallbackService, times(1)).recordCallback(any[SetupProcessCallbackRequest]()
-      )(any[HeaderCarrier](), any[RequestHeader]())
+      verify(mockPhase3TestCallbackService, times(1)).recordCallback(any[SetupProcessCallbackRequest]())(any[HeaderCarrier](), any[RequestHeader]())
     }
   }
 

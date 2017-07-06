@@ -42,16 +42,17 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
   lazy val lockKeeper: LockKeeper = LockKeeper(lockIdToUse = lockId, forceLockReleaseAfterToUse = forceLockReleaseAfter)
 
   implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(
-    new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+    new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4))
+  )
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit]
 
   /**
-    * The lock keeper can take the lock for longer than it is being used to run the task when using
-    * greedy locking. This is to enforce tasks that can be should be done no more frequently than the
-    * lock duration. Sometimes, such as when shutting down, it is nice to know if the task is
-    * running or merely retaining a lock to maintain an interval
-    */
+   * The lock keeper can take the lock for longer than it is being used to run the task when using
+   * greedy locking. This is to enforce tasks that can be should be done no more frequently than the
+   * lock duration. Sometimes, such as when shutting down, it is nice to know if the task is
+   * running or merely retaining a lock to maintain an interval
+   */
   override def isRunning: Future[Boolean] = Future.successful(running)
 
   def executeInMutex(implicit ec: ExecutionContext): Future[this.Result] = lockKeeper.tryLock {

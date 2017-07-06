@@ -28,7 +28,7 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
 
   "determine SDIP with Faststream phase 1 application status" must {
     "promote the application for all Greens" in {
-       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
         List(green, sdipGreen), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_PASSED)
     }
@@ -73,8 +73,10 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
     }
 
     "return exception when no results found" in {
-      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.Sdip,
-        ApplicationStatus.PHASE1_TESTS, Nil, Phase.PHASE1)
+      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(
+        ApplicationRoute.Sdip,
+        ApplicationStatus.PHASE1_TESTS, Nil, Phase.PHASE1
+      )
     }
   }
 
@@ -99,8 +101,10 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
     }
 
     "return exception when no results found" in {
-      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.Edip,
-        ApplicationStatus.PHASE1_TESTS, Nil, Phase.PHASE1)
+      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(
+        ApplicationRoute.Edip,
+        ApplicationStatus.PHASE1_TESTS, Nil, Phase.PHASE1
+      )
     }
   }
 
@@ -168,13 +172,15 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
 
     "do not update application status when PHASE2_TESTS_PASSED" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Faststream, ApplicationStatus.PHASE2_TESTS_PASSED,
-        List(green, green, green),Phase.PHASE2)
+        List(green, green, green), Phase.PHASE2)
       newStatus mustBe None
     }
 
     "return exception when no results found" in {
-      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.Faststream,
-        ApplicationStatus.PHASE2_TESTS, Nil, Phase.PHASE2)
+      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(
+        ApplicationRoute.Faststream,
+        ApplicationStatus.PHASE2_TESTS, Nil, Phase.PHASE2
+      )
     }
   }
 
@@ -216,8 +222,10 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
     }
 
     "return exception when no results found" in {
-      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.Faststream,
-        ApplicationStatus.PHASE3_TESTS, Nil, Phase.PHASE3)
+      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(
+        ApplicationRoute.Faststream,
+        ApplicationStatus.PHASE3_TESTS, Nil, Phase.PHASE3
+      )
     }
   }
 

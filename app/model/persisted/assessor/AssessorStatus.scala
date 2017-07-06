@@ -19,7 +19,6 @@ package model.persisted.assessor
 import play.api.libs.json._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
-
 object AssessorStatus extends Enumeration {
   type AssessorStatus = Value
 

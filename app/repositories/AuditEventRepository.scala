@@ -31,8 +31,8 @@ trait AuditEventRepository {
 }
 
 class AuditEventMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[AuditEvent, BSONObjectID](CollectionNames.EVENT, mongo, AuditEvent.auditEventFormat,
-    ReactiveMongoFormats.objectIdFormats) with AuditEventRepository {
+    extends ReactiveRepository[AuditEvent, BSONObjectID](CollectionNames.EVENT, mongo, AuditEvent.auditEventFormat,
+      ReactiveMongoFormats.objectIdFormats) with AuditEventRepository {
 
   def create(event: AuditEvent): Future[Unit] = {
     val doc = AuditEvent.eventHandler.write(event)

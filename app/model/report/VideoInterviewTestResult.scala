@@ -18,15 +18,17 @@ package model.report
 
 import play.api.libs.json.Json
 
-case class VideoInterviewTestResult(question1: VideoInterviewQuestionTestResult,
-                                    question2: VideoInterviewQuestionTestResult,
-                                    question3: VideoInterviewQuestionTestResult,
-                                    question4: VideoInterviewQuestionTestResult,
-                                    question5: VideoInterviewQuestionTestResult,
-                                    question6: VideoInterviewQuestionTestResult,
-                                    question7: VideoInterviewQuestionTestResult,
-                                    question8: VideoInterviewQuestionTestResult,
-                                    overallTotal: Double)
+case class VideoInterviewTestResult(
+  question1: VideoInterviewQuestionTestResult,
+  question2: VideoInterviewQuestionTestResult,
+  question3: VideoInterviewQuestionTestResult,
+  question4: VideoInterviewQuestionTestResult,
+  question5: VideoInterviewQuestionTestResult,
+  question6: VideoInterviewQuestionTestResult,
+  question7: VideoInterviewQuestionTestResult,
+  question8: VideoInterviewQuestionTestResult,
+  overallTotal: Double
+)
 
 case class VideoInterviewQuestionTestResult(capability: Option[Double], engagement: Option[Double])
 

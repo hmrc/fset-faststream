@@ -39,8 +39,8 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
     def getPersonalDetails(candidateInformation: CreateCandidateResponse) = {
       def getEdipCompleted = {
         if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip) {
-          Some(generatorConfig.personalData.edipCompleted.getOrElse(Random.bool))}
-        else {
+          Some(generatorConfig.personalData.edipCompleted.getOrElse(Random.bool))
+        } else {
           None
         }
       }
@@ -54,8 +54,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
           if (generatorConfig.hasFastPass) {
             CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
               Some(InternshipType.SDIPCurrentYear :: Nil), fastPassReceived = Some(true), fastPassAccepted = Some(true),
-              certificateNumber = Some(Random.number().toString)
-            )
+              certificateNumber = Some(Random.number().toString))
           } else {
             CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
           }

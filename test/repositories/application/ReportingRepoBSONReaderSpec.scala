@@ -38,23 +38,20 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
     "return corresponding VideoInterviewTestResult when only one reviewer and one reviewed callback" in new OnlineTestPassMarkReportFixture {
       val videoInterviewTestResult = bsonReader.toPhase3TestResults(Some(oneReviewedOneReviewerReviewedPhase3BSONDoc(1.5)))
       videoInterviewTestResult mustBe
-        Some(expectedBaseResult.copy(question1 = VideoInterviewQuestionTestResult(Some(1.5), Some(2.5)), overallTotal = 39.5)
-        )
+        Some(expectedBaseResult.copy(question1 = VideoInterviewQuestionTestResult(Some(1.5), Some(2.5)), overallTotal = 39.5))
     }
 
     "return corresponding VideoInterviewTestResult when only two reviewer and one reviewed callback" in new OnlineTestPassMarkReportFixture {
       val videoInterviewTestResult = bsonReader.toPhase3TestResults(Some(oneReviewedTwoReviewerReviewedPhase3BSONDoc(2.5, 2.5)))
       videoInterviewTestResult mustBe
-        Some(expectedBaseResult.copy(question1 = VideoInterviewQuestionTestResult(Some(2.5), Some(2.5)), overallTotal = 40.5)
-        )
+        Some(expectedBaseResult.copy(question1 = VideoInterviewQuestionTestResult(Some(2.5), Some(2.5)), overallTotal = 40.5))
     }
 
     "return corresponding VideoInterviewTestResult when two reviewer and three reviewed callback" in new OnlineTestPassMarkReportFixture {
       val videoInterviewTestResult =
         bsonReader.toPhase3TestResults(Some(threeReviewedTwoReviewerReviewedPhase3BSONDoc(2.5, 2.5, 3.5, 1.0, 1.0, 4.0)))
       videoInterviewTestResult mustBe
-        Some(expectedBaseResult.copy(question1 = VideoInterviewQuestionTestResult(Some(1.0), Some(2.5)), overallTotal = 39.0)
-        )
+        Some(expectedBaseResult.copy(question1 = VideoInterviewQuestionTestResult(Some(1.0), Some(2.5)), overallTotal = 39.0))
     }
   }
 
@@ -71,7 +68,6 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
       VideoInterviewQuestionTestResult(Some(1.0), Some(1.5)),
       baseTotalOverall
     )
-
 
     //scalastyle:off method.length
     // overall should be 38 + score
@@ -165,7 +161,8 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
           "type" -> "numeric",
           "score" -> 1.5
         )
-      ))
+      )
+    )
 
     //scalastyle:on method.length
 
@@ -213,12 +210,14 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
     )
 
     //scalastyle:off method.length
-    def threeReviewedTwoReviewerReviewedBSONDoc(score1: Double,
-                                                score2: Double,
-                                                score3: Double,
-                                                score4: Double,
-                                                score5: Double,
-                                                score6: Double) = BSONArray(
+    def threeReviewedTwoReviewerReviewedBSONDoc(
+      score1: Double,
+      score2: Double,
+      score3: Double,
+      score4: Double,
+      score5: Double,
+      score6: Double
+    ) = BSONArray(
       BSONDocument(
         "received" -> BSONDateTime(2),
         "candidateId" -> "cnd_f9e67cbb858aed29b3884ff4a10d77e2",
@@ -291,9 +290,8 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
         "customCandidateId" -> "FSCND-f182f623-80ba-49f4-bed2-77c3c93296d2",
         "invitationDate" -> BSONDateTime(1),
         "callbacks" ->
-          BSONDocument("reviewed" -> reviewed
-          ))
-      ))
+          BSONDocument("reviewed" -> reviewed)
+      )))
 
     def oneReviewedOneReviewerReviewedPhase3BSONDoc(score1: Double) = BSONDocument("PHASE3" ->
       testsBSONDoc(oneReviewedOneReviewerReviewedBSONDoc(score1)))
@@ -302,7 +300,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
       testsBSONDoc(oneReviewedTwoReviewerReviewedBSONDoc(score1, score2)))
 
     def threeReviewedTwoReviewerReviewedPhase3BSONDoc(score1: Double, score2: Double, score3: Double,
-                                                      score4: Double, score5: Double, score6: Double) = BSONDocument("PHASE3" ->
+      score4: Double, score5: Double, score6: Double) = BSONDocument("PHASE3" ->
       testsBSONDoc(threeReviewedTwoReviewerReviewedBSONDoc(score1, score2, score3, score4, score5, score6)))
   }
 

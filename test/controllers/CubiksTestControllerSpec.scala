@@ -47,8 +47,7 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
   "start" should {
     "mark the phase1 test as started" in {
       val cubiksUserId = 1
-      when(mockPhase1TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.successful(()))
+      when(mockPhase1TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.start(cubiksUserId)(fakeRequest(""))
       status(response) mustBe OK
@@ -56,10 +55,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
 
     "mark the phase2 test as started" in {
       val cubiksUserId = 1
-      when(mockPhase1TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
-      when(mockPhase2TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.successful(()))
+      when(mockPhase1TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase2TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.start(cubiksUserId)(fakeRequest(""))
       status(response) mustBe OK
@@ -67,10 +64,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
 
     "return test not found" in {
       val cubiksUserId = 1
-      when(mockPhase1TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
-      when(mockPhase2TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase1TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase2TestService.markAsStarted(eqTo(cubiksUserId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
 
       val response = controllerUnderTest.start(cubiksUserId)(fakeRequest(""))
       status(response) mustBe NOT_FOUND
@@ -80,8 +75,7 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
   "complete" should {
     "mark the phase1 test as completed" in {
       val cubiksUserId = 1
-      when(mockPhase1TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.successful(()))
+      when(mockPhase1TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.complete(cubiksUserId)(fakeRequest(""))
       status(response) mustBe OK
@@ -89,10 +83,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
 
     "mark the phase2 test as completed" in {
       val cubiksUserId = 1
-      when(mockPhase1TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
-      when(mockPhase2TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.successful(()))
+      when(mockPhase1TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase2TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.complete(cubiksUserId)(fakeRequest(""))
       status(response) mustBe OK
@@ -100,10 +92,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
 
     "return test not found" in {
       val cubiksUserId = 1
-      when(mockPhase1TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
-      when(mockPhase2TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase1TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase2TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
 
       val response = controllerUnderTest.complete(cubiksUserId)(fakeRequest(""))
       status(response) mustBe NOT_FOUND
@@ -113,8 +103,7 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
   "completeTestByToken" should {
     "mark the phase1 test as completed" in {
       val token = "1"
-      when(mockPhase1TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.successful(()))
+      when(mockPhase1TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.completeTestByToken(token)(fakeRequest)
       status(response) mustBe OK
@@ -122,10 +111,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
 
     "mark the phase2 test as completed" in {
       val token = "1"
-      when(mockPhase1TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
-      when(mockPhase2TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.successful(()))
+      when(mockPhase1TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase2TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.completeTestByToken(token)(fakeRequest)
       status(response) mustBe OK
@@ -133,10 +120,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
 
     "return test not found" in {
       val token = "1"
-      when(mockPhase1TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
-      when(mockPhase2TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase1TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase2TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
 
       val response = controllerUnderTest.completeTestByToken(token)(fakeRequest)
       status(response) mustBe NOT_FOUND
@@ -147,8 +132,7 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
     "mark the phase1 test results as ready" in {
       val cubiksUserId = 1
       val cubiksTestResult = CubiksTestResultReady(Some(1), "Ready", Some(""))
-      when(mockPhase1TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))
-      ).thenReturn(Future.successful(()))
+      when(mockPhase1TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.markResultsReady(cubiksUserId)(fakeRequest(cubiksTestResult))
       status(response) mustBe OK
@@ -157,10 +141,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
     "mark the phase2 test as completed" in {
       val cubiksUserId = 1
       val cubiksTestResult = CubiksTestResultReady(Some(1), "Ready", Some(""))
-      when(mockPhase1TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
-      when(mockPhase2TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))
-      ).thenReturn(Future.successful(()))
+      when(mockPhase1TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase2TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.markResultsReady(cubiksUserId)(fakeRequest(cubiksTestResult))
       status(response) mustBe OK
@@ -169,10 +151,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
     "return test not found" in {
       val cubiksUserId = 1
       val cubiksTestResult = CubiksTestResultReady(Some(1), "Ready", Some(""))
-      when(mockPhase1TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
-      when(mockPhase2TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))
-      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase1TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockPhase2TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
 
       val response = controllerUnderTest.markResultsReady(cubiksUserId)(fakeRequest(cubiksTestResult))
       status(response) mustBe NOT_FOUND

@@ -70,7 +70,7 @@ trait GeneralApplicationRepository {
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
 
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
-                     dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
+    dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
 
   def findApplicationIdsByLocation(location: String): Future[List[String]]
 
@@ -125,16 +125,18 @@ trait GeneralApplicationRepository {
   def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit]
 
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
-              frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
+    frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
-class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
-                                        gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Commands.Implicits.createApplicationRequestFormat,
-    ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
+class GeneralApplicationMongoRepository(
+  timeZoneService: TimeZoneService,
+  gatewayConfig: CubiksGatewayConfig
+)(implicit mongo: () => DB)
+    extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      Commands.Implicits.createApplicationRequestFormat,
+      ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers {
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
@@ -236,11 +238,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     bsonCollection.find(query).one[Candidate]
   }
 
-  def findByCriteria(firstOrPreferredNameOpt: Option[String],
-                     lastNameOpt: Option[String],
-                     dateOfBirthOpt: Option[LocalDate],
-                     filterToUserIds: List[String]
-                    ): Future[List[Candidate]] = {
+  def findByCriteria(
+    firstOrPreferredNameOpt: Option[String],
+    lastNameOpt: Option[String],
+    dateOfBirthOpt: Option[LocalDate],
+    filterToUserIds: List[String]
+  ): Future[List[Candidate]] = {
 
     def matchIfSome(value: Option[String]) = value.map(v => BSONRegex("^" + Pattern.quote(v) + "$", "i"))
 
@@ -262,7 +265,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("$and" -> fullQuery)
 
     val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
-    "applicationStatus" -> true, "personal-details" -> true)
+      "applicationStatus" -> true, "personal-details" -> true)
 
     bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
   }
@@ -305,10 +308,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationBSON = BSONDocument("$set" -> BSONDocument(
       "withdraw" -> reason
-      ).add(
+    ).add(
         applicationStatusBSON(WITHDRAWN)
-      )
-    )
+      ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "withdrawing")
 
@@ -339,26 +341,28 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
-    val query = Try{ notificationType match {
-      case s: SuccessTestType if s.applicationRoutes.isEmpty =>
-        BSONDocument("$and" -> BSONArray(
-          BSONDocument("applicationStatus" -> s.appStatus),
-          BSONDocument(s"progress-status.${s.notificationProgress}" -> BSONDocument("$ne" -> true))
-        ))
-      case s: SuccessTestType if s.applicationRoutes.nonEmpty =>
-        BSONDocument("$and" -> BSONArray(
-          BSONDocument("applicationStatus" -> s.appStatus),
-          BSONDocument(s"progress-status.${s.notificationProgress}" -> BSONDocument("$ne" -> true)),
-          BSONDocument("applicationRoute" -> BSONDocument("$in" -> s.applicationRoutes))
-        ))
-      case f: FailedTestType =>
-        BSONDocument("$and" -> BSONArray(
-          BSONDocument("applicationStatus" -> f.appStatus),
-          BSONDocument(s"progress-status.${f.notificationProgress}" -> BSONDocument("$ne" -> true)),
-          BSONDocument(s"progress-status.${f.receiveStatus}" -> true)
-        ))
-      case unknown => throw new RuntimeException(s"Unsupported NotificationTestType: $unknown")
-    }}
+    val query = Try {
+      notificationType match {
+        case s: SuccessTestType if s.applicationRoutes.isEmpty =>
+          BSONDocument("$and" -> BSONArray(
+            BSONDocument("applicationStatus" -> s.appStatus),
+            BSONDocument(s"progress-status.${s.notificationProgress}" -> BSONDocument("$ne" -> true))
+          ))
+        case s: SuccessTestType if s.applicationRoutes.nonEmpty =>
+          BSONDocument("$and" -> BSONArray(
+            BSONDocument("applicationStatus" -> s.appStatus),
+            BSONDocument(s"progress-status.${s.notificationProgress}" -> BSONDocument("$ne" -> true)),
+            BSONDocument("applicationRoute" -> BSONDocument("$in" -> s.applicationRoutes))
+          ))
+        case f: FailedTestType =>
+          BSONDocument("$and" -> BSONArray(
+            BSONDocument("applicationStatus" -> f.appStatus),
+            BSONDocument(s"progress-status.${f.notificationProgress}" -> BSONDocument("$ne" -> true)),
+            BSONDocument(s"progress-status.${f.receiveStatus}" -> true)
+          ))
+        case unknown => throw new RuntimeException(s"Unsupported NotificationTestType: $unknown")
+      }
+    }
 
     implicit val reader = bsonReader(TestResultNotification.fromBson)
     for {
@@ -452,10 +456,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     issue.fix match {
       case PassToPhase2 =>
         val query = BSONDocument("$and" -> BSONArray(
-            BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
-            BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
-            BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
-          ))
+          BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
+        ))
 
         selectRandom[Candidate](query, issue.batchSize)
       case PassToPhase1TestPassed =>
@@ -480,9 +484,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> BSONDocument("$ne" -> true)),
           BSONDocument(s"testGroups.PHASE2.tests" ->
             BSONDocument("$elemMatch" -> BSONDocument(
-            "usedForResults" -> true, "testResult" -> BSONDocument("$exists" -> true)
-              ))
-          )
+              "usedForResults" -> true, "testResult" -> BSONDocument("$exists" -> true)
+            )))
         ))
 
         selectRandom[Candidate](query, issue.batchSize)
@@ -517,9 +520,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
         ))
         val updateOp = bsonCollection.updateModifier(BSONDocument("$unset" ->
-          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
-          s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
-          "testGroups" -> "")))
+          BSONDocument(
+            s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
+            s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
+            "testGroups" -> ""
+          )))
         bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
       case AddMissingPhase2ResultReceived =>
         val query = BSONDocument("$and" -> BSONArray(
@@ -543,10 +548,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     import ProgressStatuses._
 
     val query = BSONDocument("$and" ->
-          BSONArray(
-            BSONDocument("applicationId" -> appId),
-            BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
-          ))
+      BSONArray(
+        BSONDocument("applicationId" -> appId),
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
+      ))
 
     val updateOp = bsonCollection.updateModifier(
       BSONDocument(
@@ -641,7 +646,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     }
   }
 
-
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
     val isNotSubmitted = !progress.submitted
     val isNotWithdrawn = !progress.withdrawn
@@ -649,11 +653,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   private def reportQueryWithProjections[A](
-                                             query: BSONDocument,
-                                             prj: BSONDocument,
-                                             upTo: Int = Int.MaxValue,
-                                             stopOnError: Boolean = true
-                                           )(implicit reader: Format[A]): Future[List[A]] =
+    query: BSONDocument,
+    prj: BSONDocument,
+    upTo: Int = Int.MaxValue,
+    stopOnError: Boolean = true
+  )(implicit reader: Format[A]): Future[List[A]] =
     collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
 
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
@@ -715,9 +719,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "assistance-details.adjustmentsComment" -> ""
     ))
 
-    val validator = singleUpdateValidator(applicationId,
+    val validator = singleUpdateValidator(
+      applicationId,
       actionDesc = "remove adjustments comment",
-      notFound = CannotRemoveAdjustmentsComment(applicationId))
+      notFound = CannotRemoveAdjustmentsComment(applicationId)
+    )
 
     collection.update(query, removeBSON) map validator
   }
@@ -729,9 +735,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "assistance-details.adjustmentsComment" -> adjustmentsComment.comment
     ))
 
-    val validator = singleUpdateValidator(applicationId,
+    val validator = singleUpdateValidator(
+      applicationId,
       actionDesc = "save adjustments comment",
-      notFound = CannotUpdateAdjustmentsComment(applicationId))
+      notFound = CannotUpdateAdjustmentsComment(applicationId)
+    )
 
     collection.update(query, updateBSON) map validator
   }
@@ -763,9 +771,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "assistance-details.needsAdjustment" -> "No"
     ))
 
-    val validator = singleUpdateValidator(applicationId,
+    val validator = singleUpdateValidator(
+      applicationId,
       actionDesc = "remove adjustments comment",
-      notFound = CannotRemoveAdjustmentsComment(applicationId))
+      notFound = CannotRemoveAdjustmentsComment(applicationId)
+    )
 
     collection.update(query, adjustmentRejection) map validator
   }
@@ -824,8 +834,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating progress and app status")
 
     collection.update(query, BSONDocument("$set" ->
-      applicationStatusBSON(progressStatus))
-    ) map validator
+      applicationStatusBSON(progressStatus))) map validator
   }
 
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
@@ -834,11 +843,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("applicationId" -> applicationId)
 
     val statusesToUnset = progressStatuses.flatMap { progressStatus =>
-        Map(
-          s"progress-status.$progressStatus" -> BSONString(""),
-          s"progress-status-dates.$progressStatus" -> BSONString(""),
-          s"progress-status-timestamp.$progressStatus" -> BSONString("")
-        )
+      Map(
+        s"progress-status.$progressStatus" -> BSONString(""),
+        s"progress-status-dates.$progressStatus" -> BSONString(""),
+        s"progress-status-timestamp.$progressStatus" -> BSONString("")
+      )
     }
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))
@@ -848,7 +857,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     collection.update(query, unsetDoc) map validator
   }
 
-  override def updateApplicationRoute(appId: String, appRoute:ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
+  override def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> appId),
       applicationRouteCriteria(appRoute)
@@ -863,7 +872,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
-                       frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = {
+    frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> appId),
       applicationRouteCriteria(appRoute)
@@ -874,9 +883,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         "originalUserId" -> originalUserId,
         "userId" -> userIdToArchiveWith
       ).add(
-        applicationStatusBSON(ProgressStatuses.APPLICATION_ARCHIVED)
-      )
-    )
+          applicationStatusBSON(ProgressStatuses.APPLICATION_ARCHIVED)
+        ))
 
     val validator = singleUpdateValidator(appId, actionDesc = "archiving application")
     collection.update(query, updateWithArchiveUserId) map validator

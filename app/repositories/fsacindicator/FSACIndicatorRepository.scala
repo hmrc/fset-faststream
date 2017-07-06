@@ -35,8 +35,8 @@ trait FSACIndicatorRepository {
 }
 
 class FSACIndicatorMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[FSACIndicator, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    FSACIndicator.jsonFormat, ReactiveMongoFormats.objectIdFormats) with FSACIndicatorRepository
+    extends ReactiveRepository[FSACIndicator, BSONObjectID](CollectionNames.APPLICATION, mongo,
+      FSACIndicator.jsonFormat, ReactiveMongoFormats.objectIdFormats) with FSACIndicatorRepository
     with ReactiveRepositoryHelpers {
 
   val FSACIndicatorDocumentKey = "fsac-indicator"

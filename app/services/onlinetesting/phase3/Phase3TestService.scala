@@ -91,8 +91,9 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  def removeTestGroup(applicationId: String)(implicit hc: HeaderCarrier,
-                                             rh: RequestHeader): Future[Unit] = eventSink {
+  def removeTestGroup(applicationId: String)(implicit
+    hc: HeaderCarrier,
+    rh: RequestHeader): Future[Unit] = eventSink {
     testRepository.removeTestGroup(applicationId).map { _ =>
       AuditEvents.VideoInterviewRemoved(applicationId) ::
         DataStoreEvents.VideoInterviewRemoved(applicationId) ::
@@ -100,27 +101,26 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-                                            (implicit hc: HeaderCarrier,
-                                             rh: RequestHeader): Future[Unit] =
+  override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit
+    hc: HeaderCarrier,
+    rh: RequestHeader): Future[Unit] =
     Future.sequence(applications.map(app => registerAndInviteForTestGroup(app))).map(_ => ())
 
-  override def registerAndInviteForTestGroup(application: OnlineTestApplication)
-                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application), None)
   }
 
-  def registerAndInviteForTestGroup(application: OnlineTestApplication, phase3TestGroup: Option[Phase3TestGroup] = None)
-                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def registerAndInviteForTestGroup(
+    application: OnlineTestApplication,
+    phase3TestGroup: Option[Phase3TestGroup] = None
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application), phase3TestGroup)
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase3TestGroupWithAppId]] =
     Future.successful(None)
 
-  override def retrieveTestResult(testProfile: Phase3TestGroupWithAppId)
-                                 (implicit hc: HeaderCarrier): Future[Unit] = Future.successful(())
-
+  override def retrieveTestResult(testProfile: Phase3TestGroupWithAppId)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(())
 
   override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
     testRepository.nextTestForReminder(reminder).flatMap {
@@ -128,10 +128,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       case None => Future.successful(())
     }
 
-  override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
-                                                     emailAddress: String,
-                                                     reminder: ReminderNotice)
-                                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  override def emailCandidateForExpiringTestReminder(
+    expiringTest: NotificationExpiringOnlineTest,
+    emailAddress: String,
+    reminder: ReminderNotice
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       _ <- emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
         reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate)
@@ -148,8 +149,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
-                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  def resetTests(
+    application: OnlineTestApplication,
+    actionTriggeredBy: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     import ApplicationStatus._
 
     ApplicationStatus.withName(application.applicationStatus) match {
@@ -165,10 +168,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   }
 
   // scalastyle:off method.length
-  private[onlinetesting] def registerAndInviteForTestGroup(application: OnlineTestApplication,
-                                                           interviewId: Int,
-                                                           phase3TestGroup: Option[Phase3TestGroup])
-                                                          (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  private[onlinetesting] def registerAndInviteForTestGroup(
+    application: OnlineTestApplication,
+    interviewId: Int,
+    phase3TestGroup: Option[Phase3TestGroup]
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val daysUntilExpiry = gatewayConfig.phase3Tests.timeToExpireInDays
 
     val expirationDate = phase3TestGroup.map { phase3TG =>
@@ -201,7 +205,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
         extendTestGroupExpiryTime(
           application.applicationId,
           gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays - daysUntilExpiry,
-          "InvigilatedInviteSystem")
+          "InvigilatedInviteSystem"
+        )
       } else {
         Future.successful(())
       }
@@ -210,7 +215,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     for {
       emailAddress <- candidateEmailAddress(application)
       launchPadTest <- registerAndInviteOrInviteOrResetOrRetakeOrNothing(
-        phase3TestGroup, application, emailAddress, interviewId, invitationDate, expirationDate)
+        phase3TestGroup, application, emailAddress, interviewId, invitationDate, expirationDate
+      )
       _ <- emailProcess(emailAddress)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(launchPadTest)))
       _ <- extendIfInvigilatedOrIfAdjustmentsWereChanged(application)
@@ -224,7 +230,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   // scalastyle:on method.length
 
   //scalastyle:off method.length
-  private[onlinetesting] def registerAndInviteOrInviteOrResetOrRetakeOrNothing(phase3TestGroup: Option[Phase3TestGroup],
+  private[onlinetesting] def registerAndInviteOrInviteOrResetOrRetakeOrNothing(
+    phase3TestGroup: Option[Phase3TestGroup],
     application: OnlineTestApplication, emailAddress: String,
     interviewId: Int, invitationDate: DateTime,
     expirationDate: DateTime
@@ -252,7 +259,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                 }
               } else {
                 Future.successful(
-                  InviteResetOrTakeResponse(candidateId, launchpadTest.testUrl, launchpadTest.token, getInitialCustomCandidateId))
+                  InviteResetOrTakeResponse(candidateId, launchpadTest.testUrl, launchpadTest.token, getInitialCustomCandidateId)
+                )
               }
           }.getOrElse(inviteApplicant(application, interviewId, phase3TestGroupContent.tests.head.candidateId).map {
             inviteResponse =>
@@ -265,15 +273,15 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
             inviteApplicant(application, interviewId, candidateId).map {
               inviteResponse =>
                 InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl, inviteResponse.customInviteId,
-                  Some(inviteResponse.customCandidateId)
-                )
+                  Some(inviteResponse.customCandidateId))
             }
         }
       )
     }
 
     inviteOrResetOrRetake.map(response =>
-      LaunchpadTest(interviewId = interviewId,
+      LaunchpadTest(
+        interviewId = interviewId,
         usedForResults = true,
         testUrl = response.testUrl,
         token = response.customInviteId,
@@ -283,13 +291,14 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
         startedDateTime = None,
         completedDateTime = None,
         callbacks = LaunchpadTestCallbacks()
-      )
-    )
+      ))
   }
   //scalastyle:on method.length
 
-  def markAsStarted(launchpadInviteId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
-                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  def markAsStarted(
+    launchpadInviteId: String,
+    startedTime: DateTime = dateTimeFactory.nowLocalTimeZone
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       _ <- testRepository.updateTestStartTime(launchpadInviteId, startedTime)
       updated <- testRepository.getTestGroupByToken(launchpadInviteId)
@@ -371,8 +380,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
-                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def extendTestGroupExpiryTime(
+    applicationId: String,
+    extraDays: Int,
+    actionTriggeredBy: String
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val progressFut = appRepository.findProgress(applicationId)
     val phase3TestGroup = testRepository.getTestGroup(applicationId)
       .map(tg => tg.getOrElse(throw new IllegalStateException(s"Phase 3 tests Expiration date for app id: '$applicationId' " +
@@ -393,7 +405,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       _ <- eventSink {
         AuditEvents.VideoInterviewExtended(
           "isAlreadyExpired" -> isAlreadyExpired.toString,
-          "applicationId" -> applicationId) ::
+          "applicationId" -> applicationId
+        ) ::
           DataStoreEvents.VideoInterviewExtended(applicationId, actionTriggeredBy) :: Nil
       }
     } yield {
@@ -401,7 +414,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   }
 
   private def registerApplicant(application: OnlineTestApplication, emailAddress: String,
-                                customCandidateId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[String] = {
+    customCandidateId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
     launchpadGatewayClient.registerApplicant(registerApplicant).flatMap {
       registration =>
@@ -412,8 +425,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  private def inviteApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String)
-                             (implicit hc: HeaderCarrier): Future[InviteApplicantResponse] = {
+  private def inviteApplicant(
+    application: OnlineTestApplication,
+    interviewId: Int,
+    candidateId: String
+  )(implicit hc: HeaderCarrier): Future[InviteApplicantResponse] = {
 
     val customInviteId = "FSINV-" + tokenFactory.generateUUID()
 
@@ -427,21 +443,28 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     launchpadGatewayClient.inviteApplicant(inviteApplicant)
   }
 
-  private def resetApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: LocalDate)
-                            (implicit hc: HeaderCarrier): Future[ResetApplicantResponse] = {
+  private def resetApplicant(
+    application: OnlineTestApplication,
+    interviewId: Int,
+    candidateId: String,
+    newDeadLine: LocalDate
+  )(implicit hc: HeaderCarrier): Future[ResetApplicantResponse] = {
     val resetApplicant = ResetApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.resetApplicant(resetApplicant)
   }
 
-  private def retakeApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: LocalDate)
-                             (implicit hc: HeaderCarrier): Future[RetakeApplicantResponse] = {
+  private def retakeApplicant(
+    application: OnlineTestApplication,
+    interviewId: Int,
+    candidateId: String,
+    newDeadLine: LocalDate
+  )(implicit hc: HeaderCarrier): Future[RetakeApplicantResponse] = {
     val retakeApplicant = RetakeApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.retakeApplicant(retakeApplicant)
   }
 
   override def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-                                      invitationDate: DateTime, expirationDate: DateTime
-                                     )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    invitationDate: DateTime, expirationDate: DateTime)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).flatMap {
       _ =>
@@ -472,7 +495,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                   oldLaunchpadTest.copy(usedForResults = false)
                 }
             }
-            if (mergedLaunchpadTests.filter(_.interviewId == newLaunchpadTest.interviewId).size > 0) {
+            if (mergedLaunchpadTests.exists(_.interviewId == newLaunchpadTest.interviewId)) {
               Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests)
             } else {
               Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests :+ newLaunchpadTest.copy(usedForResults = true))
@@ -483,8 +506,9 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
   // TODO: All resets are launchpad side, contemplate whether we should be able to call this invite method twice
   // or what we do if we want to reinvite
-  private def markAsInvited(application: OnlineTestApplication)
-                           (newPhase3TestGroup: Phase3TestGroup)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  private def markAsInvited(
+    application: OnlineTestApplication
+  )(newPhase3TestGroup: Phase3TestGroup)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       currentPhase3TestGroup <- testRepository.getTestGroup(application.applicationId)
       updatedPhase3TestGroup = mergePhase3TestGroups(currentPhase3TestGroup, newPhase3TestGroup)
@@ -498,9 +522,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: DateTime,
-                                                     profile: Phase3TestGroup,
-                                                     progress: ProgressResponse): Option[List[ProgressStatus]] = {
+  private def progressStatusesToRemoveWhenExtendTime(
+    extendedExpiryDate: DateTime,
+    profile: Phase3TestGroup,
+    progress: ProgressResponse
+  ): Option[List[ProgressStatus]] = {
     val shouldRemoveExpired = progress.phase3ProgressResponse.phase3TestsExpired
     val today = dateTimeFactory.nowLocalTimeZone
     val shouldRemoveSecondReminder = extendedExpiryDate.minusHours(Phase3SecondReminder.hoursBeforeReminder).isAfter(today)

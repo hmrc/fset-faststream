@@ -23,7 +23,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SchoolsController extends SchoolsController{
+object SchoolsController extends SchoolsController {
   val schoolsService = SchoolsService
 }
 

@@ -22,19 +22,20 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class LaunchpadTest(interviewId: Int,
-                         usedForResults: Boolean,
-                         testProvider: String = "launchpad",
-                         testUrl: String,
-                         token: String,
-                         candidateId: String,
-                         customCandidateId: String,
-                         invitationDate: DateTime,
-                         startedDateTime: Option[DateTime],
-                         completedDateTime: Option[DateTime],
-                         callbacks: LaunchpadTestCallbacks,
-                         invigilatedAccessCode: Option[String] = None
-                     ) extends Test
+case class LaunchpadTest(
+  interviewId: Int,
+  usedForResults: Boolean,
+  testProvider: String = "launchpad",
+  testUrl: String,
+  token: String,
+  candidateId: String,
+  customCandidateId: String,
+  invitationDate: DateTime,
+  startedDateTime: Option[DateTime],
+  completedDateTime: Option[DateTime],
+  callbacks: LaunchpadTestCallbacks,
+  invigilatedAccessCode: Option[String] = None
+) extends Test
 
 object LaunchpadTest {
   implicit val launchpadTestFormat = Json.format[LaunchpadTest]

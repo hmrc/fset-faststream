@@ -19,7 +19,6 @@ package model.exchange
 import model.persisted.eventschedules.SkillType._
 import play.api.libs.json.Json
 
-
 case class AssessorSkill(name: SkillType, label: String)
 
 object AssessorSkill {

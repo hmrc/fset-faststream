@@ -29,7 +29,6 @@ object WithdrawnStatusGenerator extends WithdrawnStatusGenerator {
   override val appRepository = applicationRepository
 }
 
-
 trait WithdrawnStatusGenerator extends BaseGenerator {
   val appRepository: GeneralApplicationRepository
 
@@ -39,7 +38,9 @@ trait WithdrawnStatusGenerator extends BaseGenerator {
       generatorConfig.copy(
         statusData = generatorConfig.statusData.copy(
           applicationStatus = generatorConfig.statusData.previousApplicationStatus.getOrElse(SUBMITTED)
-      )))
+        )
+      )
+    )
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)

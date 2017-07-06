@@ -22,19 +22,15 @@ import model.{ ApplicationRoute, SchemeType }
 object ApplicationForDiversityReportExamples {
 
   val Example1 =
-    ApplicationForDiversityReport("appId5", "userId10", ApplicationRoute.Faststream,  Some("phase1_tests_completed"),
+    ApplicationForDiversityReport("appId5", "userId10", ApplicationRoute.Faststream, Some("phase1_tests_completed"),
       List(SchemeType.DiplomaticService, SchemeType.Commercial), Some("No"), Some(false), Some("No"), Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"),
-        Some(""))
-      )
-    )
+        Some(""))))
 
   val Example2 =
     ApplicationForDiversityReport("appId6", "userId11", ApplicationRoute.Faststream, Some("submitted"),
       List(SchemeType.DiplomaticServiceEconomics, SchemeType.Commercial, SchemeType.GovernmentCommunicationService,
         SchemeType.European), Some("Yes"), Some(true), Some("Yes"), Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"),
-        Some("fastPass-101"))
-      )
-    )
+        Some("fastPass-101"))))
 }

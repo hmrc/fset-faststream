@@ -17,7 +17,7 @@
 package controllers
 
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.{Assessor, AssessorAvailability}
+import model.exchange.{ Assessor, AssessorAvailability }
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
