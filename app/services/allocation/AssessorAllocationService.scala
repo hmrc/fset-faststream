@@ -64,8 +64,8 @@ trait AssessorAllocationService {
     }
   }
 
-  def getEventsWithAllocationsSummary(venueName: String, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
-    eventsService.getEvents(eventType, Venue(venueName, "")).flatMap { events =>
+  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
+    eventsService.getEvents(eventType, venue).flatMap { events =>
       val res = events.map { event =>
         getAllocations(event.id).map { allocations =>
           val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)

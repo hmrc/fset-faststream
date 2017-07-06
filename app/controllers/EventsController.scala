@@ -43,7 +43,9 @@ object EventsController extends EventsController {
 
 trait EventsController extends BaseController {
   def eventsService: EventsService
+
   def locationsAndVenuesRepository: LocationsWithVenuesRepository
+
   def assessorAllocationService: AssessorAllocationService
 
   def venuesForEvents: Action[AnyContent] = Action.async { implicit request =>
@@ -67,17 +69,17 @@ trait EventsController extends BaseController {
   }
 
   def getEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
-    val events =  Try {
-        val eventType = EventType.withName(eventTypeParam.toUpperCase)
-        locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
-          eventsService.getEvents(eventType, venue).map { events =>
-            if (events.isEmpty) {
-              NotFound
-            } else {
-              Ok(Json.toJson(events))
-            }
+    val events = Try {
+      val eventType = EventType.withName(eventTypeParam.toUpperCase)
+      locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
+        eventsService.getEvents(eventType, venue).map { events =>
+          if (events.isEmpty) {
+            NotFound
+          } else {
+            Ok(Json.toJson(events))
           }
         }
+      }
     }
 
     play.api.Logger.debug(s"$events")
@@ -101,13 +103,15 @@ trait EventsController extends BaseController {
   def allocateAssessor(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
-      assessorAllocationService.allocate(newAllocations).map( _ => Ok)
+      assessorAllocationService.allocate(newAllocations).map(_ => Ok)
     }
   }
 
   def getEventsWithAllocationsSummary(venueName: String, eventType: EventType): Action[AnyContent] = Action.async { implicit request =>
-    assessorAllocationService.getEventsWithAllocationsSummary(venueName, eventType).map { eventsWithAllocations =>
-      Ok(Json.toJson(eventsWithAllocations))
+    locationsAndVenuesRepository.venue(venueName).flatMap { venue =>
+      assessorAllocationService.getEventsWithAllocationsSummary(venue, eventType).map { eventsWithAllocations =>
+        Ok(Json.toJson(eventsWithAllocations))
+      }
     }
   }
 }

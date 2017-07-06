@@ -81,7 +81,10 @@ trait RegisteredStatusGenerator extends BaseGenerator {
     val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)
     userFuture.flatMap {
       case user if assessorRoles.contains(role) =>
-        assessorGenerator.createAssessor(user.userId, AssessorData(List("assessor", "qac", "sifter"), List("Sdip"), Random.bool, None)).map {
+        assessorGenerator.createAssessor(
+          user.userId,
+          AssessorData(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR", "SIFTER"), List("Sdip"), Random.bool, None)
+        ).map {
           assessor => user.copy(assessor = Some(AssessorResponse.apply(assessor)))
         }
       case user => Future.successful(user)

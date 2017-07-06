@@ -143,7 +143,7 @@ trait TestDataGeneratorController extends BaseController {
       role = Some("assessor"),
       phone = Some("123456789"),
       assessor = Some(AssessorRequest(
-        skills = Some(List("assessor", "qac")),
+        skills = Some(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR")),
         civilServant = Some(true),
         availability = Some(List(
           AssessorAvailabilityRequest("London", LocalDate.now()),
@@ -161,7 +161,7 @@ trait TestDataGeneratorController extends BaseController {
       eventType = Some(EventType.FSAC),
       description = Some("PDFS FSB"),
       location = Some("London"),
-      venue = Some("London venue 1"),
+      venue = Some("LONDON_FSAC"),
       date = Some(LocalDate.now),
       capacity = Some(32),
       minViableAttendees = Some(24),
@@ -181,7 +181,7 @@ trait TestDataGeneratorController extends BaseController {
       eventType = Some(EventType.FSAC),
       description = Some("PDFS FSB"),
       location = Some("London"),
-      venue = Some("London venue 1"),
+      venue = Some("LONDON_FSAC"),
       date = Some(LocalDate.now),
       capacity = Some(32),
       minViableAttendees = Some(24),
@@ -194,7 +194,7 @@ trait TestDataGeneratorController extends BaseController {
     val example2 = example1.copy(
       id = Some(UUIDFactory.generateUUID()),
       location = Some("Newcastle"),
-      venue = Some("New castle 1")
+      venue = Some("NEWCASTLE_FSAC")
       )
 
     Ok(Json.toJson(List(example1, example2)))
