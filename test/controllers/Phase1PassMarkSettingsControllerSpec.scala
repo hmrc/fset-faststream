@@ -66,7 +66,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Save new settings" should {
+  "Save new settings" ignore {
     "Send a complete settings object to the repository with a version UUID appended" in new TestFixture {
 
       val passMarkSettingsServiceWithExpectations = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
