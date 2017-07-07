@@ -34,10 +34,9 @@ trait AllocationRepositorySpec[T <: Allocation] { this: MongoRepositorySpec =>
     }
     "correctly retrieve documents" in {
       repository.save(allocations).futureValue
-      allocations.foreach { a =>
-        val findResult = repository.find(a.id).futureValue
-        findResult mustBe defined
-        findResult.get mustBe a
+      allocations.foreach { allocation =>
+        val findResult = repository.find(allocation.id).futureValue
+        findResult mustBe allocation :: Nil
       }
     }
 

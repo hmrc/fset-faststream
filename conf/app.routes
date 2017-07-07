@@ -116,6 +116,7 @@ POST        /assessor/availability/save/:userId                          control
 GET         /assessor/availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
 GET         /assessor/availability/:locationName/:date                   controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: List[model.persisted.eventschedules.SkillType.SkillType])
 GET         /assessor/availability/count-submitted                       controllers.AssessorController.countSubmittedAvailability()
+GET         /assessor/:assessorId/allocations                            controllers.AssessorController.findAllocations(assessorId: String)
 
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()

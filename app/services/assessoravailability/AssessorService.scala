@@ -20,23 +20,30 @@ import common.FutureEx
 import model.exchange
 import model.persisted
 import model.Exceptions.AssessorNotFoundException
+import model.command.AllocationWithEvent
+import model.exchange.AssessorSkill
+import model.persisted.AssessorAllocation
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.assessor.AssessorStatus
 import org.joda.time.LocalDate
 import repositories._
-import repositories.events.{ LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
+import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
+  val allocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
+  val eventsRepo: EventsMongoRepository = repositories.eventsRepository
   val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
 }
 
 trait AssessorService {
   val assessorRepository: AssessorRepository
+  val allocationRepo: AllocationRepository[AssessorAllocation]
+  val eventsRepo: EventsRepository
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
 
   lazy val locations: Future[Set[Location]] = locationsWithVenuesRepo.locations
@@ -102,9 +109,28 @@ trait AssessorService {
     }
   }
 
+  def findAllocations(assessorId: String): Future[Seq[AllocationWithEvent]] = {
+    allocationRepo.find(assessorId).flatMap { allocations =>
+      FutureEx.traverseSerial(allocations) { allocation =>
+        eventsRepo.getEvent(allocation.eventId).map { event =>
+          AllocationWithEvent(
+            allocation.id,
+            event.id,
+            event.date,
+            event.startTime,
+            event.endTime,
+            event.venue,
+            event.eventType,
+            allocation.status,
+            AssessorSkill.SkillMap(allocation.allocatedAs)
+          )
+        }
+      }
+    }
+  }
+
   def countSubmittedAvailability(): Future[Int] = {
-    //assessorRepository.countSubmittedAvailability
-    Future.successful(0)
+    assessorRepository.countSubmittedAvailability
   }
 
   private def exchangeToPersistedAvailability(a: Seq[exchange.AssessorAvailability]): Future[Seq[persisted.assessor.AssessorAvailability]] = {
