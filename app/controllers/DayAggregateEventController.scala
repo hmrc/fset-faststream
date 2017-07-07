@@ -17,10 +17,11 @@
 package controllers
 
 import model.persisted.eventschedules.Location
+import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
-import play.api.libs.json.{Json, OFormat}
-import play.api.mvc.{Action, AnyContent}
-import repositories.events.{ EventsRepository, LocationsWithVenuesRepository, LocationsWithVenuesInMemoryRepository }
+import play.api.libs.json.{ Json, OFormat }
+import play.api.mvc.{ Action, AnyContent }
+import repositories.events.{ EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,21 +36,21 @@ trait DayAggregateEventController extends BaseController {
   def locationsWithVenuesRepo: LocationsWithVenuesRepository
   def eventsRepository: EventsRepository
 
-  def findBySkillTypes(skillTypes: String): Action[AnyContent] = Action.async { implicit request =>
-    find(Some(skillTypes), None).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )
+  def findBySkillTypes(skillTypes: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
+    find(None, skillTypes).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )
   }
 
-  def findBySkillTypesAndLocation(skillTypes: String, location: String): Action[AnyContent] = Action.async { implicit request =>
+  def findBySkillTypesAndLocation(location: String, skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
     locationsWithVenuesRepo.location(location).flatMap { location =>
-      find(Some(skillTypes), Some(location))
+      find(Some(location), skills)
     }.map(dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)))
   }
 
-  private def find(skillTypes: Option[String], location: Option[Location]) = {
-    val skillTypesList = skillTypes.map(_.split(",").toList)
+  private def find(location: Option[Location], skills: Seq[SkillType]) = {
 
-    eventsRepository.getEvents(None, None, location, skillTypesList).map {
+    eventsRepository.getEvents(None, None, location, skills).map {
       _.groupBy(e => DayAggregateEvent(e.date, e.location)).keys.toList
+
     }
   }
 }

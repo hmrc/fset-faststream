@@ -50,7 +50,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "filter by skills" in {
-      val result = repository.getEvents(None, None, None, Some(List("QAC"))).futureValue
+      val result = repository.getEvents(None, None, None, List(SkillType.QUALITY_ASSURANCE_COORDINATOR)).futureValue
 
       result.size mustBe 1
       result.head.venue mustBe EventExamples.VenueNewcastle
@@ -58,7 +58,9 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "filter by skills and Location" in {
-      val result = repository.getEvents(None, None, Some(EventExamples.LocationNewcastle), Some(List(SkillType.ASSESSOR.toString))).futureValue
+      val result = repository.getEvents(None, None, Some(EventExamples.LocationNewcastle),
+        List(SkillType.ASSESSOR)
+      ).futureValue
       result.size mustBe 1
 
       result.head.venue mustBe EventExamples.VenueNewcastle

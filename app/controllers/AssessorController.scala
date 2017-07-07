@@ -73,7 +73,7 @@ trait AssessorController extends BaseController {
   }
 
   def findAvailableAssessorsForLocationAndDate(locationName: String, date: LocalDate,
-    skills: List[SkillType]
+    skills: Seq[SkillType]
   ): Action[AnyContent] = Action.async { implicit request =>
     assessorService.findAvailabilitiesForLocationAndDate(locationName, date, skills).map { a => Ok(Json.toJson(a)) }
   }
