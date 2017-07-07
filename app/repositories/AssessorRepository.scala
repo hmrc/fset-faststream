@@ -69,10 +69,11 @@ class AssessorMongoRepository(implicit mongo: () => DB)
       BSONDocument("availability" ->
         BSONDocument("$elemMatch" -> BSONDocument(
           "location" -> location,
-          "date" -> date,
-          "allocation" -> BSONDocument("$exists" -> false)
+          "date" -> date
         )))
     ))
+
+    play.api.Logger.error(s"\n\nQUERY ${play.api.libs.json.Json.toJson(query)}")
 
     collection.find(query).cursor[Assessor]().collect[Seq]()
   }
