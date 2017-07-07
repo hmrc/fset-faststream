@@ -36,8 +36,8 @@ trait DayAggregateEventController extends BaseController {
   def locationsWithVenuesRepo: LocationsWithVenuesRepository
   def eventsRepository: EventsRepository
 
-  def findBySkillTypes(skillTypes: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
-    find(None, skillTypes).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )
+  def findBySkillTypes(skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
+    find(None, skills).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )
   }
 
   def findBySkillTypesAndLocation(location: String, skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
@@ -47,10 +47,8 @@ trait DayAggregateEventController extends BaseController {
   }
 
   private def find(location: Option[Location], skills: Seq[SkillType]) = {
-
     eventsRepository.getEvents(None, None, location, skills).map {
       _.groupBy(e => DayAggregateEvent(e.date, e.location)).keys.toList
-
     }
   }
 }
