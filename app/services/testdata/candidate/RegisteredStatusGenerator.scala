@@ -17,6 +17,7 @@
 package services.testdata.candidate
 
 import connectors.AuthProviderClient
+import model.SchemeId
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.Media
@@ -81,7 +82,8 @@ trait RegisteredStatusGenerator extends BaseGenerator {
     val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)
     userFuture.flatMap {
       case user if assessorRoles.contains(role) =>
-        assessorGenerator.createAssessor(user.userId, AssessorData(List("assessor", "qac", "sifter"), List("Sdip"), Random.bool, None)).map {
+        assessorGenerator.createAssessor(user.userId, AssessorData(List("assessor", "qac", "sifter"),
+          List(SchemeId("Sdip")), Random.bool, None)).map {
           assessor => user.copy(assessor = Some(AssessorResponse.apply(assessor)))
         }
       case user => Future.successful(user)

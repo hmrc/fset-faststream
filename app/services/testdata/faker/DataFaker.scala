@@ -17,7 +17,7 @@
 package services.testdata.faker
 
 import factories.UUIDFactory
-import model.{ EvaluationResults, Scheme }
+import model.{ EvaluationResults, Scheme, SchemeId }
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.persisted.eventschedules._
@@ -664,7 +664,7 @@ object DataFaker {
       SkillType.ASSESSOR.toString,
       SkillType.CHAIR.toString), 3)
 
-    def sifterSchemes = randList(List("GovernmentEconomicsService", "ProjectDelivery", "Sdip"), 3)
+    def sifterSchemes = randList(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip")), 3)
 
     def parentsOccupationDetails = randOne(List(
       "Modern professional",

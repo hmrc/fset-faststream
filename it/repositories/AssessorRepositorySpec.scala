@@ -1,8 +1,9 @@
 package repositories
 
+import model.SchemeId
 import model.persisted.EventExamples
 import model.persisted.eventschedules.Location
-import model.persisted.assessor.{Assessor, AssessorAvailability, AssessorStatus}
+import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
 import org.joda.time.LocalDate
 import testkit.MongoRepositorySpec
 
@@ -14,7 +15,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
   private val userId = "123"
   private val AssessorWithAvailabilities = Assessor(userId,
-    List("assessor", "qac"), List("Sdip"), true,
+    List("assessor", "qac"), List(SchemeId("Sdip")), true,
     List(AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
       AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))),
     AssessorStatus.AVAILABILITIES_SUBMITTED
