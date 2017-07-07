@@ -23,9 +23,11 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString, Macros }
 case class SchemeId(value: String)
 
 object SchemeId {
-  implicit val rds: Reads[SchemeId] = (__ \ "id").read[String].map{ id => new SchemeId(id) }
-  implicit val wrs: Writes[SchemeId] = (__ \ "id").write[String].contramap{ (scheme: SchemeId) => scheme.value }
-  implicit val fmt: Format[SchemeId] = Format(rds, wrs)
+  // Custom json formatter to serialise to a string
+  val schemeIdWritesFormat = Writes[SchemeId](scheme => JsString(scheme.value))
+  val schemeIdReadsFormat = Reads[SchemeId](scheme => JsSuccess(SchemeId(scheme.as[String])))
+
+  implicit val schemeIdFormat = Format(schemeIdReadsFormat, schemeIdWritesFormat)
 
   // Custom formatter to prevent a nested case object in BSON
   implicit object SchemeIdHandler extends BSONHandler[BSONString, SchemeId] {
