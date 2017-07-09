@@ -187,11 +187,11 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
 
     "handle no candidates" in new TestFixture {
-      when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]], any[Int], any[Int]))
+      when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]]))
         .thenReturn(Future.successful(CandidatesEligibleForEventResponse(List.empty, 0)))
 
-      val result = MyTestApplicationController.findCandidatesEligibleForEventAllocation("London", 0, 0)(
-      findCandidatesEligibleForEventAllocationRequest("london", 0, 0)).run
+      val result = MyTestApplicationController.findCandidatesEligibleForEventAllocation("London")(
+      findCandidatesEligibleForEventAllocationRequest("london")).run
       val jsonResponse = contentAsJson(result)
 
       (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List.empty
@@ -203,11 +203,11 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     "handle candidates" in new TestFixture {
       val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
         needsAdjustment = true, dateReady = DateTime.now())
-      when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]], any[Int], any[Int]))
+      when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]]))
         .thenReturn(Future.successful(CandidatesEligibleForEventResponse(List(candidate), 1)))
 
-      val result = MyTestApplicationController.findCandidatesEligibleForEventAllocation("London", 0, 0)(
-      findCandidatesEligibleForEventAllocationRequest("london", 0, 0)).run
+      val result = MyTestApplicationController.findCandidatesEligibleForEventAllocation("London")(
+      findCandidatesEligibleForEventAllocationRequest("london")).run
       val jsonResponse = contentAsJson(result)
 
       (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List(candidate)
@@ -263,8 +263,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    def findCandidatesEligibleForEventAllocationRequest(location: String, start: Int, end: Int) = {
-      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.findCandidatesEligibleForEventAllocation(location, start, end).url,
+    def findCandidatesEligibleForEventAllocationRequest(location: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.findCandidatesEligibleForEventAllocation(location).url,
         FakeHeaders(), "").withHeaders("Content-Type" -> "application/json")
     }
   }

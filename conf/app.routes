@@ -26,8 +26,7 @@ GET         /application/schemeresults/:applicationId                    control
 PUT         /application/consider-for-sdip/:applicationId                controllers.ApplicationController.considerForSdip(applicationId: String)
 PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
 PUT         /application/overrideSubmissionDeadline/:applicationId       controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
-GET         /application/location/:location                              controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String, start: Int, end: Int)
-GET         /application/location-v1/:location                           controllers.ApplicationController.findCandidatesEligibleForEventAllocationV1(location: String)
+GET         /application/location/:location                              controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String)
 POST        /application/status                                          controllers.ApplicationController.updateStatus
 
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)

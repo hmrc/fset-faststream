@@ -637,9 +637,14 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   private def createApplications(num: Int): Future[Unit] = {
     import repositories.BSONDateTimeHandler
-    val timestampDocument = BSONDocument(
+    val additionalDoc = BSONDocument(
       "progress-status-timestamp" -> BSONDocument(
         s"${ProgressStatuses.PHASE3_TESTS_PASSED}" -> DateTime.now()
+      ),
+      "fsac-indicator" -> BSONDocument(
+        "area" -> "London",
+        "assessmentCentre" -> "London",
+        "version" -> "1"
       )
     )
 
@@ -648,7 +653,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         testDataRepo.createApplicationWithAllFields(
           UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
           firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d"),
-          additionalDoc = timestampDocument
+          additionalDoc = additionalDoc
         )
       }
     ).map(_ => ())
@@ -657,49 +662,21 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   "find candidates eligible for event allocation" should {
     "return an empty list when there are no applications" in {
       createApplications(0).futureValue
-      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), 0, 4).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
       result mustBe a[CandidatesEligibleForEventResponse]
       result.candidates mustBe empty
     }
 
     "return an empty list when there are no eligible candidates" in {
       testDataRepo.createApplications(10).futureValue
-      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), 0, 4).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
       result.candidates mustBe empty
     }
 
-    "return a one item list when there are eligible candidates and start item and end item is the same" in {
+    "return a ten item list when there are eligible candidates" in {
       createApplications(10).futureValue
-      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), 0, 0).futureValue
-      result.candidates must have size 1
-    }
-
-    "return an empty list when start is beyond the number of results" in {
-      testDataRepo.createApplications(10).futureValue
-      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), Int.MaxValue, Int.MaxValue).futureValue
-      result.candidates mustBe empty
-    }
-
-    "return an empty list when start is higher than end" in {
-      testDataRepo.createApplications(10).futureValue
-      val result = repository.findCandidatesEligibleForEventAllocation(List("London"), 2, 1).futureValue
-      result.candidates mustBe empty
-    }
-
-    "fetch 2 pages of candidates and verify the pages contain different candidates and are sorted" in {
-      createApplications(10).futureValue
-      val page1 = repository.findCandidatesEligibleForEventAllocation(List("London"), 0, 4).futureValue
-      page1.candidates must have size 5
-      page1.candidates.map{ _.lastName} mustBe List("Jetson01", "Jetson02", "Jetson03", "Jetson04", "Jetson05")
-      page1.totalCandidates mustBe 10
-
-      val page2 = repository.findCandidatesEligibleForEventAllocation(List("London"), 5, 9).futureValue
-      page2.candidates must have size 5
-      page2.candidates.map{ _.lastName} mustBe List("Jetson06", "Jetson07", "Jetson08", "Jetson09", "Jetson10")
-      page2.totalCandidates mustBe 10
-
-      val pagesContainDifferentCandidates = page1.candidates.exists { c => !page2.candidates.contains(c) }
-      pagesContainDifferentCandidates mustBe true
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
+      result.candidates must have size 10
     }
   }
 

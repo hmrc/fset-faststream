@@ -128,8 +128,6 @@ trait GeneralApplicationRepository {
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
               frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
 
-  def findCandidatesEligibleForEventAllocation(locations: List[String], start: Int, end: Int): Future[CandidatesEligibleForEventResponse]
-
   def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse]
   }
 
@@ -885,44 +883,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     val validator = singleUpdateValidator(appId, actionDesc = "archiving application")
     collection.update(query, updateWithArchiveUserId) map validator
-  }
-
-  override def findCandidatesEligibleForEventAllocation(locations: List[String], start: Int,
-                                                       end: Int): Future[CandidatesEligibleForEventResponse] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED)//,
-      //TODO: put this back in when the requirement is clear
-//      BSONDocument("assessment-centre-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
-    ))
-
-    collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
-      val count = c.count
-
-      if (count == 0) {
-        Future.successful(CandidatesEligibleForEventResponse(List.empty, 0))
-      } else {
-        val projection = BSONDocument(
-          "userId" -> true,
-          "applicationId" -> true,
-          "personal-details.firstName" -> true,
-          "personal-details.lastName" -> true,
-          "assistance-details.needsSupportAtVenue" -> true,
-          "progress-status-timestamp" -> true
-        )
-
-        val ascending = JsNumber(1)
-        val sort = new JsObject(Map("personal-details.lastName" -> ascending))
-
-        collection.find(query, projection).sort(sort).options(QueryOpts(skipN = start)).cursor[BSONDocument]().collect[List](end - start + 1)
-          .map { docList =>
-            docList.map { doc =>
-              bsonDocToCandidatesEligibleForEvent(doc)
-            }
-          }.flatMap { result =>
-          Future.successful(CandidatesEligibleForEventResponse(result, count))
-        }
-      }
-    }
   }
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = {
