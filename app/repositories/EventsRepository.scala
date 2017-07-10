@@ -17,13 +17,11 @@
 package repositories
 
 import config.MicroserviceAppConfig
-import model.Scheme
-import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, Session }
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
 import org.joda.time.{ LocalDate, LocalTime }
-import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
+import org.joda.time.format.DateTimeFormat
 import play.api.Play
 import resource._
 
@@ -62,7 +60,7 @@ trait EventRepositoryImpl {
 
   import play.api.Play.current
 
-  private lazy val rawConfig = {
+  protected def rawConfig = {
     val input = managed(Play.application.resourceAsStream(MicroserviceAppConfig.eventsConfig.yamlFilePath).get)
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
