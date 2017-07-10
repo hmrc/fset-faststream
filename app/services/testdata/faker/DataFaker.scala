@@ -17,11 +17,11 @@
 package services.testdata.faker
 
 import factories.UUIDFactory
-import model.EvaluationResults
+import model.{ AllocationStatuses, EvaluationResults }
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.SchemeType._
-import model.exchange.AssessorAvailability
+import model.exchange.{ AssessorAvailability, AssessorSkill }
 import model.persisted.eventschedules._
 import org.joda.time.{ LocalDate, LocalTime }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
@@ -751,6 +751,11 @@ object DataFaker {
           skillSelected -> numberOfPeopleWithSkillsRequired
         }.toMap
       }
+    }
+
+    object AssessorAllocation {
+      def status = Random.randOne(List(AllocationStatuses.CONFIRMED, AllocationStatuses.UNCONFIRMED))
+      def version = UUIDFactory.generateUUID()
     }
   }
 

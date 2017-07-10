@@ -22,10 +22,13 @@ import factories.UUIDFactory
 import model.Exceptions.EmailTakenException
 import model._
 import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
-import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
+import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllocationRequest
+import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _}
 import model.command.testdata.CreateEventRequest.CreateEventRequest
+import model.exchange.AssessorSkill
 import model.persisted.eventschedules.{ EventType, SkillType }
 import model.testdata.CreateAdminData.CreateAdminData
+import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
 import org.joda.time.{ LocalDate, LocalTime }
@@ -144,6 +147,7 @@ trait TestDataGeneratorController extends BaseController {
       phone = Some("123456789"),
       assessor = Some(AssessorRequest(
         skills = Some(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR")),
+        sifterSchemes = Some(List("GovernmentEconomicsService", "ProjectDelivery", "Sdip")),
         civilServant = Some(true),
         availability = Some(List(
           AssessorAvailabilityRequest("London", LocalDate.now()),
@@ -200,6 +204,22 @@ trait TestDataGeneratorController extends BaseController {
     Ok(Json.toJson(List(example1, example2)))
   }
 
+  def exampleCreateAssessorAllocations: Action[AnyContent] = Action.async { implicit request =>
+    val example1 = CreateAssessorAllocationRequest(
+      "id2",
+      "eventId2",
+      Some(AllocationStatuses.UNCONFIRMED),
+      AssessorSkill.AllSkillsWithLabels.tail.head.name.toString,
+      Some("version1"))
+    val example2 = CreateAssessorAllocationRequest(
+      "id3",
+      "eventId3",
+      Some(AllocationStatuses.CONFIRMED),
+      AssessorSkill.AllSkillsWithLabels.tail.tail.head.name.toString,
+      Some("version1"))
+    Future.successful(Ok(Json.toJson(List(example1, example2))))
+  }
+
   def createAdmins(numberToGenerate: Int, emailPrefix: Option[String], role: String): Action[AnyContent] = Action.async { implicit request =>
     try {
       TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
@@ -241,6 +261,16 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
+
+  def createAssessorAllocationsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[List[CreateAssessorAllocationRequest]] { createRequests =>
+      val createDatas: List[(Int) => CreateAssessorAllocationData] = createRequests.map { createRequest =>
+        val createData: (Int) => CreateAssessorAllocationData = CreateAssessorAllocationData.apply(createRequest)
+        createData
+      }
+      createAssessorAllocations(createDatas, numberToGenerate)
+    }
+  }
 
   private def createCandidates(config: (Int) => CreateCandidateData, numberToGenerate: Int)
                               (implicit hc: HeaderCarrier, rh: RequestHeader) = {
@@ -302,6 +332,21 @@ trait TestDataGeneratorController extends BaseController {
     } catch {
       case ex: Throwable => Future.successful(Conflict(JsObject(List(("message",
         JsString(s"There was an exception creating the events: ${ex.getMessage}"))))))
+    }
+  }
+
+  private def createAssessorAllocations(createDatas: List[(Int) => CreateAssessorAllocationData], numberToGenerate: Int)
+                          (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    try {
+      TestDataGeneratorService.createAssessorAllocations(
+        numberToGenerate,
+        createDatas
+      ).map { assessorAllocations =>
+        Ok(Json.toJson(assessorAllocations))
+      }
+    } catch {
+      case ex: Throwable => Future.successful(Conflict(JsObject(List(("message",
+        JsString(s"There was an exception creating the assessor allocations: ${ex.getMessage}"))))))
     }
   }
 }
