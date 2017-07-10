@@ -45,7 +45,7 @@
                     @for((schemeResult, index) <- getSuccessfulSchemes) {
                        <section>
                            <h3 class="bold-small">@getOrder(index + 1) preference</h3>
-                           <p>@Messages("scheme."+schemeResult.scheme+".description")</p>
+                           <p>@Messages("scheme."+schemeResult.schemeId+".description")</p>
                        </section>
                    }
                 </div>
@@ -60,7 +60,7 @@
                             @for((schemeResult, index) <- getUnSuccessfulSchemes) {
                                 <section>
                                     <h3 class="bold-small">@getOrder(index + 1) preference</h3>
-                                    <p>@Messages("scheme."+schemeResult.scheme+".description")</p>
+                                    <p>@Messages("scheme."+schemeResult.schemeId+".description")</p>
                                 </section>
                             }
                         </div>

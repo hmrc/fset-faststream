@@ -19,7 +19,7 @@ package connectors.exchange
 import models.SchemeType.SchemeType
 import play.api.libs.json.Json
 
-case class SchemeEvaluationResult(scheme: SchemeType, result: String)
+case class SchemeEvaluationResult(schemeId: SchemeType, result: String)
 
 object SchemeEvaluationResult {
   implicit val schemeEvaluationResultFormat = Json.format[SchemeEvaluationResult]
