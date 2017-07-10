@@ -18,6 +18,7 @@ package controllers
 
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
+import model.ProgressStatuses
 import model.command.WithdrawApplication
 import play.api.libs.json.Json
 import play.api.mvc.Action
@@ -29,6 +30,7 @@ import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object ApplicationController extends ApplicationController {
   val appRepository = applicationRepository
@@ -127,6 +129,33 @@ trait ApplicationController extends BaseController {
         .recover {
           case e: NotFoundException => NotFound(s"cannot find application with id $applicationId")
         }
+    }
+  }
+
+  def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String) = Action.async {
+    implicit request =>
+      appRepository.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation)) map { apps =>
+        Ok(Json.toJson(apps))
+      }
+  }
+
+  case class ApplicationStatus(applicationId: String, progressStatus: String)
+  object ApplicationStatus {
+    implicit val applicationStatusFormat = play.api.libs.json.Json.format[ApplicationStatus]
+  }
+
+  case class ApplicationStatuses(applications: List[ApplicationStatus])
+  object ApplicationStatuses {
+    implicit val applicationStatusesFormat = play.api.libs.json.Json.format[ApplicationStatuses]
+  }
+
+  def updateStatus() = Action.async(parse.json) { implicit request =>
+    withJsonBody[ApplicationStatuses] { applicationStatuses =>
+      val updateFutures = applicationStatuses.applications.map { application =>
+        val progressStatus = ProgressStatuses.nameToProgressStatus(application.progressStatus)
+        appRepository.addProgressStatusAndUpdateAppStatus(application.applicationId, progressStatus)
+      }
+      Future.sequence(updateFutures).map(_ => Ok)
     }
   }
 }

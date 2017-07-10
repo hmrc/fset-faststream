@@ -26,6 +26,8 @@ GET         /application/schemeresults/:applicationId                    control
 PUT         /application/consider-for-sdip/:applicationId                controllers.ApplicationController.considerForSdip(applicationId: String)
 PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
 PUT         /application/overrideSubmissionDeadline/:applicationId       controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
+GET         /application/location/:location                              controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String)
+POST        /application/status                                          controllers.ApplicationController.updateStatus
 
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
 GET         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
@@ -123,10 +125,13 @@ POST        /events/save                                                 control
 GET         /events/venues-for-events                                    controllers.EventsController.venuesForEvents
 GET         /events/locations-for-events                                 controllers.EventsController.locationsForEvents
 GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
+GET         /events/:eventId/candidateAllocations                        controllers.EventsController.getCandidateAllocations(eventId: String)
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
 GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
+PUT         /events/:eventId/allocateCandidates                          controllers.EventsController.allocateCandidates(eventId: String)
+
 
 # Day aggregate events
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
