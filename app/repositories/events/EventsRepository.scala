@@ -34,7 +34,7 @@ trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
-    location: Option[Location] = None, skills: List[SkillType] = Nil): Future[List[Event]]
+    location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -55,7 +55,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
   }
 
   def getEvents(eventType: Option[EventType] = None, venueType: Option[Venue] = None,
-    location: Option[Location] = None, skills: List[SkillType] = Nil
+    location: Option[Location] = None, skills: Seq[SkillType] = Nil
   ): Future[List[Event]] = {
     val query = List(
       eventType.filterNot(_ == EventType.ALL_EVENTS).map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) },
@@ -64,9 +64,8 @@ class EventsMongoRepository(implicit mongo: () => DB)
 
       if (skills.nonEmpty) {
         Some(BSONDocument("$or" -> BSONArray(
-          skills.map { skill =>
-            BSONDocument(s"skillRequirements.$skill" -> BSONDocument("$gte" -> 1))
-        })))
+          skills.map(s => BSONDocument(s"skillRequirements.$s" -> BSONDocument("$gte" -> 1)))
+        )))
       } else { None }
 
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
