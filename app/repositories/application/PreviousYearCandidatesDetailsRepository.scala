@@ -31,6 +31,7 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.json.collection.JSONCollection
 import repositories.{ CollectionNames, CommonBSONDocuments }
 import reactivemongo.json.ImplicitBSONHandlers._
+import services.reporting.SocioEconomicCalculator
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -244,33 +245,59 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map { docs =>
         val csvRecords = docs.map { doc =>
-          val questions = doc.getAs[BSONDocument]("questions")
-          val csvRecord = makeRow(
-            getAnswer("What is your gender identity?", questions),
-            getAnswer("What is your sexual orientation?", questions),
-            getAnswer("What is your ethnic group?", questions),
-            getAnswer("Did you live in the UK between the ages of 14 and 18?", questions),
-            getAnswer("What was your home postcode when you were 14?", questions),
-            getAnswer("Aged 14 to 16 what was the name of your school?", questions),
-            getAnswer("Aged 16 to 18 what was the name of your school?", questions),
-            getAnswer("Were you at any time eligible for free school meals?", questions),
-            getAnswer("What is the name of the university you received your degree from?", questions),
-            getAnswer("Which category best describes your degree?", questions),
-            getAnswer("Do you have a parent or guardian that has completed a university degree course or equivalent?", questions),
-            getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?", questions),
-            getAnswer("Did they work as an employee or were they self-employed?", questions),
+          val questionsDoc = doc.getAs[BSONDocument]("questions")
+          val universityName = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
 
-            getAnswer("Which size would best describe their place of work?", questions),
-            getAnswer("Did they supervise employees?", questions),
-            Some(""), // SE
-            Some(""), // Oxb
-            Some(""), // Russell
-            Some("") // Hesa
+          val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map {
+            case (question, _) =>
+              val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
+              (question, answer)
+          }.toMap
+
+          val csvRecord = makeRow(
+            getAnswer("What is your gender identity?", questionsDoc),
+            getAnswer("What is your sexual orientation?", questionsDoc),
+            getAnswer("What is your ethnic group?", questionsDoc),
+            getAnswer("Did you live in the UK between the ages of 14 and 18?", questionsDoc),
+            getAnswer("What was your home postcode when you were 14?", questionsDoc),
+            getAnswer("Aged 14 to 16 what was the name of your school?", questionsDoc),
+            getAnswer("Aged 16 to 18 what was the name of your school?", questionsDoc),
+            getAnswer("Were you at any time eligible for free school meals?", questionsDoc),
+            universityName,
+            getAnswer("Which category best describes your degree?", questionsDoc),
+            getAnswer("Do you have a parent or guardian that has completed a university degree course or equivalent?", questionsDoc),
+            getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?", questionsDoc),
+            getAnswer("Did they work as an employee or were they self-employed?", questionsDoc),
+
+            getAnswer("Which size would best describe their place of work?", questionsDoc),
+            getAnswer("Did they supervise employees?", questionsDoc),
+            Some(SocioEconomicCalculator.calculate(allQuestionsAndAnswers)),
+            isOxbridge(universityName),
+            isRussellGroup(universityName),
+            Some("") // Hesa TODO
           )
           doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
         }
         CsvExtract(questionnaireDetailsHeader, csvRecords.toMap)
       }
+  }
+
+  private def isOxbridge(code: Option[String]): Option[String] = {
+    code match {
+      case Some("O33-OXF") | Some("C05-CAM") => Some("Yes")
+      case Some(_) => Some("No")
+      case None => None
+    }
+  }
+
+  val russellGroupUnis = List(
+    "B32-BIRM", "B78-BRISL", "C05-CAM", "C15-CARDF", "D86-DUR", "E56-EDINB", "E81-EXCO", "G28-GLASG", "I50-IMP", "K60-KCL",
+    "L23-LEEDS", "L41-LVRPL", "L72-LSE", "M20-MANU", "N21-NEWC", "N84-NOTTM", "O33-OXF", "Q75-QBELF", "S18-SHEFD",
+    "S27-SOTON", "U80-UCL", "W20-WARWK", "Y50-YORK"
+  )
+
+  private def isRussellGroup(code: Option[String]): Option[String] = {
+    code.map(c => if (russellGroupUnis.contains(c)) "Yes" else "No")
   }
 
   private def videoInterview(doc: BSONDocument): List[Option[String]] = {
