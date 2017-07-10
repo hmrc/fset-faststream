@@ -16,11 +16,9 @@
 
 package controllers
 
-import model.ApplicationStatus._
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses
-import model.ProgressStatuses.ProgressStatus
 import model.command.WithdrawApplication
 import play.api.libs.json.Json
 import play.api.mvc.Action
@@ -153,9 +151,6 @@ trait ApplicationController extends BaseController {
 
   def updateStatus() = Action.async(parse.json) { implicit request =>
     withJsonBody[ApplicationStatuses] { applicationStatuses =>
-      //scalastyle:off
-      println(s"**** ApplicationController.updateStatus - received this data $applicationStatuses")
-      //scalastyle:on
       val updateFutures = applicationStatuses.applications.map { application =>
         val progressStatus = ProgressStatuses.nameToProgressStatus(application.progressStatus)
         appRepository.addProgressStatusAndUpdateAppStatus(application.applicationId, progressStatus)

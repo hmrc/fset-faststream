@@ -22,7 +22,7 @@ import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
 import model.exchange.CandidatesEligibleForEventResponse
 import model.{ ApplicationStatus, _ }
 import org.joda.time.{ DateTime, LocalDate }
-import reactivemongo.bson.{ BSONDocument, BSONArray }
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ ApplicationRoute, apply => _ }
@@ -36,7 +36,7 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.{ Future, Await }
+import scala.concurrent.{ Await, Future }
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
 
