@@ -21,13 +21,12 @@ import connectors.ExchangeObjects
 import model.Commands.Candidate
 import model.EvaluationResults.Green
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
-import model.SchemeType.SchemeType
 import model.command.WithdrawApplication
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
 import model.persisted.PassmarkEvaluation
-import model.{ ApplicationRoute, ApplicationStatus, SchemeType }
+import model.{ ApplicationRoute, ApplicationStatus, SchemeId }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -98,7 +97,7 @@ trait ApplicationService extends EventSink {
       candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
       contactDetails <- cdRepository.find(candidate.userId)
       _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream)
-      _ <- schemeRepository.add(applicationId, SchemeType.Sdip)
+      _ <- schemeRepository.add(applicationId, SchemeId("Sdip"))
     } yield {
       List(EmailEvents.ApplicationConvertedToSdip(contactDetails.email, candidate.name))
     }
@@ -144,9 +143,9 @@ trait ApplicationService extends EventSink {
     appRepository.updateSubmissionDeadline(applicationId, newDeadline)
   }
 
-  def getPassedSchemes(userId: String, frameworkId: String): Future[List[SchemeType]] = {
+  def getPassedSchemes(userId: String, frameworkId: String): Future[List[SchemeId]] = {
 
-      val passedSchemes = (_:PassmarkEvaluation).result.filter(result => result.result == Green.toString).map(_.scheme)
+      val passedSchemes = (_:PassmarkEvaluation).result.filter(result => result.result == Green.toString).map(_.schemeId)
 
       appRepository.findByUserId(userId, frameworkId).flatMap { appResponse =>
         (appResponse.progressResponse.fastPassAccepted, appResponse.applicationRoute) match {
@@ -162,7 +161,7 @@ trait ApplicationService extends EventSink {
       }
   }
 
-  private def getSdipFaststreamSchemes(applicationId: String): Future[List[SchemeType]] = for {
+  private def getSdipFaststreamSchemes(applicationId: String): Future[List[SchemeId]] = for {
     phase1 <- evaluateP1ResultService.getPassmarkEvaluation(applicationId)
     phase3 <- evaluateP3ResultService.getPassmarkEvaluation(applicationId).recover{
       case _: PassMarkEvaluationNotFound =>
@@ -170,7 +169,7 @@ trait ApplicationService extends EventSink {
           resultVersion = "", previousPhaseResultVersion = None)
     }
   } yield {
-    phase1.result.find(_.scheme == SchemeType.Sdip).toList.filter(r => r.result == Green.toString).map(_.scheme)
+    phase1.result.find(_.schemeId == SchemeId("Sdip")).toList.filter(r => r.result == Green.toString).map(_.schemeId)
   }
 
   private def fixData(fixType: FixBatch)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {

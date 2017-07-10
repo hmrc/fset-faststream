@@ -8,8 +8,7 @@ import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ GeneralApplicationMongoRepository, TestDataMongoRepository }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
-import model.SchemeType.SchemeType
-import model.{ SchemeType, SelectedSchemes }
+import model.{ SchemeId, SelectedSchemes }
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
@@ -58,25 +57,25 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   "add scheme" should {
     "add a new scheme to the application" in {
       val actualSchemes = createTwoSchemes()
-      repository.add(AppId, SchemeType.Sdip).futureValue
+      repository.add(AppId, SchemeId("Sdip")).futureValue
 
       val schemes = repository.find(AppId).futureValue
       schemes.schemes.size mustBe (actualSchemes.size + 1)
-      schemes.schemes must contain theSameElementsAs (SchemeType.Sdip :: actualSchemes)
+      schemes.schemes must contain theSameElementsAs (SchemeId("Sdip") :: actualSchemes)
     }
 
     "do not add duplications" in {
       val actualSchemes = createTwoSchemes()
-      repository.add(AppId, SchemeType.Sdip).futureValue
-      repository.add(AppId, SchemeType.Sdip).futureValue
+      repository.add(AppId, SchemeId("Sdip")).futureValue
+      repository.add(AppId, SchemeId("Sdip")).futureValue
 
       val schemes = repository.find(AppId).futureValue
       schemes.schemes.size mustBe (actualSchemes.size + 1)
-      schemes.schemes must contain theSameElementsAs (SchemeType.Sdip :: actualSchemes)
+      schemes.schemes must contain theSameElementsAs (SchemeId("Sdip") :: actualSchemes)
     }
   }
 
-  private def createTwoSchemes(): List[SchemeType] = {
+  private def createTwoSchemes(): List[SchemeId] = {
     insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId,
       "applicationStatus" -> CREATED, "frameworkId" -> FrameworkId)).futureValue
     repository.save(AppId, TwoSchemes).futureValue

@@ -16,7 +16,8 @@
 
 package repositories
 
-import model.SchemeType._
+import model.SchemeId
+import model.SchemeId._
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
 import org.scalatestplus.play.OneAppPerTest
@@ -30,10 +31,10 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type U = Phase1PassMark
   implicit val formatter = Phase1PassMarkSettings.phase1PassMarkSettingsFormat
   val phase1PassMarkThresholds = Phase1PassMarkThresholds(PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d))
-  val phase1PassMarks = List(Phase1PassMark(Finance, phase1PassMarkThresholds))
+  val phase1PassMarks = List(Phase1PassMark(SchemeId("Finance"), phase1PassMarkThresholds))
   val passMarkSettings = Phase1PassMarkSettings(phase1PassMarks, version, createdDate, createdByUser)
   val newPassMarkThresholds = Phase1PassMarkThresholds(PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d))
-  val newPassMarks = List(Phase1PassMark(Finance, newPassMarkThresholds))
+  val newPassMarks = List(Phase1PassMark(SchemeId("Finance"), newPassMarkThresholds))
   def passMarkSettingsRepo = phase1PassMarkSettingsRepository
   val collectionName = CollectionNames.PHASE1_PASS_MARK_SETTINGS
 
@@ -48,10 +49,10 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type U = Phase2PassMark
   implicit val formatter = Phase2PassMarkSettings.phase2PassMarkSettingsFormat
   val phase2PassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(20d, 80d))
-  val phase2PassMarks = List(Phase2PassMark(Finance, phase2PassMarkThresholds))
+  val phase2PassMarks = List(Phase2PassMark(SchemeId("Finance"), phase2PassMarkThresholds))
   val passMarkSettings = Phase2PassMarkSettings(phase2PassMarks, version, createdDate, createdByUser)
   val newPassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(30d, 80d))
-  val newPassMarks = List(Phase2PassMark(Finance, newPassMarkThresholds))
+  val newPassMarks = List(Phase2PassMark(SchemeId("Finance"), newPassMarkThresholds))
   def passMarkSettingsRepo = phase2PassMarkSettingsRepository
   val collectionName = CollectionNames.PHASE2_PASS_MARK_SETTINGS
 
@@ -66,10 +67,10 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type U = Phase3PassMark
   implicit val formatter = Phase3PassMarkSettings.phase3PassMarkSettingsFormat
   val phase3PassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(20d, 80d))
-  val phase3PassMarks = List(Phase3PassMark(Finance, phase3PassMarkThresholds))
+  val phase3PassMarks = List(Phase3PassMark(SchemeId("Finance"), phase3PassMarkThresholds))
   val passMarkSettings = Phase3PassMarkSettings(phase3PassMarks, version, createdDate, createdByUser)
   val newPassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(30d, 80d))
-  val newPassMarks = List(Phase3PassMark(Finance, newPassMarkThresholds))
+  val newPassMarks = List(Phase3PassMark(SchemeId("Finance"), newPassMarkThresholds))
   def passMarkSettingsRepo = phase3PassMarkSettingsRepository
   val collectionName = CollectionNames.PHASE3_PASS_MARK_SETTINGS
 

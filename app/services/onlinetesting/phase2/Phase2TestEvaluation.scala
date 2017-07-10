@@ -17,7 +17,7 @@
 package services.onlinetesting.phase2
 
 import model.EvaluationResults.Result
-import model.SchemeType._
+import model.SchemeId
 import model.exchange.passmarksettings.Phase2PassMarkSettings
 import model.persisted.{ SchemeEvaluationResult, TestResult }
 import play.api.Logger
@@ -25,13 +25,13 @@ import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluate(schemes: List[SchemeType], etrayTestResult: TestResult,
+  def evaluate(schemes: List[SchemeId], etrayTestResult: TestResult,
                phase1SchemesEvaluation: List[SchemeEvaluationResult],
                passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
     for {
       schemeToEvaluate <- schemes
-      schemePassmark <- passmark.schemes find (_.schemeName == schemeToEvaluate)
-      phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.scheme == schemeToEvaluate)
+      schemePassmark <- passmark.schemes find (_.scheme == schemeToEvaluate)
+      phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
       val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.etray)(etrayTestResult.tScore)
       Logger.debug(s"processing scheme $schemeToEvaluate, " +

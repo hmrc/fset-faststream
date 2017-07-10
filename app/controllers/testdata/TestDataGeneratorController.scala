@@ -90,7 +90,7 @@ trait TestDataGeneratorController extends BaseController {
         assessmentCentreAdjustments = Some(true),
         assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
       )),
-      schemeTypes = Some(List(SchemeType.Commercial, SchemeType.European, SchemeType.DigitalAndTechnology)),
+      schemeTypes = Some(List(SchemeId("Commercial"), SchemeId("European"), SchemeId("DigitalAndTechnology"))),
       isCivilServant = Some(Random.bool),
       hasFastPass = Some(true),
       hasDegree = Some(Random.bool),

@@ -16,13 +16,14 @@
 
 package model.exchange.assessor
 
-import model.exchange.{Assessor, AssessorAvailability}
+import model.SchemeId
+import model.exchange.{ Assessor, AssessorAvailability }
 import model.persisted.EventExamples
 import org.joda.time.LocalDate
 
 object AssessorExamples {
   val UserId1 = "57364"
-  val Assessor1 = Assessor(UserId1, List("assessor", "qac"), List("Sdip"), civilServant = true)
+  val Assessor1 = Assessor(UserId1, List("assessor", "qac"), List(SchemeId("Sdip")), civilServant = true)
 }
 
 object AssessorAvailabilityExamples {

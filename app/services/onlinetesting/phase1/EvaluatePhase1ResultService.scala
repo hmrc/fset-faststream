@@ -20,7 +20,7 @@ import _root_.services.passmarksettings.PassMarkSettingsService
 import config.MicroserviceAppConfig._
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest }
-import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeType }
+import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeId }
 import play.api.Logger
 import repositories._
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
@@ -65,7 +65,7 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
 
   private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation) = {
     if (evaluateSdipOnly(application)) {
-      application.preferences.schemes.filter(_ == SchemeType.Sdip)
+      application.preferences.schemes.filter(_ == SchemeId("Sdip"))
     } else {
       application.preferences.schemes
     }

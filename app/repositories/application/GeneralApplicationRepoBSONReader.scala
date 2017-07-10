@@ -16,7 +16,7 @@
 
 package repositories.application
 
-import model.{ ApplicationRoute, Schemes }
+import model.{ ApplicationRoute, SchemeId }
 import model.ApplicationRoute._
 import model.ApplicationStatus.{ apply => _, _ }
 import model.CivilServiceExperienceType.{ apply => _ }
@@ -97,11 +97,11 @@ trait GeneralApplicationRepoBSONReader extends CommonBSONDocuments {
       val overallScore = ca.flatMap(_.getAs[Double]("overallScore"))
 
       val se = pe.flatMap(_.getAs[BSONDocument]("schemes-evaluation"))
-      val commercial = se.flatMap(_.getAs[String](Schemes.Commercial).map(Result(_).toPassmark))
-      val digitalAndTechnology = se.flatMap(_.getAs[String](Schemes.DigitalAndTechnology).map(Result(_).toPassmark))
-      val business = se.flatMap(_.getAs[String](Schemes.Business).map(Result(_).toPassmark))
-      val projectDelivery = se.flatMap(_.getAs[String](Schemes.ProjectDelivery).map(Result(_).toPassmark))
-      val finance = se.flatMap(_.getAs[String](Schemes.Finance).map(Result(_).toPassmark))
+      val commercial = se.flatMap(_.getAs[String](SchemeId("Commercial").value).map(Result(_).toPassmark))
+      val digitalAndTechnology = se.flatMap(_.getAs[String](SchemeId("DigitalAndTechnology").value).map(Result(_).toPassmark))
+      val business = se.flatMap(_.getAs[String](SchemeId("Business").value).map(Result(_).toPassmark))
+      val projectDelivery = se.flatMap(_.getAs[String](SchemeId("ProjectDelivery").value).map(Result(_).toPassmark))
+      val finance = se.flatMap(_.getAs[String](SchemeId("Finance").value).map(Result(_).toPassmark))
 
       val pd = doc.getAs[BSONDocument]("personal-details")
       val firstName = pd.flatMap(_.getAs[String]("firstName"))

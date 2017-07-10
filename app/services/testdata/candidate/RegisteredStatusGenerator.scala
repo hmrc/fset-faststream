@@ -17,6 +17,7 @@
 package services.testdata.candidate
 
 import connectors.AuthProviderClient
+import model.SchemeId
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.Media
@@ -83,7 +84,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       case user if assessorRoles.contains(role) =>
         assessorGenerator.createAssessor(
           user.userId,
-          AssessorData(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR", "SIFTER"), List("Sdip"), Random.bool, None)
+          AssessorData(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR", "SIFTER"), List(SchemeId("Sdip")), Random.bool, None)
         ).map {
           assessor => user.copy(assessor = Some(AssessorResponse.apply(assessor)))
         }

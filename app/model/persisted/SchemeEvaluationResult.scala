@@ -16,11 +16,11 @@
 
 package model.persisted
 
-import model.SchemeType._
+import model.SchemeId
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class SchemeEvaluationResult(scheme: SchemeType,
+case class SchemeEvaluationResult(schemeId: SchemeId,
                                   result: String)
 
 object SchemeEvaluationResult {
