@@ -17,8 +17,7 @@
 package controllers
 
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
-import model.exchange
-import model.command
+import model.{ command, exchange }
 import model.exchange.AssessorAllocations
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.EventType.EventType

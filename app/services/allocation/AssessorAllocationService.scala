@@ -17,19 +17,15 @@
 package services.allocation
 
 import model.Exceptions.OptimisticLockException
-import model.{ AllocationStatuses, command, exchange, persisted }
 import model.exchange.{ EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
+import model.{ AllocationStatuses, command, exchange, persisted }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.Venue
-import repositories.AssessorAllocationMongoRepository
+import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
 import services.events.EventsService
-import model.exchange
-import model.persisted
-import model.command
-import repositories.{ CandidateAllocationMongoRepository, AssessorAllocationMongoRepository }
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object AssessorAllocationService extends AssessorAllocationService {
   def allocationRepo = repositories.assessorAllocationRepository
