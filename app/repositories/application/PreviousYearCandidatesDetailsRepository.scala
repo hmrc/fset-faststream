@@ -52,7 +52,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "reportLinkURL," +
   "Situational T-score,Situational Percentile,Situational Raw,Situational STEN," +
   "PHASE_2 scheduleId,cubiksUserId,token,testUrl,invitiationDate,participantScheduleId,startedDateTime,completedDateTime,reportLinkURL,reportId," +
-    "e-Tray T-score,e-Tray Raw,interviewId,token,candidateId,customCandidateId,comment,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
+    "e-Tray T-score,e-Tray Raw,PHASE 3 interviewId,token,candidateId,customCandidateId,comment,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
     "IN_PROGRESS,SUBMITTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_RESULTS_READY," +
@@ -73,13 +73,15 @@ trait PreviousYearCandidatesDetailsRepository {
     "Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
     "Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
-  val mediaDetailsHeader = "How did you hear about us?"
+  val mediaHeader = "How did you hear about us?"
 
   def applicationDetailsStream(): Enumerator[CandidateDetailsReportItem]
 
   def findContactDetails(): Future[CsvExtract[String]]
 
   def findQuestionnaireDetails(): Future[CsvExtract[String]]
+
+  def findMediaDetails(): Future[CsvExtract[String]]
 }
 
 class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments {
@@ -90,6 +92,8 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
   val contactDetailsCollection = mongo().collection[JSONCollection](CollectionNames.CONTACT_DETAILS)
 
   val questionnaireCollection = mongo().collection[JSONCollection](CollectionNames.QUESTIONNAIRE)
+
+  val mediaCollection = mongo().collection[JSONCollection](CollectionNames.MEDIA)
 
   private def optYes = Some("Yes")
   private def optNo = Some("No")
@@ -279,6 +283,22 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
         }
         CsvExtract(questionnaireDetailsHeader, csvRecords.toMap)
       }
+  }
+
+  def findMediaDetails(): Future[CsvExtract[String]] = {
+    val projection = Json.obj("_id" -> 0)
+
+    mediaCollection.find(Json.obj(), projection)
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .collect[List]().map { docs =>
+      val csvRecords = docs.map { doc =>
+        val csvRecord = makeRow(
+          doc.getAs[String]("media")
+        )
+        doc.getAs[String]("userId").getOrElse("") -> csvRecord
+      }
+      CsvExtract(mediaHeader, csvRecords.toMap)
+    }
   }
 
   private def isOxbridge(code: Option[String]): Option[String] = {

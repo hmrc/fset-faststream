@@ -95,15 +95,17 @@ trait ReportingController extends BaseController {
 
   def streamPreviousYearCandidatesDetailsReport: Action[AnyContent] = Action.async { implicit request =>
     enrichPreviousYearCandidateDetails {
-      (contactDetails, questionnaireDetails) =>
+      (contactDetails, questionnaireDetails, mediaDetails) =>
       {
         val header = Enumerator(
           (prevYearCandidatesDetailsRepository.applicationDetailsHeader ::
             prevYearCandidatesDetailsRepository.contactDetailsHeader ::
-            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader :: Nil).mkString(",") + "\n"
+            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+            prevYearCandidatesDetailsRepository.mediaHeader ::
+            Nil).mkString(",") + "\n"
         )
         val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream().map { app =>
-          createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails) + "\n"
+          createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails, mediaDetails) + "\n"
         }
         Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
       }
@@ -111,23 +113,27 @@ trait ReportingController extends BaseController {
   }
 
   // scalastyle:off line.size.limit
-  private def enrichPreviousYearCandidateDetails(block: (CsvExtract[String], CsvExtract[String]) => Result) = {
+  private def enrichPreviousYearCandidateDetails(block: (CsvExtract[String], CsvExtract[String],CsvExtract[String]) => Result) = {
     val candidateDetailsFut = prevYearCandidatesDetailsRepository.findContactDetails()
     val questionnaireDetailsFut = prevYearCandidatesDetailsRepository.findQuestionnaireDetails()
+    val mediaDetailsFut = prevYearCandidatesDetailsRepository.findMediaDetails()
+
     for {
       contactDetails <- candidateDetailsFut
       questionnaireDetails <- questionnaireDetailsFut
+      mediaDetails <- mediaDetailsFut
     } yield {
-      block(contactDetails, questionnaireDetails)
+      block(contactDetails, questionnaireDetails, mediaDetails)
     }
   }
   // scalastyle:on
 
   private def createCandidateInfoBackUpRecord(candidateDetails: CandidateDetailsReportItem, contactDetails: CsvExtract[String],
-                                              questionnaireDetails: CsvExtract[String]) = {
+                                              questionnaireDetails: CsvExtract[String], mediaDetails: CsvExtract[String]) = {
     (candidateDetails.csvRecord ::
       contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
       questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
       Nil).mkString(",")
   }
 
