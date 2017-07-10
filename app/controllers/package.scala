@@ -35,12 +35,12 @@ package object controllers {
 
     private def enumBinder[E <: Enumeration](enum: E) = {(
       new QueryStringBindable.Parsing[E#Value](
-        parse = enum.withName(_),
+        parse = enum.withName,
         serialize = _.toString,
         error = (m: String, e: Exception) => "Can't parse %s as %s : %s".format(m, enum.getClass.getSimpleName, e.getMessage)
       ),
       new mvc.PathBindable.Parsing[E#Value](
-        parse = enum.withName(_),
+        parse = enum.withName,
         serialize = _.toString,
         error = (m: String, e: Exception) => "Can't parse %s as %s : %s".format(m, enum.getClass.getSimpleName, e.getMessage)
       )

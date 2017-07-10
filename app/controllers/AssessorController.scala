@@ -80,9 +80,6 @@ trait AssessorController extends BaseController {
 
   def findAllocations(assessorId: String): Action[AnyContent] = Action.async { implicit request =>
     assessorService.findAllocations(assessorId).map(allocations => Ok(Json.toJson(allocations)))
-		  .recover {
-				case e: Exception => InternalServerError(e.getMessage)
-			}
   }
 
 }
