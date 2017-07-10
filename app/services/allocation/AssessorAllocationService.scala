@@ -20,27 +20,43 @@ import model.Exceptions.OptimisticLockException
 import model.exchange
 import model.persisted
 import model.command
-import repositories.AssessorAllocationMongoRepository
+import repositories.{ CandidateAllocationMongoRepository, AssessorAllocationMongoRepository }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AssessorAllocationService extends AssessorAllocationService {
   def allocationRepo = repositories.assessorAllocationRepository
+  def candidateAllocationRepo = repositories.candidateAllocationRepository
 }
 
 trait AssessorAllocationService {
 
   def allocationRepo: AssessorAllocationMongoRepository
 
+  def candidateAllocationRepo: CandidateAllocationMongoRepository
+
   def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
     allocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
+  }
+
+  def getCandidateAllocations(eventId: String): Future[exchange.CandidateAllocations] = {
+    candidateAllocationRepo.allocationsForEvent(eventId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
     allocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
       case Nil => allocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
       case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations).map(_ => ())
+    }
+  }
+
+  def allocateCandidates(newAllocations: command.CandidateAllocations): Future[Unit] = {
+    getCandidateAllocations(newAllocations.eventId).flatMap { existingAllocation =>
+      existingAllocation.allocations match {
+        case Nil => candidateAllocationRepo.save(persisted.CandidateAllocation.fromCommand(newAllocations)).map(_ => ())
+        case _ => updateExistingAllocations(existingAllocation, newAllocations).map(_ => ())
+      }
     }
   }
 
@@ -53,6 +69,25 @@ trait AssessorAllocationService {
       val toPersist = persisted.AssessorAllocation.fromCommand(newAllocations)
       allocationRepo.delete(existingAllocations).flatMap { _ =>
         allocationRepo.save(toPersist).map( _ => ())
+      }
+    } else {
+        throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
+    }
+  }
+
+  private def updateExistingAllocations(existingAllocations: exchange.CandidateAllocations,
+    newAllocations: command.CandidateAllocations): Future[Unit] = {
+
+    if (existingAllocations.version.forall(_ == newAllocations.version)) {
+      // no prior update since reading so do update
+      // check what's been updated here so we can send email notifications
+
+      // Convert the existing exchange allocations to persisted objects so we can delete what is currently in the db
+      val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId)
+
+      val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
+      candidateAllocationRepo.delete(toDelete).flatMap { _ =>
+        candidateAllocationRepo.save(toPersist).map( _ => ())
       }
     } else {
         throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
