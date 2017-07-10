@@ -18,12 +18,12 @@ package controllers
 
 import config.TestFixtureBase
 import model.persisted.EventExamples
-import model.persisted.eventschedules.Event
+import model.persisted.eventschedules.{ Event, SkillType }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.events.{EventsRepository, LocationsWithVenuesRepository}
+import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -31,14 +31,14 @@ import scala.concurrent.Future
 class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
 
 
-  val MySkills = List("QAC", "CHAIR")
+  val MySkills = List(SkillType.QUALITY_ASSURANCE_COORDINATOR, SkillType.CHAIR)
 
   "find" should {
 
     "returns day aggregated events when search by skills" in new TestFixture {
-      when(mockEventsRepo.getEvents(None, None, None, Some(MySkills)))
+      when(mockEventsRepo.getEvents(None, None, None, MySkills))
         .thenReturn(Future.successful(EventExamples.EventsNew))
-      val res = controller.findBySkillTypes(MySkills.mkString(","))(FakeRequest())
+      val res = controller.findBySkillTypes(MySkills)(FakeRequest())
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
       resReal must contain theSameElementsAs EventExamples.DayAggregateEventsNew
@@ -47,10 +47,10 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
     "returns day aggregated events when search by location and skills" in new TestFixture {
       val location = EventExamples.LocationLondon
       when(mockLocationsWithVenuesRepo.location(location.name)).thenReturn(Future.successful(location))
-      when(mockEventsRepo.getEvents(None, None, Some(location), Some(MySkills)))
+      when(mockEventsRepo.getEvents(None, None, Some(location), MySkills))
         .thenReturn(Future.successful(EventExamples.EventsNew.filter(_.location == location)))
 
-      val res = controller.findBySkillTypesAndLocation(MySkills.mkString(","), location.name)(FakeRequest())
+      val res = controller.findBySkillTypesAndLocation(location.name, MySkills)(FakeRequest())
 
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
@@ -58,9 +58,9 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return EMPTY list when nothing found" in new TestFixture {
-      when(mockEventsRepo.getEvents(None, None, None, Some(MySkills)))
+      when(mockEventsRepo.getEvents(None, None, None, MySkills))
         .thenReturn(Future.successful(List.empty[Event]))
-      val res = controller.findBySkillTypes(MySkills.mkString(","))(FakeRequest())
+      val res = controller.findBySkillTypes(MySkills)(FakeRequest())
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
       resReal mustBe List.empty[DayAggregateEvent]

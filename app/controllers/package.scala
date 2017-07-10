@@ -15,10 +15,10 @@
  */
 
 import model.persisted.eventschedules.SkillType
-import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import play.api.mvc.{PathBindable, QueryStringBindable}
+import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
+import play.api.mvc
+import play.api.mvc.{ PathBindable, QueryStringBindable }
 
 package object controllers {
 
@@ -32,19 +32,19 @@ package object controllers {
       error = (m: String, e: Exception) => "Can't parse %s as LocalDate(%s): %s".format(m, pathDateFormat.toString, e.getMessage)
     )
 
-    /*implicit object skillTypeQueryBinder extends QueryStringBindable.Parsing[SkillType](
-       parse = SkillType.withName(_),
-       serialize = _.toString,
-       error = (m: String, e: Exception) => "Can't parse %s as SchemeId : %s".format(m, e.getMessage)
-    )*/
-    private def enumQueryBinder[E <: Enumeration](enum: E) = {
+    private def enumBinder[E <: Enumeration](enum: E) = {(
       new QueryStringBindable.Parsing[E#Value](
-        parse = enum.withName(_),
-        serialize = _.toString,
-        error = (m: String, e: Exception) => "Can't parse %s as SchemeId : %s".format(m, e.getMessage)
+        parse = (name: String) => enum.withName(name),
+        serialize = (enumVal: E#Value) => enumVal.toString,
+        error = (m: String, e: Exception) => "Can't parse %s as %s : %s".format(m, enum.getClass.getSimpleName, e.getMessage)
+      ),
+      new mvc.PathBindable.Parsing[E#Value](
+        parse = (name: String) => enum.withName(name),
+        serialize = (enumVal: E#Value) => enumVal.toString,
+        error = (m: String, e: Exception) => "Can't parse %s as %s : %s".format(m, enum.getClass.getSimpleName, e.getMessage)
       )
-    }
+    )}
 
-    implicit val skillTypeQueryBinder = enumQueryBinder(SkillType)
+    implicit val (skillTypeQueryBinder, skillTypePathBinder) = enumBinder(SkillType)
   }
 }

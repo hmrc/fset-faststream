@@ -16,7 +16,7 @@
 
 package services.assessor
 
-import org.mockito.ArgumentMatchers.{eq => eqTo}
+import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import services.BaseServiceSpec
 import services.assessoravailability.AssessorService
@@ -25,13 +25,13 @@ import org.mockito.ArgumentMatchers._
 import scala.concurrent.duration._
 import model.Exceptions
 import model.Exceptions.AssessorNotFoundException
-import model.persisted.EventExamples
-import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.{ AssessorAllocation, EventExamples }
+import model.persisted.eventschedules.{ Location, Venue }
 import model.persisted.assessor.AssessorExamples._
-import repositories.AssessorRepository
-import repositories.events.LocationsWithVenuesRepository
+import repositories.{ AllocationRepository, AssessorRepository }
+import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
 class AssessorServiceSpec extends BaseServiceSpec {
@@ -137,6 +137,8 @@ class AssessorServiceSpec extends BaseServiceSpec {
   trait TestFixture {
     val mockAssessorRepository = mock[AssessorRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
+    val mockAllocationRepo = mock[AllocationRepository[model.persisted.AssessorAllocation]]
+    val mockEventRepo = mock[EventsRepository]
 
     when(mockLocationsWithVenuesRepo.venues).thenReturn(Future.successful(
       Set(Venue("london fsac", "bush house"), Venue("virtual", "virtual venue"))
@@ -146,6 +148,8 @@ class AssessorServiceSpec extends BaseServiceSpec {
     ))
     val service = new AssessorService {
       val assessorRepository: AssessorRepository = mockAssessorRepository
+      val allocationRepo: AllocationRepository[AssessorAllocation] = mockAllocationRepo
+      val eventsRepo: EventsRepository = mockEventRepo
       val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
