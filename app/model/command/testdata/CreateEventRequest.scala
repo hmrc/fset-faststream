@@ -17,7 +17,6 @@
 package model.command.testdata
 
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.Session
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.{ Json, OFormat }
 
@@ -34,8 +33,7 @@ object CreateEventRequest {
                                 attendeeSafetyMargin: Option[Int],
                                 startTime: Option[LocalTime],
                                 endTime: Option[LocalTime],
-                                skillRequirements: Option[Map[String, Int]],
-                                sessions: Option[List[Session]]) extends CreateTestDataRequest {
+                                skillRequirements: Option[Map[String, Int]]) extends CreateTestDataRequest {
   }
 
   object CreateEventRequest {

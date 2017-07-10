@@ -35,11 +35,10 @@ object CreateEventData {
                              attendeeSafetyMargin: Int,
                              startTime: LocalTime,
                              endTime: LocalTime,
-                             skillRequirements: Map[String, Int],
-                             sessions: List[Session]) extends CreateTestData {
+                             skillRequirements: Map[String, Int]) extends CreateTestData {
     def toEvent: Event = {
       Event(id, eventType, description, location, venue, date, capacity, minViableAttendees,
-        attendeeSafetyMargin, startTime, endTime, skillRequirements, sessions)
+        attendeeSafetyMargin, startTime, endTime, skillRequirements)
     }
   }
 
@@ -60,10 +59,9 @@ object CreateEventData {
       val startTime = createRequest.startTime.getOrElse(Random.Event.startTime)
       val endTime = createRequest.endTime.getOrElse(Random.Event.endTime)
       val skillRequirements = createRequest.skillRequirements.getOrElse(Random.Event.skillRequirements)
-      val sessions = createRequest.sessions.getOrElse(Random.Event.sessions)
 
       CreateEventData(id, eventType, description, location, venue, date, capacity, minViableAttendees, attendeeSafetyMargin,
-        startTime, endTime, skillRequirements, sessions)
+        startTime, endTime, skillRequirements)
     }
   }
 

@@ -21,7 +21,6 @@ import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.Logger
 import repositories.events.{ EventsMongoRepository, EventsRepository }
-import repositories.{ EventRepositoryImpl, EventYamlRepository }
 import repositories.eventsRepository
 
 import scala.concurrent.Future
@@ -30,24 +29,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object EventsService extends EventsService {
   val eventsRepo: EventsMongoRepository = eventsRepository
   val eventFileParsingService: EventsParsingService = EventsParsingService
-  val eventsConfigRepo = EventYamlRepository
 }
 
 trait EventsService {
 
   def eventsRepo: EventsRepository
   def eventFileParsingService: EventsParsingService
-  def eventsConfigRepo: EventRepositoryImpl
-
-  def saveAssessmentEventsOld(): Future[Unit] = {
-    eventFileParsingService.processCentres().flatMap { events =>
-      Logger.debug("Events have been processed!")
-      eventsRepo.save(events)
-    }
-  }
 
   def saveAssessmentEvents(): Future[Unit] = {
-    eventsConfigRepo.events.flatMap { events =>
+    eventFileParsingService.processCentres().flatMap { events =>
       Logger.debug("Events have been processed!")
       eventsRepo.save(events)
     }

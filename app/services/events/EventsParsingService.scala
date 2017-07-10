@@ -91,8 +91,6 @@ trait EventsParsingService {
         case (skill, skillIdx) => skill -> stringToRequirement(items(skillIdx))
       }.toMap
 
-    val sessions = List.empty
-
     for {
       location <- locationsWithVenuesRepo.location(items(2))
       venue <- locationsWithVenuesRepo.venue(items(3))
@@ -108,8 +106,7 @@ trait EventsParsingService {
       capacity = capacity,
       minViableAttendees = minViableAttendees,
       attendeeSafetyMargin = attendeeSafetyMargin,
-      skillRequirements = skillRequirements,
-      sessions = sessions
+      skillRequirements = skillRequirements
     )
   }
 
