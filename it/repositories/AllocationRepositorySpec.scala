@@ -20,7 +20,7 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec with Allocati
 
 trait AllocationRepositorySpec[T <: Allocation] { this: MongoRepositorySpec =>
 
-  val collectionName = CollectionNames.ALLOCATION
+  val collectionName = CollectionNames.ASSESSOR_ALLOCATION
   def repository: AllocationRepository[T]
   def repoName: String
   def allocations: Seq[T]
