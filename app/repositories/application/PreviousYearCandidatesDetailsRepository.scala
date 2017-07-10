@@ -44,11 +44,11 @@ trait PreviousYearCandidatesDetailsRepository {
     "EDIP,SDIP 2016 (previous years),Fast Pass (sdip 2017),Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
     "Do you want to defer,Deferal selections,Do you have a disability,Provide more info,GIS,Extra support online tests," +
     "What adjustments will you need,Extra support f2f,What adjustments will you need,Phone Interview Adjustments?,Phone Interview adjustments info,E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes,Video other notes,Additional comments,Adjustments confirmed,I understand this wont affect application," +
-    "PHASE1 tests scheduleId,cubiksUserId,Cubiks token," +
+    "PHASE1 tests behavioural scheduleId,cubiksUserId,Cubiks token," +
   "Behavioural testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,reportLinkURL," +
     "Behavioural T-score," +
-  "Behavioural Percentile,Behavioural Raw,Behavioural STEN,Situational T-score," +
-    "Situational testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,reportLinkURL,reportId," +
+  "Behavioural Percentile,Behavioural Raw,Behavioural STEN,Situational scheduleId,cubiksUserId,Cubiks token," +
+    "Situational testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId," +
     "reportLinkURL," +
   "Situational T-score,Situational Percentile,Situational Raw,Situational STEN," +
   "PHASE_2 scheduleId,cubiksUserId,token,testUrl,invitiationDate,participantScheduleId,startedDateTime,completedDateTime,reportLinkURL,reportId," +
@@ -71,7 +71,7 @@ trait PreviousYearCandidatesDetailsRepository {
   val questionnaireDetailsHeader = "Gender Identity,Sexual Orientation,Ethnic Group,Live in UK between 14-18?,Home postcode at 14," +
     "Name of school 14-16,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
     "Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
-    "Supervise employees,SE 1-5,Oxbridge,Russell Group,Hesa Code"
+    "Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
   val mediaDetailsHeader = "How did you hear about us?"
 
@@ -273,8 +273,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
             getAnswer("Did they supervise employees?", questionsDoc),
             Some(SocioEconomicCalculator.calculate(allQuestionsAndAnswers)),
             isOxbridge(universityName),
-            isRussellGroup(universityName),
-            getAnswer("Which category best describes your degree?", questionsDoc) // HESA
+            isRussellGroup(universityName)
           )
           doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
         }
