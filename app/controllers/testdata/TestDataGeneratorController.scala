@@ -24,7 +24,7 @@ import model._
 import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
 import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
-import model.persisted.eventschedules.{ EventType, SkillType }
+import model.persisted.eventschedules.{ EventType, Session, SkillType }
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
@@ -169,7 +169,8 @@ trait TestDataGeneratorController extends BaseController {
       startTime = Some(LocalTime.now()),
       endTime = Some(LocalTime.now()),
       skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
-        "CHAIR" -> 1))
+        "CHAIR" -> 1)),
+      sessions = Some(List(Session("First", LocalTime.now(), LocalTime.now().plusHours(1))))
     )
 
     Ok(Json.toJson(example))
@@ -189,7 +190,8 @@ trait TestDataGeneratorController extends BaseController {
       startTime = Some(LocalTime.now()),
       endTime = Some(LocalTime.now()),
       skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
-        "CHAIR" -> 1))
+        "CHAIR" -> 1)),
+      sessions = Some(List(Session("First", LocalTime.now(), LocalTime.now().plusHours(1))))
     )
     val example2 = example1.copy(
       id = Some(UUIDFactory.generateUUID()),

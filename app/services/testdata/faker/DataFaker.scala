@@ -759,6 +759,7 @@ object DataFaker {
           skillSelected -> numberOfPeopleWithSkillsRequired
         }.toMap
       }
+      def sessions = randList(List(Session("First", startTime, startTime.plusHours(1))),1)
     }
   }
 }

@@ -34,10 +34,35 @@ case class Event(
   attendeeSafetyMargin: Int,
   startTime: LocalTime,
   endTime: LocalTime,
-  skillRequirements: Map[String, Int]
+  skillRequirements: Map[String, Int],
+  sessions: List[Session]
 )
 
 object Event {
   implicit val eventFormat = Json.format[Event]
   implicit val eventHandler = Macros.handler[Event]
+  // scalastyle:off
+  def load(id: String,
+              eventType: String,
+              description: String,
+              location: String,
+              venue: String,
+              date: LocalDate,
+              capacity: Int,
+              minViableAttendees: Int,
+              attendeeSafetyMargin: Int,
+              startTime: LocalTime,
+              endTime: LocalTime,
+              skillRequirements: String,
+              sessions: List[Session]) =
+    Event(id,
+      EventType.withName(eventType),
+      description,
+      Location(location),
+      Venue(venue, ""),
+      date,
+      capacity,
+      minViableAttendees,
+      attendeeSafetyMargin, startTime, endTime, Map.empty, sessions)
+  // scalastyle:on
 }
