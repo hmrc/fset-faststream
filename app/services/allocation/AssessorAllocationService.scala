@@ -79,7 +79,6 @@ trait AssessorAllocationService {
           EventWithAllocationsSummary(event, 0, allocationsGroupedBySkillWithSummary)
         }
       }
-      // TODO MIGUEL: Check what happens with Thread pool
       Future.sequence(res)
     }
   }
