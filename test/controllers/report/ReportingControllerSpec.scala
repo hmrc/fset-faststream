@@ -496,19 +496,19 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val SuccessfulProgressReportResponse = Future.successful(
       List(
         CandidateProgressReportItem("user1", "app1", Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
           Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("London"),
           ApplicationRoute.Faststream),
         CandidateProgressReportItem("user2", "app2", Some("registered"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
           Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
           ApplicationRoute.Faststream),
         CandidateProgressReportItem("user3", "app3", Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
           Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
           ApplicationRoute.Edip),
         CandidateProgressReportItem("user4", "app4", Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
           Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("Newcastle"),
           ApplicationRoute.Faststream)
       )

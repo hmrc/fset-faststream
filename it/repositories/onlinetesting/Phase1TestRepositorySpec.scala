@@ -164,8 +164,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   "Next SdipFasttream test ready for SDIP progression" should {
     "return an SdipFaststream application that already has SDIP scores evaluated to Green/Red" in {
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
-        SchemeEvaluationResult(SchemeType.Sdip, Green.toString)
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
       )
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       createApplicationWithAllFields("userId1", "app1", appStatus = ApplicationStatus.PHASE1_TESTS,
@@ -181,8 +181,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "do not return an SdipFaststream application that has SDIP scores evaluated to Ambers" in {
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
-        SchemeEvaluationResult(SchemeType.Sdip, Amber.toString)
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString)
       )
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       createApplicationWithAllFields("userId1", "app1", appStatus = ApplicationStatus.PHASE1_TESTS,
@@ -501,7 +501,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
           ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Red.toString))
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
       phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ProgressStatuses.PHASE1_TESTS_FAILED)).futureValue

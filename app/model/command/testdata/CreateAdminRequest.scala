@@ -16,6 +16,7 @@
 
 package model.command.testdata
 
+import model.SchemeId
 import model.exchange.AssessorAvailability
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
@@ -32,7 +33,7 @@ object CreateAdminRequest {
   }
 
   case class AssessorRequest(skills: Option[List[String]] = None,
-                             sifterSchemes: Option[List[String]] = None,
+                             sifterSchemes: Option[List[SchemeId]] = None,
                              civilServant: Option[Boolean] = None,
                              availability: Option[List[AssessorAvailabilityRequest]] = None)
 

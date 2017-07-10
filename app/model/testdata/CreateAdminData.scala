@@ -16,6 +16,7 @@
 
 package model.testdata
 
+import model.SchemeId
 import model.command.testdata.CreateAdminRequest.CreateAdminRequest
 import model.exchange.AssessorAvailability
 import org.joda.time.LocalDate
@@ -58,7 +59,8 @@ object CreateAdminData {
 
   }
 
-  case class AssessorData(skills: List[String], sifterSchemes: List[String], civilServant: Boolean, availability: Option[List[AssessorAvailability]])
+  case class AssessorData(skills: List[String], sifterSchemes: List[SchemeId], civilServant: Boolean,
+                          availability: Option[List[AssessorAvailability]])
 
   object AssessorData {
     implicit val assessorDataFormat: OFormat[AssessorData] = Json.format[AssessorData]

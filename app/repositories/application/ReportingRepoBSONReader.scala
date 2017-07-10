@@ -19,17 +19,16 @@ package repositories.application
 import config.MicroserviceAppConfig._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewedCallbackRequest }
-import model.ApplicationRoute.{ BSONEnumHandler => _, apply => _, toString => _, _ }
+import model._
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.{ apply => _ }
 import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _ }
 import model.Commands._
 import model.InternshipType.{ InternshipType, apply => _ }
 import model.OnlineTestCommands.TestResult
-import model.SchemeType.{ BSONEnumHandler => _, apply => _, toString => _, _ }
 import model.command._
 import model.persisted._
 import model.report._
-import model.{ ApplicationRoute, CivilServiceExperienceType, InternshipType, Phase }
 import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories.{ BaseBSONReader, CommonBSONDocuments }
@@ -83,7 +82,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   implicit val toCandidateProgressReportItem: BSONDocumentReader[CandidateProgressReportItem] = bsonReader {
     (doc: BSONDocument) => {
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
-      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
@@ -183,7 +182,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val lastName = psDoc.flatMap(_.getAs[String]("lastName"))
 
       val spDoc = doc.getAs[BSONDocument]("scheme-preferences")
-      val schemes = spDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+      val schemes = spDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
       val firstSchemePreference = schemes.map(_.head.toString)
 
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
@@ -216,7 +215,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         else if (applicationRoute == ApplicationRoute.Sdip) { "needsSupportForPhoneInterview" }
         else { "needsSupportForOnlineAssessment" }
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
-      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
@@ -243,7 +242,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
-      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))

@@ -16,6 +16,7 @@
 
 package model.persisted.assessor
 
+import model.SchemeId
 import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
 
@@ -30,7 +31,7 @@ object AssessorExamples {
 
   val AssessorExisting = Assessor(AssessorUserId,
     skills = List("qac", "chair"),
-    sifterSchemes = List("Sdip"),
+    sifterSchemes = List(SchemeId("Sdip")),
     civilServant = true,
     status = AssessorStatus.AVAILABILITIES_SUBMITTED,
     availability = AssessorAvailability(london, new LocalDate(2017, 10, 10)) ::

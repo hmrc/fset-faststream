@@ -19,7 +19,6 @@ package services.onlinetesting.phase1
 import config.CubiksGatewayConfig
 import model.EvaluationResults.Green
 import model.ProgressStatuses.ProgressStatus
-import model.SchemeType.SchemeType
 import model._
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted._
@@ -166,7 +165,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val PassmarkVersion = PassmarkSettings.version
     val SjqId = 16196
     val BqId = 16194
-    val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+    val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
     val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis, "", None)
 
     val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository]
@@ -197,7 +196,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       override def bq = BqId
 
-      override def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult,bqTestResult: TestResult,
+      override def evaluateForNonGis(schemes: List[SchemeId], sjqTestResult: TestResult,bqTestResult: TestResult,
                                      passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
         Nil
       }
@@ -213,7 +212,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     }
 
     trait StubbedPhase1TestEvaluation extends Phase1TestEvaluation {
-      override def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult,bqTestResult: TestResult,
+      override def evaluateForNonGis(schemes: List[SchemeId], sjqTestResult: TestResult,bqTestResult: TestResult,
                                      passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
         EvaluateForNonGis
       }

@@ -20,11 +20,10 @@ import connectors.AuthProviderClient.UserRole
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
-import model.SchemeType.SchemeType
 import model.command.testdata.CreateCandidateRequest._
 import model.persisted.PassmarkEvaluation
 import model.testdata.CreateAdminData.AssessorData
-import model.{ Adjustments, ApplicationRoute, ApplicationStatus, ProgressStatuses }
+import model._
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import services.testdata.faker.DataFaker.Random
@@ -229,7 +228,7 @@ object CreateCandidateData {
                                  diversityDetails: DiversityDetails = DiversityDetails(),
                                  assistanceDetails: AssistanceDetails = AssistanceDetails(),
                                  cubiksUrl: String,
-                                 schemeTypes: Option[List[SchemeType]] = None,
+                                 schemeTypes: Option[List[SchemeId]] = None,
                                  isCivilServant: Boolean = false,
                                  hasFastPass: Boolean = false,
                                  hasDegree: Boolean = Random.bool,

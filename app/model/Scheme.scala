@@ -16,12 +16,39 @@
 
 package model
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString, Macros }
 
-case class Scheme(id: String, code: String, name: String)
+case class SchemeId(value: String)
+
+object SchemeId {
+  // Custom json formatter to serialise to a string
+  val schemeIdWritesFormat = Writes[SchemeId](scheme => JsString(scheme.value))
+  val schemeIdReadsFormat = Reads[SchemeId](scheme => JsSuccess(SchemeId(scheme.as[String])))
+
+  implicit val schemeIdFormat = Format(schemeIdReadsFormat, schemeIdWritesFormat)
+
+  // Custom formatter to prevent a nested case object in BSON
+  implicit object SchemeIdHandler extends BSONHandler[BSONString, SchemeId] {
+      override def write(schemeId: SchemeId): BSONString = BSON.write(schemeId.value)
+      override def read(bson: BSONString): SchemeId = SchemeId(bson.value)
+  }
+}
+
+/** Wrapper for scheme data
+  *
+  * @param id The scheme ID to be delivered across the wire/stored in DB etc.
+  * @param code The abbreviated form
+  * @param name The form displayed to end users
+  */
+case class Scheme(id: SchemeId, code: String, name: String)
+
+
 
 object Scheme {
   implicit val schemeFormat = Json.format[Scheme]
   implicit val schemeHandler = Macros.handler[Scheme]
+
+  def apply(id: String, code: String, name: String): Scheme = Scheme(SchemeId(id), code, name)
 }

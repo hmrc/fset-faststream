@@ -122,7 +122,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       "userId" -> userId,
       "frameworkId" -> frameworkId,
       "scheme-preferences" -> BSONDocument(
-        "schemes" -> BSONArray(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService)
+        "schemes" -> BSONArray(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService"))
       ),
       "personal-details" -> BSONDocument(
         "firstName" -> firstName.getOrElse(s"${testCandidate("firstName")}"),
