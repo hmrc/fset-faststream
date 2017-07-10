@@ -274,7 +274,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
             Some(SocioEconomicCalculator.calculate(allQuestionsAndAnswers)),
             isOxbridge(universityName),
             isRussellGroup(universityName),
-            Some("") // Hesa TODO
+            getAnswer("Which category best describes your degree?", questionsDoc) // HESA
           )
           doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
         }
