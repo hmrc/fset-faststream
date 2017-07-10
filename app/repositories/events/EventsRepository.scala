@@ -66,6 +66,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
           skills.map(s => BSONDocument(s"skillRequirements.$s" -> BSONDocument("$gte" -> 1)))
         )))
       } else { None }
+
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query).cursor[Event]().collect[List]()

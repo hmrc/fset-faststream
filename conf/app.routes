@@ -128,8 +128,8 @@ GET         /events/:venue/:eventType                                    control
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
 
 # Day aggregate events
-GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 GET         /day-aggregate-events/                                       controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
+GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

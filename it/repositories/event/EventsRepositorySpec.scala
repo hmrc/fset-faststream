@@ -58,9 +58,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "filter by skills and Location" in {
-      val result = repository.getEvents(None, None, Some(EventExamples.LocationNewcastle),
-        List(SkillType.ASSESSOR)
-      ).futureValue
+      val result = repository.getEvents(None, None, Some(EventExamples.LocationNewcastle), List(SkillType.ASSESSOR)).futureValue
       result.size mustBe 1
 
       result.head.venue mustBe EventExamples.VenueNewcastle

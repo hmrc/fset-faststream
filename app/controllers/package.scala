@@ -15,7 +15,6 @@
  */
 
 import model.persisted.eventschedules.SkillType
-import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
 import play.api.mvc
@@ -35,13 +34,13 @@ package object controllers {
 
     private def enumBinder[E <: Enumeration](enum: E) = {(
       new QueryStringBindable.Parsing[E#Value](
-        parse = enum.withName,
-        serialize = _.toString,
+        parse = (name: String) => enum.withName(name),
+        serialize = (enumVal: E#Value) => enumVal.toString,
         error = (m: String, e: Exception) => "Can't parse %s as %s : %s".format(m, enum.getClass.getSimpleName, e.getMessage)
       ),
       new mvc.PathBindable.Parsing[E#Value](
-        parse = enum.withName,
-        serialize = _.toString,
+        parse = (name: String) => enum.withName(name),
+        serialize = (enumVal: E#Value) => enumVal.toString,
         error = (m: String, e: Exception) => "Can't parse %s as %s : %s".format(m, enum.getClass.getSimpleName, e.getMessage)
       )
     )}

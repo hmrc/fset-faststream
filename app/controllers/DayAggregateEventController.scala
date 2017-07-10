@@ -46,7 +46,7 @@ trait DayAggregateEventController extends BaseController {
     }.map(dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)))
   }
 
-  private def find(location: Option[Location], skills: Seq[SkillType]) = {
+  private def find(location: Option[Location], skills: Seq[SkillType] = Nil) = {
     eventsRepository.getEvents(None, None, location, skills).map {
       _.groupBy(e => DayAggregateEvent(e.date, e.location)).keys.toList
     }
