@@ -19,6 +19,7 @@ package model.persisted
 import factories.UUIDFactory
 import model.AllocationStatuses
 import model.AllocationStatuses.AllocationStatus
+import model.persisted.eventschedules.SkillType.SkillType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
@@ -33,7 +34,7 @@ case class AssessorAllocation(
   id: String,
   eventId: String,
   status: AllocationStatus,
-  allocatedAs: String,
+  allocatedAs: SkillType,
   version: String
 ) extends Allocation
 

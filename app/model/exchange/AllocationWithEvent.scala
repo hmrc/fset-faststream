@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-package model
+package model.exchange
 
+import model.AllocationStatuses.AllocationStatus
+import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.SkillType.SkillType
+import model.persisted.eventschedules.Venue
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
-case class SelectedSchemes(schemes: List[SchemeId], orderAgreed: Boolean, eligible: Boolean)
+case class AllocationWithEvent(
+  assessorId: String,
+  eventId: String,
+  date: LocalDate,
+  startTime: LocalTime,
+  endTime: LocalTime,
+  venue: Venue,
+  eventType: EventType,
+  status: AllocationStatus,
+  allocatedAs: SkillType
+)
 
-object SelectedSchemes {
-  implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
-  implicit val selectedSchemesHandler = Macros.handler[SelectedSchemes]
+object AllocationWithEvent {
+  implicit val allocationWithEventFormat = Json.format[AllocationWithEvent]
 }

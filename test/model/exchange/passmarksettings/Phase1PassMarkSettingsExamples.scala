@@ -18,17 +18,17 @@ package model.exchange.passmarksettings
 
 import java.util.UUID
 
-import model.SchemeType.{ SchemeType, _ }
+import model.SchemeId
 import org.joda.time.DateTime
 
 object Phase1PassMarkSettingsExamples {
   def passmark(implicit now: DateTime) = Phase1PassMarkSettings(List(), "version", now, "userId")
 
-  def passMarkSettings(schemes: List[(SchemeType, Double, Double)])(implicit now: DateTime) =
+  def passMarkSettings(schemes: List[(SchemeId, Double, Double)])(implicit now: DateTime) =
     Phase1PassMarkSettings(schemes.map { case (s, fail, pass) => createPhase1PassMark(s, fail, pass) },
       UUID.randomUUID().toString, now, "userId")
 
-  def createPhase1PassMark(schemeName: SchemeType, fail: Double, pass: Double) = {
+  def createPhase1PassMark(schemeName: SchemeId, fail: Double, pass: Double) = {
     Phase1PassMark(schemeName, Phase1PassMarkThresholds(PassMarkThreshold(fail, pass), PassMarkThreshold(fail, pass)))
   }
 

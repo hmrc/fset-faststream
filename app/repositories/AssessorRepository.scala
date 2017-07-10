@@ -69,8 +69,7 @@ class AssessorMongoRepository(implicit mongo: () => DB)
       BSONDocument("availability" ->
         BSONDocument("$elemMatch" -> BSONDocument(
           "location" -> location,
-          "date" -> date,
-          "allocation" -> BSONDocument("$exists" -> false)
+          "date" -> date
         )))
     ))
 

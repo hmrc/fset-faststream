@@ -34,8 +34,8 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
 
   val projection = BSONDocument("_id" -> false)
 
-  def find(id: String): Future[Option[T]] = {
-    collection.find(BSONDocument("id" -> id), projection).one[T]
+  def find(id: String): Future[Seq[T]] = {
+    collection.find(BSONDocument("id" -> id), projection).cursor[T]().collect[Seq]()
   }
 
   def save(allocations: Seq[T]): Future[Unit] = {
