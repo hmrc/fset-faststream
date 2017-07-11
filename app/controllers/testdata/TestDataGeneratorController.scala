@@ -143,7 +143,7 @@ trait TestDataGeneratorController extends BaseController {
       role = Some("assessor"),
       phone = Some("123456789"),
       assessor = Some(AssessorRequest(
-        skills = Some(List("assessor", "qac")),
+        skills = Some(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR")),
         civilServant = Some(true),
         availability = Some(List(
           AssessorAvailabilityRequest("London", LocalDate.now()),
