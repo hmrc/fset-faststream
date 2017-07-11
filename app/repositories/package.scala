@@ -88,6 +88,8 @@ package object repositories {
   lazy val stcEventMongoRepository = new StcEventMongoRepository
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorRepository = new AssessorMongoRepository()
+  lazy val assessorAllocationRepository = new AssessorAllocationMongoRepository()
+  lazy val candidateAllocationRepository = new CandidateAllocationMongoRepository()
   lazy val eventsRepository = new EventsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
@@ -127,7 +129,12 @@ package object repositories {
     assessorRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
 
     eventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending),
-      ("location", Ascending), ("venue", Ascending)), unique = false))
+      ("location", Ascending), ("venue", Ascending)), unique = false)),
+
+    assessorAllocationRepository.collection.indexesManager.create(Index(
+      Seq("id"-> Ascending, "eventId" -> Ascending),
+      unique = false
+    ))
   )), 20 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {

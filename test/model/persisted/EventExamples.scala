@@ -22,7 +22,7 @@ import model.persisted.eventschedules.{ Event, EventType, SkillType, Venue, Loca
 import org.joda.time.{ LocalDate, LocalTime }
 
 object EventExamples {
-  val VenueAll = Venue("All", "All venues")
+  val VenueAll = Venue("ALL_VENUES", "ALL_VENUES")
   val VenueLondon = Venue("London FSAC", "Bush House")
   val VenueNewcastle = Venue("Newcastle FSAC", "Longbenton")
 
@@ -52,7 +52,7 @@ object EventExamples {
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "DFS FSB", location = LocationNewcastle,
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(
-        "QAC" -> 1
+        SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1
       ))
 
   )

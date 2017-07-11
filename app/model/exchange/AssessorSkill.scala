@@ -17,14 +17,14 @@
 package model.exchange
 
 import model.persisted.eventschedules.SkillType._
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 
-case class AssessorSkill(name: SkillType, label: String)
+case class AssessorSkill(name: SkillType, displayText: String)
 
 object AssessorSkill {
 
-  implicit val assessorSkillFormatter = Json.format[AssessorSkill]
+  implicit val assessorSkillFormatter: OFormat[AssessorSkill] = Json.format[AssessorSkill]
 
   val AllSkillsWithLabels = List(
     AssessorSkill(ASSESSOR, "Assessor"),
@@ -34,4 +34,8 @@ object AssessorSkill {
     AssessorSkill(QUALITY_ASSURANCE_COORDINATOR, "Quality Assurance Coordinator"),
     AssessorSkill(SIFTER, "Sifter")
   )
+
+  val SkillMap: Map[SkillType, AssessorSkill] = AllSkillsWithLabels.map { s =>
+    s.name -> s
+  }(scala.collection.breakOut): Map[SkillType, AssessorSkill]
 }

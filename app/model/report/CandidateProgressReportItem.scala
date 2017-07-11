@@ -17,10 +17,10 @@
 package model.report
 
 import model.ApplicationRoute.ApplicationRoute
-import model.SchemeType.SchemeType
+import model.SchemeId
 import play.api.libs.json.Json
 
-case class CandidateProgressReportItem(userId: String, applicationId: String, progress: Option[String], schemes: List[SchemeType],
+case class CandidateProgressReportItem(userId: String, applicationId: String, progress: Option[String], schemes: List[SchemeId],
                                        disability: Option[String], onlineAdjustments: Option[String],
                                        assessmentCentreAdjustments: Option[String], phoneAdjustments: Option[String],
                                        gis: Option[String], civilServant: Option[String], fastTrack: Option[String], edip: Option[String],

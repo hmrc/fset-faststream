@@ -22,6 +22,8 @@ object CollectionNames {
   val APPLICATION_ASSESSMENT_SCORES = "application-assessment-scores18"
   val ASSESSMENT_CENTRE_PASS_MARK_SETTINGS = "assessment-centre-pass-mark-settings18"
   val ASSESSOR = "assessor18"
+  val ASSESSOR_ALLOCATION = "assessor-allocation18"
+  val CANDIDATE_ALLOCATION = "candidate-allocation18"
   val ASSESSMENT_EVENTS = "assessment-events18"
   val CONTACT_DETAILS = "contact-details18"
   val EVENT = "event18"

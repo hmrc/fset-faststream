@@ -67,10 +67,9 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("skills" -> BSONDocument("$in" -> skills)),
       BSONDocument("availability" ->
-        BSONDocument("$elemMatch" -> BSONArray(
-          BSONDocument("location" -> location),
-          BSONDocument("date" -> date),
-          BSONDocument("allocation" -> BSONDocument("$exists" -> false))
+        BSONDocument("$elemMatch" -> BSONDocument(
+          "location" -> location,
+          "date" -> date
         )))
     ))
 

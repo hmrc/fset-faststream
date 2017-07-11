@@ -17,8 +17,7 @@
 package repositories.schemepreferences
 
 import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
-import model.SchemeType.SchemeType
-import model.SelectedSchemes
+import model.{ SchemeId, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
@@ -33,7 +32,7 @@ trait SchemePreferencesRepository {
 
   def save(applicationId: String, schemePreferences: SelectedSchemes): Future[Unit]
 
-  def add(applicationId: String, newScheme: SchemeType): Future[Unit]
+  def add(applicationId: String, newScheme: SchemeId): Future[Unit]
 }
 
 class SchemePreferencesMongoRepository(implicit mongo: () => DB)
@@ -67,7 +66,7 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
     collection.update(query, preferencesBSON) map validator
   }
 
-  def add(applicationId: String, newScheme: SchemeType): Future[Unit] = {
+  def add(applicationId: String, newScheme: SchemeId): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val update = BSONDocument(
       "$addToSet" -> BSONDocument(

@@ -102,7 +102,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         BSONDocument(s"progress-status.${SuccessfulSdipFsTestType.progressStatus}" -> BSONDocument("$ne" -> true))
       )),
       BSONDocument("testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" ->
-        BSONDocument("scheme" -> SchemeType.Sdip,
+        BSONDocument("schemeId" -> SchemeId("Sdip"),
           "result" -> BSONDocument("$in" -> List(Green.toString, Red.toString)))))
     ))
     collection.find(query).one[BSONDocument] map {

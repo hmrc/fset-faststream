@@ -25,7 +25,6 @@ import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands.TestResult
 import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme }
 import model.PassmarkPersistedObjects.Implicits._
-import model.SchemeType.SchemeType
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
 

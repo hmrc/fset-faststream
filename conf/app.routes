@@ -26,6 +26,8 @@ GET         /application/schemeresults/:applicationId                    control
 PUT         /application/consider-for-sdip/:applicationId                controllers.ApplicationController.considerForSdip(applicationId: String)
 PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
 PUT         /application/overrideSubmissionDeadline/:applicationId       controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
+GET         /application/location/:location                              controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String)
+POST        /application/status                                          controllers.ApplicationController.updateStatus
 
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
 GET         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
@@ -118,21 +120,25 @@ GET         /assessor/find/:userId                                       control
 
 POST        /assessor/availability/save/:userId                          controllers.AssessorController.addAvailability(userId: String)
 GET         /assessor/availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
-GET         /assessor/availability/:locationName/:date                   controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: List[model.persisted.eventschedules.SkillType.SkillType])
+GET         /assessor/availability/:locationName/:date                   controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 GET         /assessor/availability/count-submitted                       controllers.AssessorController.countSubmittedAvailability()
-
-# Assessment Centres
-#GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)
-#GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
+GET         /assessor/:assessorId/allocations                            controllers.AssessorController.findAllocations(assessorId: String)
 
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
+GET         /events/venues-for-events                                    controllers.EventsController.venuesForEvents
+GET         /events/locations-for-events                                 controllers.EventsController.locationsForEvents
+GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
+GET         /events/:eventId/candidateAllocations                        controllers.EventsController.getCandidateAllocations(eventId: String)
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
+PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
+PUT         /events/:eventId/allocateCandidates                          controllers.EventsController.allocateCandidates(eventId: String)
+
 
 # Day aggregate events
-GET         /day-aggregate-events/skills/:skillTypes                     controllers.DayAggregateEventController.findBySkillTypes(skillTypes: String)
-GET         /day-aggregate-events/location/:location/skills/:skillTypes  controllers.DayAggregateEventController.findBySkillTypesAndLocation(skillTypes: String, location: String)
+GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
+GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

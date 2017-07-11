@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
-package model.persisted.assessor
+package model.command
 
 import model.AllocationStatuses.AllocationStatus
-import model.persisted.eventschedules.SkillType.SkillType
+import model.exchange.AssessorSkill
+import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.Venue
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
-
-case class AssessorAllocation(
+case class AllocationWithEvent(
   assessorId: String,
   eventId: String,
+  date: LocalDate,
+  startTime: LocalTime,
+  endTime: LocalTime,
+  venue: Venue,
+  eventType: EventType,
   status: AllocationStatus,
-  allocatedAs: SkillType,
-  version: String
+  allocatedAs: AssessorSkill
 )
 
-object AssessorAllocation {
-  implicit val allocationFormat = Json.format[AssessorAllocation]
-  implicit val allocationHandler = Macros.handler[AssessorAllocation]
+object AllocationWithEvent {
+  implicit val allocationWithEventFormat = Json.format[AllocationWithEvent]
 }
+

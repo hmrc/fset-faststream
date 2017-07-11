@@ -19,7 +19,7 @@ package controllers
 import config.TestFixtureBase
 import factories.UUIDFactory
 import model.Commands.PassMarkSettingsCreateResponse
-import model.SchemeType._
+import model.SchemeId
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
@@ -103,9 +103,9 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
     val defaultSchemeThresholds = Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold)
 
     val mockSchemes = List(
-      Phase1PassMark(Finance, defaultSchemeThresholds),
-      Phase1PassMark(Commercial, defaultSchemeThresholds),
-      Phase1PassMark(Generalist, defaultSchemeThresholds)
+      Phase1PassMark(SchemeId("Finance"), defaultSchemeThresholds),
+      Phase1PassMark(SchemeId("Commercial"), defaultSchemeThresholds),
+      Phase1PassMark(SchemeId("Generalist"), defaultSchemeThresholds)
     )
     val mockVersion = "uuid-1"
     val mockCreateDate = new DateTime(1459504800000L)
@@ -146,7 +146,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
                      |    "version" : "version-0",
                      |    "schemes": [
                      |        {
-                     |            "schemeName": "Finance",
+                     |            "scheme": "Finance",
                      |            "schemeThresholds": {
                      |                "situational": {
                      |                    "failThreshold": 20.0,
@@ -159,7 +159,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
                      |            }
                      |        },
                      |        {
-                     |            "schemeName": "Commercial",
+                     |            "scheme": "Commercial",
                      |            "schemeThresholds": {
                      |                "situational": {
                      |                    "failThreshold": 20.0,
@@ -172,7 +172,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
                      |            }
                      |        },
                      |        {
-                     |            "schemeName": "Generalist",
+                     |            "scheme": "Generalist",
                      |            "schemeThresholds": {
                      |                "situational": {
                      |                    "failThreshold": 20.0,

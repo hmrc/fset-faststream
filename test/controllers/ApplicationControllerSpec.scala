@@ -19,10 +19,11 @@ package controllers
 import config.TestFixtureBase
 import mocks.application.DocumentRootInMemoryRepository
 import model.EvaluationResults.Green
-import model.Exceptions.NotFoundException
-import model.{ ApplicationRoute, SchemeType }
 import model.command.WithdrawApplication
+import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.{ ApplicationRoute, SchemeId }
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -153,7 +154,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
   "Get Scheme Results" must {
     "return the scheme results for an application" in new TestFixture {
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version2", None)
       when(mockPassmarkService.getPassmarkEvaluation(any[String])).thenReturn(Future.successful(evaluation))
 
@@ -167,6 +168,51 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     "Return a 404 if no results are found for the application Id" in new TestFixture {
       val result = TestApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
       status(result) mustBe NOT_FOUND
+    }
+  }
+
+  "Find candidates eligible for event allocation" must {
+
+    val mockApplicationService = mock[ApplicationService]
+    val mockAuditService = mock[AuditService]
+    val mockPassmarkService = mock[EvaluatePhase3ResultService]
+    val mockAppRepository = mock[GeneralApplicationRepository]
+
+    object MyTestApplicationController extends ApplicationController {
+      override val appRepository: GeneralApplicationRepository = mockAppRepository
+      override val auditService: AuditService = mockAuditService
+      override val applicationService: ApplicationService = mockApplicationService
+      override val passmarkService: EvaluatePhase3ResultService = mockPassmarkService
+    }
+
+    "handle no candidates" in new TestFixture {
+      when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]]))
+        .thenReturn(Future.successful(CandidatesEligibleForEventResponse(List.empty, 0)))
+
+      val result = MyTestApplicationController.findCandidatesEligibleForEventAllocation("London")(
+      findCandidatesEligibleForEventAllocationRequest("london")).run
+      val jsonResponse = contentAsJson(result)
+
+      (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List.empty
+      (jsonResponse \ "totalCandidates").as[Int] mustBe 0
+
+      status(result) mustBe OK
+    }
+
+    "handle candidates" in new TestFixture {
+      val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
+        needsAdjustment = true, dateReady = DateTime.now())
+      when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]]))
+        .thenReturn(Future.successful(CandidatesEligibleForEventResponse(List(candidate), 1)))
+
+      val result = MyTestApplicationController.findCandidatesEligibleForEventAllocation("London")(
+      findCandidatesEligibleForEventAllocationRequest("london")).run
+      val jsonResponse = contentAsJson(result)
+
+      (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List(candidate)
+      (jsonResponse \ "totalCandidates").as[Int] mustBe 1
+
+      status(result) mustBe OK
     }
   }
 
@@ -214,6 +260,11 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     def getSchemeResultsRequest(applicationId: String) = {
       FakeRequest(Helpers.GET, controllers.routes.ApplicationController.getSchemeResults(applicationId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
+    }
+
+    def findCandidatesEligibleForEventAllocationRequest(location: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.findCandidatesEligibleForEventAllocation(location).url,
+        FakeHeaders(), "").withHeaders("Content-Type" -> "application/json")
     }
   }
 }

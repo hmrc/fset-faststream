@@ -17,17 +17,18 @@
 package controllers
 
 import config.TestFixtureBase
-import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{Event, Location, Venue}
-import model.persisted.eventschedules.EventType
-import model.persisted.eventschedules.VenueType
-import org.joda.time.{LocalDate, LocalTime}
+import model.AllocationStatuses
+import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
+import model.exchange.{ AssessorAllocation, AssessorAllocations, AssessorSkill }
+import model.persisted.eventschedules._
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
-import repositories.events.{LocationsWithVenuesRepository, UnknownVenueException}
+import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
+import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import testkit.UnitWithAppSpec
 
@@ -35,7 +36,7 @@ import scala.concurrent.Future
 
 class EventsControllerSpec extends UnitWithAppSpec {
 
-  "Upload assessment events" should {
+  "Upload assessment events" must {
     "return CREATED with valid input" in new TestFixture {
       when(mockEventsService.saveAssessmentEvents()).thenReturn(Future.successful(unit))
       val res = controller.saveAssessmentEvents()(FakeRequest())
@@ -43,8 +44,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return UNPROCESSABLE_ENTITY when parsing goes wrong" in new TestFixture {
-      when(mockEventsService.saveAssessmentEvents()).thenReturn(Future.failed(new Exception()))
-
+      when(mockEventsService.saveAssessmentEvents()).thenReturn(Future.failed(new Exception("Error")))
       val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
     }
@@ -83,8 +83,23 @@ class EventsControllerSpec extends UnitWithAppSpec {
     }
   }
 
+  "Allocate assessor" must {
+    "return a 409 if an op lock exception occurs" in new TestFixture {
+      when(mockAssessorAllocationService.allocate(any[model.command.AssessorAllocations]))
+        .thenReturn(Future.failed(OptimisticLockException("error")))
+
+      val request = fakeRequest(AssessorAllocations(
+        version = Some("version1"),
+        AssessorAllocation("id", AllocationStatuses.CONFIRMED, AssessorSkill(SkillType.ASSESSOR,"Assessor")) :: Nil
+      ))
+      val result = controller.allocateAssessor("eventId")(request)
+      status(result) mustBe CONFLICT
+    }
+  }
+
   trait TestFixture extends TestFixtureBase {
     val mockEventsService = mock[EventsService]
+    val mockAssessorAllocationService = mock[AssessorAllocationService]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val MockVenue = Venue("London FSAC", "Bush House")
     val MockLocation = Location("London")
@@ -97,7 +112,8 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
     val controller = new EventsController {
       val eventsService = mockEventsService
-      val locationsAndVenues: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
+      val assessorAllocationService = mockAssessorAllocationService
+      val locationsAndVenuesRepository: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
   }
 }

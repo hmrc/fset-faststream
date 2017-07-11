@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package model
+package model.exchange
 
-@deprecated("Use the new Scheme case class", "June 2017")
-object Schemes {
-  val Business = "Business"
-  val Commercial = "Commercial"
-  val DigitalAndTechnology = "Digital and technology"
-  val Finance = "Finance"
-  val ProjectDelivery = "Project delivery"
+import play.api.libs.json.Json
 
-  val AllSchemes = Business :: Commercial :: DigitalAndTechnology :: Finance :: ProjectDelivery :: Nil
+case class CandidatesEligibleForEventResponse(candidates: List[CandidateEligibleForEvent], totalCandidates: Int)
+
+object CandidatesEligibleForEventResponse {
+  implicit val responseFormat = Json.format[CandidatesEligibleForEventResponse]
 }
