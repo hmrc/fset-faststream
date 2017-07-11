@@ -35,7 +35,7 @@ trait SiftingRepository {
 
   val phaseName = "SIFT_PHASE"
 
-  def findCandidatesEligibleForSifting(schemeId: SchemeId): Future[List[Candidate]]
+  def findApplicationsReadyForSifting(schemeId: SchemeId): Future[List[Candidate]]
 
   def siftCandidate(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
 }
@@ -61,18 +61,18 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
     * 5. Has not Withdrawn from the scheme
     */
 
-  override def findCandidatesEligibleForSifting(schemeId: SchemeId): Future[List[Candidate]] = {
+  override def findApplicationsReadyForSifting(schemeId: SchemeId): Future[List[Candidate]] = {
     val videoInterviewPassed = BSONDocument("testGroups.PHASE3.evaluation.result" ->
-      BSONDocument("$elemMatch" -> BSONDocument("scheme" -> schemeId, "result" -> Green.toString)))
+      BSONDocument("$elemMatch" -> BSONDocument("schemeId" -> schemeId.value, "result" -> Green.toString)))
 
     val notSiftedOnScheme = BSONDocument(
-      s"testGroups.$phaseName.evaluation.result.scheme" -> BSONDocument("$nin" -> BSONArray(schemeId))
+      s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(schemeId.value))
     )
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED),
       BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
-      BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(schemeId))),
+      BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(schemeId.value))),
       BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
       videoInterviewPassed,
       notSiftedOnScheme

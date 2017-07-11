@@ -39,7 +39,7 @@ trait SiftingController extends BaseController {
   val siftAppRepository: SiftingRepository
 
   def findSiftingEligible(schemeId: String): Action[AnyContent] = Action.async { implicit request =>
-    siftAppRepository.findCandidatesEligibleForSifting(SchemeId(schemeId)).map { candidates =>
+    siftAppRepository.findApplicationsReadyForSifting(SchemeId(schemeId)).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }
