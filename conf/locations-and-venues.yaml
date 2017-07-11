@@ -9,5 +9,5 @@ Newcastle:
   - NEWCASTLE_LONGBENTON:
       description: Longbenton
 Virtual:
-  - Virtual:
+  - VIRTUAL:
       description: Virtual
