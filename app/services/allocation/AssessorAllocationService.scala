@@ -17,22 +17,27 @@
 package services.allocation
 
 import model.Exceptions.OptimisticLockException
-import model.exchange
-import model.persisted
-import model.command
-import repositories.{ CandidateAllocationMongoRepository, AssessorAllocationMongoRepository }
+import model.exchange.{ EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
+import model.{ AllocationStatuses, command, exchange, persisted }
+import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.Venue
+import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
+import services.events.EventsService
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object AssessorAllocationService extends AssessorAllocationService {
   def allocationRepo = repositories.assessorAllocationRepository
+  override val eventsService = EventsService
   def candidateAllocationRepo = repositories.candidateAllocationRepository
 }
 
 trait AssessorAllocationService {
 
   def allocationRepo: AssessorAllocationMongoRepository
+  val eventsService: EventsService
+
 
   def candidateAllocationRepo: CandidateAllocationMongoRepository
 
@@ -75,8 +80,27 @@ trait AssessorAllocationService {
     }
   }
 
+  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
+    eventsService.getEvents(eventType, venue).flatMap { events =>
+      val res = events.map { event =>
+        getAllocations(event.id).map { allocations =>
+          val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)
+          val allocationsGroupedBySkillWithSummary = allocationsGroupedBySkill.map { allocationGroupedBySkill =>
+            val assessorAllocation = allocationGroupedBySkill._2
+            val skill = allocationGroupedBySkill._1.name
+            val allocated = assessorAllocation.length
+            val confirmed = assessorAllocation.count(_.status == AllocationStatuses.CONFIRMED)
+            EventAssessorAllocationsSummaryPerSkill(skill, allocated, confirmed)
+          }.toList
+          EventWithAllocationsSummary(event, 0, allocationsGroupedBySkillWithSummary)
+        }
+      }
+      Future.sequence(res)
+    }
+  }
+
   private def updateExistingAllocations(existingAllocations: exchange.CandidateAllocations,
-    newAllocations: command.CandidateAllocations): Future[Unit] = {
+                                        newAllocations: command.CandidateAllocations): Future[Unit] = {
 
     if (existingAllocations.version.forall(_ == newAllocations.version)) {
       // no prior update since reading so do update
@@ -90,7 +114,7 @@ trait AssessorAllocationService {
         candidateAllocationRepo.save(toPersist).map( _ => ())
       }
     } else {
-        throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
+      throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
     }
   }
 }

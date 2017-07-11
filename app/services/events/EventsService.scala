@@ -16,7 +16,6 @@
 
 package services.events
 
-import model.exchange.AssessorAllocation
 import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.Logger
@@ -34,6 +33,7 @@ object EventsService extends EventsService {
 trait EventsService {
 
   def eventsRepo: EventsRepository
+
   def eventFileParsingService: EventsParsingService
 
   def saveAssessmentEvents(): Future[Unit] = {
@@ -50,5 +50,4 @@ trait EventsService {
   def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue))
   }
-
 }
