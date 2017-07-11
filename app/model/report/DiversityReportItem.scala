@@ -17,14 +17,14 @@
 package model.report
 
 import model.ApplicationRoute._
+import model.SchemeId
 import play.api.libs.json.Json
-import model.SchemeType._
 import model.persisted.ApplicationForDiversityReport
 
 case class ApplicationForDiversityReportItem(
                                               progress: Option[String],
                                               applicationRoute: ApplicationRoute,
-                                              schemes: List[SchemeType],
+                                              schemes: List[SchemeId],
                                               disability: Option[String],
                                               gis: Option[Boolean],
                                               onlineAdjustments: Option[String],

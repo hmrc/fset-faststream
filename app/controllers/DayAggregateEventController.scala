@@ -18,6 +18,7 @@ package controllers
 
 import config.MicroserviceAppConfig
 import model.persisted.eventschedules.Location
+import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc.{ Action, AnyContent }
@@ -35,21 +36,18 @@ trait DayAggregateEventController extends BaseController {
   def locationsWithVenuesRepo: LocationsWithVenuesRepository
   def eventsRepository: EventsRepository
 
-  def findBySkillTypes(skillTypes: String): Action[AnyContent] = Action.async { implicit request =>
-    find(Some(skillTypes), None).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )
+  def findBySkillTypes(skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
+    find(None, skills).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )
   }
 
-  def findBySkillTypesAndLocation(skillTypes: String, location: String): Action[AnyContent] = Action.async { implicit request =>
+  def findBySkillTypesAndLocation(location: String, skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
     locationsWithVenuesRepo.location(location).flatMap { location =>
-      val loc = if (location == MicroserviceAppConfig.AllLocations) None else Some(location)
-      find(Some(skillTypes), loc)
+      find(Some(location), skills)
     }.map(dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)))
   }
 
-  private def find(skillTypes: Option[String], location: Option[Location]) = {
-    val skillTypesList = skillTypes.map(_.split(",").toList)
-
-    eventsRepository.getEvents(None, None, location, skillTypesList).map {
+  private def find(location: Option[Location], skills: Seq[SkillType] = Nil) = {
+    eventsRepository.getEvents(None, None, location, skills).map {
       _.groupBy(e => DayAggregateEvent(e.date, e.location)).keys.toList
     }
   }

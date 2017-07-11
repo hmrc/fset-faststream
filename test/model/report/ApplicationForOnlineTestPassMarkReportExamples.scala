@@ -18,7 +18,7 @@ package model.report
 
 import model.persisted.ApplicationForOnlineTestPassMarkReport
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
-import model.{ ApplicationRoute, SchemeType }
+import model.{ ApplicationRoute, SchemeId }
 
 import scala.util.Random
 
@@ -36,7 +36,7 @@ object ApplicationForOnlineTestPassMarkReportExamples {
       rnd("AppId"),
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
-      List(SchemeType.Commercial, SchemeType.DigitalAndTechnology),
+      List(SchemeId("Commercial"), SchemeId("DigitalAndTechnology")),
       None,
       None,
       None,

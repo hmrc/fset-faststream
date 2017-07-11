@@ -45,7 +45,6 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
     "return UNPROCESSABLE_ENTITY when parsing goes wrong" in new TestFixture {
       when(mockEventsService.saveAssessmentEvents()).thenReturn(Future.failed(new Exception("Error")))
-
       val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
     }

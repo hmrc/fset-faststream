@@ -17,20 +17,20 @@
 package model.persisted
 
 import model.ApplicationRoute._
-import model.SchemeType.SchemeType
+import model.SchemeId
 import play.api.libs.json.Json
 import model.report.TestResultsForOnlineTestPassMarkReportItem
 
 case class ApplicationForOnlineTestPassMarkReport(
-                                                       applicationId: String,
-                                                       progress: String,
-                                                       applicationRoute: ApplicationRoute,
-                                                       schemes: List[SchemeType],
-                                                       disability: Option[String],
-                                                       gis: Option[Boolean],
-                                                       onlineAdjustments: Option[String],
-                                                       assessmentCentreAdjustments: Option[String],
-                                                       testResults: TestResultsForOnlineTestPassMarkReportItem
+                                                   applicationId: String,
+                                                   progress: String,
+                                                   applicationRoute: ApplicationRoute,
+                                                   schemes: List[SchemeId],
+                                                   disability: Option[String],
+                                                   gis: Option[Boolean],
+                                                   onlineAdjustments: Option[String],
+                                                   assessmentCentreAdjustments: Option[String],
+                                                   testResults: TestResultsForOnlineTestPassMarkReportItem
                                                      )
 
 object ApplicationForOnlineTestPassMarkReport {

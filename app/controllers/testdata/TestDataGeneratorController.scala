@@ -93,7 +93,7 @@ trait TestDataGeneratorController extends BaseController {
         assessmentCentreAdjustments = Some(true),
         assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
       )),
-      schemeTypes = Some(List(SchemeType.Commercial, SchemeType.European, SchemeType.DigitalAndTechnology)),
+      schemeTypes = Some(List(SchemeId("Commercial"), SchemeId("European"), SchemeId("DigitalAndTechnology"))),
       isCivilServant = Some(Random.bool),
       hasFastPass = Some(true),
       hasDegree = Some(Random.bool),
@@ -147,7 +147,7 @@ trait TestDataGeneratorController extends BaseController {
       phone = Some("123456789"),
       assessor = Some(AssessorRequest(
         skills = Some(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR")),
-        sifterSchemes = Some(List("GovernmentEconomicsService", "ProjectDelivery", "Sdip")),
+        sifterSchemes = Some(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip"))),
         civilServant = Some(true),
         availability = Some(List(
           AssessorAvailabilityRequest("London", LocalDate.now()),

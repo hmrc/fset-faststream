@@ -18,10 +18,11 @@ package repositories.events
 
 import config.MicroserviceAppConfig
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{Event, EventType, Location, Venue}
+import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.SkillType.SkillType
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -33,7 +34,7 @@ trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
-    location: Option[Location] = None, skills: Option[List[String]] = None): Future[List[Event]]
+    location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -54,18 +55,19 @@ class EventsMongoRepository(implicit mongo: () => DB)
   }
 
   def getEvents(eventType: Option[EventType] = None, venueType: Option[Venue] = None,
-    location: Option[Location] = None, skills: Option[List[String]] = None
+    location: Option[Location] = None, skills: Seq[SkillType] = Nil
   ): Future[List[Event]] = {
     val query = List(
       eventType.filterNot(_ == EventType.ALL_EVENTS).map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) },
       venueType.filterNot(_.name == MicroserviceAppConfig.AllVenues.name).map { v => BSONDocument("venue.name" -> v.name) },
       location.map { locationVal => BSONDocument("location" -> locationVal) },
-      skills.map { skillsVal =>
-        val skillsPartialQueries = skillsVal.map { skillVal =>
-          s"skillRequirements.$skillVal" -> BSONDocument("$gte" -> 1)
-        }
-        BSONDocument("$or" -> BSONArray.apply(skillsPartialQueries.map(BSONDocument(_))))
-      }
+
+      if (skills.nonEmpty) {
+        Some(BSONDocument("$or" -> BSONArray(
+          skills.map(s => BSONDocument(s"skillRequirements.$s" -> BSONDocument("$gte" -> 1)))
+        )))
+      } else { None }
+
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query).cursor[Event]().collect[List]()

@@ -19,6 +19,7 @@ package model.testdata
 import model.AllocationStatuses.AllocationStatus
 import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllocationRequest
 import model.persisted.AssessorAllocation
+import model.persisted.eventschedules.SkillType
 import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker.Random
 
@@ -30,7 +31,7 @@ object CreateAssessorAllocationData {
                                           allocatedAs: String,
                                           version: String) extends CreateTestData {
     def toAssessorAllocation: AssessorAllocation = {
-      AssessorAllocation(id, eventId, status, allocatedAs, version)
+      AssessorAllocation(id, eventId, status, SkillType.withName(allocatedAs), version)
     }
   }
 
@@ -42,7 +43,7 @@ object CreateAssessorAllocationData {
       val eventId = createRequest.eventId
       val status = createRequest.status.getOrElse(Random.AssessorAllocation.status)
       val allocatedAs = createRequest.allocatedAs
-      val version = createRequest.version.getOrElse(Random.AssessorAllocation.version)
+      val version = createRequest.version.getOrElse("")
       new CreateAssessorAllocationData(id, eventId, status, allocatedAs, version)
     }
   }
