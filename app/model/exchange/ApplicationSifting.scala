@@ -16,11 +16,11 @@
 
 package model.exchange
 
-import model.SchemeType._
+import model.SchemeId
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class ApplicationSifting(applicationId: String, scheme: SchemeType, result: String)
+case class ApplicationSifting(applicationId: String, schemeId: SchemeId, result: String)
 
 object ApplicationSifting {
   implicit val schemeEvaluationResultFormat = Json.format[ApplicationSifting]

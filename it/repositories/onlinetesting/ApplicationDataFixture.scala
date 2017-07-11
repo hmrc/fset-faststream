@@ -13,7 +13,7 @@ import reactivemongo.json.ImplicitBSONHandlers
 
 import scala.concurrent.Future
 import config.MicroserviceAppConfig.cubiksGatewayConfig
-import model.SchemeType
+import model.SchemeId
 import repositories.CollectionNames
 
 trait ApplicationDataFixture {
@@ -50,7 +50,9 @@ trait ApplicationDataFixture {
     )).futureValue
   }
 
-  def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean): BSONDocument = {
+  def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean,
+                              adjustmentsConfirmed: Boolean,
+                              timeExtensionAdjustments: Boolean): BSONDocument = {
     if (needsSupportForOnlineAssessment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
@@ -185,7 +187,10 @@ trait ApplicationDataFixture {
   // scalastyle:on method.length
   // scalastyle:on parameter.number
 
-  private def schemes: BSONDocument = BSONDocument("schemes" -> List(SchemeType.Commercial, SchemeType.Edip, SchemeType.Finance))
+  val Commercial = SchemeId("Commercial")
+  val Edip = SchemeId("Edip")
+  val Finance = SchemeId("Finance")
+  private def schemes: BSONDocument = BSONDocument("schemes" -> List(Commercial, Edip, Finance))
 
   private def testGroups(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup], p3: Option[Phase3TestGroup]): BSONDocument = {
     BSONDocument("PHASE1" -> p1.map(Phase1TestProfile.bsonHandler.write),

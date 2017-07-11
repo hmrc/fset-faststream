@@ -19,8 +19,8 @@ package controllers
 import model.Commands.Candidate
 import model.exchange.ApplicationSifting
 import model.persisted.SchemeEvaluationResult
-import model.{ CandidateExamples, SchemeType }
-import org.mockito.ArgumentMatchers.{ eq => eqTo }
+import model.{ CandidateExamples, SchemeId }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
@@ -36,11 +36,12 @@ class SiftingControllerSpec extends UnitWithAppSpec {
     override val siftAppRepository: SiftingRepository = mockSiftingRepo
   }
 
+  private val Commercial = SchemeId("Commercial")
+
   "find sifting eligible" should {
     "return list of candidates" in {
-      val myScheme = SchemeType.Commercial
-      when(mockSiftingRepo.findSiftingEligible(myScheme)).thenReturn(Future.successful(CandidateExamples.NewCandidates))
-      val response = controller.findSiftingEligible(myScheme.toString)(fakeRequest)
+      when(mockSiftingRepo.findCandidatesEligibleForSifting(any[SchemeId])).thenReturn(Future.successful(CandidateExamples.NewCandidates))
+      val response = controller.findSiftingEligible(Commercial.toString)(fakeRequest)
       status(response) mustBe OK
       contentAsString(response) mustBe Json.toJson[List[Candidate]](CandidateExamples.NewCandidates).toString()
     }
@@ -48,9 +49,9 @@ class SiftingControllerSpec extends UnitWithAppSpec {
 
   "submit sifting" should {
     "invoke repository to sift candidate" in {
-      val appSifting = ApplicationSifting("app1", SchemeType.Commercial, "Pass")
+      val appSifting = ApplicationSifting("app1", Commercial, "Pass")
       val request = fakeRequest(appSifting)
-      val result = SchemeEvaluationResult(SchemeType.Commercial, "Green")
+      val result = SchemeEvaluationResult(Commercial, "Green")
       when(mockSiftingRepo.siftCandidate("app1", result)).thenReturn(Future.successful(()))
       val response = controller.submitSifting(request)
       status(response) mustBe OK

@@ -17,7 +17,7 @@
 package controllers
 
 import model.Commands._
-import model.{ EvaluationResults, SchemeType }
+import model.{ EvaluationResults, SchemeId }
 import model.exchange.ApplicationSifting
 import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.{ JsValue, Json }
@@ -38,8 +38,8 @@ trait SiftingController extends BaseController {
 
   val siftAppRepository: SiftingRepository
 
-  def findSiftingEligible(schema: String): Action[AnyContent] = Action.async { implicit request =>
-    siftAppRepository.findSiftingEligible(SchemeType.withName(schema)).map { candidates =>
+  def findSiftingEligible(schemeId: String): Action[AnyContent] = Action.async { implicit request =>
+    siftAppRepository.findCandidatesEligibleForSifting(SchemeId(schemeId)).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }
@@ -54,7 +54,7 @@ trait SiftingController extends BaseController {
   def submitSifting: Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[ApplicationSifting] { sift =>
       siftAppRepository.siftCandidate(sift.applicationId,
-        SchemeEvaluationResult(sift.scheme, fromPassMark(sift.result).toString)).map(_ => Ok)
+        SchemeEvaluationResult(sift.schemeId, fromPassMark(sift.result).toString)).map(_ => Ok)
     }
   }
 }

@@ -17,11 +17,10 @@
 package repositories.sifting
 
 import model.Commands.{ Candidate, CreateApplicationRequest }
-import model.EvaluationResults.{ Green, Red }
+import model.EvaluationResults.Green
 import model.Exceptions.ApplicationNotFound
-import model.SchemeType.SchemeType
 import model.persisted.SchemeEvaluationResult
-import model.{ ApplicationStatus, Commands, SchemeType }
+import model.{ ApplicationStatus, Commands, SchemeId }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
@@ -36,7 +35,7 @@ trait SiftingRepository {
 
   val phaseName = "SIFT_PHASE"
 
-  def findSiftingEligible(chosenSchema: SchemeType): Future[List[Candidate]]
+  def findCandidatesEligibleForSifting(schemeId: SchemeId): Future[List[Candidate]]
 
   def siftCandidate(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
 }
@@ -50,7 +49,7 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
 
   /**
     * TODO: implement all criterias
-    * Criterias:
+    * Criteria:
     * 1. Is in the PHASE_3_TESTS_PASSED state
     * - has not yet been sifted
     * - has not completed sift
@@ -62,18 +61,18 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
     * 5. Has not Withdrawn from the scheme
     */
 
-  override def findSiftingEligible(chosenSchema: SchemeType): Future[List[Candidate]] = {
+  override def findCandidatesEligibleForSifting(schemeId: SchemeId): Future[List[Candidate]] = {
     val videoInterviewPassed = BSONDocument("testGroups.PHASE3.evaluation.result" ->
-      BSONDocument("$elemMatch" -> BSONDocument("scheme" -> chosenSchema, "result" -> Green.toString)))
+      BSONDocument("$elemMatch" -> BSONDocument("scheme" -> schemeId, "result" -> Green.toString)))
 
     val notSiftedOnScheme = BSONDocument(
-      s"testGroups.$phaseName.evaluation.result.scheme" -> BSONDocument("$nin" -> BSONArray(chosenSchema))
+      s"testGroups.$phaseName.evaluation.result.scheme" -> BSONDocument("$nin" -> BSONArray(schemeId))
     )
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED),
       BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
-      BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(chosenSchema))),
+      BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(schemeId))),
       BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
       videoInterviewPassed,
       notSiftedOnScheme
