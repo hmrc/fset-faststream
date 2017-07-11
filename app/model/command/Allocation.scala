@@ -19,7 +19,6 @@ package model.command
 import factories.UUIDFactory
 import model.AllocationStatuses.AllocationStatus
 import model.exchange.AssessorSkill
-import model.persisted.eventschedules.SkillType.SkillType
 import play.api.libs.json.Json
 
 trait Allocation {

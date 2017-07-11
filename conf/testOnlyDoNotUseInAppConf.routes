@@ -19,10 +19,15 @@ POST    /candidate-application/test-data-generator/create-candidates        cont
 POST    /candidate-application/test-data-generator/create-admin             controllers.testdata.TestDataGeneratorController.createAdminsPOST(numberToGenerate: Int)
 POST    /candidate-application/test-data-generator/create-event             controllers.testdata.TestDataGeneratorController.createEventPOST(numberToGenerate: Int)
 POST    /candidate-application/test-data-generator/create-events            controllers.testdata.TestDataGeneratorController.createEventsPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-assessor-allocations           controllers.testdata.TestDataGeneratorController.createAssessorAllocationsPOST(numberToGenerate: Int)
+
+# examples
 GET     /candidate-application/test-data-generator/example-candidate        controllers.testdata.TestDataGeneratorController.exampleCreateCandidate
 GET     /candidate-application/test-data-generator/example-admin            controllers.testdata.TestDataGeneratorController.exampleCreateAdmin
 GET     /candidate-application/test-data-generator/example-event            controllers.testdata.TestDataGeneratorController.exampleCreateEvent
 GET     /candidate-application/test-data-generator/example-events           controllers.testdata.TestDataGeneratorController.exampleCreateEvents
+GET     /candidate-application/test-data-generator/example-assessor-allocations           controllers.testdata.TestDataGeneratorController.exampleCreateAssessorAllocations
+
 GET     /candidate-application/evaluate-phase1-candidate                    controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
 GET     /candidate-application/evaluate-phase2-candidate                    controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
 GET     /candidate-application/evaluate-phase3-candidate                    controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate

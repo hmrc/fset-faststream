@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package model.persisted.eventschedules
+package model.exchange.testdata
 
+import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
+import model.testdata.CreateEventData.CreateEventData
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.Macros
 
-// TODO: it's not really description - it's display value we will use on UI.
-case class Venue(name: String, description: String)
-object Venue {
-  implicit val venueFormat: OFormat[Venue] = Json.format[Venue]
-  implicit val venueHandler = Macros.handler[Venue]
+object CreateAssessorAllocationResponse {
+
+  case class CreateAssessorAllocationResponse(generationId: Int, data: CreateAssessorAllocationData) extends CreateTestDataResponse
+
+  object CreateAssessorAllocationResponse {
+
+    implicit val format: OFormat[CreateAssessorAllocationResponse] =
+      Json.format[CreateAssessorAllocationResponse]
+  }
+
 }

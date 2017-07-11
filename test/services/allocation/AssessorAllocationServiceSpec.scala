@@ -25,6 +25,7 @@ import model.{ AllocationStatuses, command, persisted }
 import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
+import services.events.{ EventsParsingServiceSpec, EventsService }
 
 import scala.concurrent.Future
 
@@ -82,9 +83,11 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
   trait TestFixture {
     val mockAllocationRepository = mock[AssessorAllocationMongoRepository]
     val mockCandidateAllocationRepository = mock[CandidateAllocationMongoRepository]
+    val mockEventsService = mock[EventsService]
     val service = new AssessorAllocationService {
       def allocationRepo: AssessorAllocationMongoRepository = mockAllocationRepository
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
+      override val eventsService: EventsService = mockEventsService
     }
   }
 

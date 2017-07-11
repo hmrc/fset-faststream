@@ -17,18 +17,27 @@
 package services.testdata.faker
 
 import factories.UUIDFactory
+import model.{ AllocationStatuses, EvaluationResults }
+import model.EvaluationResults.Result
+import model.Exceptions.DataFakingException
+import model.exchange.{ AssessorAvailability, AssessorSkill }
 import model.{ EvaluationResults, Scheme, SchemeId }
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.persisted.eventschedules._
 import model.exchange.AssessorAvailability
+import model.persisted.eventschedules._
+import org.joda.time.{ LocalDate, LocalTime }
+import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import org.joda.time.{ LocalDate, LocalTime }
 import repositories._
 import repositories.events.LocationsWithVenuesInMemoryRepository
 import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 //scalastyle:off number.of.methods
 object DataFaker {
@@ -69,10 +78,11 @@ object DataFaker {
       randOne(List(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17))
     }
 
-    def upperLetter: Char = randOne(('A' to 'Z').toList)
+    def upperLetter: Char = randOne(( 'A' to 'Z' ).toList)
 
     def bool: Boolean = randOne(List(true, false))
-    def boolTrue20percent: Boolean = randOne(List(1,2,3,4,5)) == 5
+
+    def boolTrue20percent: Boolean = randOne(List(1, 2, 3, 4, 5)) == 5
 
     def number(limit: Option[Int] = None): Int = util.Random.nextInt(limit.getOrElse(2000000000))
 
@@ -214,7 +224,6 @@ object DataFaker {
       "indyOrFeePaying-bursary",
       "indyOrFeePaying-noBursary"
     ))
-
 
 
     def age16to18School = randOne(List("Advanced Skills School", "Extremely Advanced School", "A-Level Specialist School", "14 to 18 School"))
@@ -717,7 +726,7 @@ object DataFaker {
         if (boolTrue20percent) {
           Some(List.empty)
         } else {
-          val dates = (15 to 25).map(i => LocalDate.parse(s"2017-06-$i")).toList
+          val dates = ( 15 to 25 ).map(i => LocalDate.parse(s"2017-06-$i")).toList
           Option(dates.flatMap { date =>
             if (bool) {
               Some(AssessorAvailability(location, date))
@@ -731,35 +740,59 @@ object DataFaker {
 
     object Event {
       def id = UUIDFactory.generateUUID()
-      def eventType = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW,
-        EventType.SKYPE_INTERVIEW))
+
+      def eventType = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW))
+
       def description = randOne(List("GSFS FSB", "ORAC", "PDFS FSB"))
+
       def location = randOne(List(Location("London"), Location("Newcastle")))
-      def venueLondon = randOne(List(Venue("London 1", "Bush House"), Venue("London 2", "Parliament Street"),
-        Venue("London 3", "Somewhere fancy"))
-      )
-      def venueNewcastle = randOne(List(Venue("Newcastle 1", "Longbenton"), Venue("Newcastle 2", "Benton Park View"),
-        Venue("Newcastle 3", "Cathedral Square"))
-      )
-      def venue = if (location.name == "London") { venueLondon } else { venueNewcastle }
-      def date = LocalDate.now()
+
+      def venue = randOne(ExternalSources.venuesByLocation(location.name))
+
+      def date = LocalDate.now().plusDays(number(Option(300)))
+
       def capacity = randOne(List(32, 24, 16, 8, 4, 30, 28))
+
       def minViableAttendees = capacity - randOne(List(2, 3, 4, 1))
-      def attendeeSafetyMargin = randOne(List(1,2, 3))
+
+      def attendeeSafetyMargin = randOne(List(1, 2, 3))
+
       def startTime = LocalTime.now()
+
       def endTime = startTime.plusHours(1)
+
       def skillRequirements = {
         val skills = SkillType.values.toList.map(_.toString)
-        val numberOfSkills = randOne((1 to SkillType.values.size).map( i => i).toList)
+        val numberOfSkills = randOne(( 1 to SkillType.values.size ).map(i => i).toList)
         val skillsSelected = randList(skills, numberOfSkills)
 
-        def numberOfPeopleWithSkillsRequired = randOne(List(1,2,3,4,8))
+        def numberOfPeopleWithSkillsRequired = randOne(List(1, 2, 3, 4, 8))
 
         skillsSelected.map { skillSelected =>
           skillSelected -> numberOfPeopleWithSkillsRequired
         }.toMap
       }
     }
+
+    object AssessorAllocation {
+      def status = Random.randOne(List(AllocationStatuses.CONFIRMED, AllocationStatuses.UNCONFIRMED))
+    }
+  }
+
+  object ExternalSources {
+
+    private val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+
+    def allVenues = Await.result(locationsAndVenuesRepository.venues.map(_.toList), 1 second)
+
+    def venuesByLocation(location: String) = {
+      val venues = locationsAndVenuesRepository.locationsWithVenuesList.map { list =>
+        list.filter(lv => lv.name == location).flatMap(_.venues)
+      }
+      Await.result(venues, 1 second)
+    }
   }
 }
+
 //scalastyle:on number.of.methods
+

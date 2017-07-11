@@ -18,7 +18,7 @@ package services.events
 
 import common.FutureEx
 import factories.UUIDFactory
-import model.persisted.eventschedules.{ Event, EventType, VenueType }
+import model.persisted.eventschedules.{ Event, EventType }
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
