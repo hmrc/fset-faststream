@@ -65,7 +65,7 @@ package object controllers {
 
     private def enumQueryBinder[E <: Enumeration](enum: E) = {
       new QueryStringBindable.Parsing[E#Value](
-        parse = enum.withName,
+        parse = enum.withName(_),
         serialize = _.toString,
         error = (m: String, e: Exception) => "Can't parse %s as %s: %s".format(m, enum.getClass.getSimpleName, e.getMessage)
       )
@@ -77,7 +77,7 @@ package object controllers {
 
     private def enumPathBinder[E <: Enumeration](enum: E) = {
       new PathBindable.Parsing[E#Value](
-        parse = enum.withName,
+        parse = enum.withName(_),
         serialize = _.toString,
         error = (m: String, e: Exception) => "Can't parse %s as %s: %s".format(m, enum.getClass.getSimpleName, e.getMessage)
       )

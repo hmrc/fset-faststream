@@ -737,8 +737,7 @@ object DataFaker {
     object Event {
       def id = UUIDFactory.generateUUID()
 
-      def eventType = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW,
-        EventType.SKYPE_INTERVIEW))
+      def eventType = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW))
 
       def description = randOne(List("GSFS FSB", "ORAC", "PDFS FSB"))
 
