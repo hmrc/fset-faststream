@@ -22,6 +22,7 @@ import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.OnlineTestApplication
+import model.exchange.CandidatesEligibleForEventResponse
 import model.{ NotificationTestTypeSdipFs, _ }
 import model.command._
 import model.persisted._
@@ -148,4 +149,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = ???
 
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = ???
+
+  override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = ???
 }
