@@ -749,7 +749,7 @@ object DataFaker {
 
       def venue = randOne(ExternalSources.venuesByLocation(location.name))
 
-      def date = LocalDate.now().plusDays(number(Option(365)))
+      def date = LocalDate.now().plusDays(number(Option(300)))
 
       def capacity = randOne(List(32, 24, 16, 8, 4, 30, 28))
 
