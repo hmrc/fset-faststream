@@ -43,7 +43,7 @@ object CreateEventData {
   }
 
   object CreateEventData {
-    implicit val createEventDataFormat: OFormat[CreateEventData] = Json.format[CreateEventData]
+    implicit val format: OFormat[CreateEventData] = Json.format[CreateEventData]
 
     def apply(createRequest: CreateEventRequest)(generatorId: Int): CreateEventData = {
 

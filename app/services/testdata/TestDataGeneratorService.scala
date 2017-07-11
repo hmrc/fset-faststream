@@ -19,17 +19,20 @@ package services.testdata
 import connectors.AuthProviderClient
 import connectors.AuthProviderClient._
 import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
+import model.exchange.testdata.CreateAssessorAllocationResponse.CreateAssessorAllocationResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateEventResponse.CreateEventResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateAdminData.CreateAdminData
 import model.exchange.testdata.CreateTestDataResponse
+import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateEventData.CreateEventData
 import model.testdata.CreateTestData
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.MongoDbConnection
 import services.testdata.admin.AdminUserBaseGenerator
+import services.testdata.assessorallocation.AssessorAllocationGenerator
 import services.testdata.candidate.{ BaseGenerator, RegisteredStatusGenerator }
 import services.testdata.event.EventGenerator
 import services.testdata.faker.DataFaker._
@@ -147,6 +150,26 @@ trait TestDataGeneratorService extends MongoDbConnection {
 
       runInParallel(parNumbers, createData, EventGenerator.generate)
     }
+  }
+
+  def createAssessorAllocation(numberToGenerate: Int, createData: (Int) => CreateAssessorAllocationData)(
+    implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAssessorAllocationResponse]] = {
+    Future.successful {
+      val parNumbers = getParNumbers(numberToGenerate)
+
+      // one wasted generation of data
+      val data = createData(parNumbers.head)
+
+      runInParallel(parNumbers, createData, AssessorAllocationGenerator.generate)
+    }
+  }
+
+  def createAssessorAllocations(numberToGenerate: Int, createDatas: List[(Int) => CreateAssessorAllocationData])(
+    implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAssessorAllocationResponse]] = {
+    val listOfFutures = createDatas.map { createData =>
+      createAssessorAllocation(numberToGenerate, createData)
+    }
+    Future.sequence(listOfFutures).map(_.flatten)
   }
 
   private def getParNumbers(numberToGenerate: Int): ParRange = {

@@ -17,22 +17,20 @@
 package controllers
 
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
-
-import model.exchange
-import model.command
+import model.{ command, exchange }
 import model.exchange.AssessorAllocations
 import model.persisted.eventschedules.EventType
+import model.persisted.eventschedules.EventType.EventType
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
-
-import scala.concurrent.Future
-import scala.util.Try
 import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.Try
 
 object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
@@ -42,7 +40,9 @@ object EventsController extends EventsController {
 
 trait EventsController extends BaseController {
   def eventsService: EventsService
+
   def locationsAndVenuesRepository: LocationsWithVenuesRepository
+
   def assessorAllocationService: AssessorAllocationService
 
   def venuesForEvents: Action[AnyContent] = Action.async { implicit request =>
@@ -67,17 +67,17 @@ trait EventsController extends BaseController {
   }
 
   def getEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
-    val events =  Try {
-        val eventType = EventType.withName(eventTypeParam.toUpperCase)
-        locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
-          eventsService.getEvents(eventType, venue).map { events =>
-            if (events.isEmpty) {
-              NotFound
-            } else {
-              Ok(Json.toJson(events))
-            }
+    val events = Try {
+      val eventType = EventType.withName(eventTypeParam.toUpperCase)
+      locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
+        eventsService.getEvents(eventType, venue).map { events =>
+          if (events.isEmpty) {
+            NotFound
+          } else {
+            Ok(Json.toJson(events))
           }
         }
+      }
     }
 
     play.api.Logger.debug(s"$events")
@@ -101,13 +101,20 @@ trait EventsController extends BaseController {
   def allocateAssessor(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
-      assessorAllocationService.allocate(newAllocations).map( _ => Ok)
+      assessorAllocationService.allocate(newAllocations).map(_ => Ok)
           .recover {
             case e: OptimisticLockException => Conflict(e.getMessage)
           }
     }
   }
 
+  def getEventsWithAllocationsSummary(venueName: String, eventType: EventType): Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenuesRepository.venue(venueName).flatMap { venue =>
+      assessorAllocationService.getEventsWithAllocationsSummary(venue, eventType).map { eventsWithAllocations =>
+        Ok(Json.toJson(eventsWithAllocations))
+      }
+    }
+  }
   def allocateCandidates(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
       val newAllocations = command.CandidateAllocations.fromExchange(eventId, candidateAllocations)
