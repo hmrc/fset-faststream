@@ -1,0 +1,66 @@
+- type: FSAC
+  desc: PDFS FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-04-03
+  start: 11:00
+  end: 12:00
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  resourceRequirements:
+    - ASSESSOR: 6
+    - CHAIR: 3
+    - DEPARTMENTAL_ASSESSOR: 3
+    - EXERCISE_MARKER: 3
+    - QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - desc: AM
+      start: 11:00
+      end: 12:00
+- type: FSAC
+  desc: PDFS FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-04-03
+  start: 9:00
+  end: 12:00
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  resourceRequirements:
+    - ASSESSOR: 6
+    - CHAIR: 3
+    - DEPARTMENTAL_ASSESSOR: 3
+    - EXERCISE_MARKER: 2
+    - QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - desc: First
+      start: 9:00
+      end: 10:30
+    - desc: Second
+      start: 10:30
+      end: 12:00
+- type: FSAC
+  desc: PDFS FSB
+  location: Newcastle
+  venue: NEWCASTLE_LONGBENTON
+  date: 2017-04-03
+  start: 09:00
+  end: 12:00
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  resourceRequirements:
+    - ASSESSOR: 6
+    - CHAIR: 3
+    - DEPARTMENTAL_ASSESSOR: 2
+    - EXERCISE_MARKER: 3
+    - QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - desc: First
+      start: 9:00
+      end: 10:30
+    - desc: Second
+      start: 10:30
+      end: 12:00
