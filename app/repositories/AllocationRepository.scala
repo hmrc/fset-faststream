@@ -16,6 +16,7 @@
 
 package repositories
 
+import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.TooManyEventIdsException
 import model.persisted.{ Allocation, AssessorAllocation, CandidateAllocation }
 import play.api.libs.json.{ JsObject, OFormat }
@@ -65,6 +66,14 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
 
   def allocationsForEvent(eventId: String): Future[Seq[T]] = {
     collection.find(BSONDocument("eventId" -> eventId), projection).cursor[T]().collect[Seq]()
+  }
+
+  def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit] = {
+    val query = BSONDocument("id" -> id, "eventId" -> eventId)
+    val update = BSONDocument("$set" -> BSONDocument("status" -> newStatus))
+    val validator = singleUpdateValidator(id, s"updating allocation status to $newStatus")
+
+    collection.update(query, update) map validator
   }
 
 }

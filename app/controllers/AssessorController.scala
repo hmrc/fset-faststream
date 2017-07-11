@@ -16,12 +16,14 @@
 
 package controllers
 
-import model.Exceptions.AssessorNotFoundException
-import model.exchange.{ Assessor, AssessorAllocation, AssessorAvailability }
+import model.Exceptions.{ AssessorNotFoundException, NilUpdatesException }
+import model.SuccessfulUpdateResult
+import model.exchange.{ Assessor, AssessorAllocation, AssessorAvailability, UpdateAssessorAllocationStatus }
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
+import repositories.AllocationRepository
 import services.assessoravailability.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -80,6 +82,15 @@ trait AssessorController extends BaseController {
 
   def findAllocations(assessorId: String): Action[AnyContent] = Action.async { implicit request =>
     assessorService.findAllocations(assessorId).map(allocations => Ok(Json.toJson(allocations)))
+  }
+
+  def updateAllocationsStatuses(assessorId: String): Action[AnyContent] = Action.async { implicit request =>
+    withJsonBody[Seq[UpdateAssessorAllocationStatus]] { statusUpates =>
+      assessorService.updateAssessorAllocationStatuses(statusUpates).map {
+        case SuccessfulUpdateResult(_) => Ok()
+      }
+    }
+
   }
 
 }

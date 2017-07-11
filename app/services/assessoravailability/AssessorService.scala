@@ -17,21 +17,21 @@
 package services.assessoravailability
 
 import common.FutureEx
-import model.exchange
-import model.persisted
-import model.Exceptions.AssessorNotFoundException
+import model.{ UpdateResult, exchange, persisted }
+import model.Exceptions.{ AssessorNotFoundException, NilUpdatesException, PartialUpdateException }
 import model.command.AllocationWithEvent
-import model.exchange.AssessorSkill
+import model.exchange.{ AssessorSkill, UpdateAssessorAllocationStatus, UpdateResult }
 import model.persisted.AssessorAllocation
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.assessor.AssessorStatus
 import org.joda.time.LocalDate
-import repositories._
+import repositories.{ AllocationRepository, AssessorAllocationMongoRepository, AssessorMongoRepository, AssessorRepository }
 import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{ Failure, Success, Try }
 
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
@@ -95,7 +95,7 @@ trait AssessorService {
     location <- locationsWithVenuesRepo.location(locationName)
     assessorList <- assessorRepository.findAvailabilitiesForLocationAndDate(location, date, skills)
   } yield assessorList.map { assessor =>
-      model.exchange.Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
+      model.exchange.Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, assessor.status)
   }
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {
@@ -131,6 +131,24 @@ trait AssessorService {
   def countSubmittedAvailability(): Future[Int] = {
     assessorRepository.countSubmittedAvailability
   }
+
+  def updateAssessorAllocationStatuses(statusUpdates: Seq[UpdateAssessorAllocationStatus]
+  ): Future[UpdateResult[UpdateAssessorAllocationStatus]] = {
+    val updateResults = FutureEx.traverseSerial(statusUpdates) { statusUpdate =>
+      allocationRepo.updateAllocationStatus(statusUpdate.assessorId, statusUpdate.eventId, statusUpdate.newStatus)
+        //TODO figure out a way to abstract this away
+        .map( _ => Right(statusUpdate))
+        .recover {
+          case e: Exception => play.api.Logger.error(e.getMessage)
+            Left(statusUpdate)
+        }
+    }
+
+    updateResults.map { result =>
+      UpdateResult(result)
+    }
+  }
+
 
   private def exchangeToPersistedAvailability(a: Seq[exchange.AssessorAvailability]): Future[Seq[persisted.assessor.AssessorAvailability]] = {
     FutureEx.traverseSerial(a) { availability =>

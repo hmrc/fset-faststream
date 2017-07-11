@@ -18,16 +18,17 @@ package model.exchange
 
 import model.SchemeId
 import model.command.testdata.CreateAdminRequest.AssessorAvailabilityRequest
+import model.persisted.assessor.AssessorStatus.AssessorStatus
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
-case class Assessor(userId: String, skills: List[String], sifterSchemes: List[SchemeId], civilServant: Boolean)
+case class Assessor(userId: String, skills: List[String], sifterSchemes: List[SchemeId], civilServant: Boolean, status: AssessorStatus)
 
 object Assessor {
   implicit val assessorFormat = Json.format[Assessor]
 
   def apply(assessor: model.persisted.assessor.Assessor): Assessor
-    = Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
+    = Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, assessor.status)
 }
 
 case class AssessorAvailability(location: String, date: LocalDate)

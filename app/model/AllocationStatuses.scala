@@ -22,7 +22,7 @@ import reactivemongo.bson.{BSON, BSONHandler, BSONString}
 object AllocationStatuses extends Enumeration {
   type AllocationStatus = Value
 
-  val INVITED, UNCONFIRMED, CONFIRMED = Value
+  val UNCONFIRMED, CONFIRMED, DECLINED = Value
 
   implicit val applicationStatusFormat = new Format[AllocationStatus] {
     def reads(json: JsValue) = JsSuccess(AllocationStatuses.withName(json.as[String].toUpperCase()))

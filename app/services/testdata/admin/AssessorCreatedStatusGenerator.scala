@@ -17,6 +17,7 @@
 package services.testdata.admin
 
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
+import model.persisted.assessor.AssessorStatus
 import model.testdata.CreateAdminData.{ AssessorData, CreateAdminData }
 import play.api.mvc.RequestHeader
 import services.assessoravailability.AssessorService
@@ -51,7 +52,7 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
 
   def createAssessor(userId: String, assessor: AssessorData)(
     implicit hc: HeaderCarrier): Future[model.exchange.Assessor] = {
-    val assessorE = model.exchange.Assessor(userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
+    val assessorE = model.exchange.Assessor(userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, AssessorStatus.CREATED)
     assessorService.saveAssessor(userId, assessorE).map(_ => assessorE)
   }
 

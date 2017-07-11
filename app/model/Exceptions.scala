@@ -105,6 +105,10 @@ object Exceptions {
   case class OptimisticLockException(m: String) extends Exception(m)
 
   case class TooManyEventIdsException(m: String) extends Exception(m)
+
+  case class NilUpdatesException(m: String) extends Exception(m)
+
+  case class PartialUpdateException(m: String) extends  Exception(m)
 }
 
 // scalastyle:on number.of.methods
