@@ -28,13 +28,13 @@ package object controllers {
   object Binders {
 
     implicit def pathBindableIdentifier = new PathBindable[UniqueIdentifier] {
-      def bind(key: String, value: String) =
+      def bind(key: String, value: String): Either[String, UniqueIdentifier] =
         Try { UniqueIdentifier(value) } match {
           case Success(v) => Right(v)
           case Failure(e: IllegalArgumentException) => Left(s"Badly formatted UniqueIdentifier $value")
           case Failure(e) => throw e
         }
-      def unbind(key: String, value: UniqueIdentifier) = value.toString
+      def unbind(key: String, value: UniqueIdentifier): String = value.toString()
     }
 
     implicit def queryBindableIdentifier(implicit stringBinder: QueryStringBindable[String]) = new QueryStringBindable[UniqueIdentifier] {
@@ -63,11 +63,6 @@ package object controllers {
       error = (m: String, e: Exception) => "Can't parse %s as LocalDate(%s): %s".format(m, pathDateFormat.toString, e.getMessage)
     )
 
-    /*implicit object skillTypeQueryBinder extends QueryStringBindable.Parsing[SkillType](
-       parse = SkillType.withName(_),
-       serialize = _.toString,
-       error = (m: String, e: Exception) => "Can't parse %s as SchemeType : %s".format(m, e.getMessage)
-    )*/
     private def enumQueryBinder[E <: Enumeration](enum: E) = {
       new QueryStringBindable.Parsing[E#Value](
         parse = enum.withName(_),
