@@ -19,6 +19,7 @@ package repositories.application
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.ApplicationStatus._
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
+import model.exchange.CandidatesEligibleForEventResponse
 import model.{ ApplicationStatus, _ }
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
@@ -35,7 +36,7 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
 
@@ -312,7 +313,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
   }
-
 
   "fix a ResetPhase1TestInvitedSubmitted issue" should {
     "update the renove PHASE1_TESTS_INVITED and the test group" in {
@@ -635,6 +635,51 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  private def createApplications(num: Int): Future[Unit] = {
+    import repositories.BSONDateTimeHandler
+    val additionalDoc = BSONDocument(
+      "progress-status-timestamp" -> BSONDocument(
+        s"${ProgressStatuses.PHASE3_TESTS_PASSED}" -> DateTime.now()
+      ),
+      "fsac-indicator" -> BSONDocument(
+        "area" -> "London",
+        "assessmentCentre" -> "London",
+        "version" -> "1"
+      )
+    )
+
+    Future.sequence(
+      (0 until num).map { i =>
+        testDataRepo.createApplicationWithAllFields(
+          UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
+          firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d"),
+          additionalDoc = additionalDoc
+        )
+      }
+    ).map(_ => ())
+  }
+
+  "find candidates eligible for event allocation" should {
+    "return an empty list when there are no applications" in {
+      createApplications(0).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
+      result mustBe a[CandidatesEligibleForEventResponse]
+      result.candidates mustBe empty
+    }
+
+    "return an empty list when there are no eligible candidates" in {
+      testDataRepo.createApplications(10).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
+      result.candidates mustBe empty
+    }
+
+    "return a ten item list when there are eligible candidates" in {
+      createApplications(10).futureValue
+      val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
+      result.candidates must have size 10
+    }
+  }
+
   private def createAppWithTestResult(progressStatuses: List[(ProgressStatus, Boolean)], testResult: Option[TestResult]) = {
     testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, ApplicationStatus.PHASE2_TESTS,
       additionalProgressStatuses = progressStatuses).futureValue
@@ -694,5 +739,4 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       )
     )
   )
-
 }

@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package model.persisted.eventschedules
+package model.exchange
 
-import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.Macros
+import play.api.libs.json.Json
 
-// TODO: it's not really description - it's display value we will use on UI.
-case class Venue(name: String, description: String)
-object Venue {
-  implicit val venueFormat: OFormat[Venue] = Json.format[Venue]
-  implicit val venueHandler = Macros.handler[Venue]
+case class CandidatesEligibleForEventResponse(candidates: List[CandidateEligibleForEvent], totalCandidates: Int)
+
+object CandidatesEligibleForEventResponse {
+  implicit val responseFormat = Json.format[CandidatesEligibleForEventResponse]
 }

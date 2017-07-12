@@ -16,21 +16,20 @@
 
 package repositories.events
 
-import java.io.InputStream
 import java.util
 
 import com.github.ghik.silencer.silent
 import config.MicroserviceAppConfig
-import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.eventschedules.{ Location, Venue }
 import org.yaml.snakeyaml.Yaml
 import play.api.Play
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{ Json, OFormat }
 import resource._
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.language.postfixOps
 
 
@@ -60,11 +59,11 @@ trait LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepository {
   }
 
   private lazy val allLocationsCached = locationsAndVenuesCached.map { lv =>
-    lv.map(Location.apply) :+ MicroserviceAppConfig.AllLocations toSet
+    MicroserviceAppConfig.AllLocations :: lv.map(Location.apply) toSet
   }
 
   private lazy val allVenuesCached = locationsAndVenuesCached.map { lv =>
-    lv.flatMap(_.venues) :+ MicroserviceAppConfig.AllVenues toSet
+    MicroserviceAppConfig.AllVenues :: lv.flatMap(_.venues) toSet
   }
 
   def locations: Future[Set[Location]] = allLocationsCached

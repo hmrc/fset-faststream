@@ -19,7 +19,6 @@ package model.command
 import factories.UUIDFactory
 import model.AllocationStatuses.AllocationStatus
 import model.exchange.AssessorSkill
-import model.persisted.eventschedules.SkillType.SkillType
 import play.api.libs.json.Json
 
 trait Allocation {
@@ -65,5 +64,42 @@ object AssessorAllocations {
 
   def fromExchange(eventId: String, o: model.exchange.AssessorAllocations): AssessorAllocations = {
     AssessorAllocations(o.version.getOrElse(UUIDFactory.generateUUID()), eventId, o.allocations.map(AssessorAllocation.fromExchange))
+  }
+}
+
+case class CandidateAllocation(
+  id: String,
+  status: AllocationStatus
+) extends Allocation
+
+object CandidateAllocation {
+  implicit val candidateAllocationFormat = Json.format[CandidateAllocation]
+
+  def fromExchange(o: model.exchange.CandidateAllocation): CandidateAllocation = {
+    CandidateAllocation(o.id, o.status)
+  }
+}
+
+case class CandidateAllocations(
+  version: String,
+  eventId: String,
+  allocations: Seq[CandidateAllocation]
+)
+
+object CandidateAllocations {
+  implicit val candidateAllocationsFormat = Json.format[CandidateAllocations]
+
+  def apply(eventId: String, o: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
+    val opLock = o.map(_.version).distinct match {
+      case head :: Nil => head
+      case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
+      case Nil => UUIDFactory.generateUUID()
+    }
+
+    CandidateAllocations(opLock, eventId, o.map { a => CandidateAllocation(a.id, a.status) })
+  }
+
+  def fromExchange(eventId: String, o: model.exchange.CandidateAllocations): CandidateAllocations = {
+    CandidateAllocations(o.version.getOrElse(UUIDFactory.generateUUID()), eventId, o.allocations.map(CandidateAllocation.fromExchange))
   }
 }
