@@ -146,7 +146,8 @@ trait TestDataGeneratorController extends BaseController {
       role = Some("assessor"),
       phone = Some("123456789"),
       assessor = Some(AssessorRequest(
-        skills = Some(List("assessor", "qac")),
+        skills = Some(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR")),
+        sifterSchemes = Some(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip"))),
         civilServant = Some(true),
         availability = Some(List(
           AssessorAvailabilityRequest("London", LocalDate.now()),
@@ -164,7 +165,7 @@ trait TestDataGeneratorController extends BaseController {
       eventType = Some(EventType.FSAC),
       description = Some("PDFS FSB"),
       location = Some("London"),
-      venue = Some("London venue 1"),
+      venue = Some("LONDON_FSAC"),
       date = Some(LocalDate.now),
       capacity = Some(32),
       minViableAttendees = Some(24),
