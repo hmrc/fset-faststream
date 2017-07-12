@@ -19,6 +19,7 @@ package model.testdata
 import model.SchemeId
 import model.command.testdata.CreateAdminRequest.CreateAdminRequest
 import model.exchange.AssessorAvailability
+import model.persisted.assessor.AssessorStatus
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker
@@ -44,12 +45,17 @@ object CreateAdminData {
         val skills = createRequest.assessor.flatMap(_.skills).getOrElse(DataFaker.Random.skills)
         val sifterSchemes = createRequest.assessor.flatMap(_.sifterSchemes).getOrElse(DataFaker.Random.sifterSchemes)
         val civilServant = createRequest.assessor.flatMap(_.civilServant).getOrElse(DataFaker.Random.bool)
-        val availability: Option[List[AssessorAvailability]] = createRequest.assessor.flatMap(assessorRequest => {
+        val availability1: Option[List[AssessorAvailability]] = createRequest.assessor.flatMap(assessorRequest => {
             assessorRequest.availability.map { assessorAvailabilityRequests => {
               assessorAvailabilityRequests.map { assessorAvailabilityRequest => {
                 AssessorAvailability.apply(assessorAvailabilityRequest)
               }
-            }}}}).orElse(DataFaker.Random.Assessor.availability)
+            }}}})
+        val availability = createRequest.assessor match {
+          case Some(assessorRequest) if assessorRequest.status == AssessorStatus.AVAILABILITIES_SUBMITTED && availability1.isEmpty =>
+            DataFaker.Random.Assessor.availability
+          case None => availability1
+        }
         Some(AssessorData(skills, sifterSchemes, civilServant, availability))
       } else {
         None
