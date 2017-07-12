@@ -16,6 +16,7 @@
 
 package repositories.events
 
+import common.FutureEx
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
 import model.persisted.eventschedules._
@@ -45,24 +46,6 @@ case class EventConfig(
                   sessions: List[Session]
                 )
 
-object EventConfig {
-  implicit def configToEvent(c: EventConfig): Event = {
-    Event(UUIDFactory.generateUUID(),
-      EventType.withName(c.eventType.replaceAll("\\s|-", "_").toUpperCase),
-      c.description,
-      Location(c.location.toUpperCase),
-      Venue(c.venue.toUpperCase, ""),
-      c.date,
-      c.capacity,
-      c.minViableAttendees,
-      c.attendeeSafetyMargin,
-      c.startTime,
-      c.endTime,
-      c.skillRequirements,
-      c.sessions)
-  }
-}
-
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
     def write(jodaDate: LocalDate) = YamlDate(jodaDate.toDateTimeAtStartOfDay)
@@ -90,6 +73,8 @@ object EventConfigProtocol extends DefaultYamlProtocol {
 }
 
 trait EventsConfigRepository {
+  def locationsWithVenuesRepo: LocationsWithVenuesRepository
+
   import play.api.Play.current
 
   protected def rawConfig = {
@@ -97,13 +82,44 @@ trait EventsConfigRepository {
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
 
-  lazy val events = Future {
+  lazy val events: Future[List[Event]] = {
     import EventConfigProtocol._
 
     val yamlAst = rawConfig.parseYaml
     val eventsConfig = yamlAst.convertTo[List[EventConfig]]
-    eventsConfig.map(items => items: Event)
+
+    // Force all 'types' to be upper case and replace hyphens with underscores
+    eventsConfig.map(configItem => configItem.copy(
+      eventType = configItem.eventType.replaceAll("\\s|-", "_").toUpperCase,
+      skillRequirements = configItem.skillRequirements.map {
+        case (skillName, numStaffRequired) => (skillName.replaceAll("\\s|-", "_").toUpperCase, numStaffRequired)}))
+
+    FutureEx.traverseSerial(eventsConfig) { case configItem =>
+      val eventItemFuture = for {
+        location <- locationsWithVenuesRepo.location(configItem.location)
+        venue <- locationsWithVenuesRepo.venue(configItem.venue)
+      } yield Event(UUIDFactory.generateUUID(),
+          EventType.withName(configItem.eventType),
+          configItem.description,
+          location,
+          venue,
+          configItem.date,
+          configItem.capacity,
+          configItem.minViableAttendees,
+          configItem.attendeeSafetyMargin,
+          configItem.startTime,
+          configItem.endTime,
+          configItem.skillRequirements,
+          configItem.sessions
+      )
+      eventItemFuture.recoverWith {
+        case ex => throw new Exception(
+          s"Error in events config: ${MicroserviceAppConfig.eventsConfig.yamlFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
+      }
+    }
   }
 }
 
-object EventsConfigRepository extends EventsConfigRepository
+object EventsConfigRepository extends EventsConfigRepository {
+  val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository
+}
