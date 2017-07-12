@@ -48,10 +48,10 @@ case class EventConfig(
 object EventConfig {
   implicit def configToEvent(c: EventConfig): Event = {
     Event(UUIDFactory.generateUUID(),
-      EventType.withName(c.eventType),
+      EventType.withName(c.eventType.replaceAll("\\s|-", "_").toUpperCase),
       c.description,
-      Location(c.location),
-      Venue(c.venue, ""),
+      Location(c.location.toUpperCase),
+      Venue(c.venue.toUpperCase, ""),
       c.date,
       c.capacity,
       c.minViableAttendees,
@@ -65,31 +65,28 @@ object EventConfig {
 
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
-    def write(x: LocalDate) = YamlDate(x.toDateTimeAtStartOfDay)
+    def write(jodaDate: LocalDate) = YamlDate(jodaDate.toDateTimeAtStartOfDay)
     def read(value: YamlValue) = value match {
-      case YamlDate(x) => x.toLocalDate
-      case x => deserializationError("Expected Date as YamlDate, but got " + x)
+      case YamlDate(jodaDateTime) => jodaDateTime.toLocalDate
+      case unknown => deserializationError("Expected Date as YamlDate, but got " + unknown)
     }
   }
 
   implicit object LocalTimeYamlFormat extends YamlFormat[LocalTime] {
-    def write(x: LocalTime) = YamlString(x.toString("HH:mm"))
+    def write(jodaTime: LocalTime) = YamlString(jodaTime.toString("HH:mm"))
     def read(value: YamlValue) = value match {
-      case YamlString(s) => DateTimeFormat.forPattern("HH:mm").parseLocalTime(s)
-      case YamlNumber(s) => {
-        val hour = s.toInt / 60
-        val minute = s % 60
+      case YamlString(stringValue) => DateTimeFormat.forPattern("HH:mm").parseLocalTime(stringValue)
+      case YamlNumber(minutesSinceStartOfDay) => {
+        val hour = minutesSinceStartOfDay.toInt / 60
+        val minute = minutesSinceStartOfDay % 60
         DateTimeFormat.forPattern("HH:mm").parseLocalTime(s"$hour:$minute")
       }
       case x => deserializationError("Expected Time as YamlString/YamlNumber, but got " + x)
     }
   }
 
-  implicit val sessionFormat = yamlFormat3((a: String, b: LocalTime, c: LocalTime) => Session(a,b,c))
-  implicit val eventFormat = yamlFormat12((a: String, b: String, c: String, d: String,
-                                           e: LocalDate, f: Int, g: Int, h: Int,
-                                           i: LocalTime, j: LocalTime, k: Map[String, Int], l: List[Session]) =>
-    EventConfig(a,b,c,d,e,f,g,h,i,j,k,l))
+  implicit val sessionFormat = yamlFormat3(Session.apply)
+  implicit val eventFormat = yamlFormat12(EventConfig.apply)
 }
 
 trait EventsConfigRepository {

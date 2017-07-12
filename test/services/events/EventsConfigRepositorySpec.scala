@@ -19,11 +19,9 @@ package services.events
 import model.persisted.eventschedules._
 import org.scalatest.concurrent.ScalaFutures
 import repositories.events.EventsConfigRepository
-import services.BaseServiceSpec
 import org.joda.time.{ LocalDate, LocalTime }
 import org.scalatest.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
-import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.play.test.UnitSpec
 
 class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFutures {
