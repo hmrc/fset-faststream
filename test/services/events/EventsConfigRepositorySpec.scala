@@ -39,7 +39,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
                     |  attendeeSafetyMargin: 2
                     |  startTime: 11:00
                     |  endTime: 12:00
-                    |  resourceRequirements:
+                    |  skillRequirements:
                     |    ASSESSOR: 6
                     |    CHAIR: 3
                     |    DEPARTMENTAL_ASSESSOR: 3
@@ -59,7 +59,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
                     |  attendeeSafetyMargin: 2
                     |  startTime: 9:00
                     |  endTime: 12:00
-                    |  resourceRequirements:
+                    |  skillRequirements:
                     |    ASSESSOR: 6
                     |    CHAIR: 3
                     |    DEPARTMENTAL_ASSESSOR: 3
@@ -82,7 +82,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
                     |  attendeeSafetyMargin: 2
                     |  startTime: 09:00
                     |  endTime: 12:00
-                    |  resourceRequirements:
+                    |  skillRequirements:
                     |    ASSESSOR: 6
                     |    CHAIR: 3
                     |    DEPARTMENTAL_ASSESSOR: 2

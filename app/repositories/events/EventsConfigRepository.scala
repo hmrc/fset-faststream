@@ -41,7 +41,7 @@ case class EventConfig(
                   attendeeSafetyMargin: Int,
                   startTime: LocalTime,
                   endTime: LocalTime,
-                  resourceRequirements: Map[String, Int],
+                  skillRequirements: Map[String, Int],
                   sessions: List[Session]
                 )
 
@@ -58,7 +58,7 @@ object EventConfig {
       c.attendeeSafetyMargin,
       c.startTime,
       c.endTime,
-      c.resourceRequirements,
+      c.skillRequirements,
       c.sessions)
   }
 }

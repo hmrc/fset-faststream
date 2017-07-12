@@ -8,7 +8,7 @@
   attendeeSafetyMargin: 2
   startTime: 11:00
   endTime: 12:00
-  resourceRequirements:
+  skillRequirements:
     ASSESSOR: 6
     CHAIR: 3
     DEPARTMENTAL_ASSESSOR: 3
@@ -28,7 +28,7 @@
   attendeeSafetyMargin: 2
   startTime: 9:00
   endTime: 12:00
-  resourceRequirements:
+  skillRequirements:
     ASSESSOR: 6
     CHAIR: 3
     DEPARTMENTAL_ASSESSOR: 3
@@ -51,7 +51,7 @@
   attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
-  resourceRequirements:
+  skillRequirements:
     ASSESSOR: 6
     CHAIR: 3
     DEPARTMENTAL_ASSESSOR: 2
@@ -74,7 +74,7 @@
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  resourceRequirements:
+  skillRequirements:
     QUALITY_ASSURANCE_COORDINATOR: 6
   sessions:
     - description: First
@@ -93,7 +93,7 @@
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  resourceRequirements:
+  skillRequirements:
     ASSESSOR: 6
     CHAIR: 6
     DEPARTMENTAL_ASSESSOR: 6
@@ -116,7 +116,7 @@
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  resourceRequirements:
+  skillRequirements:
     ASSESSOR: 6
     CHAIR: 1
     DEPARTMENTAL_ASSESSOR: 1
@@ -139,7 +139,7 @@
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  resourceRequirements:
+  skillRequirements:
     ASSESSOR: 6
     CHAIR: 2
     DEPARTMENTAL_ASSESSOR: 3
@@ -162,7 +162,7 @@
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  resourceRequirements:
+  skillRequirements:
     DEPARTMENTAL_ASSESSOR: 2
   sessions:
     - description: First
@@ -181,7 +181,7 @@
   capacity: 25
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  resourceRequirements:
+  skillRequirements:
     ASSESSOR: 1
     CHAIR: 1
     DEPARTMENTAL_ASSESSOR: 1
@@ -201,7 +201,7 @@
   capacity: 25
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  resourceRequirements:
+  skillRequirements:
     ASSESSOR: 1
     CHAIR: 1
     DEPARTMENTAL_ASSESSOR: 1
@@ -224,7 +224,7 @@
   capacity: 25
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  resourceRequirements:
+  skillRequirements:
     QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: First
@@ -242,7 +242,7 @@
   endTime: 12:00
   capacity: 36
   minViableAttendees: 12
-  resourceRequirements:
+  skillRequirements:
     CHAIR: 2
     EXERCISE_MARKER: 3
   sessions:
