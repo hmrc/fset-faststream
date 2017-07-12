@@ -16,19 +16,17 @@
 
 package controllers
 
-import model.Exceptions.{ AssessorNotFoundException, NilUpdatesException }
-import model.SuccessfulUpdateResult
-import model.exchange.{ Assessor, AssessorAllocation, AssessorAvailability, UpdateAssessorAllocationStatus }
+import model.Exceptions.AssessorNotFoundException
+import model.SerialUpdateResult
+import model.exchange.{ Assessor, AssessorAllocationStatusPartiallyUpdated, AssessorAvailability, UpdateAssessorAllocationStatus }
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
-import repositories.AllocationRepository
 import services.assessoravailability.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object AssessorController extends AssessorController {
   val assessorService = AssessorService
@@ -84,13 +82,12 @@ trait AssessorController extends BaseController {
     assessorService.findAllocations(assessorId).map(allocations => Ok(Json.toJson(allocations)))
   }
 
-  def updateAllocationsStatuses(assessorId: String): Action[AnyContent] = Action.async { implicit request =>
-    withJsonBody[Seq[UpdateAssessorAllocationStatus]] { statusUpates =>
-      assessorService.updateAssessorAllocationStatuses(statusUpates).map {
-        case SuccessfulUpdateResult(_) => Ok()
+  def updateAllocationsStatuses(assessorId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[Seq[UpdateAssessorAllocationStatus]] { statusUpdate =>
+      assessorService.updateAssessorAllocationStatuses(statusUpdate).map { updateResult =>
+        Ok(Json.toJson(AssessorAllocationStatusPartiallyUpdated(updateResult.failures, updateResult.failures)))
       }
     }
-
   }
 
 }

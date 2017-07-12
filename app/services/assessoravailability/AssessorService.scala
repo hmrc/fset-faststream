@@ -17,10 +17,10 @@
 package services.assessoravailability
 
 import common.FutureEx
-import model.{ UpdateResult, exchange, persisted }
-import model.Exceptions.{ AssessorNotFoundException, NilUpdatesException, PartialUpdateException }
+import model.{ SerialUpdateResult, exchange, persisted }
+import model.Exceptions.AssessorNotFoundException
 import model.command.AllocationWithEvent
-import model.exchange.{ AssessorSkill, UpdateAssessorAllocationStatus, UpdateResult }
+import model.exchange.{ AssessorSkill, UpdateAssessorAllocationStatus }
 import model.persisted.AssessorAllocation
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
@@ -133,20 +133,18 @@ trait AssessorService {
   }
 
   def updateAssessorAllocationStatuses(statusUpdates: Seq[UpdateAssessorAllocationStatus]
-  ): Future[UpdateResult[UpdateAssessorAllocationStatus]] = {
-    val updateResults = FutureEx.traverseSerial(statusUpdates) { statusUpdate =>
-      allocationRepo.updateAllocationStatus(statusUpdate.assessorId, statusUpdate.eventId, statusUpdate.newStatus)
-        //TODO figure out a way to abstract this away
-        .map( _ => Right(statusUpdate))
-        .recover {
-          case e: Exception => play.api.Logger.error(e.getMessage)
-            Left(statusUpdate)
-        }
+  ): Future[SerialUpdateResult[UpdateAssessorAllocationStatus]] = {
+
+    val rawResult = FutureEx.traverseSerial(statusUpdates) { statusUpdate =>
+      SerialUpdateResult.futureToEither(statusUpdate,
+        allocationRepo.updateAllocationStatus(statusUpdate.assessorId, statusUpdate.eventId, statusUpdate.newStatus)
+      )
     }
 
-    updateResults.map { result =>
-      UpdateResult(result)
+    rawResult.map { result =>
+      SerialUpdateResult.fromEither(result)
     }
+
   }
 
 
