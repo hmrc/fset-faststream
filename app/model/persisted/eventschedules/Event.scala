@@ -41,29 +41,4 @@ case class Event(
 object Event {
   implicit val eventFormat = Json.format[Event]
   implicit val eventHandler = Macros.handler[Event]
-
-  // scalastyle:off parameter.number
-  def load(id: String,
-           eventType: String,
-           description: String,
-           location: String,
-           venue: String,
-           date: LocalDate,
-           capacity: Int,
-           minViableAttendees: Int,
-           attendeeSafetyMargin: Int,
-           startTime: LocalTime,
-           endTime: LocalTime,
-           resourceRequirements: Map[String, Int],
-           sessions: List[Session]): Event =
-    Event(id,
-          EventType.withName(eventType),
-          description,
-          Location(location),
-          Venue(venue, ""),
-          date,
-          capacity,
-          minViableAttendees,
-          attendeeSafetyMargin, startTime, endTime, resourceRequirements, sessions)
-  // scalastyle:on parameter.number
 }

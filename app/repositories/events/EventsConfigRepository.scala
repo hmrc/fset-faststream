@@ -18,7 +18,7 @@ package repositories.events
 
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
-import model.persisted.eventschedules.{ Event, Session }
+import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
 import org.joda.time.{ LocalDate, LocalTime }
@@ -30,10 +30,42 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
-  
+case class EventConfig(
+                  eventType: String,
+                  description: String,
+                  location: String,
+                  venue: String,
+                  date: LocalDate,
+                  capacity: Int,
+                  minViableAttendees: Int,
+                  attendeeSafetyMargin: Int,
+                  startTime: LocalTime,
+                  endTime: LocalTime,
+                  resourceRequirements: Map[String, Int],
+                  sessions: List[Session]
+                )
+
+object EventConfig {
+  implicit def configToEvent(c: EventConfig): Event = {
+    Event(UUIDFactory.generateUUID(),
+      EventType.withName(c.eventType),
+      c.description,
+      Location(c.location),
+      Venue(c.venue, ""),
+      c.date,
+      c.capacity,
+      c.minViableAttendees,
+      c.attendeeSafetyMargin,
+      c.startTime,
+      c.endTime,
+      c.resourceRequirements,
+      c.sessions)
+  }
+}
+
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
-    def write(x: LocalDate) = YamlString(x.toString("yyyy-MM-dd"))
+    def write(x: LocalDate) = YamlDate(x.toDateTimeAtStartOfDay)
     def read(value: YamlValue) = value match {
       case YamlDate(x) => x.toLocalDate
       case x => deserializationError("Expected Date as YamlDate, but got " + x)
@@ -43,8 +75,13 @@ object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalTimeYamlFormat extends YamlFormat[LocalTime] {
     def write(x: LocalTime) = YamlString(x.toString("HH:mm"))
     def read(value: YamlValue) = value match {
-      case YamlString(x) => DateTimeFormat.forPattern("HH:mm").parseLocalTime(x)
-      case x => deserializationError("Expected Time as YamlString, but got " + x)
+      case YamlString(s) => DateTimeFormat.forPattern("HH:mm").parseLocalTime(s)
+      case YamlNumber(s) => {
+        val hour = s.toInt / 60
+        val minute = s % 60
+        DateTimeFormat.forPattern("HH:mm").parseLocalTime(s"$hour:$minute")
+      }
+      case x => deserializationError("Expected Time as YamlString/YamlNumber, but got " + x)
     }
   }
 
@@ -52,7 +89,7 @@ object EventConfigProtocol extends DefaultYamlProtocol {
   implicit val eventFormat = yamlFormat12((a: String, b: String, c: String, d: String,
                                            e: LocalDate, f: Int, g: Int, h: Int,
                                            i: LocalTime, j: LocalTime, k: Map[String, Int], l: List[Session]) =>
-    Event.load(UUIDFactory.generateUUID(), a,b,c,d,e,f,g,h,i,j,k,l))
+    EventConfig(a,b,c,d,e,f,g,h,i,j,k,l))
 }
 
 trait EventsConfigRepository {
@@ -65,7 +102,10 @@ trait EventsConfigRepository {
 
   lazy val events = Future {
     import EventConfigProtocol._
-    rawConfig.parseYaml.convertTo[List[Event]]
+
+    val yamlAst = rawConfig.parseYaml
+    val eventsConfig = yamlAst.convertTo[List[EventConfig]]
+    eventsConfig.map(items => items: Event)
   }
 }
 

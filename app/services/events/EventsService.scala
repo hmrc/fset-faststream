@@ -39,7 +39,7 @@ trait EventsService {
 
   def eventsConfigRepo: EventsConfigRepository
 
-  def saveAssessmentEventsOld(): Future[Unit] = {
+  def saveAssessmentEventsFromDeprecatedCsv(): Future[Unit] = {
     eventFileParsingService.processCentres().flatMap { events =>
       Logger.debug("Events have been processed!")
       eventsRepo.save(events)
