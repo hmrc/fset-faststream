@@ -29,11 +29,13 @@ object EventExamples {
   val LocationAll = Location("All")
   val LocationLondon = Location("London")
   val LocationNewcastle = Location("Newcastle")
-  val EventsNew = List(
-    Event(id = "1", eventType = EventType.FSAC, description = "PDFS FSB", location = LocationLondon,
-      venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map()),
 
+  val e1 = Event(id = "1", eventType = EventType.FSAC, description = "PDFS FSB", location = LocationLondon,
+    venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+    attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map())
+
+  val EventsNew = List(
+    e1,
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "GCFS FSB", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),

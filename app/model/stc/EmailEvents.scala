@@ -32,4 +32,9 @@ object EmailEvents {
   case class AdjustmentsConfirmed(to: String, name: String, etrayAdjustments: String, videoAdjustments: String) extends EmailEvent
   case class AdjustmentsChanged(to: String, name: String, etrayAdjustments: String, videoAdjustments: String) extends EmailEvent
   case class ApplicationConvertedToSdip(to: String, name: String) extends EmailEvent
+
+  case class CandidateAllocationConfirmed(to: String, name: String, eventDate: String, eventTime: String) extends EmailEvent
+  case class CandidateAllocationRequestConfirmation(to: String, name: String, eventDate: String, eventTime: String,
+                                                    deadlineDate: String) extends EmailEvent
+
 }
