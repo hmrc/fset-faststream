@@ -69,11 +69,11 @@
   location: Newcastle
   venue: NEWCASTLE_LONGBENTON
   date: 2017-04-03
-  startTime: 09:00
-  endTime: 12:00
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
   skillRequirements:
     QUALITY_ASSURANCE_COORDINATOR: 6
   sessions:
@@ -88,11 +88,11 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-04-03
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   skillRequirements:
     ASSESSOR: 6
     CHAIR: 6
@@ -111,11 +111,11 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-04-04
-  startTime: 09:00
-  endTime: 12:00
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
   skillRequirements:
     ASSESSOR: 6
     CHAIR: 1
@@ -134,11 +134,11 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-05-03
-  startTime: 09:00
-  endTime: 12:00
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
   skillRequirements:
     ASSESSOR: 6
     CHAIR: 2
@@ -157,11 +157,11 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-05-09
-  startTime: 09:00
-  endTime: 12:00
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
   skillRequirements:
     DEPARTMENTAL_ASSESSOR: 2
   sessions:
@@ -176,11 +176,11 @@
   location: Virtual
   venue: VIRTUAL
   date: 2017-08-04
-  startTime: 09:30
-  endTime: 10:00
   capacity: 25
   minViableAttendees: 12
   attendeeSafetyMargin: 2
+  startTime: 09:30
+  endTime: 10:00
   skillRequirements:
     ASSESSOR: 1
     CHAIR: 1
@@ -196,11 +196,11 @@
   location: Virtual
   venue: VIRTUAL
   date: 2018-02-04
-  startTime: 09:00
-  endTime: 12:00
   capacity: 25
   minViableAttendees: 12
   attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
   skillRequirements:
     ASSESSOR: 1
     CHAIR: 1
@@ -219,11 +219,11 @@
   location: Virtual
   venue: VIRTUAL
   date: 2018-02-04
-  startTime: 09:00
-  endTime: 12:00
   capacity: 25
   minViableAttendees: 12
   attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
   skillRequirements:
     QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
@@ -238,10 +238,11 @@
   location: Newcastle
   venue: NEWCASTLE_LONGBENTON
   date: 2018-03-04
-  startTime: 09:00
-  endTime: 12:00
   capacity: 36
   minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
   skillRequirements:
     CHAIR: 2
     EXERCISE_MARKER: 3

@@ -89,12 +89,12 @@ trait EventsConfigRepository {
     val eventsConfig = yamlAst.convertTo[List[EventConfig]]
 
     // Force all 'types' to be upper case and replace hyphens with underscores
-    eventsConfig.map(configItem => configItem.copy(
+    val massagedEventsConfig = eventsConfig.map(configItem => configItem.copy(
       eventType = configItem.eventType.replaceAll("\\s|-", "_").toUpperCase,
       skillRequirements = configItem.skillRequirements.map {
         case (skillName, numStaffRequired) => (skillName.replaceAll("\\s|-", "_").toUpperCase, numStaffRequired)}))
 
-    FutureEx.traverseSerial(eventsConfig) { case configItem =>
+    FutureEx.traverseSerial(massagedEventsConfig) { case configItem =>
       val eventItemFuture = for {
         location <- locationsWithVenuesRepo.location(configItem.location)
         venue <- locationsWithVenuesRepo.venue(configItem.venue)
