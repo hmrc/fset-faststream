@@ -21,54 +21,48 @@ class SiftingRepositorySpec extends MongoRepositorySpec with CommonRepository {
   private val European: SchemeId = SchemeId("European")
   private val Sdip: SchemeId = SchemeId("Sdip")
 
-  "Sifting repository" should {
+  "findApplicationsReadyForSifting" should {
+    "return candidates that are ready for sifting" in {
+      createSiftEligibleCandidates(UserId, AppId)
 
-    "findApplicationsReadyForSifting" should {
-      "return candidates that are ready for sifting" in {
-        createSiftEligibleCandidates(UserId, AppId)
-
-        val candidates = repository.findApplicationsReadyForSifting(Commercial).futureValue
-        candidates.size mustBe 1
-        val candidate = candidates.head
-        candidate.applicationId mustBe Some(AppId)
-      }
-
+      val candidates = repository.findApplicationsReadyForSifting(Commercial).futureValue
+      candidates.size mustBe 1
+      val candidate = candidates.head
+      candidate.applicationId mustBe Some(AppId)
     }
-
-    "siftCandidate" should {
-      "sift candidate as Passed" in {
-        createSiftEligibleCandidates(UserId, AppId)
-        repository.siftCandidateApplication(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
-        val candidates = repository.findApplicationsReadyForSifting(Commercial).futureValue
-        candidates.size mustBe 0
-      }
-
-      "submit difference schemes" in {
-        createSiftEligibleCandidates(UserId, AppId)
-        repository.siftCandidateApplication(AppId, SchemeEvaluationResult(European, "Red")).futureValue
-        repository.siftCandidateApplication(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
-      }
-
-      "eligible for other schema after sifting on one" in {
-        createSiftEligibleCandidates(UserId, AppId)
-        repository.siftCandidateApplication(AppId, SchemeEvaluationResult(European, "Red")).futureValue
-        val candidates = repository.findApplicationsReadyForSifting(Sdip).futureValue
-        candidates.size mustBe 1
-      }
-    }
-
-    /*
-    //    TODO: implement this case
-    "not able to submit sifting for the same scheme twice" in {
-          createSiftEligibleCandidates(UserId, AppId)
-          repository.siftCandidate(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
-          intercept[Exception] {
-            repository.siftCandidate(AppId, SchemeEvaluationResult(Commercial, "Red")).futureValue
-          }
-     }*/
 
   }
 
+  "siftCandidate" should {
+    "sift candidate as Passed" in {
+      createSiftEligibleCandidates(UserId, AppId)
+      repository.siftCandidateApplication(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
+      val candidates = repository.findApplicationsReadyForSifting(Commercial).futureValue
+      candidates.size mustBe 0
+    }
+
+    "submit difference schemes" in {
+      createSiftEligibleCandidates(UserId, AppId)
+      repository.siftCandidateApplication(AppId, SchemeEvaluationResult(European, "Red")).futureValue
+      repository.siftCandidateApplication(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
+    }
+
+    "eligible for other schema after sifting on one" in {
+      createSiftEligibleCandidates(UserId, AppId)
+      repository.siftCandidateApplication(AppId, SchemeEvaluationResult(European, "Red")).futureValue
+      val candidates = repository.findApplicationsReadyForSifting(Sdip).futureValue
+      candidates.size mustBe 1
+    }
+
+    "not sift applictaion for already sifted scheme" in {
+      createSiftEligibleCandidates(UserId, AppId)
+      repository.siftCandidateApplication(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
+      intercept[Exception] {
+        repository.siftCandidateApplication(AppId, SchemeEvaluationResult(Commercial, "Red")).futureValue
+      }
+    }
+
+  }
 
   private def createSiftEligibleCandidates(userId: String, appId: String) = {
     val resultToSave = List(

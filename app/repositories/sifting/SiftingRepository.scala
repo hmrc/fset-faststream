@@ -47,20 +47,6 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers {
 
 
-  /**
-    * TODO: implement all criteria
-    * Criteria:
-    * 1. Is in the PHASE_3_TESTS_PASSED state
-    * - has not yet been sifted
-    * - has not completed sift
-    * - is not in SIFT_FILTER_COMPLETED state - TODO:
-    * - has not been invited to FSAC - TODO:
-    * 2. Has selected the scheme as a preference
-    * 3. Has GREEN for the scheme at Video Interview
-    * 4. Has not Withdrawn application
-    * 5. Has not Withdrawn from the scheme
-    */
-
   override def findApplicationsReadyForSifting(schemeId: SchemeId): Future[List[Candidate]] = {
     val videoInterviewPassed = BSONDocument("testGroups.PHASE3.evaluation.result" ->
       BSONDocument("$elemMatch" -> BSONDocument("schemeId" -> schemeId.value, "result" -> Green.toString)))
@@ -87,9 +73,14 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
       "$set" -> BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "1")
     )
 
-    val find = BSONDocument("applicationId" -> applicationId)
+    val applicationNotSiftedForScheme = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(
+        s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
+      )
+    ))
 
     val validator = singleUpdateValidator(applicationId, s"submitting $phaseName results", ApplicationNotFound(applicationId))
-    collection.update(find, update) map validator
+    collection.update(applicationNotSiftedForScheme, update) map validator
   }
 }
