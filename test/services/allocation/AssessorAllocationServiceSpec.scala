@@ -19,13 +19,13 @@ package services.allocation
 import model.Exceptions.OptimisticLockException
 import model.exchange.AssessorSkill
 import model.persisted.eventschedules.SkillType
-import repositories.{ CandidateAllocationMongoRepository, AssessorAllocationMongoRepository }
+import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
 import services.BaseServiceSpec
 import model.{ AllocationStatuses, command, persisted }
 import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import services.events.{ EventsParsingServiceSpec, EventsService }
+import services.events.EventsService
 
 import scala.concurrent.Future
 
@@ -81,9 +81,9 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
   }
 
   trait TestFixture {
-    val mockAllocationRepository = mock[AssessorAllocationMongoRepository]
-    val mockCandidateAllocationRepository = mock[CandidateAllocationMongoRepository]
-    val mockEventsService = mock[EventsService]
+    val mockAllocationRepository: AssessorAllocationMongoRepository = mock[AssessorAllocationMongoRepository]
+    val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
+    val mockEventsService: EventsService = mock[EventsService]
     val service = new AssessorAllocationService {
       def allocationRepo: AssessorAllocationMongoRepository = mockAllocationRepository
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
