@@ -785,7 +785,7 @@ object DataFaker {
 
     private val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
 
-    def allVenues = Await.result(locationsAndVenuesRepository.venues.map(_.toList), 1 second)
+    def allVenues = Await.result(locationsAndVenuesRepository.venues.map(_.allValues.toList), 1 second)
 
     def venuesByLocation(location: String) = {
       val venues = locationsAndVenuesRepository.locationsWithVenuesList.map { list =>

@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package controllers.reference
+package model.persisted
 
-import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.libs.json.Format
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-object SchemesController extends SchemesController{
-  val repo = SchemeYamlRepository
+case class ReferenceData[T](options: List[T], default: T, aggregate: T) {
+  val allValues = aggregate :: options toSet
 }
 
-trait SchemesController extends BaseController {
-  def repo: SchemeRepositoryImpl
+object ReferenceData {
 
-  def allSchemes: Action[AnyContent] = Action.async { implicit request =>
-    repo.schemes.map(s => Ok(Json.toJson(s)))
-  }
+  // default formatter does not work for generic types, has to define fields manually...
+  implicit def referenceDataFormat[T : Format]: Format[ReferenceData[T]] =
+    ((__ \ "options").format[List[T]] ~
+      (__ \ "default").format[T] ~
+      (__ \ "aggregate").format[T]
+      )(ReferenceData.apply, unlift(ReferenceData.unapply))
 }
