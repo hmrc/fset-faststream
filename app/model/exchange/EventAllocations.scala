@@ -18,6 +18,7 @@ package model.exchange
 
 import model.persisted.eventschedules.Event
 import model.persisted.eventschedules.SkillType.SkillType
+import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
 
@@ -27,9 +28,12 @@ object EventAssessorAllocationsSummaryPerSkill {
   implicit val format = Json.format[EventAssessorAllocationsSummaryPerSkill]
 }
 
-case class EventWithAllocationsSummary(event: Event,
-                                       confirmedCandidates: Int,
-                                       assessorAllocations: List[EventAssessorAllocationsSummaryPerSkill])
+case class EventWithAllocationsSummary(
+  date: LocalDate,
+  event: Event,
+  confirmedCandidates: Int,
+  assessorAllocations: List[EventAssessorAllocationsSummaryPerSkill]
+)
 
 object EventWithAllocationsSummary {
   implicit val format = Json.format[EventWithAllocationsSummary]
