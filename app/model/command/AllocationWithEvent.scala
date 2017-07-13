@@ -19,7 +19,7 @@ package model.command
 import model.AllocationStatuses.AllocationStatus
 import model.exchange.AssessorSkill
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.Venue
+import model.persisted.eventschedules.{ Location, Venue }
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json
 
@@ -30,6 +30,7 @@ case class AllocationWithEvent(
   startTime: LocalTime,
   endTime: LocalTime,
   venue: Venue,
+  location: Location,
   eventType: EventType,
   status: AllocationStatus,
   allocatedAs: AssessorSkill

@@ -19,21 +19,21 @@ package model.exchange
 import model.AllocationStatuses.AllocationStatus
 import play.api.libs.json.{ Json, OFormat }
 
-case class UpdateAssessorAllocationStatus(
+case class UpdateAllocationStatusRequest(
   assessorId: String,
   eventId: String,
   newStatus: AllocationStatus
 )
 
-object UpdateAssessorAllocationStatus {
-  implicit val updateAssessorAllocationStatusFormat: OFormat[UpdateAssessorAllocationStatus] = Json.format[UpdateAssessorAllocationStatus]
+object UpdateAllocationStatusRequest {
+  implicit val updateAllocationStatusFormat: OFormat[UpdateAllocationStatusRequest] = Json.format[UpdateAllocationStatusRequest]
 }
 
-case class AssessorAllocationStatusPartiallyUpdated(
-  successes: Seq[UpdateAssessorAllocationStatus],
-  failures:  Seq[UpdateAssessorAllocationStatus]
+case class UpdateAllocationStatusResponse(
+  successes: Seq[UpdateAllocationStatusRequest] = Nil,
+  failures:  Seq[UpdateAllocationStatusRequest] = Nil
 )
 
-object AssessorAllocationStatusPartiallyUpdated {
-  implicit val assessorAllocationStatusPartiallyUpdatedFormat = Json.format[AssessorAllocationStatusPartiallyUpdated]
+object UpdateAllocationStatusResponse {
+  implicit val updateAllocationStatusResponseFormat = Json.format[UpdateAllocationStatusResponse]
 }

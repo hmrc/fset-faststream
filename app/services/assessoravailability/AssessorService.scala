@@ -17,10 +17,11 @@
 package services.assessoravailability
 
 import common.FutureEx
+import model.AllocationStatuses.AllocationStatus
 import model.{ SerialUpdateResult, exchange, persisted }
 import model.Exceptions.AssessorNotFoundException
 import model.command.AllocationWithEvent
-import model.exchange.{ AssessorSkill, UpdateAssessorAllocationStatus }
+import model.exchange.{ AssessorSkill, UpdateAllocationStatusRequest }
 import model.persisted.AssessorAllocation
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
@@ -31,7 +32,6 @@ import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsW
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
 
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
@@ -108,8 +108,8 @@ trait AssessorService {
     }
   }
 
-  def findAllocations(assessorId: String): Future[Seq[AllocationWithEvent]] = {
-    allocationRepo.find(assessorId).flatMap { allocations =>
+  def findAllocations(assessorId: String, status: Option[AllocationStatus] = None): Future[Seq[AllocationWithEvent]] = {
+    allocationRepo.find(assessorId, status).flatMap { allocations =>
       FutureEx.traverseSerial(allocations) { allocation =>
         eventsRepo.getEvent(allocation.eventId).map { event =>
           AllocationWithEvent(
@@ -119,6 +119,7 @@ trait AssessorService {
             event.startTime,
             event.endTime,
             event.venue,
+            event.location,
             event.eventType,
             allocation.status,
             AssessorSkill.SkillMap(allocation.allocatedAs)
@@ -132,8 +133,8 @@ trait AssessorService {
     assessorRepository.countSubmittedAvailability
   }
 
-  def updateAssessorAllocationStatuses(statusUpdates: Seq[UpdateAssessorAllocationStatus]
-  ): Future[SerialUpdateResult[UpdateAssessorAllocationStatus]] = {
+  def updateAssessorAllocationStatuses(statusUpdates: Seq[UpdateAllocationStatusRequest]
+  ): Future[SerialUpdateResult[UpdateAllocationStatusRequest]] = {
 
     val rawResult = FutureEx.traverseSerial(statusUpdates) { statusUpdate =>
       SerialUpdateResult.futureToEither(statusUpdate,

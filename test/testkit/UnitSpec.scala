@@ -17,6 +17,7 @@
 package testkit
 
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatestplus.play.PlaySpec
 
 class UnitSpec extends PlaySpec with testkit.MockitoSugar with ScalaFutures {
