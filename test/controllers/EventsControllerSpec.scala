@@ -107,8 +107,8 @@ class EventsControllerSpec extends UnitWithAppSpec {
     when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(MockLocation))
     when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Future.successful(MockVenue))
 
-    val MockEvent = Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
-            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty)
+    val MockEvent = new Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
+            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty, List.empty)
 
     val controller = new EventsController {
       val eventsService = mockEventsService

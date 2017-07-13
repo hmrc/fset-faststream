@@ -19,7 +19,6 @@ package model.testdata
 import model.SchemeId
 import model.command.testdata.CreateAdminRequest.CreateAdminRequest
 import model.exchange.AssessorAvailability
-import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker
 import services.testdata.faker.DataFaker.Random
