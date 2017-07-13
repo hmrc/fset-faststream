@@ -37,7 +37,7 @@ trait SiftingRepository {
 
   def findApplicationsReadyForSifting(schemeId: SchemeId): Future[List[Candidate]]
 
-  def siftCandidate(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  def siftCandidateApplication(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
 }
 
 class SiftingMongoRepository()(implicit mongo: () => DB)
@@ -48,12 +48,12 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
 
 
   /**
-    * TODO: implement all criterias
+    * TODO: implement all criteria
     * Criteria:
     * 1. Is in the PHASE_3_TESTS_PASSED state
     * - has not yet been sifted
     * - has not completed sift
-    * - is not in SILFT_FILTER_COMPLETED state - TODO:
+    * - is not in SIFT_FILTER_COMPLETED state - TODO:
     * - has not been invited to FSAC - TODO:
     * 2. Has selected the scheme as a preference
     * 3. Has GREEN for the scheme at Video Interview
@@ -80,7 +80,7 @@ class SiftingMongoRepository()(implicit mongo: () => DB)
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
   }
 
-  override def siftCandidate(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+  override def siftCandidateApplication(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
 
     val update = BSONDocument(
       "$addToSet" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result),

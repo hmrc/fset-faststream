@@ -23,20 +23,38 @@ class SiftingRepositorySpec extends MongoRepositorySpec with CommonRepository {
 
   "Sifting repository" should {
 
-    "find eligible candidates" in {
-      createSiftEligibleCandidates(UserId, AppId)
+    "findApplicationsReadyForSifting" should {
+      "return candidates that are ready for sifting" in {
+        createSiftEligibleCandidates(UserId, AppId)
 
-      val candidates = repository.findApplicationsReadyForSifting(Commercial).futureValue
-      candidates.size mustBe 1
-      val candidate = candidates.head
-      candidate.applicationId mustBe Some(AppId)
+        val candidates = repository.findApplicationsReadyForSifting(Commercial).futureValue
+        candidates.size mustBe 1
+        val candidate = candidates.head
+        candidate.applicationId mustBe Some(AppId)
+      }
+
     }
 
-    "sift candidate as Passed" in {
-      createSiftEligibleCandidates(UserId, AppId)
-      repository.siftCandidate(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
-      val candidates = repository.findApplicationsReadyForSifting(Commercial).futureValue
-      candidates.size mustBe 0
+    "siftCandidate" should {
+      "sift candidate as Passed" in {
+        createSiftEligibleCandidates(UserId, AppId)
+        repository.siftCandidateApplication(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
+        val candidates = repository.findApplicationsReadyForSifting(Commercial).futureValue
+        candidates.size mustBe 0
+      }
+
+      "submit difference schemes" in {
+        createSiftEligibleCandidates(UserId, AppId)
+        repository.siftCandidateApplication(AppId, SchemeEvaluationResult(European, "Red")).futureValue
+        repository.siftCandidateApplication(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
+      }
+
+      "eligible for other schema after sifting on one" in {
+        createSiftEligibleCandidates(UserId, AppId)
+        repository.siftCandidateApplication(AppId, SchemeEvaluationResult(European, "Red")).futureValue
+        val candidates = repository.findApplicationsReadyForSifting(Sdip).futureValue
+        candidates.size mustBe 1
+      }
     }
 
     /*
@@ -48,19 +66,6 @@ class SiftingRepositorySpec extends MongoRepositorySpec with CommonRepository {
             repository.siftCandidate(AppId, SchemeEvaluationResult(Commercial, "Red")).futureValue
           }
      }*/
-
-    "submit difference schemes" in {
-      createSiftEligibleCandidates(UserId, AppId)
-      repository.siftCandidate(AppId, SchemeEvaluationResult(European, "Red")).futureValue
-      repository.siftCandidate(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
-    }
-
-    "eligible for other schema after sifting on one" in {
-      createSiftEligibleCandidates(UserId, AppId)
-      repository.siftCandidate(AppId, SchemeEvaluationResult(European, "Red")).futureValue
-      val candidates = repository.findApplicationsReadyForSifting(Sdip).futureValue
-      candidates.size mustBe 1
-    }
 
   }
 

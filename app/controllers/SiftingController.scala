@@ -38,23 +38,23 @@ trait SiftingController extends BaseController {
 
   val siftAppRepository: SiftingRepository
 
-  def findSiftingEligible(schemeId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findApplicationsReadyForSifting(schemeId: String): Action[AnyContent] = Action.async { implicit request =>
     siftAppRepository.findApplicationsReadyForSifting(SchemeId(schemeId)).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }
 
-  def fromPassMark(s: String): EvaluationResults.Result = s match {
+  def siftCandidateApplication: Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[ApplicationSifting] { sift =>
+      siftAppRepository.siftCandidateApplication(sift.applicationId.toString(),
+        SchemeEvaluationResult(sift.schemeId, fromPassMark(sift.result).toString)).map(_ => Ok)
+    }
+  }
+
+  private def fromPassMark(s: String): EvaluationResults.Result = s match {
     case "Pass" => EvaluationResults.Green
     case "Fail" => EvaluationResults.Red
     case _ => sys.error(s"Unsupported evaluation result $s for sifting")
   }
 
-
-  def submitSifting: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[ApplicationSifting] { sift =>
-      siftAppRepository.siftCandidate(sift.applicationId,
-        SchemeEvaluationResult(sift.schemeId, fromPassMark(sift.result).toString)).map(_ => Ok)
-    }
-  }
 }

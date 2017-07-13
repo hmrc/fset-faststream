@@ -38,24 +38,24 @@ class SiftingControllerSpec extends UnitWithAppSpec {
 
   private val Commercial = SchemeId("Commercial")
 
-  "find sifting eligible" should {
+  "findApplicationsReadyForSifting" should {
     "return list of candidates" in {
       when(mockSiftingRepo.findApplicationsReadyForSifting(any[SchemeId])).thenReturn(Future.successful(CandidateExamples.NewCandidates))
-      val response = controller.findSiftingEligible(Commercial.toString)(fakeRequest)
+      val response = controller.findApplicationsReadyForSifting(Commercial.toString)(fakeRequest)
       status(response) mustBe OK
       contentAsString(response) mustBe Json.toJson[List[Candidate]](CandidateExamples.NewCandidates).toString()
     }
   }
 
-  "submit sifting" should {
+  "siftCandidateApplication" should {
     "invoke repository to sift candidate" in {
       val appSifting = ApplicationSifting("app1", Commercial, "Pass")
       val request = fakeRequest(appSifting)
       val result = SchemeEvaluationResult(Commercial, "Green")
-      when(mockSiftingRepo.siftCandidate("app1", result)).thenReturn(Future.successful(()))
-      val response = controller.submitSifting(request)
+      when(mockSiftingRepo.siftCandidateApplication("app1", result)).thenReturn(Future.successful(()))
+      val response = controller.siftCandidateApplication(request)
       status(response) mustBe OK
-      verify(mockSiftingRepo).siftCandidate("app1", result)
+      verify(mockSiftingRepo).siftCandidateApplication("app1", result)
     }
   }
 }
