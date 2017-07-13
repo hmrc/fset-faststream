@@ -106,7 +106,7 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
     val mockAuthProviderClient = mock[AuthProviderClient]
     val mockStcEventService = mock[StcEventService]
     val service = new AssessorAllocationService {
-      def allocationRepo: AssessorAllocationMongoRepository = mockAllocationRepository
+      def assessorAllocationRepo: AssessorAllocationMongoRepository = mockAllocationRepository
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
       override val eventsService: EventsService = mockEventsService
       override val applicationRepo: GeneralApplicationRepository = mockAppRepo

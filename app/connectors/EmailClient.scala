@@ -209,9 +209,9 @@ trait EmailClient extends WSHttp {
   def sendApplicationExtendedToSdip(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_app_converted_to_sdip_confirmation", Map("name" -> name))
 
-  def sendCandidateInvitationRequestToFSAC(to: String, name: String,
-                                           eventDate: String, eventTime: String,
-                                           deadlineDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendCandidateConfirmationRequestToFSAC(to: String, name: String,
+                                             eventDate: String, eventTime: String,
+                                             deadlineDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     sendEmail(to, "fset_faststream_candidate_need_confirm_assessment_date",
       Map("name" -> name, "eventDate" -> eventDate, "eventStartTime" -> eventTime, "deadlineDate" -> deadlineDate))
   }

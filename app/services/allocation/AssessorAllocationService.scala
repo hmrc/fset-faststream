@@ -23,7 +23,7 @@ import model.command.CandidateAllocation
 import model.exchange.{ EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.Venue
-import model.stc.EmailEvents.{ CandidateAllocationConfirmed, CandidateAllocationRequestConfirmation }
+import model.stc.EmailEvents.{ CandidateAllocationConfirmed, CandidateAllocationConfirmationRequest }
 import model.stc.StcEventTypes.StcEvents
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -36,32 +36,31 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object AssessorAllocationService extends AssessorAllocationService {
-  val allocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
+
+  val assessorAllocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
   val candidateAllocationRepo: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
-  val eventsService = EventsService
-  val authProviderClient = AuthProviderClient
 
-  val emailClient: EmailClient = CSREmailClient
+  val eventsService = EventsService
   val eventService: StcEventService = StcEventService
+
+  val authProviderClient = AuthProviderClient
+  val emailClient = CSREmailClient
 }
 
 trait AssessorAllocationService extends EventSink {
 
-  def allocationRepo: AssessorAllocationMongoRepository
-
+  def assessorAllocationRepo: AssessorAllocationMongoRepository
   def candidateAllocationRepo: CandidateAllocationMongoRepository
-
   val applicationRepo: GeneralApplicationRepository
 
   def eventsService: EventsService
 
   def emailClient: EmailClient
-
   def authProviderClient: AuthProviderClient
 
   def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
-    allocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
+    assessorAllocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
   }
 
   def getCandidateAllocations(eventId: String): Future[exchange.CandidateAllocations] = {
@@ -69,8 +68,8 @@ trait AssessorAllocationService extends EventSink {
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
-    allocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
-      case Nil => allocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
+    assessorAllocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
+      case Nil => assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
       case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations).map(_ => ())
     }
   }
@@ -120,7 +119,7 @@ trait AssessorAllocationService extends EventSink {
             candidates.map { candidate =>
               candidateAllocation.status match {
                 case AllocationStatuses.UNCONFIRMED =>
-                  CandidateAllocationRequestConfirmation(candidate.email, candidate.name, eventDate, eventTime, deadlineDateTime)
+                  CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime, deadlineDateTime)
                 case AllocationStatuses.CONFIRMED =>
                   CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime)
               }
@@ -139,8 +138,8 @@ trait AssessorAllocationService extends EventSink {
       // no prior update since reading so do update
       // check what's been updated here so we can send email notifications
       val toPersist = persisted.AssessorAllocation.fromCommand(newAllocations)
-      allocationRepo.delete(existingAllocations).flatMap { _ =>
-        allocationRepo.save(toPersist).map(_ => ())
+      assessorAllocationRepo.delete(existingAllocations).flatMap { _ =>
+        assessorAllocationRepo.save(toPersist).map(_ => ())
       }
     } else {
       throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
