@@ -16,31 +16,14 @@
 
 package model.persisted.eventschedules
 
-import factories.UUIDFactory
-import model.persisted.eventschedules.EventType.EventType
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
-import repositories.events.{ EventConfig, LocationsWithVenuesInMemoryRepository }
 import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 
-case class Event(
-  id: String,
-  eventType: EventType,
-  description: String,
-  location: Location,
-  venue: Venue,
-  date: LocalDate,
-  capacity: Int,
-  minViableAttendees: Int,
-  attendeeSafetyMargin: Int,
-  startTime: LocalTime,
-  endTime: LocalTime,
-  skillRequirements: Map[String, Int],
-  sessions: List[Session]
-)
+case class Session(description: String, startTime: LocalTime, endTime: LocalTime)
 
-object Event {
-  implicit val eventFormat = Json.format[Event]
-  implicit val eventHandler = Macros.handler[Event]
+object Session {
+  implicit val eventFormat = Json.format[Session]
+  implicit val eventHandler = Macros.handler[Session]
 }
