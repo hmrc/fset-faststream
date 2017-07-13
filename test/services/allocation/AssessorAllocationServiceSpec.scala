@@ -16,16 +16,21 @@
 
 package services.allocation
 
+import connectors.{ AuthProviderClient, EmailClient }
 import model.Exceptions.OptimisticLockException
+import model.command.{ CandidateAllocation, CandidateAllocations }
 import model.exchange.AssessorSkill
+import model.persisted.EventExamples
 import model.persisted.eventschedules.SkillType
-import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
-import services.BaseServiceSpec
 import model.{ AllocationStatuses, command, persisted }
-import org.mockito.ArgumentMatchers.{ eq => eqTo }
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import services.events.EventsService
+import repositories.application.GeneralApplicationRepository
+import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
+import services.BaseServiceSpec
+import services.events.EventsService
+import services.stc.StcEventService
 
 import scala.concurrent.Future
 
@@ -80,14 +85,35 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
     }
   }
 
+  "Allocate candidate" must {
+    "save allocation if non already exists" in new TestFixture {
+      val eventId = "E1"
+      val appId = "app1"
+      val candidateAllocations = CandidateAllocations("v1", eventId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
+
+      when(mockEventsService.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1))
+      when(mockCandidateAllocationRepository.allocationsForEvent(eventId)).thenReturn(Future.successful(Nil))
+      when(mockAppRepo.find(appId)).thenReturn(Future.successful(None))
+      service.allocateCandidates(candidateAllocations)
+    }
+  }
+
   trait TestFixture {
     val mockAllocationRepository: AssessorAllocationMongoRepository = mock[AssessorAllocationMongoRepository]
     val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
+    val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
     val mockEventsService: EventsService = mock[EventsService]
+    val mockEmailClient: EmailClient = mock[EmailClient]
+    val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
+    val mockStcEventService: StcEventService = mock[StcEventService]
     val service = new AssessorAllocationService {
-      def allocationRepo: AssessorAllocationMongoRepository = mockAllocationRepository
+      def assessorAllocationRepo: AssessorAllocationMongoRepository = mockAllocationRepository
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
       override val eventsService: EventsService = mockEventsService
+      override val applicationRepo: GeneralApplicationRepository = mockAppRepo
+      override def emailClient: EmailClient = mockEmailClient
+      override def authProviderClient: AuthProviderClient = mockAuthProviderClient
+      override val eventService: StcEventService = mockStcEventService
     }
   }
 
