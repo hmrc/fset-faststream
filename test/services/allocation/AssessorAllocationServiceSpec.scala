@@ -19,6 +19,7 @@ package services.allocation
 import model.Exceptions.OptimisticLockException
 import model.exchange.AssessorSkill
 import model.persisted.eventschedules.SkillType
+import repositories.application.GeneralApplicationMongoRepository
 import repositories.{ CandidateAllocationMongoRepository, AssessorAllocationMongoRepository }
 import services.BaseServiceSpec
 import model.{ AllocationStatuses, command, persisted }
@@ -82,10 +83,11 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
   trait TestFixture {
     val mockAllocationRepository = mock[AssessorAllocationMongoRepository]
     val mockCandidateAllocationRepository = mock[CandidateAllocationMongoRepository]
+    val mockApplicationRepository = mock[GeneralApplicationMongoRepository]
     val service = new AssessorAllocationService {
       def allocationRepo: AssessorAllocationMongoRepository = mockAllocationRepository
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
+      def applicationRepo: GeneralApplicationMongoRepository = mockApplicationRepository
     }
   }
-
 }

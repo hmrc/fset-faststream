@@ -17,17 +17,17 @@
 package services.allocation
 
 import model.Exceptions.OptimisticLockException
-import model.exchange
-import model.persisted
-import model.command
+import model.{ Commands, exchange, persisted, command }
+import repositories.application.GeneralApplicationMongoRepository
 import repositories.{ CandidateAllocationMongoRepository, AssessorAllocationMongoRepository }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AssessorAllocationService extends AssessorAllocationService {
-  def allocationRepo = repositories.assessorAllocationRepository
-  def candidateAllocationRepo = repositories.candidateAllocationRepository
+  override def allocationRepo = repositories.assessorAllocationRepository
+  override def candidateAllocationRepo = repositories.candidateAllocationRepository
+  override def applicationRepo = repositories.applicationRepository
 }
 
 trait AssessorAllocationService {
@@ -36,12 +36,21 @@ trait AssessorAllocationService {
 
   def candidateAllocationRepo: CandidateAllocationMongoRepository
 
+  def applicationRepo: GeneralApplicationMongoRepository
+
   def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
     allocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
   }
 
   def getCandidateAllocations(eventId: String): Future[exchange.CandidateAllocations] = {
     candidateAllocationRepo.allocationsForEvent(eventId).map { a => exchange.CandidateAllocations.apply(a) }
+  }
+
+  def getCandidateAllocationsApplicationData(eventId: String): Future[List[Commands.Candidate]] = {
+    candidateAllocationRepo.allocationsForEvent(eventId).flatMap { allocatedCandidates =>
+      val appIds = allocatedCandidates.map( _.id ).toList
+      applicationRepo.find(appIds)
+    }
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
