@@ -89,19 +89,18 @@ trait AssessorAllocationService extends EventSink {
       getCandidateAllocations(newAllocations.eventId).flatMap { existingAllocation =>
         existingAllocation.allocations match {
           case Nil =>
-            Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime)))
-              .flatMap { _ =>
-                candidateAllocationRepo.save(persisted.CandidateAllocation.fromCommand(newAllocations)).map(_ => ())
-              }
+            candidateAllocationRepo.save(persisted.CandidateAllocation.fromCommand(newAllocations)).flatMap {
+              _ => Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime)))
+            }.map(_ => ())
           case _ =>
             val existingIds = existingAllocation.allocations.map(_.id)
-            Future.sequence(
-              newAllocations.allocations
-                .filter(alloc => !existingIds.contains(alloc.id))
-                .map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime))
-            ).flatMap { _ =>
-              updateExistingAllocations(existingAllocation, newAllocations).map(_ => ())
-            }
+            updateExistingAllocations(existingAllocation, newAllocations).flatMap { _ =>
+              Future.sequence(
+                newAllocations.allocations
+                  .filter(alloc => !existingIds.contains(alloc.id))
+                  .map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime))
+              )
+            }.map(_ => ())
         }
       }
     }
@@ -124,10 +123,10 @@ trait AssessorAllocationService extends EventSink {
                   CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime)
               }
             }
-          } recover { case _ => throw new RuntimeException("Was not able to retrieve user details.") }
+          } recover { case ex => throw new RuntimeException(s"Was not able to retrieve user details for candidate ${candidate.userId}", ex) }
           res.asInstanceOf[Future[StcEvents]]
         }
-      case None => throw new RuntimeException("Can not find user application")
+      case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.id}")
     }
   }
 
