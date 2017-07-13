@@ -39,7 +39,9 @@ object ExchangeObjects {
     implicit val format: Format[SendFsetMailRequest] = Json.format[SendFsetMailRequest]
   }
 
-  case class Candidate(firstName: String, lastName: String, preferredName: Option[String], email: String, userId: String)
+  case class Candidate(firstName: String, lastName: String, preferredName: Option[String], email: String, userId: String) {
+    def name: String = preferredName.getOrElse(firstName)
+  }
   object Candidate { implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate] }
 
   // Cubiks Gateway Requests

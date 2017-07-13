@@ -106,7 +106,8 @@ trait EventsParsingService {
       capacity = capacity,
       minViableAttendees = minViableAttendees,
       attendeeSafetyMargin = attendeeSafetyMargin,
-      skillRequirements = skillRequirements
+      skillRequirements = skillRequirements,
+      sessions = Nil
     )
   }
 
