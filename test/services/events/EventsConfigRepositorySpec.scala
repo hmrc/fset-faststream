@@ -49,6 +49,9 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
                     |    QUALITY_ASSURANCE_COORDINATOR: 1
                     |  sessions:
                     |    - description: AM
+                    |      capacity: 36
+                    |      minViableAttendees: 12
+                    |      attendeeSafetyMargin: 4
                     |      startTime: 11:00
                     |      endTime: 12:00
                     |- eventType: FSAC
@@ -69,9 +72,15 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
                     |    QUALITY_ASSURANCE_COORDINATOR: 1
                     |  sessions:
                     |    - description: First
+                    |      capacity: 36
+                    |      minViableAttendees: 12
+                    |      attendeeSafetyMargin: 4
                     |      startTime: 9:00
                     |      endTime: 10:30
                     |    - description: Second
+                    |      capacity: 36
+                    |      minViableAttendees: 12
+                    |      attendeeSafetyMargin: 4
                     |      startTime: 10:30
                     |      endTime: 12:00
                     |- eventType: FSAC
@@ -92,9 +101,15 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
                     |    QUALITY_ASSURANCE_COORDINATOR: 1
                     |  sessions:
                     |    - description: First
+                    |      capacity: 36
+                    |      minViableAttendees: 12
+                    |      attendeeSafetyMargin: 4
                     |      startTime: 9:00
                     |      endTime: 10:30
                     |    - description: Second
+                    |      capacity: 36
+                    |      minViableAttendees: 12
+                    |      attendeeSafetyMargin: 4
                     |      startTime: 10:30
                     |      endTime: 12:00""".stripMargin
 
@@ -103,7 +118,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
       when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(Location("London")))
 
       val repo = new EventsConfigRepository {
-        override protected def rawConfig = input
+        override protected def rawConfig: String = input
         override def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
       }
 
@@ -111,20 +126,20 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
 
       whenReady(repo.events) { result =>
         result shouldBe List(
-          Event(result(0).id,EventType.withName("FSAC"),"PDFS FSB",Location("London"),Venue("london fsac", "bush house"),
+          Event(result.head.id,EventType.withName("FSAC"),"PDFS FSB",Location("London"),Venue("london fsac", "bush house"),
             LocalDate.parse("2017-04-03"),36,12,2,LocalTime.parse("11:00:00.000"),LocalTime.parse("12:00:00.000"),
             Map("DEPARTMENTAL_ASSESSOR" -> 3, "EXERCISE_MARKER" -> 3, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
-            List(Session("AM",LocalTime.parse("11:00:00.000"),LocalTime.parse("12:00:00.000")))),
+            List(Session("AM",36,12,4,LocalTime.parse("11:00:00.000"),LocalTime.parse("12:00:00.000")))),
           Event(result(1).id,EventType.withName("FSAC"),"PDFS FSB",Location("London"),Venue("london fsac", "bush house"),
             LocalDate.parse("2017-04-03"),36,12,2,LocalTime.parse("09:00:00.000"),LocalTime.parse("12:00:00.000"),
             Map("DEPARTMENTAL_ASSESSOR" -> 3, "EXERCISE_MARKER" -> 2, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
-            List(Session("First",LocalTime.parse("09:00:00.000"),LocalTime.parse("10:30:00.000")),
-              Session("Second",LocalTime.parse("10:30:00.000"),LocalTime.parse("12:00:00.000")))),
+            List(Session("First",36,12,4,LocalTime.parse("09:00:00.000"),LocalTime.parse("10:30:00.000")),
+              Session("Second",36,12,4,LocalTime.parse("10:30:00.000"),LocalTime.parse("12:00:00.000")))),
           Event(result(2).id,EventType.withName("FSAC"),"PDFS FSB",Location("London"),Venue("london fsac", "bush house"),
             LocalDate.parse("2017-04-03"),36,12,2,LocalTime.parse("09:00:00.000"),LocalTime.parse("12:00:00.000"),
             Map("DEPARTMENTAL_ASSESSOR" -> 2, "EXERCISE_MARKER" -> 3, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
-            List(Session("First",LocalTime.parse("09:00:00.000"),LocalTime.parse("10:30:00.000")),
-              Session("Second",LocalTime.parse("10:30:00.000"),LocalTime.parse("12:00:00.000")))))
+            List(Session("First",36,12,4,LocalTime.parse("09:00:00.000"),LocalTime.parse("10:30:00.000")),
+              Session("Second",36,12,4,LocalTime.parse("10:30:00.000"),LocalTime.parse("12:00:00.000")))))
       }
     }
   }
