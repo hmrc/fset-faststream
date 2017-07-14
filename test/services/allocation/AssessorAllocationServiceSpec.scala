@@ -25,6 +25,7 @@ import model.persisted.eventschedules.SkillType
 import model.{ AllocationStatuses, command, persisted }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import services.events.EventsService
 import repositories.application.GeneralApplicationRepository
 import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
 import services.BaseServiceSpec
@@ -98,13 +99,13 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
   }
 
   trait TestFixture {
-    val mockAllocationRepository = mock[AssessorAllocationMongoRepository]
-    val mockCandidateAllocationRepository = mock[CandidateAllocationMongoRepository]
-    val mockAppRepo = mock[GeneralApplicationRepository]
-    val mockEventsService = mock[EventsService]
-    val mockEmailClient = mock[EmailClient]
-    val mockAuthProviderClient = mock[AuthProviderClient]
-    val mockStcEventService = mock[StcEventService]
+    val mockAllocationRepository: AssessorAllocationMongoRepository = mock[AssessorAllocationMongoRepository]
+    val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
+    val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
+    val mockEventsService: EventsService = mock[EventsService]
+    val mockEmailClient: EmailClient = mock[EmailClient]
+    val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
+    val mockStcEventService: StcEventService = mock[StcEventService]
     val service = new AssessorAllocationService {
       def assessorAllocationRepo: AssessorAllocationMongoRepository = mockAllocationRepository
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository

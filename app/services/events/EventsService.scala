@@ -27,7 +27,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsService extends EventsService {
   val eventsRepo: EventsMongoRepository = eventsRepository
-  val eventFileParsingService: EventsParsingService = EventsParsingService
   val eventsConfigRepo = EventsConfigRepository
 }
 
@@ -35,16 +34,7 @@ trait EventsService {
 
   def eventsRepo: EventsRepository
 
-  def eventFileParsingService: EventsParsingService
-
   def eventsConfigRepo: EventsConfigRepository
-
-  def saveAssessmentEventsFromDeprecatedCsv(): Future[Unit] = {
-    eventFileParsingService.processCentres().flatMap { events =>
-      Logger.debug("Events have been processed!")
-      eventsRepo.save(events)
-    }
-  }
 
   def saveAssessmentEvents(): Future[Unit] = {
     eventsConfigRepo.events.flatMap { events =>
