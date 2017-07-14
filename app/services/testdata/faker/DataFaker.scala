@@ -17,15 +17,13 @@
 package services.testdata.faker
 
 import factories.UUIDFactory
-import model.{ AllocationStatuses, EvaluationResults }
+import model.{ AllocationStatuses, EvaluationResults, Scheme, SchemeId }
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.exchange.{ AssessorAvailability, AssessorSkill }
-import model.{ EvaluationResults, Scheme, SchemeId }
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
-import model.persisted.eventschedules._
-import model.exchange.AssessorAvailability
+import model.persisted.eventschedules.{ EventType, _ }
 import model.persisted.eventschedules._
 import org.joda.time.{ LocalDate, LocalTime }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
@@ -668,14 +666,14 @@ object DataFaker {
       "Unknown"
     ))
 
-    def skills = randList(List(
+    def skills: List[String] = randList(List(
       SkillType.QUALITY_ASSURANCE_COORDINATOR.toString,
       SkillType.ASSESSOR.toString,
       SkillType.CHAIR.toString), 3)
 
-    def sifterSchemes = randList(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip")), 3)
+    def sifterSchemes: List[SchemeId] = randList(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip")), 3)
 
-    def parentsOccupationDetails = randOne(List(
+    def parentsOccupationDetails: String = randOne(List(
       "Modern professional",
       "Clerical (office work) and intermediate",
       "Senior managers and administrators",
@@ -686,18 +684,18 @@ object DataFaker {
       "Traditional professional"
     ))
 
-    def sizeParentsEmployeer = randOne(List(
+    def sizeParentsEmployeer: String = randOne(List(
       "Small (1 to 24 employees)",
       "Large (over 24 employees)",
       "I don't know/prefer not to say"
     ))
 
-    def getFirstname(userNumber: Int) = {
+    def getFirstname(userNumber: Int): String = {
       val firstName = randOne(Firstnames.list)
       s"$firstName$userNumber"
     }
 
-    def getLastname(userNumber: Int) = {
+    def getLastname(userNumber: Int): String = {
       val lastName = randOne(Lastnames.list)
       s"$lastName$userNumber"
     }
@@ -706,9 +704,9 @@ object DataFaker {
       s"${Random.upperLetter}${Random.upperLetter}1 2${Random.upperLetter}${Random.upperLetter}"
     }
 
-    def accessCode = randomAlphaString(7)
+    def accessCode: String = randomAlphaString(7)
 
-    def getVideoInterviewScore = randOne(List(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0))
+    def getVideoInterviewScore: Double = randOne(List(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0))
 
     private def randomAlphaString(n: Int) = {
       val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -739,29 +737,29 @@ object DataFaker {
     }
 
     object Event {
-      def id = UUIDFactory.generateUUID()
+      def id: String = UUIDFactory.generateUUID()
 
-      def eventType = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW))
+      def eventType: EventType.Value = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW))
 
-      def description = randOne(List("GSFS FSB", "ORAC", "PDFS FSB"))
+      def description: String = randOne(List("GSFS FSB", "ORAC", "PDFS FSB"))
 
-      def location = randOne(List(Location("London"), Location("Newcastle")))
+      def location: Location = randOne(List(Location("London"), Location("Newcastle")))
 
-      def venue = randOne(ExternalSources.venuesByLocation(location.name))
+      def venue: Venue = randOne(ExternalSources.venuesByLocation(location.name))
 
-      def date = LocalDate.now().plusDays(number(Option(300)))
+      def date: LocalDate = LocalDate.now().plusDays(number(Option(300)))
 
-      def capacity = randOne(List(32, 24, 16, 8, 4, 30, 28))
+      def capacity: Int = randOne(List(32, 24, 16, 8, 4, 30, 28))
 
-      def minViableAttendees = capacity - randOne(List(2, 3, 4, 1))
+      def minViableAttendees: Int = capacity - randOne(List(2, 3, 4, 1))
 
-      def attendeeSafetyMargin = randOne(List(1, 2, 3))
+      def attendeeSafetyMargin: Int = randOne(List(1, 2, 3))
 
-      def startTime = LocalTime.now()
+      def startTime: LocalTime = LocalTime.now()
 
-      def endTime = startTime.plusHours(1)
+      def endTime: LocalTime = startTime.plusHours(1)
 
-      def skillRequirements = {
+      def skillRequirements: Map[String, Int] = {
         val skills = SkillType.values.toList.map(_.toString)
         val numberOfSkills = randOne(( 1 to SkillType.values.size ).map(i => i).toList)
         val skillsSelected = randList(skills, numberOfSkills)
@@ -773,11 +771,11 @@ object DataFaker {
         }.toMap
       }
 
-      def sessions = randList(List(Session("First", startTime, startTime.plusHours(1))),1)
+      def sessions = randList(List(Session("First", 36, 12, 4, startTime, startTime.plusHours(1))),1)
     }
 
     object AssessorAllocation {
-      def status = Random.randOne(List(AllocationStatuses.CONFIRMED, AllocationStatuses.UNCONFIRMED))
+      def status: AllocationStatuses.Value = Random.randOne(List(AllocationStatuses.CONFIRMED, AllocationStatuses.UNCONFIRMED))
     }
   }
 
@@ -787,7 +785,7 @@ object DataFaker {
 
     def allVenues = Await.result(locationsAndVenuesRepository.venues.map(_.allValues.toList), 1 second)
 
-    def venuesByLocation(location: String) = {
+    def venuesByLocation(location: String): List[Venue] = {
       val venues = locationsAndVenuesRepository.locationsWithVenuesList.map { list =>
         list.filter(lv => lv.name == location).flatMap(_.venues)
       }
@@ -797,4 +795,3 @@ object DataFaker {
 }
 
 //scalastyle:on number.of.methods
-

@@ -17,13 +17,20 @@
 package model.persisted.eventschedules
 
 import org.joda.time.{ LocalDate, LocalTime }
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 
-case class Session(description: String, startTime: LocalTime, endTime: LocalTime)
+case class Session(
+  description: String,
+  capacity: Int,
+  minViableAttendees: Int,
+  attendeeSafetyMargin: Int,
+  startTime: LocalTime,
+  endTime: LocalTime
+)
 
 object Session {
-  implicit val eventFormat = Json.format[Session]
+  implicit val eventFormat: OFormat[Session] = Json.format[Session]
   implicit val eventHandler = Macros.handler[Session]
 }
