@@ -18,19 +18,26 @@ package controllers.reference
 
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
+import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SchemesController extends SchemesController{
-  val repo = SchemeYamlRepository
+object LocationAndVenueController extends LocationAndVenueController {
+
+  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+
 }
 
-trait SchemesController extends BaseController {
-  def repo: SchemeRepositoryImpl
+trait LocationAndVenueController extends BaseController {
 
-  def allSchemes: Action[AnyContent] = Action.async { implicit request =>
-    repo.schemes.map(s => Ok(Json.toJson(s)))
+  def locationsAndVenuesRepository: LocationsWithVenuesRepository
+
+  def venues: Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenuesRepository.venues.map(x => Ok(Json.toJson(x)))
   }
+
+  def locations: Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenuesRepository.locations.map(x => Ok(Json.toJson(x)))
+  }
+
 }
