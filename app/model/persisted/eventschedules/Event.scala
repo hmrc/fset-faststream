@@ -16,7 +16,6 @@
 
 package model.persisted.eventschedules
 
-import factories.UUIDFactory
 import model.persisted.eventschedules.EventType.EventType
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json

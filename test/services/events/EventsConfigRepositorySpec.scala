@@ -16,6 +16,7 @@
 
 package services.events
 
+import model.UniqueIdentifier
 import model.persisted.eventschedules._
 import org.scalatest.concurrent.ScalaFutures
 import repositories.events.{ EventsConfigRepository, LocationsWithVenuesRepository }
@@ -105,13 +106,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
                     |      minViableAttendees: 12
                     |      attendeeSafetyMargin: 4
                     |      startTime: 9:00
-                    |      endTime: 10:30
-                    |    - description: Second
-                    |      capacity: 36
-                    |      minViableAttendees: 12
-                    |      attendeeSafetyMargin: 4
-                    |      startTime: 10:30
-                    |      endTime: 12:00""".stripMargin
+                    |      endTime: 10:30""".stripMargin
 
       val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
       when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Future.successful(Venue("london fsac", "bush house")))
@@ -129,17 +124,32 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
           Event(result.head.id,EventType.withName("FSAC"),"PDFS FSB",Location("London"),Venue("london fsac", "bush house"),
             LocalDate.parse("2017-04-03"),36,12,2,LocalTime.parse("11:00:00.000"),LocalTime.parse("12:00:00.000"),
             Map("DEPARTMENTAL_ASSESSOR" -> 3, "EXERCISE_MARKER" -> 3, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
-            List(Session("AM",36,12,4,LocalTime.parse("11:00:00.000"),LocalTime.parse("12:00:00.000")))),
+            List(
+              Session(
+                UniqueIdentifier.randomUniqueIdentifier.toString(),"AM",36,12,4,LocalTime.parse("11:00:00.000"),LocalTime.parse("12:00:00.000"))
+            )
+          ),
+
           Event(result(1).id,EventType.withName("FSAC"),"PDFS FSB",Location("London"),Venue("london fsac", "bush house"),
             LocalDate.parse("2017-04-03"),36,12,2,LocalTime.parse("09:00:00.000"),LocalTime.parse("12:00:00.000"),
             Map("DEPARTMENTAL_ASSESSOR" -> 3, "EXERCISE_MARKER" -> 2, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
-            List(Session("First",36,12,4,LocalTime.parse("09:00:00.000"),LocalTime.parse("10:30:00.000")),
-              Session("Second",36,12,4,LocalTime.parse("10:30:00.000"),LocalTime.parse("12:00:00.000")))),
+            List(
+              Session(UniqueIdentifier.randomUniqueIdentifier.toString(),"First",36,
+                12,4,LocalTime.parse("09:00:00.000"),LocalTime.parse("10:30:00.000")),
+              Session(UniqueIdentifier.randomUniqueIdentifier.toString(),"Second",36,
+                12,4,LocalTime.parse("10:30:00.000"),LocalTime.parse("12:00:00.000")))
+          ),
+
           Event(result(2).id,EventType.withName("FSAC"),"PDFS FSB",Location("London"),Venue("london fsac", "bush house"),
             LocalDate.parse("2017-04-03"),36,12,2,LocalTime.parse("09:00:00.000"),LocalTime.parse("12:00:00.000"),
             Map("DEPARTMENTAL_ASSESSOR" -> 2, "EXERCISE_MARKER" -> 3, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
-            List(Session("First",36,12,4,LocalTime.parse("09:00:00.000"),LocalTime.parse("10:30:00.000")),
-              Session("Second",36,12,4,LocalTime.parse("10:30:00.000"),LocalTime.parse("12:00:00.000")))))
+            List(
+              Session(UniqueIdentifier.randomUniqueIdentifier.toString(),"First",36,
+                12,4,LocalTime.parse("09:00:00.000"),LocalTime.parse("10:30:00.000")),
+              Session(UniqueIdentifier.randomUniqueIdentifier.toString(),"Second",36,
+                12,4,LocalTime.parse("10:30:00.000"),LocalTime.parse("12:00:00.000")))
+          )
+        )
       }
     }
   }

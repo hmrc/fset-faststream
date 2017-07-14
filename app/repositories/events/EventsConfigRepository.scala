@@ -68,7 +68,7 @@ object EventConfigProtocol extends DefaultYamlProtocol {
     }
   }
 
-  implicit val sessionFormat = yamlFormat6(Session.apply)
+  implicit val sessionFormat = yamlFormat7(Session.apply)
   implicit val eventFormat = yamlFormat12(EventConfig.apply)
 }
 

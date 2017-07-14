@@ -21,14 +21,13 @@ import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 
-case class Session(
-  description: String,
-  capacity: Int,
-  minViableAttendees: Int,
-  attendeeSafetyMargin: Int,
-  startTime: LocalTime,
-  endTime: LocalTime
-)
+case class Session(id: String,
+                   description: String,
+                   capacity: Int,
+                   minViableAttendees: Int,
+                   attendeeSafetyMargin: Int,
+                   startTime: LocalTime,
+                   endTime: LocalTime)
 
 object Session {
   implicit val eventFormat: OFormat[Session] = Json.format[Session]
