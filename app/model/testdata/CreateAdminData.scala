@@ -19,6 +19,8 @@ package model.testdata
 import model.SchemeId
 import model.command.testdata.CreateAdminRequest.CreateAdminRequest
 import model.exchange.AssessorAvailability
+import model.persisted.assessor.AssessorStatus
+import model.persisted.assessor.AssessorStatus.AssessorStatus
 import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker
 import services.testdata.faker.DataFaker.Random
@@ -49,7 +51,8 @@ object CreateAdminData {
                 AssessorAvailability.apply(assessorAvailabilityRequest)
               }
             }}}}).orElse(DataFaker.Random.Assessor.availability)
-        Some(AssessorData(skills, sifterSchemes, civilServant, availability))
+        Some(AssessorData(skills, sifterSchemes, civilServant, availability,
+          createRequest.assessor.map(_.status).getOrElse(AssessorStatus.CREATED)))
       } else {
         None
       }
@@ -59,7 +62,7 @@ object CreateAdminData {
   }
 
   case class AssessorData(skills: List[String], sifterSchemes: List[SchemeId], civilServant: Boolean,
-                          availability: Option[List[AssessorAvailability]])
+                          availability: Option[List[AssessorAvailability]], status: AssessorStatus)
 
   object AssessorData {
     implicit val assessorDataFormat: OFormat[AssessorData] = Json.format[AssessorData]

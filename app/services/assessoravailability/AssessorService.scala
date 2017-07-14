@@ -93,7 +93,7 @@ trait AssessorService {
     location <- locationsWithVenuesRepo.location(locationName)
     assessorList <- assessorRepository.findAvailabilitiesForLocationAndDate(location, date, skills)
   } yield assessorList.map { assessor =>
-      model.exchange.Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, assessor.status)
+      model.exchange.Assessor.apply(assessor)
   }
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {

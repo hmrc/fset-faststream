@@ -26,7 +26,7 @@ import scala.concurrent.duration._
 import model.{ AllocationStatuses, Exceptions, SerialUpdateResult }
 import model.Exceptions.AssessorNotFoundException
 import model.exchange.UpdateAllocationStatusRequest
-import model.persisted.{ AssessorAllocation, EventExamples }
+import model.persisted.{ AssessorAllocation, EventExamples, ReferenceData }
 import model.persisted.eventschedules.{ Location, Venue }
 import model.persisted.assessor.AssessorExamples._
 import repositories.{ AllocationRepository, AssessorRepository }
