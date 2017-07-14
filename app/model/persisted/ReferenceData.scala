@@ -21,7 +21,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 case class ReferenceData[T](options: List[T], default: T, aggregate: T) {
-  val allValues = aggregate :: options toSet
+  val allValues: Set[T] = (aggregate :: options).toSet
 }
 
 object ReferenceData {
