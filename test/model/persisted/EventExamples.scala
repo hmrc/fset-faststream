@@ -18,7 +18,8 @@ package model.persisted
 
 import controllers.DayAggregateEvent
 import factories.UUIDFactory
-import model.persisted.eventschedules.{ Event, EventType, SkillType, Venue, Location }
+import model.UniqueIdentifier
+import model.persisted.eventschedules._
 import org.joda.time.{ LocalDate, LocalTime }
 
 object EventExamples {
@@ -62,6 +63,32 @@ object EventExamples {
   val DayAggregateEventsNew = List(
     DayAggregateEvent(LocalDate.now, LocationLondon),
     DayAggregateEvent(LocalDate.now, LocationNewcastle)
+  )
+
+  val YamlEvents = List(
+    Event("1", EventType.withName("FSAC"), "PDFS FSB", Location("London"), Venue("london fsac", "bush house"),
+      LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("11:00:00.000"), LocalTime.parse("12:00:00.000"),
+      Map("DEPARTMENTAL_ASSESSOR" -> 3, "EXERCISE_MARKER" -> 3, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
+      List(Session("", "AM", 36, 12, 4, LocalTime.parse("11:00:00.000"), LocalTime.parse("12:00:00.000")))
+    ),
+    Event("2", EventType.withName("FSAC"), "PDFS FSB", Location("London"), Venue("london fsac", "bush house"),
+      LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("09:00:00.000"), LocalTime.parse("12:00:00.000"),
+      Map("DEPARTMENTAL_ASSESSOR" -> 3, "EXERCISE_MARKER" -> 2, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
+      List(
+        Session("1", "First", 36,
+          12, 4, LocalTime.parse("09:00:00.000"), LocalTime.parse("10:30:00.000")),
+        Session("2", "Second", 36,
+          12, 4, LocalTime.parse("10:30:00.000"), LocalTime.parse("12:00:00.000")))
+    ),
+    Event("3", EventType.withName("FSAC"), "PDFS FSB", Location("London"), Venue("london fsac", "bush house"),
+      LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("09:00:00.000"), LocalTime.parse("12:00:00.000"),
+      Map("DEPARTMENTAL_ASSESSOR" -> 2, "EXERCISE_MARKER" -> 3, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
+      List(
+        Session("1", "First", 36,
+          12, 4, LocalTime.parse("09:00:00.000"), LocalTime.parse("10:30:00.000")),
+        Session("2", "Second", 36,
+          12, 4, LocalTime.parse("10:30:00.000"), LocalTime.parse("12:00:00.000")))
+    )
   )
 
 }
