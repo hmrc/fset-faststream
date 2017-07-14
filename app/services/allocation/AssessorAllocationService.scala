@@ -157,7 +157,7 @@ trait AssessorAllocationService extends EventSink {
             val confirmed = assessorAllocation.count(_.status == AllocationStatuses.CONFIRMED)
             EventAssessorAllocationsSummaryPerSkill(skill, allocated, confirmed)
           }.toList
-          EventWithAllocationsSummary(event, 0, allocationsGroupedBySkillWithSummary)
+          EventWithAllocationsSummary(event.date, event, 0, allocationsGroupedBySkillWithSummary)
         }
       }
       Future.sequence(res)
