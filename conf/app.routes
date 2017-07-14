@@ -122,8 +122,6 @@ GET         /assessor/:assessorId/allocations                            control
 
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
-GET         /events/venues-for-events                                    controllers.EventsController.venuesForEvents
-GET         /events/locations-for-events                                 controllers.EventsController.locationsForEvents
 GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
 GET         /events/:eventId/candidateAllocations                        controllers.EventsController.getCandidateAllocations(eventId: String)
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
@@ -139,4 +137,8 @@ GET         /day-aggregate-events/location/:location                     control
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
-GET         /reference/schemes                                            controllers.reference.SchemesController.allSchemes
+GET         /reference/schemes                                           controllers.reference.SchemesController.allSchemes
+
+GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
+GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations
+

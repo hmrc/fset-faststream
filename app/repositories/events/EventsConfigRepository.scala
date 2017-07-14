@@ -88,18 +88,17 @@ trait EventsConfigRepository {
     val yamlAst = rawConfig.parseYaml
     val eventsConfig = yamlAst.convertTo[List[EventConfig]]
 
-    // Force all 'types' to be upper case and replace hyphens and spaces with underscores
+    // Force all 'types' to be upper case and replace hyphens with underscores
     val massagedEventsConfig = eventsConfig.map(configItem => configItem.copy(
       eventType = configItem.eventType.replaceAll("\\s|-", "_").toUpperCase,
       skillRequirements = configItem.skillRequirements.map {
         case (skillName, numStaffRequired) => (skillName.replaceAll("\\s|-", "_").toUpperCase, numStaffRequired)}))
 
     FutureEx.traverseSerial(massagedEventsConfig) { configItem =>
-      for {
+      val eventItemFuture = for {
         location <- locationsWithVenuesRepo.location(configItem.location)
         venue <- locationsWithVenuesRepo.venue(configItem.venue)
-      } yield {
-        Event(UUIDFactory.generateUUID(),
+      } yield Event(UUIDFactory.generateUUID(),
           EventType.withName(configItem.eventType),
           configItem.description,
           location,
@@ -112,8 +111,8 @@ trait EventsConfigRepository {
           configItem.endTime,
           configItem.skillRequirements,
           configItem.sessions
-        )
-      }.recoverWith {
+      )
+      eventItemFuture.recoverWith {
         case ex => throw new Exception(
           s"Error in events config: ${MicroserviceAppConfig.eventsConfig.yamlFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
       }

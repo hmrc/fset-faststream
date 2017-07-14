@@ -46,8 +46,6 @@ trait AssessorService {
   val eventsRepo: EventsRepository
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
 
-  lazy val locations: Future[Set[Location]] = locationsWithVenuesRepo.locations
-
   def saveAssessor(userId: String, assessor: model.exchange.Assessor): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
