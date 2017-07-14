@@ -48,7 +48,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     override val reportingRepository: ReportingRepository = reportingRepositoryMock
     override val contactDetailsRepository: contactdetails.ContactDetailsRepository = mockContactDetailsRepository
     override val questionnaireRepository: QuestionnaireRepository = QuestionnaireInMemoryRepository
-    override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
+    override val fsacScoresRepository: FSACScoresRepository = ApplicationAssessmentScoresInMemoryRepository
     override val mediaRepository: MediaRepository = MediaInMemoryRepository
     override val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
     override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]

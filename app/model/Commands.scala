@@ -18,8 +18,7 @@ package model
 
 import controllers._
 import model.ApplicationRoute.ApplicationRoute
-import model.CandidateScoresCommands.CandidateScoresAndFeedback
-import model.CandidateScoresCommands.Implicits._
+import model.FSACScores.Implicits._
 import model.Exceptions.{ NoResultsReturned, TooManyEntries }
 import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands.TestResult
@@ -142,8 +141,10 @@ object Commands {
 
   case class AssessmentResultsReport(
                                       appPreferences: ApplicationPreferences,
-                                      questionnaire: QuestionnaireReportItem,
-                                      candidateScores: CandidateScoresAndFeedback
+                                      questionnaire: QuestionnaireReportItem
+                                      // TODO MIGUEL:
+                                      //,
+//                                      candidateScores: CandidateScoresAndFeedback
                                     )
 
   case class AssessmentCentreCandidatesReport(

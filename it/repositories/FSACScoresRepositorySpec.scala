@@ -17,18 +17,18 @@
 package repositories
 
 import factories.DateTimeFactory
-import model.CandidateScoresCommands.{CandidateScores, CandidateScoresAndFeedback}
+import model.FSACScores.{CandidateScores, CandidateScoresAndFeedback}
 import testkit.MongoRepositorySpec
 
-class ApplicationAssessmentScoresRepositorySpec extends MongoRepositorySpec {
+class FSACScoresRepositorySpec extends MongoRepositorySpec {
 
-  override val collectionName = CollectionNames.APPLICATION_ASSESSMENT_SCORES
+  override val collectionName = CollectionNames.FSAC_SCORES
 
-  def repository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
+  def repository = new FSACScoresMongoRepository(DateTimeFactory)
 
   "Application Scores Repository" should {
     "create indexes for the repository" in {
-      val repo = repositories.applicationAssessmentScoresRepository
+      val repo = repositories.fsacScoresRepository
 
       val indexes = indexesWithFields(repo)
       indexes must contain (List("_id"))
@@ -46,32 +46,32 @@ class ApplicationAssessmentScoresRepositorySpec extends MongoRepositorySpec {
       CandidateScores(Some(4.0), Some(3.0), Some(2.0)))
 
     "create a new application scores and feedback document" in {
-      repository.save(CandidateScoresWithFeedback).futureValue
+      repository.update(CandidateScoresWithFeedback).futureValue
 
-      repository.tryFind("app1").futureValue mustBe Some(CandidateScoresWithFeedback)
+      repository.find("app1").futureValue mustBe Some(CandidateScoresWithFeedback)
     }
 
     "return already stored application scores" in {
-      repository.save(CandidateScoresWithFeedback).futureValue
+      repository.update(CandidateScoresWithFeedback).futureValue
 
-      val result = repository.tryFind("app1").futureValue
+      val result = repository.find("app1").futureValue
 
       result mustBe Some(CandidateScoresWithFeedback)
     }
 
     "return no application score if it does not exist" in {
-      val result = repository.tryFind("app1").futureValue
+      val result = repository.find("app1").futureValue
 
       result mustBe None
     }
 
     "update already saved application scores and feedback document" in {
-      repository.save(CandidateScoresWithFeedback).futureValue
+      repository.update(CandidateScoresWithFeedback).futureValue
       val updatedApplicationScores = CandidateScoresWithFeedback.copy(attendancy = Some(false))
 
-      repository.save(updatedApplicationScores).futureValue
+      repository.update(updatedApplicationScores).futureValue
 
-      repository.tryFind("app1").futureValue mustBe Some(updatedApplicationScores)
+      repository.find("app1").futureValue mustBe Some(updatedApplicationScores)
     }
 
     "retrieve all application scores and feedback documents" in {
@@ -84,10 +84,10 @@ class ApplicationAssessmentScoresRepositorySpec extends MongoRepositorySpec {
         CandidateScores(Some(1.0), Some(3.0), Some(2.0)),
         CandidateScores(Some(1.0), Some(3.0), Some(2.0)))
 
-      repository.save(CandidateScoresWithFeedback).futureValue
-      repository.save(CandidateScoresWithFeedback2).futureValue
+      repository.update(CandidateScoresWithFeedback).futureValue
+      repository.update(CandidateScoresWithFeedback2).futureValue
 
-      val result = repository.allScores.futureValue
+      val result = repository.findAll.futureValue
 
       result must have size 2
       result must contain ("app1" -> CandidateScoresWithFeedback)
