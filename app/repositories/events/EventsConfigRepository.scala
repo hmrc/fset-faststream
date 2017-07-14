@@ -68,7 +68,7 @@ object EventConfigProtocol extends DefaultYamlProtocol {
     }
   }
 
-  implicit val sessionFormat = yamlFormat3(Session.apply)
+  implicit val sessionFormat = yamlFormat6(Session.apply)
   implicit val eventFormat = yamlFormat12(EventConfig.apply)
 }
 
@@ -77,7 +77,7 @@ trait EventsConfigRepository {
 
   import play.api.Play.current
 
-  protected def rawConfig = {
+  protected def rawConfig: String = {
     val input = managed(Play.application.resourceAsStream(MicroserviceAppConfig.eventsConfig.yamlFilePath).get)
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
@@ -88,17 +88,18 @@ trait EventsConfigRepository {
     val yamlAst = rawConfig.parseYaml
     val eventsConfig = yamlAst.convertTo[List[EventConfig]]
 
-    // Force all 'types' to be upper case and replace hyphens with underscores
+    // Force all 'types' to be upper case and replace hyphens and spaces with underscores
     val massagedEventsConfig = eventsConfig.map(configItem => configItem.copy(
       eventType = configItem.eventType.replaceAll("\\s|-", "_").toUpperCase,
       skillRequirements = configItem.skillRequirements.map {
         case (skillName, numStaffRequired) => (skillName.replaceAll("\\s|-", "_").toUpperCase, numStaffRequired)}))
 
-    FutureEx.traverseSerial(massagedEventsConfig) { case configItem =>
-      val eventItemFuture = for {
+    FutureEx.traverseSerial(massagedEventsConfig) { configItem =>
+      for {
         location <- locationsWithVenuesRepo.location(configItem.location)
         venue <- locationsWithVenuesRepo.venue(configItem.venue)
-      } yield Event(UUIDFactory.generateUUID(),
+      } yield {
+        Event(UUIDFactory.generateUUID(),
           EventType.withName(configItem.eventType),
           configItem.description,
           location,
@@ -111,8 +112,8 @@ trait EventsConfigRepository {
           configItem.endTime,
           configItem.skillRequirements,
           configItem.sessions
-      )
-      eventItemFuture.recoverWith {
+        )
+      }.recoverWith {
         case ex => throw new Exception(
           s"Error in events config: ${MicroserviceAppConfig.eventsConfig.yamlFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
       }
