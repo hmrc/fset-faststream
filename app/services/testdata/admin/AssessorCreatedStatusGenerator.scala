@@ -52,7 +52,7 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
 
   def createAssessor(userId: String, assessor: AssessorData)(
     implicit hc: HeaderCarrier): Future[model.exchange.Assessor] = {
-    val assessorE = model.exchange.Assessor(userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
+    val assessorE = model.exchange.Assessor(userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, assessor.status)
     assessorService.saveAssessor(userId, assessorE).map(_ => assessorE)
   }
 

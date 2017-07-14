@@ -26,6 +26,7 @@ import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllo
 import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.AssessorSkill
+import model.persisted.assessor.AssessorStatus
 import model.persisted.eventschedules.{ EventType, Session, SkillType }
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
@@ -152,7 +153,8 @@ trait TestDataGeneratorController extends BaseController {
         availability = Some(List(
           AssessorAvailabilityRequest("London", LocalDate.now()),
           AssessorAvailabilityRequest("Newcastle", LocalDate.now())
-        ))
+        )),
+        status = AssessorStatus.AVAILABILITIES_SUBMITTED
       ))
     )
 
