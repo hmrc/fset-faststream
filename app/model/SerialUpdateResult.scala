@@ -55,10 +55,6 @@ object SerialUpdateResult {
   }
 
   def futureToEither[T](updateReq: T, result: Future[Unit])(implicit ex: ExecutionContext): Future[Either[T, T]] = {
-    result.map ( _ => Right(updateReq))
-      .recover {
-        case e: Exception => play.api.Logger.error(e.getMessage)
-          Left(updateReq)
-      }
+    result.map { _ => Right(updateReq) }.recover { case _: Exception => Left(updateReq) }
   }
 }

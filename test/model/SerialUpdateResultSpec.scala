@@ -19,6 +19,7 @@ import testkit.UnitSpec
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.time.Seconds
 
 class SerialUpdateResultSpec extends UnitSpec {
 
