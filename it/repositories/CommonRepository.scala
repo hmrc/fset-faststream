@@ -1,6 +1,6 @@
 package repositories
 
-import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig }
+import config.{CubiksGatewayConfig, LaunchpadGatewayConfig}
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
@@ -9,9 +9,9 @@ import model.Phase2TestProfileExamples._
 import model.Phase3TestProfileExamples._
 import model.ProgressStatuses.ProgressStatus
 import model.persisted._
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
 import model._
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.Assert._
 import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.bson.BSONDocument
@@ -19,6 +19,7 @@ import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting._
 import repositories.passmarksettings._
+import repositories.sift.{ApplicationSiftMongoRepository, ApplicationSiftRepository}
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
@@ -55,6 +56,8 @@ trait CommonRepository {
   def phase2PassMarkSettingRepo = new Phase2PassMarkSettingsMongoRepository()
 
   def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
+
+  def applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, List(Scheme(SchemeId("Commercial"), "", "", true)))
 
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 

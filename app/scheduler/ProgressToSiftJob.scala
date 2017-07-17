@@ -27,7 +27,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object ProgressToSiftJob extends ProgressToSiftJob {
   val siftService = ApplicationSiftService$
-  val config = SiftConfig
+  val config = TbcConfig
 }
 
 trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
