@@ -19,18 +19,18 @@ package scheduler
 import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
-import services.sift.SiftService
+import services.sift.ApplicationSiftService$
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object ProgressToAssessmentCentreJob extends ProgressToAssessmentCentreJob {
-  val siftService = SiftService
+  val siftService = ApplicationSiftService$
   val config = SiftConfig
 }
 
 trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  val siftService: SiftService
+  val siftService: ApplicationSiftService$
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     siftService.nextTestGroupWithReportReady.flatMap {

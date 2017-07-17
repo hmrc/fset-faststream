@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package services.assessmentcentre
+package model.command
 
-object AssessmentCentreService extends AssessmentCentreService {
+import model.persisted.PassmarkEvaluation
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-}
+case class ApplicationForSift(
+  applicationId: String,
+  evaluationResult: PassmarkEvaluation
+)
 
-trait AssessmentCentreService {
-
+object ApplicationForSift {
+  implicit val applicationForSiftFormat = Json.format[ApplicationForSift]
+  implicit val applicationForSiftHandler = Macros.handler[ApplicationForSift]
 }

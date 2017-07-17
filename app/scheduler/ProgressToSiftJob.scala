@@ -20,28 +20,27 @@ import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
 import services.onlinetesting.OnlineTestService
-import services.sift.SiftService
+import services.sift.ApplicationSiftService$
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object ProgressToSiftJob extends ProgressToSiftJob {
-  val siftService = SiftService
+  val siftService = ApplicationSiftService$
   val config = SiftConfig
 }
 
 trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  val siftService: SiftService
+  val siftService: ApplicationSiftService$
 
   val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    siftService.nextCandidatesReadyForEvaluation(batchSize).flatMap {
-      case Some(richTestGroup) =>
+    siftService.nextCandidatesReadyForSift(batchSize).flatMap {
+      case Nil => Future.successful(())
+      case applications =>
         implicit val hc = new HeaderCarrier()
-        siftService.retrieveTestResult(richTestGroup)
-      case None => Future.successful(())
-    }
+       Future.successful(())}
   }
 }
 

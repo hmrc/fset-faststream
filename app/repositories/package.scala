@@ -21,7 +21,7 @@ import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
-import model.command.WithdrawApplication
+import model.command.{ ApplicationForSift, WithdrawApplication }
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
 import factories.DateTimeFactory
 import model.persisted._
@@ -35,7 +35,8 @@ import repositories.onlinetesting._
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
-import model.AdjustmentDetail
+import model.ApplicationStatus.ApplicationStatus
+import model.{ AdjustmentDetail, SchemeId }
 import model.persisted.assessor.{ Assessor, AssessorAvailability }
 import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
@@ -44,6 +45,7 @@ import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait 
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.fsacindicator.{ FSACIndicatorMongoRepository, FSACIndicatorRepository }
 import repositories.events.EventsMongoRepository
+import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import repositories.stc.StcEventMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -96,6 +98,7 @@ package object repositories {
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
+  lazy val candidateSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemes)
 
 
   /** Create indexes */
