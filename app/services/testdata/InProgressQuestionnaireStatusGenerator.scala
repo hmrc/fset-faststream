@@ -60,7 +60,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getSchoolName16to18Answer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
-        Some(PersistedQuestion("Aged 16 to 18 what was the name of your school?",
+        Some(PersistedQuestion("Aged 16 to 18 what was the name of your school or college?",
           PersistedAnswer(Some(Random.age16to18School), None, None)))
       } else {
         None

@@ -265,7 +265,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
             getAnswer("Did you live in the UK between the ages of 14 and 18?", questionsDoc),
             getAnswer("What was your home postcode when you were 14?", questionsDoc),
             getAnswer("Aged 14 to 16 what was the name of your school?", questionsDoc),
-            getAnswer("Aged 16 to 18 what was the name of your school?", questionsDoc),
+            getAnswer("Aged 16 to 18 what was the name of your school or college?", questionsDoc),
             getAnswer("Were you at any time eligible for free school meals?", questionsDoc),
             universityName,
             getAnswer("Which category best describes your degree?", questionsDoc),
