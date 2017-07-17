@@ -221,6 +221,29 @@ trait EmailClient extends WSHttp {
     sendEmail(to, "fset_faststream_candidate_assessment_scheduled",
       Map("name" -> name, "eventDate" -> eventDate, "eventStartTime" -> eventTime))
   }
+
+  def sendAssessorAllocatedToEvent(to: String, name: String, eventDate: String, eventRole: String, eventName: String,
+                                   eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_event_assessor_allocated",
+      Map("name" -> name, "eventDate" -> eventDate, "eventRole" -> eventRole, "eventName" -> eventName, "eventLocation" -> eventLocation,
+        "eventStartTime" -> eventStartTime)
+    )
+  }
+
+  def sendAssessorUnAllocatedFromEvent(to: String, name: String, eventDate: String, eventRole: String, eventName: String,
+                                   eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_event_assessor_unallocated",
+      Map("name" -> name, "eventDate" -> eventDate)
+    )
+  }
+
+  def sendAssessorEventAllocationChanged(to: String, name: String, eventDate: String, eventRole: String, eventName: String,
+                                   eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_event_assessor_allocation_changed",
+      Map("name" -> name, "eventDate" -> eventDate, "eventRole" -> eventRole, "eventName" -> eventName, "eventLocation" -> eventLocation,
+        "eventStartTime" -> eventStartTime)
+    )
+  }
 }
 
 object EmailDateFormatter {

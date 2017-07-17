@@ -27,6 +27,8 @@ import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, Candidate
 import model.stc.StcEventTypes.StcEvents
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsMongoRepository
+import repositories.personaldetails.PersonalDetailsMongoRepository
 import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
@@ -67,16 +69,44 @@ trait AssessorAllocationService extends EventSink {
     candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
-  def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
+  def allocate(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
     assessorAllocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
-      case Nil => assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
-      case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations).map(_ => ())
+      case Nil =>
+        for {
+          _ <- assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations))
+          _ <- notifyNewlyAllocatedAssessors(newAllocations)
+        } yield ()
+      case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations)
     }
   }
 
   private val dateFormat = "dd MMMM YYYY"
   private val timeFormat = "HH:mma"
 
+  private def notifyNewlyAllocatedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
+    val x = (for {
+      eventDetails <- eventsService.getEvent(newAllocations.eventId)
+      contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
+    } yield for {
+      contactDetail <- contactDetails
+      contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
+        throw new Exception("Could not find contact details for assessor user")
+      )
+      allocationForUser = newAllocations.allocations.find(_.id == contactDetailsForUser.userId).get
+    } yield {
+      emailClient.sendAssessorAllocatedToEvent(
+        contactDetailsForUser.email,
+        contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
+        eventDetails.date.toString("d MMMM YYYY"),
+        allocationForUser.allocatedAs.displayText,
+        eventDetails.eventType.toString,
+        eventDetails.location.name,
+        eventDetails.startTime.toString("ha")
+      )
+    }).map(_ => ())
+
+    x
+  }
 
   def allocateCandidates(newAllocations: command.CandidateAllocations)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
