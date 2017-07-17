@@ -21,6 +21,40 @@ import play.api.libs.json.{ Json }
 
 object FSACScores {
 
+
+  case class FSACExerciseScoresAndFeedback(
+                                            //  attended: Boolean,
+                                            //  assessmentIncomplete: Boolean,
+                                            //  leadingAndCommunicating: Option[Double] = None,
+                                            //  collaboratingAndPartnering: Option[Double] = None,
+                                            //  deliveringAtPace: Option[Double] = None,
+                                            //  makingEffectiveDecisions: Option[Double] = None,
+                                            //  changingAndImproving: Option[Double] = None,
+                                            //  buildingCapabilityForAll: Option[Double] = None,
+                                            //  motivationFit: Option[Double] = None,
+
+                                            seeingTheBigPicture: Option[Double] = None,
+                                            changingAndImproving: Option[Double] = None,
+                                            makingEffectiveDecisions: Option[Double] = None,
+                                            leadingAndCommunicating: Option[Double] = None,
+                                            collaboratingAndPartnering: Option[Double] = None,
+                                            buildingCapabilityForAll: Option[Double] = None,
+                                            achievingCommercialOutcomes: Option[Double] = None,
+                                            deliveringValueForMoney: Option[Double] = None,
+
+                                            feedback: Option[String] = None,
+                                            //  updatedBy: UniqueIdentifier,
+                                            //  savedDate: Option[DateTime] = None,
+                                            submittedDate: Option[DateTime] = None,
+                                            version: Option[String] = None
+                                          ) {
+    def isSubmitted = submittedDate.isDefined
+  }
+
+  object FSACExerciseScoresAndFeedback {
+    implicit val format = Json.format[FSACExerciseScoresAndFeedback]
+  }
+
   case class FSACAllExercisesScoresAndFeedback(
                                                 applicationId: UniqueIdentifier,
                                                 analysisExercise: Option[FSACExerciseScoresAndFeedback] = None,
@@ -32,38 +66,6 @@ object FSACScores {
     implicit val format = Json.format[FSACAllExercisesScoresAndFeedback]
   }
 
-  case class FSACExerciseScoresAndFeedback(
-                                //  attended: Boolean,
-                                //  assessmentIncomplete: Boolean,
-                                //  leadingAndCommunicating: Option[Double] = None,
-                                //  collaboratingAndPartnering: Option[Double] = None,
-                                //  deliveringAtPace: Option[Double] = None,
-                                //  makingEffectiveDecisions: Option[Double] = None,
-                                //  changingAndImproving: Option[Double] = None,
-                                //  buildingCapabilityForAll: Option[Double] = None,
-                                //  motivationFit: Option[Double] = None,
-
-                                seeingTheBigPicture: Option[Double] = None,
-                                changingAndImproving: Option[Double] = None,
-                                makingEffectiveDecisions: Option[Double] = None,
-                                leadingAndCommunicating: Option[Double] = None,
-                                collaboratingAndPartnering: Option[Double] = None,
-                                buildingCapabilityForAll: Option[Double] = None,
-                                achievingCommercialOutcomes: Option[Double] = None,
-                                deliveringValueForMoney: Option[Double] = None,
-
-                                feedback: Option[String] = None,
-                                //  updatedBy: UniqueIdentifier,
-                                //  savedDate: Option[DateTime] = None,
-                                submittedDate: Option[DateTime] = None,
-                                version: Option[String] = None
-                              ) {
-    def isSubmitted = submittedDate.isDefined
-  }
-
-  object FSACExerciseScoresAndFeedback {
-    implicit val format = Json.format[FSACExerciseScoresAndFeedback]
-  }
 
 //  case class RecordCandidateScores(firstName: String, lastName: String, venueName: String, date: LocalDate)
 /*
