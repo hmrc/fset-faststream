@@ -36,7 +36,7 @@ class SerialUpdateResultSpec extends UnitSpec {
       actual mustBe expected
     }
 
-    "construct an Left[T] from a future failed" in {
+    "construct a Left[T] from a future failed" in {
       val f = Future.failed(new Exception("Something went wrong"))
       val actual = SerialUpdateResult.futureToEither("blah", f).futureValue
       val expected = Left("blah")
@@ -44,7 +44,7 @@ class SerialUpdateResultSpec extends UnitSpec {
       actual mustBe expected
     }
 
-    "construct an Right[T] from a future success" in {
+    "construct a Right[T] from a future success" in {
       val f = Future.successful(unit)
       val actual = SerialUpdateResult.futureToEither("blah", f).futureValue
       val expected = Right("blah")
