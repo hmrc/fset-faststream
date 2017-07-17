@@ -112,6 +112,8 @@ object ProgressStatuses {
 
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
+  case object ALL_SIFT_COMPLETE extends ProgressStatus(ApplicationStatus.SIFT)
+
   case object ASSESSMENT_CENTRE_FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_SCORES_ACCEPTED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
@@ -120,6 +122,7 @@ object ProgressStatuses {
   case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED)
   case object ASSESSMENT_CENTRE_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED_NOTIFIED)
   case object ASSESSMENT_CENTRE_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED_NOTIFIED)
+
 
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)
