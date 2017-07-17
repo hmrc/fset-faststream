@@ -28,7 +28,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.Future
 
-trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryHelpers with CommonBSONDocuments {
+trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
 
   def thisApplicationStatus: ApplicationStatus
@@ -36,6 +36,7 @@ trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryH
   def siftableSchemes: Seq[Scheme]
 
   def nextApplicationsForSift(maxBatchSize: Int): Future[List[ApplicationForSift]]
+  def progressApplicationToSift(application: ApplicationForSift): Future[Unit]
 
 }
 
@@ -64,6 +65,12 @@ class ApplicationSiftMongoRepository(
     selectRandom[ApplicationForSift](eligibleForSiftQuery, batchSize)
   }
 
-  def progressApplicationToSift(application: ApplicationForSift) = {
+  def progressApplicationToSift(application: ApplicationForSift): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> application.applicationId) ++ eligibleForSiftQuery
+    val update = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT)
+
+    val validator = singleUpdateValidator(application.applicationId, "progressing to sift stage")
+
+    collection.update(query, update) map validator
   }
 }

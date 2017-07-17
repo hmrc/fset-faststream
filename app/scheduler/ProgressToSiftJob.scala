@@ -26,17 +26,17 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 object ProgressToSiftJob extends ProgressToSiftJob {
-  val siftService = ApplicationSiftService$
+  val siftService = ApplicationSiftService
   val config = SiftConfig
 }
 
 trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  val siftService: ApplicationSiftService$
+  val siftService: ApplicationSiftService
 
   val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    siftService.nextCandidatesReadyForSift(batchSize).flatMap {
+    siftService.nextApplicationsReadyForSift(batchSize).flatMap {
       case Nil => Future.successful(())
       case applications =>
         implicit val hc = new HeaderCarrier()
