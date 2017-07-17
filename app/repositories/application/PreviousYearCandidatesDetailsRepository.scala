@@ -398,13 +398,14 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
     val videoEvaluation = videoInterviewSection.flatMap(_.getAs[BSONDocument]("evaluation"))
     val videoEvalResults = videoEvaluation.flatMap(_.getAs[List[BSONDocument]]("result"))
 
-    val otEvalResultsMap = onlineTestEvalResults.map(resultList => resultList.map(result => result.getAs[String]("scheme").get -> result.getAs[String]("result").get).toMap)
-    val etrayEvalResultsMap = etrayEvalResults.map(resultList => resultList.map(result => result.getAs[String]("scheme").get -> result.getAs[String]("result").get).toMap)
-    val videoEvalResultsMap = videoEvalResults.map(resultList => resultList.map(result => result.getAs[String]("scheme").get -> result.getAs[String]("result").get).toMap)
+    val otEvalResultsMap = onlineTestEvalResults.map(resultList => resultList.map(result => result.getAs[String]("result").get))
+    val etrayEvalResultsMap = etrayEvalResults.map(resultList => resultList.map(result => result.getAs[String]("result").get))
+    val videoEvalResultsMap = videoEvalResults.map(resultList => resultList.map(result => result.getAs[String]("result").get))
 
-    val otSchemeResults = otEvalResultsMap.map(_.values.toList).getOrElse(Nil)
-    val etraySchemeResults = etrayEvalResultsMap.map(_.values.toList).getOrElse(Nil)
-    val videoSchemeResults = videoEvalResultsMap.map(_.values.toList).getOrElse(Nil)
+    val otSchemeResults = otEvalResultsMap.getOrElse(Nil)
+
+    val etraySchemeResults = etrayEvalResultsMap.getOrElse(Nil)
+    val videoSchemeResults = videoEvalResultsMap.getOrElse(Nil)
 
     otSchemeResults.map(Option(_)) :::
     (1 to (17 - otSchemeResults.size)).toList.map(_ => Some("")) :::
