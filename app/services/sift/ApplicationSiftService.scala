@@ -22,18 +22,21 @@ import repositories.sift.ApplicationSiftRepository
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-object ApplicationSiftService$ extends ApplicationSiftService$ {
-  val candidateSiftRepo = repositories.candidateSiftRepository
+object ApplicationSiftService extends ApplicationSiftService {
+  val applicationSiftRepo = repositories.applicationSiftRepository
 }
 
-trait ApplicationSiftService$ {
-  def candidateSiftRepo: ApplicationSiftRepository
+trait ApplicationSiftService {
+  def applicationSiftRepo: ApplicationSiftRepository
 
   def nextApplicationsReadyForSift(batchSize: Int): Future[Seq[ApplicationForSift]] = {
-    candidateSiftRepo.nextApplicationsForSift(batchSize)
+    applicationSiftRepo.nextApplicationsForSift(batchSize)
   }
 
-  def progressApplicationToSift(applications: Future[Seq[ApplicationForSift]]) = {
-
+  def progressApplicationToSift(applications: Future[Seq[ApplicationForSift]]): Future[Seq[Future[Unit]]] = {
+    applications.map(_.map{ application =>
+      applicationSiftRepo.progressApplicationToSift(application)
+    })
   }
+
 }
