@@ -30,7 +30,7 @@ object SchemesController extends SchemesController{
 trait SchemesController extends BaseController {
   def repo: SchemeRepositoryImpl
 
-  def allSchemes: Action[AnyContent] = Action.async { implicit request =>
-    repo.schemes.map(s => Ok(Json.toJson(s)))
+  def allSchemes: Action[AnyContent] = Action { implicit request =>
+    Ok(repo.schemes.map(s => (Json.toJson(s))))
   }
 }

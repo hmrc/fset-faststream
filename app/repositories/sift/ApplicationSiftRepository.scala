@@ -27,6 +27,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>

@@ -29,7 +29,7 @@ import scala.io.Source
 
 
 object SchemeConfigProtocol extends DefaultYamlProtocol {
-  implicit val schemeFormat = yamlFormat3((a: String, b: String ,c: String, d: Boolean) => Scheme(a,b,c, d))
+  implicit val schemeFormat = yamlFormat4((a: String, b: String ,c: String, d: Boolean) => Scheme(a,b,c, d))
 }
 
 trait SchemeRepositoryImpl {
