@@ -20,7 +20,7 @@ import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
 import services.onlinetesting.OnlineTestService
-import services.sift.ApplicationSiftService$
+import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }

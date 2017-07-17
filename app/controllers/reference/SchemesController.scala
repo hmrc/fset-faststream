@@ -31,6 +31,6 @@ trait SchemesController extends BaseController {
   def repo: SchemeRepositoryImpl
 
   def allSchemes: Action[AnyContent] = Action { implicit request =>
-    Ok(repo.schemes.map(s => (Json.toJson(s))))
+    Ok(Json.toJson(repo.schemes))
   }
 }
