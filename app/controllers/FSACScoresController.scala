@@ -16,23 +16,52 @@
 
 package controllers
 
+import controllers.FSACScoresController.fsacScoresRepo
+import model.FSACScores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback }
+import model.models.UniqueIdentifier
+import repositories.FSACScoresRepository
 import services.fsacscores.FSACScoresService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import scala.concurrent.Future
+
 object FSACScoresController extends FSACScoresController {
   val fsacScoresService: FSACScoresService = FSACScoresService
-  /*val eventsService: EventsService = EventsService
-  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
-  val assessorAllocationService: AssessorAllocationService = AssessorAllocationService*/
+  val fsacScoresRepo: FSACScoresRepository = repositories.fsacScoresRepository
+
+  override def updateAnalysisExercise(applicationId: UniqueIdentifier,
+                                      exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback)
+  : Future[Unit] = {
+    fsacScoresService.updateAnalysisExercise(applicationId, exerciseScoresAndFeedback)
+  }
+  override def updateGroupExercise(applicationId: UniqueIdentifier,
+                                   exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit] = {
+    fsacScoresService.updateGroupExercise(applicationId, exerciseScoresAndFeedback)
+  }
+  override def updateLeadershipExercise(applicationId: UniqueIdentifier,
+                                        exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit] = {
+    fsacScoresService.updateLeadershipExercise(applicationId, exerciseScoresAndFeedback)
+  }
+
+  def find(applicationId: UniqueIdentifier): Future[Option[FSACAllExercisesScoresAndFeedback]] = {
+    fsacScoresRepo.find(applicationId)
+  }
+
+  def findAll: Future[Map[UniqueIdentifier, FSACAllExercisesScoresAndFeedback]] = {
+    fsacScoresRepo.findAll
+  }
 }
 
 trait FSACScoresController extends BaseController {
   val fsacScoresService: FSACScoresService
-  /*
-  def eventsService: EventsService
+  val fsacScoresRepo: FSACScoresRepository
 
-  def locationsAndVenuesRepository: LocationsWithVenuesRepository
-
-  def assessorAllocationService: AssessorAllocationService
-*/
+  def updateAnalysisExercise(applicationId: UniqueIdentifier,
+                             exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  def updateGroupExercise(applicationId: UniqueIdentifier,
+                          exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  def updateLeadershipExercise(applicationId: UniqueIdentifier,
+                               exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  def find(applicationId: UniqueIdentifier): Future[Option[FSACAllExercisesScoresAndFeedback]]
+  def findAll: Future[Map[UniqueIdentifier, FSACAllExercisesScoresAndFeedback]]
 }

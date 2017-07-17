@@ -19,8 +19,10 @@ package models
 
 import java.util.UUID
 
+import model.CivilServiceExperienceType.CivilServiceExperienceType
 import models.UniqueIdentifier
 import play.api.libs.json._
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 case class UniqueIdentifier(uuid: UUID) {
   override def toString() = uuid.toString

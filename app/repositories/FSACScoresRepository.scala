@@ -29,9 +29,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait FSACScoresRepository {
-  def update(candidateScoresAndFeedback: FSACAllExercisesScoresAndFeedback): Future[Unit]
+  def update(scoresAndFeedback: FSACAllExercisesScoresAndFeedback): Future[Unit]
   def find(applicationId: UniqueIdentifier): Future[Option[FSACAllExercisesScoresAndFeedback]]
-  def findAll: Future[Map[String, FSACAllExercisesScoresAndFeedback]]
+  def findAll: Future[Map[UniqueIdentifier, FSACAllExercisesScoresAndFeedback]]
 }
 
 class FSACScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -40,10 +40,10 @@ class FSACScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   with FSACScoresRepository with ReactiveRepositoryHelpers {
 
 
-  def update(allExercisescoresAndFeedback: FSACAllExercisesScoresAndFeedback): Future[Unit] = {
-    val applicationId = allExercisescoresAndFeedback.applicationId
+  def update(allExercisesScoresAndFeedback: FSACAllExercisesScoresAndFeedback): Future[Unit] = {
+    val applicationId = allExercisesScoresAndFeedback.applicationId
     val query = BSONDocument("applicationId" -> applicationId.toString())
-    val updateBSON = BSONDocument("$set" -> fSACAllExercisesScoresAndFeedbackHandler.write(allExercisescoresAndFeedback))
+    val updateBSON = BSONDocument("$set" -> fSACAllExercisesScoresAndFeedbackHandler.write(allExercisesScoresAndFeedback))
     val validator = singleUpsertValidator(applicationId.toString(), actionDesc = "saving allocation")
     collection.update(query, updateBSON, upsert = true) map validator
   }

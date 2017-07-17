@@ -206,8 +206,12 @@ package object repositories {
     }
   }
 
-  implicit val uuidHandler: BSONHandler[BSONDocument, UUID] = Macros.handler[UUID]
-  implicit val uniqueIdentifierHandler: BSONHandler[BSONDocument, UniqueIdentifier] = Macros.handler[UniqueIdentifier]
+
+  implicit object UniqueIdentifierBSONEnumHandler extends BSONHandler[BSONString, UniqueIdentifier] {
+    def read(doc: BSONString) = UniqueIdentifier(doc.value)
+    def write(id: UniqueIdentifier) = BSON.write(id.toString)
+  }
+
   implicit val withdrawHandler: BSONHandler[BSONDocument, WithdrawApplication] = Macros.handler[WithdrawApplication]
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]

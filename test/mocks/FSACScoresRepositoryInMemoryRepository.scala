@@ -16,20 +16,21 @@
 
 package mocks
 
-import model.FSACScores.CandidateScoresAndFeedback
+import model.FSACScores.FSACAllExercisesScoresAndFeedback
+import model.models.UniqueIdentifier
 import repositories.FSACScoresRepository
 
 import scala.concurrent.Future
 
-object ApplicationAssessmentScoresInMemoryRepository extends ApplicationAssessmentScoresInMemoryRepository
+object FSACScoresRepositoryInMemoryRepository extends FSACScoresRepositoryInMemoryRepository
 
-class ApplicationAssessmentScoresInMemoryRepository extends FSACScoresRepository {
+class FSACScoresRepositoryInMemoryRepository extends FSACScoresRepository {
 
-  def findAll: Future[Map[String, CandidateScoresAndFeedback]] = ???
+  def update(scores: FSACAllExercisesScoresAndFeedback): Future[Unit] = ???
 
-  def find(applicationId: String): Future[Option[CandidateScoresAndFeedback]] = ???
+  def find(applicationId: UniqueIdentifier): Future[Option[FSACAllExercisesScoresAndFeedback]] = ???
 
-  def save(candidateScoresAndFeedbck: CandidateScoresAndFeedback): Future[Unit] = ???
+  def findAll: Future[Map[UniqueIdentifier, FSACAllExercisesScoresAndFeedback]] = ???
 
-  def nextCandidateScoresReadyForEvaluation: Future[Option[CandidateScoresAndFeedback]] = ???
+  //def nextCandidateScoresReadyForEvaluation: Future[Option[FSACAllExercisesScoresAndFeedback]] = ???
 }

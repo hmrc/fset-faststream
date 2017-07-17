@@ -27,21 +27,21 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object FSACScoresService extends FSACScoresService {
   override val repository: FSACScoresRepository = repositories.fsacScoresRepository
 
-  override def updateAnalysisExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback) = {
+  override def updateAnalysisExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     val updateAnalysisExercise = (allExercisesOld: FSACAllExercisesScoresAndFeedback, exerciseScores: FSACExerciseScoresAndFeedback) => {
       allExercisesOld.copy(analysisExercise = Some(exerciseScores))
     }
     updateExercise(applicationId, exerciseScores, updateAnalysisExercise)
   }
 
-  override def updateGroupExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback) = {
+  override def updateGroupExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     val updateGroupExercise = (allExercisesOld: FSACAllExercisesScoresAndFeedback, exerciseScores: FSACExerciseScoresAndFeedback) => {
       allExercisesOld.copy(groupExercise = Some(exerciseScores))
     }
     updateExercise(applicationId, exerciseScores, updateGroupExercise)
   }
 
-  override def updateLeadershipExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback) = {
+  override def updateLeadershipExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     val updateLeadershipExercise = (allExercisesOld: FSACAllExercisesScoresAndFeedback, exerciseScores: FSACExerciseScoresAndFeedback) => {
       allExercisesOld.copy(leadershipExercise = Some(exerciseScores))
     }
@@ -50,7 +50,8 @@ object FSACScoresService extends FSACScoresService {
 
   private def updateExercise(applicationId: UniqueIdentifier,
                              exerciseScores: FSACExerciseScoresAndFeedback,
-                             update: (FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback) => FSACAllExercisesScoresAndFeedback) = {
+                             update: (FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback) => FSACAllExercisesScoresAndFeedback)
+  : Future[Unit] = {
     for {
       allExercisesOldMaybe <- repository.find(applicationId)
       allExercisesOld = allExercisesOldMaybe.getOrElse(FSACAllExercisesScoresAndFeedback(applicationId, None, None, None))
@@ -65,8 +66,8 @@ object FSACScoresService extends FSACScoresService {
 trait FSACScoresService {
   val repository: FSACScoresRepository
 
-  def updateAnalysisExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback)
-  def updateGroupExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback)
-  def updateLeadershipExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback)
+  def updateAnalysisExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  def updateGroupExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  def updateLeadershipExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
 
 }
