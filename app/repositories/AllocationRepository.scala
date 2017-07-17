@@ -66,6 +66,10 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
   def allocationsForEvent(eventId: String): Future[Seq[T]] = {
     collection.find(BSONDocument("eventId" -> eventId), projection).cursor[T]().collect[Seq]()
   }
+
+  def allocationsForSession(eventId: String, sessionId: String): Future[Seq[T]] = {
+    collection.find(BSONDocument("eventId" -> eventId, "sessionId" -> sessionId), projection).cursor[T]().collect[Seq]()
+  }
 }
 
 class AssessorAllocationMongoRepository(implicit mongo: () => DB)
@@ -73,7 +77,7 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
     CollectionNames.ASSESSOR_ALLOCATION, mongo, AssessorAllocation.assessorAllocationFormat,
     ReactiveMongoFormats.objectIdFormats
   ) with AllocationRepository[AssessorAllocation] with ReactiveRepositoryHelpers {
-  val format = AssessorAllocation.assessorAllocationFormat
+  val format: OFormat[AssessorAllocation] = AssessorAllocation.assessorAllocationFormat
 }
 
 class CandidateAllocationMongoRepository(implicit mongo: () => DB)
@@ -81,5 +85,5 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     CollectionNames.CANDIDATE_ALLOCATION, mongo, CandidateAllocation.candidateAllocationFormat,
     ReactiveMongoFormats.objectIdFormats
   ) with AllocationRepository[CandidateAllocation] with ReactiveRepositoryHelpers {
-  val format = CandidateAllocation.candidateAllocationFormat
+  val format: OFormat[CandidateAllocation] = CandidateAllocation.candidateAllocationFormat
 }

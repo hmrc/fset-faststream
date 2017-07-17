@@ -123,12 +123,12 @@ GET         /assessor/:assessorId/allocations                            control
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
 GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
-GET         /events/:eventId/candidateAllocations                        controllers.EventsController.getCandidateAllocations(eventId: String)
+GET         /events/:eventId/sessions/:sessionId/candidateAllocations    controllers.EventsController.getCandidateAllocations(eventId: String, sessionId: String)
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
 GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
-PUT         /events/:eventId/allocateCandidates                          controllers.EventsController.allocateCandidates(eventId: String)
+PUT         /events/:eventId/sessions/:sessionId/allocateCandidates      controllers.EventsController.allocateCandidates(eventId: String, sessionId: String)
 
 
 # Day aggregate events
