@@ -47,7 +47,7 @@ trait ProgressToSiftRepository extends RandomSelection with ReactiveRepositoryHe
 
 }
 
-class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
+class ProgressToSiftRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository
