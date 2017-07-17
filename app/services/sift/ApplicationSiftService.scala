@@ -20,6 +20,7 @@ import model.command.ApplicationForSift
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
 object ApplicationSiftService extends ApplicationSiftService {

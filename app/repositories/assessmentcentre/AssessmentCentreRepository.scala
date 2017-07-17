@@ -30,12 +30,7 @@ import scala.concurrent.Future
 trait AssessmentCentreRepository extends RandomSelection with ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
 
-  def thisApplicationStatus: ApplicationStatus
   def dateTime: DateTimeFactory
-
-  def nextApplicationsForSift(maxBatchSize: Int): Future[List[ApplicationForSift]]
-  def progressApplicationToSift(application: ApplicationForSift): Future[Unit]
-
 }
 
 class AssessmentCentreMongoRepository (

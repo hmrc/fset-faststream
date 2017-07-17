@@ -33,12 +33,13 @@ trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobC
   val siftService: ApplicationSiftService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    siftService.nextTestGroupWithReportReady().flatMap {
-      case Some(richTestGroup) =>
-        implicit val hc = new HeaderCarrier()
-        siftService.retrieveTestResult(richTestGroup)
-      case None => Future.successful(())
-    }
+//    siftService.nextTestGroupWithReportReady().flatMap {
+//      case Some(richTestGroup) =>
+//        implicit val hc = new HeaderCarrier()
+//        siftService.retrieveTestResult(richTestGroup)
+//      case None => Future.successful(())
+//    }
+    Future.successful()
   }
 }
 
