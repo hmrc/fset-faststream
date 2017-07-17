@@ -43,7 +43,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
     "EDIP,SDIP 2016 (previous years),Fast Pass (sdip 2017),Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
     "Do you want to defer,Deferal selections,Do you have a disability,Provide more info,GIS,Extra support online tests," +
-    "What adjustments will you need,Extra support f2f,What adjustments will you need,Phone Interview Adjustments?,Phone Interview adjustments info,E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes,Video other notes,Additional comments,Adjustments confirmed,I understand this wont affect application," +
+    "What adjustments will you need,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need,E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes,Video other notes,Additional comments,Adjustments confirmed,I understand this wont affect application," +
     "PHASE1 tests behavioural scheduleId,cubiksUserId,Cubiks token," +
   "Behavioural testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,reportLinkURL," +
     "Behavioural T-score," +
@@ -490,7 +490,6 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
     val assistanceDetails = doc.getAs[BSONDocument]("assistance-details")
     val etrayAdjustments = assistanceDetails.flatMap(_.getAs[BSONDocument]("etray"))
     val videoAdjustments = assistanceDetails.flatMap(_.getAs[BSONDocument]("video"))
-    val phoneInterviewAdjustments = assistanceDetails.flatMap(_.getAs[BSONDocument]("video"))
     val typeOfAdjustments = assistanceDetails.flatMap(_.getAs[List[String]]("typeOfAdjustments")).getOrElse(Nil)
 
     List(
@@ -501,8 +500,8 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
       assistanceDetails.flatMap(_.getAs[String]("needsSupportForOnlineAssessmentDescription")),
       if (assistanceDetails.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)) optYes else optNo,
       assistanceDetails.flatMap(_.getAs[String]("needsSupportAtVenueDescription")),
-      if (phoneInterviewAdjustments.flatMap(_.getAs[Boolean]("needsSupportForPhoneInterview")).getOrElse(false)) optYes else optNo,
-      phoneInterviewAdjustments.flatMap(_.getAs[String]("needsSupportForPhoneInterviewDescription")),
+      if (assistanceDetails.flatMap(_.getAs[Boolean]("needsSupportForPhoneInterview")).getOrElse(false)) optYes else optNo,
+      assistanceDetails.flatMap(_.getAs[String]("needsSupportForPhoneInterviewDescription")),
       etrayAdjustments.flatMap(_.getAs[Int]("timeNeeded").map(_ + "%")),
       if (typeOfAdjustments.contains("etrayInvigilated")) optYes else optNo,
       etrayAdjustments.flatMap(_.getAs[String]("invigilatedInfo")),
