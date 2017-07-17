@@ -17,7 +17,7 @@
 package services.testdata.faker
 
 import factories.UUIDFactory
-import model.{ AllocationStatuses, EvaluationResults, Scheme, SchemeId }
+import model._
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
 import model.exchange.{ AssessorAvailability, AssessorSkill }
@@ -667,9 +667,10 @@ object DataFaker {
     ))
 
     def skills: List[String] = randList(List(
+      SkillType.SIFTER.toString,
       SkillType.QUALITY_ASSURANCE_COORDINATOR.toString,
       SkillType.ASSESSOR.toString,
-      SkillType.CHAIR.toString), 3)
+      SkillType.CHAIR.toString), 4)
 
     def sifterSchemes: List[SchemeId] = randList(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip")), 3)
 
@@ -771,7 +772,8 @@ object DataFaker {
         }.toMap
       }
 
-      def sessions = randList(List(Session("First", 36, 12, 4, startTime, startTime.plusHours(1))),1)
+      def sessions = randList(List(
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "First", 36, 12, 4, startTime, startTime.plusHours(1))),1)
     }
 
     object AssessorAllocation {
@@ -795,3 +797,4 @@ object DataFaker {
 }
 
 //scalastyle:on number.of.methods
+

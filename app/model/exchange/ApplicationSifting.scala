@@ -14,31 +14,16 @@
  * limitations under the License.
  */
 
-package model.persisted.eventschedules
+package model.exchange
 
-import model.persisted.eventschedules.EventType.EventType
-import org.joda.time.{ LocalDate, LocalTime }
+import model.SchemeId
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 
-case class Event(
-  id: String,
-  eventType: EventType,
-  description: String,
-  location: Location,
-  venue: Venue,
-  date: LocalDate,
-  capacity: Int,
-  minViableAttendees: Int,
-  attendeeSafetyMargin: Int,
-  startTime: LocalTime,
-  endTime: LocalTime,
-  skillRequirements: Map[String, Int],
-  sessions: List[Session]
-)
+case class ApplicationSifting(applicationId: String, schemeId: SchemeId, result: String)
 
-object Event {
-  implicit val eventFormat = Json.format[Event]
-  implicit val eventHandler = Macros.handler[Event]
+object ApplicationSifting {
+  implicit val schemeEvaluationResultFormat = Json.format[ApplicationSifting]
+  implicit val schemeEvaluationResultHandler = Macros.handler[ApplicationSifting]
+
 }
