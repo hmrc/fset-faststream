@@ -46,8 +46,6 @@ trait AssessorService {
   val eventsRepo: EventsRepository
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
 
-  lazy val locations: Future[Set[Location]] = locationsWithVenuesRepo.locations
-
   def saveAssessor(userId: String, assessor: model.exchange.Assessor): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
@@ -95,7 +93,7 @@ trait AssessorService {
     location <- locationsWithVenuesRepo.location(locationName)
     assessorList <- assessorRepository.findAvailabilitiesForLocationAndDate(location, date, skills)
   } yield assessorList.map { assessor =>
-      model.exchange.Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
+      model.exchange.Assessor.apply(assessor)
   }
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {

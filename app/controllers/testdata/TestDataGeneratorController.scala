@@ -26,6 +26,7 @@ import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllo
 import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.AssessorSkill
+import model.persisted.assessor.AssessorStatus
 import model.persisted.eventschedules.{ EventType, Session, SkillType }
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
@@ -152,7 +153,8 @@ trait TestDataGeneratorController extends BaseController {
         availability = Some(List(
           AssessorAvailabilityRequest("London", LocalDate.now()),
           AssessorAvailabilityRequest("Newcastle", LocalDate.now())
-        ))
+        )),
+        status = AssessorStatus.AVAILABILITIES_SUBMITTED
       ))
     )
 
@@ -174,7 +176,7 @@ trait TestDataGeneratorController extends BaseController {
       endTime = Some(LocalTime.now().plusHours(1)),
       skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
         "CHAIR" -> 1)),
-      sessions = Some(List(Session("Single", LocalTime.now, LocalTime.now.plusHours(1))))
+      sessions = Some(List(Session("Single", 36, 12, 4, LocalTime.now, LocalTime.now.plusHours(1))))
     )
 
     Ok(Json.toJson(example))
@@ -195,7 +197,7 @@ trait TestDataGeneratorController extends BaseController {
       endTime = Some(LocalTime.now()),
       skillRequirements = Some(Map(SkillType.ASSESSOR.toString -> 4,
         "CHAIR" -> 1)),
-      sessions = Some(List(Session("Single", LocalTime.now, LocalTime.now.plusHours(1))))
+      sessions = Some(List(Session("Single", 36, 12, 4, LocalTime.now, LocalTime.now.plusHours(1))))
     )
     val example2 = example1.copy(
       id = Some(UUIDFactory.generateUUID()),

@@ -68,7 +68,7 @@ object EventConfigProtocol extends DefaultYamlProtocol {
     }
   }
 
-  implicit val sessionFormat = yamlFormat3(Session.apply)
+  implicit val sessionFormat = yamlFormat6(Session.apply)
   implicit val eventFormat = yamlFormat12(EventConfig.apply)
 }
 
@@ -77,7 +77,7 @@ trait EventsConfigRepository {
 
   import play.api.Play.current
 
-  protected def rawConfig = {
+  protected def rawConfig: String = {
     val input = managed(Play.application.resourceAsStream(MicroserviceAppConfig.eventsConfig.yamlFilePath).get)
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
@@ -94,7 +94,7 @@ trait EventsConfigRepository {
       skillRequirements = configItem.skillRequirements.map {
         case (skillName, numStaffRequired) => (skillName.replaceAll("\\s|-", "_").toUpperCase, numStaffRequired)}))
 
-    FutureEx.traverseSerial(massagedEventsConfig) { case configItem =>
+    FutureEx.traverseSerial(massagedEventsConfig) { configItem =>
       val eventItemFuture = for {
         location <- locationsWithVenuesRepo.location(configItem.location)
         venue <- locationsWithVenuesRepo.venue(configItem.venue)

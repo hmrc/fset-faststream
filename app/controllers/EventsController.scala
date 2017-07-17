@@ -45,14 +45,6 @@ trait EventsController extends BaseController {
 
   def assessorAllocationService: AssessorAllocationService
 
-  def venuesForEvents: Action[AnyContent] = Action.async { implicit request =>
-    locationsAndVenuesRepository.venues.map(x => Ok(Json.toJson(x)))
-  }
-
-  def locationsForEvents: Action[AnyContent] = Action.async { implicit request =>
-    locationsAndVenuesRepository.locations.map(x => Ok(Json.toJson(x)))
-  }
-
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
       .recover { case e: Exception => UnprocessableEntity(e.getMessage) }
