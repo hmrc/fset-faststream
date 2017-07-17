@@ -16,52 +16,58 @@
 
 package controllers
 
-import controllers.FSACScoresController.fsacScoresRepo
-import model.FSACScores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback }
-import model.models.UniqueIdentifier
+import model.FSACScores._
+import model.UniqueIdentifier
+import play.api.libs.json.Json
+import play.api.mvc.Action
 import repositories.FSACScoresRepository
 import services.fsacscores.FSACScoresService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object FSACScoresController extends FSACScoresController {
-  val fsacScoresService: FSACScoresService = FSACScoresService
-  val fsacScoresRepo: FSACScoresRepository = repositories.fsacScoresRepository
-
-  override def updateAnalysisExercise(applicationId: UniqueIdentifier,
-                                      exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback)
-  : Future[Unit] = {
-    fsacScoresService.updateAnalysisExercise(applicationId, exerciseScoresAndFeedback)
-  }
-  override def updateGroupExercise(applicationId: UniqueIdentifier,
-                                   exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit] = {
-    fsacScoresService.updateGroupExercise(applicationId, exerciseScoresAndFeedback)
-  }
-  override def updateLeadershipExercise(applicationId: UniqueIdentifier,
-                                        exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit] = {
-    fsacScoresService.updateLeadershipExercise(applicationId, exerciseScoresAndFeedback)
-  }
-
-  def find(applicationId: UniqueIdentifier): Future[Option[FSACAllExercisesScoresAndFeedback]] = {
-    fsacScoresRepo.find(applicationId)
-  }
-
-  def findAll: Future[Map[UniqueIdentifier, FSACAllExercisesScoresAndFeedback]] = {
-    fsacScoresRepo.findAll
-  }
+  val service: FSACScoresService = FSACScoresService
+  val repository: FSACScoresRepository = repositories.fsacScoresRepository
 }
 
 trait FSACScoresController extends BaseController {
-  val fsacScoresService: FSACScoresService
-  val fsacScoresRepo: FSACScoresRepository
+  val service: FSACScoresService
+  val repository: FSACScoresRepository
 
-  def updateAnalysisExercise(applicationId: UniqueIdentifier,
-                             exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
-  def updateGroupExercise(applicationId: UniqueIdentifier,
-                          exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
-  def updateLeadershipExercise(applicationId: UniqueIdentifier,
-                               exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
-  def find(applicationId: UniqueIdentifier): Future[Option[FSACAllExercisesScoresAndFeedback]]
-  def findAll: Future[Map[UniqueIdentifier, FSACAllExercisesScoresAndFeedback]]
+  def save() = Action.async(parse.json) {
+    implicit request => withJsonBody[FSACAllExercisesScoresAndFeedback] { scores =>
+      repository.save(scores).map(_ => Ok)
+    }
+  }
+
+  def saveAnalysisExercise(applicationId: UniqueIdentifier) = Action.async(parse.json) {
+    implicit request => withJsonBody[FSACExerciseScoresAndFeedback] { scores =>
+      service.saveAnalysisExercise(applicationId, scores).map(_ => Ok)
+    }
+  }
+
+  def saveGroupExercise(applicationId: UniqueIdentifier) = Action.async(parse.json) {
+    implicit request => withJsonBody[FSACExerciseScoresAndFeedback] { scores =>
+      service.saveGroupExercise(applicationId, scores).map(_ => Ok)
+    }
+  }
+
+  def saveLeadershipExercise(applicationId: UniqueIdentifier) = Action.async(parse.json) {
+    implicit request => withJsonBody[FSACExerciseScoresAndFeedback] { scores =>
+      service.saveLeadershipExercise(applicationId, scores).map(_ => Ok)
+    }
+  }
+
+  def find(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+    repository.find(applicationId).map { scores =>
+      Ok(Json.toJson(scores))
+    }
+  }
+
+  def findAll = Action.async { implicit request =>
+    repository.findAll.map { scores =>
+      Ok(Json.toJson(scores))
+    }
+  }
 }

@@ -46,13 +46,13 @@ class FSACScoresRepositorySpec extends MongoRepositorySpec {
       CandidateScores(Some(4.0), Some(3.0), Some(2.0)))
 
     "create a new application scores and feedback document" in {
-      repository.update(CandidateScoresWithFeedback).futureValue
+      repository.save(CandidateScoresWithFeedback).futureValue
 
       repository.find("app1").futureValue mustBe Some(CandidateScoresWithFeedback)
     }
 
     "return already stored application scores" in {
-      repository.update(CandidateScoresWithFeedback).futureValue
+      repository.save(CandidateScoresWithFeedback).futureValue
 
       val result = repository.find("app1").futureValue
 
@@ -66,10 +66,10 @@ class FSACScoresRepositorySpec extends MongoRepositorySpec {
     }
 
     "update already saved application scores and feedback document" in {
-      repository.update(CandidateScoresWithFeedback).futureValue
+      repository.save(CandidateScoresWithFeedback).futureValue
       val updatedApplicationScores = CandidateScoresWithFeedback.copy(attendancy = Some(false))
 
-      repository.update(updatedApplicationScores).futureValue
+      repository.save(updatedApplicationScores).futureValue
 
       repository.find("app1").futureValue mustBe Some(updatedApplicationScores)
     }
@@ -84,8 +84,8 @@ class FSACScoresRepositorySpec extends MongoRepositorySpec {
         CandidateScores(Some(1.0), Some(3.0), Some(2.0)),
         CandidateScores(Some(1.0), Some(3.0), Some(2.0)))
 
-      repository.update(CandidateScoresWithFeedback).futureValue
-      repository.update(CandidateScoresWithFeedback2).futureValue
+      repository.save(CandidateScoresWithFeedback).futureValue
+      repository.save(CandidateScoresWithFeedback2).futureValue
 
       val result = repository.findAll.futureValue
 

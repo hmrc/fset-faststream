@@ -15,14 +15,10 @@
  */
 
 package model
-package models
 
 import java.util.UUID
 
-import model.CivilServiceExperienceType.CivilServiceExperienceType
-import models.UniqueIdentifier
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 case class UniqueIdentifier(uuid: UUID) {
   override def toString() = uuid.toString
@@ -59,4 +55,6 @@ object UniqueIdentifier {
   implicit val uniqueIdentifierReads: Reads[UniqueIdentifier] = Reads {
     (jsValue: JsValue) => JsSuccess(UniqueIdentifier(jsValue.as[String]))
   }
+
+  implicit val jsonFormat = Json.format[UniqueIdentifier]
 }

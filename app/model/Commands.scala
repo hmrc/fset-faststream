@@ -18,20 +18,17 @@ package model
 
 import controllers._
 import model.ApplicationRoute.ApplicationRoute
-import model.FSACScores.Implicits._
 import model.Exceptions.{ NoResultsReturned, TooManyEntries }
 import model.OnlineTestCommands.Implicits._
-import model.OnlineTestCommands.TestResult
 import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme }
 import model.PassmarkPersistedObjects.Implicits._
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
 
 import scala.language.implicitConversions
-import model.command.{ AssessmentCentre, ProgressResponse }
-import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.command.{ ProgressResponse }
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import model.report.{ CandidateProgressReportItem, QuestionnaireReportItem }
+import model.report.{ QuestionnaireReportItem }
 
 //scalastyle:off
 object Commands {

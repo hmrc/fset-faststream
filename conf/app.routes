@@ -137,6 +137,14 @@ PUT         /events/:eventId/allocateCandidates                          control
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 
+# FSAC scores
+POST        /fsac-scores/save                                            controllers.FSACScoresController.save()
+POST        /fsac-scores/:applicationId/analysis-exercise/save           controllers.FSACScoresController.saveAnalysisExercise(applicationId: model.UniqueIdentifier)
+POST        /fsac-scores/:applicationId/group-exercise/save              controllers.FSACScoresController.saveGroupExercise(applicationId: model.UniqueIdentifier)
+POST        /fsac-scores/:applicationId/leadership-exercise/save         controllers.FSACScoresController.saveLeadershipExercise(applicationId: model.UniqueIdentifier)
+GET         /fsac-scores/:applicationId                                  controllers.FSACScoresController.find(applicationId: model.UniqueIdentifier)
+GET         /fsac-scores                                                 controllers.FSACScoresController.findAll
+
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
 GET         /reference/schemes                                            controllers.reference.SchemesController.allSchemes

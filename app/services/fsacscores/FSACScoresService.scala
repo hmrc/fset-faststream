@@ -17,7 +17,7 @@
 package services.fsacscores
 
 import model.FSACScores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback }
-import model.models.UniqueIdentifier
+import model.UniqueIdentifier
 import play.api.Logger
 import repositories.{ FSACScoresMongoRepository, FSACScoresRepository }
 
@@ -27,36 +27,36 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object FSACScoresService extends FSACScoresService {
   override val repository: FSACScoresRepository = repositories.fsacScoresRepository
 
-  override def updateAnalysisExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
+  override def saveAnalysisExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     val updateAnalysisExercise = (allExercisesOld: FSACAllExercisesScoresAndFeedback, exerciseScores: FSACExerciseScoresAndFeedback) => {
       allExercisesOld.copy(analysisExercise = Some(exerciseScores))
     }
-    updateExercise(applicationId, exerciseScores, updateAnalysisExercise)
+    saveExercise(applicationId, exerciseScores, updateAnalysisExercise)
   }
 
-  override def updateGroupExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
+  override def saveGroupExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     val updateGroupExercise = (allExercisesOld: FSACAllExercisesScoresAndFeedback, exerciseScores: FSACExerciseScoresAndFeedback) => {
       allExercisesOld.copy(groupExercise = Some(exerciseScores))
     }
-    updateExercise(applicationId, exerciseScores, updateGroupExercise)
+    saveExercise(applicationId, exerciseScores, updateGroupExercise)
   }
 
-  override def updateLeadershipExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
+  override def saveLeadershipExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     val updateLeadershipExercise = (allExercisesOld: FSACAllExercisesScoresAndFeedback, exerciseScores: FSACExerciseScoresAndFeedback) => {
       allExercisesOld.copy(leadershipExercise = Some(exerciseScores))
     }
-    updateExercise(applicationId, exerciseScores, updateLeadershipExercise)
+    saveExercise(applicationId, exerciseScores, updateLeadershipExercise)
   }
 
-  private def updateExercise(applicationId: UniqueIdentifier,
+  private def saveExercise(applicationId: UniqueIdentifier,
                              exerciseScores: FSACExerciseScoresAndFeedback,
-                             update: (FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback) => FSACAllExercisesScoresAndFeedback)
+                             save: (FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback) => FSACAllExercisesScoresAndFeedback)
   : Future[Unit] = {
     for {
       allExercisesOldMaybe <- repository.find(applicationId)
       allExercisesOld = allExercisesOldMaybe.getOrElse(FSACAllExercisesScoresAndFeedback(applicationId, None, None, None))
-      allExercisesNew = update(allExercisesOld, exerciseScores)
-      _ <-repository.update(allExercisesNew)
+      allExercisesNew = save(allExercisesOld, exerciseScores)
+      _ <-repository.save(allExercisesNew)
     } yield {
       ()
     }
@@ -66,8 +66,8 @@ object FSACScoresService extends FSACScoresService {
 trait FSACScoresService {
   val repository: FSACScoresRepository
 
-  def updateAnalysisExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
-  def updateGroupExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
-  def updateLeadershipExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  def saveAnalysisExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  def saveGroupExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  def saveLeadershipExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
 
 }

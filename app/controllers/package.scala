@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import model.models.UniqueIdentifier
+import model.UniqueIdentifier
 import model.persisted.eventschedules.SkillType
 import org.joda.time.LocalDate
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }

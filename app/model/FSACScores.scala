@@ -16,9 +16,8 @@
 
 package model
 
-import model.models.UniqueIdentifier
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ Format, Json }
+import org.joda.time.{ DateTime }
+import play.api.libs.json.{ Json }
 
 object FSACScores {
 
@@ -28,6 +27,10 @@ object FSACScores {
                                                 groupExercise: Option[FSACExerciseScoresAndFeedback] = None,
                                                 leadershipExercise: Option[FSACExerciseScoresAndFeedback] = None
                                        )
+
+  object FSACAllExercisesScoresAndFeedback {
+    implicit val format = Json.format[FSACAllExercisesScoresAndFeedback]
+  }
 
   case class FSACExerciseScoresAndFeedback(
                                 //  attended: Boolean,
@@ -59,7 +62,7 @@ object FSACScores {
   }
 
   object FSACExerciseScoresAndFeedback {
-    implicit val scoresAndFeedbackFormat = Json.format[FSACExerciseScoresAndFeedback]
+    implicit val format = Json.format[FSACExerciseScoresAndFeedback]
   }
 
 //  case class RecordCandidateScores(firstName: String, lastName: String, venueName: String, date: LocalDate)
@@ -100,14 +103,14 @@ object FSACScores {
 
   //case class ApplicationScores(candidate: RecordCandidateScores, scoresAndFeedback: Option[CandidateScoresAndFeedback])
 */
-  object Implicits {
+ // object Implicits {
     //implicit val RecordCandidateScoresFormats: Format[RecordCandidateScores] = Json.format[RecordCandidateScores]
     //implicit val CandidateScoresFormats: Format[CandidateScores] = Json.format[CandidateScores]
     //implicit val CandidateScoreFeedbackFormats: Format[CandidateScoreFeedback] = Json.format[CandidateScoreFeedback]
   //  implicit val CandidateScoresAndFeedbackFormats: Format[CandidateScoresAndFeedback] = Json.format[CandidateScoresAndFeedback]
     //implicit val ApplicationScoresFormats: Format[ApplicationScores] = Json.format[ApplicationScores]
-    implicit val fSACAllExercisesScoresAndFeedbackFormat = Json.format[FSACAllExercisesScoresAndFeedback]
-    implicit val fSACExerciseScoresAndFeedbackFormat = Json.format[FSACExerciseScoresAndFeedback]
-  }
+    //implicit val fSACAllExercisesScoresAndFeedbackFormat = Json.format[FSACAllExercisesScoresAndFeedback]
+    //implicit val fSACExerciseScoresAndFeedbackFormat = Json.format[FSACExerciseScoresAndFeedback]
+  //}
 
 }

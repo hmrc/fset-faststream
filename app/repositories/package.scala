@@ -38,7 +38,7 @@ import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
-import model.models.UniqueIdentifier
+import model.UniqueIdentifier
 import model.persisted.assessor.{ Assessor, AssessorAvailability }
 import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
@@ -48,7 +48,7 @@ import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.fsacindicator.{ FSACIndicatorMongoRepository, FSACIndicatorRepository }
 import repositories.events.EventsMongoRepository
 import repositories.stc.StcEventMongoRepository
-import model.models.UniqueIdentifier._
+import model.UniqueIdentifier._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
