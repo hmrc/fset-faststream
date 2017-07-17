@@ -17,13 +17,13 @@
 package services.sift
 
 import model.command.ApplicationForSift
-import repositories.sift.ApplicationSiftRepository
+import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 
 object ApplicationSiftService extends ApplicationSiftService {
-  val applicationSiftRepo = repositories.applicationSiftRepository
+  val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
 }
 
 trait ApplicationSiftService {

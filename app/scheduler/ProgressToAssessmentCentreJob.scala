@@ -18,8 +18,6 @@ package scheduler
 
 import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.OnlineTestService
-import services.sift.ApplicationSiftService$
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
