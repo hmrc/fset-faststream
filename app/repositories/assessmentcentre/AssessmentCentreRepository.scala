@@ -17,28 +17,51 @@
 package repositories.assessmentcentre
 
 import factories.DateTimeFactory
-import model.ApplicationStatus.ApplicationStatus
+import model.{ ApplicationStatus, EvaluationResults, Scheme }
 import model.command.ApplicationForSift
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.{ CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
+import repositories.{ CollectionNames, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-import scala.concurrent.Future
 
 trait AssessmentCentreRepository extends RandomSelection with ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
 
   def dateTime: DateTimeFactory
+  def nextApplicationForAssessmentCentre(batchSize: Int)
+
 }
 
 class AssessmentCentreMongoRepository (
-  val dateTime: DateTimeFactory
+  val dateTime: DateTimeFactory,
+  val siftableSchemes: Seq[Scheme]
 )(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationForSift, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationForSift.applicationForSiftFormat,
     ReactiveMongoFormats.objectIdFormats
 ) with AssessmentCentreRepository {
+
+  def nextApplicationForAssessmentCentre(batchSize: Int) = {
+
+    val hasSiftableSchemeInPhase3Query = BSONDocument(s"testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
+        "schemeId" -> BSONDocument("$in" -> siftableSchemes.map(_.id)),
+        "result " -> EvaluationResults.Green.toPassmark
+      ))))
+
+    val noSiftRequiredQuery = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED),
+      BSONDocument("$not" -> hasSiftableSchemeInPhase3Query,
+      BSONDocument(s"testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" ->
+        BSONDocument("result " -> EvaluationResults.Green.toPassmark)
+      ))
+    ))
+
+    val siftCompletedQuery = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument()
+    ))
+  }
 
 }
