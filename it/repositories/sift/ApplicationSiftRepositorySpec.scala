@@ -15,8 +15,9 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with CommonRepos
     "return a single matching application ready for progress to sift" in {
       insertApplication("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
 
-      val result = applicationSiftRepository.nextApplicationsForSift(10).futureValue
-      result mustBe empty
+      whenReady(applicationSiftRepository.nextApplicationsForSift(10)) { applications =>
+        applications mustBe empty
+      }
     }
   }
 }
