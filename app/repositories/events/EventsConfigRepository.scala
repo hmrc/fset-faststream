@@ -43,8 +43,17 @@ case class EventConfig(
                   startTime: LocalTime,
                   endTime: LocalTime,
                   skillRequirements: Map[String, Int],
-                  sessions: List[Session]
+                  sessions: List[SessionConfig]
                 )
+
+case class SessionConfig(
+                    description: String,
+                    capacity: Int,
+                    minViableAttendees: Int,
+                    attendeeSafetyMargin: Int,
+                    startTime: LocalTime,
+                    endTime: LocalTime
+                  )
 
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
@@ -68,7 +77,7 @@ object EventConfigProtocol extends DefaultYamlProtocol {
     }
   }
 
-  implicit val sessionFormat = yamlFormat6(Session.apply)
+  implicit val sessionFormat = yamlFormat6(SessionConfig.apply)
   implicit val eventFormat = yamlFormat12(EventConfig.apply)
 }
 
@@ -110,7 +119,7 @@ trait EventsConfigRepository {
           configItem.startTime,
           configItem.endTime,
           configItem.skillRequirements,
-          configItem.sessions
+          configItem.sessions.map(s => Session(s))
       )
       eventItemFuture.recoverWith {
         case ex => throw new Exception(
