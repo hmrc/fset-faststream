@@ -16,12 +16,10 @@
 
 package model.persisted.eventschedules
 
-import factories.UUIDFactory
 import model.persisted.eventschedules.EventType.EventType
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
-import repositories.events.{ EventConfig, LocationsWithVenuesInMemoryRepository }
 import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 
 case class Event(
