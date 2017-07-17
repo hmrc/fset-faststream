@@ -23,8 +23,7 @@ import model.Exceptions.DataFakingException
 import model.exchange.{ AssessorAvailability, AssessorSkill }
 import model.EvaluationResults.Result
 import model.Exceptions.DataFakingException
-import model.persisted.eventschedules.{ EventType, _ }
-import model.persisted.eventschedules._
+import model.persisted.eventschedules.{ EventType, Session, _ }
 import org.joda.time.{ LocalDate, LocalTime }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import org.joda.time.{ LocalDate, LocalTime }
@@ -755,7 +754,7 @@ object DataFaker {
 
       def attendeeSafetyMargin: Int = randOne(List(1, 2, 3))
 
-      def startTime: LocalTime = LocalTime.now()
+      def startTime: LocalTime = LocalTime.parse(randOne(List("9:30", "11:00", "13:30", "15:00")))
 
       def endTime: LocalTime = startTime.plusHours(1)
 
@@ -772,7 +771,11 @@ object DataFaker {
       }
 
       def sessions = randList(List(
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "First", 36, 12, 4, startTime, startTime.plusHours(1))),1)
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "First session", 36, 12, 4, startTime, startTime.plusHours(1)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Advanced session", 24, 12, 2, startTime, startTime.plusHours(2)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Midday session", 12, 12, 2, startTime, startTime.plusHours(3)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Small session", 6, 6, 2, startTime, startTime.plusHours(4))
+      ), 2)
     }
 
     object AssessorAllocation {

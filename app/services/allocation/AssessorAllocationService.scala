@@ -20,7 +20,7 @@ import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.OptimisticLockException
 import model._
 import model.command.CandidateAllocation
-import model.exchange.{ EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
+import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.Venue
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
@@ -146,7 +146,7 @@ trait AssessorAllocationService extends EventSink {
   def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
     eventsService.getEvents(eventType, venue).flatMap { events =>
       val res = events.map { event =>
-        getAllocations(event.id).map { allocations =>
+        getAllocations(event.id).flatMap { allocations =>
           val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)
           val allocationsGroupedBySkillWithSummary = allocationsGroupedBySkill.map { allocationGroupedBySkill =>
             val assessorAllocation = allocationGroupedBySkill._2
@@ -155,7 +155,14 @@ trait AssessorAllocationService extends EventSink {
             val confirmed = assessorAllocation.count(_.status == AllocationStatuses.CONFIRMED)
             EventAssessorAllocationsSummaryPerSkill(skill, allocated, confirmed)
           }.toList
-          EventWithAllocationsSummary(event.date, event, 0, allocationsGroupedBySkillWithSummary)
+          val candidateAllocBySession = event.sessions.sortBy(_.startTime.getMillisOfDay).map { session =>
+            getCandidateAllocations(event.id, session.id).map { candidateAllocations =>
+              CandidateAllocationPerSession(UniqueIdentifier(session.id), candidateAllocations.allocations.size)
+            }
+          }
+          Future.sequence(candidateAllocBySession).map { cs =>
+            EventWithAllocationsSummary(event.date, event, cs, allocationsGroupedBySkillWithSummary)
+          }
         }
       }
       Future.sequence(res)
