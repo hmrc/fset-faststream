@@ -157,7 +157,8 @@ trait AssessorAllocationService extends EventSink {
           }.toList
           val candidateAllocBySession = event.sessions.sortBy(_.startTime.getMillisOfDay).map { session =>
             getCandidateAllocations(event.id, session.id).map { candidateAllocations =>
-              CandidateAllocationPerSession(UniqueIdentifier(session.id), candidateAllocations.allocations.size)
+              CandidateAllocationPerSession(UniqueIdentifier(session.id),
+                candidateAllocations.allocations.count(_.status == AllocationStatuses.CONFIRMED))
             }
           }
           Future.sequence(candidateAllocBySession).map { cs =>
