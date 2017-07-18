@@ -65,15 +65,12 @@ class ApplicationSiftMongoRepository(
 
   def nextApplicationsForSift(batchSize: Int): Future[List[ApplicationForSift]] = {
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
-      _.flatMap { document =>
-        val rootOpt = document.getAs[BSONDocument]("application")
-        rootOpt.map { root =>
-          val applicationId = root.getAs[String]("applicationId").get
-          val testGroupsRoot = root.getAs[BSONDocument]("testGroups").get
-          val phase3PassMarks = testGroupsRoot.getAs[BSONDocument](ApplicationStatus.PHASE3_TESTS).get
-          val phase3Evaluation = phase3PassMarks.getAs[PassmarkEvaluation]("evaluation").get
-          ApplicationForSift(applicationId, phase3Evaluation)
-        }
+      _.map { document =>
+        val applicationId = document.getAs[String]("applicationId").get
+        val testGroupsRoot = document.getAs[BSONDocument]("testGroups").get
+        val phase3PassMarks = testGroupsRoot.getAs[BSONDocument]("PHASE3").get
+        val phase3Evaluation = phase3PassMarks.getAs[PassmarkEvaluation]("evaluation").get
+        ApplicationForSift(applicationId, phase3Evaluation)
       }
     }
   }

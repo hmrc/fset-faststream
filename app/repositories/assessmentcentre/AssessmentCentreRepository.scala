@@ -61,7 +61,7 @@ class AssessmentCentreMongoRepository (
     val siftCompletedQuery = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument()
-    ))
+  ))
   }
 
 }
