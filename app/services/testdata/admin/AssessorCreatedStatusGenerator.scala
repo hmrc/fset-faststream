@@ -16,6 +16,7 @@
 
 package services.testdata.admin
 
+import model.persisted.assessor.AssessorStatus
 import model.exchange.testdata.CreateAdminResponse.{ AssessorResponse, CreateAdminResponse }
 import model.persisted.assessor.AssessorStatus
 import model.testdata.CreateAdminData.{ AssessorData, CreateAdminData }

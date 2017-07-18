@@ -16,10 +16,17 @@
 
 package services.assessmentcentre
 
+import scala.concurrent.Future
+
 object AssessmentCentreService extends AssessmentCentreService {
 
 }
 
 trait AssessmentCentreService {
 
+  def assessmentCentreRepo = repositories.assessmentCentreRepository
+
+  def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[String]] = {
+    assessmentCentreRepo.nextApplicationForAssessmentCentre(batchSize)
+  }
 }
