@@ -53,7 +53,7 @@ class ApplicationSiftMongoRepository(
 
   val thisApplicationStatus = ApplicationStatus.SIFT
   val prevPhase = ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
-  val prevTestGroup = ApplicationStatus.PHASE3_TESTS
+  val prevTestGroup = "PHASE3"
 
   val eligibleForSiftQuery = BSONDocument("$and" -> BSONArray(
     BSONDocument("applicationStatus" -> prevPhase),
@@ -67,7 +67,7 @@ class ApplicationSiftMongoRepository(
       _.map { document =>
         val applicationId = document.getAs[String]("applicationId").get
         val testGroupsRoot = document.getAs[BSONDocument]("testGroups").get
-        val phase3PassMarks = testGroupsRoot.getAs[BSONDocument]("PHASE3").get
+        val phase3PassMarks = testGroupsRoot.getAs[BSONDocument](prevTestGroup).get
         val phase3Evaluation = phase3PassMarks.getAs[PassmarkEvaluation]("evaluation").get
         ApplicationForSift(applicationId, phase3Evaluation)
       }

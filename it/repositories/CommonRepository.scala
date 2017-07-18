@@ -23,6 +23,8 @@ import repositories.sift.{ApplicationSiftMongoRepository, ApplicationSiftReposit
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
+import scala.concurrent.Future
+
 
 trait CommonRepository {
   this: MongoRepositorySpec with ScalaFutures =>
@@ -106,7 +108,7 @@ trait CommonRepository {
   def insertApplicationWithPhase3TestNotifiedResults(appId: String, videoInterviewScore: Option[Double],
                                              phase3PassMarkEvaluation: PassmarkEvaluation,
                                              applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
-                                            )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
+                                            )(schemes: SchemeId*): Future[Unit] = {
     assertNotNull("Phase3 pass mark evaluation must be set", phase3PassMarkEvaluation)
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
@@ -117,10 +119,7 @@ trait CommonRepository {
     val update = BSONDocument(
       "$set" -> BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
     )
-    applicationRepository.collection.update(application, update).futureValue
-
-    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, applicationRoute, isGis = false,
-      Nil, launchPadTests.headOption, Some(phase3PassMarkEvaluation), selectedSchemes(schemes.toList))
+    applicationRepository.collection.update(application, update).map {_ => ()}
   }
 
   // scalastyle:off

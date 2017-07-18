@@ -1,6 +1,6 @@
 package repositories.sift
 
-import model.{ApplicationStatus, ProgressStatuses, SchemeId}
+import model.{ApplicationStatus, EvaluationResults, ProgressStatuses, SchemeId}
 import model.command.ApplicationForSift
 import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
@@ -19,22 +19,14 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   "next Application for sift" should {
     "return a single matching application ready for progress to sift" in {
-//      insertApplication("appId1", ApplicationStatus.PHASE3_TESTS)
-//      insertApplication("appId1", Some(100), PassmarkEvaluation("", Some(""),
-//        List(SchemeEvaluationResult(SchemeId("Commercial"), "Green")), "", Some("")))(SchemeId("Commercial"))
 
       insertApplicationWithPhase3TestNotifiedResults("appId1", Some(100), PassmarkEvaluation("", Some(""),
-               List(SchemeEvaluationResult(SchemeId("Commercial"), "Green")), "", Some("")))(SchemeId("Commercial"))
+               List(SchemeEvaluationResult(SchemeId("Commercial"),
+                 EvaluationResults.Green.toPassmark)), "", Some("")))(SchemeId("Commercial")).futureValue
 
-//      phase3TestRepository.insertOrUpdateTestGroup("appId1", Phase3TestGroup(DateTime.now(), List(), Some(PassmarkEvaluation("", Some(""),
-//        List(SchemeEvaluationResult(SchemeId("Commercial"), "Green")), "", Some(""))))).futureValue
-
-//      val f1 = applicationSiftRepository.nextApplicationsForSift2(1)
-//      f1.futureValue mustBe BSONDocument
-
-      val f = applicationSiftRepository.nextApplicationsForSift(1)
-      f.futureValue mustBe
-        List(ApplicationForSift("", PassmarkEvaluation("", None, Nil, "", None)))
+      val appsForSift = applicationSiftRepository.nextApplicationsForSift(1).futureValue
+      appsForSift mustBe List(ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))))
     }
   }
 }
