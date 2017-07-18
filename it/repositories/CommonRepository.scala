@@ -103,6 +103,18 @@ trait CommonRepository {
       Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
+  def insertApplicationWithPhase3TestNotifiedResults(appId: String, videoInterviewScore: Option[Double],
+                                             phase3PassMarkEvaluation: PassmarkEvaluation,
+                                             applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+                                            )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
+    assertNotNull("Phase3 pass mark evaluation must be set", phase3PassMarkEvaluation)
+    val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
+    insertApplication(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, None, None, Some(launchPadTests))
+    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None)
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, applicationRoute, isGis = false,
+      Nil, launchPadTests.headOption, Some(phase3PassMarkEvaluation), selectedSchemes(schemes.toList))
+  }
+
   // scalastyle:off
   def insertApplication(appId: String, applicationStatus: ApplicationStatus, phase1Tests: Option[List[CubiksTest]] = None,
                         phase2Tests: Option[List[CubiksTest]] = None, phase3Tests: Option[List[LaunchpadTest]] = None,

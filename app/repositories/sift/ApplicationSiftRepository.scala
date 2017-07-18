@@ -20,9 +20,10 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.command.ApplicationForSift
 import model._
+import model.persisted.PassmarkEvaluation
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.{ CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
+import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
+import repositories.{CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -63,7 +64,18 @@ class ApplicationSiftMongoRepository(
   ))
 
   def nextApplicationsForSift(batchSize: Int): Future[List[ApplicationForSift]] = {
-    selectRandom[ApplicationForSift](eligibleForSiftQuery, batchSize)
+    selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
+      _.flatMap { document =>
+        val rootOpt = document.getAs[BSONDocument]("application")
+        rootOpt.map { root =>
+          val applicationId = root.getAs[String]("applicationId").get
+          val testGroupsRoot = root.getAs[BSONDocument]("testGroups").get
+          val phase3PassMarks = testGroupsRoot.getAs[BSONDocument](ApplicationStatus.PHASE3_TESTS).get
+          val phase3Evaluation = phase3PassMarks.getAs[PassmarkEvaluation]("evaluation").get
+          ApplicationForSift(applicationId, phase3Evaluation)
+        }
+      }
+    }
   }
 
   def progressApplicationToSift(application: ApplicationForSift): Future[Unit] = {
