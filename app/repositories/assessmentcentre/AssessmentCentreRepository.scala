@@ -48,11 +48,11 @@ class AssessmentCentreMongoRepository (
     val hasSiftableSchemeInPhase3Query = BSONDocument(s"testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
         "schemeId" -> BSONDocument("$in" -> siftableSchemes.map(_.id)),
         "result " -> EvaluationResults.Green.toPassmark
-      ))))
+      )))
 
     val noSiftRequiredQuery = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED),
-      BSONDocument("$not" -> hasSiftableSchemeInPhase3Query,
+      BSONDocument("$not" -> hasSiftableSchemeInPhase3Query),
       BSONDocument(s"testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" ->
         BSONDocument("result " -> EvaluationResults.Green.toPassmark)
       ))
