@@ -362,7 +362,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
         activeVideoTest.flatMap(_.getAs[String]("token")),
         activeVideoTest.flatMap(_.getAs[String]("candidateId")),
         activeVideoTest.flatMap(_.getAs[String]("customCandidateId")),
-        latestReviewer.flatMap(_.comment.map(comment => "\"" + comment.replace(""""""", """\"""") + "\"")),
+        latestReviewer.flatMap(_.comment),
         latestReviewer.flatMap(_.question1.reviewCriteria1.score.map(_.toString)),
         latestReviewer.flatMap(_.question1.reviewCriteria2.score.map(_.toString)),
         latestReviewer.flatMap(_.question2.reviewCriteria1.score.map(_.toString)),
