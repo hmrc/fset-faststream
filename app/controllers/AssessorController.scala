@@ -16,8 +16,10 @@
 
 package controllers
 
+import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.{ Assessor, AssessorAvailability }
+import model.SerialUpdateResult
+import model.exchange.{ Assessor, AssessorAvailability, UpdateAllocationStatusRequest, UpdateAllocationStatusResponse }
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
@@ -78,8 +80,20 @@ trait AssessorController extends BaseController {
     assessorService.findAvailabilitiesForLocationAndDate(locationName, date, skills).map { a => Ok(Json.toJson(a)) }
   }
 
-  def findAllocations(assessorId: String): Action[AnyContent] = Action.async { implicit request =>
-    assessorService.findAllocations(assessorId).map(allocations => Ok(Json.toJson(allocations)))
+  def findAllocations(assessorId: String, status: Option[AllocationStatus]): Action[AnyContent] = Action.async { implicit request =>
+    assessorService.findAllocations(assessorId, status).map(allocations => Ok(Json.toJson(allocations)))
+  }
+
+  def updateAllocationStatuses(assessorId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[Seq[UpdateAllocationStatusRequest]] { statusUpdate =>
+      if (!statusUpdate.forall(_.assessorId == assessorId)) {
+        Future(BadRequest("Assessor allocation update requests must be for the same assessor"))
+      } else {
+        assessorService.updateAssessorAllocationStatuses(statusUpdate).map { updateResult =>
+          Ok(Json.toJson(UpdateAllocationStatusResponse(updateResult.successes, updateResult.failures)))
+        }
+      }
+    }
   }
 
 }

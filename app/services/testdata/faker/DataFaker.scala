@@ -666,9 +666,10 @@ object DataFaker {
     ))
 
     def skills: List[String] = randList(List(
+      SkillType.SIFTER.toString,
       SkillType.QUALITY_ASSURANCE_COORDINATOR.toString,
       SkillType.ASSESSOR.toString,
-      SkillType.CHAIR.toString), 3)
+      SkillType.CHAIR.toString), 4)
 
     def sifterSchemes: List[SchemeId] = randList(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip")), 3)
 
@@ -799,3 +800,4 @@ object DataFaker {
 }
 
 //scalastyle:on number.of.methods
+

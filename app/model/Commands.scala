@@ -177,6 +177,7 @@ object Commands {
 
     def name: String = preferredName.getOrElse(firstName.getOrElse(""))
   }
+  object Candidate { implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate] }
 
   case class ApplicationAssessment(applicationId: String, venue: String, date: LocalDate, session: String, slot: Int, confirmed: Boolean) {
     val assessmentDateTime: DateTime = {

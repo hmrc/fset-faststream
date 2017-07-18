@@ -20,4 +20,7 @@ import model.Commands.Candidate
 
 object CandidateExamples {
   def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+
+
+  val NewCandidates = List(minCandidate("John"), minCandidate("Galt"))
 }
