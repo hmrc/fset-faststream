@@ -59,7 +59,7 @@ trait CommonRepository {
 
   def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
 
-  def applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, List(Scheme(SchemeId("Commercial"), "", "", true)))
+  def applicationSiftRepository(schemeDefinitions: List[Scheme]) = new ApplicationSiftMongoRepository(DateTimeFactory, schemeDefinitions)
 
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
@@ -115,9 +115,13 @@ trait CommonRepository {
 
     phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None).futureValue
 
+    updateApplicationStatus(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+  }
+
+  def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
     val application = BSONDocument("applicationId" -> appId)
     val update = BSONDocument(
-      "$set" -> BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+      "$set" -> BSONDocument(s"applicationStatus" -> newStatus)
     )
     applicationRepository.collection.update(application, update).map {_ => ()}
   }
