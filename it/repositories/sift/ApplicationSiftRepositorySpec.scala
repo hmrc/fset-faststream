@@ -26,31 +26,31 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val repository = applicationSiftRepository(schemeDefinitions)
 
-      insertApplicationWithPhase3TestNotifiedResults("appId1", Some(100), PassmarkEvaluation("", Some(""),
+      insertApplicationWithPhase3TestNotifiedResults("appId1", PassmarkEvaluation("", Some(""),
                List(SchemeEvaluationResult(SchemeId("Commercial"),
-                 EvaluationResults.Green.toPassmark)), "", Some("")))(SchemeId("Commercial")).futureValue
+                 EvaluationResults.Green.toPassmark)), "", Some(""))).futureValue
 
-      insertApplicationWithPhase3TestNotifiedResults("appId2", Some(100), PassmarkEvaluation("", Some(""),
+      insertApplicationWithPhase3TestNotifiedResults("appId2", PassmarkEvaluation("", Some(""),
         List(SchemeEvaluationResult(SchemeId("Commercial"),
-          EvaluationResults.Green.toPassmark)), "", Some("")))(SchemeId("Commercial")).futureValue
+          EvaluationResults.Green.toPassmark)), "", Some(""))).futureValue
       updateApplicationStatus("appId2", ApplicationStatus.PHASE3_TESTS_PASSED)
 
-      insertApplicationWithPhase3TestNotifiedResults("appId3", Some(100), PassmarkEvaluation("", Some(""),
+      insertApplicationWithPhase3TestNotifiedResults("appId3", PassmarkEvaluation("", Some(""),
         List(SchemeEvaluationResult(SchemeId("Commercial"),
-          EvaluationResults.Green.toPassmark)), "", Some("")))(SchemeId("Commercial")).futureValue
+          EvaluationResults.Green.toPassmark)), "", Some(""))).futureValue
       updateApplicationStatus("appId3", ApplicationStatus.PHASE3_TESTS_FAILED)
 
-      insertApplicationWithPhase3TestNotifiedResults("appId4", Some(100), PassmarkEvaluation("", Some(""),
+      insertApplicationWithPhase3TestNotifiedResults("appId4", PassmarkEvaluation("", Some(""),
         List(SchemeEvaluationResult(SchemeId("Project Delivery"),
-          EvaluationResults.Green.toPassmark)), "", Some("")))(SchemeId("Project Delivery")).futureValue
+          EvaluationResults.Green.toPassmark)), "", Some(""))).futureValue
 
-      insertApplicationWithPhase3TestNotifiedResults("appId5", Some(100), PassmarkEvaluation("", Some(""),
+      insertApplicationWithPhase3TestNotifiedResults("appId5", PassmarkEvaluation("", Some(""),
         List(SchemeEvaluationResult(SchemeId("Finance"),
-          EvaluationResults.Green.toPassmark)), "", Some("")))(SchemeId("Finance")).futureValue
+          EvaluationResults.Green.toPassmark)), "", Some(""))).futureValue
 
-      insertApplicationWithPhase3TestNotifiedResults("appId6", Some(100), PassmarkEvaluation("", Some(""),
+      insertApplicationWithPhase3TestNotifiedResults("appId6", PassmarkEvaluation("", Some(""),
         List(SchemeEvaluationResult(SchemeId("Generalist"),
-          EvaluationResults.Red.toPassmark)), "", Some("")))(SchemeId("Generalist")).futureValue
+          EvaluationResults.Red.toPassmark)), "", Some(""))).futureValue
 
       val appsForSift = repository.nextApplicationsForSift(10).futureValue
       appsForSift mustBe List(

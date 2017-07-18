@@ -105,10 +105,10 @@ trait CommonRepository {
       Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
-  def insertApplicationWithPhase3TestNotifiedResults(appId: String, videoInterviewScore: Option[Double],
-                                             phase3PassMarkEvaluation: PassmarkEvaluation,
-                                             applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
-                                            )(schemes: SchemeId*): Future[Unit] = {
+  def insertApplicationWithPhase3TestNotifiedResults(appId: String, phase3PassMarkEvaluation: PassmarkEvaluation,
+                             videoInterviewScore: Option[Double] = None,
+                             applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+                            ): Future[Unit] = {
     assertNotNull("Phase3 pass mark evaluation must be set", phase3PassMarkEvaluation)
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
