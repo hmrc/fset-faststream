@@ -37,9 +37,6 @@ case class EventConfig(
                   location: String,
                   venue: String,
                   date: LocalDate,
-                  capacity: Int,
-                  minViableAttendees: Int,
-                  attendeeSafetyMargin: Int,
                   startTime: LocalTime,
                   endTime: LocalTime,
                   skillRequirements: Map[String, Int],
@@ -60,7 +57,7 @@ object EventConfigProtocol extends DefaultYamlProtocol {
     def write(jodaDate: LocalDate) = YamlDate(jodaDate.toDateTimeAtStartOfDay)
     def read(value: YamlValue) = value match {
       case YamlDate(jodaDateTime) => jodaDateTime.toLocalDate
-      case unknown => deserializationError("Expected Date as YamlDate, but got " + unknown)
+      case unknown => deserializationError(s"Expected Date as YamlDate, but got $unknown")
     }
   }
 
@@ -73,12 +70,12 @@ object EventConfigProtocol extends DefaultYamlProtocol {
         val minute = minutesSinceStartOfDay % 60
         DateTimeFormat.forPattern("HH:mm").parseLocalTime(s"$hour:$minute")
       }
-      case x => deserializationError("Expected Time as YamlString/YamlNumber, but got " + x)
+      case x => deserializationError(s"Expected Time as YamlString/YamlNumber, but got $x")
     }
   }
 
   implicit val sessionFormat = yamlFormat6(SessionConfig.apply)
-  implicit val eventFormat = yamlFormat12(EventConfig.apply)
+  implicit val eventFormat = yamlFormat9(EventConfig.apply)
 }
 
 trait EventsConfigRepository {
@@ -113,9 +110,6 @@ trait EventsConfigRepository {
           location,
           venue,
           configItem.date,
-          configItem.capacity,
-          configItem.minViableAttendees,
-          configItem.attendeeSafetyMargin,
           configItem.startTime,
           configItem.endTime,
           configItem.skillRequirements,

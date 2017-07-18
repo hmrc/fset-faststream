@@ -3,9 +3,6 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-04-03
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 11:00
   endTime: 12:00
   skillRequirements:
@@ -26,9 +23,6 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-04-03
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 9:00
   endTime: 12:00
   skillRequirements:
@@ -55,9 +49,6 @@
   location: Newcastle
   venue: NEWCASTLE_LONGBENTON
   date: 2017-04-03
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
@@ -78,9 +69,6 @@
   location: Newcastle
   venue: NEWCASTLE_LONGBENTON
   date: 2017-04-03
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
@@ -103,11 +91,8 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-04-03
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
-  capacity: 36
   skillRequirements:
     ASSESSOR: 6
     CHAIR: 6
@@ -126,9 +111,6 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-04-04
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
@@ -149,9 +131,6 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-05-03
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
@@ -172,9 +151,6 @@
   location: London
   venue: LONDON_FSAC
   date: 2017-05-09
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
@@ -191,9 +167,6 @@
   location: Virtual
   venue: VIRTUAL
   date: 2017-08-04
-  capacity: 25
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:30
   endTime: 10:00
   skillRequirements:
@@ -214,9 +187,6 @@
   location: Virtual
   venue: VIRTUAL
   date: 2018-02-04
-  capacity: 25
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
@@ -237,9 +207,6 @@
   location: Virtual
   venue: VIRTUAL
   date: 2018-02-04
-  capacity: 25
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
@@ -256,9 +223,6 @@
   location: Newcastle
   venue: NEWCASTLE_LONGBENTON
   date: 2018-03-04
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
@@ -276,9 +240,6 @@
   location: London
   venue: LONDON_FSAC
   date: 2018-03-07
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
