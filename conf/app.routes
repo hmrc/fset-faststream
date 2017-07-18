@@ -51,6 +51,10 @@ PUT         /questionnaire/:applicationId/:sectionKey                    control
 
 GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
 POST        /search/find-by-criteria                                     controllers.SearchForApplicantsController.findByCriteria
+
+GET         /applications/sifting/:schemeId                              controllers.SiftingController.findApplicationsReadyForSifting(schemeId: String)
+PUT         /applications/sifting                                        controllers.SiftingController.siftCandidateApplication
+
 GET         /report/diversity/:frameworkId                               controllers.ReportingController.diversityReport(frameworkId: String)
 GET         /report/time-to-offer/:frameworkId                           controllers.ReportingController.timeToOfferReport(frameworkId: String)
 GET         /report/adjustments/:frameworkId                             controllers.ReportingController.adjustmentReport(frameworkId: String)
@@ -118,7 +122,8 @@ POST        /assessor/availability/save/:userId                          control
 GET         /assessor/availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
 GET         /assessor/availability/:locationName/:date                   controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 GET         /assessor/availability/count-submitted                       controllers.AssessorController.countSubmittedAvailability()
-GET         /assessor/:assessorId/allocations                            controllers.AssessorController.findAllocations(assessorId: String)
+GET         /assessor/:assessorId/allocations                            controllers.AssessorController.findAllocations(assessorId: String, status: Option[model.AllocationStatuses.AllocationStatus])
+PUT         /assessor/:assessorId/allocations                            controllers.AssessorController.updateAllocationStatuses(assessorId: String)
 
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()

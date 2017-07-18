@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package model.command
+package model.exchange
 
 import model.AllocationStatuses.AllocationStatus
-import model.exchange.AssessorSkill
-import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Location, Venue }
-import org.joda.time.{ LocalDate, LocalTime }
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
-case class AllocationWithEvent(
+case class UpdateAllocationStatusRequest(
   assessorId: String,
   eventId: String,
-  date: LocalDate,
-  startTime: LocalTime,
-  endTime: LocalTime,
-  venue: Venue,
-  location: Location,
-  eventType: EventType,
-  status: AllocationStatus,
-  allocatedAs: AssessorSkill
+  newStatus: AllocationStatus
 )
 
-object AllocationWithEvent {
-  implicit val allocationWithEventFormat = Json.format[AllocationWithEvent]
+object UpdateAllocationStatusRequest {
+  implicit val updateAllocationStatusFormat: OFormat[UpdateAllocationStatusRequest] = Json.format[UpdateAllocationStatusRequest]
 }
 
+case class UpdateAllocationStatusResponse(
+  successes: Seq[UpdateAllocationStatusRequest] = Nil,
+  failures:  Seq[UpdateAllocationStatusRequest] = Nil
+)
+
+object UpdateAllocationStatusResponse {
+  implicit val updateAllocationStatusResponseFormat = Json.format[UpdateAllocationStatusResponse]
+}

@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package testkit
+package model.exchange
 
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Seconds, Span }
-import org.scalatestplus.play.PlaySpec
+import model.SchemeId
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-import scala.concurrent.Future
+case class ApplicationSifting(applicationId: String, schemeId: SchemeId, result: String)
 
-trait FutureHelper {
-  this: PlaySpec with ScalaFutures =>
+object ApplicationSifting {
+  implicit val schemeEvaluationResultFormat = Json.format[ApplicationSifting]
+  implicit val schemeEvaluationResultHandler = Macros.handler[ApplicationSifting]
 
-  def assertNoExceptions(future: Future[Unit]) = try {
-    implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = Span(500, Millis))
-    future.futureValue
-  } catch {
-    case e: Throwable => fail(e)
-  }
-
-  def emptyFuture = Future.successful(())
 }
