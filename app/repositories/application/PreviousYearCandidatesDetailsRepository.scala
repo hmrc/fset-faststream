@@ -55,7 +55,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "e-Tray T-score,e-Tray Raw,PHASE 3 interviewId,token,candidateId,customCandidateId,comment,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
-    "IN_PROGRESS,SUBMITTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_RESULTS_READY," +
+    "personal-details,IN_PROGRESS,scheme-preferences,partner-graduate-programmes,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_RESULTS_READY," +
     "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE2_TESTS_INVITED,PHASE2_TESTS_FIRST_REMINDER," +
     "PHASE2_TESTS_SECOND_REMINDER,PHASE2_TESTS_STARTED,PHASE2_TESTS_COMPLETED,PHASE2_TESTS_RESULTS_READY," +
     "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
@@ -156,9 +156,29 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
 
   private def progressStatusTimestamps(doc: BSONDocument): List[Option[String]] = {
     val statusTimestamps = doc.getAs[BSONDocument]("progress-status-timestamp")
+    val progressStatus = doc.getAs[BSONDocument]("progress-status")
+
+    val questionnaireStatuses = progressStatus.flatMap(_.getAs[BSONDocument]("questionnaire"))
+
+    def questionnaireStatus(key: String): Option[String] = {
+      if (questionnaireStatuses.isEmpty) {
+        Some("false")
+      } else {
+        questionnaireStatuses.flatMap(_.getAs[Boolean](key).orElse(Some(false)).map(_.toString))
+      }
+    }
 
     List(
+      progressStatus.flatMap(_.getAs[Boolean]("personal-details").orElse(Some(false)).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime]("IN_PROGRESS").map(_.toString)),
+      progressStatus.flatMap(_.getAs[Boolean]("scheme-preferences").orElse(Some(false)).map(_.toString)),
+      progressStatus.flatMap(_.getAs[Boolean]("partner-graduate-programmes").orElse(Some(false)).map(_.toString)),
+      progressStatus.flatMap(_.getAs[Boolean]("assistance-details").orElse(Some(false)).map(_.toString)),
+      questionnaireStatus("start_questionnaire"),
+      questionnaireStatus("diversity_questionnaire"),
+      questionnaireStatus("education_questionnaire"),
+      questionnaireStatus("occupation_questionnaire"),
+      progressStatus.flatMap(_.getAs[Boolean]("preview").orElse(Some(false)).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.SUBMITTED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_INVITED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_STARTED.toString).map(_.toString)),
@@ -240,8 +260,11 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
       val isUnknown = questionDoc.flatMap(_.getAs[Boolean]("unknown")).contains(true)
       isUnknown match {
         case true => Some("Unknown")
-        case _ => questionDoc.flatMap(q => q.getAs[String]("answer")
-          .orElse(q.getAs[String]("otherDetails")))
+        case _ => questionDoc.flatMap(q => q.getAs[String]("answer") match {
+          case None => q.getAs[String]("otherDetails")
+          case Some(answer) if List("Other", "Other ethnic group").contains(answer) => q.getAs[String]("otherDetails")
+          case Some(answer) => Some(answer)
+        })
       }
     }
 
