@@ -17,19 +17,13 @@
 package services.testdata.faker
 
 import factories.UUIDFactory
+import model.EvaluationResults.Result
+import model.Exceptions.DataFakingException
 import model._
-import model.EvaluationResults.Result
-import model.Exceptions.DataFakingException
-import model.exchange.{ AssessorAvailability, AssessorSkill }
-import model.EvaluationResults.Result
-import model.Exceptions.DataFakingException
+import model.exchange.AssessorAvailability
 import model.persisted.eventschedules.{ EventType, Session, _ }
 import org.joda.time.{ LocalDate, LocalTime }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
-import org.joda.time.{ LocalDate, LocalTime }
-import repositories._
-import repositories.events.LocationsWithVenuesInMemoryRepository
-import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -749,9 +743,9 @@ object DataFaker {
 
       def date: LocalDate = LocalDate.now().plusDays(number(Option(300)))
 
-      def capacity: Int = randOne(List(32, 24, 16, 8, 4, 30, 28))
+      def capacity: Int = randOne(List(8, 10, 12, 14, 16, 18))
 
-      def minViableAttendees: Int = capacity - randOne(List(2, 3, 4, 1))
+      def minViableAttendees: Int = capacity - randOne(List(5, 3, 4, 2))
 
       def attendeeSafetyMargin: Int = randOne(List(1, 2, 3))
 
@@ -772,10 +766,14 @@ object DataFaker {
       }
 
       def sessions = randList(List(
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "First session", 8, 6, 1, startTime, startTime.plusHours(1)),
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Advanced session", 10, 5, 2, startTime, startTime.plusHours(2)),
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Midday session", 8, 8, 2, startTime, startTime.plusHours(3)),
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Small session", 6, 5, 0, startTime, startTime.plusHours(4))
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "First session",
+          capacity, minViableAttendees, attendeeSafetyMargin, startTime, startTime.plusHours(1)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Advanced session",
+          capacity, minViableAttendees, attendeeSafetyMargin, startTime, startTime.plusHours(2)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Midday session",
+          capacity, minViableAttendees, attendeeSafetyMargin, startTime, startTime.plusHours(3)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Small session",
+          capacity, minViableAttendees, attendeeSafetyMargin, startTime, startTime.plusHours(4))
       ), 2)
     }
 
