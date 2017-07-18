@@ -6,8 +6,8 @@
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  startTime: 11:00
-  endTime: 12:00
+  startTime: 09:00
+  endTime: 17:00
   skillRequirements:
     ASSESSOR: 6
     CHAIR: 3
@@ -19,8 +19,14 @@
       capacity: 36
       minViableAttendees: 12
       attendeeSafetyMargin: 2
-      startTime: 11:00
+      startTime: 09:00
       endTime: 12:00
+    - description: PM
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 13:00
+      endTime: 17:00
 - eventType: FSAC
   description: PDFS FSB
   location: London
@@ -30,7 +36,7 @@
   minViableAttendees: 12
   attendeeSafetyMargin: 2
   startTime: 9:00
-  endTime: 12:00
+  endTime: 17:00
   skillRequirements:
     ASSESSOR: 6
     CHAIR: 3
@@ -43,13 +49,13 @@
       minViableAttendees: 12
       attendeeSafetyMargin: 2
       startTime: 9:00
-      endTime: 10:30
+      endTime: 13:00
     - description: Second
       capacity: 18
       minViableAttendees: 12
       attendeeSafetyMargin: 2
-      startTime: 10:30
-      endTime: 12:00
+      startTime: 13:00
+      endTime: 17:00
 - eventType: FSAC
   description: PDFS FSB
   location: Newcastle
