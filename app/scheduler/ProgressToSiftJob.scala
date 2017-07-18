@@ -17,6 +17,7 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
+import model.SerialUpdateResult
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
 import services.onlinetesting.OnlineTestService
@@ -38,9 +39,10 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     siftService.nextApplicationsReadyForSift(batchSize).flatMap {
       case Nil => Future.successful(())
-      case applications =>
-        implicit val hc = new HeaderCarrier()
-       Future.successful(())}
+      case applications => siftService.progressApplicationToSift(applications).map { result =>
+        play.api.Logger.info(s"Progress to sift complete - ${result.successes.size} updated and ${result.failures.size} failed to update")
+      }
+    }
   }
 }
 

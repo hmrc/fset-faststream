@@ -57,6 +57,11 @@ object FutureEx {
 
     Future.traverse( seq )( f andThen mapValue )
   }
+
+
+  def futureToEither[T](updateReq: T, result: Future[Unit])(implicit ex: ExecutionContext): Future[Either[T, T]] = {
+    result.map { _ => Right(updateReq) }.recover { case _: Exception => Left(updateReq) }
+  }
 }
 
 object TryEx {

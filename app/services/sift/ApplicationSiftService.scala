@@ -16,6 +16,8 @@
 
 package services.sift
 
+import common.FutureEx
+import model.SerialUpdateResult
 import model.command.ApplicationForSift
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 
@@ -34,10 +36,12 @@ trait ApplicationSiftService {
     applicationSiftRepo.nextApplicationsForSift(batchSize)
   }
 
-  def progressApplicationToSift(applications: Future[Seq[ApplicationForSift]]): Future[Seq[Future[Unit]]] = {
-    applications.map(_.map{ application =>
-      applicationSiftRepo.progressApplicationToSift(application)
-    })
+  def progressApplicationToSift(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
+    val updates = FutureEx.traverseSerial(applications) { application =>
+      FutureEx.futureToEither(application, applicationSiftRepo.progressApplicationToSift(application))
+    }
+
+    updates.map(SerialUpdateResult.fromEither)
   }
 
 }
