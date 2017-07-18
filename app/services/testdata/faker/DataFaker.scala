@@ -745,7 +745,7 @@ object DataFaker {
 
       def location: Location = randOne(List(Location("London"), Location("Newcastle")))
 
-      def venue: Venue = randOne(ExternalSources.venuesByLocation(location.name))
+      def venue(l: Location): Venue = randOne(ExternalSources.venuesByLocation(l.name))
 
       def date: LocalDate = LocalDate.now().plusDays(number(Option(300)))
 
@@ -772,10 +772,10 @@ object DataFaker {
       }
 
       def sessions = randList(List(
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "First session", 36, 12, 4, startTime, startTime.plusHours(1)),
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Advanced session", 24, 12, 2, startTime, startTime.plusHours(2)),
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Midday session", 12, 12, 2, startTime, startTime.plusHours(3)),
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Small session", 6, 6, 2, startTime, startTime.plusHours(4))
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "First session", 8, 6, 1, startTime, startTime.plusHours(1)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Advanced session", 10, 5, 2, startTime, startTime.plusHours(2)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Midday session", 8, 8, 2, startTime, startTime.plusHours(3)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Small session", 6, 5, 0, startTime, startTime.plusHours(4))
       ), 2)
     }
 
