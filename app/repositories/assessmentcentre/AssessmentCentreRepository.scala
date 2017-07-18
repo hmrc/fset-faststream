@@ -25,6 +25,8 @@ import repositories.{ CollectionNames, RandomSelection, ReactiveRepositoryHelper
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
+import scala.concurrent.Future
+
 
 trait AssessmentCentreRepository extends RandomSelection with ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
@@ -43,25 +45,44 @@ class AssessmentCentreMongoRepository (
     ReactiveMongoFormats.objectIdFormats
 ) with AssessmentCentreRepository {
 
-  def nextApplicationForAssessmentCentre(batchSize: Int) = {
+  def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[String]] = {
 
-    val hasSiftableSchemeInPhase3Query = BSONDocument(s"testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
+    val hasGreenSiftableSchemeInPhase3Query = BSONDocument(s"testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
         "schemeId" -> BSONDocument("$in" -> siftableSchemes.map(_.id)),
         "result " -> EvaluationResults.Green.toPassmark
       )))
 
+    val hasGreenNonSiftableSchemeInPhase3Query =
+    BSONDocument(s"testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
+        "schemeId" -> BSONDocument("$nin" -> siftableSchemes.map(_.id)),
+        "result " -> EvaluationResults.Green.toPassmark
+      )))
+
+    // no sift required and at least one green scheme at video interview
     val noSiftRequiredQuery = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED),
-      BSONDocument("$not" -> hasSiftableSchemeInPhase3Query),
+      BSONDocument("$not" -> hasGreenSiftableSchemeInPhase3Query),
       BSONDocument(s"testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" ->
         BSONDocument("result " -> EvaluationResults.Green.toPassmark)
       ))
     ))
 
+    // passed at least one scheme in sift or had at least one non-siftable scheme green at video interview
     val siftCompletedQuery = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
-      BSONDocument()
-  ))
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument(s"testGroups.SIFT.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
+          "result " -> EvaluationResults.Green.toPassmark
+        ))),
+        hasGreenNonSiftableSchemeInPhase3Query
+      ))
+    ))
+
+    val query = BSONDocument("$or" -> BSONArray(noSiftRequiredQuery, siftCompletedQuery))
+
+    selectRandom[BSONDocument](query).map(_.map { doc =>
+      doc.getAs[String]("applicationId").get
+    })
   }
 
 }

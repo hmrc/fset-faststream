@@ -18,21 +18,21 @@ package scheduler
 
 import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.OnlineTestService
-import services.sift.ApplicationSiftService
+import services.assessmentcentre.AssessmentCentreService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 object ProgressToAssessmentCentreJob extends ProgressToAssessmentCentreJob {
-  val siftService = ApplicationSiftService
+  val assessmentCentreService = AssessmentCentreService
   val config = TbcConfig
 }
 
 trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  val siftService: ApplicationSiftService
+  val assessmentCentreService: AssessmentCentreService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    assessmentCentreService.nextApplicationForAssessmentCentre()
 //    siftService.nextTestGroupWithReportReady().flatMap {
 //      case Some(richTestGroup) =>
 //        implicit val hc = new HeaderCarrier()
