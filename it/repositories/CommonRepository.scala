@@ -14,7 +14,7 @@ import model._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.Assert._
 import org.scalatest.concurrent.ScalaFutures
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONArray, BSONDocument}
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting._
@@ -109,9 +109,17 @@ trait CommonRepository {
                                             )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     assertNotNull("Phase3 pass mark evaluation must be set", phase3PassMarkEvaluation)
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
-    insertApplication(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, None, None, Some(launchPadTests))
-    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None)
-    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, applicationRoute, isGis = false,
+    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
+
+    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None).futureValue
+
+    val application = BSONDocument("applicationId" -> appId)
+    val update = BSONDocument(
+      "$set" -> BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+    )
+    applicationRepository.collection.update(application, update).futureValue
+
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, applicationRoute, isGis = false,
       Nil, launchPadTests.headOption, Some(phase3PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 

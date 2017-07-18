@@ -26,13 +26,14 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 trait AssessmentCentreRepository extends RandomSelection with ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
 
   def dateTime: DateTimeFactory
-  def nextApplicationForAssessmentCentre(batchSize: Int)
+  def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[String]]
 
 }
 

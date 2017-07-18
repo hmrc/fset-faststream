@@ -58,10 +58,9 @@ class ApplicationSiftMongoRepository(
   val eligibleForSiftQuery = BSONDocument("$and" -> BSONArray(
     BSONDocument("applicationStatus" -> prevPhase),
     BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
-      BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemes.map(_.id))),
-      "result" ->EvaluationResults.Green.toPassmark
-    ))
-  ))
+      BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemes.map(_.id)),
+      "result" -> EvaluationResults.Green.toPassmark)
+  ))))
 
   def nextApplicationsForSift(batchSize: Int): Future[List[ApplicationForSift]] = {
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {

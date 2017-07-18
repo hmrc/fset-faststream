@@ -18,10 +18,11 @@ package scheduler
 
 import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
+import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
 import services.assessmentcentre.AssessmentCentreService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 object ProgressToAssessmentCentreJob extends ProgressToAssessmentCentreJob {
   val assessmentCentreService = AssessmentCentreService
@@ -31,8 +32,10 @@ object ProgressToAssessmentCentreJob extends ProgressToAssessmentCentreJob {
 trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val assessmentCentreService: AssessmentCentreService
 
+  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
+
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    assessmentCentreService.nextApplicationForAssessmentCentre()
+    assessmentCentreService.nextApplicationForAssessmentCentre(batchSize)
 //    siftService.nextTestGroupWithReportReady().flatMap {
 //      case Some(richTestGroup) =>
 //        implicit val hc = new HeaderCarrier()
