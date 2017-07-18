@@ -36,7 +36,8 @@ object SuccessPhase1TestJob extends SuccessTestJob {
 object SuccessPhase3TestJob extends SuccessTestJob {
   override val service = Phase3TestService
   override val successType: SuccessTestType = Phase3SuccessTestType
-  val config = SuccessPhase3TestJobConfig}
+  val config = SuccessPhase3TestJobConfig
+}
 
 trait SuccessTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: OnlineTestService

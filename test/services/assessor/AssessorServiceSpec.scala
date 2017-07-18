@@ -23,8 +23,9 @@ import services.assessoravailability.AssessorService
 import org.mockito.ArgumentMatchers._
 
 import scala.concurrent.duration._
-import model.Exceptions
+import model.{ AllocationStatuses, Exceptions, SerialUpdateResult }
 import model.Exceptions.AssessorNotFoundException
+import model.exchange.UpdateAllocationStatusRequest
 import model.persisted.{ AssessorAllocation, EventExamples, ReferenceData }
 import model.persisted.eventschedules.{ Location, Venue }
 import model.persisted.assessor.AssessorExamples._
@@ -111,7 +112,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
   }
 
-  "find assessor availability" should {
+  "find assessor availability" must {
 
     "return assessor availability" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturn(Future.successful(Some(AssessorWithAvailability)))
@@ -131,6 +132,41 @@ class AssessorServiceSpec extends BaseServiceSpec {
         Await.result(service.findAvailability(AssessorUserId), 10 seconds)
       }
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
+    }
+  }
+
+  "updating an assessors allocation status" must {
+    "return a successful update response" in new TestFixture {
+      when(mockAllocationRepo.updateAllocationStatus("assessorId", "eventId", AllocationStatuses.CONFIRMED))
+        .thenReturn(Future.successful(unit))
+
+      val updates = UpdateAllocationStatusRequest("assessorId", "eventId", AllocationStatuses.CONFIRMED) :: Nil
+      val result = service.updateAssessorAllocationStatuses(updates).futureValue
+      result.failures mustBe Nil
+      result.successes mustBe updates
+    }
+
+    "return a failed response" in new TestFixture {
+      when(mockAllocationRepo.updateAllocationStatus("assessorId", "eventId", AllocationStatuses.CONFIRMED))
+        .thenReturn(Future.failed(new Exception("something went wrong")))
+
+      val updates = UpdateAllocationStatusRequest("assessorId", "eventId", AllocationStatuses.CONFIRMED) :: Nil
+      val result = service.updateAssessorAllocationStatuses(updates).futureValue
+      result.failures mustBe updates
+      result.successes mustBe Nil
+    }
+
+    "return a partial update response" in new TestFixture {
+       when(mockAllocationRepo.updateAllocationStatus("assessorId", "eventId", AllocationStatuses.CONFIRMED))
+        .thenReturn(Future.successful(unit))
+      when(mockAllocationRepo.updateAllocationStatus("assessorId", "eventId2", AllocationStatuses.CONFIRMED))
+        .thenReturn(Future.failed(new Exception("something went wrong")))
+
+      val updates = UpdateAllocationStatusRequest("assessorId", "eventId", AllocationStatuses.CONFIRMED) ::
+        UpdateAllocationStatusRequest("assessorId", "eventId2", AllocationStatuses.CONFIRMED) :: Nil
+      val result = service.updateAssessorAllocationStatuses(updates).futureValue
+      result.failures mustBe updates.last :: Nil
+      result.successes mustBe updates.head :: Nil
     }
   }
 
