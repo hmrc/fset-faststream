@@ -32,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object PersonalDetailsService extends PersonalDetailsService {
-  val pdRepository = faststreamPersonalDetailsRepository
+  val pdRepository = personalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val csedRepository = civilServiceExperienceDetailsRepository
   val fsacIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository

@@ -25,13 +25,6 @@ object FSACScores {
   case class FSACExerciseScoresAndFeedback(
                                             //  attended: Boolean,
                                             //  assessmentIncomplete: Boolean,
-                                            //  leadingAndCommunicating: Option[Double] = None,
-                                            //  collaboratingAndPartnering: Option[Double] = None,
-                                            //  deliveringAtPace: Option[Double] = None,
-                                            //  makingEffectiveDecisions: Option[Double] = None,
-                                            //  changingAndImproving: Option[Double] = None,
-                                            //  buildingCapabilityForAll: Option[Double] = None,
-                                            //  motivationFit: Option[Double] = None,
 
                                             seeingTheBigPicture: Option[Double] = None,
                                             changingAndImproving: Option[Double] = None,
@@ -42,7 +35,15 @@ object FSACScores {
                                             achievingCommercialOutcomes: Option[Double] = None,
                                             deliveringValueForMoney: Option[Double] = None,
 
-                                            feedback: Option[String] = None,
+                                            strategicApproachToObjectivesFeedback: Option[String] = None,
+                                            analysisAndDecisionMakingFeedback: Option[String] = None,
+                                            leadingAndCommunicatingFeedback: Option[String] = None,
+                                            buildingProductiveRelationshipsAndDevelopingCapabilityFeedback: Option[String] = None,
+
+                                            strategicApproachToObjectivesAverage: Option[Double] = None,
+                                            analysisAndDecisionMakingAverage: Option[Double] = None,
+                                            leadingAndCommunicatingAverage: Option[Double] = None,
+                                            buildingProductiveRelationshipsAndDevelopingCapabilityAverage: Option[Double] = None,
                                             //  updatedBy: UniqueIdentifier,
                                             //  savedDate: Option[DateTime] = None,
                                             submittedDate: Option[DateTime] = None,

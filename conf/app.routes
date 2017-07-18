@@ -138,10 +138,13 @@ GET         /day-aggregate-events                                        control
 GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 
 # FSAC scores
+# TODO MIGUEL: Maybe change this to submit
+POST        /fsac-scores/submit                                          controllers.FSACScoresController.submit()
 POST        /fsac-scores/save                                            controllers.FSACScoresController.save()
-POST        /fsac-scores/:applicationId/analysis-exercise/save           controllers.FSACScoresController.saveAnalysisExercise(applicationId: model.UniqueIdentifier)
-POST        /fsac-scores/:applicationId/group-exercise/save              controllers.FSACScoresController.saveGroupExercise(applicationId: model.UniqueIdentifier)
-POST        /fsac-scores/:applicationId/leadership-exercise/save         controllers.FSACScoresController.saveLeadershipExercise(applicationId: model.UniqueIdentifier)
+#POST        /fsac-scores/:applicationId/analysis-exercise/save           controllers.FSACScoresController.saveAnalysisExercise(applicationId: model.UniqueIdentifier)
+#POST        /fsac-scores/:applicationId/group-exercise/save              controllers.FSACScoresController.saveGroupExercise(applicationId: model.UniqueIdentifier)
+#POST        /fsac-scores/:applicationId/leadership-exercise/save         controllers.FSACScoresController.saveLeadershipExercise(applicationId: model.UniqueIdentifier)
+GET         /fsac-scores/with-candidate-summary/:applicationId           controllers.FSACScoresController.findFSACScoresWithCandidateSummary(applicationId: model.UniqueIdentifier)
 GET         /fsac-scores/:applicationId                                  controllers.FSACScoresController.find(applicationId: model.UniqueIdentifier)
 GET         /fsac-scores                                                 controllers.FSACScoresController.findAll
 

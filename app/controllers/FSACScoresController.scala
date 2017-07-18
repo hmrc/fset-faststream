@@ -18,6 +18,7 @@ package controllers
 
 import model.FSACScores._
 import model.UniqueIdentifier
+import model.command.FSACScoresCommands.{ ApplicationScores, AssessmentExercise, ExerciseScoresAndFeedback }
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories.FSACScoresRepository
@@ -25,6 +26,7 @@ import services.fsacscores.FSACScoresService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object FSACScoresController extends FSACScoresController {
   val service: FSACScoresService = FSACScoresService
@@ -35,12 +37,31 @@ trait FSACScoresController extends BaseController {
   val service: FSACScoresService
   val repository: FSACScoresRepository
 
-  def save() = Action.async(parse.json) {
-    implicit request => withJsonBody[FSACAllExercisesScoresAndFeedback] { scores =>
-      repository.save(scores).map(_ => Ok)
-    }
+  def submit() = Action.async(parse.json) {
+    implicit request =>
+      withJsonBody[ExerciseScoresAndFeedback] { submitRequest =>
+        val result = submitRequest.exercise match {
+          case AssessmentExercise.analysis =>
+            // TODO: Use Unique
+            service.saveAnalysisExercise(submitRequest.applicationId, submitRequest.scoresAndFeedback)
+          case AssessmentExercise.group =>
+            service.saveGroupExercise(submitRequest.applicationId, submitRequest.scoresAndFeedback)
+          case AssessmentExercise.leadership =>
+            service.saveLeadershipExercise(submitRequest.applicationId, submitRequest.scoresAndFeedback)
+          case _ => throw new Exception
+        }
+        result.map(_ => Ok)
+      }
   }
 
+  def save() = Action.async(parse.json) {
+    implicit request =>
+      withJsonBody[FSACAllExercisesScoresAndFeedback] { scores =>
+        service.save(scores).map(_ => Ok)
+      }
+  }
+
+  /*
   def saveAnalysisExercise(applicationId: UniqueIdentifier) = Action.async(parse.json) {
     implicit request => withJsonBody[FSACExerciseScoresAndFeedback] { scores =>
       service.saveAnalysisExercise(applicationId, scores).map(_ => Ok)
@@ -58,6 +79,7 @@ trait FSACScoresController extends BaseController {
       service.saveLeadershipExercise(applicationId, scores).map(_ => Ok)
     }
   }
+*/
 
   def find(applicationId: UniqueIdentifier) = Action.async { implicit request =>
     repository.find(applicationId).map { scores =>
@@ -68,6 +90,15 @@ trait FSACScoresController extends BaseController {
   def findAll = Action.async { implicit request =>
     repository.findAll.map { scores =>
       Ok(Json.toJson(scores))
+    }
+  }
+
+
+  def findFSACScoresWithCandidateSummary(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+    service.findFSACScoresWithCandidateSummary(applicationId).map { scores =>
+      Ok(Json.toJson(scores))
+    }.recover {
+      case _: Exception => NotFound
     }
   }
 }

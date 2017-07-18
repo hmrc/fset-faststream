@@ -17,7 +17,7 @@
 package repositories
 
 import factories.DateTimeFactory
-import model.FSACScores.{CandidateScores, CandidateScoresAndFeedback}
+import model.FSACScores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback}
 import testkit.MongoRepositorySpec
 
 class FSACScoresRepositorySpec extends MongoRepositorySpec {
@@ -36,7 +36,7 @@ class FSACScoresRepositorySpec extends MongoRepositorySpec {
       indexes.size mustBe 2
     }
 
-    val CandidateScoresWithFeedback = CandidateScoresAndFeedback("app1", Some(true), assessmentIncomplete = false,
+    val CandidateScoresWithFeedback = FSACExerciseScoresAndFeedback("app1", Some(true), assessmentIncomplete = false,
       CandidateScores(Some(4.0), Some(3.0), Some(2.0)),
       CandidateScores(Some(4.0), Some(3.0), Some(2.0)),
       CandidateScores(Some(4.0), Some(3.0), Some(2.0)),

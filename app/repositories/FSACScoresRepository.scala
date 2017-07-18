@@ -44,7 +44,7 @@ class FSACScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val applicationId = allExercisesScoresAndFeedback.applicationId
     val query = BSONDocument("applicationId" -> applicationId.toString())
     val updateBSON = BSONDocument("$set" -> fSACAllExercisesScoresAndFeedbackHandler.write(allExercisesScoresAndFeedback))
-    val validator = singleUpsertValidator(applicationId.toString(), actionDesc = "saving allocation")
+    val validator = singleUpsertValidator(applicationId.toString(), actionDesc = "saving fsac scores")
     collection.update(query, updateBSON, upsert = true) map validator
   }
 

@@ -64,7 +64,7 @@ package object repositories {
     MongoDbConnection.mongoConnector.db
   }
 
-  lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
+  lazy val personalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
   lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository()
   lazy val schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
   lazy val civilServiceExperienceDetailsRepository = new CivilServiceExperienceDetailsMongoRepository()
