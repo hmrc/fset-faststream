@@ -17,7 +17,7 @@
 package repositories
 
 import factories.DateTimeFactory
-import model.fsacscores.FSACScores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback}
+import model.fsacscores.{ FSACAllExercisesScoresAndFeedback, FSACAllExercisesScoresAndFeedbackExamples, FSACExerciseScoresAndFeedback, FSACExerciseScoresAndFeedbackExamples }
 import testkit.MongoRepositorySpec
 
 class FSACScoresRepositorySpec extends MongoRepositorySpec {
@@ -26,7 +26,7 @@ class FSACScoresRepositorySpec extends MongoRepositorySpec {
 
   def repository = new FSACScoresMongoRepository(DateTimeFactory)
 
-  "Application Scores Repository" should {
+  "FSAC Scores Repository" should {
     "create indexes for the repository" in {
       val repo = repositories.fsacScoresRepository
 
@@ -36,62 +36,50 @@ class FSACScoresRepositorySpec extends MongoRepositorySpec {
       indexes.size mustBe 2
     }
 
-    val CandidateScoresWithFeedback = FSACExerciseScoresAndFeedback("app1", Some(true), assessmentIncomplete = false,
-      CandidateScores(Some(4.0), Some(3.0), Some(2.0)),
-      CandidateScores(Some(4.0), Some(3.0), Some(2.0)),
-      CandidateScores(Some(4.0), Some(3.0), Some(2.0)),
-      CandidateScores(Some(4.0), Some(3.0), Some(2.0)),
-      CandidateScores(Some(4.0), Some(3.0), Some(2.0)),
-      CandidateScores(Some(4.0), Some(3.0), Some(2.0)),
-      CandidateScores(Some(4.0), Some(3.0), Some(2.0)))
+    val FsacScores = FSACAllExercisesScoresAndFeedbackExamples.Example1
+    val AppId = FSACAllExercisesScoresAndFeedbackExamples.Example1.applicationId
 
     "create a new application scores and feedback document" in {
-      repository.save(CandidateScoresWithFeedback).futureValue
+      repository.save(FsacScores).futureValue
 
-      repository.find("app1").futureValue mustBe Some(CandidateScoresWithFeedback)
+      repository.find(AppId).futureValue mustBe Some(FsacScores)
     }
 
     "return already stored application scores" in {
-      repository.save(CandidateScoresWithFeedback).futureValue
+      repository.save(FsacScores).futureValue
 
-      val result = repository.find("app1").futureValue
+      val result = repository.find(AppId).futureValue
 
-      result mustBe Some(CandidateScoresWithFeedback)
+      result mustBe Some(FsacScores)
     }
 
     "return no application score if it does not exist" in {
-      val result = repository.find("app1").futureValue
+      val result = repository.find(AppId).futureValue
 
       result mustBe None
     }
 
     "update already saved application scores and feedback document" in {
-      repository.save(CandidateScoresWithFeedback).futureValue
-      val updatedApplicationScores = CandidateScoresWithFeedback.copy(attendancy = Some(false))
+      repository.save(FsacScores).futureValue
 
+      val updatedApplicationScores = FsacScores.copy(analysisExercise = None)
       repository.save(updatedApplicationScores).futureValue
 
-      repository.find("app1").futureValue mustBe Some(updatedApplicationScores)
+      repository.find(AppId).futureValue mustBe Some(updatedApplicationScores)
     }
 
     "retrieve all application scores and feedback documents" in {
-      val CandidateScoresWithFeedback2 = CandidateScoresAndFeedback("app2", Some(true), assessmentIncomplete = false,
-        CandidateScores(Some(1.0), Some(3.0), Some(2.0)),
-        CandidateScores(Some(1.0), Some(3.0), Some(2.0)),
-        CandidateScores(Some(1.0), Some(3.0), Some(2.0)),
-        CandidateScores(Some(1.0), Some(3.0), Some(2.0)),
-        CandidateScores(Some(1.0), Some(3.0), Some(2.0)),
-        CandidateScores(Some(1.0), Some(3.0), Some(2.0)),
-        CandidateScores(Some(1.0), Some(3.0), Some(2.0)))
+      val FsacScores2 = FSACAllExercisesScoresAndFeedbackExamples.Example2
 
-      repository.save(CandidateScoresWithFeedback).futureValue
-      repository.save(CandidateScoresWithFeedback2).futureValue
+
+      repository.save(FsacScores).futureValue
+      repository.save(FsacScores2).futureValue
 
       val result = repository.findAll.futureValue
 
       result must have size 2
-      result must contain ("app1" -> CandidateScoresWithFeedback)
-      result must contain ("app2" -> CandidateScoresWithFeedback2)
+      result must contain (FsacScores)
+      result must contain (FsacScores2)
     }
   }
 }
