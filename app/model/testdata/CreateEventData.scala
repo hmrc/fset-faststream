@@ -30,12 +30,16 @@ object CreateEventData {
                              location: Location,
                              venue: Venue,
                              date: LocalDate,
+                             capacity: Int,
+                             minViableAttendees: Int,
+                             attendeeSafetyMargin: Int,
                              startTime: LocalTime,
                              endTime: LocalTime,
                              skillRequirements: Map[String, Int],
                              sessions: List[Session]) extends CreateTestData {
     def toEvent: Event = {
-      Event(id, eventType, description, location, venue, date, startTime, endTime, skillRequirements, sessions)
+      Event(id, eventType, description, location, venue, date, capacity, minViableAttendees,
+        attendeeSafetyMargin, startTime, endTime, skillRequirements, sessions)
     }
   }
 
@@ -50,12 +54,16 @@ object CreateEventData {
       val location = createRequest.location.map(l => Location(l)).getOrElse(Random.Event.location)
       val venue = createRequest.venue.map(v => Venue(v, s"$v")).getOrElse(Random.Event.venue(location))
       val date = createRequest.date.getOrElse(Random.Event.date)
+      val capacity = createRequest.capacity.getOrElse(Random.Event.capacity)
+      val minViableAttendees = createRequest.minViableAttendees.getOrElse(Random.Event.minViableAttendees)
+      val attendeeSafetyMargin = createRequest.attendeeSafetyMargin.getOrElse(Random.Event.attendeeSafetyMargin)
       val startTime = createRequest.startTime.getOrElse(Random.Event.startTime)
       val endTime = createRequest.endTime.getOrElse(Random.Event.endTime)
       val skillRequirements = createRequest.skillRequirements.getOrElse(Random.Event.skillRequirements)
       val sessions = createRequest.sessions.getOrElse(Random.Event.sessions)
 
-      CreateEventData(id, eventType, description, location, venue, date, startTime, endTime, skillRequirements, sessions)
+      CreateEventData(id, eventType, description, location, venue, date, capacity, minViableAttendees, attendeeSafetyMargin,
+        startTime, endTime, skillRequirements, sessions)
     }
   }
 
