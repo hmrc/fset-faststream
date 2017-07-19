@@ -2,7 +2,7 @@ package repositories.sifting
 
 import model.EvaluationResults.Green
 import model.Phase3TestProfileExamples.phase3TestWithResult
-import model.ProgressStatuses.PHASE3_TESTS_PASSED
+import model.ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationStatus, SchemeId }
 import repositories.onlinetesting.Phase2EvaluationMongoRepositorySpec.phase2TestWithResult
@@ -54,7 +54,7 @@ class SiftingRepositorySpec extends MongoRepositorySpec with CommonRepository {
       candidates.size mustBe 1
     }
 
-    "not sift applictaion for already sifted scheme" in {
+    "not sift application for already sifted scheme" in {
       createSiftEligibleCandidates(UserId, AppId)
       repository.siftCandidateApplication(AppId, SchemeEvaluationResult(Commercial, "Green")).futureValue
       intercept[Exception] {
@@ -80,7 +80,8 @@ class SiftingRepositorySpec extends MongoRepositorySpec with CommonRepository {
 
     val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
       "phase3_version1-res", Some("phase2_version1-res"))
-    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3Evaluation, Some(PHASE3_TESTS_PASSED)).futureValue
+
+    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3Evaluation, Some(PHASE3_TESTS_PASSED_NOTIFIED)).futureValue
 
   }
 
