@@ -129,6 +129,9 @@ trait GeneralApplicationRepository {
               frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
 
   def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse]
+
+  def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
+
   }
 
 // scalastyle:off number.of.methods
@@ -883,6 +886,30 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     val validator = singleUpdateValidator(appId, actionDesc = "archiving application")
     collection.update(query, updateWithArchiveUserId) map validator
+  }
+
+  override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val projection = BSONDocument(
+      "applicationId" -> true,
+      "personal-details.firstName" -> true,
+      "personal-details.lastName" -> true,
+      "assistance-details.needsSupportAtVenue" -> true,
+      "progress-status-timestamp" -> true
+    )
+
+    // TODO: should be something common with findCandidatesEligibleForEventAllocation
+    val ascending = JsNumber(1)
+    val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]()
+      .map { docList =>
+        docList.map { doc =>
+          bsonDocToCandidatesEligibleForEvent(doc)
+        }
+      }.flatMap { result =>
+      Future.successful(CandidatesEligibleForEventResponse(result, -1))
+    }
   }
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = {

@@ -41,7 +41,7 @@ object CreateAssessorAllocationData {
     def apply(createRequest: CreateAssessorAllocationRequest)(generatorId: Int): CreateAssessorAllocationData = {
       val id = createRequest.id
       val eventId = createRequest.eventId
-      val status = createRequest.status.getOrElse(Random.AssessorAllocation.status)
+      val status = createRequest.status.getOrElse(Random.Allocation.status)
       val allocatedAs = createRequest.allocatedAs
       val version = createRequest.version.getOrElse("")
       new CreateAssessorAllocationData(id, eventId, status, allocatedAs, version)

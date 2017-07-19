@@ -23,6 +23,7 @@ import model.Exceptions.EmailTakenException
 import model._
 import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
 import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllocationRequest
+import model.command.testdata.CreateCandidateAllocationRequest
 import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.AssessorSkill
@@ -30,6 +31,7 @@ import model.persisted.assessor.AssessorStatus
 import model.persisted.eventschedules.{ EventType, Session, SkillType }
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
+import model.testdata.CreateCandidateAllocationData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
 import org.joda.time.{ LocalDate, LocalTime }
@@ -226,6 +228,24 @@ trait TestDataGeneratorController extends BaseController {
     Future.successful(Ok(Json.toJson(List(example1, example2))))
   }
 
+  def exampleCreateCandidateAllocations: Action[AnyContent] = Action.async { implicit request =>
+    val example1 = CreateCandidateAllocationRequest(
+      id = "id1",
+      status = Option(AllocationStatuses.UNCONFIRMED),
+      eventId = "eventId1",
+      sessionId = "sessionId1",
+      version = Option("versiona")
+    )
+    val example2 = CreateCandidateAllocationRequest(
+      id = "id1",
+      status = Option(AllocationStatuses.CONFIRMED),
+      eventId = "eventId1",
+      sessionId = "sessionId1",
+      version = Option("versiona")
+    )
+    Future.successful(Ok(Json.toJson(List(example1, example2))))
+  }
+
   def createAdmins(numberToGenerate: Int, emailPrefix: Option[String], role: String): Action[AnyContent] = Action.async { implicit request =>
     try {
       TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
@@ -275,6 +295,15 @@ trait TestDataGeneratorController extends BaseController {
         createData
       }
       createAssessorAllocations(createDatas, numberToGenerate)
+    }
+  }
+
+  def createCandidateAllocationsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[List[CreateCandidateAllocationRequest]] { createRequests =>
+      val allData = createRequests.map { createRequest =>
+        CreateCandidateAllocationData.apply(createRequest) _
+      }
+      createCandidateAllocations(allData, numberToGenerate)
     }
   }
 
@@ -353,6 +382,20 @@ trait TestDataGeneratorController extends BaseController {
     } catch {
       case ex: Throwable => Future.successful(Conflict(JsObject(List(("message",
         JsString(s"There was an exception creating the assessor allocations: ${ex.getMessage}"))))))
+    }
+  }
+
+  private def createCandidateAllocations(data: List[(Int) => CreateCandidateAllocationData], numberToGenerate: Int)
+                                        (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    try {
+      TestDataGeneratorService.createCandidateAllocations(numberToGenerate, data).map{ candidateAllocations =>
+        Ok(Json.toJson(candidateAllocations))
+      }
+    } catch {
+      case ex: Throwable =>
+        Future.successful(
+          InternalServerError(JsObject(List("message" -> JsString(s"Exception while creating the candidate allocations: ${ex.getMessage}"))))
+      )
     }
   }
 }

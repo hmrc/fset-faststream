@@ -130,23 +130,23 @@ object CreateCandidateRequest {
   }
 
   case class CreateCandidateRequest(
-                                             statusData: StatusDataRequest = new StatusDataRequest,
-                                             personalData: Option[PersonalDataRequest],
-                                             diversityDetails: Option[DiversityDetailsRequest],
-                                             assistanceDetails: Option[AssistanceDetailsRequest],
-                                             schemeTypes: Option[List[SchemeId]],
-                                             isCivilServant: Option[Boolean],
-                                             hasFastPass: Option[Boolean],
-                                             hasDegree: Option[Boolean],
-                                             region: Option[String],
-                                             loc1scheme1EvaluationResult: Option[String],
-                                             loc1scheme2EvaluationResult: Option[String],
-                                             confirmedAllocation: Option[Boolean],
-                                             phase1TestData: Option[Phase1TestDataRequest],
-                                             phase2TestData: Option[Phase2TestDataRequest],
-                                             phase3TestData: Option[Phase3TestDataRequest],
-                                             adjustmentInformation: Option[Adjustments] = None
-                                           ) extends CreateTestDataRequest
+                                     statusData: StatusDataRequest = new StatusDataRequest,
+                                     personalData: Option[PersonalDataRequest],
+                                     diversityDetails: Option[DiversityDetailsRequest],
+                                     assistanceDetails: Option[AssistanceDetailsRequest],
+                                     schemeTypes: Option[List[SchemeId]],
+                                     isCivilServant: Option[Boolean],
+                                     hasFastPass: Option[Boolean],
+                                     hasDegree: Option[Boolean],
+                                     region: Option[String],
+                                     loc1scheme1EvaluationResult: Option[String],
+                                     loc1scheme2EvaluationResult: Option[String],
+                                     confirmedAllocation: Option[Boolean],
+                                     phase1TestData: Option[Phase1TestDataRequest],
+                                     phase2TestData: Option[Phase2TestDataRequest],
+                                     phase3TestData: Option[Phase3TestDataRequest],
+                                     adjustmentInformation: Option[Adjustments] = None
+                                   ) extends CreateTestDataRequest
 
   object CreateCandidateRequest {
     implicit val createCandidateRequestFormat: OFormat[CreateCandidateRequest] = Json.format[CreateCandidateRequest]

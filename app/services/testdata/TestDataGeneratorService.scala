@@ -24,15 +24,15 @@ import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateEventResponse.CreateEventResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateAdminData.CreateAdminData
-import model.exchange.testdata.CreateTestDataResponse
+import model.exchange.testdata.{ CreateCandidateAllocationResponse, CreateTestDataResponse }
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateEventData.CreateEventData
-import model.testdata.CreateTestData
+import model.testdata.{ CreateCandidateAllocationData, CreateTestData }
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.MongoDbConnection
 import services.testdata.admin.AdminUserBaseGenerator
-import services.testdata.assessorallocation.AssessorAllocationGenerator
+import services.testdata.allocation.{ AssessorAllocationGenerator, CandidateAllocationGenerator }
 import services.testdata.candidate.{ BaseGenerator, RegisteredStatusGenerator }
 import services.testdata.event.EventGenerator
 import services.testdata.faker.DataFaker._
@@ -164,10 +164,28 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
+  def createCandidateAllocation(numberToGenerate: Int, createData: (Int) => CreateCandidateAllocationData)
+                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateAllocationResponse]] = {
+    Future.successful {
+      val parNumbers = getParNumbers(numberToGenerate)
+      createData(parNumbers.head)
+      runInParallel(parNumbers, createData, CandidateAllocationGenerator.generate)
+    }
+  }
+
+
   def createAssessorAllocations(numberToGenerate: Int, createDatas: List[(Int) => CreateAssessorAllocationData])(
     implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAssessorAllocationResponse]] = {
     val listOfFutures = createDatas.map { createData =>
       createAssessorAllocation(numberToGenerate, createData)
+    }
+    Future.sequence(listOfFutures).map(_.flatten)
+  }
+
+  def createCandidateAllocations(numberToGenerate: Int, data: List[(Int) => CreateCandidateAllocationData])
+                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateAllocationResponse]] = {
+    val listOfFutures = data.map { element =>
+      createCandidateAllocation(numberToGenerate, element)
     }
     Future.sequence(listOfFutures).map(_.flatten)
   }

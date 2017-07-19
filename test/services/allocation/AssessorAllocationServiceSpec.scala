@@ -88,8 +88,9 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
   "Allocate candidate" must {
     "save allocation if non already exists" in new TestFixture {
       val eventId = "E1"
+      val sessionId = "S1"
       val appId = "app1"
-      val candidateAllocations = CandidateAllocations("v1", eventId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
+      val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
 
       when(mockEventsService.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1))
       when(mockCandidateAllocationRepository.allocationsForEvent(eventId)).thenReturn(Future.successful(Nil))
