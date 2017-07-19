@@ -43,7 +43,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       insertApplicationWithPhase3TestNotifiedResults("appId6", SchemeId("Generalist"), EvaluationResults.Red).futureValue
 
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
-      appsForSift mustBe List
+      appsForSift mustBe List(
         ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
           List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
         ApplicationForSift("appId4", PassmarkEvaluation("", Some(""),

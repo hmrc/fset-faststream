@@ -21,13 +21,14 @@ import java.util
 import model.Commands.Candidate
 import model._
 import model.command.ApplicationForSift
-import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.joda.time.LocalDate
 import org.mockito.ArgumentCaptor
 import repositories.sift.ApplicationSiftRepository
-import testkit.{ExtendedTimeout, UnitWithAppSpec}
+import testkit.{ ExtendedTimeout, UnitWithAppSpec }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
+import repositories.application.GeneralApplicationRepository
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
@@ -35,19 +36,25 @@ import scala.concurrent.Future
 class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
 
   "An ApplicationSiftService.progressApplicationToSift" should {
-    case class TestApplicationSiftService(repo: ApplicationSiftRepository) extends ApplicationSiftService {
-      override def applicationSiftRepo: ApplicationSiftRepository = repo
+    case class TestApplicationSiftService(siftRepository: ApplicationSiftRepository, appRepo: GeneralApplicationRepository)
+      extends ApplicationSiftService {
+      override def applicationSiftRepo: ApplicationSiftRepository = siftRepository
+      override def applicationRepo: GeneralApplicationRepository = appRepo
     }
+
+    val mockAppRepo = mock[GeneralApplicationRepository]
+
+    when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(Future.successful())
 
     "progress all applications regardless of failures" in {
       val mockRepo = mock[ApplicationSiftRepository]
 
-      val applicationsToProgressToSift =
-        List(ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
+      val applicationsToProgressToSift = List(
+        ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
           List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
-          ApplicationForSift("appId2", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
-          ApplicationForSift("appId3", PassmarkEvaluation("", Some(""),
+        ApplicationForSift("appId2", PassmarkEvaluation("", Some(""),
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
+        ApplicationForSift("appId3", PassmarkEvaluation("", Some(""),
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))))
 
       when(mockRepo.nextApplicationsForSiftStage(any[Int])).thenReturn(Future.successful{ applicationsToProgressToSift })
@@ -58,7 +65,7 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
         .thenReturn(Future.successful())
 
 
-      whenReady(TestApplicationSiftService(mockRepo).progressApplicationToSiftStage(applicationsToProgressToSift)) { results =>
+      whenReady(TestApplicationSiftService(mockRepo, mockAppRepo).progressApplicationToSiftStage(applicationsToProgressToSift)) { results =>
 
         val failedApplications = Seq(applicationsToProgressToSift(1))
         val passedApplications = Seq(applicationsToProgressToSift(0), applicationsToProgressToSift(2))
@@ -81,7 +88,7 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
 
       when(mockRepo.findApplicationsReadyForSchemeSift(any[SchemeId])).thenReturn(Future.successful { candidates })
 
-      whenReady(TestApplicationSiftService(mockRepo).findApplicationsReadyForSchemeSift(SchemeId("scheme1"))) { result =>
+      whenReady(TestApplicationSiftService(mockRepo, mockAppRepo).findApplicationsReadyForSchemeSift(SchemeId("scheme1"))) { result =>
         result mustBe candidates
       }
     }
