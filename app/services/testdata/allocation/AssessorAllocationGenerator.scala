@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package services.testdata.assessorallocation
+package services.testdata.allocation
 
 import model.exchange.testdata.CreateAssessorAllocationResponse.CreateAssessorAllocationResponse
 import model.persisted.AssessorAllocation
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
-import repositories.AllocationRepository
+import repositories.{ AllocationRepository, AssessorAllocationMongoRepository }
 
 import scala.concurrent.Future
 
 object AssessorAllocationGenerator extends AssessorAllocationGenerator {
-  override val assessorAllocationRepository = repositories.assessorAllocationRepository
+  override val assessorAllocationRepository: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
 }
 
 trait AssessorAllocationGenerator {
