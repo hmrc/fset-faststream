@@ -152,6 +152,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key)
           ),
           siftProgressResponse = SiftProgressResponse(
+            siftEntered = getProgress(ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED.key),
             allSchemesSiftCompleted = getProgress(ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED.key)
           ),
           assessmentCentre = AssessmentCentre(
