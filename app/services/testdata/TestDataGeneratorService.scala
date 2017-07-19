@@ -89,7 +89,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
       parNumbers.map { candidateGenerationId =>
         Await.result(
           generator.generate(candidateGenerationId, configGenerator(candidateGenerationId)),
-          10 seconds
+          30 seconds
         )
       }.toList
 
