@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package model.fsacscores
+package model.assessmentscores
 
 
 import org.joda.time.DateTime
@@ -22,25 +22,25 @@ import play.api.libs.json.Json
 
 
 
-case class FSACExerciseScoresAndFeedback(
+case class AssessmentScoresExercise(
                                           //  attended: Boolean,
                                           //  assessmentIncomplete: Boolean,
 
                                           strategicApproachToObjectivesScores: Option[StrategicApproachToObjectivesScores] = None,
                                           analysisAndDecisionMakingScores: Option[AnalysisAndDecisionMakingScores] = None,
                                           leadingAndCommunicatingScores: Option[LeadingAndCommunicatingScores] = None,
-                                          buildingProductiveRelationshipsAndDevelopingCapabilityScores:
-                                          Option[BuildingProductiveRelationshipsAndDevelopingCapabilityScores] = None,
+                                          buildingProductiveRelationshipsScores:
+                                          Option[BuildingProductiveRelationshipsScores] = None,
 
                                           strategicApproachToObjectivesFeedback: Option[String] = None,
                                           analysisAndDecisionMakingFeedback: Option[String] = None,
                                           leadingAndCommunicatingFeedback: Option[String] = None,
-                                          buildingProductiveRelationshipsAndDevelopingCapabilityFeedback: Option[String] = None,
+                                          buildingProductiveRelationshipsFeedback: Option[String] = None,
 
                                           strategicApproachToObjectivesAverage: Option[Double] = None,
                                           analysisAndDecisionMakingAverage: Option[Double] = None,
                                           leadingAndCommunicatingAverage: Option[Double] = None,
-                                          buildingProductiveRelationshipsAndDevelopingCapabilityAverage: Option[Double] = None,
+                                          buildingProductiveRelationshipsAverage: Option[Double] = None,
                                           //  updatedBy: UniqueIdentifier,
                                           //  savedDate: Option[DateTime] = None,
                                           submittedDate: Option[DateTime] = None,
@@ -49,6 +49,6 @@ case class FSACExerciseScoresAndFeedback(
   def isSubmitted = submittedDate.isDefined
 }
 
-object FSACExerciseScoresAndFeedback {
-  implicit val format = Json.format[FSACExerciseScoresAndFeedback]
+object AssessmentScoresExercise {
+  implicit val format = Json.format[AssessmentScoresExercise]
 }

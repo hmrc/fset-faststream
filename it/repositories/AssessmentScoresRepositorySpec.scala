@@ -17,18 +17,18 @@
 package repositories
 
 import factories.DateTimeFactory
-import model.fsacscores.{ FSACAllExercisesScoresAndFeedback, FSACAllExercisesScoresAndFeedbackExamples, FSACExerciseScoresAndFeedback, FSACExerciseScoresAndFeedbackExamples }
+import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExercise, AssessmentScoresExerciseExamples }
 import testkit.MongoRepositorySpec
 
-class FSACScoresRepositorySpec extends MongoRepositorySpec {
+class AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
-  override val collectionName = CollectionNames.FSAC_SCORES
+  override val collectionName = CollectionNames.ASSESSMENT_SCORES
 
-  def repository = new FSACScoresMongoRepository(DateTimeFactory)
+  def repository = new AssessmentScoresMongoRepository(DateTimeFactory)
 
-  "FSAC Scores Repository" should {
+  "Assessment Scores Repository" should {
     "create indexes for the repository" in {
-      val repo = repositories.fsacScoresRepository
+      val repo = repositories.assessmentScoresRepository
 
       val indexes = indexesWithFields(repo)
       indexes must contain (List("_id"))
@@ -36,8 +36,8 @@ class FSACScoresRepositorySpec extends MongoRepositorySpec {
       indexes.size mustBe 2
     }
 
-    val FsacScores = FSACAllExercisesScoresAndFeedbackExamples.Example1
-    val AppId = FSACAllExercisesScoresAndFeedbackExamples.Example1.applicationId
+    val FsacScores = AssessmentScoresAllExercisesExamples.Example1
+    val AppId = AssessmentScoresAllExercisesExamples.Example1.applicationId
 
     "create a new application scores and feedback document" in {
       repository.save(FsacScores).futureValue
@@ -69,7 +69,7 @@ class FSACScoresRepositorySpec extends MongoRepositorySpec {
     }
 
     "retrieve all application scores and feedback documents" in {
-      val FsacScores2 = FSACAllExercisesScoresAndFeedbackExamples.Example2
+      val FsacScores2 = AssessmentScoresAllExercisesExamples.Example2
 
 
       repository.save(FsacScores).futureValue

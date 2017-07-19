@@ -16,10 +16,14 @@
 
 package model
 
+import model.command.AssessmentScoresCommands.{ AssessmentScoresFindResponse, AssessmentScoresSubmitRequest }
+
 /**
   * Created by miguelgil_garcia on 19/07/2017.
   */
-package object fsacscores {
-  type CandidateScoresAndFeedback = FSACAllExercisesScoresAndFeedback
-  type ScoresAndFeedback = FSACExerciseScoresAndFeedback
+package object assessmentscores {
+//  type CandidateScoresAndFeedback = AssessmentScoresAllExercises
+//  type ScoresAndFeedback = AssessmentScoresExercise
+//  type ExerciseScoresAndFeedback = AssessmentScoresSubmitRequest
+//  type ApplicationScores = AssessmentScoresFindResponse
 }

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package model.fsacscores
+package model.assessmentscores
 
 import play.api.libs.json.Json
 
 case class AnalysisAndDecisionMakingScores(
-  identifyingCriticalIssues: Option[Double] = None,
-  analysingBenefitsAndRisks: Option[Double] = None,
-  integratingInformation: Option[Double] = None,
-  deliveringValueForMoney: Option[Double] = None,
-  acceptingResponsibility: Option[Double] = None
+                                            identifyingCriticalIssues: Option[Double] = None,
+                                            analysingBenefitsAndRisks: Option[Double] = None,
+                                            integratingInformation: Option[Double] = None,
+                                            deliveringValueForMoney: Option[Double] = None,
+                                            acceptingResponsibility: Option[Double] = None
 )
 
 object AnalysisAndDecisionMakingScores {

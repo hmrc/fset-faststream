@@ -139,14 +139,14 @@ GET         /day-aggregate-events/location/:location                     control
 
 # FSAC scores
 # TODO MIGUEL: Maybe change this to submit
-POST        /fsac-scores/submit                                          controllers.FSACScoresController.submit()
-POST        /fsac-scores/save                                            controllers.FSACScoresController.save()
-#POST        /fsac-scores/:applicationId/analysis-exercise/save           controllers.FSACScoresController.saveAnalysisExercise(applicationId: model.UniqueIdentifier)
-#POST        /fsac-scores/:applicationId/group-exercise/save              controllers.FSACScoresController.saveGroupExercise(applicationId: model.UniqueIdentifier)
-#POST        /fsac-scores/:applicationId/leadership-exercise/save         controllers.FSACScoresController.saveLeadershipExercise(applicationId: model.UniqueIdentifier)
-GET         /fsac-scores/with-candidate-summary/:applicationId           controllers.FSACScoresController.findFSACScoresWithCandidateSummary(applicationId: model.UniqueIdentifier)
-GET         /fsac-scores/:applicationId                                  controllers.FSACScoresController.find(applicationId: model.UniqueIdentifier)
-GET         /fsac-scores                                                 controllers.FSACScoresController.findAll
+POST        /assessment-scores/submit                                          controllers.AssessmentScoresController.submit()
+POST        /assessment-scores/save                                            controllers.AssessmentScoresController.save()
+#POST        /assessment-scores/:applicationId/analysis-exercise/save           controllers.AssessmentScoresController.saveAnalysisExercise(applicationId: model.UniqueIdentifier)
+#POST        /assessment-scores/:applicationId/group-exercise/save              controllers.AssessmentScoresController.saveGroupExercise(applicationId: model.UniqueIdentifier)
+#POST        /assessment-scores/:applicationId/leadership-exercise/save         controllers.AssessmentScoresController.saveLeadershipExercise(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/with-candidate-summary/:applicationId           controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummary(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/:applicationId                                  controllers.AssessmentScoresController.find(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores                                                 controllers.AssessmentScoresController.findAll
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

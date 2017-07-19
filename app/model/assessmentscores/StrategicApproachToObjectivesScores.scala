@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package model.fsacscores
+package model.assessmentscores
 
 import play.api.libs.json.Json
 
 case class StrategicApproachToObjectivesScores(
-  seeingTheBigPicture: Option[Double] = None,
-  bringingTogetherViewsAndPerspectives: Option[Double] = None,
-  takingManagedRisks: Option[Double] = None,
-  challengingProposals: Option[Double] = None,
-  identifyingBarriersAndDevelopingSolutions: Option[Double] = None
+                                                seeingTheBigPicture: Option[Double] = None,
+                                                bringingTogetherViewsAndPerspectives: Option[Double] = None,
+                                                takingManagedRisks: Option[Double] = None,
+                                                challengingProposals: Option[Double] = None,
+                                                identifyingBarriersAndDevelopingSolutions: Option[Double] = None
 )
 
 object StrategicApproachToObjectivesScores {

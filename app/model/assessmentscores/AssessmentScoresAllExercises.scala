@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package model.fsacscores
+package model.assessmentscores
 
+import model.UniqueIdentifier
 import play.api.libs.json.Json
 
-case class LeadingAndCommunicatingScores(
-  explainingIdeas: Option[Double] = None,
-  presentingArguments: Option[Double] = None,
-  influencingOthers: Option[Double] = None,
-  communicatingSuccinctly: Option[Double] = None,
-  defendingOwnView: Option[Double] = None,
-  conveyingPurposeAndDirection: Option[Double] = None
-)
 
-object LeadingAndCommunicatingScores {
-  implicit val leadingAndCommunicatingScoresFormat = Json.format[LeadingAndCommunicatingScores]
+case class AssessmentScoresAllExercises(
+                                         applicationId: UniqueIdentifier,
+                                         analysisExercise: Option[AssessmentScoresExercise] = None,
+                                         groupExercise: Option[AssessmentScoresExercise] = None,
+                                         leadershipExercise: Option[AssessmentScoresExercise] = None
+                                            )
+
+object AssessmentScoresAllExercises {
+  implicit val format = Json.format[AssessmentScoresAllExercises]
 }

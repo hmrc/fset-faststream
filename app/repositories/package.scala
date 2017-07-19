@@ -18,7 +18,7 @@ import java.util.UUID
 
 import model.persisted.assessor.Assessor
 import factories.DateTimeFactory
-import model.fsacscores._
+import model.assessmentscores._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
@@ -99,7 +99,7 @@ package object repositories {
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
-  lazy val fsacScoresRepository = new FSACScoresMongoRepository(DateTimeFactory)
+  lazy val assessmentScoresRepository = new AssessmentScoresMongoRepository(DateTimeFactory)
 
 
   /** Create indexes */
@@ -126,7 +126,7 @@ package object repositories {
       ("session", Ascending), ("slot", Ascending)), unique = true)),
     applicationAssessmentRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
-    fsacScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
+    assessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
     assessorRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
 
@@ -216,9 +216,9 @@ package object repositories {
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
   implicit val answerHandler: BSONHandler[BSONDocument, QuestionnaireAnswer] = Macros.handler[QuestionnaireAnswer]
-  implicit val buildingProductiveRelationshipsAndDevelopingCapabilityScoresHandler
-  : BSONHandler[BSONDocument, BuildingProductiveRelationshipsAndDevelopingCapabilityScores] =
-    Macros.handler[BuildingProductiveRelationshipsAndDevelopingCapabilityScores]
+  implicit val buildingProductiveRelationshipsScoresHandler
+  : BSONHandler[BSONDocument, BuildingProductiveRelationshipsScores] =
+    Macros.handler[BuildingProductiveRelationshipsScores]
   implicit val analysisAndDecisionMakingScoresHandler: BSONHandler[BSONDocument, AnalysisAndDecisionMakingScores] =
     Macros.handler[AnalysisAndDecisionMakingScores]
   implicit val leadingAndCommunicatingScoresHandler: BSONHandler[BSONDocument, LeadingAndCommunicatingScores] =
@@ -226,10 +226,10 @@ package object repositories {
   implicit val strategicApproachToObjectivesScoresHandler: BSONHandler[BSONDocument, StrategicApproachToObjectivesScores] =
     Macros.handler[StrategicApproachToObjectivesScores]
 
-  implicit val fSACAllExercisesScoresAndFeedbackHandler: BSONHandler[BSONDocument, FSACAllExercisesScoresAndFeedback] =
-      Macros.handler[FSACAllExercisesScoresAndFeedback]
-    implicit val fSACExerciseScoresAndFeedbackHandler: BSONHandler[BSONDocument, FSACExerciseScoresAndFeedback] =
-      Macros.handler[FSACExerciseScoresAndFeedback]
+  implicit val assessmentScoresAllExercisesHandler: BSONHandler[BSONDocument, AssessmentScoresAllExercises] =
+      Macros.handler[AssessmentScoresAllExercises]
+    implicit val fSACExerciseScoresAndFeedbackHandler: BSONHandler[BSONDocument, AssessmentScoresExercise] =
+      Macros.handler[AssessmentScoresExercise]
 
   //  implicit val candidateScoresHandler: BSONHandler[BSONDocument, CandidateScores] = Macros.handler[CandidateScores]
 //  implicit val candidateScoreFeedback: BSONHandler[BSONDocument, CandidateScoreFeedback] = Macros.handler[CandidateScoreFeedback]

@@ -18,7 +18,7 @@ package repositories
 
 import factories.DateTimeFactory
 import model.UniqueIdentifier
-import model.fsacscores._
+import model.assessmentscores._
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -27,36 +27,36 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait FSACScoresRepository {
-  def save(scoresAndFeedback: FSACAllExercisesScoresAndFeedback): Future[Unit]
-  def find(applicationId: UniqueIdentifier): Future[Option[FSACAllExercisesScoresAndFeedback]]
-  def findAll: Future[List[FSACAllExercisesScoresAndFeedback]]
+trait AssessmentScoresRepository {
+  def save(scoresAndFeedback: AssessmentScoresAllExercises): Future[Unit]
+  def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]]
+  def findAll: Future[List[AssessmentScoresAllExercises]]
 }
 
-class FSACScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[FSACAllExercisesScoresAndFeedback, BSONObjectID](CollectionNames.FSAC_SCORES, mongo,
-    FSACAllExercisesScoresAndFeedback.format, ReactiveMongoFormats.objectIdFormats)
-  with FSACScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
+class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
+  extends ReactiveRepository[AssessmentScoresAllExercises, BSONObjectID](CollectionNames.ASSESSMENT_SCORES, mongo,
+    AssessmentScoresAllExercises.format, ReactiveMongoFormats.objectIdFormats)
+  with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
 
-  def save(allExercisesScoresAndFeedback: FSACAllExercisesScoresAndFeedback): Future[Unit] = {
-    val applicationId = allExercisesScoresAndFeedback.applicationId.toString()
+  def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
+    val applicationId = allExercisesScores.applicationId.toString()
     val query = BSONDocument("applicationId" -> applicationId)
-    val updateBSON = BSONDocument("$set" -> fSACAllExercisesScoresAndFeedbackHandler.write(allExercisesScoresAndFeedback))
-    val validator = singleUpsertValidator(applicationId, actionDesc = "saving fsac scores")
+    val updateBSON = BSONDocument("$set" -> assessmentScoresAllExercisesHandler.write(allExercisesScores))
+    val validator = singleUpsertValidator(applicationId, actionDesc = "saving asessment scores")
     collection.update(query, updateBSON, upsert = true) map validator
   }
 
-  def find(applicationId: UniqueIdentifier): Future[Option[FSACAllExercisesScoresAndFeedback]] = {
+  def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     val query = BSONDocument("applicationId" -> applicationId.toString())
     //collection.find(query, projection).one[FSACAllExercisesScoresAndFeedback]
-    collection.find(query).one[BSONDocument].map(_.map(fSACAllExercisesScoresAndFeedbackHandler.read))
+    collection.find(query).one[BSONDocument].map(_.map(assessmentScoresAllExercisesHandler.read))
   }
 
-  def findAll: Future[List[FSACAllExercisesScoresAndFeedback]] = {
+  def findAll: Future[List[AssessmentScoresAllExercises]] = {
     val query = BSONDocument.empty
     //collection.find(query).cursor[FSACAllExercisesScoresAndFeedback](ReadPreference.nearest).collect[List]()
     collection.find(query).cursor[BSONDocument](ReadPreference.nearest).
-      collect[List]().map(_.map(fSACAllExercisesScoresAndFeedbackHandler.read))
+      collect[List]().map(_.map(assessmentScoresAllExercisesHandler.read))
   }
 }
