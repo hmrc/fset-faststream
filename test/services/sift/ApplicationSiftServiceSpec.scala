@@ -18,9 +18,11 @@ package services.sift
 
 import java.util
 
-import model.{EvaluationResults, SchemeId, SerialUpdateResult}
+import model.Commands.Candidate
+import model._
 import model.command.ApplicationForSift
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
+import org.joda.time.LocalDate
 import org.mockito.ArgumentCaptor
 import repositories.sift.ApplicationSiftRepository
 import testkit.{ExtendedTimeout, UnitWithAppSpec}
@@ -33,7 +35,11 @@ import scala.concurrent.Future
 class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
 
   "An ApplicationSiftService.progressApplicationToSift" should {
-    "handle failures correctly" in {
+    case class TestApplicationSiftService(repo: ApplicationSiftRepository) extends ApplicationSiftService {
+      override def applicationSiftRepo: ApplicationSiftRepository = repo
+    }
+
+    "progress all applications regardless of failures" in {
       val mockRepo = mock[ApplicationSiftRepository]
 
       val applicationsToProgressToSift =
@@ -51,11 +57,8 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
         .thenReturn(Future.failed(new Exception))
         .thenReturn(Future.successful())
 
-      object TestApplicationSiftService extends ApplicationSiftService {
-        override def applicationSiftRepo: ApplicationSiftRepository = mockRepo
-      }
 
-      whenReady(TestApplicationSiftService.progressApplicationToSiftStage(applicationsToProgressToSift)) { results =>
+      whenReady(TestApplicationSiftService(mockRepo).progressApplicationToSiftStage(applicationsToProgressToSift)) { results =>
 
         val failedApplications = Seq(applicationsToProgressToSift(1))
         val passedApplications = Seq(applicationsToProgressToSift(0), applicationsToProgressToSift(2))
@@ -67,6 +70,19 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
 
         val consecutiveArguments = argCaptor.getAllValues
         consecutiveArguments.toList mustBe applicationsToProgressToSift
+      }
+    }
+
+    "find relevant applications for scheme sifting" in {
+      val mockRepo = mock[ApplicationSiftRepository]
+
+      val candidates = Seq(Candidate("userId1", Some("appId1"), Some(""), Some(""), Some(""), Some(""), Some(LocalDate.now), Some(Address("")),
+        Some("E1 7UA"), Some("UK"), Some(ApplicationRoute.Faststream), Some("")))
+
+      when(mockRepo.findApplicationsReadyForSchemeSift(any[SchemeId])).thenReturn(Future.successful { candidates })
+
+      whenReady(TestApplicationSiftService(mockRepo).findApplicationsReadyForSchemeSift(SchemeId("scheme1"))) { result =>
+        result mustBe candidates
       }
     }
   }
