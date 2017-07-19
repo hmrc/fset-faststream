@@ -159,6 +159,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailed = "phase3_tests_failed"
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsPassedNotified = "phase3_tests_passed_notified"
+  val Sift = "in_application_sift"
   val ApplicationArchived = "application_archived"
   val FastPassAccepted = "fast_pass_accepted"
   val Exported = "exported"
