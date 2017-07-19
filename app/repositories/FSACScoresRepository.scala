@@ -36,29 +36,27 @@ trait FSACScoresRepository {
 class FSACScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[FSACAllExercisesScoresAndFeedback, BSONObjectID](CollectionNames.FSAC_SCORES, mongo,
     FSACAllExercisesScoresAndFeedback.format, ReactiveMongoFormats.objectIdFormats)
-  with FSACScoresRepository with ReactiveRepositoryHelpers {
+  with FSACScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
 
   def save(allExercisesScoresAndFeedback: FSACAllExercisesScoresAndFeedback): Future[Unit] = {
-    val applicationId = allExercisesScoresAndFeedback.applicationId
-    val query = BSONDocument("applicationId" -> applicationId.toString())
+    val applicationId = allExercisesScoresAndFeedback.applicationId.toString()
+    val query = BSONDocument("applicationId" -> applicationId)
     val updateBSON = BSONDocument("$set" -> fSACAllExercisesScoresAndFeedbackHandler.write(allExercisesScoresAndFeedback))
-    val validator = singleUpsertValidator(applicationId.toString(), actionDesc = "saving fsac scores")
+    val validator = singleUpsertValidator(applicationId, actionDesc = "saving fsac scores")
     collection.update(query, updateBSON, upsert = true) map validator
   }
 
   def find(applicationId: UniqueIdentifier): Future[Option[FSACAllExercisesScoresAndFeedback]] = {
     val query = BSONDocument("applicationId" -> applicationId.toString())
-    //collection.find(query).one[BSONDocument].map { _.map(fSACAllExercisesScoresAndFeedbackHandler.read) }
-    collection.find(query).one[FSACAllExercisesScoresAndFeedback]
+    //collection.find(query, projection).one[FSACAllExercisesScoresAndFeedback]
+    collection.find(query).one[BSONDocument].map(_.map(fSACAllExercisesScoresAndFeedbackHandler.read))
   }
 
   def findAll: Future[List[FSACAllExercisesScoresAndFeedback]] = {
     val query = BSONDocument.empty
-    collection.find(query).cursor[FSACAllExercisesScoresAndFeedback](ReadPreference.nearest).collect[List]()
-
-
-    //collection.find(query).cursor[BSONDocument](ReadPreference.nearest).
-    // collect[List]().map(_.map(fSACAllExercisesScoresAndFeedbackHandler.read))
+    //collection.find(query).cursor[FSACAllExercisesScoresAndFeedback](ReadPreference.nearest).collect[List]()
+    collection.find(query).cursor[BSONDocument](ReadPreference.nearest).
+      collect[List]().map(_.map(fSACAllExercisesScoresAndFeedbackHandler.read))
   }
 }

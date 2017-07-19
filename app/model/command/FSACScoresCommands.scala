@@ -26,7 +26,8 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 object FSACScoresCommands {
 
   // TODO MIGUEL: Rename to something like CandidateSummaryForFSACSCoresResponse
-  case class RecordCandidateScores(firstName: String, lastName: String, venueName: String, fsacDate: LocalDate)
+  // TODO MIGUEL: Change date to fsacDate, because date could be also submit date or some other random date.
+  case class RecordCandidateScores(firstName: String, lastName: String, venueName: String, date: LocalDate)
   //type RecordCandidateScores = CandidateSummaryForFSACSCoresResponse
   object RecordCandidateScores {
     implicit val RecordCandidateScoresFormats: Format[RecordCandidateScores] = Json.format[RecordCandidateScores]
