@@ -36,6 +36,7 @@ import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
+import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.events.EventsMongoRepository
 import repositories.fsacindicator.FSACIndicatorMongoRepository
@@ -93,6 +94,7 @@ package object repositories {
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
   lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemes)
+  lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemes)
 
 
   /** Create indexes */

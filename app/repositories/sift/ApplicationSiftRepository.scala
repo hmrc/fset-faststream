@@ -53,7 +53,7 @@ trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryH
 
 class ApplicationSiftMongoRepository(
   val dateTime: DateTimeFactory,
-  val siftableSchemes: Seq[Scheme]
+  val siftableSchemeIds: Seq[SchemeId]
 )(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationForSift, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationForSift.applicationForSiftFormat,
@@ -67,7 +67,7 @@ class ApplicationSiftMongoRepository(
   val eligibleForSiftQuery = BSONDocument("$and" -> BSONArray(
     BSONDocument("applicationStatus" -> prevPhase),
     BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
-      BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemes.map(_.id)),
+      BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
       "result" -> EvaluationResults.Green.toPassmark)
   ))))
 
