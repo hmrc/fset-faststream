@@ -12,22 +12,24 @@
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
 
-GET     /candidate-application/test-data-generator/ping                     controllers.testdata.TestDataGeneratorController.ping
-GET     /candidate-application/test-data-generator/clear-database           controllers.testdata.TestDataGeneratorController.clearDatabase(generateDefaultUsers: Boolean ?= true)
-GET     /candidate-application/test-data-generator/create-admin-users       controllers.testdata.TestDataGeneratorController.createAdmins(numberToGenerate: Int, emailPrefix: Option[String] ?= None, role: String ?= "tech-admin")
-POST    /candidate-application/test-data-generator/create-candidates        controllers.testdata.TestDataGeneratorController.createCandidatesPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-admin             controllers.testdata.TestDataGeneratorController.createAdminsPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-event             controllers.testdata.TestDataGeneratorController.createEventPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-events            controllers.testdata.TestDataGeneratorController.createEventsPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-assessor-allocations           controllers.testdata.TestDataGeneratorController.createAssessorAllocationsPOST(numberToGenerate: Int)
+GET     /candidate-application/test-data-generator/ping                             controllers.testdata.TestDataGeneratorController.ping
+GET     /candidate-application/test-data-generator/clear-database                   controllers.testdata.TestDataGeneratorController.clearDatabase(generateDefaultUsers: Boolean ?= true)
+GET     /candidate-application/test-data-generator/create-admin-users               controllers.testdata.TestDataGeneratorController.createAdmins(numberToGenerate: Int, emailPrefix: Option[String] ?= None, role: String ?= "tech-admin")
+POST    /candidate-application/test-data-generator/create-candidates                controllers.testdata.TestDataGeneratorController.createCandidatesPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-admin                     controllers.testdata.TestDataGeneratorController.createAdminsPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-event                     controllers.testdata.TestDataGeneratorController.createEventPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-events                    controllers.testdata.TestDataGeneratorController.createEventsPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-assessor-allocations      controllers.testdata.TestDataGeneratorController.createAssessorAllocationsPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-candidate-allocations     controllers.testdata.TestDataGeneratorController.createCandidateAllocationsPOST(numberToGenerate: Int)
 
 # examples
-GET     /candidate-application/test-data-generator/example-candidate        controllers.testdata.TestDataGeneratorController.exampleCreateCandidate
-GET     /candidate-application/test-data-generator/example-admin            controllers.testdata.TestDataGeneratorController.exampleCreateAdmin
-GET     /candidate-application/test-data-generator/example-event            controllers.testdata.TestDataGeneratorController.exampleCreateEvent
-GET     /candidate-application/test-data-generator/example-events           controllers.testdata.TestDataGeneratorController.exampleCreateEvents
-GET     /candidate-application/test-data-generator/example-assessor-allocations           controllers.testdata.TestDataGeneratorController.exampleCreateAssessorAllocations
+GET     /candidate-application/test-data-generator/example-candidate                controllers.testdata.TestDataGeneratorController.exampleCreateCandidate
+GET     /candidate-application/test-data-generator/example-admin                    controllers.testdata.TestDataGeneratorController.exampleCreateAdmin
+GET     /candidate-application/test-data-generator/example-event                    controllers.testdata.TestDataGeneratorController.exampleCreateEvent
+GET     /candidate-application/test-data-generator/example-events                   controllers.testdata.TestDataGeneratorController.exampleCreateEvents
+GET     /candidate-application/test-data-generator/example-assessor-allocations     controllers.testdata.TestDataGeneratorController.exampleCreateAssessorAllocations
+GET     /candidate-application/test-data-generator/example-candidate-allocations    controllers.testdata.TestDataGeneratorController.exampleCreateCandidateAllocations
 
-GET     /candidate-application/evaluate-phase1-candidate                    controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
-GET     /candidate-application/evaluate-phase2-candidate                    controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
-GET     /candidate-application/evaluate-phase3-candidate                    controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
+GET     /candidate-application/evaluate-phase1-candidate                            controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
+GET     /candidate-application/evaluate-phase2-candidate                            controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
+GET     /candidate-application/evaluate-phase3-candidate                            controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate

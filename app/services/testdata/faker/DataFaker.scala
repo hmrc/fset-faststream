@@ -777,7 +777,7 @@ object DataFaker {
       ), 2)
     }
 
-    object AssessorAllocation {
+    object Allocation {
       def status: AllocationStatuses.Value = Random.randOne(List(AllocationStatuses.CONFIRMED, AllocationStatuses.UNCONFIRMED))
     }
   }
