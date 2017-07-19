@@ -1,6 +1,6 @@
 package repositories
 
-import config.{CubiksGatewayConfig, LaunchpadGatewayConfig}
+import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig }
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
@@ -9,7 +9,7 @@ import model.Phase2TestProfileExamples._
 import model.Phase3TestProfileExamples._
 import model.ProgressStatuses.ProgressStatus
 import model.persisted._
-import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.Assert._
