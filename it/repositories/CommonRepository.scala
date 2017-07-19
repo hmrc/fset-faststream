@@ -82,7 +82,6 @@ trait CommonRepository {
     phase1PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
   )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
-    assertNotNull("Phase1 pass mark evaluation must be set", phase1PassMarkEvaluation)
     val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
     val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
     val etrayTest = getEtrayTest.copy(cubiksUserId = 3, testResult = Some(TestResult("Ready", "norm", Some(etray), None, None, None)))
@@ -97,7 +96,6 @@ trait CommonRepository {
     phase2PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
   )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
-    assertNotNull("Phase2 pass mark evaluation must be set", phase2PassMarkEvaluation)
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
     phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None)
@@ -113,7 +111,6 @@ trait CommonRepository {
       List(SchemeEvaluationResult(scheme,
         result.toPassmark)), "", Some(""))
 
-    assertNotNull("Phase3 pass mark evaluation must be set", phase3PassMarkEvaluation)
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
 
