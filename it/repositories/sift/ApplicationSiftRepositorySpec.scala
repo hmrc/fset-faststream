@@ -24,7 +24,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     Scheme(ProjectDelivery, "", "", requiresSift = true),
     Scheme(Generalist, "", "", requiresSift = true))
 
-  val repository = applicationSiftRepository(schemeDefinitions)
+  def repository: ApplicationSiftMongoRepository = applicationSiftRepository(schemeDefinitions)
 
   "next Application for sift" should {
     "ignore applications in incorrect statuses and return only the Phase3 Passed_Notified applications that are eligible for sift" in {
