@@ -98,7 +98,11 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
   private def optYes = Some("Yes")
   private def optNo = Some("No")
 
+  private var adsCounter = 0
+
   override def applicationDetailsStream(): Enumerator[CandidateDetailsReportItem] = {
+    adsCounter = 0
+
     val projection = Json.obj("_id" -> 0, "progress-status-dates" -> 0)
 
     applicationDetailsCollection.find(Json.obj(), projection)
@@ -116,6 +120,8 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
 
       val onlineTestResults = onlineTests(doc)
 
+      Logger.debug("PYCR - ["+ adsCounter +"] Starting " + doc.getAs[String]("applicationId").getOrElse("NOAPPID"))
+      adsCounter += 1
         val csvContent = makeRow(
           List(doc.getAs[String]("applicationId")) :::
             List(doc.getAs[String]("userId")) :::
@@ -147,10 +153,13 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
             testEvaluations(doc)
             : _*
         )
-        CandidateDetailsReportItem(
+        val toReturn = CandidateDetailsReportItem(
           doc.getAs[String]("applicationId").getOrElse(""),
           doc.getAs[String]("userId").getOrElse(""), csvContent
         )
+
+        Logger.debug("PYCR - Finishing " + doc.getAs[String]("applicationId").getOrElse("NOAPPID"))
+        toReturn
       }
   }
 
