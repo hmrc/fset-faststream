@@ -17,8 +17,9 @@
 package services.sift
 
 import common.FutureEx
-import model.SerialUpdateResult
+import model.{ Commands, SchemeId, SerialUpdateResult }
 import model.command.ApplicationForSift
+import model.persisted.SchemeEvaluationResult
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 
 import scala.concurrent.Future
@@ -32,16 +33,24 @@ object ApplicationSiftService extends ApplicationSiftService {
 trait ApplicationSiftService {
   def applicationSiftRepo: ApplicationSiftRepository
 
-  def nextApplicationsReadyForSift(batchSize: Int): Future[Seq[ApplicationForSift]] = {
-    applicationSiftRepo.nextApplicationsForSift(batchSize)
+  def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
+    applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
   }
 
-  def progressApplicationToSift(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
+  def progressApplicationToSiftStage(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
-      FutureEx.futureToEither(application, applicationSiftRepo.progressApplicationToSift(application))
+      FutureEx.futureToEither(application, applicationSiftRepo.progressApplicationToSiftStage(application))
     }
 
     updates.map(SerialUpdateResult.fromEither)
+  }
+
+  def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Commands.Candidate]] = {
+    applicationSiftRepo.findApplicationsReadyForSchemeSift(schemeId)
+  }
+
+  def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+    applicationSiftRepo.siftApplicationForScheme(applicationId, result)
   }
 
 }

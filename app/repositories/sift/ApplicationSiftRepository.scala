@@ -18,27 +18,36 @@ package repositories.sift
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
+import model.Commands.Candidate
+import model.Commands.Implicits.createApplicationRequestFormat
+import model.EvaluationResults.Green
+import model.Exceptions.ApplicationNotFound
 import model.command.ApplicationForSift
 import model._
-import model.persisted.PassmarkEvaluation
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
-import repositories.{CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers}
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import repositories.application.GeneralApplicationRepoBSONReader
+import repositories.{ CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryHelpers {
+trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryHelpers with GeneralApplicationRepoBSONReader {
   this: ReactiveRepository[_, _] =>
 
   def thisApplicationStatus: ApplicationStatus
   def dateTime: DateTimeFactory
   def siftableSchemes: Seq[Scheme]
+  val phaseName = "SIFT_PHASE"
 
-  def nextApplicationsForSift(maxBatchSize: Int): Future[List[ApplicationForSift]]
-  def progressApplicationToSift(application: ApplicationForSift): Future[Unit]
+  def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
+  def progressApplicationToSiftStage(application: ApplicationForSift): Future[Unit]
+
+  def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
+  def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
 
 }
 
@@ -62,7 +71,7 @@ class ApplicationSiftMongoRepository(
       "result" -> EvaluationResults.Green.toPassmark)
   ))))
 
-  def nextApplicationsForSift(batchSize: Int): Future[List[ApplicationForSift]] = {
+  def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
       _.map { document =>
         val applicationId = document.getAs[String]("applicationId").get
@@ -74,12 +83,49 @@ class ApplicationSiftMongoRepository(
     }
   }
 
-  def progressApplicationToSift(application: ApplicationForSift): Future[Unit] = {
+  def progressApplicationToSiftStage(application: ApplicationForSift): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId) ++ eligibleForSiftQuery
     val update = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT)
 
     val validator = singleUpdateValidator(application.applicationId, "progressing to sift stage")
 
     collection.update(query, update) map validator
+  }
+
+  def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]] = {
+    val videoInterviewPassed = BSONDocument("testGroups.PHASE3.evaluation.result" ->
+      BSONDocument("$elemMatch" -> BSONDocument("schemeId" -> schemeId.value, "result" -> Green.toString)))
+
+    val notSiftedOnScheme = BSONDocument(
+      s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(schemeId.value))
+    )
+
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED),
+      BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
+      BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(schemeId.value))),
+      BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
+      videoInterviewPassed,
+      notSiftedOnScheme
+    ))
+    bsonCollection.find(query).cursor[Candidate]().collect[List]()
+  }
+
+  def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+
+    val update = BSONDocument(
+      "$addToSet" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result),
+      "$set" -> BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "1")
+    )
+
+    val applicationNotSiftedForScheme = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(
+        s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
+      )
+    ))
+
+    val validator = singleUpdateValidator(applicationId, s"submitting $phaseName results", ApplicationNotFound(applicationId))
+    collection.update(applicationNotSiftedForScheme, update) map validator
   }
 }

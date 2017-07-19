@@ -17,12 +17,9 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
-import model.SerialUpdateResult
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
-import services.onlinetesting.OnlineTestService
 import services.sift.ApplicationSiftService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -37,9 +34,9 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
   val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    siftService.nextApplicationsReadyForSift(batchSize).flatMap {
+    siftService.nextApplicationsReadyForSiftStage(batchSize).flatMap {
       case Nil => Future.successful(())
-      case applications => siftService.progressApplicationToSift(applications).map { result =>
+      case applications => siftService.progressApplicationToSiftStage(applications).map { result =>
         play.api.Logger.info(s"Progress to sift complete - ${result.successes.size} updated and ${result.failures.size} failed to update")
       }
     }
