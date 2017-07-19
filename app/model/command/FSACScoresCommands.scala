@@ -16,7 +16,7 @@
 
 package model.command
 
-import model.FSACScores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback }
+import model.FSACScores.{ CandidateScoresAndFeedback, FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback, ScoresAndFeedback }
 import model.UniqueIdentifier
 import model.command.FSACScoresCommands.AssessmentExercise.AssessmentExercise
 import org.joda.time.{ DateTime, LocalDate }
@@ -27,6 +27,7 @@ object FSACScoresCommands {
 
   // TODO MIGUEL: Rename to something like CandidateSummaryForFSACSCoresResponse
   case class RecordCandidateScores(firstName: String, lastName: String, venueName: String, fsacDate: LocalDate)
+  //type RecordCandidateScores = CandidateSummaryForFSACSCoresResponse
   object RecordCandidateScores {
     implicit val RecordCandidateScoresFormats: Format[RecordCandidateScores] = Json.format[RecordCandidateScores]
   }
@@ -97,10 +98,11 @@ object FSACScoresCommands {
     implicit val CandidateScoresAndFeedbackFormats: Format[CandidateScoresAndFeedback] = Json.format[CandidateScoresAndFeedback]
   }*/
 
+  // TODO MIGUEL: See if we will use this
   object AssessmentExercise extends Enumeration {
     type AssessmentExercise = Value
 
-    val analysis, group, leadership = Value
+    val analysisExercise, groupExercise, leadershipExercise = Value
 
     implicit val assessmentExerciseFormat = new Format[AssessmentExercise] {
       def reads(json: JsValue) = JsSuccess(AssessmentExercise.withName(json.as[String]))
@@ -119,10 +121,10 @@ object FSACScoresCommands {
   // TODO MIGUEL: Rename to FSACSCoresSubmitRequest
   case class ExerciseScoresAndFeedback(
     applicationId: UniqueIdentifier,
-    exercise: AssessmentExercise,
-    scoresAndFeedback: FSACExerciseScoresAndFeedback
+    exercise: String,
+    scoresAndFeedback: ScoresAndFeedback
   )
-
+  // type ExerciseScoresAndFeedback = FSACSCoresSubmitRequest
   object ExerciseScoresAndFeedback {
     implicit val exerciseScoresAndFeedbackFormats: Format[ExerciseScoresAndFeedback] = Json.format[ExerciseScoresAndFeedback]
   }
@@ -149,7 +151,8 @@ object FSACScoresCommands {
   }
 */
   // TODO MIGUEL: Rename to something like ApplicationFSACScores or FSACScoresWithCandidateSummary
-  case class ApplicationScores(candidate: RecordCandidateScores, scoresAndFeedback: Option[FSACAllExercisesScoresAndFeedback])
+  case class ApplicationScores(candidate: RecordCandidateScores, scoresAndFeedback: Option[CandidateScoresAndFeedback])
+  //type ApplicationScores = FSACScoresWithCandidateSummary
   object ApplicationScores {
     implicit val ApplicationScoresFormats: Format[ApplicationScores] = Json.format[ApplicationScores]
   }

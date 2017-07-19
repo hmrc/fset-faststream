@@ -20,6 +20,7 @@ import model.FSACScores._
 import model.UniqueIdentifier
 import model.command.FSACScoresCommands.{ ApplicationScores, AssessmentExercise, ExerciseScoresAndFeedback }
 import play.api.libs.json.Json
+import play.api.libs.json._
 import play.api.mvc.Action
 import repositories.FSACScoresRepository
 import services.fsacscores.FSACScoresService
@@ -40,13 +41,12 @@ trait FSACScoresController extends BaseController {
   def submit() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[ExerciseScoresAndFeedback] { submitRequest =>
-        val result = submitRequest.exercise match {
-          case AssessmentExercise.analysis =>
-            // TODO: Use Unique
+        val result = AssessmentExercise.withName(submitRequest.exercise) match {
+          case AssessmentExercise.analysisExercise =>
             service.saveAnalysisExercise(submitRequest.applicationId, submitRequest.scoresAndFeedback)
-          case AssessmentExercise.group =>
+          case AssessmentExercise.groupExercise =>
             service.saveGroupExercise(submitRequest.applicationId, submitRequest.scoresAndFeedback)
-          case AssessmentExercise.leadership =>
+          case AssessmentExercise.leadershipExercise =>
             service.saveLeadershipExercise(submitRequest.applicationId, submitRequest.scoresAndFeedback)
           case _ => throw new Exception
         }

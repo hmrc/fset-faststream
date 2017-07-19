@@ -51,6 +51,7 @@ object FSACScores {
                                           ) {
     def isSubmitted = submittedDate.isDefined
   }
+  type ScoresAndFeedback = FSACExerciseScoresAndFeedback
 
   object FSACExerciseScoresAndFeedback {
     implicit val format = Json.format[FSACExerciseScoresAndFeedback]
@@ -62,6 +63,7 @@ object FSACScores {
                                                 groupExercise: Option[FSACExerciseScoresAndFeedback] = None,
                                                 leadershipExercise: Option[FSACExerciseScoresAndFeedback] = None
                                        )
+  type CandidateScoresAndFeedback = FSACAllExercisesScoresAndFeedback
 
   object FSACAllExercisesScoresAndFeedback {
     implicit val format = Json.format[FSACAllExercisesScoresAndFeedback]

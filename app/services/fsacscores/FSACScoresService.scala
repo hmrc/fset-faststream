@@ -50,11 +50,11 @@ object FSACScoresService extends FSACScoresService {
                             exercise: AssessmentExercise,
                             exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     exercise match {
-      case AssessmentExercise.analysis =>
+      case AssessmentExercise.`analysisExercise` =>
         saveAnalysisExercise(applicationId, exerciseScores)
-      case AssessmentExercise.group =>
+      case AssessmentExercise.`groupExercise` =>
         saveGroupExercise(applicationId, exerciseScores)
-      case AssessmentExercise.leadership =>
+      case AssessmentExercise.`leadershipExercise` =>
         saveLeadershipExercise(applicationId, exerciseScores)
 
       case _ => throw new Exception

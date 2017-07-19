@@ -55,6 +55,4 @@ object UniqueIdentifier {
   implicit val uniqueIdentifierReads: Reads[UniqueIdentifier] = Reads {
     (jsValue: JsValue) => JsSuccess(UniqueIdentifier(jsValue.as[String]))
   }
-
-  implicit val jsonFormat = Json.format[UniqueIdentifier]
 }
