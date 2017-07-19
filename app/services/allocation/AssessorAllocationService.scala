@@ -20,10 +20,10 @@ import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.OptimisticLockException
 import model._
 import model.command.CandidateAllocation
-import model.exchange.{ EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
+import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.Venue
-import model.stc.EmailEvents.{ CandidateAllocationConfirmed, CandidateAllocationConfirmationRequest }
+import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -63,8 +63,8 @@ trait AssessorAllocationService extends EventSink {
     assessorAllocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
   }
 
-  def getCandidateAllocations(eventId: String): Future[exchange.CandidateAllocations] = {
-    candidateAllocationRepo.allocationsForEvent(eventId).map { a => exchange.CandidateAllocations.apply(a) }
+  def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
+    candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
@@ -85,8 +85,7 @@ trait AssessorAllocationService extends EventSink {
       val eventTime = event.startTime.toString(timeFormat)
       val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
 
-
-      getCandidateAllocations(newAllocations.eventId).flatMap { existingAllocation =>
+      getCandidateAllocations(newAllocations.eventId, newAllocations.sessionId).flatMap { existingAllocation =>
         existingAllocation.allocations match {
           case Nil =>
             candidateAllocationRepo.save(persisted.CandidateAllocation.fromCommand(newAllocations)).flatMap {
@@ -106,11 +105,10 @@ trait AssessorAllocationService extends EventSink {
     }
   }
 
-  private def sendCandidateEmail(
-                                  candidateAllocation: CandidateAllocation,
-                                  eventDate: String,
-                                  eventTime: String,
-                                  deadlineDateTime: String)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def sendCandidateEmail(candidateAllocation: CandidateAllocation,
+                                 eventDate: String,
+                                 eventTime: String,
+                                 deadlineDateTime: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     applicationRepo.find(candidateAllocation.id).flatMap {
       case Some(candidate) =>
         eventSink {
@@ -148,7 +146,7 @@ trait AssessorAllocationService extends EventSink {
   def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
     eventsService.getEvents(eventType, venue).flatMap { events =>
       val res = events.map { event =>
-        getAllocations(event.id).map { allocations =>
+        getAllocations(event.id).flatMap { allocations =>
           val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)
           val allocationsGroupedBySkillWithSummary = allocationsGroupedBySkill.map { allocationGroupedBySkill =>
             val assessorAllocation = allocationGroupedBySkill._2
@@ -157,7 +155,15 @@ trait AssessorAllocationService extends EventSink {
             val confirmed = assessorAllocation.count(_.status == AllocationStatuses.CONFIRMED)
             EventAssessorAllocationsSummaryPerSkill(skill, allocated, confirmed)
           }.toList
-          EventWithAllocationsSummary(event.date, event, 0, allocationsGroupedBySkillWithSummary)
+          val candidateAllocBySession = event.sessions.sortBy(_.startTime.getMillisOfDay).map { session =>
+            getCandidateAllocations(event.id, session.id).map { candidateAllocations =>
+              CandidateAllocationPerSession(UniqueIdentifier(session.id),
+                candidateAllocations.allocations.count(_.status == AllocationStatuses.CONFIRMED))
+            }
+          }
+          Future.sequence(candidateAllocBySession).map { cs =>
+            EventWithAllocationsSummary(event.date, event, cs, allocationsGroupedBySkillWithSummary)
+          }
         }
       }
       Future.sequence(res)
@@ -172,7 +178,7 @@ trait AssessorAllocationService extends EventSink {
       // check what's been updated here so we can send email notifications
 
       // Convert the existing exchange allocations to persisted objects so we can delete what is currently in the db
-      val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId)
+      val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId, newAllocations.sessionId)
 
       val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
       candidateAllocationRepo.delete(toDelete).flatMap { _ =>

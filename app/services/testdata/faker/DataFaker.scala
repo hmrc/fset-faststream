@@ -17,20 +17,13 @@
 package services.testdata.faker
 
 import factories.UUIDFactory
+import model.EvaluationResults.Result
+import model.Exceptions.DataFakingException
 import model._
-import model.EvaluationResults.Result
-import model.Exceptions.DataFakingException
-import model.exchange.{ AssessorAvailability, AssessorSkill }
-import model.EvaluationResults.Result
-import model.Exceptions.DataFakingException
-import model.persisted.eventschedules.{ EventType, _ }
-import model.persisted.eventschedules._
+import model.exchange.AssessorAvailability
+import model.persisted.eventschedules.{ EventType, Session, _ }
 import org.joda.time.{ LocalDate, LocalTime }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
-import org.joda.time.{ LocalDate, LocalTime }
-import repositories._
-import repositories.events.LocationsWithVenuesInMemoryRepository
-import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -746,17 +739,17 @@ object DataFaker {
 
       def location: Location = randOne(List(Location("London"), Location("Newcastle")))
 
-      def venue: Venue = randOne(ExternalSources.venuesByLocation(location.name))
+      def venue(l: Location): Venue = randOne(ExternalSources.venuesByLocation(l.name))
 
       def date: LocalDate = LocalDate.now().plusDays(number(Option(300)))
 
-      def capacity: Int = randOne(List(32, 24, 16, 8, 4, 30, 28))
+      def capacity: Int = randOne(List(8, 10, 12, 14, 16, 18))
 
-      def minViableAttendees: Int = capacity - randOne(List(2, 3, 4, 1))
+      def minViableAttendees: Int = capacity - randOne(List(5, 3, 4, 2))
 
       def attendeeSafetyMargin: Int = randOne(List(1, 2, 3))
 
-      def startTime: LocalTime = LocalTime.now()
+      def startTime: LocalTime = LocalTime.parse(randOne(List("9:30", "11:00", "13:30", "15:00")))
 
       def endTime: LocalTime = startTime.plusHours(1)
 
@@ -773,7 +766,15 @@ object DataFaker {
       }
 
       def sessions = randList(List(
-        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "First", 36, 12, 4, startTime, startTime.plusHours(1))),1)
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "First session",
+          capacity, minViableAttendees, attendeeSafetyMargin, startTime, startTime.plusHours(1)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Advanced session",
+          capacity, minViableAttendees, attendeeSafetyMargin, startTime, startTime.plusHours(2)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Midday session",
+          capacity, minViableAttendees, attendeeSafetyMargin, startTime, startTime.plusHours(3)),
+        Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Small session",
+          capacity, minViableAttendees, attendeeSafetyMargin, startTime, startTime.plusHours(4))
+      ), 2)
     }
 
     object AssessorAllocation {

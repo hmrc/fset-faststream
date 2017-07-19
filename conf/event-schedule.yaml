@@ -6,8 +6,8 @@
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  startTime: 09:00
-  endTime: 17:00
+  startTime: 11:00
+  endTime: 12:00
   skillRequirements:
     ASSESSOR: 6
     CHAIR: 3
