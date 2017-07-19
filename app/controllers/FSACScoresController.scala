@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.FSACScores._
+import model.fsacscores._
 import model.UniqueIdentifier
 import model.command.FSACScoresCommands.{ ApplicationScores, AssessmentExercise, ExerciseScoresAndFeedback }
 import play.api.libs.json.Json
@@ -41,8 +41,15 @@ trait FSACScoresController extends BaseController {
   def submit() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[ExerciseScoresAndFeedback] { submitRequest =>
+        service.saveExercise(
+          submitRequest.applicationId,
+          AssessmentExercise.withName(submitRequest.exercise),
+          submitRequest.scoresAndFeedback
+        ).map(_ => Ok)
+        /*
         val result = AssessmentExercise.withName(submitRequest.exercise) match {
           case AssessmentExercise.analysisExercise =>
+            servic
             service.saveAnalysisExercise(submitRequest.applicationId, submitRequest.scoresAndFeedback)
           case AssessmentExercise.groupExercise =>
             service.saveGroupExercise(submitRequest.applicationId, submitRequest.scoresAndFeedback)
@@ -51,6 +58,7 @@ trait FSACScoresController extends BaseController {
           case _ => throw new Exception
         }
         result.map(_ => Ok)
+        */
       }
   }
 

@@ -17,7 +17,7 @@
 package repositories
 
 import factories.DateTimeFactory
-import model.FSACScores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback}
+import model.fsacscores.FSACScores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback}
 import testkit.MongoRepositorySpec
 
 class FSACScoresRepositorySpec extends MongoRepositorySpec {

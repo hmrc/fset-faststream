@@ -16,7 +16,7 @@
 
 package model.command
 
-import model.FSACScores.{ CandidateScoresAndFeedback, FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback, ScoresAndFeedback }
+import model.fsacscores.{ CandidateScoresAndFeedback, FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback, ScoresAndFeedback }
 import model.UniqueIdentifier
 import model.command.FSACScoresCommands.AssessmentExercise.AssessmentExercise
 import org.joda.time.{ DateTime, LocalDate }

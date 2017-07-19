@@ -17,9 +17,8 @@
 package repositories
 
 import factories.DateTimeFactory
-import model.FSACScores
-import model.FSACScores._
 import model.UniqueIdentifier
+import model.fsacscores._
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -36,7 +35,7 @@ trait FSACScoresRepository {
 
 class FSACScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[FSACAllExercisesScoresAndFeedback, BSONObjectID](CollectionNames.FSAC_SCORES, mongo,
-    FSACScores.FSACAllExercisesScoresAndFeedback.format, ReactiveMongoFormats.objectIdFormats)
+    FSACAllExercisesScoresAndFeedback.format, ReactiveMongoFormats.objectIdFormats)
   with FSACScoresRepository with ReactiveRepositoryHelpers {
 
 

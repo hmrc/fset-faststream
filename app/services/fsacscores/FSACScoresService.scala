@@ -16,7 +16,7 @@
 
 package services.fsacscores
 
-import model.FSACScores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback }
+import model.fsacscores.{ FSACAllExercisesScoresAndFeedback, FSACExerciseScoresAndFeedback }
 import model.UniqueIdentifier
 import model.command.FSACScoresCommands.AssessmentExercise.AssessmentExercise
 import model.command.FSACScoresCommands.{ ApplicationScores, AssessmentExercise, RecordCandidateScores }
@@ -49,34 +49,35 @@ object FSACScoresService extends FSACScoresService {
   override def saveExercise(applicationId: UniqueIdentifier,
                             exercise: AssessmentExercise,
                             exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
+    val exerciseScoresWithSubmittedDate = exerciseScores.copy(submittedDate = Some(DateTime.now))
+
     exercise match {
       case AssessmentExercise.`analysisExercise` =>
-        saveAnalysisExercise(applicationId, exerciseScores)
+        saveAnalysisExercise(applicationId, exerciseScoresWithSubmittedDate)
       case AssessmentExercise.`groupExercise` =>
-        saveGroupExercise(applicationId, exerciseScores)
+        saveGroupExercise(applicationId, exerciseScoresWithSubmittedDate)
       case AssessmentExercise.`leadershipExercise` =>
-        saveLeadershipExercise(applicationId, exerciseScores)
-
-      case _ => throw new Exception
+        saveLeadershipExercise(applicationId, exerciseScoresWithSubmittedDate)
+      case _ => throw new Exception // TODO MIGUEL
     }
   }
 
 
-  override def saveAnalysisExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
+  private def saveAnalysisExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     val updateAnalysisExercise = (allExercisesOld: FSACAllExercisesScoresAndFeedback, exerciseScores: FSACExerciseScoresAndFeedback) => {
       allExercisesOld.copy(analysisExercise = Some(exerciseScores))
     }
     saveExercise(applicationId, exerciseScores, updateAnalysisExercise)
   }
 
-  override def saveGroupExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
+  private def saveGroupExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     val updateGroupExercise = (allExercisesOld: FSACAllExercisesScoresAndFeedback, exerciseScores: FSACExerciseScoresAndFeedback) => {
       allExercisesOld.copy(groupExercise = Some(exerciseScores))
     }
     saveExercise(applicationId, exerciseScores, updateGroupExercise)
   }
 
-  override def saveLeadershipExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
+  private def saveLeadershipExercise(applicationId: UniqueIdentifier, exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit] = {
     val updateLeadershipExercise = (allExercisesOld: FSACAllExercisesScoresAndFeedback, exerciseScores: FSACExerciseScoresAndFeedback) => {
       allExercisesOld.copy(leadershipExercise = Some(exerciseScores))
     }
@@ -91,11 +92,11 @@ object FSACScoresService extends FSACScoresService {
       allExercisesOldMaybe <- fsacScoresRepository.find(applicationId)
       allExercisesOld = allExercisesOldMaybe.getOrElse(FSACAllExercisesScoresAndFeedback(applicationId, None, None, None))
       allExercisesNew = update(allExercisesOld, exerciseScores)
-      allExerciseNewWithSubmittedDate = allExercisesNew.copy(
+      /*allExerciseNewWithSubmittedDate = allExercisesNew.copy(
         analysisExercise = allExercisesNew.analysisExercise.map(_.copy(submittedDate = Some(DateTime.now))),
         groupExercise = allExercisesNew.groupExercise.map(_.copy(submittedDate = Some(DateTime.now))),
         leadershipExercise = allExercisesNew.leadershipExercise.map(_.copy(submittedDate = Some(DateTime.now)))
-      )
+      )*/
       _ <- fsacScoresRepository.save(allExercisesNew)
     } yield {
       ()
@@ -138,11 +139,11 @@ trait FSACScoresService {
                             exercise: AssessmentExercise,
                             exerciseScores: FSACExerciseScoresAndFeedback): Future[Unit]
 
-  def saveAnalysisExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  //def saveAnalysisExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
 
-  def saveGroupExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  //def saveGroupExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
 
-  def saveLeadershipExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
+  //def saveLeadershipExercise(applicationId: UniqueIdentifier, exerciseScoresAndFeedback: FSACExerciseScoresAndFeedback): Future[Unit]
 
   def findFSACScoresWithCandidateSummary(applicationId: UniqueIdentifier): Future[ApplicationScores]
 }

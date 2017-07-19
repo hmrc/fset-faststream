@@ -16,7 +16,7 @@
 
 package mocks
 
-import model.FSACScores.FSACAllExercisesScoresAndFeedback
+import model.fsacscores.FSACScores.FSACAllExercisesScoresAndFeedback
 import model.UniqueIdentifier
 import repositories.FSACScoresRepository
 

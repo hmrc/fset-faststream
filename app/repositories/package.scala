@@ -18,7 +18,7 @@ import java.util.UUID
 
 import model.persisted.assessor.Assessor
 import factories.DateTimeFactory
-import model.FSACScores._
+import model.fsacscores._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
@@ -216,7 +216,17 @@ package object repositories {
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
   implicit val answerHandler: BSONHandler[BSONDocument, QuestionnaireAnswer] = Macros.handler[QuestionnaireAnswer]
-    implicit val fSACAllExercisesScoresAndFeedbackHandler: BSONHandler[BSONDocument, FSACAllExercisesScoresAndFeedback] =
+  implicit val buildingProductiveRelationshipsAndDevelopingCapabilityScoresHandler
+  : BSONHandler[BSONDocument, BuildingProductiveRelationshipsAndDevelopingCapabilityScores] =
+    Macros.handler[BuildingProductiveRelationshipsAndDevelopingCapabilityScores]
+  implicit val analysisAndDecisionMakingScoresHandler: BSONHandler[BSONDocument, AnalysisAndDecisionMakingScores] =
+    Macros.handler[AnalysisAndDecisionMakingScores]
+  implicit val leadingAndCommunicatingScoresHandler: BSONHandler[BSONDocument, LeadingAndCommunicatingScores] =
+    Macros.handler[LeadingAndCommunicatingScores]
+  implicit val strategicApproachToObjectivesScoresHandler: BSONHandler[BSONDocument, StrategicApproachToObjectivesScores] =
+    Macros.handler[StrategicApproachToObjectivesScores]
+
+  implicit val fSACAllExercisesScoresAndFeedbackHandler: BSONHandler[BSONDocument, FSACAllExercisesScoresAndFeedback] =
       Macros.handler[FSACAllExercisesScoresAndFeedback]
     implicit val fSACExerciseScoresAndFeedbackHandler: BSONHandler[BSONDocument, FSACExerciseScoresAndFeedback] =
       Macros.handler[FSACExerciseScoresAndFeedback]
