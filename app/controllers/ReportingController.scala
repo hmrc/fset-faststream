@@ -22,6 +22,7 @@ import model.Commands.{ IsNonSubmitted, PreferencesWithContactDetails }
 import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse }
 import model.persisted.ContactDetailsWithId
 import model.report._
+import play.api.Logger
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
@@ -104,8 +105,12 @@ trait ReportingController extends BaseController {
             prevYearCandidatesDetailsRepository.mediaHeader ::
             Nil).mkString(",") + "\n"
         )
+        var counter = 0
         val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream().map { app =>
-          createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails, mediaDetails) + "\n"
+          val ret = createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails, mediaDetails) + "\n"
+          // Logger.debug("Output line " + counter + ": " + ret)
+          counter += 1
+          ret
         }
         Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
       }
