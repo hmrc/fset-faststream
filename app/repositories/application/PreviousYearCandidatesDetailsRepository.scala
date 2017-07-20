@@ -61,9 +61,9 @@ trait PreviousYearCandidatesDetailsRepository {
     "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
     "PHASE3_TESTS_SECOND_REMINDER,PHASE3_TESTS_STARTED,PHASE3_TESTS_COMPLETED,PHASE3_TESTS_RESULTS_RECEIVED," +
     "PHASE3_TESTS_PASSED,PHASE3_TESTS_SUCCESS_NOTIFIED,EXPORTED,PHASE 1 result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
-    "result,result,result," +
-    "PHASE 2 result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
-    "PHASE 3 result,result,result,result,result,result,result,result,result," +
+    "result,result,result,result" +
+    "PHASE 2 result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result" +
+    "PHASE 3 result,result,result,result,result,result,result,result,result,result" +
     "result,result,result,result,result,result,result,result"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
@@ -110,53 +110,53 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
         .enumerate().map { doc =>
 
         try {
-        val applicationId = doc.getAs[String]("applicationId").get
-        val progressResponse = toProgressResponse(applicationId).read(doc)
-        val (civilServiceExperienceType, civilServiceInternshipTypes, fastPassCertificateNo) = civilServiceExperience(doc)
+          val applicationId = doc.getAs[String]("applicationId").get
+          val progressResponse = toProgressResponse(applicationId).read(doc)
+          val (civilServiceExperienceType, civilServiceInternshipTypes, fastPassCertificateNo) = civilServiceExperience(doc)
 
-        val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
-        val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
-        val allSchemes: List[String] = SchemeType.values.map(_.toString).toList
-        val schemesYesNoAsString: Option[String] = Option((schemePrefs.map(_ + ": Yes") ::: allSchemes.filterNot(schemePrefs.contains).map(_ + ": No")).mkString(","))
+          val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
+          val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
+          val allSchemes: List[String] = SchemeType.values.map(_.toString).toList
+          val schemesYesNoAsString: Option[String] = Option((schemePrefs.map(_ + ": Yes") ::: allSchemes.filterNot(schemePrefs.contains).map(_ + ": No")).mkString(","))
 
-        val onlineTestResults = onlineTests(doc)
+          val onlineTestResults = onlineTests(doc)
 
-        adsCounter += 1
-        val csvContent = makeRow(
-          List(doc.getAs[String]("applicationId")) :::
-            List(doc.getAs[String]("userId")) :::
-            List(doc.getAs[String]("frameworkId")) :::
-            List(doc.getAs[String]("applicationStatus")) :::
-            List(doc.getAs[String]("applicationRoute")) :::
-            personalDetails(doc) :::
-            List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
-            List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
-            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.DiversityInternship.toString) :::
-            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServant.toString) :::
-            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServantViaFastTrack.toString) :::
-            civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.EDIP.toString) :::
-            civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPPreviousYear.toString) :::
-            civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPCurrentYear.toString) :::
-            List(fastPassCertificateNo) :::
-            List(schemePrefsAsString) :::
-            List(schemesYesNoAsString) :::
-            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) :::
-            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) :::
-            partnerGraduateProgrammes(doc) :::
-            assistanceDetails(doc) :::
-            List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) :::
-            onlineTestResults("bq") :::
-            onlineTestResults("sjq") :::
-            onlineTestResults("etray") :::
-            videoInterview(doc) :::
-            progressStatusTimestamps(doc) :::
-            testEvaluations(doc)
-            : _*
-        )
-        CandidateDetailsReportItem(
-          doc.getAs[String]("applicationId").getOrElse(""),
-          doc.getAs[String]("userId").getOrElse(""), csvContent
-        )
+          adsCounter += 1
+          val csvContent = makeRow(
+            List(doc.getAs[String]("applicationId")) :::
+              List(doc.getAs[String]("userId")) :::
+              List(doc.getAs[String]("frameworkId")) :::
+              List(doc.getAs[String]("applicationStatus")) :::
+              List(doc.getAs[String]("applicationRoute")) :::
+              personalDetails(doc) :::
+              List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
+              List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
+              civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.DiversityInternship.toString) :::
+              civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServant.toString) :::
+              civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServantViaFastTrack.toString) :::
+              civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.EDIP.toString) :::
+              civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPPreviousYear.toString) :::
+              civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPCurrentYear.toString) :::
+              List(fastPassCertificateNo) :::
+              List(schemePrefsAsString) :::
+              List(schemesYesNoAsString) :::
+              List(progressResponseReachedYesNo(progressResponse.schemePreferences)) :::
+              List(progressResponseReachedYesNo(progressResponse.schemePreferences)) :::
+              partnerGraduateProgrammes(doc) :::
+              assistanceDetails(doc) :::
+              List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) :::
+              onlineTestResults("bq") :::
+              onlineTestResults("sjq") :::
+              onlineTestResults("etray") :::
+              videoInterview(doc) :::
+              progressStatusTimestamps(doc) :::
+              testEvaluations(doc)
+              : _*
+          )
+          CandidateDetailsReportItem(
+            doc.getAs[String]("applicationId").getOrElse(""),
+            doc.getAs[String]("userId").getOrElse(""), csvContent
+          )
         } catch {
           case ex: Throwable =>
             Logger.error("================ EXCEPTION ", ex)
@@ -362,67 +362,62 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
     val activeVideoTest = videoTests.map(_.filter(_.getAs[Boolean]("usedForResults").getOrElse(false)).head)
     val activeVideoTestCallbacks = activeVideoTest.flatMap(_.getAs[BSONDocument]("callbacks"))
     val activeVideoTestReviewedCallbacks = activeVideoTestCallbacks.flatMap(_.getAs[List[BSONDocument]]("reviewed"))
-    try {
-      val latestAVTRCallback = activeVideoTestReviewedCallbacks.flatMap {
-        reviewedCallbacks =>
-          reviewedCallbacks.sortWith { (r1, r2) =>
-            r1.getAs[DateTime]("received").get.isAfter(r2.getAs[DateTime]("received").get)
-          }.headOption.map(_.as[ReviewedCallbackRequest])
-      }
 
-      val latestReviewer = latestAVTRCallback.map {
-        callback =>
-          callback.reviewers.reviewer3.getOrElse(
-            callback.reviewers.reviewer2.getOrElse(
-              callback.reviewers.reviewer1
-            )
-          )
-      }
-
-      def scoreForQuestion(question: ReviewSectionQuestionRequest) = {
-        BigDecimal(question.reviewCriteria1.score.getOrElse(0.0)) + BigDecimal(question.reviewCriteria2.score.getOrElse(0.0))
-      }
-
-      def totalForQuestions(reviewer: ReviewSectionReviewerRequest): BigDecimal = {
-        scoreForQuestion(reviewer.question1) +
-          scoreForQuestion(reviewer.question2) +
-          scoreForQuestion(reviewer.question3) +
-          scoreForQuestion(reviewer.question4) +
-          scoreForQuestion(reviewer.question5) +
-          scoreForQuestion(reviewer.question6) +
-          scoreForQuestion(reviewer.question7) +
-          scoreForQuestion(reviewer.question8)
-      }
-
-      List(
-        activeVideoTest.flatMap(_.getAs[Int]("interviewId").map(_.toString)),
-        activeVideoTest.flatMap(_.getAs[String]("token")),
-        activeVideoTest.flatMap(_.getAs[String]("candidateId")),
-        activeVideoTest.flatMap(_.getAs[String]("customCandidateId")),
-        latestReviewer.flatMap(_.comment),
-        latestReviewer.flatMap(_.question1.reviewCriteria1.score.map(_.toString)),
-        latestReviewer.flatMap(_.question1.reviewCriteria2.score.map(_.toString)),
-        latestReviewer.flatMap(_.question2.reviewCriteria1.score.map(_.toString)),
-        latestReviewer.flatMap(_.question2.reviewCriteria2.score.map(_.toString)),
-        latestReviewer.flatMap(_.question3.reviewCriteria1.score.map(_.toString)),
-        latestReviewer.flatMap(_.question3.reviewCriteria2.score.map(_.toString)),
-        latestReviewer.flatMap(_.question4.reviewCriteria1.score.map(_.toString)),
-        latestReviewer.flatMap(_.question4.reviewCriteria2.score.map(_.toString)),
-        latestReviewer.flatMap(_.question5.reviewCriteria1.score.map(_.toString)),
-        latestReviewer.flatMap(_.question5.reviewCriteria2.score.map(_.toString)),
-        latestReviewer.flatMap(_.question6.reviewCriteria1.score.map(_.toString)),
-        latestReviewer.flatMap(_.question6.reviewCriteria2.score.map(_.toString)),
-        latestReviewer.flatMap(_.question7.reviewCriteria1.score.map(_.toString)),
-        latestReviewer.flatMap(_.question7.reviewCriteria2.score.map(_.toString)),
-        latestReviewer.flatMap(_.question8.reviewCriteria1.score.map(_.toString)),
-        latestReviewer.flatMap(_.question8.reviewCriteria2.score.map(_.toString)),
-        latestReviewer.map(reviewer => totalForQuestions(reviewer).toString)
-      )
-    } catch {
-      case ex: Throwable =>
-        Logger.error("========== ERROR INFO: app id = " + appId + "reviewed calls = " + Json.toJson(activeVideoTestReviewedCallbacks) + ", ex = " + ex.getMessage + " " + ex.getStackTrace)
-        Some("Foo") :: Nil
+    val latestAVTRCallback = activeVideoTestReviewedCallbacks.flatMap {
+      reviewedCallbacks =>
+        reviewedCallbacks.sortWith { (r1, r2) =>
+          r1.getAs[DateTime]("received").get.isAfter(r2.getAs[DateTime]("received").get)
+        }.headOption.map(_.as[ReviewedCallbackRequest])
     }
+
+    val latestReviewer = latestAVTRCallback.map {
+      callback =>
+        callback.reviewers.reviewer3.getOrElse(
+          callback.reviewers.reviewer2.getOrElse(
+            callback.reviewers.reviewer1
+          )
+        )
+    }
+
+    def scoreForQuestion(question: ReviewSectionQuestionRequest) = {
+      BigDecimal(question.reviewCriteria1.score.getOrElse(0.0)) + BigDecimal(question.reviewCriteria2.score.getOrElse(0.0))
+    }
+
+    def totalForQuestions(reviewer: ReviewSectionReviewerRequest): BigDecimal = {
+      scoreForQuestion(reviewer.question1) +
+        scoreForQuestion(reviewer.question2) +
+        scoreForQuestion(reviewer.question3) +
+        scoreForQuestion(reviewer.question4) +
+        scoreForQuestion(reviewer.question5) +
+        scoreForQuestion(reviewer.question6) +
+        scoreForQuestion(reviewer.question7) +
+        scoreForQuestion(reviewer.question8)
+    }
+
+    List(
+      activeVideoTest.flatMap(_.getAs[Int]("interviewId").map(_.toString)),
+      activeVideoTest.flatMap(_.getAs[String]("token")),
+      activeVideoTest.flatMap(_.getAs[String]("candidateId")),
+      activeVideoTest.flatMap(_.getAs[String]("customCandidateId")),
+      latestReviewer.flatMap(_.comment),
+      latestReviewer.flatMap(_.question1.reviewCriteria1.score.map(_.toString)),
+      latestReviewer.flatMap(_.question1.reviewCriteria2.score.map(_.toString)),
+      latestReviewer.flatMap(_.question2.reviewCriteria1.score.map(_.toString)),
+      latestReviewer.flatMap(_.question2.reviewCriteria2.score.map(_.toString)),
+      latestReviewer.flatMap(_.question3.reviewCriteria1.score.map(_.toString)),
+      latestReviewer.flatMap(_.question3.reviewCriteria2.score.map(_.toString)),
+      latestReviewer.flatMap(_.question4.reviewCriteria1.score.map(_.toString)),
+      latestReviewer.flatMap(_.question4.reviewCriteria2.score.map(_.toString)),
+      latestReviewer.flatMap(_.question5.reviewCriteria1.score.map(_.toString)),
+      latestReviewer.flatMap(_.question5.reviewCriteria2.score.map(_.toString)),
+      latestReviewer.flatMap(_.question6.reviewCriteria1.score.map(_.toString)),
+      latestReviewer.flatMap(_.question6.reviewCriteria2.score.map(_.toString)),
+      latestReviewer.flatMap(_.question7.reviewCriteria1.score.map(_.toString)),
+      latestReviewer.flatMap(_.question7.reviewCriteria2.score.map(_.toString)),
+      latestReviewer.flatMap(_.question8.reviewCriteria1.score.map(_.toString)),
+      latestReviewer.flatMap(_.question8.reviewCriteria2.score.map(_.toString)),
+      latestReviewer.map(reviewer => totalForQuestions(reviewer).toString)
+    )
   }
 
   private def testEvaluations(doc: BSONDocument): List[Option[String]] = {
@@ -453,11 +448,11 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
     val videoSchemeResults = videoEvalResultsMap.getOrElse(Nil)
 
     otSchemeResults.map(Option(_)) :::
-    (1 to (17 - otSchemeResults.size)).toList.map(_ => Some("")) :::
+    (1 to (18 - otSchemeResults.size)).toList.map(_ => Some("")) :::
     etraySchemeResults.map(Option(_)) :::
-    (1 to (17 - etraySchemeResults.size)).toList.map(_ => Some("")) :::
+    (1 to (18 - etraySchemeResults.size)).toList.map(_ => Some("")) :::
     videoSchemeResults.map(Option(_)) :::
-    (1 to (17 - videoSchemeResults.size)).toList.map(_ => Some(""))
+    (1 to (18 - videoSchemeResults.size)).toList.map(_ => Some(""))
   }
 
   private def onlineTests(doc: BSONDocument): Map[String, List[Option[String]]] = {
