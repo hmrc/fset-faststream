@@ -107,9 +107,9 @@ trait EventsController extends BaseController {
       }
     }
   }
-  def allocateCandidates(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def allocateCandidates(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
-      val newAllocations = command.CandidateAllocations.fromExchange(eventId, candidateAllocations)
+      val newAllocations = command.CandidateAllocations.fromExchange(eventId, sessionId, candidateAllocations)
       assessorAllocationService.allocateCandidates(newAllocations).map {
         _ => Ok
       }.recover {
@@ -118,8 +118,8 @@ trait EventsController extends BaseController {
     }
   }
 
-  def getCandidateAllocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
-    assessorAllocationService.getCandidateAllocations(eventId).map { allocations =>
+  def getCandidateAllocations(eventId: String, sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.getCandidateAllocations(eventId, sessionId).map { allocations =>
       if (allocations.allocations.isEmpty) {
         NotFound
       } else {

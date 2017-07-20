@@ -131,6 +131,11 @@ package object repositories {
     assessorAllocationRepository.collection.indexesManager.create(Index(
       Seq("id"-> Ascending, "eventId" -> Ascending),
       unique = false
+    )),
+
+    candidateAllocationRepository.collection.indexesManager.create(Index(
+      Seq("id"-> Ascending, "eventId" -> Ascending, "sessionId" -> Ascending),
+      unique = false
     ))
   )), 20 seconds)
 

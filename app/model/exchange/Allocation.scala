@@ -17,7 +17,7 @@
 package model.exchange
 
 import model.AllocationStatuses.AllocationStatus
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 trait Allocation {
   def id: String
@@ -31,7 +31,7 @@ case class AssessorAllocation(
 ) extends Allocation
 
 object AssessorAllocation {
-  implicit val assessorAllocationFormat = Json.format[AssessorAllocation]
+  implicit val assessorAllocationFormat: OFormat[AssessorAllocation] = Json.format[AssessorAllocation]
 }
 
 case class AssessorAllocations(
@@ -40,7 +40,7 @@ case class AssessorAllocations(
 )
 
 object AssessorAllocations {
-  implicit val assessorAllocationsFormat = Json.format[AssessorAllocations]
+  implicit val assessorAllocationsFormat: OFormat[AssessorAllocations] = Json.format[AssessorAllocations]
 
   def apply(o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
       val opLock = o.map(_.version).distinct match {
@@ -62,7 +62,7 @@ case class CandidateAllocation(
 ) extends Allocation
 
 object CandidateAllocation {
-  implicit val candidateAllocationFormat = Json.format[CandidateAllocation]
+  implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]
   def fromPersisted(o: model.persisted.CandidateAllocation): CandidateAllocation = {
     CandidateAllocation(o.id, o.status)
   }
@@ -75,7 +75,7 @@ case class CandidateAllocations(
 )
 
 object CandidateAllocations {
-  implicit val candidateAllocationsFormat = Json.format[CandidateAllocations]
+  implicit val candidateAllocationsFormat: OFormat[CandidateAllocations] = Json.format[CandidateAllocations]
 
   def apply(o: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
     val opLock = o.map(_.version).distinct match {

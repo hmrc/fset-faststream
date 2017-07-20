@@ -101,8 +101,8 @@ class ApplicationSiftMongoRepository(
     )
 
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED),
-      BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
+      BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED),
+      BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED}" -> true),
       BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(schemeId.value))),
       BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
       videoInterviewPassed,

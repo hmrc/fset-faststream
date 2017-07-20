@@ -139,6 +139,15 @@ trait ApplicationController extends BaseController {
       }
   }
 
+  def findAllocatedApplications() = Action.async(parse.json) {
+    implicit request =>
+      withJsonBody[List[String]] { appIds =>
+        appRepository.findAllocatedApplications(appIds).map { apps =>
+          Ok(Json.toJson(apps))
+        }
+      }
+  }
+
   case class ApplicationStatus(applicationId: String, progressStatus: String)
   object ApplicationStatus {
     implicit val applicationStatusFormat = play.api.libs.json.Json.format[ApplicationStatus]
