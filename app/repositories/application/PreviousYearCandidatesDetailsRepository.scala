@@ -61,9 +61,9 @@ trait PreviousYearCandidatesDetailsRepository {
     "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
     "PHASE3_TESTS_SECOND_REMINDER,PHASE3_TESTS_STARTED,PHASE3_TESTS_COMPLETED,PHASE3_TESTS_RESULTS_RECEIVED," +
     "PHASE3_TESTS_PASSED,PHASE3_TESTS_SUCCESS_NOTIFIED,EXPORTED,PHASE 1 result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
-    "result,result,result,result" +
-    "PHASE 2 result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result" +
-    "PHASE 3 result,result,result,result,result,result,result,result,result,result" +
+    "result,result,result,result," +
+    "PHASE 2 result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
+    "PHASE 3 result,result,result,result,result,result,result,result,result,result," +
     "result,result,result,result,result,result,result,result"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
