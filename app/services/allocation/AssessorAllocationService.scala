@@ -96,7 +96,7 @@ trait AssessorAllocationService extends EventSink {
             updateExistingAllocations(existingAllocation, newAllocations).flatMap { _ =>
               Future.sequence(
                 newAllocations.allocations
-                  .filter(alloc => !existingIds.contains(alloc.id))
+                  .filter(alloc => !existingIds.contains(alloc.userId))
                   .map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime))
               )
             }.map(_ => ())
@@ -109,7 +109,7 @@ trait AssessorAllocationService extends EventSink {
                                  eventDate: String,
                                  eventTime: String,
                                  deadlineDateTime: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    applicationRepo.find(candidateAllocation.id).flatMap {
+    applicationRepo.find(candidateAllocation.userId).flatMap {
       case Some(candidate) =>
         eventSink {
           val res = authProviderClient.findByUserIds(Seq(candidate.userId)).map { candidates =>
@@ -124,7 +124,7 @@ trait AssessorAllocationService extends EventSink {
           } recover { case ex => throw new RuntimeException(s"Was not able to retrieve user details for candidate ${candidate.userId}", ex) }
           res.asInstanceOf[Future[StcEvents]]
         }
-      case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.id}")
+      case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.userId}")
     }
   }
 

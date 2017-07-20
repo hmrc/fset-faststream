@@ -22,14 +22,14 @@ import model.exchange.AssessorSkill
 import play.api.libs.json.{ Json, OFormat }
 
 trait Allocation {
-  def id: String
+  def userId: String
   def status: AllocationStatus
 }
 
 case class AssessorAllocation(
-  id: String,
-  status: AllocationStatus,
-  allocatedAs: AssessorSkill
+                               userId: String,
+                               status: AllocationStatus,
+                               allocatedAs: AssessorSkill
 ) extends Allocation
 
 object AssessorAllocation {
@@ -68,8 +68,8 @@ object AssessorAllocations {
 }
 
 case class CandidateAllocation(
-  id: String,
-  status: AllocationStatus
+                                userId: String,
+                                status: AllocationStatus
 ) extends Allocation
 
 object CandidateAllocation {
