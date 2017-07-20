@@ -83,15 +83,6 @@ class ApplicationSiftMongoRepository(
     }
   }
 
-  def progressApplicationToSiftStage(application: ApplicationForSift): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> application.applicationId) ++ eligibleForSiftQuery
-    val update = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT)
-
-    val validator = singleUpdateValidator(application.applicationId, "progressing to sift stage")
-
-    collection.update(query, update) map validator
-  }
-
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]] = {
     val videoInterviewPassed = BSONDocument("testGroups.PHASE3.evaluation.result" ->
       BSONDocument("$elemMatch" -> BSONDocument("schemeId" -> schemeId.value, "result" -> Green.toString)))

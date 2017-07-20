@@ -43,10 +43,7 @@ trait ApplicationSiftService {
   def progressApplicationToSiftStage(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
-        for {
-          _ <- applicationSiftRepo.progressApplicationToSiftStage(application)
-          result <- applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED)
-        } yield result
+        applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED)
       )
     }
 
