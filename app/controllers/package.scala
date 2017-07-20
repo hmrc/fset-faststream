@@ -15,10 +15,9 @@
  */
 
 import model.UniqueIdentifier
-import model.persisted.eventschedules.SkillType
+import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import org.joda.time.LocalDate
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
-import play.api.mvc
 import play.api.mvc.{ PathBindable, QueryStringBindable }
 
 import scala.util.{ Failure, Right, Success, Try }
@@ -28,13 +27,13 @@ package object controllers {
   object Binders {
 
     implicit def pathBindableUniqueIdentifier = new PathBindable[UniqueIdentifier] {
-      def bind(key: String, value: String) =
+      def bind(key: String, value: String): Either[String, UniqueIdentifier] =
         Try { UniqueIdentifier(value) } match {
           case Success(v) => Right(v)
           case Failure(e: IllegalArgumentException) => Left(s"Badly formatted UniqueIdentifier $value")
           case Failure(e) => throw e
         }
-      def unbind(key: String, value: UniqueIdentifier) = value.toString
+      def unbind(key: String, value: UniqueIdentifier) = value.toString()
     }
 
     implicit def queryBindableUniqueIdentifier(implicit stringBinder: QueryStringBindable[String]) = new QueryStringBindable[UniqueIdentifier] {
@@ -63,19 +62,25 @@ package object controllers {
       error = (m: String, e: Exception) => "Can't parse %s as LocalDate(%s): %s".format(m, pathDateFormat.toString, e.getMessage)
     )
 
-    private def enumBinder[E <: Enumeration](enum: E) = {(
-      new QueryStringBindable.Parsing[E#Value](
-        parse = (name: String) => enum.withName(name),
-        serialize = (enumVal: E#Value) => enumVal.toString,
-        error = (m: String, e: Exception) => "Can't parse %s as %s : %s".format(m, enum.getClass.getSimpleName, e.getMessage)
-      ),
-      new mvc.PathBindable.Parsing[E#Value](
-        parse = (name: String) => enum.withName(name),
-        serialize = (enumVal: E#Value) => enumVal.toString,
-        error = (m: String, e: Exception) => "Can't parse %s as %s : %s".format(m, enum.getClass.getSimpleName, e.getMessage)
+    private def enumBinders[E <: Enumeration](enum: E) = {
+      val error = (m: String, e: Exception) => "Can't parse %s as %s: %s".format(m, enum.getClass.getSimpleName, e.getMessage)
+      (
+        new QueryStringBindable.Parsing[E#Value](
+          parse = enum.withName(_),
+          serialize = _.toString,
+          error = error
+        ),
+        new PathBindable.Parsing[E#Value](
+          parse = enum.withName(_),
+          serialize = _.toString,
+          error = error
+        )
       )
-    )}
+    }
 
-    implicit val (skillTypeQueryBinder, skillTypePathBinder) = enumBinder(SkillType)
+    implicit val (eventTypeQueryBinder, eventTypePathBinder) = enumBinders(EventType)
+    implicit val (skillTypeQueryBinder, skillTypePathBinder) = enumBinders(SkillType)
+    implicit val (venueTypeQueryBinder, venueTypePathBinder) = enumBinders(VenueType)
+    implicit val (allocationStatusQueryBinder, allocationStatusPathBinder) = enumBinders(model.AllocationStatuses)
   }
 }

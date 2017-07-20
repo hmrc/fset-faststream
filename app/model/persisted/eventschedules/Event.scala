@@ -34,7 +34,8 @@ case class Event(
   attendeeSafetyMargin: Int,
   startTime: LocalTime,
   endTime: LocalTime,
-  skillRequirements: Map[String, Int]
+  skillRequirements: Map[String, Int],
+  sessions: List[Session]
 )
 
 object Event {

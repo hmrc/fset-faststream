@@ -16,7 +16,9 @@
 
 package services.testdata.admin
 
-import model.exchange.testdata.CreateAdminResponse.AssessorResponse
+import model.persisted.assessor.AssessorStatus
+import model.exchange.testdata.CreateAdminResponse.{ AssessorResponse, CreateAdminResponse }
+import model.persisted.assessor.AssessorStatus
 import model.testdata.CreateAdminData.{ AssessorData, CreateAdminData }
 import play.api.mvc.RequestHeader
 import services.assessoravailability.AssessorService
@@ -35,23 +37,26 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
 
   val assessorService: AssessorService
 
-
-  def generate(generationId: Int, createData: CreateAdminData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
-    previousStatusGenerator.generate(generationId, createData).flatMap { userInPrevStatus =>
-      createData.assessor match {
-        case Some(assessor) =>
-          createAssessor(userInPrevStatus.userId, assessor).map { assessorStored =>
-            userInPrevStatus.copy(assessor =
-              Some(AssessorResponse.apply((assessorStored))))
-          }
-        case None => Future.successful(userInPrevStatus)
-      }
+  def generate(generationId: Int, createData: CreateAdminData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminResponse] = {
+    previousStatusGenerator.generate(generationId, createData).flatMap { userInPreviousStatus =>
+      createData.assessor.map { assessorData =>
+        val userId = userInPreviousStatus.userId
+        for {
+          assessorPersisted <- createAssessor(userId, assessorData)
+          availability = assessorData.availability.getOrElse(Nil)
+          _ <- if (assessorData.status == AssessorStatus.AVAILABILITIES_SUBMITTED) {
+            assessorService.addAvailability(userId, availability)
+          } else { Future.successful(()) }
+        } yield {
+          userInPreviousStatus.copy(assessor  = Some(AssessorResponse.apply(assessorPersisted).copy(availability = availability)))
+        }
+      }.getOrElse(Future.successful(userInPreviousStatus))
     }
   }
 
   def createAssessor(userId: String, assessor: AssessorData)(
     implicit hc: HeaderCarrier): Future[model.exchange.Assessor] = {
-    val assessorE = model.exchange.Assessor(userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
+    val assessorE = model.exchange.Assessor(userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, assessor.status)
     assessorService.saveAssessor(userId, assessorE).map(_ => assessorE)
   }
 

@@ -16,6 +16,7 @@
 
 package controllers
 
+import config.MicroserviceAppConfig
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
@@ -25,7 +26,6 @@ import repositories.events.{ EventsRepository, LocationsWithVenuesInMemoryReposi
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object DayAggregateEventController extends DayAggregateEventController {
   val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository

@@ -35,15 +35,16 @@ object CreateEventData {
                              attendeeSafetyMargin: Int,
                              startTime: LocalTime,
                              endTime: LocalTime,
-                             skillRequirements: Map[String, Int]) extends CreateTestData {
+                             skillRequirements: Map[String, Int],
+                             sessions: List[Session]) extends CreateTestData {
     def toEvent: Event = {
       Event(id, eventType, description, location, venue, date, capacity, minViableAttendees,
-        attendeeSafetyMargin, startTime, endTime, skillRequirements)
+        attendeeSafetyMargin, startTime, endTime, skillRequirements, sessions)
     }
   }
 
   object CreateEventData {
-    implicit val createEventDataFormat: OFormat[CreateEventData] = Json.format[CreateEventData]
+    implicit val format: OFormat[CreateEventData] = Json.format[CreateEventData]
 
     def apply(createRequest: CreateEventRequest)(generatorId: Int): CreateEventData = {
 
@@ -51,7 +52,7 @@ object CreateEventData {
       val eventType = createRequest.eventType.getOrElse(Random.Event.eventType)
       val description = createRequest.description.getOrElse(Random.Event.description)
       val location = createRequest.location.map(l => Location(l)).getOrElse(Random.Event.location)
-      val venue = createRequest.venue.map(v => Venue(v, s"$v")).getOrElse(Random.Event.venue)
+      val venue = createRequest.venue.map(v => Venue(v, s"$v")).getOrElse(Random.Event.venue(location))
       val date = createRequest.date.getOrElse(Random.Event.date)
       val capacity = createRequest.capacity.getOrElse(Random.Event.capacity)
       val minViableAttendees = createRequest.minViableAttendees.getOrElse(Random.Event.minViableAttendees)
@@ -59,9 +60,10 @@ object CreateEventData {
       val startTime = createRequest.startTime.getOrElse(Random.Event.startTime)
       val endTime = createRequest.endTime.getOrElse(Random.Event.endTime)
       val skillRequirements = createRequest.skillRequirements.getOrElse(Random.Event.skillRequirements)
+      val sessions = createRequest.sessions.getOrElse(Random.Event.sessions)
 
       CreateEventData(id, eventType, description, location, venue, date, capacity, minViableAttendees, attendeeSafetyMargin,
-        startTime, endTime, skillRequirements)
+        startTime, endTime, skillRequirements, sessions)
     }
   }
 

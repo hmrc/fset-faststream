@@ -16,16 +16,12 @@
 
 package controllers.reference
 
-import model.Scheme
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.util.Success
 
 object SchemesController extends SchemesController{
   val repo = SchemeYamlRepository

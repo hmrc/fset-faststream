@@ -20,7 +20,7 @@ import factories.UUIDFactory
 import model.AllocationStatuses
 import model.AllocationStatuses.AllocationStatus
 import model.persisted.eventschedules.SkillType.SkillType
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 
 trait Allocation {
@@ -39,31 +39,48 @@ case class AssessorAllocation(
 ) extends Allocation
 
 object AssessorAllocation {
-  implicit val assessorAllocationFormat = Json.format[AssessorAllocation]
+  implicit val assessorAllocationFormat: OFormat[AssessorAllocation] = Json.format[AssessorAllocation]
   implicit val assessorAllocationHandler = Macros.handler[AssessorAllocation]
 
   def fromCommand(o: model.command.AssessorAllocations, opLockVersion: String = UUIDFactory.generateUUID()): Seq[AssessorAllocation] = {
-    o.allocations.map { a => AssessorAllocation(a.id, o.eventId, AllocationStatuses.UNCONFIRMED, a.allocatedAs.name, opLockVersion) }
+    o.allocations.map { a => AssessorAllocation(a.id, o.eventId, a.status, a.allocatedAs.name, opLockVersion) }
   }
 }
 
 case class CandidateAllocation(
   id: String,
   eventId: String,
+  sessionId: String,
   status: AllocationStatus,
   version: String
 ) extends Allocation
 
 object CandidateAllocation {
-  implicit val candidateAllocationFormat = Json.format[CandidateAllocation]
+  implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]
   implicit val candidateAllocationHandler = Macros.handler[CandidateAllocation]
 
-  def fromCommand(o: model.command.CandidateAllocations): Seq[CandidateAllocation] = {
+  def fromCommand(allocations: model.command.CandidateAllocations): Seq[CandidateAllocation] = {
     val opLockVersion = UUIDFactory.generateUUID()
-    o.allocations.map { a => CandidateAllocation(a.id, o.eventId, a.status, opLockVersion) }
+    allocations.allocations.map { allocation =>
+      CandidateAllocation(
+        id = allocation.id,
+        eventId = allocations.eventId,
+        sessionId = allocations.sessionId,
+        status = allocation.status,
+        version = opLockVersion
+      )
+    }
   }
 
-  def fromExchange(o: model.exchange.CandidateAllocations, eventId: String) : Seq[CandidateAllocation] = {
-    o.allocations.map { a => CandidateAllocation(a.id, eventId, a.status, o.version.getOrElse(UUIDFactory.generateUUID()))}
+  def fromExchange(o: model.exchange.CandidateAllocations, eventId: String, sessionId: String) : Seq[CandidateAllocation] = {
+    o.allocations.map { a =>
+      CandidateAllocation(
+        id = a.id,
+        eventId = eventId,
+        sessionId = sessionId,
+        status = a.status,
+        version = o.version.getOrElse(UUIDFactory.generateUUID())
+      )
+    }
   }
 }

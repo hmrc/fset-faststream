@@ -20,13 +20,13 @@ import config.TestFixtureBase
 import model.AllocationStatuses
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.exchange.{ AssessorAllocation, AssessorAllocations, AssessorSkill }
-import model.persisted.eventschedules._
+import model.persisted.eventschedules.{ Event, EventType, Location, Venue, _ }
 import org.joda.time.{ LocalDate, LocalTime }
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
@@ -107,8 +107,8 @@ class EventsControllerSpec extends UnitWithAppSpec {
     when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(MockLocation))
     when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Future.successful(MockVenue))
 
-    val MockEvent = Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
-            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty)
+    val MockEvent = new Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
+            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty, List.empty)
 
     val controller = new EventsController {
       val eventsService = mockEventsService
