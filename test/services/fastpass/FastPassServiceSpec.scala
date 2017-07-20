@@ -39,8 +39,8 @@ class FastPassServiceSpec extends UnitSpec {
     "process correctly an approved fast pass candidate" in new TextFixtureWithMockResponses {
       val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
 
-      name mustBe completePersonalDetails.firstName
-      surname mustBe completePersonalDetails.lastName
+      name mustBe completeGeneralDetails.firstName
+      surname mustBe completeGeneralDetails.lastName
 
       verifyDataStoreEvents(2,
         List("FastPassApproved",
@@ -58,7 +58,7 @@ class FastPassServiceSpec extends UnitSpec {
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
       verify(emailClientMock).sendEmailWithName(
-        eqTo(ContactDetailsUK.email), eqTo(completePersonalDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
       verifyNoMoreInteractions(csedRepositoryMock, appRepoMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
 
     }
@@ -66,8 +66,8 @@ class FastPassServiceSpec extends UnitSpec {
     "process correctly a rejected fast pass candidate" in new TextFixtureWithMockResponses {
       val (name, surname) = underTest.processFastPassCandidate(userId, appId, rejected, triggeredBy).futureValue
 
-      name mustBe completePersonalDetails.firstName
-      surname mustBe completePersonalDetails.lastName
+      name mustBe completeGeneralDetails.firstName
+      surname mustBe completeGeneralDetails.lastName
 
       verifyDataStoreEvents(1,
         List("FastPassRejected")
@@ -139,7 +139,7 @@ class FastPassServiceSpec extends UnitSpec {
     val appId = "app123"
     val triggeredBy = "admin123"
     val serviceFutureResponse = Future.successful(())
-    val personalDetailsResponse = Future.successful(completePersonalDetails)
+    val personalDetailsResponse = Future.successful(completeGeneralDetails)
     val contactDetailsResponse = Future.successful(ContactDetailsUK)
     val error = new RuntimeException("Something bad happened")
     val serviceError = Future.failed(error)

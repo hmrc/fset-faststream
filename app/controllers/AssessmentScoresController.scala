@@ -18,11 +18,12 @@ package controllers
 
 import model.assessmentscores._
 import model.UniqueIdentifier
-import model.command.AssessmentScoresCommands.{ AssessmentScoresFindResponse, AssessmentExerciseType, AssessmentScoresSubmitRequest }
+import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, AssessmentScoresSubmitRequest }
 import play.api.libs.json.Json
 import play.api.libs.json._
 import play.api.mvc.Action
 import repositories.AssessmentScoresRepository
+import services.AuditService
 import services.assessmentscores.AssessmentScoresService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -31,28 +32,47 @@ import scala.concurrent.Future
 
 object AssessmentScoresController extends AssessmentScoresController {
   val service: AssessmentScoresService = AssessmentScoresService
+  val auditService: AuditService = AuditService
   val repository: AssessmentScoresRepository = repositories.assessmentScoresRepository
 }
 
 trait AssessmentScoresController extends BaseController {
+  val AssessmentScoresAllExercisesSaved = "AssessmentScoresAllExercisesSaved"
+  val AssessmentScoresOneExerciseSubmitted = "AssessmentScoresOneExerciseSubmitted"
+
   val service: AssessmentScoresService
+  val auditService: AuditService
   val repository: AssessmentScoresRepository
+
 
   def submit() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[AssessmentScoresSubmitRequest] { submitRequest =>
+        val assessmentExerciseType = AssessmentExerciseType.withName(submitRequest.exercise)
         service.saveExercise(
           submitRequest.applicationId,
-          AssessmentExerciseType.withName(submitRequest.exercise),
+          assessmentExerciseType,
           submitRequest.scoresAndFeedback
-        ).map(_ => Ok)
+        ).map { _ =>
+          val auditDetails = Map(
+            "applicationId" -> submitRequest.applicationId.toString(),
+            "exercise" -> assessmentExerciseType.toString,
+            "assessorId" -> submitRequest.scoresAndFeedback.updatedBy.toString())
+          auditService.logEventNoRequest(AssessmentScoresOneExerciseSubmitted, auditDetails)
+        }.map (_ => Ok)
       }
   }
 
   def save() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[AssessmentScoresAllExercises] { scores =>
-        service.save(scores).map(_ => Ok)
+        service.save(scores).map { _ =>
+          val auditDetails = Map(
+            "applicationId" -> scores.applicationId.toString(),
+            "assessorId" -> scores.analysisExercise.map(_.updatedBy.toString).getOrElse("Unknown")
+          )
+          auditService.logEvent(AssessmentScoresAllExercisesSaved, auditDetails)
+        }.map(_ => Ok)
       }
   }
 

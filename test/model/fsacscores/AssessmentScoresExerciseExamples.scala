@@ -23,8 +23,11 @@ import org.joda.time.{ DateTime, DateTimeZone }
 
 object AssessmentScoresExerciseExamples {
   val Example1 = getExample(1)
-  val Example2 = getExample(2)
-  val Example3 = getExample(3)
+  val Example2 = getExample(1.5)
+  val Example3 = getExample(2)
+  val Example4 = getExample(2.5)
+  val DateTimeNow = DateTime.now(DateTimeZone.UTC)
+  val UpdatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   private def getExample(baseValue: Double): AssessmentScoresExercise = {
     val strategicScore = Some(baseValue + 0.1)
@@ -41,8 +44,8 @@ object AssessmentScoresExerciseExamples {
         buildingScore,buildingScore,buildingScore,buildingScore,buildingScore)),
       Some("feedback1"), Some("feedback2"), Some("feedback3"), Some("feedback4"),
       otherScore, otherScore, otherScore, otherScore,
-      UniqueIdentifier.randomUniqueIdentifier,
-      Some(DateTime.now(DateTimeZone.UTC)),
+      UpdatedBy,
+      Some(DateTimeNow),
       Some("version1")
     )
   }
