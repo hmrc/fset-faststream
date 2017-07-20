@@ -93,8 +93,8 @@ package object repositories {
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
-  lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemes)
-  lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemes)
+  lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
+  lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
 
 
   /** Create indexes */
