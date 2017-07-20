@@ -159,7 +159,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
           )
         } catch {
           case ex: Throwable =>
-            Logger.error("================ EXCEPTION ", ex)
+            Logger.error("Previous year candidate report generation exception", ex)
             CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
         }
       }
