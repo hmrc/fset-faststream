@@ -16,6 +16,7 @@
 
 package controllers
 
+import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
@@ -24,10 +25,10 @@ import forms.WithdrawApplicationForm
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
-import models.{ ApplicationData, CachedData }
+import models.{ ApplicationData, ApplicationRoute, CachedData }
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
-import security.{ Roles, SilhouetteComponent }
+import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
 import security.Roles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -36,15 +37,15 @@ import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
 object HomeController extends HomeController(ApplicationClient, CSRCache) {
-  val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
-  lazy val silhouette = SilhouetteComponent.silhouette
+  val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
+  lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
 abstract class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
   val Withdrawer = "Candidate"
 
-  def present(implicit displaySdipEligibilityInfo: Boolean = false) = CSRSecureAction(ActiveUserRole) {
+  def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request => implicit cachedData =>
      cachedData.application.map { implicit application =>
        cachedData match {
@@ -55,7 +56,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
      }.getOrElse { dashboardWithoutApplication }
   }
 
-  def showSdipNextSteps = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
+  def showSdipNextSteps: Action[AnyContent] = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     implicit val displaySdipEligibilityInfo = false
     cachedData.application.map { implicit application =>
       cachedData match {
@@ -65,7 +66,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
     }.getOrElse { dashboardWithoutApplication }
   }
 
-  def resume = CSRSecureAppAction(ActiveUserRole) { implicit request =>
+  def resume: Action[AnyContent] = CSRSecureAppAction(ActiveUserRole) { implicit request =>
     implicit user =>
       Future.successful(Redirect(Roles.userJourneySequence.find(_._1.isAuthorized(user)).map(_._2).getOrElse(routes.HomeController.present())))
   }
@@ -83,12 +84,12 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       }
   }
 
-  def presentWithdrawApplication = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
+  def presentWithdrawApplication: Action[AnyContent] = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.application.withdraw(WithdrawApplicationForm.form)))
   }
 
-  def withdrawApplication = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
+  def withdrawApplication: Action[AnyContent] = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
 
       def updateApplicationStatus(data: CachedData): CachedData = {
@@ -115,7 +116,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       )
   }
 
-  def confirmAlloc = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
+  def confirmAlloc: Action[AnyContent] = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
     implicit user =>
       applicationClient.confirmAllocation(user.application.get.applicationId).map { _ =>
         Redirect(controllers.routes.HomeController.present()).flashing(success("success.allocation.confirmed"))
@@ -125,7 +126,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
   private def displayFaststreamResultsPage(implicit application: ApplicationData, cachedData: CachedData,
                                       request: Request[_], hc: HeaderCarrier) =
     applicationClient.getFinalSchemeResults(application.applicationId).map { results =>
-      Ok(views.html.home.faststreamFinalResults(cachedData, results.getOrElse(Nil)))
+      Ok(views.html.home.postOnlineTestDashboard(cachedData, results.getOrElse(Nil)))
     }
 
   private def displayEdipOrSdipResultsPage(implicit cachedData: CachedData,
@@ -179,27 +180,31 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       )
   }
 
-  private def getPhase2Test(implicit application: ApplicationData, hc: HeaderCarrier) = application.isPhase2 match {
-    case true => applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
-    case false => Future.successful(None)
+  private def getPhase2Test(implicit application: ApplicationData, hc: HeaderCarrier) = if (application.isPhase2) {
+    applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
+  } else {
+    Future.successful(None)
   }
 
-  private def getPhase3Test(implicit application: ApplicationData, hc: HeaderCarrier) = application.isPhase3 match {
-    case true => applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))
-    case false => Future.successful(None)
+  private def getPhase3Test(implicit application: ApplicationData, hc: HeaderCarrier) = if (application.isPhase3) {
+    applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))
+  } else {
+    Future.successful(None)
   }
 
   private def getAdjustments(implicit application: ApplicationData, hc: HeaderCarrier) =
-  application.progress.assistanceDetails match {
-    case true => applicationClient.findAdjustments(application.applicationId)
-    case false => Future.successful(None)
+  if (application.progress.assistanceDetails) {
+    applicationClient.findAdjustments(application.applicationId)
+  } else {
+    Future.successful(None)
   }
 
   private def getAssistanceDetails(implicit application: ApplicationData,
                                    hc: HeaderCarrier, cachedData: CachedData) =
-  application.progress.assistanceDetails match {
-    case true => applicationClient.getAssistanceDetails(cachedData.user.userID, application.applicationId).map(a => Some(a))
-    case false => Future.successful(None)
+  if (application.progress.assistanceDetails) {
+    applicationClient.getAssistanceDetails(cachedData.user.userID, application.applicationId).map(a => Some(a))
+  } else {
+    Future.successful(None)
   }
 
 }
