@@ -59,7 +59,7 @@ trait CommonRepository {
 
   def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
 
-  def applicationSiftRepository(schemeDefinitions: List[Scheme]) = new ApplicationSiftMongoRepository(DateTimeFactory, schemeDefinitions)
+  def applicationSiftRepository(schemeDefinitions: List[SchemeId]) = new ApplicationSiftMongoRepository(DateTimeFactory, schemeDefinitions)
 
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 

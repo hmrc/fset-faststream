@@ -67,11 +67,11 @@ private object AppDependencies {
   abstract class TestDependencies(scope: String) {
     lazy val test: Seq[ModuleID] = Seq(
       "de.leanovate.play-mockws" %% "play-mockws" % "2.5.1" % "test",
+      "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
       "org.mockito" % "mockito-core" % mockito % scope,
       "org.scalatestplus.play" %% "scalatestplus-play" % scalatestplus % scope,
       "org.pegdown" % "pegdown" % pegdown % scope,
-      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
-      "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % scope
+      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2")
     )
   }
 

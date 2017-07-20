@@ -20,20 +20,20 @@ import connectors.OnlineTestEmailClient
 import model.{ CivilServiceExperienceDetails, ProgressStatuses }
 import model.command.PersonalDetailsExamples._
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.personaldetails.PersonalDetailsService
 import services.stc.StcEventServiceFixture
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class FastPassServiceSpec extends PlaySpec with ScalaFutures with MockFactory {
+class FastPassServiceSpec extends UnitSpec {
 
   "processFastPassCandidate" should {
     "process correctly an approved fast pass candidate" in new TextFixtureWithMockResponses {
@@ -53,12 +53,14 @@ class FastPassServiceSpec extends PlaySpec with ScalaFutures with MockFactory {
           "FastPassUserAcceptedEmailSent")
       )
 
-      (csedRepositoryMock.evaluateFastPassCandidate _).verify(appId, true)
-      (appRepoMock.addProgressStatusAndUpdateAppStatus _).verify(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      (personalDetailsServiceMock.find _).verify(appId, userId)
-      (cdRepositoryMock.find _).verify(userId)
-      (emailClientMock.sendEmailWithName _).verify(
-        ContactDetailsUK.email, completePersonalDetails.preferredName, underTest.acceptedTemplate)
+      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      verify(personalDetailsServiceMock).find(appId, userId)
+      verify(cdRepositoryMock).find(userId)
+      verify(emailClientMock).sendEmailWithName(
+        eqTo(ContactDetailsUK.email), eqTo(completePersonalDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+      verifyNoMoreInteractions(csedRepositoryMock, appRepoMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+
     }
 
     "process correctly a rejected fast pass candidate" in new TextFixtureWithMockResponses {
@@ -75,15 +77,18 @@ class FastPassServiceSpec extends PlaySpec with ScalaFutures with MockFactory {
         List("FastPassUserRejected")
       )
 
-      (csedRepositoryMock.evaluateFastPassCandidate _).verify(appId, false)
-      (personalDetailsServiceMock.find _).verify(appId, userId)
+      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = false)
+      verify(personalDetailsServiceMock).find(appId, userId)
+      verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock)
+      verifyZeroInteractions(appRepoMock, cdRepositoryMock, emailClientMock)
+
     }
 
     "fail to complete the process if a service fails" in new TestFixture {
-      (personalDetailsServiceMock.find _).when(*, *).returns(personalDetailsResponse)
-      (cdRepositoryMock.find _).when(*).returns(contactDetailsResponse)
-      (appRepoMock.addProgressStatusAndUpdateAppStatus _).when(*, *).returns(serviceFutureResponse)
-      (csedRepositoryMock.evaluateFastPassCandidate _).when(*, *).returns(serviceError)
+      when(personalDetailsServiceMock.find(any[String], any[String])).thenReturn(personalDetailsResponse)
+      when(cdRepositoryMock.find(any[String])).thenReturn(contactDetailsResponse)
+      when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
+      when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceError)
 
 
       val result = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue
@@ -114,8 +119,9 @@ class FastPassServiceSpec extends PlaySpec with ScalaFutures with MockFactory {
           "ApplicationReadyForExport")
       )
 
-      (csedRepositoryMock.update _).verify(appId, underTest.fastPassDetails)
-      (appRepoMock.addProgressStatusAndUpdateAppStatus _).verify(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      verify(csedRepositoryMock).update(eqTo(appId), eqTo(underTest.fastPassDetails))
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      verifyNoMoreInteractions(csedRepositoryMock, appRepoMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
   }
 
@@ -155,13 +161,12 @@ class FastPassServiceSpec extends PlaySpec with ScalaFutures with MockFactory {
   }
 
   trait TextFixtureWithMockResponses extends TestFixture {
-
-    (csedRepositoryMock.evaluateFastPassCandidate _).when(*, *).returns(serviceFutureResponse)
-    (csedRepositoryMock.update _).when(*, *).returns(serviceFutureResponse)
-    (appRepoMock.addProgressStatusAndUpdateAppStatus _).when(*, *).returns(serviceFutureResponse)
-    (personalDetailsServiceMock.find _).when(*, *).returns(personalDetailsResponse)
-    (cdRepositoryMock.find _).when(*).returns(contactDetailsResponse)
-    (emailClientMock.sendEmailWithName _).when(*,*,*).returns(serviceFutureResponse)
+    when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceFutureResponse)
+    when(csedRepositoryMock.update(any[String], any[CivilServiceExperienceDetails])).thenReturn(serviceFutureResponse)
+    when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
+    when(personalDetailsServiceMock.find(any[String], any[String])).thenReturn(personalDetailsResponse)
+    when(cdRepositoryMock.find(any[String])).thenReturn(contactDetailsResponse)
+    when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(serviceFutureResponse)
   }
 
 }

@@ -40,7 +40,7 @@ trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryH
 
   def thisApplicationStatus: ApplicationStatus
   def dateTime: DateTimeFactory
-  def siftableSchemes: Seq[Scheme]
+  def siftableSchemeIds: Seq[SchemeId]
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]

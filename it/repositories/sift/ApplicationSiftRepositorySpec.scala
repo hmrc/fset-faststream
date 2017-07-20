@@ -20,9 +20,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   val Sdip: SchemeId = SchemeId("Sdip")
   val Generalist: SchemeId = SchemeId("Generalistt status")
   val ProjectDelivery = SchemeId("Project Delivery")
-  val schemeDefinitions = List(Scheme(Commercial, "", "", requiresSift = true),
-    Scheme(ProjectDelivery, "", "", requiresSift = true),
-    Scheme(Generalist, "", "", requiresSift = true))
+  val schemeDefinitions = List(Commercial, ProjectDelivery, Generalist)
 
   def repository: ApplicationSiftMongoRepository = applicationSiftRepository(schemeDefinitions)
 

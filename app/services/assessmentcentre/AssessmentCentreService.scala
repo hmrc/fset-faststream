@@ -23,6 +23,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object AssessmentCentreService extends AssessmentCentreService {
   val applicationRepo = repositories.applicationRepository
