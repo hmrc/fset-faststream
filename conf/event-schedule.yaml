@@ -1,0 +1,299 @@
+- eventType: FSAC
+  description: PDFS FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-04-03
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 11:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 6
+    CHAIR: 3
+    DEPARTMENTAL_ASSESSOR: 3
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: AM
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 09:00
+      endTime: 12:00
+    - description: PM
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 13:00
+      endTime: 17:00
+- eventType: FSAC
+  description: PDFS FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-04-03
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 9:00
+  endTime: 17:00
+  skillRequirements:
+    ASSESSOR: 6
+    CHAIR: 3
+    DEPARTMENTAL_ASSESSOR: 3
+    EXERCISE_MARKER: 2
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: First
+      capacity: 18
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 13:00
+    - description: Second
+      capacity: 18
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 13:00
+      endTime: 17:00
+- eventType: FSAC
+  description: PDFS FSB
+  location: Newcastle
+  venue: NEWCASTLE_LONGBENTON
+  date: 2017-04-03
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 6
+    CHAIR: 3
+    DEPARTMENTAL_ASSESSOR: 2
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: First
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30
+- eventType: Telephone interview
+  description: ORAC
+  location: Newcastle
+  venue: NEWCASTLE_LONGBENTON
+  date: 2017-04-03
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 6
+  sessions:
+    - description: First
+      capacity: 18
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30
+    - description: Second
+      capacity: 18
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 10:30
+      endTime: 12:00
+- eventType: FSAC
+  description: PDFS FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-04-03
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  capacity: 36
+  skillRequirements:
+    ASSESSOR: 6
+    CHAIR: 6
+    DEPARTMENTAL_ASSESSOR: 6
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: First
+      capacity: 18
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30
+- eventType: FSAC
+  description: PDFS FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-04-04
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 6
+    CHAIR: 1
+    DEPARTMENTAL_ASSESSOR: 1
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: First
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30
+- eventType: FSAC
+  description: PDFS FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-05-03
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 6
+    CHAIR: 2
+    DEPARTMENTAL_ASSESSOR: 3
+    EXERCISE_MARKER: 2
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: First
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30
+- eventType: FSAC
+  description: PDFS FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-05-09
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    DEPARTMENTAL_ASSESSOR: 2
+  sessions:
+    - description: First
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30
+- eventType: Skype interview
+  description: SKYPE
+  location: Virtual
+  venue: VIRTUAL
+  date: 2017-08-04
+  capacity: 25
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:30
+  endTime: 10:00
+  skillRequirements:
+    ASSESSOR: 1
+    CHAIR: 1
+    DEPARTMENTAL_ASSESSOR: 1
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: First
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:30
+      endTime: 10:00
+- eventType: Skype interview
+  description: SKYPE
+  location: Virtual
+  venue: VIRTUAL
+  date: 2018-02-04
+  capacity: 25
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 1
+    CHAIR: 1
+    DEPARTMENTAL_ASSESSOR: 1
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: First
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30
+- eventType: Skype interview
+  description: SKYPE
+  location: Virtual
+  venue: VIRTUAL
+  date: 2018-02-04
+  capacity: 25
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: First
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30
+- eventType: Telephone Interview
+  description: Telephone Interview
+  location: Newcastle
+  venue: NEWCASTLE_LONGBENTON
+  date: 2018-03-04
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    CHAIR: 2
+    EXERCISE_MARKER: 3
+  sessions:
+    - description: First
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30
+- eventType: FSB
+  description: FRAC
+  location: London
+  venue: LONDON_FSAC
+  date: 2018-03-07
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    CHAIR: 2
+    EXERCISE_MARKER: 3
+  sessions:
+    - description: First
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 10:30

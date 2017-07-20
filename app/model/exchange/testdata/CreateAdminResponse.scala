@@ -17,8 +17,8 @@
 package model.exchange.testdata
 
 import model.exchange.AssessorAvailability
+import model.persisted.assessor.AssessorStatus.AssessorStatus
 import model.testdata.CreateAdminData.AssessorData
-import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 
 object CreateAdminResponse {
@@ -33,21 +33,22 @@ object CreateAdminResponse {
       Json.format[CreateAdminResponse]
   }
 
-  case class AssessorResponse(skills: List[String], civilServant: Boolean, availability: List[AssessorAvailability])
+  case class AssessorResponse(skills: List[String], civilServant: Boolean, availability: List[AssessorAvailability], status: AssessorStatus)
 
   object AssessorResponse {
     implicit val assessorResponseFormat: OFormat[AssessorResponse] = Json.format[AssessorResponse]
 
     def apply(exchange: model.exchange.Assessor): AssessorResponse = {
-      AssessorResponse(exchange.skills, exchange.civilServant, List.empty)
+      AssessorResponse(exchange.skills, exchange.civilServant, List.empty, exchange.status)
     }
 
     def apply(persisted: model.persisted.assessor.Assessor): AssessorResponse = {
-      AssessorResponse(persisted.skills, persisted.civilServant, persisted.availability.map(a => AssessorAvailability.apply(a)))
+      AssessorResponse(persisted.skills, persisted.civilServant,
+        persisted.availability.map(a => AssessorAvailability.apply(a)), persisted.status)
     }
 
     def apply(data: AssessorData): AssessorResponse = {
-      AssessorResponse(data.skills, data.civilServant, data.availability.getOrElse(List.empty))
+      AssessorResponse(data.skills, data.civilServant, data.availability.getOrElse(List.empty), data.status)
     }
   }
 

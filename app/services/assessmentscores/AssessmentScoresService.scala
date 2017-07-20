@@ -19,8 +19,8 @@ package services.assessmentscores
 import factories.DateTimeFactory
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
 import model.UniqueIdentifier
-import model.command.AssessmentScoresCommands.AssessmentExercise.AssessmentExercise
-import model.command.AssessmentScoresCommands.{ AssessmentExercise, AssessmentScoresFindResponse, RecordCandidateScores }
+import model.command.AssessmentScoresCommands.AssessmentExerciseType.AssessmentExerciseType
+import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
 import play.api.mvc.RequestHeader
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
@@ -60,61 +60,30 @@ object AssessmentScoresService extends AssessmentScoresService {
   }
 
   override def saveExercise(applicationId: UniqueIdentifier,
-                            exercise: AssessmentExercise,
-                            exerciseScores: AssessmentScoresExercise)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    val exerciseScoresWithSubmittedDate = exerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))
-
-    (exercise match {
-      case AssessmentExercise.`analysisExercise` =>
-        saveAnalysisExercise(applicationId, exerciseScoresWithSubmittedDate)
-      case AssessmentExercise.`groupExercise` =>
-        saveGroupExercise(applicationId, exerciseScoresWithSubmittedDate)
-      case AssessmentExercise.`leadershipExercise` =>
-        saveLeadershipExercise(applicationId, exerciseScoresWithSubmittedDate)
-      case _ => throw new Exception // TODO MIGUEL
-    }).map { _ =>
-      val details = Map(
+                            assessmentExerciseType: AssessmentExerciseType,
+                            newExerciseScores: AssessmentScoresExercise)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    (for {
+      oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
+      oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
+      newExerciseScoresWithSubmittedDate = newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))
+      newAllExercisesScores = assessmentExerciseType match {
+        case AssessmentExerciseType.analysisExercise =>
+          oldAllExercisesScores.copy(analysisExercise = Some(newExerciseScoresWithSubmittedDate))
+        case AssessmentExerciseType.groupExercise =>
+          oldAllExercisesScores.copy(groupExercise = Some(newExerciseScoresWithSubmittedDate))
+        case AssessmentExerciseType.leadershipExercise =>
+          oldAllExercisesScores.copy(leadershipExercise = Some(newExerciseScoresWithSubmittedDate))
+      }
+      _ <- assessmentScoresRepository.save(newAllExercisesScores)
+      auditDetails = Map(
         "applicationId" -> applicationId.toString(),
-        "exercise" -> exercise.toString,
-        "assessorId" -> exerciseScores.updatedBy.toString()
+        "exercise" -> assessmentExerciseType.toString,
+        "assessorId" -> newExerciseScores.updatedBy.toString())
+      _ <- auditService.logEvent(AssessmentScoresOneExerciseSubmitted, auditDetails
       )
-      auditService.logEvent(AssessmentScoresOneExerciseSubmitted, details)
-    }
-  }
-
-  private def saveAnalysisExercise(applicationId: UniqueIdentifier, exerciseScores: AssessmentScoresExercise): Future[Unit] = {
-    val updateAnalysisExercise = (allExercisesOld: AssessmentScoresAllExercises, exerciseScores: AssessmentScoresExercise) => {
-      allExercisesOld.copy(analysisExercise = Some(exerciseScores))
-    }
-    saveExercise(applicationId, exerciseScores, updateAnalysisExercise)
-  }
-
-  private def saveGroupExercise(applicationId: UniqueIdentifier, exerciseScores: AssessmentScoresExercise): Future[Unit] = {
-    val updateGroupExercise = (allExercisesOld: AssessmentScoresAllExercises, exerciseScores: AssessmentScoresExercise) => {
-      allExercisesOld.copy(groupExercise = Some(exerciseScores))
-    }
-    saveExercise(applicationId, exerciseScores, updateGroupExercise)
-  }
-
-  private def saveLeadershipExercise(applicationId: UniqueIdentifier, exerciseScores: AssessmentScoresExercise): Future[Unit] = {
-    val updateLeadershipExercise = (allExercisesOld: AssessmentScoresAllExercises, exerciseScores: AssessmentScoresExercise) => {
-      allExercisesOld.copy(leadershipExercise = Some(exerciseScores))
-    }
-    saveExercise(applicationId, exerciseScores, updateLeadershipExercise)
-  }
-
-  private def saveExercise(applicationId: UniqueIdentifier,
-                           exerciseScores: AssessmentScoresExercise,
-                           update: (AssessmentScoresAllExercises, AssessmentScoresExercise) => AssessmentScoresAllExercises)
-  : Future[Unit] = {
-    for {
-      allExercisesOldMaybe <- assessmentScoresRepository.find(applicationId)
-      allExercisesOld = allExercisesOldMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
-      allExercisesNew = update(allExercisesOld, exerciseScores)
-      _ <- assessmentScoresRepository.save(allExercisesNew)
     } yield {
       ()
-    }
+    })
   }
 
   def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse] = {
@@ -154,8 +123,8 @@ trait AssessmentScoresService {
   def save(scores: AssessmentScoresAllExercises)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
   def saveExercise(applicationId: UniqueIdentifier,
-                            exercise: AssessmentExercise,
-                            exerciseScores: AssessmentScoresExercise)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+                   exercise: AssessmentExerciseType,
+                   exerciseScores: AssessmentScoresExercise)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
   def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse]
 }

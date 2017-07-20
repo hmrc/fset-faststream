@@ -16,34 +16,56 @@
 
 package services.allocation
 
+import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.OptimisticLockException
 import model.{ Commands, exchange, persisted, command }
-import repositories.application.GeneralApplicationMongoRepository
-import repositories.{ CandidateAllocationMongoRepository, AssessorAllocationMongoRepository }
+import model._
+import model.command.CandidateAllocation
+import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
+import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.Venue
+import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
+import model.stc.StcEventTypes.StcEvents
+import play.api.mvc.RequestHeader
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
+import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
+import services.events.EventsService
+import services.stc.{ EventSink, StcEventService }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object AssessorAllocationService extends AssessorAllocationService {
-  override def allocationRepo = repositories.assessorAllocationRepository
-  override def candidateAllocationRepo = repositories.candidateAllocationRepository
-  override def applicationRepo = repositories.applicationRepository
+
+  val assessorAllocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
+  val candidateAllocationRepo: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
+  val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
+
+  val eventsService = EventsService
+  val eventService: StcEventService = StcEventService
+
+  val authProviderClient = AuthProviderClient
+  val emailClient = CSREmailClient
 }
 
-trait AssessorAllocationService {
+trait AssessorAllocationService extends EventSink {
 
-  def allocationRepo: AssessorAllocationMongoRepository
-
+  def assessorAllocationRepo: AssessorAllocationMongoRepository
   def candidateAllocationRepo: CandidateAllocationMongoRepository
+  val applicationRepo: GeneralApplicationRepository
 
-  def applicationRepo: GeneralApplicationMongoRepository
+  def eventsService: EventsService
+
+  def emailClient: EmailClient
+  def authProviderClient: AuthProviderClient
 
   def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
-    allocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
+    assessorAllocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
   }
 
-  def getCandidateAllocations(eventId: String): Future[exchange.CandidateAllocations] = {
-    candidateAllocationRepo.allocationsForEvent(eventId).map { a => exchange.CandidateAllocations.apply(a) }
+  def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
+    candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
   def getCandidateAllocationsApplicationData(eventId: String): Future[List[Commands.Candidate]] = {
@@ -54,52 +76,124 @@ trait AssessorAllocationService {
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
-    allocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
-      case Nil => allocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
+    assessorAllocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
+      case Nil => assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
       case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations).map(_ => ())
     }
   }
 
-  def allocateCandidates(newAllocations: command.CandidateAllocations): Future[Unit] = {
-    getCandidateAllocations(newAllocations.eventId).flatMap { existingAllocation =>
-      existingAllocation.allocations match {
-        case Nil => candidateAllocationRepo.save(persisted.CandidateAllocation.fromCommand(newAllocations)).map(_ => ())
-        case _ => updateExistingAllocations(existingAllocation, newAllocations).map(_ => ())
+  private val dateFormat = "dd MMMM YYYY"
+  private val timeFormat = "HH:mma"
+
+
+  def allocateCandidates(newAllocations: command.CandidateAllocations)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    eventsService.getEvent(newAllocations.eventId).flatMap { event =>
+      val eventDate = event.date.toString(dateFormat)
+      val eventTime = event.startTime.toString(timeFormat)
+      val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
+
+      getCandidateAllocations(newAllocations.eventId, newAllocations.sessionId).flatMap { existingAllocation =>
+        existingAllocation.allocations match {
+          case Nil =>
+            candidateAllocationRepo.save(persisted.CandidateAllocation.fromCommand(newAllocations)).flatMap {
+              _ => Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime)))
+            }.map(_ => ())
+          case _ =>
+            val existingIds = existingAllocation.allocations.map(_.id)
+            updateExistingAllocations(existingAllocation, newAllocations).flatMap { _ =>
+              Future.sequence(
+                newAllocations.allocations
+                  .filter(alloc => !existingIds.contains(alloc.id))
+                  .map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime))
+              )
+            }.map(_ => ())
+        }
       }
     }
   }
 
+  private def sendCandidateEmail(candidateAllocation: CandidateAllocation,
+                                 eventDate: String,
+                                 eventTime: String,
+                                 deadlineDateTime: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    applicationRepo.find(candidateAllocation.id).flatMap {
+      case Some(candidate) =>
+        eventSink {
+          val res = authProviderClient.findByUserIds(Seq(candidate.userId)).map { candidates =>
+            candidates.map { candidate =>
+              candidateAllocation.status match {
+                case AllocationStatuses.UNCONFIRMED =>
+                  CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime, deadlineDateTime)
+                case AllocationStatuses.CONFIRMED =>
+                  CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime)
+              }
+            }
+          } recover { case ex => throw new RuntimeException(s"Was not able to retrieve user details for candidate ${candidate.userId}", ex) }
+          res.asInstanceOf[Future[StcEvents]]
+        }
+      case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.id}")
+    }
+  }
+
   private def updateExistingAllocations(existingAllocations: Seq[persisted.AssessorAllocation],
-    newAllocations: command.AssessorAllocations): Future[Unit] = {
+                                        newAllocations: command.AssessorAllocations): Future[Unit] = {
 
     if (existingAllocations.forall(_.version == newAllocations.version)) {
       // no prior update since reading so do update
       // check what's been updated here so we can send email notifications
       val toPersist = persisted.AssessorAllocation.fromCommand(newAllocations)
-      allocationRepo.delete(existingAllocations).flatMap { _ =>
-        allocationRepo.save(toPersist).map( _ => ())
+      assessorAllocationRepo.delete(existingAllocations).flatMap { _ =>
+        assessorAllocationRepo.save(toPersist).map(_ => ())
       }
     } else {
-        throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
+      throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
+    }
+  }
+
+  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
+    eventsService.getEvents(eventType, venue).flatMap { events =>
+      val res = events.map { event =>
+        getAllocations(event.id).flatMap { allocations =>
+          val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)
+          val allocationsGroupedBySkillWithSummary = allocationsGroupedBySkill.map { allocationGroupedBySkill =>
+            val assessorAllocation = allocationGroupedBySkill._2
+            val skill = allocationGroupedBySkill._1.name
+            val allocated = assessorAllocation.length
+            val confirmed = assessorAllocation.count(_.status == AllocationStatuses.CONFIRMED)
+            EventAssessorAllocationsSummaryPerSkill(skill, allocated, confirmed)
+          }.toList
+          val candidateAllocBySession = event.sessions.sortBy(_.startTime.getMillisOfDay).map { session =>
+            getCandidateAllocations(event.id, session.id).map { candidateAllocations =>
+              CandidateAllocationPerSession(UniqueIdentifier(session.id),
+                candidateAllocations.allocations.count(_.status == AllocationStatuses.CONFIRMED))
+            }
+          }
+          Future.sequence(candidateAllocBySession).map { cs =>
+            EventWithAllocationsSummary(event.date, event, cs, allocationsGroupedBySkillWithSummary)
+          }
+        }
+      }
+      Future.sequence(res)
     }
   }
 
   private def updateExistingAllocations(existingAllocations: exchange.CandidateAllocations,
-    newAllocations: command.CandidateAllocations): Future[Unit] = {
+                                        newAllocations: command.CandidateAllocations): Future[Unit] = {
 
     if (existingAllocations.version.forall(_ == newAllocations.version)) {
       // no prior update since reading so do update
       // check what's been updated here so we can send email notifications
 
       // Convert the existing exchange allocations to persisted objects so we can delete what is currently in the db
-      val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId)
+      val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId, newAllocations.sessionId)
 
       val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
       candidateAllocationRepo.delete(toDelete).flatMap { _ =>
-        candidateAllocationRepo.save(toPersist).map( _ => ())
+        candidateAllocationRepo.save(toPersist).map(_ => ())
       }
     } else {
-        throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
+      throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
     }
   }
 }

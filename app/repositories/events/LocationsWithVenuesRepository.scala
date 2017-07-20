@@ -16,35 +16,43 @@
 
 package repositories.events
 
-import java.io.InputStream
 import java.util
 
 import com.github.ghik.silencer.silent
 import config.MicroserviceAppConfig
-import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.ReferenceData
+import model.persisted.eventschedules.{ Location, Venue }
 import org.yaml.snakeyaml.Yaml
 import play.api.Play
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{ Json, OFormat }
 import resource._
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.language.postfixOps
 
 
 case class LocationWithVenue(name: String, venues: List[Venue])
-object LocationWithVenue { implicit val locationWithVenueFormat: OFormat[LocationWithVenue] = Json.format[LocationWithVenue] }
+
+object LocationWithVenue {
+  implicit val locationWithVenueFormat: OFormat[LocationWithVenue] = Json.format[LocationWithVenue]
+}
 
 case class UnknownLocationException(m: String) extends Exception(m)
+
 case class UnknownVenueException(m: String) extends Exception(m)
 
 trait LocationsWithVenuesRepository {
   def locationsWithVenuesList: Future[List[LocationWithVenue]]
-  def locations: Future[Set[Location]]
+
+  def locations: Future[ReferenceData[Location]]
+
   def location(name: String): Future[Location]
-  def venues: Future[Set[Venue]]
+
+  def venues: Future[ReferenceData[Venue]]
+
   def venue(name: String): Future[Venue]
 }
 
@@ -59,24 +67,27 @@ trait LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepository {
     input.acquireAndGet(file => asLocationWithVenues(new Yaml().load(file)))
   }
 
-  private lazy val allLocationsCached = locationsAndVenuesCached.map { lv =>
-    lv.map(Location.apply) :+ MicroserviceAppConfig.AllLocations toSet
-  }
+  private lazy val locationsCached = locationsAndVenuesCached.map(_.map(Location.apply))
 
-  private lazy val allVenuesCached = locationsAndVenuesCached.map { lv =>
-    lv.flatMap(_.venues) :+ MicroserviceAppConfig.AllVenues toSet
-  }
+  private lazy val venuesCached = locationsAndVenuesCached.map { lv => lv.flatMap(_.venues) }
 
-  def locations: Future[Set[Location]] = allLocationsCached
+  def locations: Future[ReferenceData[Location]] = {
+    for (locations <- locationsCached) yield {
+      ReferenceData(locations, locations.head, MicroserviceAppConfig.AllLocations)
+    }
+  }
 
   def location(name: String): Future[Location] = {
-    locations.map(_.find(_.name == name).getOrElse(throw UnknownLocationException(s"$name is not a known location for this campaign")))
+    locations.map(_.allValues.find(_.name == name).getOrElse(throw UnknownLocationException(s"$name is not a known location for this campaign")))
   }
 
-  def venues: Future[Set[Venue]] = allVenuesCached
+  def venues: Future[ReferenceData[Venue]] =
+    for (venues <- venuesCached) yield {
+      ReferenceData(venues, venues.head, MicroserviceAppConfig.AllVenues)
+    }
 
   def venue(name: String): Future[Venue] = {
-    venues.map(_.find(_.name == name).getOrElse(throw UnknownVenueException(s"$name is not a known venue for this campaign")))
+    venues.map(_.allValues.find(_.name == name).getOrElse(throw UnknownVenueException(s"$name is not a known venue for this campaign")))
   }
 
   def locationsWithVenuesList: Future[List[LocationWithVenue]] = locationsAndVenuesCached
@@ -100,6 +111,8 @@ trait LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepository {
 }
 
 object LocationsWithVenuesInMemoryRepository extends LocationsWithVenuesYamlRepository {
+
   import config.MicroserviceAppConfig.locationsAndVenuesConfig
+
   val locationsAndVenuesFilePath: String = locationsAndVenuesConfig.yamlFilePath
 }

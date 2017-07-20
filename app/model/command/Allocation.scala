@@ -19,8 +19,7 @@ package model.command
 import factories.UUIDFactory
 import model.AllocationStatuses.AllocationStatus
 import model.exchange.AssessorSkill
-import model.persisted.eventschedules.SkillType.SkillType
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 trait Allocation {
   def id: String
@@ -74,7 +73,7 @@ case class CandidateAllocation(
 ) extends Allocation
 
 object CandidateAllocation {
-  implicit val candidateAllocationFormat = Json.format[CandidateAllocation]
+  implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]
 
   def fromExchange(o: model.exchange.CandidateAllocation): CandidateAllocation = {
     CandidateAllocation(o.id, o.status)
@@ -84,23 +83,34 @@ object CandidateAllocation {
 case class CandidateAllocations(
   version: String,
   eventId: String,
+  sessionId: String,
   allocations: Seq[CandidateAllocation]
 )
 
 object CandidateAllocations {
-  implicit val candidateAllocationsFormat = Json.format[CandidateAllocations]
+  implicit val candidateAllocationsFormat: OFormat[CandidateAllocations] = Json.format[CandidateAllocations]
 
-  def apply(eventId: String, o: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
-    val opLock = o.map(_.version).distinct match {
+  def apply(eventId: String, sessionId: String, allocations: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
+    val opLock = allocations.map(_.version).distinct match {
       case head :: Nil => head
       case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
       case Nil => UUIDFactory.generateUUID()
     }
 
-    CandidateAllocations(opLock, eventId, o.map { a => CandidateAllocation(a.id, a.status) })
+    CandidateAllocations(
+      version = opLock,
+      eventId = eventId,
+      sessionId = sessionId,
+      allocations = allocations.map { a => CandidateAllocation(a.id, a.status) }
+    )
   }
 
-  def fromExchange(eventId: String, o: model.exchange.CandidateAllocations): CandidateAllocations = {
-    CandidateAllocations(o.version.getOrElse(UUIDFactory.generateUUID()), eventId, o.allocations.map(CandidateAllocation.fromExchange))
+  def fromExchange(eventId: String, sessionId: String, o: model.exchange.CandidateAllocations): CandidateAllocations = {
+    CandidateAllocations(
+      version = o.version.getOrElse(UUIDFactory.generateUUID()),
+      eventId = eventId,
+      sessionId = sessionId: String,
+      allocations = o.allocations.map(CandidateAllocation.fromExchange)
+    )
   }
 }

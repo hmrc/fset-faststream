@@ -30,21 +30,21 @@ object AssessmentScoresCommands {
   }
 
   // TODO MIGUEL: See if we will use this
-  object AssessmentExercise extends Enumeration {
-    type AssessmentExercise = Value
+  object AssessmentExerciseType extends Enumeration {
+    type AssessmentExerciseType = Value
 
     val analysisExercise, groupExercise, leadershipExercise = Value
 
-    implicit val assessmentExerciseFormat = new Format[AssessmentExercise] {
-      def reads(json: JsValue) = JsSuccess(AssessmentExercise.withName(json.as[String]))
+    implicit val assessmentExerciseFormat = new Format[AssessmentExerciseType] {
+      def reads(json: JsValue) = JsSuccess(AssessmentExerciseType.withName(json.as[String]))
 
-      def writes(scheme: AssessmentExercise) = JsString(scheme.toString)
+      def writes(scheme: AssessmentExerciseType) = JsString(scheme.toString)
     }
 
-    implicit object BSONEnumHandler extends BSONHandler[BSONString, AssessmentExercise] {
-      def read(doc: BSONString) = AssessmentExercise.withName(doc.value)
+    implicit object BSONEnumHandler extends BSONHandler[BSONString, AssessmentExerciseType] {
+      def read(doc: BSONString) = AssessmentExerciseType.withName(doc.value)
 
-      def write(scheme: AssessmentExercise) = BSON.write(scheme.toString)
+      def write(scheme: AssessmentExerciseType) = BSON.write(scheme.toString)
     }
   }
 

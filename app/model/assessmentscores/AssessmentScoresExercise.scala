@@ -16,12 +16,9 @@
 
 package model.assessmentscores
 
-
 import model.UniqueIdentifier
 import org.joda.time.DateTime
 import play.api.libs.json.Json
-
-
 
 case class AssessmentScoresExercise(
                                           //  attended: Boolean,

@@ -21,6 +21,7 @@ import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.{ command, exchange }
 import model.exchange.AssessorAllocations
 import model.persisted.eventschedules.EventType
+import model.persisted.eventschedules.EventType.EventType
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
@@ -40,16 +41,10 @@ object EventsController extends EventsController {
 
 trait EventsController extends BaseController {
   def eventsService: EventsService
+
   def locationsAndVenuesRepository: LocationsWithVenuesRepository
+
   def assessorAllocationService: AssessorAllocationService
-
-  def venuesForEvents: Action[AnyContent] = Action.async { implicit request =>
-    locationsAndVenuesRepository.venues.map(x => Ok(Json.toJson(x)))
-  }
-
-  def locationsForEvents: Action[AnyContent] = Action.async { implicit request =>
-    locationsAndVenuesRepository.locations.map(x => Ok(Json.toJson(x)))
-  }
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
@@ -65,17 +60,17 @@ trait EventsController extends BaseController {
   }
 
   def getEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
-    val events =  Try {
-        val eventType = EventType.withName(eventTypeParam.toUpperCase)
-        locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
-          eventsService.getEvents(eventType, venue).map { events =>
-            if (events.isEmpty) {
-              NotFound
-            } else {
-              Ok(Json.toJson(events))
-            }
+    val events = Try {
+      val eventType = EventType.withName(eventTypeParam.toUpperCase)
+      locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
+        eventsService.getEvents(eventType, venue).map { events =>
+          if (events.isEmpty) {
+            NotFound
+          } else {
+            Ok(Json.toJson(events))
           }
         }
+      }
     }
 
     play.api.Logger.debug(s"$events")
@@ -99,16 +94,23 @@ trait EventsController extends BaseController {
   def allocateAssessor(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
-      assessorAllocationService.allocate(newAllocations).map( _ => Ok)
+      assessorAllocationService.allocate(newAllocations).map(_ => Ok)
           .recover {
             case e: OptimisticLockException => Conflict(e.getMessage)
           }
     }
   }
 
-  def allocateCandidates(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def getEventsWithAllocationsSummary(venueName: String, eventType: EventType): Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenuesRepository.venue(venueName).flatMap { venue =>
+      assessorAllocationService.getEventsWithAllocationsSummary(venue, eventType).map { eventsWithAllocations =>
+        Ok(Json.toJson(eventsWithAllocations))
+      }
+    }
+  }
+  def allocateCandidates(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
-      val newAllocations = command.CandidateAllocations.fromExchange(eventId, candidateAllocations)
+      val newAllocations = command.CandidateAllocations.fromExchange(eventId, sessionId, candidateAllocations)
       assessorAllocationService.allocateCandidates(newAllocations).map {
         _ => Ok
       }.recover {
@@ -117,8 +119,8 @@ trait EventsController extends BaseController {
     }
   }
 
-  def getCandidateAllocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
-    assessorAllocationService.getCandidateAllocations(eventId).map { allocations =>
+  def getCandidateAllocations(eventId: String, sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.getCandidateAllocations(eventId, sessionId).map { allocations =>
       if (allocations.allocations.isEmpty) {
         NotFound
       } else {

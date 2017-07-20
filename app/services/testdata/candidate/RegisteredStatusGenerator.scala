@@ -21,6 +21,7 @@ import model.SchemeId
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.Media
+import model.persisted.assessor.AssessorStatus
 import model.persisted.eventschedules.SkillType
 import model.testdata.CreateAdminData.AssessorData
 import model.testdata.CreateCandidateData.CreateCandidateData
@@ -85,7 +86,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       case user if assessorRoles.contains(role) =>
         assessorGenerator.createAssessor(user.userId,
           AssessorData(List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString, SkillType.SIFTER.toString),
-          List(SchemeId("Sdip")), Random.bool, None)).map {
+            List(SchemeId("Sdip"), SchemeId("Commercial")), Random.bool, None, AssessorStatus.CREATED)).map {
           assessor => user.copy(assessor = Some(AssessorResponse.apply(assessor)))
         }
       case user => Future.successful(user)

@@ -17,17 +17,17 @@
 package services.assessoravailability
 
 import common.FutureEx
-import model.exchange
-import model.persisted
+import model.AllocationStatuses.AllocationStatus
+import model.{ SerialUpdateResult, exchange, persisted }
 import model.Exceptions.AssessorNotFoundException
 import model.command.AllocationWithEvent
-import model.exchange.AssessorSkill
+import model.exchange.{ AssessorSkill, UpdateAllocationStatusRequest }
 import model.persisted.AssessorAllocation
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.assessor.AssessorStatus
 import org.joda.time.LocalDate
-import repositories._
+import repositories.{ AllocationRepository, AssessorAllocationMongoRepository, AssessorMongoRepository, AssessorRepository }
 import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,8 +45,6 @@ trait AssessorService {
   val allocationRepo: AllocationRepository[AssessorAllocation]
   val eventsRepo: EventsRepository
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
-
-  lazy val locations: Future[Set[Location]] = locationsWithVenuesRepo.locations
 
   def saveAssessor(userId: String, assessor: model.exchange.Assessor): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
@@ -95,7 +93,7 @@ trait AssessorService {
     location <- locationsWithVenuesRepo.location(locationName)
     assessorList <- assessorRepository.findAvailabilitiesForLocationAndDate(location, date, skills)
   } yield assessorList.map { assessor =>
-      model.exchange.Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant)
+      model.exchange.Assessor.apply(assessor)
   }
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {
@@ -108,8 +106,8 @@ trait AssessorService {
     }
   }
 
-  def findAllocations(assessorId: String): Future[Seq[AllocationWithEvent]] = {
-    allocationRepo.find(assessorId).flatMap { allocations =>
+  def findAllocations(assessorId: String, status: Option[AllocationStatus] = None): Future[Seq[AllocationWithEvent]] = {
+    allocationRepo.find(assessorId, status).flatMap { allocations =>
       FutureEx.traverseSerial(allocations) { allocation =>
         eventsRepo.getEvent(allocation.eventId).map { event =>
           AllocationWithEvent(
@@ -119,6 +117,7 @@ trait AssessorService {
             event.startTime,
             event.endTime,
             event.venue,
+            event.location,
             event.eventType,
             allocation.status,
             AssessorSkill.SkillMap(allocation.allocatedAs)
@@ -131,6 +130,22 @@ trait AssessorService {
   def countSubmittedAvailability(): Future[Int] = {
     assessorRepository.countSubmittedAvailability
   }
+
+  def updateAssessorAllocationStatuses(statusUpdates: Seq[UpdateAllocationStatusRequest]
+  ): Future[SerialUpdateResult[UpdateAllocationStatusRequest]] = {
+
+    val rawResult = FutureEx.traverseSerial(statusUpdates) { statusUpdate =>
+      SerialUpdateResult.futureToEither(statusUpdate,
+        allocationRepo.updateAllocationStatus(statusUpdate.assessorId, statusUpdate.eventId, statusUpdate.newStatus)
+      )
+    }
+
+    rawResult.map { result =>
+      SerialUpdateResult.fromEither(result)
+    }
+
+  }
+
 
   private def exchangeToPersistedAvailability(a: Seq[exchange.AssessorAvailability]): Future[Seq[persisted.assessor.AssessorAvailability]] = {
     FutureEx.traverseSerial(a) { availability =>

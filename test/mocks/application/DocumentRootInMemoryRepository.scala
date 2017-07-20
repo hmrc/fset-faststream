@@ -151,4 +151,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = ???
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = ???
+
+  override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = ???
 }

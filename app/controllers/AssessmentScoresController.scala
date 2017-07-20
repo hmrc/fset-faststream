@@ -18,7 +18,7 @@ package controllers
 
 import model.assessmentscores._
 import model.UniqueIdentifier
-import model.command.AssessmentScoresCommands.{ AssessmentScoresFindResponse, AssessmentExercise, AssessmentScoresSubmitRequest }
+import model.command.AssessmentScoresCommands.{ AssessmentScoresFindResponse, AssessmentExerciseType, AssessmentScoresSubmitRequest }
 import play.api.libs.json.Json
 import play.api.libs.json._
 import play.api.mvc.Action
@@ -43,7 +43,7 @@ trait AssessmentScoresController extends BaseController {
       withJsonBody[AssessmentScoresSubmitRequest] { submitRequest =>
         service.saveExercise(
           submitRequest.applicationId,
-          AssessmentExercise.withName(submitRequest.exercise),
+          AssessmentExerciseType.withName(submitRequest.exercise),
           submitRequest.scoresAndFeedback
         ).map(_ => Ok)
       }

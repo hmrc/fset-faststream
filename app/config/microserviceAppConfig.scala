@@ -32,6 +32,8 @@ case class FrameworksConfig(yamlFilePath: String)
 
 case class SchemeConfig(yamlFilePath: String)
 
+case class EventsConfig(yamlFilePath: String)
+
 case class AuthConfig(host: String, port: Int, serviceName: String)
 
 case class EmailConfig(url: String)
@@ -152,6 +154,7 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val authConfig = underlyingConfiguration.as[AuthConfig](s"microservice.services.auth")
   lazy val frameworksConfig = underlyingConfiguration.as[FrameworksConfig]("microservice.frameworks")
   lazy val schemeConfig = underlyingConfiguration.as[SchemeConfig]("microservice.schemes")
+  lazy val eventsConfig = underlyingConfiguration.as[EventsConfig]("microservice.events")
   lazy val userManagementConfig = underlyingConfiguration.as[UserManagementConfig]("microservice.services.user-management")
   lazy val cubiksGatewayConfig = underlyingConfiguration.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
   lazy val launchpadGatewayConfig = underlyingConfiguration.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
@@ -162,7 +165,7 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
     underlyingConfiguration.as[LocationsAndVenuesConfig]("scheduling.online-testing.locations-and-venues")
 
   val AllLocations = Location("All")
-  val AllVenues = Venue("ALL_VENUES", "ALL_VENUES")
+  val AllVenues = Venue("ALL_VENUES", "All venues")
 
 
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
