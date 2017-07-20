@@ -62,11 +62,9 @@ object AssessmentScoresService extends AssessmentScoresService {
   override def saveExercise(applicationId: UniqueIdentifier,
                             assessmentExerciseType: AssessmentExerciseType,
                             newExerciseScores: AssessmentScoresExercise)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    (for {
-      oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
-      oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
-      newExerciseScoresWithSubmittedDate = newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))
-      newAllExercisesScores = assessmentExerciseType match {
+    def updateAllExercisesWithExercise(oldAllExercisesScores: AssessmentScoresAllExercises,
+                                      newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
+      assessmentExerciseType match {
         case AssessmentExerciseType.analysisExercise =>
           oldAllExercisesScores.copy(analysisExercise = Some(newExerciseScoresWithSubmittedDate))
         case AssessmentExerciseType.groupExercise =>
@@ -74,13 +72,19 @@ object AssessmentScoresService extends AssessmentScoresService {
         case AssessmentExerciseType.leadershipExercise =>
           oldAllExercisesScores.copy(leadershipExercise = Some(newExerciseScoresWithSubmittedDate))
       }
+    }
+
+    (for {
+      oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
+      oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
+      newExerciseScoresWithSubmittedDate = newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))
+      newAllExercisesScores = updateAllExercisesWithExercise(oldAllExercisesScores, newExerciseScoresWithSubmittedDate)
       _ <- assessmentScoresRepository.save(newAllExercisesScores)
       auditDetails = Map(
         "applicationId" -> applicationId.toString(),
         "exercise" -> assessmentExerciseType.toString,
         "assessorId" -> newExerciseScores.updatedBy.toString())
-      _ <- auditService.logEvent(AssessmentScoresOneExerciseSubmitted, auditDetails
-      )
+      _ <- Future.successful(auditService.logEvent(AssessmentScoresOneExerciseSubmitted, auditDetails))
     } yield {
       ()
     })
