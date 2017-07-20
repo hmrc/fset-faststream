@@ -22,13 +22,14 @@ import model.Exceptions.{ NoResultsReturned, TooManyEntries }
 import model.OnlineTestCommands.Implicits._
 import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme }
 import model.PassmarkPersistedObjects.Implicits._
+import model.assessmentscores.AssessmentScoresAllExercises
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
 
 import scala.language.implicitConversions
-import model.command.{ ProgressResponse }
+import model.command.ProgressResponse
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import model.report.{ QuestionnaireReportItem }
+import model.report.QuestionnaireReportItem
 
 //scalastyle:off
 object Commands {
@@ -138,10 +139,8 @@ object Commands {
 
   case class AssessmentResultsReport(
                                       appPreferences: ApplicationPreferences,
-                                      questionnaire: QuestionnaireReportItem
-                                      // TODO MIGUEL:
-                                      //,
-//                                      candidateScores: CandidateScoresAndFeedback
+                                      questionnaire: QuestionnaireReportItem,
+                                      assessmentResults: AssessmentScoresAllExercises
                                     )
 
   case class AssessmentCentreCandidatesReport(

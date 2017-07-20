@@ -29,16 +29,18 @@ import scala.concurrent.Future
 
 trait AssessmentScoresRepository {
   def save(scoresAndFeedback: AssessmentScoresAllExercises): Future[Unit]
+
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]]
+
   def findAll: Future[List[AssessmentScoresAllExercises]]
 }
 
 class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[AssessmentScoresAllExercises, BSONObjectID](CollectionNames.ASSESSMENT_SCORES, mongo,
     AssessmentScoresAllExercises.format, ReactiveMongoFormats.objectIdFormats)
-  with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
+    with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
-
+  // TODO: This save method does not remove exercise subdocument when in the case class they are None
   def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
     val applicationId = allExercisesScores.applicationId.toString()
     val query = BSONDocument("applicationId" -> applicationId)

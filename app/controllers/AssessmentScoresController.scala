@@ -56,6 +56,14 @@ trait AssessmentScoresController extends BaseController {
       }
   }
 
+  def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+    service.findAssessmentScoresWithCandidateSummary(applicationId).map { scores =>
+      Ok(Json.toJson(scores))
+    }.recover {
+      case _: Exception => NotFound
+    }
+  }
+
   def find(applicationId: UniqueIdentifier) = Action.async { implicit request =>
     repository.find(applicationId).map { scores =>
       Ok(Json.toJson(scores))
@@ -65,15 +73,6 @@ trait AssessmentScoresController extends BaseController {
   def findAll = Action.async { implicit request =>
     repository.findAll.map { scores =>
       Ok(Json.toJson(scores))
-    }
-  }
-
-
-  def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier) = Action.async { implicit request =>
-    service.findAssessmentScoresWithCandidateSummary(applicationId).map { scores =>
-      Ok(Json.toJson(scores))
-    }.recover {
-      case _: Exception => NotFound
     }
   }
 }

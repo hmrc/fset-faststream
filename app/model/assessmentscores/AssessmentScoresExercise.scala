@@ -17,6 +17,7 @@
 package model.assessmentscores
 
 
+import model.UniqueIdentifier
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
@@ -41,7 +42,7 @@ case class AssessmentScoresExercise(
                                           analysisAndDecisionMakingAverage: Option[Double] = None,
                                           leadingAndCommunicatingAverage: Option[Double] = None,
                                           buildingProductiveRelationshipsAverage: Option[Double] = None,
-                                          //  updatedBy: UniqueIdentifier,
+                                          updatedBy: UniqueIdentifier,
                                           //  savedDate: Option[DateTime] = None,
                                           submittedDate: Option[DateTime] = None,
                                           version: Option[String] = None

@@ -16,8 +16,9 @@
 
 package model.assessmentscores
 
+import factories.DateTimeFactory
 import model.UniqueIdentifier
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, DateTimeZone }
 
 
 object AssessmentScoresExerciseExamples {
@@ -39,7 +40,9 @@ object AssessmentScoresExerciseExamples {
       Some(BuildingProductiveRelationshipsScores(buildingScore, buildingScore,
         buildingScore,buildingScore,buildingScore,buildingScore,buildingScore)),
       Some("feedback1"), Some("feedback2"), Some("feedback3"), Some("feedback4"),
-      otherScore, otherScore, otherScore, otherScore, Some(DateTime.now),
+      otherScore, otherScore, otherScore, otherScore,
+      UniqueIdentifier.randomUniqueIdentifier,
+      Some(DateTime.now(DateTimeZone.UTC)),
       Some("version1")
     )
   }
