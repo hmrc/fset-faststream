@@ -161,8 +161,9 @@ trait AssessorAllocationService extends EventSink {
   private def updateExistingAllocations(existingAllocations: Seq[persisted.AssessorAllocation],
                                         newAllocations: command.AssessorAllocations): Future[Unit] = {
 
+    // If versions match there has been no update from another user while this user was editing, do update
     if (existingAllocations.forall(_.version == newAllocations.version)) {
-      // no prior update since reading so do update
+      
       // check what's been updated here so we can send email notifications
       val toPersist = persisted.AssessorAllocation.fromCommand(newAllocations)
       assessorAllocationRepo.delete(existingAllocations).flatMap { _ =>
