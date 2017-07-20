@@ -25,15 +25,15 @@ import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.joda.time.LocalDate
 import org.mockito.ArgumentCaptor
 import repositories.sift.ApplicationSiftRepository
-import testkit.{ ExtendedTimeout, UnitWithAppSpec }
-import org.mockito.ArgumentMatchers._
+import testkit.{ ExtendedTimeout, MockitoSugar, UnitWithAppSpec }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
 
-class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
+class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout with MockitoSugar {
 
   "An ApplicationSiftService.progressApplicationToSift" should {
     case class TestApplicationSiftService(siftRepository: ApplicationSiftRepository, appRepo: GeneralApplicationRepository)
@@ -43,11 +43,12 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
     }
 
     val mockAppRepo = mock[GeneralApplicationRepository]
-
     when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(Future.successful())
+
 
     "progress all applications regardless of failures" in {
       val mockRepo = mock[ApplicationSiftRepository]
+      val mockAppRepo = mock[GeneralApplicationRepository]
 
       val applicationsToProgressToSift = List(
         ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
@@ -59,7 +60,7 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
 
       when(mockRepo.nextApplicationsForSiftStage(any[Int])).thenReturn(Future.successful{ applicationsToProgressToSift })
 
-      when(mockRepo.progressApplicationToSiftStage(any[ApplicationForSift]))
+      when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus]))
         .thenReturn(Future.successful())
         .thenReturn(Future.failed(new Exception))
         .thenReturn(Future.successful())
@@ -71,12 +72,12 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout {
         val passedApplications = Seq(applicationsToProgressToSift(0), applicationsToProgressToSift(2))
         results mustBe SerialUpdateResult(failedApplications, passedApplications)
 
-        val argCaptor = ArgumentCaptor.forClass(classOf[ApplicationForSift])
+        val argCaptor = ArgumentCaptor.forClass(classOf[String])
 
-        verify(mockRepo, times(3)).progressApplicationToSiftStage(argCaptor.capture())
+        verify(mockAppRepo, times(3)).addProgressStatusAndUpdateAppStatus(argCaptor.capture(), eqTo(ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED))
 
         val consecutiveArguments = argCaptor.getAllValues
-        consecutiveArguments.toList mustBe applicationsToProgressToSift
+        consecutiveArguments.toSet mustBe applicationsToProgressToSift.map(_.applicationId).toSet
       }
     }
 
