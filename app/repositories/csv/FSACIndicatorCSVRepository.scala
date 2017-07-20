@@ -66,7 +66,7 @@ object FSACIndicatorCSVRepository extends FSACIndicatorCSVRepository {
 
 trait FSACIndicatorCSVRepository extends CsvHelper {
   val FSACIndicatorVersion = "1"
-  val DefaultIndicator = FSACIndicator("London", "London")
+  val DefaultIndicator = FSACIndicator("Newcastle", "Newcastle")
 
   private[repositories] val indicators: Map[String, FSACIndicator]
 
