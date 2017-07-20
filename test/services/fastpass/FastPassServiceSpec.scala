@@ -20,20 +20,20 @@ import connectors.OnlineTestEmailClient
 import model.{ CivilServiceExperienceDetails, ProgressStatuses }
 import model.command.PersonalDetailsExamples._
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.personaldetails.PersonalDetailsService
 import services.stc.StcEventServiceFixture
-import testkit.UnitSpec
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class FastPassServiceSpec extends UnitSpec {
+class FastPassServiceSpec extends PlaySpec with ScalaFutures with MockFactory {
 
   "processFastPassCandidate" should {
     "process correctly an approved fast pass candidate" in new TextFixtureWithMockResponses {
@@ -53,14 +53,12 @@ class FastPassServiceSpec extends UnitSpec {
           "FastPassUserAcceptedEmailSent")
       )
 
-      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
-      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      verify(personalDetailsServiceMock).find(appId, userId)
-      verify(cdRepositoryMock).find(userId)
-      verify(emailClientMock).sendEmailWithName(
-        eqTo(ContactDetailsUK.email), eqTo(completePersonalDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
-      verifyNoMoreInteractions(csedRepositoryMock, appRepoMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
-
+      (csedRepositoryMock.evaluateFastPassCandidate _).verify(appId, true)
+      (appRepoMock.addProgressStatusAndUpdateAppStatus _).verify(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      (personalDetailsServiceMock.find _).verify(appId, userId)
+      (cdRepositoryMock.find _).verify(userId)
+      (emailClientMock.sendEmailWithName _).verify(
+        ContactDetailsUK.email, completePersonalDetails.preferredName, underTest.acceptedTemplate)
     }
 
     "process correctly a rejected fast pass candidate" in new TextFixtureWithMockResponses {
@@ -77,18 +75,15 @@ class FastPassServiceSpec extends UnitSpec {
         List("FastPassUserRejected")
       )
 
-      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = false)
-      verify(personalDetailsServiceMock).find(appId, userId)
-      verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock)
-      verifyZeroInteractions(appRepoMock, cdRepositoryMock, emailClientMock)
-
+      (csedRepositoryMock.evaluateFastPassCandidate _).verify(appId, false)
+      (personalDetailsServiceMock.find _).verify(appId, userId)
     }
 
     "fail to complete the process if a service fails" in new TestFixture {
-      when(personalDetailsServiceMock.find(any[String], any[String])).thenReturn(personalDetailsResponse)
-      when(cdRepositoryMock.find(any[String])).thenReturn(contactDetailsResponse)
-      when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
-      when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceError)
+      (personalDetailsServiceMock.find _).when(*, *).returns(personalDetailsResponse)
+      (cdRepositoryMock.find _).when(*).returns(contactDetailsResponse)
+      (appRepoMock.addProgressStatusAndUpdateAppStatus _).when(*, *).returns(serviceFutureResponse)
+      (csedRepositoryMock.evaluateFastPassCandidate _).when(*, *).returns(serviceError)
 
 
       val result = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue
@@ -119,9 +114,8 @@ class FastPassServiceSpec extends UnitSpec {
           "ApplicationReadyForExport")
       )
 
-      verify(csedRepositoryMock).update(eqTo(appId), eqTo(underTest.fastPassDetails))
-      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      verifyNoMoreInteractions(csedRepositoryMock, appRepoMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+      (csedRepositoryMock.update _).verify(appId, underTest.fastPassDetails)
+      (appRepoMock.addProgressStatusAndUpdateAppStatus _).verify(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
     }
   }
 
@@ -161,12 +155,13 @@ class FastPassServiceSpec extends UnitSpec {
   }
 
   trait TextFixtureWithMockResponses extends TestFixture {
-    when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceFutureResponse)
-    when(csedRepositoryMock.update(any[String], any[CivilServiceExperienceDetails])).thenReturn(serviceFutureResponse)
-    when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
-    when(personalDetailsServiceMock.find(any[String], any[String])).thenReturn(personalDetailsResponse)
-    when(cdRepositoryMock.find(any[String])).thenReturn(contactDetailsResponse)
-    when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(serviceFutureResponse)
+
+    (csedRepositoryMock.evaluateFastPassCandidate _).when(*, *).returns(serviceFutureResponse)
+    (csedRepositoryMock.update _).when(*, *).returns(serviceFutureResponse)
+    (appRepoMock.addProgressStatusAndUpdateAppStatus _).when(*, *).returns(serviceFutureResponse)
+    (personalDetailsServiceMock.find _).when(*, *).returns(personalDetailsResponse)
+    (cdRepositoryMock.find _).when(*).returns(contactDetailsResponse)
+    (emailClientMock.sendEmailWithName _).when(*,*,*).returns(serviceFutureResponse)
   }
 
 }
