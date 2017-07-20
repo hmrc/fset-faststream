@@ -36,26 +36,6 @@ class RolesSpec extends UnitSpec {
 
   val request = FakeRequest(GET, "")
 
-  "Active user" must {
-    "Not contain exported users" in {
-      val user = activeUser(ApplicationStatus.EXPORTED)
-      implicit val rh = mock[RequestHeader]
-      RoleUtils.activeUserWithActiveApp(user)(rh) mustBe false
-    }
-
-    "Not contain updated exported users" in {
-      val user = activeUser(ApplicationStatus.UPDATE_EXPORTED)
-      implicit val rh = mock[RequestHeader]
-      RoleUtils.activeUserWithActiveApp(user)(rh) mustBe false
-    }
-
-    "Contain non-exported users" in {
-      val user = activeUser(ApplicationStatus.PHASE3_TESTS, ProgressExamples.Phase3TestsPassed)
-      implicit val rh = mock[RequestHeader]
-      RoleUtils.activeUserWithActiveApp(user)(rh) mustBe true
-    }
-  }
-
   "hasFastPassBeenApproved" must {
     val user = activeUser(ApplicationStatus.SUBMITTED)
     "return true if the candidate fastPass has been accepted" in {
@@ -81,9 +61,9 @@ class RolesSpec extends UnitSpec {
   }
 
   "Withdraw Component" must {
-    "be enable only for specific roles" in {
+    "be enabled only for specific roles" in {
       val disabledStatuses = List(IN_PROGRESS, WITHDRAWN, CREATED,
-        ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED, EXPORTED, UPDATE_EXPORTED)
+        ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED)
       val enabledStatuses = ApplicationStatus.values.toList.diff(disabledStatuses)
 
       assertValidAndInvalidStatuses(WithdrawComponent, enabledStatuses, disabledStatuses)
@@ -105,13 +85,13 @@ class RolesSpec extends UnitSpec {
   ) = {
     valid.foreach { validStatus =>
       withClue(s"$validStatus is not accepted by $role") {
-        role.isAuthorized(activeUser(validStatus))(request) must be(true)
+        role.isAuthorized(activeUser(validStatus))(request) mustBe(true)
       }
     }
 
     invalid.foreach { invalidStatus =>
       withClue(s"$invalidStatus is accepted by $role") {
-        role.isAuthorized(activeUser(invalidStatus))(request) must be(false)
+        role.isAuthorized(activeUser(invalidStatus))(request) mustBe(false)
       }
     }
   }

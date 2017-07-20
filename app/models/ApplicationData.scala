@@ -56,7 +56,7 @@ object ApplicationData {
     val PHASE1_TESTS, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED = Value
     val PHASE2_TESTS, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED = Value
     val PHASE3_TESTS, PHASE3_TESTS_PASSED_WITH_AMBER, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED  = Value
-    val READY_FOR_EXPORT, EXPORTED, UPDATE_EXPORTED = Value
+    val FAST_PASS_ACCEPTED, PHASE1_TESTS_PASSED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED = Value
     val ARCHIVED = Value
 
     val REGISTERED = Value
@@ -89,63 +89,6 @@ object ApplicationData {
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
 }
-
-/*  object ProgressStatuses {
-    val RegisteredProgress = "registered"
-    val PersonalDetailsCompletedProgress = "personal_details_completed"
-    val SchemePreferencesCompletedProgress = "scheme_preferences_completed"
-    val PartnerGraduateProgrammesCompletedProgress = "partner_graduate_programmes_completed"
-    val AssistanceDetailsCompletedProgress = "assistance_details_completed"
-    val PreviewCompletedProgress = "preview_completed"
-    val StartDiversityQuestionnaireProgress = "start_diversity_questionnaire"
-    val DiversityQuestionsCompletedProgress = "diversity_questions_completed"
-    val EducationQuestionsCompletedProgress = "education_questions_completed"
-    val OccupationQuestionsCompletedProgress = "occupation_questions_completed"
-    val SubmittedProgress = "submitted"
-    val WithdrawnProgress = "withdrawn"
-    val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
-    val OnlineTestFailedProgress = "online_test_failed"
-    val OnlineTestFailedNotifiedProgress = "online_test_failed_notified"
-    val AwaitingOnlineTestAllocationProgress = "awaiting_online_test_allocation"
-    val AllocationConfirmedProgress = "allocation_confirmed"
-    val AllocationUnconfirmedProgress = "allocation_unconfirmed"
-
-    sealed abstract class ProgressStatus(val applicationStatus: ApplicationStatus)
-
-    object ProgressStatus {
-      implicit val progressStatusFormat = new Format[ProgressStatus] {
-        def reads(json: JsValue) = JsSuccess(nameToProgressStatus(json.as[String]))
-        def writes(progressStatusName: ProgressStatus) = JsString(progressStatusName.toString)
-      }
-    }
-
-    case object PHASE1_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
-    case object PHASE1_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
-    case object PHASE1_TESTS_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
-    case object PHASE1_TESTS_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
-    case object PHASE1_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
-    case object PHASE1_TESTS_PASSED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED)
-
-    case object PHASE1_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
-
-    private val nameToProgressStatus: Map[String, ProgressStatus] = List(
-      PHASE1_TESTS_INVITED,
-      PHASE1_TESTS_STARTED,
-      PHASE1_TESTS_COMPLETED,
-      PHASE1_TESTS_EXPIRED,
-      PHASE1_TESTS_RESULTS_RECEIVED,
-      PHASE1_TESTS_PASSED,
-      PHASE1_TESTS_FAILED
-    ).map { value =>
-      value.toString -> value
-    }.toMap
-  }
-}*/
 
 // scalastyle:off number.of.types
 // scalastyle:off number.of.methods
@@ -218,15 +161,14 @@ object ProgressStatuses {
   case object PHASE3_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_PASSED_WITH_AMBER extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
   case object PHASE3_TESTS_PASSED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED)
+  case object PHASE3_TESTS_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
   case object PHASE3_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
   case object PHASE3_TESTS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
 
-  case object PHASE1_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
-  case object PHASE3_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
-  case object FAST_PASS_ACCEPTED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
+  case object PHASE1_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+  case object PHASE3_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+  case object FAST_PASS_ACCEPTED extends ProgressStatus(ApplicationStatus.FAST_PASS_ACCEPTED)
 
-  case object EXPORTED extends ProgressStatus(ApplicationStatus.EXPORTED)
-  case object UPDATE_EXPORTED extends ProgressStatus(ApplicationStatus.UPDATE_EXPORTED)
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {

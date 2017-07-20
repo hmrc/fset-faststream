@@ -105,8 +105,8 @@ object Roles {
 
   object PreviewApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      (activeUserWithActiveApp(user) && !statusIn(user)(CREATED) &&
-        hasDiversity(user) && hasEducation(user) && hasOccupation(user)) || statusIn(user)(EXPORTED, UPDATE_EXPORTED)
+      activeUserWithActiveApp(user) && !statusIn(user)(CREATED) &&
+        hasDiversity(user) && hasEducation(user) && hasOccupation(user)
   }
 
   object SubmitApplicationRole extends CsrAuthorization {
@@ -121,7 +121,7 @@ object Roles {
 
   object AbleToWithdrawApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, EXPORTED, UPDATE_EXPORTED)
+      activeUserWithActiveApp(user) && !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED)
   }
 
   object WithdrawnApplicationRole extends CsrAuthorization {
@@ -215,7 +215,7 @@ object Roles {
   object WithdrawComponent extends AuthorisedUser {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader) =
       !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED) &&
-        !isSdipFaststream(user) && !isExported(user)
+        !isSdipFaststream(user)
   }
 
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
@@ -240,7 +240,7 @@ object RoleUtils {
 
   def activeUserWithActiveApp(user: CachedData)(implicit request: RequestHeader) =
     user.user.isActive && user.application.isDefined &&
-      user.application.forall(a => a.applicationStatus != EXPORTED && a.applicationStatus != UPDATE_EXPORTED)
+      user.application.forall(a => a.applicationStatus != PHASE3_TESTS_PASSED_NOTIFIED)
 
   def statusIn(user: CachedData)(status: ApplicationStatus*)(implicit request: RequestHeader) =
     user.application.isDefined && status.contains(user.application.get.applicationStatus)
@@ -368,10 +368,6 @@ object RoleUtils {
   def isEdip(implicit user: Option[CachedData]): Boolean = user.exists(isEdip(_))
 
   def isSdip(implicit user: Option[CachedData]): Boolean = user.exists(isSdip(_))
-
-  def isExported(implicit user: CachedData) = user.application.exists(_.applicationStatus == EXPORTED)
-
-  def isUpdatedExported(implicit user: CachedData) = user.application.exists(_.applicationStatus == UPDATE_EXPORTED)
 }
 
 // scalastyle:on
