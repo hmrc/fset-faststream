@@ -103,7 +103,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
   override def applicationDetailsStream(): Enumerator[CandidateDetailsReportItem] = {
     adsCounter = 0
 
-      val projection = Json.obj("_id" -> 0, "progress-status-dates" -> 0)
+      val projection = Json.obj("_id" -> 0)
 
       applicationDetailsCollection.find(Json.obj(), projection)
         .cursor[BSONDocument](ReadPreference.nearest)
@@ -169,6 +169,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
   private def progressStatusTimestamps(doc: BSONDocument): List[Option[String]] = {
     val statusTimestamps = doc.getAs[BSONDocument]("progress-status-timestamp")
     val progressStatus = doc.getAs[BSONDocument]("progress-status")
+    val progressStatusDates = doc.getAs[BSONDocument]("progress-status-dates")
 
     val questionnaireStatuses = progressStatus.flatMap(_.getAs[BSONDocument]("questionnaire"))
 
@@ -182,7 +183,9 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
 
     List(
       progressStatus.flatMap(_.getAs[Boolean]("personal-details").orElse(Some(false)).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime]("IN_PROGRESS").map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](
+        "IN_PROGRESS").map(_.toString).orElse(progressStatusDates.flatMap(_.getAs[String]("in_progress")))
+      ),
       progressStatus.flatMap(_.getAs[Boolean]("scheme-preferences").orElse(Some(false)).map(_.toString)),
       progressStatus.flatMap(_.getAs[Boolean]("partner-graduate-programmes").orElse(Some(false)).map(_.toString)),
       progressStatus.flatMap(_.getAs[Boolean]("assistance-details").orElse(Some(false)).map(_.toString)),
@@ -191,7 +194,9 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
       questionnaireStatus("education_questionnaire"),
       questionnaireStatus("occupation_questionnaire"),
       progressStatus.flatMap(_.getAs[Boolean]("preview").orElse(Some(false)).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.SUBMITTED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](
+        ProgressStatuses.SUBMITTED.toString).map(_.toString).orElse(progressStatusDates.flatMap(_.getAs[String]("submitted")))
+      ),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_INVITED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_STARTED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_COMPLETED.toString).map(_.toString)),
