@@ -24,36 +24,43 @@ import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 
 trait Allocation {
-  def id: String
   def eventId: String
   def status: AllocationStatus
   def version: String
+  def userQueryKey: String
+  def userQueryValue: String
 }
 
 case class AssessorAllocation(
-  id: String,
-  eventId: String,
-  status: AllocationStatus,
-  allocatedAs: SkillType,
-  version: String
-) extends Allocation
+                               userId: String,
+                               eventId: String,
+                               status: AllocationStatus,
+                               allocatedAs: SkillType,
+                               version: String
+) extends Allocation {
+  override val userQueryKey = "userId"
+  override val userQueryValue = userId
+}
 
 object AssessorAllocation {
   implicit val assessorAllocationFormat: OFormat[AssessorAllocation] = Json.format[AssessorAllocation]
   implicit val assessorAllocationHandler = Macros.handler[AssessorAllocation]
 
   def fromCommand(o: model.command.AssessorAllocations, opLockVersion: String = UUIDFactory.generateUUID()): Seq[AssessorAllocation] = {
-    o.allocations.map { a => AssessorAllocation(a.id, o.eventId, a.status, a.allocatedAs.name, opLockVersion) }
+    o.allocations.map { a => AssessorAllocation(a.userId, o.eventId, a.status, a.allocatedAs.name, opLockVersion) }
   }
 }
 
 case class CandidateAllocation(
-  id: String,
-  eventId: String,
-  sessionId: String,
-  status: AllocationStatus,
-  version: String
-) extends Allocation
+                                applicationId: String,
+                                eventId: String,
+                                sessionId: String,
+                                status: AllocationStatus,
+                                version: String
+) extends Allocation {
+  override val userQueryKey = "applicationId"
+  override val userQueryValue = applicationId
+}
 
 object CandidateAllocation {
   implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]
@@ -63,7 +70,7 @@ object CandidateAllocation {
     val opLockVersion = UUIDFactory.generateUUID()
     allocations.allocations.map { allocation =>
       CandidateAllocation(
-        id = allocation.id,
+        applicationId = allocation.applicationId,
         eventId = allocations.eventId,
         sessionId = allocations.sessionId,
         status = allocation.status,
@@ -75,7 +82,7 @@ object CandidateAllocation {
   def fromExchange(o: model.exchange.CandidateAllocations, eventId: String, sessionId: String) : Seq[CandidateAllocation] = {
     o.allocations.map { a =>
       CandidateAllocation(
-        id = a.id,
+        applicationId = a.id,
         eventId = eventId,
         sessionId = sessionId,
         status = a.status,
