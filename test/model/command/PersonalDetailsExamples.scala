@@ -27,4 +27,5 @@ object PersonalDetailsExamples {
     outsideUk = false, Address("Test street"), None, None, None, "098762532", None, None, None)
 
   val completed = PersonalDetails("firstname", "lastname", "preferedname", DateTimeFactory.nowLocalDate, Some(false))
+  val personalDetails = PersonalDetails("TestName", "TestSurname", "Jo Test", LocalDate.parse("1972-11-23"), edipCompleted = None)
 }
