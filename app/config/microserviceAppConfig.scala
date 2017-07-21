@@ -32,7 +32,11 @@ case class FrameworksConfig(yamlFilePath: String)
 
 case class SchemeConfig(yamlFilePath: String)
 
-case class EventsConfig(yamlFilePath: String)
+case class EventsSubTypesConfig(fsbFilePath: String)
+
+case class EventsConfig(scheduleFilePath: String, subtypes: EventsSubTypesConfig)
+
+case class EventSubtypeConfig(yamlFilePath: String)
 
 case class AuthConfig(host: String, port: Int, serviceName: String)
 

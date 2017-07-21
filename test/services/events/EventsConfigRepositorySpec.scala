@@ -32,7 +32,7 @@ import scala.concurrent.Future
 
 class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFutures with testkit.MockitoSugar {
   "events" must {
-    "successfully parse the config" in {
+    "successfully parse the event schedule config" in {
       val input =
         """- eventType: FSAC
           |  description: PDFS FSB
@@ -121,7 +121,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
       when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(Location("London")))
 
       val repo = new EventsConfigRepository {
-        override protected def rawConfig: String = input
+        override protected def eventScheduleConfig: String = input
 
         override def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
       }

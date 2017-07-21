@@ -19,6 +19,7 @@ package repositories.events
 import common.FutureEx
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
+import model.FsbSubtype
 import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
@@ -55,6 +56,10 @@ case class SessionConfig(
                     endTime: LocalTime
                   )
 
+object FsbSubtypeConfigProtocol extends DefaultYamlProtocol {
+  implicit val eventSubtypesFormat = yamlFormat1((key: String) => FsbSubtype(key))
+}
+
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
     def write(jodaDate: LocalDate) = YamlDate(jodaDate.toDateTimeAtStartOfDay)
@@ -86,15 +91,19 @@ trait EventsConfigRepository {
 
   import play.api.Play.current
 
-  protected def rawConfig: String = {
-    val input = managed(Play.application.resourceAsStream(MicroserviceAppConfig.eventsConfig.yamlFilePath).get)
+  private def getConfig(filePath: String): String = {
+    val input = managed(Play.application.resourceAsStream(filePath).get)
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
+
+  protected def eventScheduleConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.scheduleFilePath)
+
+  protected def fsbSubtypesConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.subtypes.fsbFilePath)
 
   lazy val events: Future[List[Event]] = {
     import EventConfigProtocol._
 
-    val yamlAst = rawConfig.parseYaml
+    val yamlAst = eventScheduleConfig.parseYaml
     val eventsConfig = yamlAst.convertTo[List[EventConfig]]
 
     // Force all 'types' to be upper case and replace hyphens with underscores
@@ -123,9 +132,14 @@ trait EventsConfigRepository {
       )
       eventItemFuture.recoverWith {
         case ex => throw new Exception(
-          s"Error in events config: ${MicroserviceAppConfig.eventsConfig.yamlFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
+          s"Error in events config: ${MicroserviceAppConfig.eventsConfig.scheduleFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
       }
     }
+  }
+
+  lazy val fsbSubtypes: Future[List[FsbSubtype]] = Future {
+    import FsbSubtypeConfigProtocol._
+    fsbSubtypesConfig.parseYaml.convertTo[List[FsbSubtype]]
   }
 }
 

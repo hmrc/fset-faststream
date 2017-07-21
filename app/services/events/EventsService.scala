@@ -16,6 +16,7 @@
 
 package services.events
 
+import model.FsbSubtype
 import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.Logger
@@ -50,4 +51,6 @@ trait EventsService {
   def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue))
   }
+
+  def getFsbSubtypes: Future[List[FsbSubtype]] = eventsConfigRepo.fsbSubtypes
 }
