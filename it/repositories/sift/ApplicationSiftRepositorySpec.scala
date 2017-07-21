@@ -121,6 +121,6 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
       "phase3_version1-res", Some("phase2_version1-res"))
     phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3Evaluation, Some(PHASE3_TESTS_PASSED)).futureValue
-
+    updateApplicationStatus(appId, ApplicationStatus.SIFT)
   }
 }
