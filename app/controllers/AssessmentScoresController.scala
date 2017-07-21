@@ -58,7 +58,7 @@ trait AssessmentScoresController extends BaseController {
             "applicationId" -> submitRequest.applicationId.toString(),
             "exercise" -> assessmentExerciseType.toString,
             "assessorId" -> submitRequest.scoresAndFeedback.updatedBy.toString())
-          auditService.logEventNoRequest(AssessmentScoresOneExerciseSubmitted, auditDetails)
+          auditService.logEvent(AssessmentScoresOneExerciseSubmitted, auditDetails)
         }.map (_ => Ok)
       }
   }

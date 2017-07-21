@@ -59,7 +59,7 @@ trait AssessmentScoresService {
   }
 
   def saveExercise(applicationId: UniqueIdentifier,
-                   assessmentExerciseType: AssessmentExerciseType,
+                   assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
                    newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     def updateAllExercisesWithExercise(oldAllExercisesScores: AssessmentScoresAllExercises,
                                        newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {

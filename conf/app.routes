@@ -146,9 +146,6 @@ GET         /day-aggregate-events/location/:location                     control
 # TODO MIGUEL: Maybe change this to submit
 POST        /assessment-scores/submit                                          controllers.AssessmentScoresController.submit()
 POST        /assessment-scores/save                                            controllers.AssessmentScoresController.save()
-#POST        /assessment-scores/:applicationId/analysis-exercise/save           controllers.AssessmentScoresController.saveAnalysisExercise(applicationId: model.UniqueIdentifier)
-#POST        /assessment-scores/:applicationId/group-exercise/save              controllers.AssessmentScoresController.saveGroupExercise(applicationId: model.UniqueIdentifier)
-#POST        /assessment-scores/:applicationId/leadership-exercise/save         controllers.AssessmentScoresController.saveLeadershipExercise(applicationId: model.UniqueIdentifier)
 GET         /assessment-scores/with-candidate-summary/:applicationId           controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummary(applicationId: model.UniqueIdentifier)
 GET         /assessment-scores/:applicationId                                  controllers.AssessmentScoresController.find(applicationId: model.UniqueIdentifier)
 GET         /assessment-scores                                                 controllers.AssessmentScoresController.findAll
