@@ -25,6 +25,7 @@ import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, Venue }
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsMongoRepository
@@ -96,12 +97,12 @@ trait AssessorAllocationService extends EventSink {
           eventDetails.startTime.toString("ha")
         )
       }
-    }
+    }.map(_ => ())
   }
 
   private def notifyAllocationChangedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    getContactDetails(newAllocations).map {
-      _.map { case (contactDetailsForUser, eventDetails, allocationForUser) =>
+    getContactDetails(newAllocations).map { userInfo =>
+      userInfo.map { case (contactDetailsForUser, eventDetails, allocationForUser) =>
         emailClient.sendAssessorEventAllocationChanged(
           contactDetailsForUser.email,
           contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
@@ -112,22 +113,23 @@ trait AssessorAllocationService extends EventSink {
           eventDetails.startTime.toString("ha")
         )
       }
-    }
+    }.map(_ => ())
   }
 
   private def notifyAllocationUnallocatedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    getContactDetails(newAllocations).map {
-      _.map { case (contactDetailsForUser, eventDetails, _) =>
+    getContactDetails(newAllocations).map { userInfo =>
+      userInfo.map { case (contactDetailsForUser, eventDetails, _) =>
         emailClient.sendAssessorUnAllocatedFromEvent(
           contactDetailsForUser.email,
           contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
           eventDetails.date.toString("d MMMM YYYY")
         )
       }
-    }
+    }.map(_ => ())
   }
 
-  private def getContactDetails(newAllocations: AssessorAllocations): Future[Seq[(ExchangeObjects.Candidate, Event, AssessorAllocation)]] = {
+  private def getContactDetails(newAllocations: AssessorAllocations)(implicit hc: HeaderCarrier)
+  : Future[Seq[(ExchangeObjects.Candidate, Event, AssessorAllocation)]] = {
     for {
       eventDetails <- eventsService.getEvent(newAllocations.eventId)
       contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
@@ -190,12 +192,17 @@ trait AssessorAllocationService extends EventSink {
     }
   }
 
-  private def getAllocationDifferences(existingAllocations: Seq[persisted.AssessorAllocation],
-    newAllocations: Seq[persisted.AssessorAllocation]) = {
+  private def getAllocationDifferences(existingAllocationsUnsanitised: Seq[persisted.AssessorAllocation],
+    newAllocationsUnsanitised: Seq[persisted.AssessorAllocation]) = {
+
+    // Make versions equal so we can do comparison based on values
+    val existingAllocations = existingAllocationsUnsanitised.map(_.copy(version = "version"))
+    val newAllocations = newAllocationsUnsanitised.map(_.copy(version = "version"))
+
     // Check for changes to the assessor guest list
     val changedUsers = existingAllocations.flatMap { existingAllocation =>
       newAllocations.find(_.id == existingAllocation.id).flatMap { matchingItem =>
-        if (matchingItem != existingAllocation) {
+        if (!matchingItem.ignoreVersionEquals(existingAllocation)) {
           Some(existingAllocation)
         } else {
           None
@@ -210,7 +217,7 @@ trait AssessorAllocationService extends EventSink {
   }
 
   private def updateExistingAllocations(existingAllocations: Seq[persisted.AssessorAllocation],
-                                        newAllocations: command.AssessorAllocations): Future[Unit] = {
+                                        newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     // If versions match there has been no update from another user while this user was editing, do update
     if (existingAllocations.forall(_.version == newAllocations.version)) {
@@ -222,6 +229,9 @@ trait AssessorAllocationService extends EventSink {
       // Persist the changes
         _ <- assessorAllocationRepo.delete(existingAllocations)
         _ <- assessorAllocationRepo.save(toPersist).map(_ => ())// Notify users
+        _ = Logger.warn("================ NEW = " + newUsers)
+        _ = Logger.warn("================ CHANGED = " + changedUsers)
+        _ = Logger.warn("================ REMOVED = " + removedUsers)
         _ <- notifyNewlyAllocatedAssessors(AssessorAllocations(newAllocations.eventId, newUsers))
         _ <- notifyAllocationChangedAssessors(AssessorAllocations(newAllocations.eventId, changedUsers))
         _ <- notifyAllocationUnallocatedAssessors(AssessorAllocations(newAllocations.eventId, removedUsers))
