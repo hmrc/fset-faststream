@@ -57,7 +57,8 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
       eventIds.head
     }
 
-    val assessorOrApplicationId = allocations.map(_.id)
+    val assessorOrApplicationId = allocations.map(_.userQueryKey)
+
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("id" -> BSONDocument("$in" -> assessorOrApplicationId)),
       BSONDocument("eventId" -> eventId)

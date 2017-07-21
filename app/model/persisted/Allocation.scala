@@ -27,6 +27,7 @@ trait Allocation {
   def eventId: String
   def status: AllocationStatus
   def version: String
+  def userQueryKey: String
 }
 
 case class AssessorAllocation(
@@ -35,7 +36,9 @@ case class AssessorAllocation(
                                status: AllocationStatus,
                                allocatedAs: SkillType,
                                version: String
-) extends Allocation
+) extends Allocation {
+  override val userQueryKey = "userId"
+}
 
 object AssessorAllocation {
   implicit val assessorAllocationFormat: OFormat[AssessorAllocation] = Json.format[AssessorAllocation]
@@ -52,7 +55,9 @@ case class CandidateAllocation(
                                 sessionId: String,
                                 status: AllocationStatus,
                                 version: String
-) extends Allocation
+) extends Allocation {
+  override val userQueryKey = "applicationId"
+}
 
 object CandidateAllocation {
   implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]
