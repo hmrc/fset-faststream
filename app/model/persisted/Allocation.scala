@@ -24,18 +24,17 @@ import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 
 trait Allocation {
-  def id: String
   def eventId: String
   def status: AllocationStatus
   def version: String
 }
 
 case class AssessorAllocation(
-  id: String,
-  eventId: String,
-  status: AllocationStatus,
-  allocatedAs: SkillType,
-  version: String
+                               userId: String,
+                               eventId: String,
+                               status: AllocationStatus,
+                               allocatedAs: SkillType,
+                               version: String
 ) extends Allocation
 
 object AssessorAllocation {
@@ -48,11 +47,11 @@ object AssessorAllocation {
 }
 
 case class CandidateAllocation(
-  id: String,
-  eventId: String,
-  sessionId: String,
-  status: AllocationStatus,
-  version: String
+                                applicationId: String,
+                                eventId: String,
+                                sessionId: String,
+                                status: AllocationStatus,
+                                version: String
 ) extends Allocation
 
 object CandidateAllocation {
@@ -63,7 +62,7 @@ object CandidateAllocation {
     val opLockVersion = UUIDFactory.generateUUID()
     allocations.allocations.map { allocation =>
       CandidateAllocation(
-        id = allocation.userId,
+        applicationId = allocation.applicationId,
         eventId = allocations.eventId,
         sessionId = allocations.sessionId,
         status = allocation.status,
@@ -75,7 +74,7 @@ object CandidateAllocation {
   def fromExchange(o: model.exchange.CandidateAllocations, eventId: String, sessionId: String) : Seq[CandidateAllocation] = {
     o.allocations.map { a =>
       CandidateAllocation(
-        id = a.id,
+        applicationId = a.id,
         eventId = eventId,
         sessionId = sessionId,
         status = a.status,

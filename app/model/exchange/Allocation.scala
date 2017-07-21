@@ -51,7 +51,7 @@ object AssessorAllocations {
 
       AssessorAllocations(opLock, o.map { a =>
         val allocatedSkill = AssessorSkill.SkillMap(a.allocatedAs)
-        AssessorAllocation(a.id, a.status, allocatedSkill)
+        AssessorAllocation(a.userId, a.status, allocatedSkill)
       })
   }
 }
@@ -64,7 +64,7 @@ case class CandidateAllocation(
 object CandidateAllocation {
   implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]
   def fromPersisted(o: model.persisted.CandidateAllocation): CandidateAllocation = {
-    CandidateAllocation(o.id, o.status)
+    CandidateAllocation(o.applicationId, o.status)
   }
 }
 
@@ -83,6 +83,6 @@ object CandidateAllocations {
       case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
       case Nil => None
     }
-    CandidateAllocations(opLock, o.map { a => CandidateAllocation(a.id, a.status) })
+    CandidateAllocations(opLock, o.map { a => CandidateAllocation(a.applicationId, a.status) })
   }
 }

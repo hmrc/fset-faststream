@@ -111,7 +111,7 @@ trait AssessorService {
       FutureEx.traverseSerial(allocations) { allocation =>
         eventsRepo.getEvent(allocation.eventId).map { event =>
           AllocationWithEvent(
-            allocation.id,
+            allocation.userId,
             event.id,
             event.date,
             event.startTime,

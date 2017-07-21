@@ -27,6 +27,8 @@ import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, Candidate
 import model.stc.StcEventTypes.StcEvents
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsMongoRepository
+import repositories.personaldetails.PersonalDetailsMongoRepository
 import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
@@ -67,16 +69,44 @@ trait AssessorAllocationService extends EventSink {
     candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
-  def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
+  def allocate(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
     assessorAllocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
-      case Nil => assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations)).map(_ => ())
-      case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations).map(_ => ())
+      case Nil =>
+        for {
+          _ <- assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations))
+          _ <- notifyNewlyAllocatedAssessors(newAllocations)
+        } yield ()
+      case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations)
     }
   }
 
   private val dateFormat = "dd MMMM YYYY"
   private val timeFormat = "HH:mma"
 
+  private def notifyNewlyAllocatedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
+    val x = (for {
+      eventDetails <- eventsService.getEvent(newAllocations.eventId)
+      contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
+    } yield for {
+      contactDetail <- contactDetails
+      contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
+        throw new Exception("Could not find contact details for assessor user")
+      )
+      allocationForUser = newAllocations.allocations.find(_.id == contactDetailsForUser.userId).get
+    } yield {
+      emailClient.sendAssessorAllocatedToEvent(
+        contactDetailsForUser.email,
+        contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
+        eventDetails.date.toString("d MMMM YYYY"),
+        allocationForUser.allocatedAs.displayText,
+        eventDetails.eventType.toString,
+        eventDetails.location.name,
+        eventDetails.startTime.toString("ha")
+      )
+    }).map(_ => ())
+
+    x
+  }
 
   def allocateCandidates(newAllocations: command.CandidateAllocations)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
@@ -96,7 +126,7 @@ trait AssessorAllocationService extends EventSink {
             updateExistingAllocations(existingAllocation, newAllocations).flatMap { _ =>
               Future.sequence(
                 newAllocations.allocations
-                  .filter(alloc => !existingIds.contains(alloc.userId))
+                  .filter(alloc => !existingIds.contains(alloc.applicationId))
                   .map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime))
               )
             }.map(_ => ())
@@ -109,7 +139,7 @@ trait AssessorAllocationService extends EventSink {
                                  eventDate: String,
                                  eventTime: String,
                                  deadlineDateTime: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    applicationRepo.find(candidateAllocation.userId).flatMap {
+    applicationRepo.find(candidateAllocation.applicationId).flatMap {
       case Some(candidate) =>
         eventSink {
           val res = authProviderClient.findByUserIds(Seq(candidate.userId)).map { candidates =>
@@ -124,15 +154,16 @@ trait AssessorAllocationService extends EventSink {
           } recover { case ex => throw new RuntimeException(s"Was not able to retrieve user details for candidate ${candidate.userId}", ex) }
           res.asInstanceOf[Future[StcEvents]]
         }
-      case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.userId}")
+      case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.applicationId}")
     }
   }
 
   private def updateExistingAllocations(existingAllocations: Seq[persisted.AssessorAllocation],
                                         newAllocations: command.AssessorAllocations): Future[Unit] = {
 
+    // If versions match there has been no update from another user while this user was editing, do update
     if (existingAllocations.forall(_.version == newAllocations.version)) {
-      // no prior update since reading so do update
+
       // check what's been updated here so we can send email notifications
       val toPersist = persisted.AssessorAllocation.fromCommand(newAllocations)
       assessorAllocationRepo.delete(existingAllocations).flatMap { _ =>

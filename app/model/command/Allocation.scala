@@ -22,7 +22,6 @@ import model.exchange.AssessorSkill
 import play.api.libs.json.{ Json, OFormat }
 
 trait Allocation {
-  def userId: String
   def status: AllocationStatus
 }
 
@@ -58,7 +57,7 @@ object AssessorAllocations {
 
     AssessorAllocations(opLock, eventId, o.map { a =>
       val allocatedSkill = AssessorSkill.SkillMap(a.allocatedAs)
-      AssessorAllocation(a.id, a.status, allocatedSkill)
+      AssessorAllocation(a.userId, a.status, allocatedSkill)
     })
   }
 
@@ -68,7 +67,7 @@ object AssessorAllocations {
 }
 
 case class CandidateAllocation(
-                                userId: String,
+                                applicationId: String,
                                 status: AllocationStatus
 ) extends Allocation
 
@@ -101,7 +100,7 @@ object CandidateAllocations {
       version = opLock,
       eventId = eventId,
       sessionId = sessionId,
-      allocations = allocations.map { a => CandidateAllocation(a.id, a.status) }
+      allocations = allocations.map { a => CandidateAllocation(a.applicationId, a.status) }
     )
   }
 
