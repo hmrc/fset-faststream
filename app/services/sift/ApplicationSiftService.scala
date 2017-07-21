@@ -60,5 +60,4 @@ trait ApplicationSiftService {
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
     applicationSiftRepo.siftApplicationForScheme(applicationId, result)
   }
-
 }

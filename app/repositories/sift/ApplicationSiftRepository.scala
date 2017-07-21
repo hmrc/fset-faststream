@@ -93,19 +93,15 @@ class ApplicationSiftMongoRepository(
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]] = {
-    val videoInterviewPassed = BSONDocument("testGroups.PHASE3.evaluation.result" ->
-      BSONDocument("$elemMatch" -> BSONDocument("schemeId" -> schemeId.value, "result" -> Green.toString)))
-
     val notSiftedOnScheme = BSONDocument(
       s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(schemeId.value))
     )
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"applicationStatus" -> ApplicationStatus.SIFT),
-      BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED}" -> true),
       BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(schemeId.value))),
       BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
-      videoInterviewPassed,
       notSiftedOnScheme
     ))
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
