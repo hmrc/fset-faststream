@@ -37,14 +37,14 @@ trait AssessmentScoresRepository {
 
 class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[AssessmentScoresAllExercises, BSONObjectID](CollectionNames.ASSESSMENT_SCORES, mongo,
-    AssessmentScoresAllExercises.format, ReactiveMongoFormats.objectIdFormats)
+    AssessmentScoresAllExercises.jsonFormat, ReactiveMongoFormats.objectIdFormats)
     with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
   // TODO: This save method does not remove exercise subdocument when in the case class they are None
   def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
     val applicationId = allExercisesScores.applicationId.toString()
     val query = BSONDocument("applicationId" -> applicationId)
-    val updateBSON = BSONDocument("$set" -> assessmentScoresAllExercisesHandler.write(allExercisesScores))
+    val updateBSON = BSONDocument("$set" -> AssessmentScoresAllExercises.bsonHandler.write(allExercisesScores))
     val validator = singleUpsertValidator(applicationId, actionDesc = "saving asessment scores")
     collection.update(query, updateBSON, upsert = true) map validator
   }
@@ -52,13 +52,13 @@ class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo:
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     val query = BSONDocument("applicationId" -> applicationId.toString())
     //collection.find(query, projection).one[FSACAllExercisesScoresAndFeedback]
-    collection.find(query).one[BSONDocument].map(_.map(assessmentScoresAllExercisesHandler.read))
+    collection.find(query).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 
   def findAll: Future[List[AssessmentScoresAllExercises]] = {
     val query = BSONDocument.empty
     //collection.find(query).cursor[FSACAllExercisesScoresAndFeedback](ReadPreference.nearest).collect[List]()
     collection.find(query).cursor[BSONDocument](ReadPreference.nearest).
-      collect[List]().map(_.map(assessmentScoresAllExercisesHandler.read))
+      collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 }

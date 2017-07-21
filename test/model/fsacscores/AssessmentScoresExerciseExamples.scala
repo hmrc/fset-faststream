@@ -26,8 +26,8 @@ object AssessmentScoresExerciseExamples {
   val Example2 = getExample(1.5)
   val Example3 = getExample(2)
   val Example4 = getExample(2.5)
-  val DateTimeNow = DateTime.now(DateTimeZone.UTC)
-  val UpdatedBy = UniqueIdentifier.randomUniqueIdentifier
+  lazy val dateTimeNow = DateTime.now(DateTimeZone.UTC)
+  lazy val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   private def getExample(baseValue: Double): AssessmentScoresExercise = {
     val strategicScore = Some(baseValue + 0.1)
@@ -44,8 +44,8 @@ object AssessmentScoresExerciseExamples {
         buildingScore,buildingScore,buildingScore,buildingScore,buildingScore)),
       Some("feedback1"), Some("feedback2"), Some("feedback3"), Some("feedback4"),
       otherScore, otherScore, otherScore, otherScore,
-      UpdatedBy,
-      Some(DateTimeNow),
+      updatedBy,
+      Some(dateTimeNow),
       Some("version1")
     )
   }

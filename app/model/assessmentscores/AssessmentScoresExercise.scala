@@ -19,6 +19,8 @@ package model.assessmentscores
 import model.UniqueIdentifier
 import org.joda.time.DateTime
 import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+import repositories._
 
 case class AssessmentScoresExercise(
                                           //  attended: Boolean,
@@ -48,5 +50,7 @@ case class AssessmentScoresExercise(
 }
 
 object AssessmentScoresExercise {
-  implicit val format = Json.format[AssessmentScoresExercise]
+  implicit val jsonFormat = Json.format[AssessmentScoresExercise]
+  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentScoresExercise] =
+    Macros.handler[AssessmentScoresExercise]
 }

@@ -18,6 +18,7 @@ package model.assessmentscores
 
 import model.UniqueIdentifier
 import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 
 case class AssessmentScoresAllExercises(
@@ -28,5 +29,7 @@ case class AssessmentScoresAllExercises(
                                             )
 
 object AssessmentScoresAllExercises {
-  implicit val format = Json.format[AssessmentScoresAllExercises]
+  implicit val jsonFormat = Json.format[AssessmentScoresAllExercises]
+  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentScoresAllExercises] =
+    Macros.handler[AssessmentScoresAllExercises]
 }
