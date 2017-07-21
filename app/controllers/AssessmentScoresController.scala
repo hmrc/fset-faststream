@@ -18,7 +18,7 @@ package controllers
 
 import model.assessmentscores._
 import model.UniqueIdentifier
-import model.command.AssessmentScoresCommands.{ AssessmentScoresFindResponse, AssessmentExercise, AssessmentScoresSubmitRequest }
+import model.command.AssessmentScoresCommands.{ AssessmentScoresFindResponse, AssessmentExerciseType, AssessmentScoresSubmitRequest }
 import play.api.libs.json.Json
 import play.api.libs.json._
 import play.api.mvc.Action
@@ -43,7 +43,7 @@ trait AssessmentScoresController extends BaseController {
       withJsonBody[AssessmentScoresSubmitRequest] { submitRequest =>
         service.saveExercise(
           submitRequest.applicationId,
-          AssessmentExercise.withName(submitRequest.exercise),
+          AssessmentExerciseType.withName(submitRequest.exercise),
           submitRequest.scoresAndFeedback
         ).map(_ => Ok)
       }
@@ -56,6 +56,14 @@ trait AssessmentScoresController extends BaseController {
       }
   }
 
+  def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+    service.findAssessmentScoresWithCandidateSummary(applicationId).map { scores =>
+      Ok(Json.toJson(scores))
+    }.recover {
+      case _: Exception => NotFound
+    }
+  }
+
   def find(applicationId: UniqueIdentifier) = Action.async { implicit request =>
     repository.find(applicationId).map { scores =>
       Ok(Json.toJson(scores))
@@ -65,15 +73,6 @@ trait AssessmentScoresController extends BaseController {
   def findAll = Action.async { implicit request =>
     repository.findAll.map { scores =>
       Ok(Json.toJson(scores))
-    }
-  }
-
-
-  def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier) = Action.async { implicit request =>
-    service.findAssessmentScoresWithCandidateSummary(applicationId).map { scores =>
-      Ok(Json.toJson(scores))
-    }.recover {
-      case _: Exception => NotFound
     }
   }
 }

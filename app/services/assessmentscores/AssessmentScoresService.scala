@@ -16,85 +16,78 @@
 
 package services.assessmentscores
 
+import factories.DateTimeFactory
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
 import model.UniqueIdentifier
-import model.command.AssessmentScoresCommands.AssessmentExercise.AssessmentExercise
-import model.command.AssessmentScoresCommands.{ AssessmentScoresFindResponse, AssessmentExercise, RecordCandidateScores }
-import org.joda.time.DateTime
+import model.command.AssessmentScoresCommands.AssessmentExerciseType.AssessmentExerciseType
+import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
+import play.api.mvc.RequestHeader
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import repositories.{ CandidateAllocationMongoRepository, AssessmentScoresMongoRepository, AssessmentScoresRepository }
+import repositories.{ AssessmentScoresRepository, CandidateAllocationMongoRepository }
+import services.AuditService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AssessmentScoresService extends AssessmentScoresService {
-  // TODO MIGUEL: Audit
+  private val AssessmentScoresAllExercisesSaved = "AssessmentScoresAllExercisesSaved"
+  private val AssessmentScoresOneExerciseSubmitted = "AssessmentScoresOneExerciseSubmitted"
+
+  override val auditService = AuditService
+
   override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessmentScoresRepository
-  override val personalDetailsRepository: PersonalDetailsRepository = repositories.personalDetailsRepository
   override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
   override val eventsRepository: EventsRepository = repositories.eventsRepository
+  override val personalDetailsRepository: PersonalDetailsRepository = repositories.personalDetailsRepository
 
+  override val dateTimeFactory = DateTimeFactory
 
-  override def save(scores: AssessmentScoresAllExercises): Future[Unit] = {
+  override def save(scores: AssessmentScoresAllExercises)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val scoresWithSubmittedDate = scores.copy(
-      analysisExercise = scores.analysisExercise.map(_.copy(submittedDate = Some(DateTime.now))),
-      groupExercise = scores.groupExercise.map(_.copy(submittedDate = Some(DateTime.now))),
-      leadershipExercise = scores.leadershipExercise.map(_.copy(submittedDate = Some(DateTime.now)))
+      analysisExercise = scores.analysisExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
+      groupExercise = scores.groupExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
+      leadershipExercise = scores.leadershipExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone)))
     )
-    assessmentScoresRepository.save(scoresWithSubmittedDate)
+    assessmentScoresRepository.save(scoresWithSubmittedDate).map { _ =>
+      val details = Map(
+        "applicationId" -> scores.applicationId.toString(),
+        "assessorId" -> scores.analysisExercise.map(_.updatedBy.toString).getOrElse("Unknown")
+      )
+      auditService.logEvent(AssessmentScoresAllExercisesSaved, details)
+    }
   }
 
   override def saveExercise(applicationId: UniqueIdentifier,
-                            exercise: AssessmentExercise,
-                            exerciseScores: AssessmentScoresExercise): Future[Unit] = {
-    val exerciseScoresWithSubmittedDate = exerciseScores.copy(submittedDate = Some(DateTime.now))
-
-    exercise match {
-      case AssessmentExercise.`analysisExercise` =>
-        saveAnalysisExercise(applicationId, exerciseScoresWithSubmittedDate)
-      case AssessmentExercise.`groupExercise` =>
-        saveGroupExercise(applicationId, exerciseScoresWithSubmittedDate)
-      case AssessmentExercise.`leadershipExercise` =>
-        saveLeadershipExercise(applicationId, exerciseScoresWithSubmittedDate)
-      case _ => throw new Exception // TODO MIGUEL
+                            assessmentExerciseType: AssessmentExerciseType,
+                            newExerciseScores: AssessmentScoresExercise)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    def updateAllExercisesWithExercise(oldAllExercisesScores: AssessmentScoresAllExercises,
+                                      newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
+      assessmentExerciseType match {
+        case AssessmentExerciseType.analysisExercise =>
+          oldAllExercisesScores.copy(analysisExercise = Some(newExerciseScoresWithSubmittedDate))
+        case AssessmentExerciseType.groupExercise =>
+          oldAllExercisesScores.copy(groupExercise = Some(newExerciseScoresWithSubmittedDate))
+        case AssessmentExerciseType.leadershipExercise =>
+          oldAllExercisesScores.copy(leadershipExercise = Some(newExerciseScoresWithSubmittedDate))
+      }
     }
-  }
 
-
-  private def saveAnalysisExercise(applicationId: UniqueIdentifier, exerciseScores: AssessmentScoresExercise): Future[Unit] = {
-    val updateAnalysisExercise = (allExercisesOld: AssessmentScoresAllExercises, exerciseScores: AssessmentScoresExercise) => {
-      allExercisesOld.copy(analysisExercise = Some(exerciseScores))
-    }
-    saveExercise(applicationId, exerciseScores, updateAnalysisExercise)
-  }
-
-  private def saveGroupExercise(applicationId: UniqueIdentifier, exerciseScores: AssessmentScoresExercise): Future[Unit] = {
-    val updateGroupExercise = (allExercisesOld: AssessmentScoresAllExercises, exerciseScores: AssessmentScoresExercise) => {
-      allExercisesOld.copy(groupExercise = Some(exerciseScores))
-    }
-    saveExercise(applicationId, exerciseScores, updateGroupExercise)
-  }
-
-  private def saveLeadershipExercise(applicationId: UniqueIdentifier, exerciseScores: AssessmentScoresExercise): Future[Unit] = {
-    val updateLeadershipExercise = (allExercisesOld: AssessmentScoresAllExercises, exerciseScores: AssessmentScoresExercise) => {
-      allExercisesOld.copy(leadershipExercise = Some(exerciseScores))
-    }
-    saveExercise(applicationId, exerciseScores, updateLeadershipExercise)
-  }
-
-  private def saveExercise(applicationId: UniqueIdentifier,
-                           exerciseScores: AssessmentScoresExercise,
-                           update: (AssessmentScoresAllExercises, AssessmentScoresExercise) => AssessmentScoresAllExercises)
-  : Future[Unit] = {
-    for {
-      allExercisesOldMaybe <- assessmentScoresRepository.find(applicationId)
-      allExercisesOld = allExercisesOldMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
-      allExercisesNew = update(allExercisesOld, exerciseScores)
-      _ <- assessmentScoresRepository.save(allExercisesNew)
+    (for {
+      oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
+      oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
+      newExerciseScoresWithSubmittedDate = newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))
+      newAllExercisesScores = updateAllExercisesWithExercise(oldAllExercisesScores, newExerciseScoresWithSubmittedDate)
+      _ <- assessmentScoresRepository.save(newAllExercisesScores)
+      auditDetails = Map(
+        "applicationId" -> applicationId.toString(),
+        "exercise" -> assessmentExerciseType.toString,
+        "assessorId" -> newExerciseScores.updatedBy.toString())
+      _ <- Future.successful(auditService.logEvent(AssessmentScoresOneExerciseSubmitted, auditDetails))
     } yield {
       ()
-    }
+    })
   }
 
   def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse] = {
@@ -122,16 +115,20 @@ object AssessmentScoresService extends AssessmentScoresService {
 }
 
 trait AssessmentScoresService {
+  val auditService: AuditService
+
   val assessmentScoresRepository: AssessmentScoresRepository
-  val personalDetailsRepository: PersonalDetailsRepository
   val candidateAllocationRepository: CandidateAllocationMongoRepository
   val eventsRepository: EventsRepository
+  val personalDetailsRepository: PersonalDetailsRepository
 
-  def save(scores: AssessmentScoresAllExercises): Future[Unit]
+  val dateTimeFactory: DateTimeFactory
+
+  def save(scores: AssessmentScoresAllExercises)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
   def saveExercise(applicationId: UniqueIdentifier,
-                            exercise: AssessmentExercise,
-                            exerciseScores: AssessmentScoresExercise): Future[Unit]
+                   exercise: AssessmentExerciseType,
+                   exerciseScores: AssessmentScoresExercise)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
   def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse]
 }

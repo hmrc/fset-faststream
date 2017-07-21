@@ -17,7 +17,8 @@
 package repositories
 
 import factories.DateTimeFactory
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExercise, AssessmentScoresExerciseExamples }
+import model.UniqueIdentifier
+import model.assessmentscores._
 import testkit.MongoRepositorySpec
 
 class AssessmentScoresRepositorySpec extends MongoRepositorySpec {
@@ -31,46 +32,58 @@ class AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       val repo = repositories.assessmentScoresRepository
 
       val indexes = indexesWithFields(repo)
-      indexes must contain (List("_id"))
-      indexes must contain (List("applicationId"))
+      indexes must contain(List("_id"))
+      indexes must contain(List("applicationId"))
       indexes.size mustBe 2
     }
+  }
 
-    val FsacScores = AssessmentScoresAllExercisesExamples.Example1
-    val AppId = AssessmentScoresAllExercisesExamples.Example1.applicationId
+  val FsacScores = AssessmentScoresAllExercisesExamples.Example1
+  val ApplicationId = AssessmentScoresAllExercisesExamples.Example1.applicationId
 
-    "create a new application scores and feedback document" in {
+  "save" should {
+    "create new assessment scores when it does not exist" in {
       repository.save(FsacScores).futureValue
-
-      repository.find(AppId).futureValue mustBe Some(FsacScores)
-    }
-
-    "return already stored application scores" in {
-      repository.save(FsacScores).futureValue
-
-      val result = repository.find(AppId).futureValue
-
+      val result = repository.find(ApplicationId).futureValue
       result mustBe Some(FsacScores)
     }
 
-    "return no application score if it does not exist" in {
-      val result = repository.find(AppId).futureValue
+    "override existing assessment scores when it exists" in {
+      repository.save(FsacScores).futureValue
+      val FsacScoresRead = repository.find(ApplicationId).futureValue
 
+      val FsacScoresModified =
+        FsacScores.copy(analysisExercise = FsacScores.analysisExercise.map(_.copy(leadingAndCommunicatingAverage = Some(3.7192))))
+      repository.save(FsacScoresModified).futureValue
+      val FsacScoresModifiedRead = repository.find(ApplicationId).futureValue
+
+      Some(FsacScoresModified) mustBe FsacScoresModifiedRead
+      FsacScoresRead must not be FsacScoresModifiedRead
+    }
+  }
+
+  "find" should {
+    "return None if assessment scores if they do not exist" in {
+      val NonExistingApplicationId = UniqueIdentifier.randomUniqueIdentifier
+      val result = repository.find(NonExistingApplicationId).futureValue
       result mustBe None
     }
 
-    "update already saved application scores and feedback document" in {
+    "return assessment scores if they already exists" in {
       repository.save(FsacScores).futureValue
+      val result = repository.find(ApplicationId).futureValue
+      result mustBe Some(FsacScores)
+    }
+  }
 
-      val updatedApplicationScores = FsacScores.copy(analysisExercise = None)
-      repository.save(updatedApplicationScores).futureValue
-
-      repository.find(AppId).futureValue mustBe Some(updatedApplicationScores)
+  "findAll" should {
+    "return empty list when there are no assessment scores" in {
+      val result = repository.findAll.futureValue
+      result mustBe Nil
     }
 
-    "retrieve all application scores and feedback documents" in {
+    "return all assessment scores when there are some" in {
       val FsacScores2 = AssessmentScoresAllExercisesExamples.Example2
-
 
       repository.save(FsacScores).futureValue
       repository.save(FsacScores2).futureValue
@@ -78,8 +91,8 @@ class AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       val result = repository.findAll.futureValue
 
       result must have size 2
-      result must contain (FsacScores)
-      result must contain (FsacScores2)
+      result must contain(FsacScores)
+      result must contain(FsacScores2)
     }
   }
 }
