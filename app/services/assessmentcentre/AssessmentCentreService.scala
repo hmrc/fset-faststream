@@ -20,20 +20,20 @@ import common.FutureEx
 import model.{ ProgressStatuses, SerialUpdateResult }
 import model.command.ApplicationForFsac
 import repositories.application.GeneralApplicationRepository
-import repositories.assessmentcentre.AssessmentCentreMongoRepository
+import repositories.assessmentcentre.{ AssessmentCentreMongoRepository, AssessmentCentreRepository }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AssessmentCentreService extends AssessmentCentreService {
   val applicationRepo = repositories.applicationRepository
-  val assessmentCentreRepo: AssessmentCentreMongoRepository = repositories.assessmentCentreRepository
+  val assessmentCentreRepo = repositories.assessmentCentreRepository
 }
 
 trait AssessmentCentreService {
 
   def applicationRepo: GeneralApplicationRepository
-  def assessmentCentreRepo: AssessmentCentreMongoRepository
+  def assessmentCentreRepo: AssessmentCentreRepository
 
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
     assessmentCentreRepo.nextApplicationForAssessmentCentre(batchSize)
@@ -42,11 +42,8 @@ trait AssessmentCentreService {
   def progressApplicationToAssessmentCentre(applications: Seq[ApplicationForFsac]): Future[SerialUpdateResult[ApplicationForFsac]] = {
       val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
-        for {
-          _ <- assessmentCentreRepo.progressApplicationToAssessmentCentre(application)
-          result <- applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId,
-            ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
-        } yield result
+        applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId,
+          ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       )
     }
 

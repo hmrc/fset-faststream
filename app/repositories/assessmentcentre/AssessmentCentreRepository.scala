@@ -21,6 +21,7 @@ import model.{ ApplicationStatus, EvaluationResults, Scheme, SchemeId }
 import model.command.{ ApplicationForFsac, ApplicationForSift }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{ CollectionNames, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -29,12 +30,9 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
-trait AssessmentCentreRepository extends RandomSelection with ReactiveRepositoryHelpers {
-  this: ReactiveRepository[_, _] =>
-
+trait AssessmentCentreRepository {
   def dateTime: DateTimeFactory
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]]
-
 }
 
 class AssessmentCentreMongoRepository (
@@ -44,7 +42,7 @@ class AssessmentCentreMongoRepository (
   extends ReactiveRepository[ApplicationForSift, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationForSift.applicationForSiftFormat,
     ReactiveMongoFormats.objectIdFormats
-) with AssessmentCentreRepository {
+) with AssessmentCentreRepository with RandomSelection with ReactiveRepositoryHelpers with GeneralApplicationRepoBSONReader {
 
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
     def query = BSONDocument(
@@ -58,14 +56,5 @@ class AssessmentCentreMongoRepository (
     selectRandom[BSONDocument](query).map(_.map(doc => doc: ApplicationForFsac).filter { app =>
       app.evaluationResult.result.filter(_.result == EvaluationResults.Green.toPassmark).forall(s => !siftableSchemeIds.contains(s.schemeId))
     })
-  }
-
-  def progressApplicationToAssessmentCentre(app: ApplicationForFsac): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> app.applicationId)
-    val update = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
-
-    val validator = singleUpdateValidator(app.applicationId, "progressing to assessment centre")
-
-    collection.update(query, update) map validator
   }
 }
