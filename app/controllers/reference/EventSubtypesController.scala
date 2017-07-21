@@ -31,7 +31,7 @@ trait EventSubtypesController extends BaseController {
 
   def eventsService: EventsService
 
-  def getFsbSubtypes: Action[AnyContent] = Action.async{ implicit request =>
-    eventsService.getFsbSubtypes.map(res => Ok(Json.toJson(res)))
+  def getFsbTypes: Action[AnyContent] = Action.async { implicit request =>
+    eventsService.getFsbTypes.map(res => Ok(Json.toJson(res)))
   }
 }

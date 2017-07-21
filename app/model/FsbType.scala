@@ -18,8 +18,8 @@ package model
 
 import play.api.libs.json.Json
 
-case class FsbSubtype(key: String)
+case class FsbType(key: String)
 
-object FsbSubtype {
-  implicit val format = Json.format[FsbSubtype]
+object FsbType {
+  implicit val format = Json.format[FsbType]
 }

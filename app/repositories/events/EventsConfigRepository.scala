@@ -19,7 +19,7 @@ package repositories.events
 import common.FutureEx
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
-import model.FsbSubtype
+import model.FsbType
 import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
@@ -56,8 +56,8 @@ case class SessionConfig(
                     endTime: LocalTime
                   )
 
-object FsbSubtypeConfigProtocol extends DefaultYamlProtocol {
-  implicit val eventSubtypesFormat = yamlFormat1((key: String) => FsbSubtype(key))
+object FsbTypeConfigProtocol extends DefaultYamlProtocol {
+  implicit val eventSubtypesFormat = yamlFormat1((key: String) => FsbType(key))
 }
 
 object EventConfigProtocol extends DefaultYamlProtocol {
@@ -98,7 +98,7 @@ trait EventsConfigRepository {
 
   protected def eventScheduleConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.scheduleFilePath)
 
-  protected def fsbSubtypesConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.subtypes.fsbFilePath)
+  protected def fsbTypesConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.subtypes.fsbFilePath)
 
   lazy val events: Future[List[Event]] = {
     import EventConfigProtocol._
@@ -137,9 +137,9 @@ trait EventsConfigRepository {
     }
   }
 
-  lazy val fsbSubtypes: Future[List[FsbSubtype]] = Future {
-    import FsbSubtypeConfigProtocol._
-    fsbSubtypesConfig.parseYaml.convertTo[List[FsbSubtype]]
+  lazy val fsbTypes: Future[List[FsbType]] = Future {
+    import FsbTypeConfigProtocol._
+    fsbTypesConfig.parseYaml.convertTo[List[FsbType]]
   }
 }
 
