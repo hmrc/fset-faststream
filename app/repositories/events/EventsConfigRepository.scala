@@ -19,7 +19,7 @@ package repositories.events
 import common.FutureEx
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
-import model.FsbType
+import model.{ FsbType, TelephoneInterviewType }
 import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
@@ -57,7 +57,11 @@ case class SessionConfig(
                   )
 
 object FsbTypeConfigProtocol extends DefaultYamlProtocol {
-  implicit val eventSubtypesFormat = yamlFormat1((key: String) => FsbType(key))
+  implicit val format = yamlFormat1((key: String) => FsbType(key))
+}
+
+object TelephoneInterviewTypeConfigProtocol extends DefaultYamlProtocol {
+  implicit val format = yamlFormat2((key: String, description: String) => TelephoneInterviewType(key, description))
 }
 
 object EventConfigProtocol extends DefaultYamlProtocol {
@@ -100,6 +104,8 @@ trait EventsConfigRepository {
 
   protected def fsbTypesConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.subtypes.fsbFilePath)
 
+  protected def telephoneInterviewTypesConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.subtypes.telephoneInterviewFilePath)
+
   lazy val events: Future[List[Event]] = {
     import EventConfigProtocol._
 
@@ -140,6 +146,11 @@ trait EventsConfigRepository {
   lazy val fsbTypes: Future[List[FsbType]] = Future {
     import FsbTypeConfigProtocol._
     fsbTypesConfig.parseYaml.convertTo[List[FsbType]]
+  }
+
+  lazy val telephoneInterviewTypes: Future[List[TelephoneInterviewType]] = Future {
+    import TelephoneInterviewTypeConfigProtocol._
+    telephoneInterviewTypesConfig.parseYaml.convertTo[List[TelephoneInterviewType]]
   }
 }
 

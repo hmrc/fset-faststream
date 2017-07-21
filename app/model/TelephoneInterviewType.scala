@@ -18,8 +18,8 @@ package model
 
 import play.api.libs.json.{ Json, OFormat }
 
-case class FsbType(key: String)
+case class TelephoneInterviewType(key: String, description: String)
 
-object FsbType {
-  implicit val format: OFormat[FsbType] = Json.format[FsbType]
+object TelephoneInterviewType {
+  implicit val format: OFormat[TelephoneInterviewType] = Json.format[TelephoneInterviewType]
 }

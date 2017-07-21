@@ -145,7 +145,8 @@ GET         /day-aggregate-events/location/:location                     control
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
 GET         /reference/schemes                                           controllers.reference.SchemesController.allSchemes
-GET         /reference/fsb-types                                      controllers.reference.EventSubtypesController.getFsbTypes
+GET         /reference/fsb-types                                         controllers.reference.EventSubtypesController.getFsbTypes
+GET         /reference/telephone-interview-types                         controllers.reference.EventSubtypesController.getTelephoneInterviewTypes
 
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
 GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations

@@ -32,7 +32,7 @@ case class FrameworksConfig(yamlFilePath: String)
 
 case class SchemeConfig(yamlFilePath: String)
 
-case class EventsSubTypesConfig(fsbFilePath: String)
+case class EventsSubTypesConfig(fsbFilePath: String, telephoneInterviewFilePath: String)
 
 case class EventsConfig(scheduleFilePath: String, subtypes: EventsSubTypesConfig)
 
