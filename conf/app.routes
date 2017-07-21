@@ -128,6 +128,7 @@ PUT         /assessor/:assessorId/allocations                            control
 
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
+POST        /events/create                                               controllers.EventsController.createEvent()
 GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
 GET         /events/:eventId/sessions/:sessionId/candidateAllocations    controllers.EventsController.getCandidateAllocations(eventId: String, sessionId: String)
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
