@@ -19,7 +19,7 @@ package services.allocation
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient, ExchangeObjects }
 import model.Exceptions.OptimisticLockException
 import model._
-import model.command.{ AssessorAllocations, CandidateAllocation }
+import model.command.{ AssessorAllocation, AssessorAllocations, CandidateAllocation }
 import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, Venue }
@@ -84,52 +84,50 @@ trait AssessorAllocationService extends EventSink {
   private val timeFormat = "HH:mma"
 
   private def notifyNewlyAllocatedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    (for {
-      eventDetails <- eventsService.getEvent(newAllocations.eventId)
-      contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
-    } yield for {
-      contactDetail <- contactDetails
-      contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
-        throw new Exception("Could not find contact details for assessor user")
-      )
-      allocationForUser = newAllocations.allocations.find(_.id == contactDetailsForUser.userId).get
-    } yield {
-      emailClient.sendAssessorAllocatedToEvent(
-        contactDetailsForUser.email,
-        contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
-        eventDetails.date.toString("d MMMM YYYY"),
-        allocationForUser.allocatedAs.displayText,
-        eventDetails.eventType.toString,
-        eventDetails.location.name,
-        eventDetails.startTime.toString("ha")
-      )
-    }).map(_ => ())
+    getContactDetails(newAllocations).map {
+      _.map { case (contactDetailsForUser, eventDetails, allocationForUser) =>
+        emailClient.sendAssessorAllocatedToEvent(
+          contactDetailsForUser.email,
+          contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
+          eventDetails.date.toString("d MMMM YYYY"),
+          allocationForUser.allocatedAs.displayText,
+          eventDetails.eventType.toString,
+          eventDetails.location.name,
+          eventDetails.startTime.toString("ha")
+        )
+      }
+    }
   }
 
   private def notifyAllocationChangedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    (for {
-      eventDetails <- eventsService.getEvent(newAllocations.eventId)
-      contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
-    } yield for {
-      contactDetail <- contactDetails
-      contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
-        throw new Exception("Could not find contact details for assessor user")
-      )
-      allocationForUser = newAllocations.allocations.find(_.id == contactDetailsForUser.userId).get
-    } yield {
-      emailClient.sendAssessorEventAllocationChanged(
-        contactDetailsForUser.email,
-        contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
-        eventDetails.date.toString("d MMMM YYYY"),
-        allocationForUser.allocatedAs.displayText,
-        eventDetails.eventType.toString,
-        eventDetails.location.name,
-        eventDetails.startTime.toString("ha")
-      )
-    }).map(_ => ())
+    getContactDetails(newAllocations).map {
+      _.map { case (contactDetailsForUser, eventDetails, allocationForUser) =>
+        emailClient.sendAssessorEventAllocationChanged(
+          contactDetailsForUser.email,
+          contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
+          eventDetails.date.toString("d MMMM YYYY"),
+          allocationForUser.allocatedAs.displayText,
+          eventDetails.eventType.toString,
+          eventDetails.location.name,
+          eventDetails.startTime.toString("ha")
+        )
+      }
+    }
   }
 
-  private def getContactDetails(): Future[Seq[(ExchangeObjects.Candidate, Event)]] = {
+  private def notifyAllocationUnallocatedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
+    getContactDetails(newAllocations).map {
+      _.map { case (contactDetailsForUser, eventDetails, _) =>
+        emailClient.sendAssessorUnAllocatedFromEvent(
+          contactDetailsForUser.email,
+          contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
+          eventDetails.date.toString("d MMMM YYYY")
+        )
+      }
+    }
+  }
+
+  private def getContactDetails(newAllocations: AssessorAllocations): Future[Seq[(ExchangeObjects.Candidate, Event, AssessorAllocation)]] = {
     for {
       eventDetails <- eventsService.getEvent(newAllocations.eventId)
       contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
@@ -139,25 +137,8 @@ trait AssessorAllocationService extends EventSink {
         throw new Exception("Could not find contact details for assessor user")
       )
       allocationForUser = newAllocations.allocations.find(_.id == contactDetailsForUser.userId).get
-    } yield (contactDetailsForUser, eventDetails)
+    } yield (contactDetailsForUser, eventDetails, allocationForUser)
   }
-
-  def myPf(emailMethod: (String, String, String,
-    String, String, String, String) => Unit): PartialFunction[(ExchangeObjects.Candidate, Event), Unit] = {
-    case (contactDetailsForUser, eventDetails) =>
-      emailMethod(
-        contactDetailsForUser.email,
-        contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
-        eventDetails.date.toString("d MMMM YYYY")
-      )
-  }
-
-  private def notifyAllocationRemovedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    getContactDetails().map {
-      _.map { myPf(emailClient.sendAssessorEventAllocationChanged _) }
-    }
-  }
-
 
   def allocateCandidates(newAllocations: command.CandidateAllocations)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
@@ -212,15 +193,16 @@ trait AssessorAllocationService extends EventSink {
   private def getAllocationDifferences(existingAllocations: Seq[persisted.AssessorAllocation],
     newAllocations: Seq[persisted.AssessorAllocation]) = {
     // Check for changes to the assessor guest list
-    val changedUsers = existingAllocations.map { existingAllocation =>
-      newAllocations.find(_.id == existingAllocation.id).map { matchingItem =>
+    val changedUsers = existingAllocations.flatMap { existingAllocation =>
+      newAllocations.find(_.id == existingAllocation.id).flatMap { matchingItem =>
         if (matchingItem != existingAllocation) {
-          existingAllocation
+          Some(existingAllocation)
         } else {
-          Nil
+          None
         }
       }
     }
+
     val removedUsers = existingAllocations.filterNot(changedUsers.contains).filterNot(newAllocations.contains)
     val newUsers = newAllocations.filterNot(changedUsers.contains).filterNot(existingAllocations.contains)
 
@@ -242,7 +224,7 @@ trait AssessorAllocationService extends EventSink {
         _ <- assessorAllocationRepo.save(toPersist).map(_ => ())// Notify users
         _ <- notifyNewlyAllocatedAssessors(AssessorAllocations(newAllocations.eventId, newUsers))
         _ <- notifyAllocationChangedAssessors(AssessorAllocations(newAllocations.eventId, changedUsers))
-        _ <- notifyRemovedAssessors(AssessorAllocations(newAllocations.eventId, removedUsers))
+        _ <- notifyAllocationUnallocatedAssessors(AssessorAllocations(newAllocations.eventId, removedUsers))
       } yield ()
     } else {
       throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
