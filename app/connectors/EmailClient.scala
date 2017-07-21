@@ -230,8 +230,7 @@ trait EmailClient extends WSHttp {
     )
   }
 
-  def sendAssessorUnAllocatedFromEvent(to: String, name: String, eventDate: String, eventRole: String, eventName: String,
-                                   eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendAssessorUnAllocatedFromEvent(to: String, name: String, eventDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_event_assessor_unallocated",
       Map("name" -> name, "eventDate" -> eventDate)
     )

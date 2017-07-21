@@ -16,13 +16,13 @@
 
 package services.allocation
 
-import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
+import connectors.{ AuthProviderClient, CSREmailClient, EmailClient, ExchangeObjects }
 import model.Exceptions.OptimisticLockException
 import model._
-import model.command.CandidateAllocation
+import model.command.{ AssessorAllocations, CandidateAllocation }
 import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.Venue
+import model.persisted.eventschedules.{ Event, Venue }
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
 import play.api.mvc.RequestHeader
@@ -84,7 +84,7 @@ trait AssessorAllocationService extends EventSink {
   private val timeFormat = "HH:mma"
 
   private def notifyNewlyAllocatedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    val x = (for {
+    (for {
       eventDetails <- eventsService.getEvent(newAllocations.eventId)
       contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
     } yield for {
@@ -104,9 +104,60 @@ trait AssessorAllocationService extends EventSink {
         eventDetails.startTime.toString("ha")
       )
     }).map(_ => ())
-
-    x
   }
+
+  private def notifyAllocationChangedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
+    (for {
+      eventDetails <- eventsService.getEvent(newAllocations.eventId)
+      contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
+    } yield for {
+      contactDetail <- contactDetails
+      contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
+        throw new Exception("Could not find contact details for assessor user")
+      )
+      allocationForUser = newAllocations.allocations.find(_.id == contactDetailsForUser.userId).get
+    } yield {
+      emailClient.sendAssessorEventAllocationChanged(
+        contactDetailsForUser.email,
+        contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
+        eventDetails.date.toString("d MMMM YYYY"),
+        allocationForUser.allocatedAs.displayText,
+        eventDetails.eventType.toString,
+        eventDetails.location.name,
+        eventDetails.startTime.toString("ha")
+      )
+    }).map(_ => ())
+  }
+
+  private def getContactDetails(): Future[Seq[(ExchangeObjects.Candidate, Event)]] = {
+    for {
+      eventDetails <- eventsService.getEvent(newAllocations.eventId)
+      contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
+    } yield for {
+      contactDetail <- contactDetails
+      contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
+        throw new Exception("Could not find contact details for assessor user")
+      )
+      allocationForUser = newAllocations.allocations.find(_.id == contactDetailsForUser.userId).get
+    } yield (contactDetailsForUser, eventDetails)
+  }
+
+  def myPf(emailMethod: (String, String, String,
+    String, String, String, String) => Unit): PartialFunction[(ExchangeObjects.Candidate, Event), Unit] = {
+    case (contactDetailsForUser, eventDetails) =>
+      emailMethod(
+        contactDetailsForUser.email,
+        contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
+        eventDetails.date.toString("d MMMM YYYY")
+      )
+  }
+
+  private def notifyAllocationRemovedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
+    getContactDetails().map {
+      _.map { myPf(emailClient.sendAssessorEventAllocationChanged _) }
+    }
+  }
+
 
   def allocateCandidates(newAllocations: command.CandidateAllocations)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
@@ -158,17 +209,41 @@ trait AssessorAllocationService extends EventSink {
     }
   }
 
+  private def getAllocationDifferences(existingAllocations: Seq[persisted.AssessorAllocation],
+    newAllocations: Seq[persisted.AssessorAllocation]) = {
+    // Check for changes to the assessor guest list
+    val changedUsers = existingAllocations.map { existingAllocation =>
+      newAllocations.find(_.id == existingAllocation.id).map { matchingItem =>
+        if (matchingItem != existingAllocation) {
+          existingAllocation
+        } else {
+          Nil
+        }
+      }
+    }
+    val removedUsers = existingAllocations.filterNot(changedUsers.contains).filterNot(newAllocations.contains)
+    val newUsers = newAllocations.filterNot(changedUsers.contains).filterNot(existingAllocations.contains)
+
+    (changedUsers, removedUsers, newUsers)
+  }
+
   private def updateExistingAllocations(existingAllocations: Seq[persisted.AssessorAllocation],
                                         newAllocations: command.AssessorAllocations): Future[Unit] = {
 
     // If versions match there has been no update from another user while this user was editing, do update
     if (existingAllocations.forall(_.version == newAllocations.version)) {
-      
-      // check what's been updated here so we can send email notifications
       val toPersist = persisted.AssessorAllocation.fromCommand(newAllocations)
-      assessorAllocationRepo.delete(existingAllocations).flatMap { _ =>
-        assessorAllocationRepo.save(toPersist).map(_ => ())
-      }
+
+      val (changedUsers, removedUsers, newUsers) = getAllocationDifferences(existingAllocations, toPersist)
+
+      for {
+      // Persist the changes
+        _ <- assessorAllocationRepo.delete(existingAllocations)
+        _ <- assessorAllocationRepo.save(toPersist).map(_ => ())// Notify users
+        _ <- notifyNewlyAllocatedAssessors(AssessorAllocations(newAllocations.eventId, newUsers))
+        _ <- notifyAllocationChangedAssessors(AssessorAllocations(newAllocations.eventId, changedUsers))
+        _ <- notifyRemovedAssessors(AssessorAllocations(newAllocations.eventId, removedUsers))
+      } yield ()
     } else {
       throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
     }
