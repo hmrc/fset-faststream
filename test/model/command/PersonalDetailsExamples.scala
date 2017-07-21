@@ -17,6 +17,7 @@
 package model.command
 
 import model.Address
+import model.persisted.PersonalDetails
 import org.joda.time.LocalDate
 
 object PersonalDetailsExamples {
@@ -24,4 +25,5 @@ object PersonalDetailsExamples {
   val completePersonalDetails = GeneralDetails("TestName", "TestSurname", "Jo Test", "jo@go.sx", LocalDate.parse("1972-11-23"),
     outsideUk = false, Address("Test street"), None, None, None, "098762532", None, None, None)
 
+  val personalDetails = PersonalDetails("TestName", "TestSurname", "Jo Test", LocalDate.parse("1972-11-23"), edipCompleted = None)
 }

@@ -19,6 +19,8 @@ package controllers
 import model.Exceptions._
 import model.command.GeneralDetails
 import model.command.GeneralDetailsExamples._
+import model.command.PersonalDetailsExamples.personalDetails
+import model.persisted.PersonalDetails
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -110,6 +112,21 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
     "return Not Found when person details cannot be found" in {
       when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.failed(PersonalDetailsNotFound(AppId)))
       val response = controller.find(UserId, AppId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
+    }
+  }
+
+  "find by application id" should {
+    "return a candidate's personal details" in {
+      when(mockCandidateDetailsService.find(AppId)).thenReturn(Future.successful(personalDetails))
+      val response = controller.findByApplicationId(AppId)(fakeRequest)
+      status(response) mustBe OK
+      contentAsJson(response) mustBe Json.toJson[PersonalDetails](personalDetails)
+    }
+
+    "return Not Found when personal details cannot be found" in {
+      when(mockCandidateDetailsService.find(AppId)).thenReturn(Future.failed(PersonalDetailsNotFound(AppId)))
+      val response = controller.findByApplicationId(AppId)(fakeRequest)
       status(response) mustBe NOT_FOUND
     }
   }

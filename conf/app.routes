@@ -3,6 +3,7 @@
 # Should it be PUT as calling this method twice does not create two users (idempotent operation)
 POST        /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.update(userId: String, applicationId: String)
 GET         /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.find(userId: String, applicationId: String)
+GET         /personal-details/:applicationId                             controllers.PersonalDetailsController.findByApplicationId(applicationId: String)
 
 POST        /fast-pass-evaluation/:userId/:applicationId                 controllers.FastPassApprovalController.processFastPassCandidate(userId: String, applicationId: String)
 

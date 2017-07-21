@@ -19,7 +19,7 @@ package services.personaldetails
 import model.ApplicationStatus._
 import model.Exceptions.FSACCSVIndicatorNotFound
 import model.FSACIndicator
-import model.persisted.{ ContactDetails }
+import model.persisted.{ PersonalDetails, ContactDetails }
 import repositories._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -63,6 +63,10 @@ trait PersonalDetailsService {
       contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
       Some(FSACIndicator(fsacIndicator)), contactDetails.country, contactDetails.phone, civilServiceExperienceDetails,
       personalDetails.edipCompleted)
+  }
+
+  def find(applicationId: String): Future[PersonalDetails] = {
+    pdRepository.find(applicationId).map { pd => pd }
   }
 
   def update(applicationId: String, userId: String, personalDetails: model.command.GeneralDetails): Future[Unit] = {
