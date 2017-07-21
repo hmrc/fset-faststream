@@ -1,15 +1,11 @@
 package repositories.assessmentcentre
 
-import model.EvaluationResults.Green
-import model.Phase3TestProfileExamples.phase3TestWithResult
-import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
-import model.command.ApplicationForSift
+import model.command.ApplicationForFsac
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.scalatest.concurrent.ScalaFutures
-import repositories.onlinetesting.Phase2EvaluationMongoRepositorySpec.phase2TestWithResult
 import repositories.{ CollectionNames, CommonRepository }
-import testkit.{ MockitoSugar, MongoRepositorySpec }
+import testkit.MongoRepositorySpec
 
 class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutures with CommonRepository {
 
@@ -44,9 +40,9 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
       whenReady(repository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
         appsForAc mustBe List(
-          ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
+          ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
-          ApplicationForSift("appId4", PassmarkEvaluation("", Some(""),
+          ApplicationForFsac("appId4", PassmarkEvaluation("", Some(""),
             List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toPassmark)), "", Some(""))))
       }
     }

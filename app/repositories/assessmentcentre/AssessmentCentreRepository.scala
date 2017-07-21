@@ -53,7 +53,7 @@ class AssessmentCentreMongoRepository (
       ))
     )
 
-    selectRandom[BSONDocument](query).map(_.map(doc => doc: ApplicationForFsac).filter { app =>
+    selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForFsac).filter { app =>
       app.evaluationResult.result.filter(_.result == EvaluationResults.Green.toPassmark).forall(s => !siftableSchemeIds.contains(s.schemeId))
     })
   }
