@@ -184,7 +184,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
     List(
       progressStatus.flatMap(_.getAs[Boolean]("personal-details").orElse(Some(false)).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](
-        "IN_PROGRESS").map(_.toString).orElse(progressStatusDates.flatMap(_.getAs[String]("in_progress")))
+        "IN_PROGRESS").map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("in_progress"))
       ),
       progressStatus.flatMap(_.getAs[Boolean]("scheme-preferences").orElse(Some(false)).map(_.toString)),
       progressStatus.flatMap(_.getAs[Boolean]("partner-graduate-programmes").orElse(Some(false)).map(_.toString)),
@@ -195,13 +195,23 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
       questionnaireStatus("occupation_questionnaire"),
       progressStatus.flatMap(_.getAs[Boolean]("preview").orElse(Some(false)).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](
-        ProgressStatuses.SUBMITTED.toString).map(_.toString).orElse(progressStatusDates.flatMap(_.getAs[String]("submitted")))
+        ProgressStatuses.SUBMITTED.toString).map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("submitted"))
       ),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_INVITED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_STARTED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_COMPLETED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString).map(_.toString)),
+      statusTimestamps.flatMap(_.getAs[DateTime](
+        ProgressStatuses.PHASE1_TESTS_INVITED.toString).map(_.toString)
+      ).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_INVITED"))),
+      statusTimestamps.flatMap(_.getAs[DateTime](
+        ProgressStatuses.PHASE1_TESTS_STARTED.toString
+      ).map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_STARTED"))),
+      statusTimestamps.flatMap(_.getAs[DateTime](
+        ProgressStatuses.PHASE1_TESTS_COMPLETED.toString
+      ).map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_COMPLETED"))),
+      statusTimestamps.flatMap(_.getAs[DateTime](
+        ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString).map(_.toString)
+      ).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_RESULTS_READY"))),
+      statusTimestamps.flatMap(_.getAs[DateTime](
+        ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString
+      ).map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_RESULTS_RECEIVED"))),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_PASSED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_INVITED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.toString).map(_.toString)),
