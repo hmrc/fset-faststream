@@ -28,6 +28,7 @@ trait Allocation {
   def status: AllocationStatus
   def version: String
   def userQueryKey: String
+  def userQueryValue: String
 }
 
 case class AssessorAllocation(
@@ -38,6 +39,7 @@ case class AssessorAllocation(
                                version: String
 ) extends Allocation {
   override val userQueryKey = "userId"
+  override val userQueryValue = userId
 }
 
 object AssessorAllocation {
@@ -57,6 +59,7 @@ case class CandidateAllocation(
                                 version: String
 ) extends Allocation {
   override val userQueryKey = "applicationId"
+  override val userQueryValue = applicationId
 }
 
 object CandidateAllocation {

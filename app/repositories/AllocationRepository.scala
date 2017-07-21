@@ -35,7 +35,7 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
 
   val projection = BSONDocument("_id" -> false)
 
-  def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[T]] = {
+  def find(id: String, key: String, status: Option[AllocationStatus] = None): Future[Seq[T]] = {
     val query = List(
       Some(BSONDocument("id" -> id)),
       status.map(s => BSONDocument("status" -> s))
@@ -57,10 +57,11 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
       eventIds.head
     }
 
-    val assessorOrApplicationId = allocations.map(_.userQueryKey)
+    val userQueryKey = allocations.map(_.userQueryKey).head
+    val userQueryValue = allocations.map(_.userQueryValue)
 
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("id" -> BSONDocument("$in" -> assessorOrApplicationId)),
+      BSONDocument(userQueryKey -> BSONDocument("$in" -> userQueryValue)),
       BSONDocument("eventId" -> eventId)
     ))
 

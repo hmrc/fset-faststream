@@ -69,7 +69,7 @@ trait AssessorAllocationService extends EventSink {
     candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
-  def allocate(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {
     assessorAllocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
       case Nil => assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations))
       case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations)
