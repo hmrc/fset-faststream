@@ -44,7 +44,6 @@ trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryH
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
-  def progressApplicationToSiftStage(application: ApplicationForSift): Future[Unit]
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
@@ -81,15 +80,6 @@ class ApplicationSiftMongoRepository(
         ApplicationForSift(applicationId, phase3Evaluation)
       }
     }
-  }
-
-  def progressApplicationToSiftStage(application: ApplicationForSift): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> application.applicationId) ++ eligibleForSiftQuery
-    val update = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT)
-
-    val validator = singleUpdateValidator(application.applicationId, "progressing to sift stage")
-
-    collection.update(query, update) map validator
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]] = {

@@ -24,14 +24,14 @@ object QuestionnaireReportItemExamples {
   val NoParentOccupation2 = QuestionnaireReportItem(Some("Female"), Some("Bisexual"), Some("Other White background"),
       None, None, None, None, "SE-2", Some("O33-OXF"))
 
-  lazy val questionnaire1 = newQuestionnaire
-  lazy val questionnaire2 = newQuestionnaire
+  val questionnaire1 = newQuestionnaire
+  val questionnaire2 = newQuestionnaire
 
   def newQuestionnaire =
     QuestionnaireReportItem(someRnd("Gender"), someRnd("Orientation"), someRnd("Ethnicity"),
       someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"), rnd("SES"),
       someRnd("university"))
 
-  def someRnd(prefix: String) = Some(rnd(prefix))
+  def someRnd(prefix: String): Option[String] = Some(rnd(prefix))
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
 }
