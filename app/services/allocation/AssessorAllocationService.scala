@@ -71,42 +71,13 @@ trait AssessorAllocationService extends EventSink {
 
   def allocate(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
     assessorAllocationRepo.allocationsForEvent(newAllocations.eventId).flatMap {
-      case Nil =>
-        for {
-          _ <- assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations))
-          _ <- notifyNewlyAllocatedAssessors(newAllocations)
-        } yield ()
+      case Nil => assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations))
       case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations)
     }
   }
 
   private val dateFormat = "dd MMMM YYYY"
   private val timeFormat = "HH:mma"
-
-  private def notifyNewlyAllocatedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    val x = (for {
-      eventDetails <- eventsService.getEvent(newAllocations.eventId)
-      contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
-    } yield for {
-      contactDetail <- contactDetails
-      contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
-        throw new Exception("Could not find contact details for assessor user")
-      )
-      allocationForUser = newAllocations.allocations.find(_.id == contactDetailsForUser.userId).get
-    } yield {
-      emailClient.sendAssessorAllocatedToEvent(
-        contactDetailsForUser.email,
-        contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
-        eventDetails.date.toString("d MMMM YYYY"),
-        allocationForUser.allocatedAs.displayText,
-        eventDetails.eventType.toString,
-        eventDetails.location.name,
-        eventDetails.startTime.toString("ha")
-      )
-    }).map(_ => ())
-
-    x
-  }
 
   def allocateCandidates(newAllocations: command.CandidateAllocations)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
