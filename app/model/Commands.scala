@@ -33,6 +33,7 @@ import model.command.{ AssessmentCentre, ProgressResponse }
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.{ CandidateProgressReportItem, QuestionnaireReportItem }
+import reactivemongo.bson.BSONDocumentReader
 
 //scalastyle:off
 object Commands {
@@ -177,7 +178,9 @@ object Commands {
 
     def name: String = preferredName.getOrElse(firstName.getOrElse(""))
   }
-  object Candidate { implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate] }
+  object Candidate {
+    implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate]
+  }
 
   case class ApplicationAssessment(applicationId: String, venue: String, date: LocalDate, session: String, slot: Int, confirmed: Boolean) {
     val assessmentDateTime: DateTime = {
@@ -211,9 +214,9 @@ object Commands {
   object ApplicationAssessment { implicit val applicationAssessmentFormat: OFormat[ApplicationAssessment] = Json.format[ApplicationAssessment] }
 
   case class AssessmentCentrePassMarkSettingsResponse(
-                                                       schemes: List[AssessmentCentrePassMarkScheme],
-                                                       info: Option[AssessmentCentrePassMarkInfo]
-                                                     )
+    schemes: List[AssessmentCentrePassMarkScheme],
+    info: Option[AssessmentCentrePassMarkInfo]
+  )
 
   object Implicits {
     implicit val addressFormat: OFormat[Address] = Json.format[Address]
