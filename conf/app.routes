@@ -53,7 +53,7 @@ PUT         /questionnaire/:applicationId/:sectionKey                    control
 GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
 POST        /search/find-by-criteria                                     controllers.SearchForApplicantsController.findByCriteria
 
-GET         /applications/sifting/:schemeId                              controllers.SiftingController.findApplicationsReadyForSifting(schemeId: String)
+GET         /applications/sifting/:schemeId                              controllers.SiftingController.findApplicationsReadyForSchemeSifting(schemeId: String)
 PUT         /applications/sifting                                        controllers.SiftingController.siftCandidateApplication
 
 GET         /report/diversity/:frameworkId                               controllers.ReportingController.diversityReport(frameworkId: String)

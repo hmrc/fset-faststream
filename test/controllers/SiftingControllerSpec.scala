@@ -24,24 +24,24 @@ import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
-import repositories.sifting.SiftingRepository
+import services.sift.ApplicationSiftService
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
 class SiftingControllerSpec extends UnitWithAppSpec {
-  val mockSiftingRepo = mock[SiftingRepository]
+  val mockSiftService = mock[ApplicationSiftService]
 
   val controller = new SiftingController {
-    override val siftAppRepository: SiftingRepository = mockSiftingRepo
+    val siftService = mockSiftService
   }
 
   private val Commercial = SchemeId("Commercial")
 
   "findApplicationsReadyForSifting" should {
     "return list of candidates" in {
-      when(mockSiftingRepo.findApplicationsReadyForSifting(any[SchemeId])).thenReturn(Future.successful(CandidateExamples.NewCandidates))
-      val response = controller.findApplicationsReadyForSifting(Commercial.toString)(fakeRequest)
+      when(mockSiftService.findApplicationsReadyForSchemeSift(any[SchemeId])).thenReturn(Future.successful(CandidateExamples.NewCandidates))
+      val response = controller.findApplicationsReadyForSchemeSifting(Commercial.toString)(fakeRequest)
       status(response) mustBe OK
       contentAsString(response) mustBe Json.toJson[List[Candidate]](CandidateExamples.NewCandidates).toString()
     }
@@ -52,10 +52,10 @@ class SiftingControllerSpec extends UnitWithAppSpec {
       val appSifting = ApplicationSifting("app1", Commercial, "Pass")
       val request = fakeRequest(appSifting)
       val result = SchemeEvaluationResult(Commercial, "Green")
-      when(mockSiftingRepo.siftCandidateApplication("app1", result)).thenReturn(Future.successful(()))
+      when(mockSiftService.siftApplicationForScheme("app1", result)).thenReturn(Future.successful(()))
       val response = controller.siftCandidateApplication(request)
       status(response) mustBe OK
-      verify(mockSiftingRepo).siftCandidateApplication("app1", result)
+      verify(mockSiftService).siftApplicationForScheme("app1", result)
     }
   }
 }

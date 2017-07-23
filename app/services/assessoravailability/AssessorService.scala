@@ -135,14 +135,12 @@ trait AssessorService {
   ): Future[SerialUpdateResult[UpdateAllocationStatusRequest]] = {
 
     val rawResult = FutureEx.traverseSerial(statusUpdates) { statusUpdate =>
-      SerialUpdateResult.futureToEither(statusUpdate,
+      FutureEx.futureToEither(statusUpdate,
         allocationRepo.updateAllocationStatus(statusUpdate.assessorId, statusUpdate.eventId, statusUpdate.newStatus)
       )
     }
 
-    rawResult.map { result =>
-      SerialUpdateResult.fromEither(result)
-    }
+    rawResult.map(SerialUpdateResult.fromEither)
 
   }
 
