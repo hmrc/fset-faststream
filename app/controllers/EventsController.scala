@@ -120,4 +120,11 @@ trait EventsController extends BaseController {
       }
     }
   }
+
+  def removeCandidateAllocations(eventId: String, sessionId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
+      //TODO: fset-1667 Delete allocations and move candidate's application to ASSESSMENT_CENTRE_AWAITING_ALLOCATION
+      Future.successful(Ok)
+    }
+  }
 }

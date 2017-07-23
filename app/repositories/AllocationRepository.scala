@@ -18,6 +18,7 @@ package repositories
 
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.TooManyEventIdsException
+import model.exchange.CandidateAllocations
 import model.persisted.{ Allocation, AssessorAllocation, CandidateAllocation }
 import play.api.libs.json.{ JsObject, OFormat }
 import reactivemongo.api.DB
@@ -100,4 +101,10 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats
   ) with AllocationRepository[CandidateAllocation] with ReactiveRepositoryHelpers {
   val format: OFormat[CandidateAllocation] = CandidateAllocation.candidateAllocationFormat
+
+  def removeCandidateAllocations(allocations: Seq[CandidateAllocations]): Future[Unit] = {
+    //TODO: Remove allocations based on id, eventId and sessionId
+//    val query = BSONDocument("id" -> allocations.applicationId, "eventId" -> eventId, "sessionId" -> sessionId)
+    ???
+  }
 }
