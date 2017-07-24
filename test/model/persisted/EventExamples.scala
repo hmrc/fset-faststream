@@ -90,25 +90,4 @@ object EventExamples {
           12, 4, LocalTime.parse("10:30:00.000"), LocalTime.parse("12:00:00.000")))
     )
   )
-
-  val YamlFsbTypes = List(
-    FsbType("SAC"),
-    FsbType("SRAC"),
-    FsbType("ORAC"),
-    FsbType("EAC"),
-    FsbType("GOV COMS"),
-    FsbType("DAT"),
-    FsbType("SEFS"),
-    FsbType("FCO"),
-    FsbType("P&D"),
-    FsbType("FIFS"),
-    FsbType("COMMERCIAL"),
-    FsbType("HOP")
-  )
-
-  val YamlTelephoneInterviewTypes = List(
-    TelephoneInterviewType("EDIP", "Early Diversity Internship Program"),
-    TelephoneInterviewType("SDIP", "Summer Diversity Internship Program")
-  )
-
 }

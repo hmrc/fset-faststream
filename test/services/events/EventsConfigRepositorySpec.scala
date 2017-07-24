@@ -24,6 +24,7 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
+import persisted.{ FsbTypeExamples, TelephoneInterviewTypeExamples }
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.Future
@@ -163,8 +164,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
       }
 
       val fsbTypes = repo.fsbTypes.futureValue
-      fsbTypes shouldBe EventExamples.YamlFsbTypes
-
+      fsbTypes shouldBe FsbTypeExamples.YamlFsbTypes
     }
 
     "parse Telephone Interview types" in {
@@ -182,7 +182,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
       }
 
       val fsbTypes = repo.telephoneInterviewTypes.futureValue
-      fsbTypes shouldBe EventExamples.YamlTelephoneInterviewTypes
+      fsbTypes shouldBe TelephoneInterviewTypeExamples.YamlTelephoneInterviewTypes
     }
   }
 }
