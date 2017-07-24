@@ -150,4 +150,5 @@ GET         /reference/telephone-interview-types                         control
 
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
 GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations
+GET         /reference/locations-with-venues                             controllers.reference.LocationAndVenueController.locationsWithVenues
 
