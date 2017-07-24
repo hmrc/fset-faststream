@@ -35,7 +35,7 @@ private object Versions {
 
   val pegdown                       = "1.6.0"
   val mockito                       = "2.2.17"
-  val scalatestplus                 = "1.5.1"
+  val scalatestplus                 = "2.0.1"
  }
 
 
@@ -71,7 +71,8 @@ private object AppDependencies {
       "org.mockito" % "mockito-core" % mockito % scope,
       "org.scalatestplus.play" %% "scalatestplus-play" % scalatestplus % scope,
       "org.pegdown" % "pegdown" % pegdown % scope,
-      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2")
+      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
+      "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % scope
     )
   }
 

@@ -17,8 +17,6 @@
 package model
 
 
-import scala.concurrent.{ ExecutionContext, Future }
-
 case class SerialUpdateResult[UpdateRequest](
   failures: Seq[UpdateRequest],
   successes: Seq[UpdateRequest]
@@ -27,6 +25,7 @@ case class SerialUpdateResult[UpdateRequest](
   import model.SerialUpdateResult.Result
 
   def result: Result.Value = (successes, failures) match {
+    case (Nil, Nil) => Result.NO_OP
     case (Nil, _) => Result.FAILURE
     case (_, Nil) => Result.SUCCESS
     case (_, _) => Result.PARTIAL
@@ -37,24 +36,19 @@ case class SerialUpdateResult[UpdateRequest](
 object SerialUpdateResult {
 
   object Result extends Enumeration {
-    val SUCCESS, FAILURE, PARTIAL = Value
+    val SUCCESS, FAILURE, PARTIAL, NO_OP = Value
   }
 
   def fromEither[T](results: Seq[Either[T, T]]): SerialUpdateResult[T] = {
 
-    results.foldLeft(List.empty[T], List.empty[T]){ case (acc, res) =>
+    val (f, s) = results.foldLeft(List.empty[T], List.empty[T]){ case (acc, res) =>
+      val (failures, successes) = acc
       res match {
-        case Left(l) => (acc._1 :+ l, acc._2)
-        case Right(r) => (acc._1, acc._2 :+ r)
+        case Left(l) => ( failures :+ l, successes)
+        case Right(r) => (failures, successes :+ r)
       }
-    } match {
-      case (f, Nil) => SerialUpdateResult(f, Nil)
-      case (Nil, s) => SerialUpdateResult(Nil, s)
-      case (f, s) => SerialUpdateResult(f, s)
     }
-  }
 
-  def futureToEither[T](updateReq: T, result: Future[Unit])(implicit ex: ExecutionContext): Future[Either[T, T]] = {
-    result.map { _ => Right(updateReq) }.recover { case _: Exception => Left(updateReq) }
+    SerialUpdateResult(f, s)
   }
 }

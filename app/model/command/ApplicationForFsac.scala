@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package controllers.reference
+package model.command
 
-import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import model.persisted.PassmarkEvaluation
+import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.BSONDocument
 
-import scala.concurrent.ExecutionContext.Implicits.global
+case class ApplicationForFsac(
+  applicationId: String,
+  evaluationResult: PassmarkEvaluation
+)
 
-object SchemesController extends SchemesController{
-  val repo = SchemeYamlRepository
-}
+object ApplicationForFsac {
+  implicit val applicationForFsacFormat: OFormat[ApplicationForFsac] = Json.format[ApplicationForFsac]
 
-trait SchemesController extends BaseController {
-  def repo: SchemeRepositoryImpl
 
-  def allSchemes: Action[AnyContent] = Action { implicit request =>
-    Ok(Json.toJson(repo.schemes))
-  }
 }

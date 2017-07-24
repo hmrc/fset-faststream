@@ -60,22 +60,15 @@ trait EventsController extends BaseController {
   }
 
   def getEvents(eventTypeParam: String, venueParam: String): Action[AnyContent] = Action.async { implicit request =>
-    val events = Try {
-      val eventType = EventType.withName(eventTypeParam.toUpperCase)
-      locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
-        eventsService.getEvents(eventType, venue).map { events =>
-          if (events.isEmpty) {
-            NotFound
-          } else {
-            Ok(Json.toJson(events))
-          }
+    locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
+      eventsService.getEvents(EventType.withName(eventTypeParam.toUpperCase), venue).map { events =>
+        if (events.isEmpty) {
+          NotFound
+        } else {
+          Ok(Json.toJson(events))
         }
       }
-    }
-
-    play.api.Logger.debug(s"$events")
-
-    Future.fromTry(events) flatMap identity recover {
+    } recover {
       case _: NoSuchElementException => BadRequest(s"$eventTypeParam is not a valid event type")
       case _: UnknownVenueException => BadRequest(s"$venueParam is not a valid venue")
     }

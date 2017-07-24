@@ -105,21 +105,21 @@ object ProgressStatuses {
   case object PHASE3_TESTS_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
   case object FAST_PASS_ACCEPTED extends ProgressStatus(ApplicationStatus.FAST_PASS_ACCEPTED)
 
-  case object ASSESSMENT_CENTRE_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
-
-  case object ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
-  case object ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
-
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
+  case object ALL_SCHEMES_SIFT_ENTERED extends ProgressStatus(ApplicationStatus.SIFT)
+  case object ALL_SCHEMES_SIFT_COMPLETED extends ProgressStatus(ApplicationStatus.SIFT)
+
+  case object ASSESSMENT_CENTRE_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+  case object ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+  case object ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_SCORES_ACCEPTED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
-  case object ASSESSMENT_CENTRE_PASSED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED)
-  case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED)
-  case object ASSESSMENT_CENTRE_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED_NOTIFIED)
-  case object ASSESSMENT_CENTRE_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED_NOTIFIED)
+  case object ASSESSMENT_CENTRE_PASSED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+  case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+
 
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)
@@ -141,7 +141,7 @@ object ProgressStatuses {
     PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED
   }
 
-  def nameToProgressStatus(name: String) = nameToProgressStatusMap(name.toLowerCase)
+  def nameToProgressStatus(name: String): ProgressStatus = nameToProgressStatusMap(name.toLowerCase)
 
   // Reflection is generally 'A bad thing' but in this case it ensures that all progress statues are taken into account
   // Had considered an implementation with a macro, but that would need defining in another compilation unit
@@ -173,7 +173,8 @@ object ProgressStatuses {
     if (matching.size == 1) matching.headOption else None
   }
 
-  def progressesByApplicationStatus(applicationStatuses: ApplicationStatus*) = {
+  @deprecated("This is not exhaustive, do not use please.", "July 2017")
+  def progressesByApplicationStatus(applicationStatuses: ApplicationStatus*): Seq[ProgressStatus] = {
     allStatuses.filter(st => applicationStatuses.contains(st.applicationStatus))
   }
 }

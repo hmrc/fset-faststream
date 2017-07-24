@@ -17,7 +17,7 @@
 package repositories
 
 import config.MicroserviceAppConfig
-import model.Scheme
+import model.{ Scheme, SchemeId }
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
 import play.api.Play
@@ -29,7 +29,7 @@ import scala.io.Source
 
 
 object SchemeConfigProtocol extends DefaultYamlProtocol {
-  implicit val schemeFormat = yamlFormat3((a: String, b: String ,c: String) => Scheme(a,b,c))
+  implicit val schemeFormat = yamlFormat4((a: String, b: String ,c: String, d: Boolean) => Scheme(a,b,c, d))
 }
 
 trait SchemeRepositoryImpl {
@@ -41,11 +41,13 @@ trait SchemeRepositoryImpl {
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
 
-  lazy val schemes = Future {
+  lazy val schemes: Seq[Scheme] = {
     import SchemeConfigProtocol._
 
     rawConfig.parseYaml.convertTo[List[Scheme]]
   }
+
+  def siftableSchemeIds: Seq[SchemeId] = schemes.filter(_.requiresSift).map(_.id)
 }
 
 object SchemeYamlRepository extends SchemeRepositoryImpl
