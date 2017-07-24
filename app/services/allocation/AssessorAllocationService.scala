@@ -202,16 +202,20 @@ trait AssessorAllocationService extends EventSink {
     // Check for changes to the assessor guest list
     val changedUsers = existingAllocations.flatMap { existingAllocation =>
       newAllocations.find(_.id == existingAllocation.id).flatMap { matchingItem =>
-        if (!matchingItem.ignoreVersionEquals(existingAllocation)) {
-          Some(existingAllocation)
+        if (matchingItem != existingAllocation) {
+          Some(matchingItem)
         } else {
           None
         }
       }
     }
 
-    val removedUsers = existingAllocations.filterNot(changedUsers.contains).filterNot(newAllocations.contains)
-    val newUsers = newAllocations.filterNot(changedUsers.contains).filterNot(existingAllocations.contains)
+    val removedUsers = existingAllocations
+      .filterNot(user => changedUsers.exists(_.id == user.id))
+      .filterNot(user => newAllocations.exists(_.id == user.id))
+    val newUsers = newAllocations
+      .filterNot(user => changedUsers.exists(_.id == user.id))
+      .filterNot(user => existingAllocations.exists(_.id == user.id))
 
     (changedUsers, removedUsers, newUsers)
   }
@@ -226,12 +230,10 @@ trait AssessorAllocationService extends EventSink {
       val (changedUsers, removedUsers, newUsers) = getAllocationDifferences(existingAllocations, toPersist)
 
       for {
-      // Persist the changes
+        // Persist the changes
         _ <- assessorAllocationRepo.delete(existingAllocations)
-        _ <- assessorAllocationRepo.save(toPersist).map(_ => ())// Notify users
-        _ = Logger.warn("================ NEW = " + newUsers)
-        _ = Logger.warn("================ CHANGED = " + changedUsers)
-        _ = Logger.warn("================ REMOVED = " + removedUsers)
+        _ <- assessorAllocationRepo.save(toPersist).map(_ => ())
+        // Notify users
         _ <- notifyNewlyAllocatedAssessors(AssessorAllocations(newAllocations.eventId, newUsers))
         _ <- notifyAllocationChangedAssessors(AssessorAllocations(newAllocations.eventId, changedUsers))
         _ <- notifyAllocationUnallocatedAssessors(AssessorAllocations(newAllocations.eventId, removedUsers))

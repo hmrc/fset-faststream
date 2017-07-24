@@ -36,10 +36,7 @@ case class AssessorAllocation(
   status: AllocationStatus,
   allocatedAs: SkillType,
   version: String
-) extends Allocation {
-  def ignoreVersionEquals(allocation: AssessorAllocation): Boolean =
-    (id, eventId, status, allocatedAs).## == (allocation.id, allocation.eventId, allocation.status, allocation.allocatedAs).##
-}
+) extends Allocation
 
 object AssessorAllocation {
   implicit val assessorAllocationFormat: OFormat[AssessorAllocation] = Json.format[AssessorAllocation]
