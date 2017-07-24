@@ -151,25 +151,25 @@ object DataFaker {
     */
 
     def schemeTypes = randList(List(
-        Scheme("Commercial", "CFS", "Commercial"),
-        Scheme("DigitalAndTechnology", "DaT", "Digital And Technology"),
-        Scheme("DiplomaticService", "DS", "Diplomatic Service"),
-        Scheme("DiplomaticServiceEconomics", "DSE", "Diplomatic Service Economics"),
-        Scheme("DiplomaticServiceEuropean", "EFSDS", "Diplomatic Service European"),
-        Scheme("European", "EFS", "European"),
-        Scheme("Finance", "FIFS", "Finance"),
-        Scheme("Generalist", "GFS", "Generalist"),
-        Scheme("GovernmentCommunicationService", "GCFS", "Government Communication Service"),
-        Scheme("GovernmentEconomicsService", "GES", "Government Economics Service"),
-        Scheme("GovernmentOperationalResearchService", "GORS", "Government Operational Research Service"),
-        Scheme("GovernmentSocialResearchService", "GSR", "Government Social Research Service"),
-        Scheme("GovernmentStatisticalService", "GSS", "Government Statistical Service"),
-        Scheme("HousesOfParliament", "HoP", "Houses Of Parliament"),
-        Scheme("HumanResources", "HRFS", "Human Resources"),
-        Scheme("ProjectDelivery", "PDFS", "Project Delivery"),
-        Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering"),
-        Scheme("Edip", "EDIP", "Early Diversity Internship Programme"),
-        Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme")
+        Scheme("Commercial", "CFS", "Commercial", true),
+        Scheme("DigitalAndTechnology", "DaT", "Digital And Technology", true),
+        Scheme("DiplomaticService", "DS", "Diplomatic Service", true),
+        Scheme("DiplomaticServiceEconomics", "DSE", "Diplomatic Service Economics", true),
+        Scheme("DiplomaticServiceEuropean", "EFSDS", "Diplomatic Service European", true),
+        Scheme("European", "EFS", "European", true),
+        Scheme("Finance", "FIFS", "Finance", true),
+        Scheme("Generalist", "GFS", "Generalist", true),
+        Scheme("GovernmentCommunicationService", "GCFS", "Government Communication Service", true),
+        Scheme("GovernmentEconomicsService", "GES", "Government Economics Service", true),
+        Scheme("GovernmentOperationalResearchService", "GORS", "Government Operational Research Service", true),
+        Scheme("GovernmentSocialResearchService", "GSR", "Government Social Research Service", true),
+        Scheme("GovernmentStatisticalService", "GSS", "Government Statistical Service", true),
+        Scheme("HousesOfParliament", "HoP", "Houses Of Parliament", true),
+        Scheme("HumanResources", "HRFS", "Human Resources", true),
+        Scheme("ProjectDelivery", "PDFS", "Project Delivery", true),
+        Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering", true),
+        Scheme("Edip", "EDIP", "Early Diversity Internship Programme", true),
+        Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", true)
     ), randNumberOfSchemes())
 
     def gender = randOne(List(

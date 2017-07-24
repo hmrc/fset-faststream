@@ -11,16 +11,19 @@ import model.ProgressStatuses.ProgressStatus
 import model.persisted._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model._
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.Assert._
 import org.scalatest.concurrent.ScalaFutures
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONArray, BSONDocument}
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting._
 import repositories.passmarksettings._
+import repositories.sift.{ApplicationSiftMongoRepository, ApplicationSiftRepository}
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
+
+import scala.concurrent.Future
 
 
 trait CommonRepository {
@@ -56,6 +59,8 @@ trait CommonRepository {
 
   def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
 
+  def applicationSiftRepository(schemeDefinitions: List[Scheme]) = new ApplicationSiftMongoRepository(DateTimeFactory, schemeDefinitions)
+
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
   def selectedSchemes(schemeTypes: List[SchemeId]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
@@ -77,7 +82,6 @@ trait CommonRepository {
     phase1PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
   )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
-    assertNotNull("Phase1 pass mark evaluation must be set", phase1PassMarkEvaluation)
     val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
     val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
     val etrayTest = getEtrayTest.copy(cubiksUserId = 3, testResult = Some(TestResult("Ready", "norm", Some(etray), None, None, None)))
@@ -92,12 +96,35 @@ trait CommonRepository {
     phase2PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
   )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
-    assertNotNull("Phase2 pass mark evaluation must be set", phase2PassMarkEvaluation)
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
     phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None)
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, applicationRoute, isGis = false,
       Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
+  }
+
+  def insertApplicationWithPhase3TestNotifiedResults(appId: String, scheme: SchemeId, result: EvaluationResults.Result,
+                             videoInterviewScore: Option[Double] = None,
+                             applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+                            ): Future[Unit] = {
+    val phase3PassMarkEvaluation = PassmarkEvaluation("", Some(""),
+      List(SchemeEvaluationResult(scheme,
+        result.toPassmark)), "", Some(""))
+
+    val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
+    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
+
+    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None).futureValue
+
+    updateApplicationStatus(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+  }
+
+  def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
+    val application = BSONDocument("applicationId" -> appId)
+    val update = BSONDocument(
+      "$set" -> BSONDocument(s"applicationStatus" -> newStatus)
+    )
+    applicationRepository.collection.update(application, update).map {_ => ()}
   }
 
   // scalastyle:off

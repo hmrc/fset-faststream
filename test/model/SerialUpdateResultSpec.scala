@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import common.FutureEx
 import model.SerialUpdateResult
 import testkit.UnitSpec
 
@@ -36,10 +37,13 @@ class SerialUpdateResultSpec extends UnitSpec {
 
       actual mustBe expected
     }
+  }
+
+  "FutureEx utils" must {
 
     "construct a Left[T] from a future failed" in {
       val f = Future.failed(new Exception("Something went wrong"))
-      val actual = SerialUpdateResult.futureToEither("blah", f).futureValue
+      val actual = FutureEx.futureToEither("blah", f).futureValue
       val expected = Left("blah")
 
       actual mustBe expected
@@ -47,7 +51,7 @@ class SerialUpdateResultSpec extends UnitSpec {
 
     "construct a Right[T] from a future success" in {
       val f = Future.successful(unit)
-      val actual = SerialUpdateResult.futureToEither("blah", f).futureValue
+      val actual = FutureEx.futureToEither("blah", f).futureValue
       val expected = Right("blah")
 
       actual mustBe expected

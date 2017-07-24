@@ -42,7 +42,7 @@ object SchemeId {
   * @param code The abbreviated form
   * @param name The form displayed to end users
   */
-case class Scheme(id: SchemeId, code: String, name: String)
+case class Scheme(id: SchemeId, code: String, name: String, requiresSift: Boolean)
 
 
 
@@ -50,5 +50,5 @@ object Scheme {
   implicit val schemeFormat = Json.format[Scheme]
   implicit val schemeHandler = Macros.handler[Scheme]
 
-  def apply(id: String, code: String, name: String): Scheme = Scheme(SchemeId(id), code, name)
+  def apply(id: String, code: String, name: String, requiresSift: Boolean): Scheme = Scheme(SchemeId(id), code, name, requiresSift)
 }

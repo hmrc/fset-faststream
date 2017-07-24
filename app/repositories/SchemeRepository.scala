@@ -29,7 +29,7 @@ import scala.io.Source
 
 
 object SchemeConfigProtocol extends DefaultYamlProtocol {
-  implicit val schemeFormat = yamlFormat3((a: String, b: String ,c: String) => Scheme(a,b,c))
+  implicit val schemeFormat = yamlFormat4((a: String, b: String ,c: String, d: Boolean) => Scheme(a,b,c, d))
 }
 
 trait SchemeRepositoryImpl {
@@ -41,11 +41,13 @@ trait SchemeRepositoryImpl {
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
 
-  lazy val schemes = Future {
+  lazy val schemes: Seq[Scheme] = {
     import SchemeConfigProtocol._
 
     rawConfig.parseYaml.convertTo[List[Scheme]]
   }
+
+  def siftableSchemes: Seq[Scheme] = schemes.filter(_.requiresSift)
 }
 
 object SchemeYamlRepository extends SchemeRepositoryImpl

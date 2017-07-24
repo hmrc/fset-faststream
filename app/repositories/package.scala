@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-import model.persisted.assessor.Assessor
-import factories.DateTimeFactory
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
-import model.command.WithdrawApplication
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
 import factories.DateTimeFactory
-import model.persisted._
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
-import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
@@ -36,15 +31,15 @@ import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
-import model.persisted.assessor.{ Assessor, AssessorAvailability }
+import model.command.WithdrawApplication
 import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
-import repositories.fsacindicator.{ FSACIndicatorMongoRepository, FSACIndicatorRepository }
 import repositories.events.EventsMongoRepository
-import repositories.sifting.SiftingMongoRepository
+import repositories.fsacindicator.FSACIndicatorMongoRepository
+import repositories.sift.ApplicationSiftMongoRepository
 import repositories.stc.StcEventMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -76,7 +71,6 @@ package object repositories {
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
   lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)
-  lazy val siftingRepository = new SiftingMongoRepository()
   lazy val reportingRepository = new ReportingMongoRepository(timeZoneService)
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
@@ -98,6 +92,7 @@ package object repositories {
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
+  lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemes)
 
 
   /** Create indexes */
