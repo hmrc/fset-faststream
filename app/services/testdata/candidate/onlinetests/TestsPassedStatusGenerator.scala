@@ -18,6 +18,7 @@ package services.testdata.candidate.onlinetests
 
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import factories.UUIDFactory
+import model.EvaluationResults
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED, PHASE2_TESTS_PASSED, PHASE3_TESTS_PASSED, ProgressStatus }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import model.testdata.CreateCandidateData.CreateCandidateData
@@ -42,7 +43,9 @@ object Phase1TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   def passmarkEvaluation(generatorConfig: CreateCandidateData, dgr: CreateCandidateResponse): PassmarkEvaluation = {
     generatorConfig.phase1TestData.flatMap(_.passmarkEvaluation)
       .getOrElse {
-        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme, "Green"))).getOrElse(Nil)
+        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme =>
+          SchemeEvaluationResult(scheme, EvaluationResults.Green.toPassmark))
+        ).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
         val resultVersion = UUIDFactory.generateUUID().toString
         PassmarkEvaluation(passmarkVersion, None, schemeEvaluation, resultVersion, None)
@@ -62,7 +65,9 @@ object Phase2TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   def passmarkEvaluation(generatorConfig: CreateCandidateData, dgr: CreateCandidateResponse): PassmarkEvaluation =
     generatorConfig.phase2TestData.flatMap(_.passmarkEvaluation)
       .getOrElse {
-        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme, "Green"))).getOrElse(Nil)
+        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme,
+          EvaluationResults.Green.toPassmark
+        ))).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
         val resultVersion = UUIDFactory.generateUUID().toString
         PassmarkEvaluation(passmarkVersion, dgr.phase1TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)),
@@ -83,7 +88,9 @@ object Phase3TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   def passmarkEvaluation(generatorConfig: CreateCandidateData, dgr: CreateCandidateResponse): PassmarkEvaluation =
     generatorConfig.phase3TestData.flatMap(_.passmarkEvaluation)
       .getOrElse {
-        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme, "Green"))).getOrElse(Nil)
+        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme,
+          EvaluationResults.Green.toPassmark
+        ))).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
         val resultVersion = UUIDFactory.generateUUID().toString
         PassmarkEvaluation(passmarkVersion, dgr.phase2TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)),
