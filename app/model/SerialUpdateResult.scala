@@ -42,9 +42,10 @@ object SerialUpdateResult {
   def fromEither[T](results: Seq[Either[T, T]]): SerialUpdateResult[T] = {
 
     val (f, s) = results.foldLeft(List.empty[T], List.empty[T]){ case (acc, res) =>
+      val (failures, successes) = acc
       res match {
-        case Left(l) => (acc._1 :+ l, acc._2)
-        case Right(r) => (acc._1, acc._2 :+ r)
+        case Left(l) => ( failures :+ l, successes)
+        case Right(r) => (failures, successes :+ r)
       }
     }
 

@@ -68,6 +68,7 @@ object CandidateStatusGeneratorFactory {
         case PHASE3_TESTS_PASSED => Phase3TestsPassedStatusGenerator
         case PHASE3_TESTS_FAILED => Phase3TestsFailedStatusGenerator
         case PHASE3_TESTS_PASSED_NOTIFIED => Phase3TestsPassedNotifiedStatusGenerator
+        case SIFT => SiftStatusGenerator
       }
       case (SUBMITTED, Some(ProgressStatuses.SUBMITTED)) => SubmittedStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PERSONAL_DETAILS)) => InProgressPersonalDetailsStatusGenerator
@@ -120,6 +121,8 @@ object CandidateStatusGeneratorFactory {
       case (PHASE3_TESTS_PASSED_NOTIFIED, Some(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED)) => Phase3TestsPassedNotifiedStatusGenerator
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED)) => Phase3TestsFailedNotifiedStatusGenerator
+
+      case (SIFT, Some(ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED)) => SiftStatusGenerator
 
       case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")

@@ -17,7 +17,7 @@
 package repositories
 
 import config.MicroserviceAppConfig
-import model.Scheme
+import model.{ Scheme, SchemeId }
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
 import play.api.Play
@@ -47,7 +47,7 @@ trait SchemeRepositoryImpl {
     rawConfig.parseYaml.convertTo[List[Scheme]]
   }
 
-  def siftableSchemes: Seq[Scheme] = schemes.filter(_.requiresSift)
+  def siftableSchemeIds: Seq[SchemeId] = schemes.filter(_.requiresSift).map(_.id)
 }
 
 object SchemeYamlRepository extends SchemeRepositoryImpl

@@ -11,15 +11,16 @@ import model.ProgressStatuses.ProgressStatus
 import model.persisted._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model._
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.junit.Assert._
 import org.scalatest.concurrent.ScalaFutures
-import reactivemongo.bson.{BSONArray, BSONDocument}
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 import repositories.application.GeneralApplicationMongoRepository
+import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting._
 import repositories.passmarksettings._
-import repositories.sift.{ApplicationSiftMongoRepository, ApplicationSiftRepository}
+import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
@@ -59,7 +60,9 @@ trait CommonRepository {
 
   def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
 
-  def applicationSiftRepository(schemeDefinitions: List[Scheme]) = new ApplicationSiftMongoRepository(DateTimeFactory, schemeDefinitions)
+  def applicationSiftRepository(schemeDefinitions: List[SchemeId]) = new ApplicationSiftMongoRepository(DateTimeFactory, schemeDefinitions)
+
+  def assessmentCentreRepository(schemeDefinitions: List[SchemeId]) = new AssessmentCentreMongoRepository(DateTimeFactory, schemeDefinitions)
 
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
