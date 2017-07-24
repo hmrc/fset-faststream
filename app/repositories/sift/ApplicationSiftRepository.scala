@@ -40,7 +40,7 @@ trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryH
 
   def thisApplicationStatus: ApplicationStatus
   def dateTime: DateTimeFactory
-  def siftableSchemes: Seq[Scheme]
+  def siftableSchemeIds: Seq[SchemeId]
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
@@ -52,7 +52,7 @@ trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryH
 
 class ApplicationSiftMongoRepository(
   val dateTime: DateTimeFactory,
-  val siftableSchemes: Seq[Scheme]
+  val siftableSchemeIds: Seq[SchemeId]
 )(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationForSift, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationForSift.applicationForSiftFormat,
@@ -66,7 +66,7 @@ class ApplicationSiftMongoRepository(
   val eligibleForSiftQuery = BSONDocument("$and" -> BSONArray(
     BSONDocument("applicationStatus" -> prevPhase),
     BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
-      BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemes.map(_.id)),
+      BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
       "result" -> EvaluationResults.Green.toPassmark)
   ))))
 
@@ -83,19 +83,15 @@ class ApplicationSiftMongoRepository(
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]] = {
-    val videoInterviewPassed = BSONDocument("testGroups.PHASE3.evaluation.result" ->
-      BSONDocument("$elemMatch" -> BSONDocument("schemeId" -> schemeId.value, "result" -> Green.toString)))
-
     val notSiftedOnScheme = BSONDocument(
       s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(schemeId.value))
     )
 
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED),
-      BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
+      BSONDocument(s"applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED}" -> true),
       BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(schemeId.value))),
       BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
-      videoInterviewPassed,
       notSiftedOnScheme
     ))
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
