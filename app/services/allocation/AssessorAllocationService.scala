@@ -31,6 +31,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.personaldetails.PersonalDetailsMongoRepository
 import repositories.{ AssessorAllocationMongoRepository, CandidateAllocationMongoRepository }
+import services.allocation.AssessorAllocationService.CouldNotFindAssessorContactDetails
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -49,6 +50,8 @@ object AssessorAllocationService extends AssessorAllocationService {
 
   val authProviderClient = AuthProviderClient
   val emailClient = CSREmailClient
+
+  case class CouldNotFindAssessorContactDetails(userId: String) extends Exception(userId)
 }
 
 trait AssessorAllocationService extends EventSink {
@@ -141,7 +144,7 @@ trait AssessorAllocationService extends EventSink {
       } yield for {
         contactDetail <- contactDetails
         contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
-          throw new Exception("Could not find contact details for assessor userid: " + contactDetail.userId)
+          throw CouldNotFindAssessorContactDetails(contactDetail.userId)
         )
         allocationForUser = allocations.allocations.find(_.id == contactDetailsForUser.userId).get
       } yield (contactDetailsForUser, eventDetails, allocationForUser)
