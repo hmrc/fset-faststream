@@ -36,6 +36,9 @@ object EventExamples {
     attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(),
     sessions = List())
 
+  val e1WithSessions = e1.copy(sessions = List(Session(UniqueIdentifier.randomUniqueIdentifier.toString(),
+  "session1", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4))))
+
   val EventsNew = List(
     e1,
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "GCFS FSB", location = LocationLondon,

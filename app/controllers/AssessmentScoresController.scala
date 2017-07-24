@@ -19,6 +19,7 @@ package controllers
 import model.assessmentscores._
 import model.UniqueIdentifier
 import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, AssessmentScoresSubmitRequest }
+import model.persisted.eventschedules.EventType.EventType
 import play.api.libs.json.Json
 import play.api.libs.json._
 import play.api.mvc.Action
@@ -76,8 +77,16 @@ trait AssessmentScoresController extends BaseController {
       }
   }
 
-  def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier) = Action.async { implicit request =>
-    service.findAssessmentScoresWithCandidateSummary(applicationId).map { scores =>
+  def findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+    service.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId).map { scores =>
+      Ok(Json.toJson(scores))
+    }.recover {
+      case _: Exception => NotFound
+    }
+  }
+
+  def findAssessmentScoresWithCandidateSummaryByEventId(eventId: UniqueIdentifier) = Action.async { implicit request =>
+    service.findAssessmentScoresWithCandidateSummaryByEventId(eventId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
       case _: Exception => NotFound

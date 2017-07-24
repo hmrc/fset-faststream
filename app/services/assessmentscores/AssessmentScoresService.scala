@@ -19,14 +19,12 @@ package services.assessmentscores
 import factories.DateTimeFactory
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
 import model.UniqueIdentifier
-import model.command.AssessmentScoresCommands.AssessmentExerciseType.AssessmentExerciseType
 import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
+import model.persisted.eventschedules.Event
 import play.api.mvc.RequestHeader
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.{ AssessmentScoresRepository, CandidateAllocationMongoRepository }
-import services.AuditService
-import services.assessmentscores.AssessmentScoresService._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -84,25 +82,56 @@ trait AssessmentScoresService {
     })
   }
 
-  def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse] = {
-    val candidateAllocationsFut = candidateAllocationRepository.find(applicationId.toString())
+  def findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse] = {
+    // TODO: return Option. if assessmentScores are not found, return None
+    for {
+      candidateAllocations <- candidateAllocationRepository.find(applicationId.toString())
+      candidateAllocation = candidateAllocations.head
+      event <- eventsRepository.getEvent(candidateAllocation.eventId)
+      assessmentScoresWithCandidateSummary <- findOneAssessmentScoresWithCandidateSummaryByApplicationId(
+        applicationId,
+        event,
+        UniqueIdentifier(candidateAllocation.sessionId))
+    } yield {
+      assessmentScoresWithCandidateSummary
+    }
+  }
+
+  def findAssessmentScoresWithCandidateSummaryByEventId(eventId: UniqueIdentifier)
+  : Future[List[AssessmentScoresFindResponse]] = {
+    (for {
+      event <- eventsRepository.getEvent(eventId.toString())
+      candidateAllocations <- candidateAllocationRepository.allocationsForEvent(eventId.toString())
+    } yield {
+      candidateAllocations.foldLeft(Future.successful[List[AssessmentScoresFindResponse]](Nil)) {
+        (listFuture, candidateAllocation) => listFuture.flatMap { list => {
+          findOneAssessmentScoresWithCandidateSummaryByApplicationId(
+            UniqueIdentifier(candidateAllocation.id),
+            event,
+            UniqueIdentifier(candidateAllocation.sessionId))
+          }.map(_ :: list)
+        }
+      } map (_.reverse)
+    }).flatMap(identity)
+  }
+
+  private def findOneAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier,
+                                                                         event: Event,
+                                                                         sessionId: UniqueIdentifier) = {
     val personalDetailsFut = personalDetailsRepository.find(applicationId.toString())
     val assessmentScoresFut = assessmentScoresRepository.find(applicationId)
 
     for {
-      candidateAllocations <- candidateAllocationsFut
       personalDetails <- personalDetailsFut
       assessmentScores <- assessmentScoresFut
-      event <- eventsRepository.getEvent(candidateAllocations.head.eventId)
     } yield {
       AssessmentScoresFindResponse(RecordCandidateScores(
+        applicationId,
         personalDetails.firstName,
         personalDetails.lastName,
-        // TODO MIGUEL: we are in the process of refactoring Event class, at the end it will case class Venue(key: VenueKey, name: String)
-        // But it is case class Venue(name: String, description: String)
-        // The implication is now we do event.venue.description, but once the merge is done, it should be event.venue.name
         event.venue.description,
-        event.date),
+        event.date,
+        sessionId),
         assessmentScores)
     }
   }

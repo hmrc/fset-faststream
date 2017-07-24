@@ -17,7 +17,7 @@
 package services.assessmentscores
 
 import factories.DateTimeFactory
-import model.AllocationStatuses
+import model.{ AllocationStatuses, UniqueIdentifier }
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
 import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
 import model.command.PersonalDetailsExamples
@@ -27,7 +27,7 @@ import org.mockito.Mockito.when
 import repositories.{ AssessmentScoresRepository, CandidateAllocationMongoRepository }
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.{ BaseServiceSpec }
+import services.BaseServiceSpec
 import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
@@ -96,19 +96,22 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
     }
   }
 
-  "findAssessmentScoresWithCandidateSummary" should {
+  "findAssessmentScoresWithCandidateSummaryByApplicationId" should {
     "return Assessment Scores response with empty assessment scores if there is not any" in
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
 
       when(assessmentScoresRepositoryMock.find(appId)).thenReturn(Future.successful(None))
 
-      val result = service.findAssessmentScoresWithCandidateSummary(appId).futureValue
+      val result = service.findAssessmentScoresWithCandidateSummaryByApplicationId(appId).futureValue
 
       val expectedCandidate = RecordCandidateScores(
+        appId,
         PersonalDetailsExamples.completed.firstName,
         PersonalDetailsExamples.completed.lastName,
-        EventExamples.e1.venue.description,
-        today)
+        EventExamples.e1WithSessions.venue.description,
+        today,
+        UniqueIdentifier(EventExamples.e1WithSessions.sessions.head.id)
+      )
       val expectedResult = AssessmentScoresFindResponse(expectedCandidate, None)
       result mustBe expectedResult
     }
@@ -117,13 +120,16 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
       when(assessmentScoresRepositoryMock.find(appId)).thenReturn(Future.successful(Some(AssessmentScoresAllExercisesExamples.Example1)))
 
-      val result = service.findAssessmentScoresWithCandidateSummary(appId).futureValue
+      val result = service.findAssessmentScoresWithCandidateSummaryByApplicationId(appId).futureValue
 
       val expectedCandidate = RecordCandidateScores(
+        appId,
         PersonalDetailsExamples.completed.firstName,
         PersonalDetailsExamples.completed.lastName,
-        EventExamples.e1.venue.description,
-        today)
+        EventExamples.e1WithSessions.venue.description,
+        today,
+        UniqueIdentifier(EventExamples.e1WithSessions.sessions.head.id)
+      )
       val expectedResult = AssessmentScoresFindResponse(expectedCandidate, Some(AssessmentScoresAllExercisesExamples.Example1))
       result mustBe expectedResult
     }
@@ -161,10 +167,11 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
   }
 
   trait FindAssessmentScoresWithCandidateSummaryTestFixture extends BaseTestFixture {
-    val eventId = EventExamples.e1.id
-    val candidateAllocations = List(CandidateAllocation(appId.toString(), eventId, "sessionId", AllocationStatuses.CONFIRMED, "version1"))
+    val eventId = EventExamples.e1WithSessions.id
+    val candidateAllocations = List(CandidateAllocation(appId.toString(), eventId, EventExamples.e1WithSessions.sessions.head.id,
+      AllocationStatuses.CONFIRMED, "version1"))
     when(candidateAllocationRepositoryMock.find(appId.toString())).thenReturn(Future.successful(candidateAllocations))
     when(personalDetailsRepositoryMock.find(appId.toString())).thenReturn(Future.successful(PersonalDetailsExamples.completed))
-    when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1))
+    when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSessions))
   }
 }

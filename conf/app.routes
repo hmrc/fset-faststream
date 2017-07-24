@@ -144,11 +144,12 @@ GET         /day-aggregate-events/location/:location                     control
 
 # FSAC scores
 # TODO MIGUEL: Maybe change this to submit
-POST        /assessment-scores/submit                                          controllers.AssessmentScoresController.submit()
-POST        /assessment-scores/save                                            controllers.AssessmentScoresController.save()
-GET         /assessment-scores/with-candidate-summary/:applicationId           controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummary(applicationId: model.UniqueIdentifier)
-GET         /assessment-scores/:applicationId                                  controllers.AssessmentScoresController.find(applicationId: model.UniqueIdentifier)
-GET         /assessment-scores                                                 controllers.AssessmentScoresController.findAll
+POST        /assessment-scores/submit                                                controllers.AssessmentScoresController.submit()
+POST        /assessment-scores/save                                                  controllers.AssessmentScoresController.save()
+GET         /assessment-scores/with-candidate-summary/application/:applicationId     controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/with-candidate-summary/event/:eventId                 controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
+GET         /assessment-scores/:applicationId                                        controllers.AssessmentScoresController.find(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores                                                       controllers.AssessmentScoresController.findAll
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

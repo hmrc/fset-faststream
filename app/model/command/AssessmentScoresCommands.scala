@@ -24,7 +24,12 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object AssessmentScoresCommands {
 
-  case class RecordCandidateScores(firstName: String, lastName: String, venueName: String, assessmentDate: LocalDate)
+  case class RecordCandidateScores(applicationId: UniqueIdentifier,
+                                   firstName: String,
+                                   lastName: String,
+                                   venueName: String,
+                                   assessmentDate: LocalDate,
+                                   sessionId: UniqueIdentifier)
   object RecordCandidateScores {
     implicit val RecordCandidateScoresFormats: Format[RecordCandidateScores] = Json.format[RecordCandidateScores]
   }
@@ -54,11 +59,11 @@ object AssessmentScoresCommands {
     scoresAndFeedback: AssessmentScoresExercise
   )
   object AssessmentScoresSubmitRequest {
-    implicit val exerciseScoresAndFeedbackFormats: Format[AssessmentScoresSubmitRequest] = Json.format[AssessmentScoresSubmitRequest]
+    implicit val jsonFormat: Format[AssessmentScoresSubmitRequest] = Json.format[AssessmentScoresSubmitRequest]
   }
 
   case class AssessmentScoresFindResponse(candidate: RecordCandidateScores, scoresAndFeedback: Option[AssessmentScoresAllExercises])
   object AssessmentScoresFindResponse {
-    implicit val ApplicationScoresFormats: Format[AssessmentScoresFindResponse] = Json.format[AssessmentScoresFindResponse]
+    implicit val jsonFormat: Format[AssessmentScoresFindResponse] = Json.format[AssessmentScoresFindResponse]
   }
 }
