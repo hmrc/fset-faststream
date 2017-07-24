@@ -166,5 +166,23 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
       fsbTypes shouldBe EventExamples.YamlFsbTypes
 
     }
+
+    "parse Telephone Interview types" in {
+      val input =
+        """
+          |- key: EDIP
+          |  description: Early Diversity Internship Program
+          |- key: SDIP
+          |  description: Summer Diversity Internship Program
+        """.stripMargin
+
+      val repo = new EventsConfigRepository {
+        override protected def telephoneInterviewTypesConfig: String = input
+        override def locationsWithVenuesRepo: LocationsWithVenuesRepository = ??? // mock not required for this test
+      }
+
+      val fsbTypes = repo.telephoneInterviewTypes.futureValue
+      fsbTypes shouldBe EventExamples.YamlTelephoneInterviewTypes
+    }
   }
 }

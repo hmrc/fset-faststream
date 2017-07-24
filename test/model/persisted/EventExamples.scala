@@ -18,7 +18,7 @@ package model.persisted
 
 import controllers.DayAggregateEvent
 import factories.UUIDFactory
-import model.FsbType
+import model.{ FsbType, TelephoneInterviewType }
 import model.persisted.eventschedules._
 import org.joda.time.{ LocalDate, LocalTime }
 
@@ -104,6 +104,11 @@ object EventExamples {
     FsbType("FIFS"),
     FsbType("COMMERCIAL"),
     FsbType("HOP")
+  )
+
+  val YamlTelephoneInterviewTypes = List(
+    TelephoneInterviewType("EDIP", "Early Diversity Internship Program"),
+    TelephoneInterviewType("SDIP", "Summer Diversity Internship Program")
   )
 
 }
