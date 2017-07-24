@@ -77,15 +77,15 @@ trait AssessorAllocationService extends EventSink {
           _ <- assessorAllocationRepo.save(persisted.AssessorAllocation.fromCommand(newAllocations))
           _ <- notifyNewlyAllocatedAssessors(newAllocations)
         } yield ()
-      case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations)
+      case existingAllocations => updateExistingAllocations(existingAllocations, newAllocations).map(_ => ())
     }
   }
 
   private val dateFormat = "dd MMMM YYYY"
   private val timeFormat = "HH:mma"
 
-  private def notifyNewlyAllocatedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    getContactDetails(newAllocations).map {
+  private def notifyNewlyAllocatedAssessors(allocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
+    getContactDetails(allocations).map {
       _.map { case (contactDetailsForUser, eventDetails, allocationForUser) =>
         emailClient.sendAssessorAllocatedToEvent(
           contactDetailsForUser.email,
@@ -100,8 +100,8 @@ trait AssessorAllocationService extends EventSink {
     }.map(_ => ())
   }
 
-  private def notifyAllocationChangedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    getContactDetails(newAllocations).map { userInfo =>
+  private def notifyAllocationChangedAssessors(allocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
+    getContactDetails(allocations).map { userInfo =>
       userInfo.map { case (contactDetailsForUser, eventDetails, allocationForUser) =>
         emailClient.sendAssessorEventAllocationChanged(
           contactDetailsForUser.email,
@@ -116,8 +116,10 @@ trait AssessorAllocationService extends EventSink {
     }.map(_ => ())
   }
 
-  private def notifyAllocationUnallocatedAssessors(newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
-    getContactDetails(newAllocations).map { userInfo =>
+  private def notifyAllocationUnallocatedAssessors(
+    allocations: command.AssessorAllocations
+  )(implicit hc: HeaderCarrier): Future[Unit] = {
+    getContactDetails(allocations).map { userInfo =>
       userInfo.map { case (contactDetailsForUser, eventDetails, _) =>
         emailClient.sendAssessorUnAllocatedFromEvent(
           contactDetailsForUser.email,
@@ -128,18 +130,22 @@ trait AssessorAllocationService extends EventSink {
     }.map(_ => ())
   }
 
-  private def getContactDetails(newAllocations: AssessorAllocations)(implicit hc: HeaderCarrier)
+  private def getContactDetails(allocations: AssessorAllocations)(implicit hc: HeaderCarrier)
   : Future[Seq[(ExchangeObjects.Candidate, Event, AssessorAllocation)]] = {
-    for {
-      eventDetails <- eventsService.getEvent(newAllocations.eventId)
-      contactDetails <- authProviderClient.findByUserIds(newAllocations.allocations.map(_.id))
-    } yield for {
-      contactDetail <- contactDetails
-      contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
-        throw new Exception("Could not find contact details for assessor user")
-      )
-      allocationForUser = newAllocations.allocations.find(_.id == contactDetailsForUser.userId).get
-    } yield (contactDetailsForUser, eventDetails, allocationForUser)
+    if (allocations.allocations.isEmpty) {
+      Future.successful(Seq())
+    } else {
+      for {
+        eventDetails <- eventsService.getEvent(allocations.eventId)
+        contactDetails <- authProviderClient.findByUserIds(allocations.allocations.map(_.id))
+      } yield for {
+        contactDetail <- contactDetails
+        contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
+          throw new Exception("Could not find contact details for assessor user " + contactDetail.userId)
+        )
+        allocationForUser = allocations.allocations.find(_.id == contactDetailsForUser.userId).get
+      } yield (contactDetailsForUser, eventDetails, allocationForUser)
+    }
   }
 
   def allocateCandidates(newAllocations: command.CandidateAllocations)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
