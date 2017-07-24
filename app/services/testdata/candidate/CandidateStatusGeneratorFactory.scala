@@ -49,7 +49,7 @@ object CandidateStatusGeneratorFactory {
     (generatorConfig.statusData.applicationStatus, generatorConfig.statusData.progressStatus) match {
       case (appStatus, None) => appStatus match {
         case REGISTERED => RegisteredStatusGenerator
-        case CREATED => CreatedStatusGenerator
+        case CREATED => SiftEnteredStatusGenerator
         // IN_PROGRESS_PERSONAL_DETAILS should be deprecated, look below
         case IN_PROGRESS_PERSONAL_DETAILS => InProgressPersonalDetailsStatusGenerator
         // IN_PROGRESS_SCHEME_PREFERENCES should be deprecated, look below
