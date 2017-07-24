@@ -19,6 +19,7 @@ package repositories.assessmentcentre
 import factories.DateTimeFactory
 import model.{ ApplicationStatus, EvaluationResults, Scheme, SchemeId }
 import model.command.{ ApplicationForFsac, ApplicationForSift }
+import model.persisted.PassmarkEvaluation
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
@@ -45,6 +46,14 @@ class AssessmentCentreMongoRepository (
 ) with AssessmentCentreRepository with RandomSelection with ReactiveRepositoryHelpers with GeneralApplicationRepoBSONReader {
 
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
+    implicit def applicationForFsacBsonReads(document: BSONDocument): ApplicationForFsac = {
+      val applicationId = document.getAs[String]("applicationId").get
+      val testGroupsRoot = document.getAs[BSONDocument]("testGroups").get
+      val phase3PassMarks = testGroupsRoot.getAs[BSONDocument]("PHASE3").get
+      val phase3Evaluation = phase3PassMarks.getAs[PassmarkEvaluation]("evaluation").get
+      ApplicationForFsac(applicationId, phase3Evaluation)
+    }
+
     def query = BSONDocument(
       "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
       "testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
@@ -57,4 +66,5 @@ class AssessmentCentreMongoRepository (
       app.evaluationResult.result.filter(_.result == EvaluationResults.Green.toPassmark).forall(s => !siftableSchemeIds.contains(s.schemeId))
     })
   }
+
 }

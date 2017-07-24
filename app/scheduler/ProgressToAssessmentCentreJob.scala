@@ -20,24 +20,23 @@ import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
 import services.assessmentcentre.AssessmentCentreService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
 object ProgressToAssessmentCentreJob extends ProgressToAssessmentCentreJob {
   val assessmentCentreService = AssessmentCentreService
-  val config = TbcConfig
+  val config = ProgressToAssessmentCentreJobConfig
 }
 
 trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val assessmentCentreService: AssessmentCentreService
 
-  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
+  val batchSize: Int = conf.batchSize.getOrElse(10)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    assessmentCentreService.nextApplicationForAssessmentCentre(batchSize).flatMap {
+    assessmentCentreService.nextApplicationsForAssessmentCentre(batchSize).flatMap {
       case Nil => Future.successful(())
-      case applications => assessmentCentreService.progressApplicationToAssessmentCentre(applications).map { result =>
+      case applications => assessmentCentreService.progressApplicationsToAssessmentCentre(applications).map { result =>
         play.api.Logger.info(
           s"Progress to assessment centre complete - ${result.successes.size} updated and ${result.failures.size} failed to update"
         )
@@ -46,7 +45,7 @@ trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobC
   }
 }
 
-object TbcConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+object ProgressToAssessmentCentreJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
   configPrefix = "scheduling.progress-to-sift-job",
   name = "ProgressToSiftJob"
 )

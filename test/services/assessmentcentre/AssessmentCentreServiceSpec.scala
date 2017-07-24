@@ -32,12 +32,6 @@ import scala.concurrent.Future
 class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Results with ScalaFutures with FutureHelper with MockFactory
   with ExtendedTimeout {
   "An AssessmentCentreService" should {
-    case class TestAssessmentCentreService(acRepo: AssessmentCentreRepository, appRepo: GeneralApplicationRepository)
-      extends AssessmentCentreService {
-      override def applicationRepo: GeneralApplicationRepository = appRepo
-      override def assessmentCentreRepo: AssessmentCentreRepository = acRepo
-    }
-
     val applicationsToProgressToSift = List(
       ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
@@ -47,9 +41,14 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))))
 
     val mockAppRepo = mock[GeneralApplicationRepository]
+    val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
+    val service = new AssessmentCentreService {
+      def applicationRepo: GeneralApplicationRepository = mockAppRepo
+      def assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
+    }
 
     (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
-      .expects(applicationsToProgressToSift(0).applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+      .expects(applicationsToProgressToSift.head.applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       .returning(Future.successful())
     (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
       .expects(applicationsToProgressToSift(1).applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
@@ -59,12 +58,11 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
       .returning(Future.successful())
 
     "progress candidates to assessment centre, attempting all despite errors" in {
-      val mockRepo = mock[AssessmentCentreRepository]
 
-      whenReady(TestAssessmentCentreService(mockRepo, mockAppRepo).progressApplicationToAssessmentCentre(applicationsToProgressToSift)) {
+      whenReady(service.progressApplicationsToAssessmentCentre(applicationsToProgressToSift)) {
         results =>
           val failedApplications = Seq(applicationsToProgressToSift(1))
-          val passedApplications = Seq(applicationsToProgressToSift(0), applicationsToProgressToSift(2))
+          val passedApplications = Seq(applicationsToProgressToSift.head, applicationsToProgressToSift(2))
           results mustBe SerialUpdateResult(failedApplications, passedApplications)
       }
     }

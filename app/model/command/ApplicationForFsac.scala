@@ -25,14 +25,8 @@ case class ApplicationForFsac(
   evaluationResult: PassmarkEvaluation
 )
 
-object ApplicationForFsac{
+object ApplicationForFsac {
   implicit val applicationForFsacFormat: OFormat[ApplicationForFsac] = Json.format[ApplicationForFsac]
 
-  implicit def applicationForFsacBsonReads(document: BSONDocument): ApplicationForFsac = {
-    val applicationId = document.getAs[String]("applicationId").get
-    val testGroupsRoot = document.getAs[BSONDocument]("testGroups").get
-    val phase3PassMarks = testGroupsRoot.getAs[BSONDocument]("PHASE3").get
-    val phase3Evaluation = phase3PassMarks.getAs[PassmarkEvaluation]("evaluation").get
-    ApplicationForFsac(applicationId, phase3Evaluation)
-  }
+
 }

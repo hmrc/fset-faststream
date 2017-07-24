@@ -35,11 +35,11 @@ trait AssessmentCentreService {
   def applicationRepo: GeneralApplicationRepository
   def assessmentCentreRepo: AssessmentCentreRepository
 
-  def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
+  def nextApplicationsForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
     assessmentCentreRepo.nextApplicationForAssessmentCentre(batchSize)
   }
 
-  def progressApplicationToAssessmentCentre(applications: Seq[ApplicationForFsac]): Future[SerialUpdateResult[ApplicationForFsac]] = {
+  def progressApplicationsToAssessmentCentre(applications: Seq[ApplicationForFsac]): Future[SerialUpdateResult[ApplicationForFsac]] = {
       val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
         applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId,
