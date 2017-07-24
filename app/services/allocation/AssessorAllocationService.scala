@@ -141,7 +141,7 @@ trait AssessorAllocationService extends EventSink {
       } yield for {
         contactDetail <- contactDetails
         contactDetailsForUser = contactDetails.find(_.userId == contactDetail.userId).getOrElse(
-          throw new Exception("Could not find contact details for assessor user " + contactDetail.userId)
+          throw new Exception("Could not find contact details for assessor userid: " + contactDetail.userId)
         )
         allocationForUser = allocations.allocations.find(_.id == contactDetailsForUser.userId).get
       } yield (contactDetailsForUser, eventDetails, allocationForUser)
