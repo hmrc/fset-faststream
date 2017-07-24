@@ -178,23 +178,19 @@ object Roles {
   object DisplayOnlineTestSectionRole extends CsrAuthorization {
     // format: OFF
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(PHASE1_TESTS,
-        ALLOCATION_CONFIRMED, ALLOCATION_UNCONFIRMED, AWAITING_ALLOCATION, FAILED_TO_ATTEND,
-        ASSESSMENT_SCORES_ENTERED, ASSESSMENT_SCORES_ACCEPTED, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ASSESSMENT_CENTRE_PASSED,
-        ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED_NOTIFIED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE1_TESTS)
 
     // format: ON
   }
 
-  object ConfirmedAllocatedCandidateRole extends CsrAuthorization {
+  /*object ConfirmedAllocatedCandidateRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ALLOCATION_CONFIRMED, ASSESSMENT_SCORES_ACCEPTED,
-        ASSESSMENT_SCORES_ENTERED, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
+      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE)
   }
 
   object UnconfirmedAllocatedCandidateRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ALLOCATION_UNCONFIRMED)
+      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE) && assessmentCentreAllocationUnconfirmed
   }
 
   object AssessmentCentreFailedNotifiedRole extends CsrAuthorization {
@@ -205,16 +201,15 @@ object Roles {
   object AssessmentCentrePassedNotifiedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
       activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE_PASSED_NOTIFIED)
-  }
+  }*/
 
   object AssessmentCentreFailedToAttendRole extends AuthorisedUser {
-    override def isEnabled(user: CachedData)(implicit request: RequestHeader) =
-      statusIn(user)(FAILED_TO_ATTEND)
+    override def isEnabled(user: CachedData)(implicit request: RequestHeader) = assessmentCentreFailedToAttend(user)
   }
 
   object WithdrawComponent extends AuthorisedUser {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader) =
-      !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED) &&
+      !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED) &&
         !isSdipFaststream(user)
   }
 
@@ -228,8 +223,8 @@ object Roles {
     PreviewApplicationRole -> routes.PreviewApplicationController.present(),
     SubmitApplicationRole -> routes.PreviewApplicationController.present(),
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),
-    ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),
-    UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
+    //ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),
+    //UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
     AbleToWithdrawApplicationRole -> routes.HomeController.present()
   ).reverse
 }
@@ -337,6 +332,7 @@ object RoleUtils {
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
 
 
+  def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.failedToAttend)
 
   def isFaststream(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Faststream
 

@@ -116,12 +116,12 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       )
   }
 
-  def confirmAlloc: Action[AnyContent] = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
+  /*def confirmAlloc: Action[AnyContent] = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
     implicit user =>
       applicationClient.confirmAllocation(user.application.get.applicationId).map { _ =>
         Redirect(controllers.routes.HomeController.present()).flashing(success("success.allocation.confirmed"))
       }
-  }
+  }*/
 
   private def displayFaststreamResultsPage(implicit application: ApplicationData, cachedData: CachedData,
                                       request: Request[_], hc: HeaderCarrier) =

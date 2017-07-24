@@ -32,10 +32,9 @@
     @sdipFaststreamBanner(cachedUser)
 
     <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(cachedUser)){disabled}" id="mainProgressPage">
-        <h2 class="heading-large"><i class="fa fa-check"></i>You've passed the video interview</h2>
         <div class="text">
             <section>
-                <p>Congratulations, you've been successful for at least one of your
+                <p>Congratulations, you've been successful for at @{finalSchemeResults.count(_.result == "Green")} least one of your
                     preferred schemes.</p>
             </section>
             <h2 class="heading-large">What you need to do now</h2>
