@@ -34,9 +34,7 @@ object ApplicationStatus extends Enumeration with ApplicationStatusOnlyForTest {
 
   val SIFT = Value
 
-  val ASSESSMENT_CENTRE, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_PASSED_NOTIFIED = Value
-  val ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED = Value
-
+  val ASSESSMENT_CENTRE = Value
   implicit def toString(applicationStatus: ApplicationStatus): String = applicationStatus.toString
 
   implicit val applicationStatusFormat = new Format[ApplicationStatus] {

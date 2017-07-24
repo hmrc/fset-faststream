@@ -17,13 +17,16 @@
 package model.command
 
 import model.persisted.PassmarkEvaluation
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.BSONDocument
 
-case class ApplicationForSift(
+case class ApplicationForFsac(
   applicationId: String,
   evaluationResult: PassmarkEvaluation
 )
 
-object ApplicationForSift {
-  implicit val applicationForSiftFormat = Json.format[ApplicationForSift]
+object ApplicationForFsac {
+  implicit val applicationForFsacFormat: OFormat[ApplicationForFsac] = Json.format[ApplicationForFsac]
+
+
 }

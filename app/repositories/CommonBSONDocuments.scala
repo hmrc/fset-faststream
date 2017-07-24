@@ -158,9 +158,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
           assessmentCentre = AssessmentCentre(
             getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
             getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED_NOTIFIED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key)
+            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key)
           )
         )
       }).getOrElse(ProgressResponse(applicationId))
