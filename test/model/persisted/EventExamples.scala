@@ -18,7 +18,7 @@ package model.persisted
 
 import controllers.DayAggregateEvent
 import factories.UUIDFactory
-import model.UniqueIdentifier
+import model.FsbType
 import model.persisted.eventschedules._
 import org.joda.time.{ LocalDate, LocalTime }
 
@@ -89,6 +89,21 @@ object EventExamples {
         Session("2", "Second", 36,
           12, 4, LocalTime.parse("10:30:00.000"), LocalTime.parse("12:00:00.000")))
     )
+  )
+
+  val YamlFsbTypes = List(
+    FsbType("SAC"),
+    FsbType("SRAC"),
+    FsbType("ORAC"),
+    FsbType("EAC"),
+    FsbType("GOV COMS"),
+    FsbType("DAT"),
+    FsbType("SEFS"),
+    FsbType("FCO"),
+    FsbType("P&D"),
+    FsbType("FIFS"),
+    FsbType("COMMERCIAL"),
+    FsbType("HOP")
   )
 
 }

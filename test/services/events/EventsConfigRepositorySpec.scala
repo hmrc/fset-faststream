@@ -16,12 +16,10 @@
 
 package services.events
 
-import model.UniqueIdentifier
 import model.persisted.EventExamples
 import model.persisted.eventschedules._
 import org.scalatest.concurrent.ScalaFutures
 import repositories.events.{ EventsConfigRepository, LocationsWithVenuesRepository }
-import org.joda.time.{ LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.Matchers
@@ -140,6 +138,33 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
           withDefaultIds(actual) shouldBe withDefaultIds(expected)
         }
       }
+    }
+
+    "parse FSB types" in {
+      val input =
+        """
+          |- key: SAC
+          |- key: SRAC
+          |- key: ORAC
+          |- key: EAC
+          |- key: GOV COMS
+          |- key: DAT
+          |- key: SEFS
+          |- key: FCO
+          |- key: P&D
+          |- key: FIFS
+          |- key: COMMERCIAL
+          |- key: HOP
+        """.stripMargin
+
+      val repo = new EventsConfigRepository {
+        override protected def fsbTypesConfig: String = input
+        override def locationsWithVenuesRepo: LocationsWithVenuesRepository = ??? // mock not required for this test
+      }
+
+      val fsbTypes = repo.fsbTypes.futureValue
+      fsbTypes shouldBe EventExamples.YamlFsbTypes
+
     }
   }
 }
