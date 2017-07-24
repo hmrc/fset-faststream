@@ -91,6 +91,32 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
       )(any[HeaderCarrier])
     }
 
+    "change an assessor's role in a new allocation" in new TestFixture {
+      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
+        persisted.AssessorAllocation("userId1", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version1") :: Nil
+      ))
+      when(mockAllocationRepository.save(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
+      when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
+      mockGetEvent
+      mockAuthProviderFindByUserIds("userId1")
+
+      val allocations = command.AssessorAllocations(
+        version = "version1",
+        eventId = "eventId1",
+        allocations = command.AssessorAllocation("userId1", AllocationStatuses.CONFIRMED,
+          allocatedAs = AssessorSkill(SkillType.ASSESSOR, "Assessor")) :: Nil
+      )
+      val result = service.allocate(allocations).futureValue
+
+      result mustBe unit
+
+      verify(mockAllocationRepository).delete(any[Seq[persisted.AssessorAllocation]])
+      verify(mockAllocationRepository).save(any[Seq[persisted.AssessorAllocation]])
+      verify(mockEmailClient).sendAssessorEventAllocationChanged(
+        any[String], any[String], any[String], any[String], any[String], any[String], any[String]
+      )(any[HeaderCarrier])
+    }
+
     "throw an optimistic lock exception if data has changed before saving" in new TestFixture {
        when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
         persisted.AssessorAllocation("id", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version5") :: Nil
