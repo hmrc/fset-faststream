@@ -19,6 +19,7 @@ package repositories.events
 import common.FutureEx
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
+import model.{ FsbType, TelephoneInterviewType }
 import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
@@ -55,6 +56,14 @@ case class SessionConfig(
                     endTime: LocalTime
                   )
 
+object FsbTypeConfigProtocol extends DefaultYamlProtocol {
+  implicit val format = yamlFormat1((key: String) => FsbType(key))
+}
+
+object TelephoneInterviewTypeConfigProtocol extends DefaultYamlProtocol {
+  implicit val format = yamlFormat2((key: String, description: String) => TelephoneInterviewType(key, description))
+}
+
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
     def write(jodaDate: LocalDate) = YamlDate(jodaDate.toDateTimeAtStartOfDay)
@@ -86,15 +95,21 @@ trait EventsConfigRepository {
 
   import play.api.Play.current
 
-  protected def rawConfig: String = {
-    val input = managed(Play.application.resourceAsStream(MicroserviceAppConfig.eventsConfig.yamlFilePath).get)
+  private def getConfig(filePath: String): String = {
+    val input = managed(Play.application.resourceAsStream(filePath).get)
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
+
+  protected def eventScheduleConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.scheduleFilePath)
+
+  protected def fsbTypesConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.subtypes.fsbFilePath)
+
+  protected def telephoneInterviewTypesConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.subtypes.telephoneInterviewFilePath)
 
   lazy val events: Future[List[Event]] = {
     import EventConfigProtocol._
 
-    val yamlAst = rawConfig.parseYaml
+    val yamlAst = eventScheduleConfig.parseYaml
     val eventsConfig = yamlAst.convertTo[List[EventConfig]]
 
     // Force all 'types' to be upper case and replace hyphens with underscores
@@ -121,11 +136,21 @@ trait EventsConfigRepository {
           configItem.skillRequirements,
           configItem.sessions.map(s => Session(s))
       )
-      eventItemFuture.recoverWith {
+      eventItemFuture.recover {
         case ex => throw new Exception(
-          s"Error in events config: ${MicroserviceAppConfig.eventsConfig.yamlFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
+          s"Error in events config: ${MicroserviceAppConfig.eventsConfig.scheduleFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
       }
     }
+  }
+
+  lazy val fsbTypes: Future[List[FsbType]] = Future {
+    import FsbTypeConfigProtocol._
+    fsbTypesConfig.parseYaml.convertTo[List[FsbType]]
+  }
+
+  lazy val telephoneInterviewTypes: Future[List[TelephoneInterviewType]] = Future {
+    import TelephoneInterviewTypeConfigProtocol._
+    telephoneInterviewTypesConfig.parseYaml.convertTo[List[TelephoneInterviewType]]
   }
 }
 
