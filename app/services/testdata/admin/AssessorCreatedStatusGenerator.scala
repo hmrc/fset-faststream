@@ -16,7 +16,7 @@
 
 package services.testdata.admin
 
-import model.persisted.assessor.AssessorStatus
+import model.exchange.AssessorAvailabilities
 import model.exchange.testdata.CreateAdminResponse.{ AssessorResponse, CreateAdminResponse }
 import model.persisted.assessor.AssessorStatus
 import model.testdata.CreateAdminData.{ AssessorData, CreateAdminData }
@@ -45,10 +45,13 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
           assessorPersisted <- createAssessor(userId, assessorData)
           availability = assessorData.availability.getOrElse(Set.empty)
           _ <- if (assessorData.status == AssessorStatus.AVAILABILITIES_SUBMITTED) {
-            assessorService.saveAvailability(userId, availability)
-          } else { Future.successful(()) }
+            val aa = AssessorAvailabilities(assessorPersisted.userId, assessorPersisted.version, availability)
+            assessorService.saveAvailability(aa)
+          } else {
+            Future.successful(())
+          }
         } yield {
-          userInPreviousStatus.copy(assessor  = Some(AssessorResponse.apply(assessorPersisted).copy(availability = availability)))
+          userInPreviousStatus.copy(assessor = Some(AssessorResponse.apply(assessorPersisted).copy(availability = availability)))
         }
       }.getOrElse(Future.successful(userInPreviousStatus))
     }
@@ -56,7 +59,7 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
 
   def createAssessor(userId: String, assessor: AssessorData)(
     implicit hc: HeaderCarrier): Future[model.exchange.Assessor] = {
-    val assessorE = model.exchange.Assessor(userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, assessor.status)
+    val assessorE = model.exchange.Assessor(userId, None, assessor.skills, assessor.sifterSchemes, assessor.civilServant, assessor.status)
     assessorService.saveAssessor(userId, assessorE).map(_ => assessorE)
   }
 

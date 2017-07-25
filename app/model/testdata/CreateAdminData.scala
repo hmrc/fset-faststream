@@ -61,8 +61,13 @@ object CreateAdminData {
 
   }
 
-  case class AssessorData(skills: List[String], sifterSchemes: List[SchemeId], civilServant: Boolean,
-                          availability: Option[Set[AssessorAvailability]], status: AssessorStatus)
+  case class AssessorData(
+    skills: List[String],
+    sifterSchemes: List[SchemeId],
+    civilServant: Boolean,
+    availability: Option[Set[AssessorAvailability]],
+    status: AssessorStatus
+  )
 
   object AssessorData {
     implicit val assessorDataFormat: OFormat[AssessorData] = Json.format[AssessorData]

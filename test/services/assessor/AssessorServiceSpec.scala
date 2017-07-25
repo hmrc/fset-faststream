@@ -25,7 +25,7 @@ import org.mockito.ArgumentMatchers._
 import scala.concurrent.duration._
 import model.{ AllocationStatuses, Exceptions, SerialUpdateResult }
 import model.Exceptions.AssessorNotFoundException
-import model.exchange.UpdateAllocationStatusRequest
+import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
 import model.persisted.{ AssessorAllocation, EventExamples, ReferenceData }
 import model.persisted.eventschedules.{ Location, Venue }
 import model.persisted.assessor.AssessorExamples._
@@ -67,9 +67,11 @@ class AssessorServiceSpec extends BaseServiceSpec {
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturn(Future.successful(None))
 
       val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
+      val availabilities = AssessorAvailabilities(UserId, None, exchangeAvailability)
+
 
       intercept[AssessorNotFoundException] {
-        Await.result(service.saveAvailability(AssessorUserId, exchangeAvailability), 10 seconds)
+        Await.result(service.saveAvailability(availabilities), 10 seconds)
       }
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
@@ -82,7 +84,8 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
 
-      val result = service.saveAvailability(AssessorUserId, exchangeAvailability).futureValue
+      val availabilties = AssessorAvailabilities(AssessorUserId, None, exchangeAvailability)
+      val result = service.saveAvailability(availabilties).futureValue
 
       result mustBe unit
 

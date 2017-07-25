@@ -17,9 +17,9 @@
 package controllers
 
 import model.AllocationStatuses.AllocationStatus
-import model.Exceptions.AssessorNotFoundException
+import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
 import model.SerialUpdateResult
-import model.exchange.{ Assessor, AssessorAvailability, UpdateAllocationStatusRequest, UpdateAllocationStatusResponse }
+import model.exchange._
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
@@ -40,13 +40,17 @@ trait AssessorController extends BaseController {
 
   def saveAssessor(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Assessor] { assessor =>
-      assessorService.saveAssessor(userId, assessor).map(_ => Ok)
+      assessorService.saveAssessor(userId, assessor).map(_ => Ok).recover {
+        case e: OptimisticLockException => Conflict(e.getMessage)
+      }
     }
   }
 
-  def saveAvailability(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[Set[AssessorAvailability]] { availability =>
-      assessorService.saveAvailability(userId, availability).map(_ => Ok)
+  def saveAvailability(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[AssessorAvailabilities] { availability =>
+      assessorService.saveAvailability(availability).map(_ => Ok).recover {
+        case e: OptimisticLockException => Conflict(e.getMessage)
+      }
     }
   }
 

@@ -35,7 +35,9 @@ object AssessorExamples {
     AssessorAvailability(newcastle, new LocalDate(2017, 5, 10)),
     AssessorAvailability(newcastle, new LocalDate(2017, 5, 11)))
 
-  val AssessorExisting = Assessor(AssessorUserId,
+  val AssessorExisting = Assessor(
+    AssessorUserId,
+    version = None,
     skills = List("qac", "chair"),
     sifterSchemes = List(SchemeId("Sdip")),
     civilServant = true,

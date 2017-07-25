@@ -22,13 +22,19 @@ import model.persisted.assessor.AssessorStatus.AssessorStatus
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
-case class Assessor(userId: String, skills: List[String], sifterSchemes: List[SchemeId], civilServant: Boolean, status: AssessorStatus)
+case class Assessor(
+  userId: String,
+  version: Option[String],
+  skills: List[String],
+  sifterSchemes: List[SchemeId],
+  civilServant: Boolean,
+  status: AssessorStatus)
 
 object Assessor {
   implicit val assessorFormat = Json.format[Assessor]
 
-  def apply(assessor: model.persisted.assessor.Assessor): Assessor
-    = Assessor(assessor.userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, assessor.status)
+  def apply(a: model.persisted.assessor.Assessor): Assessor =
+    Assessor(a.userId, a.version, a.skills, a.sifterSchemes, a.civilServant, a.status)
 }
 
 case class AssessorAvailability(location: String, date: LocalDate)
@@ -45,11 +51,15 @@ object AssessorAvailability {
   }
 }
 
-case class AssessorAvailabilities(userId: String, availability: Set[AssessorAvailability])
+case class AssessorAvailabilities(
+  userId: String,
+  version: Option[String],
+  availability: Set[AssessorAvailability]
+)
 
 object AssessorAvailabilities {
   implicit val assessorAvailabilityFormat = Json.format[AssessorAvailabilities]
 
   def apply(assessor: model.persisted.assessor.Assessor): AssessorAvailabilities =
-    AssessorAvailabilities(assessor.userId, assessor.availability.map(a => AssessorAvailability.apply(a)))
+    AssessorAvailabilities(assessor.userId, assessor.version, assessor.availability.map(a => AssessorAvailability.apply(a)))
 }
