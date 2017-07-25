@@ -29,6 +29,7 @@ PUT         /application/overrideSubmissionDeadline/:applicationId       control
 GET         /application/location/:location                              controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String)
 POST        /applications/allocated                                      controllers.ApplicationController.findAllocatedApplications()
 POST        /application/status                                          controllers.ApplicationController.updateStatus
+GET         /applications/find/candidates                                controllers.ApplicationController.findCandidatesByApplicationIds(applicationIds: List[String])
 
 GET         /application/:applicationId/phase3/results                   controllers.ApplicationController.getPhase3Results(applicationId: String)
 #GET         /application/:applicationId/sift/results                    controllers.ApplicationController.getSchemeResults(applicationId: String)

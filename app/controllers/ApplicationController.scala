@@ -167,4 +167,11 @@ trait ApplicationController extends BaseController {
       Future.sequence(updateFutures).map(_ => Ok)
     }
   }
+
+  def findCandidatesByApplicationIds(applicationIds: List[String]) = Action.async { implicit request =>
+    appRepository.find(applicationIds).map { candidates =>
+      Ok(Json.toJson(candidates))
+    }
+  }
+
 }
