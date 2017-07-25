@@ -58,7 +58,7 @@ class AssessmentCentreMongoRepository (
       "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
       "testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
         "schemeId" -> BSONDocument("$nin" -> siftableSchemeIds),
-        "result" -> EvaluationResults.Green.toPassmark
+        "result" -> EvaluationResults.Green.toString
       ))
     )
 
