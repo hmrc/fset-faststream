@@ -17,6 +17,7 @@
 package services.assessmentscores
 
 import factories.DateTimeFactory
+import model.Exceptions.EventNotFoundException
 import model.{ AllocationStatuses, UniqueIdentifier }
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
 import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
@@ -135,6 +136,56 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
     }
   }
 
+  "findAssessmentScoresWithCandidateSummaryByEventId" should {
+    "throw EventNotFoundException when event cannot be found" in
+      new FindAssessmentScoresWithCandidateSummaryTestFixture {
+        when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.failed(new EventNotFoundException(s"No event found with id $eventId")))
+
+        val ex = intercept[Exception] {
+          service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
+        }
+        ex.getCause mustBe (EventNotFoundException(s"No event found with id $eventId"))
+      }
+
+    "return List Assessment Scores find response with empty assessment scores if there is not any" in
+      new FindAssessmentScoresWithCandidateSummaryTestFixture {
+        when(assessmentScoresRepositoryMock.find(appId)).thenReturn(Future.successful(None))
+        when(candidateAllocationRepositoryMock.allocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
+
+        val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
+
+        val expectedCandidate = RecordCandidateScores(
+          appId,
+          PersonalDetailsExamples.completed.firstName,
+          PersonalDetailsExamples.completed.lastName,
+          EventExamples.e1WithSessions.venue.description,
+          today,
+          UniqueIdentifier(EventExamples.e1WithSessions.sessions.head.id)
+        )
+        val expectedResult = List(AssessmentScoresFindResponse(expectedCandidate, None))
+        result mustBe expectedResult
+      }
+
+    "return Assessment Scores response with assessment scores if there are assessment scores" in
+      new FindAssessmentScoresWithCandidateSummaryTestFixture {
+        when(assessmentScoresRepositoryMock.find(appId)).thenReturn(Future.successful(Some(AssessmentScoresAllExercisesExamples.Example1)))
+        when(candidateAllocationRepositoryMock.allocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
+
+        val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
+
+        val expectedCandidate = RecordCandidateScores(
+          appId,
+          PersonalDetailsExamples.completed.firstName,
+          PersonalDetailsExamples.completed.lastName,
+          EventExamples.e1WithSessions.venue.description,
+          today,
+          UniqueIdentifier(EventExamples.e1WithSessions.sessions.head.id)
+        )
+        val expectedResult = List(AssessmentScoresFindResponse(expectedCandidate, Some(AssessmentScoresAllExercisesExamples.Example1)))
+        result mustBe expectedResult
+      }
+  }
+
   trait BaseTestFixture {
     val assessmentScoresRepositoryMock = mock[AssessmentScoresRepository]
     val candidateAllocationRepositoryMock = mock[CandidateAllocationMongoRepository]
@@ -170,6 +221,7 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
     val eventId = EventExamples.e1WithSessions.id
     val candidateAllocations = List(CandidateAllocation(appId.toString(), eventId, EventExamples.e1WithSessions.sessions.head.id,
       AllocationStatuses.CONFIRMED, "version1"))
+    when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSessions))
     when(candidateAllocationRepositoryMock.find(appId.toString())).thenReturn(Future.successful(candidateAllocations))
     when(personalDetailsRepositoryMock.find(appId.toString())).thenReturn(Future.successful(PersonalDetailsExamples.completed))
     when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSessions))

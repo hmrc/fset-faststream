@@ -31,8 +31,8 @@ object EventExamples {
   val LocationLondon = Location("London")
   val LocationNewcastle = Location("Newcastle")
 
-  val e1 = Event(id = "1", eventType = EventType.FSAC, description = "PDFS FSB", location = LocationLondon,
-    venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+  val e1 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString, eventType = EventType.FSAC, description = "PDFS FSB",
+    location = LocationLondon, venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
     attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(),
     sessions = List())
 
