@@ -3,7 +3,7 @@
   name: Commercial
   requiresSift: true
 - id: DigitalAndTechnology
-  code: DaT
+  code: DAT
   name: Digital And Technology
   requiresSift: true
 - id: DiplomaticService
@@ -27,7 +27,7 @@
   name: Government Economics Service
   requiresSift: true
 - id: GovernmentEconomicsServiceDiplomaticService
-  code: GESDS
+  code: GES-DS
   name: Government Economics Service - Diplomatic Service
   requiresSift: true
 - id: GovernmentOperationalResearchService
@@ -43,7 +43,7 @@
   name: Government Statistical Service
   requiresSift: true
 - id: HousesOfParliament
-  code: HoP
+  code: HOP
   name: Houses Of Parliament
   requiresSift: true
 - id: HumanResources
@@ -51,7 +51,7 @@
   name: Human Resources
   requiresSift: false
 - id: International
-  code: INT
+  code: IFS
   name: International
   requiresSift: true
 - id: ProjectDelivery
