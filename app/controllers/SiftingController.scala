@@ -16,38 +16,35 @@
 
 package controllers
 
-import model.Commands._
 import model.{ EvaluationResults, SchemeId }
 import model.exchange.ApplicationSifting
 import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
-import repositories._
-import repositories.sifting.SiftingRepository
+import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object SiftingController extends SiftingController {
-  val siftAppRepository = siftingRepository
+  val siftService = ApplicationSiftService
 }
 
 trait SiftingController extends BaseController {
 
-  import Implicits._
+  val siftService: ApplicationSiftService
 
-  val siftAppRepository: SiftingRepository
-
-  def findApplicationsReadyForSifting(schemeId: String): Action[AnyContent] = Action.async { implicit request =>
-    siftAppRepository.findApplicationsReadyForSifting(SchemeId(schemeId)).map { candidates =>
+  def findApplicationsReadyForSchemeSifting(schemeId: String): Action[AnyContent] = Action.async { implicit request =>
+    siftService.findApplicationsReadyForSchemeSift(SchemeId(schemeId)).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }
 
   def siftCandidateApplication: Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[ApplicationSifting] { sift =>
-      siftAppRepository.siftCandidateApplication(sift.applicationId.toString(),
-        SchemeEvaluationResult(sift.schemeId, fromPassMark(sift.result).toString)).map(_ => Ok)
+      siftService.siftApplicationForScheme(sift.applicationId,
+        SchemeEvaluationResult(sift.schemeId, fromPassMark(sift.result).toString)
+      ).map(_ => Ok)
     }
   }
 

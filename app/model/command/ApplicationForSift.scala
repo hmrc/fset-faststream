@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package controllers.reference
+package model.command
 
+import model.persisted.PassmarkEvaluation
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
-import uk.gov.hmrc.play.microservice.controller.BaseController
 
-import scala.concurrent.ExecutionContext.Implicits.global
+case class ApplicationForSift(
+  applicationId: String,
+  evaluationResult: PassmarkEvaluation
+)
 
-object SchemesController extends SchemesController{
-  val repo = SchemeYamlRepository
-}
-
-trait SchemesController extends BaseController {
-  def repo: SchemeRepositoryImpl
-
-  def allSchemes: Action[AnyContent] = Action { implicit request =>
-    Ok(Json.toJson(repo.schemes))
-  }
+object ApplicationForSift {
+  implicit val applicationForSiftFormat = Json.format[ApplicationForSift]
 }

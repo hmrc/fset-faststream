@@ -17,6 +17,7 @@
 package model.report
 
 import model.ApplicationStatus._
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED }
 import model.command.ProgressResponse
 
 trait ProgressStatusesReportLabels {
@@ -74,12 +75,10 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 385, Phase3TestsPassedNotified),
     (progress.phase3ProgressResponse.phase3TestsFailed, 390, Phase3TestsFailed),
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
-    (progress.exported, 398, Exported),
-    (progress.updateExported, 399, UpdateExported),
+    (progress.siftProgressResponse.siftEntered, 396, SiftEntered),
+    (progress.siftProgressResponse.allSchemesSiftCompleted, 397, SiftCompleted),
     (progress.assessmentCentre.failed, 440, AssessmentCentreFailedProgress),
-    (progress.assessmentCentre.failedNotified, 450, AssessmentCentreFailedNotifiedProgress),
     (progress.assessmentCentre.passed, 460, AssessmentCentrePassedProgress),
-    (progress.assessmentCentre.passedNotified, 470, AssessmentCentrePassedNotifiedProgress),
     (progress.withdrawn, 999, WithdrawnProgress),
     (progress.applicationArchived, 1000, ApplicationArchived)
   )
@@ -159,15 +158,13 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailed = "phase3_tests_failed"
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsPassedNotified = "phase3_tests_passed_notified"
+  val SiftEntered = "all_schemes_sift_entered"
+  val SiftCompleted = "all_schemes_sift_completed"
   val ApplicationArchived = "application_archived"
   val FastPassAccepted = "fast_pass_accepted"
-  val Exported = "exported"
-  val UpdateExported = "update_exported"
 
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
   val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toLowerCase()
   val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toLowerCase()
-  val AssessmentCentrePassedNotifiedProgress = ASSESSMENT_CENTRE_PASSED_NOTIFIED.toLowerCase()
-  val AssessmentCentreFailedNotifiedProgress = ASSESSMENT_CENTRE_FAILED_NOTIFIED.toLowerCase()
 }

@@ -1,54 +1,72 @@
 - id: Commercial
   code: CFS
   name: Commercial
+  requiresSift: true
 - id: DigitalAndTechnology
   code: DaT
   name: Digital And Technology
+  requiresSift: true
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
+  requiresSift: true
 - id: Finance
   code: FIFS
   name: Finance
+  requiresSift: true
 - id: Generalist
   code: GFS
   name: Generalist
+  requiresSift: false
 - id: GovernmentCommunicationService
   code: GCFS
   name: Government Communication Service
+  requiresSift: true
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
+  requiresSift: true
 - id: GovernmentEconomicsServiceDiplomaticService
   code: GESDS
   name: Government Economics Service - Diplomatic Service
+  requiresSift: true
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
+  requiresSift: true
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
+  requiresSift: true
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
+  requiresSift: true
 - id: HousesOfParliament
   code: HoP
   name: Houses Of Parliament
+  requiresSift: true
 - id: HumanResources
   code: HRFS
   name: Human Resources
+  requiresSift: false
 - id: International
   code: INT
   name: International
+  requiresSift: true
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
+  requiresSift: true
 - id: ScienceAndEngineering
   code: SEFS
   name: Science And Engineering
+  requiresSift: true
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
+  requiresSift: true
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
+  requiresSift: true

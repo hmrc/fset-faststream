@@ -78,6 +78,11 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
   phase3TestsSuccessNotified: Boolean = false
 )
 
+case class SiftProgressResponse(
+  siftEntered: Boolean = false,
+  allSchemesSiftCompleted: Boolean = false
+)
+
 case class ProgressResponse(
   applicationId: String,
   personalDetails: Boolean = false,
@@ -92,6 +97,7 @@ case class ProgressResponse(
   phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
   phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
   phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
+  siftProgressResponse: SiftProgressResponse = SiftProgressResponse(),
   exported: Boolean = false,
   updateExported: Boolean = false,
   applicationArchived: Boolean = false,
@@ -104,5 +110,6 @@ object ProgressResponse {
   implicit val phase1ProgressResponseFormat = Json.format[Phase1ProgressResponse]
   implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
   implicit val phase3ProgressResponseFormat = Json.format[Phase3ProgressResponse]
+  implicit val siftProgressResponse = Json.format[SiftProgressResponse]
   implicit val progressResponseFormat = Json.format[ProgressResponse]
 }
