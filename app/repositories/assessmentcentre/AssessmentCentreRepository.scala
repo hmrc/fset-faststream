@@ -29,7 +29,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-
+import scala.language.implicitConversions
 
 trait AssessmentCentreRepository {
   def dateTime: DateTimeFactory
