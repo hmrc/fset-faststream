@@ -636,11 +636,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   }
 
   private def createApplications(num: Int): Future[Unit] = {
-    import repositories.BSONDateTimeHandler
     val additionalDoc = BSONDocument(
-      "progress-status-timestamp" -> BSONDocument(
-        s"${ProgressStatuses.PHASE3_TESTS_PASSED}" -> DateTime.now()
-      ),
       "fsac-indicator" -> BSONDocument(
         "area" -> "London",
         "assessmentCentre" -> "London",
@@ -648,12 +644,14 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       )
     )
 
+    val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
+    
     Future.sequence(
       (0 until num).map { i =>
         testDataRepo.createApplicationWithAllFields(
-          UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
+          UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = ApplicationStatus.ASSESSMENT_CENTRE,
           firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d"),
-          additionalDoc = additionalDoc
+          additionalDoc = additionalDoc, additionalProgressStatuses = additionalProgressStatuses
         )
       }
     ).map(_ => ())

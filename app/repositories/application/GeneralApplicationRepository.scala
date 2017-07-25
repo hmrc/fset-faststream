@@ -913,15 +913,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = {
-    val validStates = List(
-      ApplicationStatus.PHASE3_TESTS_PASSED,
-      ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-      ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_ALLOCATION
-    )
+    val awaitingAllocationKey = ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key
 
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> validStates)),
-      BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
+      BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE),
+      BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations)),
+      BSONDocument(s"progress-status.$awaitingAllocationKey" -> true)
     ))
 
     collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
@@ -939,6 +936,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         )
 
         val ascending = JsNumber(1)
+        // Eligible candidates should be sorted based on when they passed PHASE 3
         val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
 
         collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List]()
