@@ -34,15 +34,12 @@ import scala.util.Try
 
 object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
-  val eventsRepo: EventsMongoRepository = repositories.eventsRepository
   val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
   val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
 }
 
 trait EventsController extends BaseController {
   def eventsService: EventsService
-
-  def eventsRepo: EventsMongoRepository
 
   def locationsAndVenuesRepository: LocationsWithVenuesRepository
 
@@ -53,10 +50,10 @@ trait EventsController extends BaseController {
       .recover { case e: Exception => UnprocessableEntity(e.getMessage) }
   }
 
-  def createEvent() = Action.async(parse.json) { implicit request =>
+  def createEvent(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[ExchangeEvent] { event =>
       val persistedEvent = Event(event)
-      eventsRepo.save(persistedEvent :: Nil).map { _ =>
+      eventsService.save(persistedEvent).map { _ =>
         Created
       }.recover { case e: Exception => UnprocessableEntity(e.getMessage) }
     }

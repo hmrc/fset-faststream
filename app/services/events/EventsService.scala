@@ -44,6 +44,10 @@ trait EventsService {
     }
   }
 
+  def save(event: Event): Future[Unit] = {
+    eventsRepo.save(event :: Nil)
+  }
+
   def getEvent(id: String): Future[Event] = {
     eventsRepo.getEvent(id)
   }

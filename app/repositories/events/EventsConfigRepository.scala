@@ -136,7 +136,7 @@ trait EventsConfigRepository {
           configItem.skillRequirements,
           configItem.sessions.map(s => Session(s))
       )
-      eventItemFuture.recoverWith {
+      eventItemFuture.recover {
         case ex => throw new Exception(
           s"Error in events config: ${MicroserviceAppConfig.eventsConfig.scheduleFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
       }
