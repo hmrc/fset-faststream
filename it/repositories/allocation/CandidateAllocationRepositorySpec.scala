@@ -11,8 +11,8 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
   def repository: CandidateAllocationMongoRepository = new CandidateAllocationMongoRepository()
   val allocations: Seq[CandidateAllocation] = Seq(
     CandidateAllocation("candId1", "eventId1", "sessionId1", AllocationStatuses.UNCONFIRMED, "version1"),
-    CandidateAllocation("candId2", "eventId1", "sessionId2", AllocationStatuses.CONFIRMED, "version1"),
-    CandidateAllocation("candId3", "eventId1", "sessionId1",  AllocationStatuses.UNCONFIRMED, "version1")
+    CandidateAllocation("candId2", "eventId1", "sessionId1", AllocationStatuses.CONFIRMED, "version1"),
+    CandidateAllocation("candId3", "eventId2", "sessionId2",  AllocationStatuses.UNCONFIRMED, "version1")
   )
 
   s"CandidateAllocationRepository" must {
@@ -56,7 +56,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       result mustBe unit
       val docs = repository.allocationsForSession("eventId1", "sessionId1").futureValue
       docs.size mustBe 1
-      docs.head mustBe allocations.last
+      docs.head mustBe allocations.tail.head
     }
   }
 }
