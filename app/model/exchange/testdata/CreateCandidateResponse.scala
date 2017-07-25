@@ -71,6 +71,6 @@ object CreateCandidateResponse {
   )
 
   object SiftForm {
-    implicit val siftFormFormat = Json.format[SiftForm]
+    implicit val siftFormFormat: OFormat[SiftForm] = Json.format[SiftForm]
   }
 }

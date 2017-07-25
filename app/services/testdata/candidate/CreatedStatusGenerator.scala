@@ -27,7 +27,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object CreatedStatusGenerator extends SiftEnteredStatusGenerator {
+object CreatedStatusGenerator extends CreatedStatusGenerator {
   override val previousStatusGenerator = RegisteredStatusGenerator
   override val appRepository = applicationRepository
 }

@@ -16,9 +16,9 @@
 
 package services.testdata.candidate.sift
 
+import model.EvaluationResults
 import model.command.ApplicationForSift
-import model.exchange.testdata.CreateCandidateResponse
-import model.exchange.testdata.CreateCandidateResponse.SiftForm
+import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, SiftForm }
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.sift.ApplicationSiftService
@@ -38,14 +38,18 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
   val siftService: ApplicationSiftService
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse.CreateCandidateResponse] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- siftService.progressApplicationToSiftStage(Seq(ApplicationForSift(candidateInPreviousStatus.applicationId.get,
         candidateInPreviousStatus.phase3TestGroup.get.schemeResult.get)))
     } yield {
 
-      val greenSchemes = candidateInPreviousStatus.phase3TestGroup.flatMap(tg => tg.schemeResult.map(pm => pm.result.filter(_.result == "Pass")))
+      val greenSchemes = candidateInPreviousStatus.phase3TestGroup.flatMap(tg =>
+        tg.schemeResult.map(pm =>
+          pm.result.filter(_.result == EvaluationResults.Green.toString)
+        )
+      )
 
       candidateInPreviousStatus.copy(
         siftForms = greenSchemes.map(_.map( result => SiftForm(result.schemeId, "", None) ))
