@@ -1,6 +1,6 @@
 package repositories.sift
 
-import model.EvaluationResults.Green
+import model.EvaluationResults.{ Green, Red }
 import model.Phase3TestProfileExamples.phase3TestWithResult
 import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
@@ -21,7 +21,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   val Commercial: SchemeId = SchemeId("Commercial")
   val European: SchemeId = SchemeId("European")
   val Sdip: SchemeId = SchemeId("Sdip")
-  val Generalist: SchemeId = SchemeId("Generalistt status")
+  val Generalist: SchemeId = SchemeId("Generalist")
   val ProjectDelivery = SchemeId("Project Delivery")
   val schemeDefinitions = List(Commercial, ProjectDelivery, Generalist)
 
@@ -110,7 +110,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     val resultToSave = List(
       SchemeEvaluationResult(Commercial, Green.toString),
       SchemeEvaluationResult(Sdip, Green.toString),
-      SchemeEvaluationResult(European, Green.toString)
+      SchemeEvaluationResult(European, Green.toString),
+      SchemeEvaluationResult(Generalist, Red.toString)
     )
 
     val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
