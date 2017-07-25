@@ -21,10 +21,10 @@ import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 object SchemeType extends Enumeration {
   type SchemeType = Value
 
-  val Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,
-  DiplomaticServiceEuropean, European, Finance, Generalist,
-  GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService,
-  GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
+  val Commercial, DigitalAndTechnology, DiplomaticService, Finance, Generalist,
+  GovernmentCommunicationService, GovernmentEconomicsService, GovernmentEconomicsServiceDiplomaticService,
+  GovernmentOperationalResearchService, GovernmentSocialResearchService,
+  GovernmentStatisticalService, HousesOfParliament, HumanResources, International,
   ProjectDelivery, ScienceAndEngineering, Edip, Sdip, SdipFaststream = Value
 
   implicit val schemeFormat = new Format[SchemeType] {

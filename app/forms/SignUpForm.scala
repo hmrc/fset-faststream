@@ -146,14 +146,12 @@ object SignUpForm {
 
   private def sdipEligibiliyCheck(postData: Map[String, String]): Either[Seq[FormError], String] = {
     val sdipEligible = postData.get("sdipEligible").map(_.toLowerCase)
-    val hasAppliedtoFaststream = postData.lift("hasAppliedToFaststream").map(_.toLowerCase)
 
-    val errors = (hasAppliedtoFaststream match {
-                    case Some("true") => List(FormError("hasAppliedToFaststream", Messages("error.hasAppliedToFaststream")))
-                    case Some("false") => Nil
-                    case _ => List(FormError("hasAppliedToFaststream", Messages("agree.hasAppliedToFaststream")))
-                  }) ++
-      (if (!sdipEligible.contains("true")) { List(FormError("sdipEligible", Messages("agree.sdipEligible"))) } else { Nil })
+    val errors = if (!sdipEligible.contains("true")) {
+      List(FormError("sdipEligible", Messages("agree.sdipEligible")))
+    } else {
+      Nil
+    }
 
     if (errors.isEmpty) {
       Right(ApplicationRoute.Sdip)
@@ -178,8 +176,7 @@ object SignUpForm {
       "sdipFastStreamConsider" -> optional(boolean),
       "sdipFastStreamEligible" -> optional(boolean),
       "edipEligible" -> boolean,
-      "sdipEligible" -> boolean,
-      "hasAppliedToFaststream" -> optional(boolean)
+      "sdipEligible" -> boolean
     )(Data.apply)(Data.unapply)
   )
 
@@ -224,7 +221,6 @@ object SignUpForm {
     sdipFastStreamConsider: Option[Boolean],
     sdipFastStreamEligible: Option[Boolean],
     edipEligible: Boolean,
-    sdipEligible: Boolean,
-    hasAppliedToFaststream: Option[Boolean]
+    sdipEligible: Boolean
   )
 }
