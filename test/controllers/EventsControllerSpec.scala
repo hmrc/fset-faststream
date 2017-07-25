@@ -22,14 +22,14 @@ import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.exchange.{ AssessorAllocation, AssessorAllocations, AssessorSkill }
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue, _ }
 import org.joda.time.{ LocalDate, LocalTime }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.application.GeneralApplicationRepository
-import repositories.events.{ EventsMongoRepository, LocationsWithVenuesRepository, UnknownVenueException }
-import services.allocation.AssessorAllocationService
+import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
+import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
 import services.events.EventsService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -101,8 +101,8 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockEventsService = mock[EventsService]
-    val mockEventsRepo = mock[EventsMongoRepository]
     val mockAssessorAllocationService = mock[AssessorAllocationService]
+    val mockCandidateAllocationService = mock[CandidateAllocationService]
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val MockVenue = Venue("London FSAC", "Bush House")
@@ -116,8 +116,8 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
     val controller = new EventsController {
       val eventsService = mockEventsService
-      val eventsRepo = mockEventsRepo
       val assessorAllocationService = mockAssessorAllocationService
+      val candidateAllocationService: CandidateAllocationService = mockCandidateAllocationService
       val locationsAndVenuesRepository: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
       val applicationRepository = mockAppRepo
     }
