@@ -69,7 +69,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
 
       intercept[AssessorNotFoundException] {
-        Await.result(service.addAvailability(AssessorUserId, exchangeAvailability), 10 seconds)
+        Await.result(service.saveAvailability(AssessorUserId, exchangeAvailability), 10 seconds)
       }
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
     }
@@ -82,7 +82,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
 
-      val result = service.addAvailability(AssessorUserId, exchangeAvailability).futureValue
+      val result = service.saveAvailability(AssessorUserId, exchangeAvailability).futureValue
 
       result mustBe unit
 

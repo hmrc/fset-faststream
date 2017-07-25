@@ -26,7 +26,7 @@ case class Assessor(
   skills: List[String],
   sifterSchemes: List[SchemeId],
   civilServant: Boolean,
-  availability: List[AssessorAvailability] = Nil,
+  availability: Set[AssessorAvailability] = Set.empty,
   status: AssessorStatus
 )
 

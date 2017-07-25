@@ -56,19 +56,18 @@ trait AssessorService {
         assessorRepository.save(assessorToPersist).map(_ => ())
       case _ =>
         val assessorToPersist = model.persisted.assessor.Assessor(
-          userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, Nil, AssessorStatus.CREATED
+          userId, assessor.skills, assessor.sifterSchemes, assessor.civilServant, Set.empty, AssessorStatus.CREATED
         )
         assessorRepository.save(assessorToPersist).map(_ => ())
     }
   }
 
-  def addAvailability(userId: String, assessorAvailabilities: List[model.exchange.AssessorAvailability]): Future[Unit] = {
+  def saveAvailability(userId: String, assessorAvailabilities: Set[model.exchange.AssessorAvailability]): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
         exchangeToPersistedAvailability(assessorAvailabilities).flatMap { newAvailabilities =>
-          val mergedAvailability = existing.availability ++ newAvailabilities
           val assessorToPersist = model.persisted.assessor.Assessor(userId, existing.skills, existing.sifterSchemes,
-            existing.civilServant, mergedAvailability, AssessorStatus.AVAILABILITIES_SUBMITTED)
+            existing.civilServant, newAvailabilities, AssessorStatus.AVAILABILITIES_SUBMITTED)
 
           assessorRepository.save(assessorToPersist).map(_ => ())
         }
@@ -76,7 +75,7 @@ trait AssessorService {
     }
   }
 
-  def findAvailability(userId: String): Future[List[model.exchange.AssessorAvailability]] = {
+  def findAvailability(userId: String): Future[Set[model.exchange.AssessorAvailability]] = {
     for {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
@@ -145,7 +144,7 @@ trait AssessorService {
   }
 
 
-  private def exchangeToPersistedAvailability(a: Seq[exchange.AssessorAvailability]): Future[Seq[persisted.assessor.AssessorAvailability]] = {
+  private def exchangeToPersistedAvailability(a: Set[exchange.AssessorAvailability]): Future[Set[persisted.assessor.AssessorAvailability]] = {
     FutureEx.traverseSerial(a) { availability =>
       locationsWithVenuesRepo.location(availability.location).map { location =>
         model.persisted.assessor.AssessorAvailability(location, availability.date)

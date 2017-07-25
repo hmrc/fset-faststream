@@ -33,13 +33,13 @@ object CreateAdminResponse {
       Json.format[CreateAdminResponse]
   }
 
-  case class AssessorResponse(skills: List[String], civilServant: Boolean, availability: List[AssessorAvailability], status: AssessorStatus)
+  case class AssessorResponse(skills: List[String], civilServant: Boolean, availability: Set[AssessorAvailability], status: AssessorStatus)
 
   object AssessorResponse {
     implicit val assessorResponseFormat: OFormat[AssessorResponse] = Json.format[AssessorResponse]
 
     def apply(exchange: model.exchange.Assessor): AssessorResponse = {
-      AssessorResponse(exchange.skills, exchange.civilServant, List.empty, exchange.status)
+      AssessorResponse(exchange.skills, exchange.civilServant, Set.empty, exchange.status)
     }
 
     def apply(persisted: model.persisted.assessor.Assessor): AssessorResponse = {
@@ -48,7 +48,7 @@ object CreateAdminResponse {
     }
 
     def apply(data: AssessorData): AssessorResponse = {
-      AssessorResponse(data.skills, data.civilServant, data.availability.getOrElse(List.empty), data.status)
+      AssessorResponse(data.skills, data.civilServant, data.availability.getOrElse(Set.empty), data.status)
     }
   }
 

@@ -45,7 +45,7 @@ object AssessorAvailability {
   }
 }
 
-case class AssessorAvailabilities(userId: String, availability: List[AssessorAvailability])
+case class AssessorAvailabilities(userId: String, availability: Set[AssessorAvailability])
 
 object AssessorAvailabilities {
   implicit val assessorAvailabilityFormat = Json.format[AssessorAvailabilities]

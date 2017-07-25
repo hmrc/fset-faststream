@@ -713,11 +713,11 @@ object DataFaker {
     object Assessor {
       private def location = randOne(List("London", "Newcastle"))
 
-      def availability: Option[List[AssessorAvailability]] = {
+      def availability: Option[Set[AssessorAvailability]] = {
         if (boolTrue20percent) {
-          Some(List.empty)
+          Some(Set.empty)
         } else {
-          val dates = ( 15 to 25 ).map(i => LocalDate.parse(s"2017-06-$i")).toList
+          val dates = ( 15 to 25 ).map(i => LocalDate.parse(s"2017-06-$i")).toSet
           Option(dates.flatMap { date =>
             if (bool) {
               Some(AssessorAvailability(location, date))

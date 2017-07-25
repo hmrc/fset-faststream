@@ -28,10 +28,10 @@ object AssessorExamples {
 }
 
 object AssessorAvailabilityExamples {
-  val AssessorAvailabilityInBothLondonAndNewcastle = List(
+  val AssessorAvailabilityInBothLondonAndNewcastle = Set(
     AssessorAvailability(EventExamples.LocationLondon.name, new LocalDate(2017, 10, 10)),
-    AssessorAvailability(EventExamples.LocationLondon.name, new LocalDate(2017, 10, 10)),
+    AssessorAvailability(EventExamples.LocationLondon.name, new LocalDate(2017, 10, 11)),
     AssessorAvailability(EventExamples.LocationNewcastle.name, new LocalDate(2017, 5, 10)),
-    AssessorAvailability(EventExamples.LocationNewcastle.name, new LocalDate(2017, 5, 10))
+    AssessorAvailability(EventExamples.LocationNewcastle.name, new LocalDate(2017, 5, 11))
   )
 }

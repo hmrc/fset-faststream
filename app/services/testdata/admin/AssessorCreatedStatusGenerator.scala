@@ -43,9 +43,9 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
         val userId = userInPreviousStatus.userId
         for {
           assessorPersisted <- createAssessor(userId, assessorData)
-          availability = assessorData.availability.getOrElse(Nil)
+          availability = assessorData.availability.getOrElse(Set.empty)
           _ <- if (assessorData.status == AssessorStatus.AVAILABILITIES_SUBMITTED) {
-            assessorService.addAvailability(userId, availability)
+            assessorService.saveAvailability(userId, availability)
           } else { Future.successful(()) }
         } yield {
           userInPreviousStatus.copy(assessor  = Some(AssessorResponse.apply(assessorPersisted).copy(availability = availability)))
