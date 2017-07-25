@@ -54,6 +54,15 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec with Allocat
       val expectedAllocations = allocations.filter(_.sessionId == "sessionId1")
       result mustBe expectedAllocations
     }
+
+    "remove candidate allocations" in {
+      repository.save(allocations).futureValue
+      val result = repository.removeCandidateAllocation(allocations.head).futureValue
+      result mustBe unit
+
+      val docs = repository.allocationsForSession("eventId1", "sessionId1").futureValue
+      docs.size mustBe 1
+    }
   }
 }
 

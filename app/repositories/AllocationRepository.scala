@@ -17,8 +17,7 @@
 package repositories
 
 import model.AllocationStatuses.AllocationStatus
-import model.Exceptions.TooManyEventIdsException
-import model.exchange.CandidateAllocations
+import model.Exceptions.{ TooManyEventIdsException, TooManySessionIdsException }
 import model.persisted.{ Allocation, AssessorAllocation, CandidateAllocation }
 import play.api.libs.json.{ JsObject, OFormat }
 import reactivemongo.api.DB
@@ -70,6 +69,19 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
 
   }
 
+  def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit] = {
+    val eventId = allocation.eventId
+    val sessionId = allocation.sessionId
+
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("id" -> allocation.id),
+      BSONDocument("eventId" -> eventId),
+      BSONDocument("sessionId" -> sessionId)
+    ))
+
+    collection.remove(query).map (_ => ())
+  }
+
   def allocationsForEvent(eventId: String): Future[Seq[T]] = {
     collection.find(BSONDocument("eventId" -> eventId), projection).cursor[T]().collect[Seq]()
   }
@@ -101,10 +113,4 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats
   ) with AllocationRepository[CandidateAllocation] with ReactiveRepositoryHelpers {
   val format: OFormat[CandidateAllocation] = CandidateAllocation.candidateAllocationFormat
-
-  def removeCandidateAllocations(allocations: Seq[CandidateAllocations]): Future[Unit] = {
-    //TODO: Remove allocations based on id, eventId and sessionId
-//    val query = BSONDocument("id" -> allocations.applicationId, "eventId" -> eventId, "sessionId" -> sessionId)
-    ???
-  }
 }

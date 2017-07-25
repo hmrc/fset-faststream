@@ -16,6 +16,7 @@
 
 package services.allocation
 
+import common.FutureEx
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.OptimisticLockException
 import model._
@@ -52,7 +53,7 @@ trait AssessorAllocationService extends EventSink {
 
   def assessorAllocationRepo: AssessorAllocationMongoRepository
   def candidateAllocationRepo: CandidateAllocationMongoRepository
-  val applicationRepo: GeneralApplicationRepository
+  def applicationRepo: GeneralApplicationRepository
 
   def eventsService: EventsService
 
@@ -65,6 +66,17 @@ trait AssessorAllocationService extends EventSink {
 
   def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
     candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
+  }
+
+  def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation]): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
+    // For each allocation, reset the progress status and delete the corresponding allocation
+    val res = FutureEx.traverseSerial(allocations) { allocation =>
+      val fut = candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
+        applicationRepo.resetApplicationAllocationStatus(allocation.id)
+      }
+      FutureEx.futureToEither(allocation, fut)
+    }
+    res.map(SerialUpdateResult.fromEither)
   }
 
   def allocate(newAllocations: command.AssessorAllocations): Future[Unit] = {

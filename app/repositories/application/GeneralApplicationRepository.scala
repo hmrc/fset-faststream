@@ -130,6 +130,8 @@ trait GeneralApplicationRepository {
 
   def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse]
 
+  def resetApplicationAllocationStatus(applicationId: String): Future[Unit]
+
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
 
   }
@@ -913,9 +915,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = {
-    val awaitingAllocation = ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION
-    val confirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED
-    val unconfirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED
+    val awaitingAllocation = ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key
+    val confirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED.key
+    val unconfirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED.key
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE),
@@ -953,6 +955,20 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         }
       }
     }
+  }
+
+  override def resetApplicationAllocationStatus(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val progressStatuses = List(
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED)
+    val statusesToRemove = progressStatuses.map(p => s"progress-status.${p.key}" -> BSONString(""))
+
+    val updateQuery = BSONDocument(
+      "$unset" -> BSONDocument(statusesToRemove),
+      "$set" -> BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key}" -> true)
+    )
+    collection.update(query, updateQuery).map(_ => ())
   }
 
   private def bsonDocToCandidatesEligibleForEvent(doc: BSONDocument) = {

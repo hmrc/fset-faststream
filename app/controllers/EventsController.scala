@@ -19,23 +19,24 @@ package controllers
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.{ command, exchange }
 import model.exchange.AssessorAllocations
+import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.EventType.EventType
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
+import repositories.application.GeneralApplicationRepository
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.Try
 
 object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
   val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
   val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
+  val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
 }
 
 trait EventsController extends BaseController {
@@ -44,6 +45,8 @@ trait EventsController extends BaseController {
   def locationsAndVenuesRepository: LocationsWithVenuesRepository
 
   def assessorAllocationService: AssessorAllocationService
+
+  def applicationRepository: GeneralApplicationRepository
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
@@ -121,10 +124,10 @@ trait EventsController extends BaseController {
     }
   }
 
-  def removeCandidateAllocations(eventId: String, sessionId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
-      //TODO: fset-1667 Delete allocations and move candidate's application to ASSESSMENT_CENTRE_AWAITING_ALLOCATION
-      Future.successful(Ok)
+  def removeCandidateAllocations(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[exchange.CandidateAllocations] { candidateAllocs =>
+      val allocations = CandidateAllocation.fromExchange(candidateAllocs, eventId, sessionId).toList
+      assessorAllocationService.unAllocateCandidates(allocations).map( _ => Ok)
     }
   }
 }

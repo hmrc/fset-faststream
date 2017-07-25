@@ -27,6 +27,7 @@ import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import repositories.application.GeneralApplicationRepository
 import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
@@ -100,6 +101,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
   trait TestFixture extends TestFixtureBase {
     val mockEventsService = mock[EventsService]
     val mockAssessorAllocationService = mock[AssessorAllocationService]
+    val mockAppRepo = mock[GeneralApplicationRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val MockVenue = Venue("London FSAC", "Bush House")
     val MockLocation = Location("London")
@@ -114,6 +116,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
       val eventsService = mockEventsService
       val assessorAllocationService = mockAssessorAllocationService
       val locationsAndVenuesRepository: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
+      val applicationRepository = mockAppRepo
     }
   }
 }
