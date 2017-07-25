@@ -913,12 +913,16 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = {
-    val awaitingAllocationKey = ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key
+    val awaitingAllocation = ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION
+    val confirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED
+    val unconfirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE),
       BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations)),
-      BSONDocument(s"progress-status.$awaitingAllocationKey" -> true)
+      BSONDocument(s"progress-status.$awaitingAllocation" -> true),
+      BSONDocument(s"progress-status.$confirmedAllocation" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.$unconfirmedAllocation" -> BSONDocument("$exists" -> false))
     ))
 
     collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
