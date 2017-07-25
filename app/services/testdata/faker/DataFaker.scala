@@ -155,7 +155,6 @@ object DataFaker {
         Scheme("DigitalAndTechnology", "DaT", "Digital And Technology", Some(SiftRequirement.FORM)),
         Scheme("DiplomaticService", "DS", "Diplomatic Service",  Some(SiftRequirement.FORM)),
         Scheme("DiplomaticServiceEconomics", "DSE", "Diplomatic Service Economics", Some(SiftRequirement.FORM)),
-        Scheme("DiplomaticServiceEuropean", "EFSDS", "Diplomatic Service European", Some(SiftRequirement.FORM)),
         Scheme("European", "EFS", "European", Some(SiftRequirement.FORM)),
         Scheme("Finance", "FIFS", "Finance", Some(SiftRequirement.NUMERIC_TEST)),
         Scheme("Generalist", "GFS", "Generalist", None),
