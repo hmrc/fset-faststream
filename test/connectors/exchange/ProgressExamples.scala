@@ -97,8 +97,9 @@ object ProgressExamples {
       phase3TestsPassed = true
     ),
     exported = true,
-    assessmentScores = AssessmentScores(entered = true, accepted = true),
     assessmentCentre = AssessmentCentre(
+      scoresEntered = true,
+      scoresAccepted = true,
       awaitingReevaluation = true,
       passed = true,
       passedNotified = true
@@ -151,9 +152,8 @@ object ProgressExamples {
     ),
     exported = false,
     updateExported = false,
-    failedToAttend = true,
-    AssessmentScores(entered = true, accepted = true),
-    AssessmentCentre(awaitingReevaluation = true, passed = true, passedNotified = true)
+    AssessmentCentre(failedToAttend = true, scoresEntered = true, scoresAccepted = true, awaitingReevaluation = true,
+      passed = true, passedNotified = true)
   )
 
 

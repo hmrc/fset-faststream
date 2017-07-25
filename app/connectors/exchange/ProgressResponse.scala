@@ -18,13 +18,15 @@ package connectors.exchange
 
 import play.api.libs.json.Json
 
-case class AssessmentScores(entered: Boolean = false, accepted: Boolean = false)
-
-case class AssessmentCentre(awaitingReevaluation: Boolean = false,
-                            passed: Boolean = false,
-                            passedNotified: Boolean = false,
-                            failed: Boolean = false,
-                            failedNotified: Boolean = false
+case class AssessmentCentre(
+                             failedToAttend: Boolean = false,
+                             scoresEntered: Boolean = false,
+                             scoresAccepted: Boolean = false,
+                             awaitingReevaluation: Boolean = false,
+                             passed: Boolean = false,
+                             passedNotified: Boolean = false,
+                             failed: Boolean = false,
+                             failedNotified: Boolean = false
                            )
 
 case class Phase1ProgressResponse(
@@ -84,13 +86,10 @@ case class ProgressResponse(
   phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
   exported: Boolean = false,
   updateExported: Boolean = false,
-  failedToAttend: Boolean = false,
-  assessmentScores: AssessmentScores = AssessmentScores(),
   assessmentCentre: AssessmentCentre = AssessmentCentre()
 )
 
 object ProgressResponse {
-  implicit val assessmentScoresFormat = Json.format[AssessmentScores]
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
   implicit val phase1ProgressResponseFormat = Json.format[Phase1ProgressResponse]
   implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
