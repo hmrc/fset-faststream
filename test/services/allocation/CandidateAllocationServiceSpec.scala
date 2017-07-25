@@ -45,7 +45,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
 
       when(mockEventsService.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1))
-      when(mockCandidateAllocationRepository.allocationsForEvent(eventId)).thenReturn(Future.successful(Nil))
+      when(mockCandidateAllocationRepository.allocationsForSession(eventId, sessionId)).thenReturn(Future.successful(Nil))
       when(mockAppRepo.find(appId)).thenReturn(Future.successful(None))
       service.allocateCandidates(candidateAllocations)
     }

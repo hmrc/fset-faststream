@@ -24,7 +24,7 @@ import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, Candidate
 import model.stc.StcEventTypes.StcEvents
 import model._
 import play.api.mvc.RequestHeader
-import repositories.CandidateAllocationMongoRepository
+import repositories.{ CandidateAllocationMongoRepository, CandidateAllocationRepository }
 import repositories.application.GeneralApplicationRepository
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
@@ -46,7 +46,7 @@ object CandidateAllocationService extends CandidateAllocationService {
 }
 
 trait CandidateAllocationService extends EventSink {
-  def candidateAllocationRepo: CandidateAllocationMongoRepository
+  def candidateAllocationRepo: CandidateAllocationRepository
   def applicationRepo: GeneralApplicationRepository
 
   def eventsService: EventsService
