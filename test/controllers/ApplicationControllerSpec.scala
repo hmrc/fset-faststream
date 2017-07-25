@@ -158,7 +158,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version2", None)
       when(mockPassmarkService.getPassmarkEvaluation(any[String])).thenReturn(Future.successful(evaluation))
 
-      val result = TestApplicationController.getSchemeResults(ApplicationId)(getSchemeResultsRequest(ApplicationId)).run
+      val result = TestApplicationController.getPhase3Results(ApplicationId)(getPhase3ResultsRequest(ApplicationId)).run
       val jsonResponse = contentAsJson(result)
 
       jsonResponse mustBe Json.toJson(resultToSave)
@@ -257,8 +257,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    def getSchemeResultsRequest(applicationId: String) = {
-      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.getSchemeResults(applicationId).url, FakeHeaders(), "")
+    def getPhase3ResultsRequest(applicationId: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.getPhase3Results(applicationId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
 

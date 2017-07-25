@@ -35,6 +35,15 @@ object SchemeId {
   }
 }
 
+object SiftRequirement extends Enumeration {
+  val FORM, NUMERIC_TEST = Value
+
+  implicit val applicationStatusFormat = new Format[SiftRequirement.Value] {
+    def reads(json: JsValue) = JsSuccess(SiftRequirement.withName(json.as[String]))
+    def writes(myEnum: SiftRequirement.Value) = JsString(myEnum.toString)
+  }
+}
+
 /** Wrapper for scheme data
   *
   * @param id The scheme ID to be delivered across the wire/stored in DB etc.
@@ -45,15 +54,12 @@ case class Scheme(
   id: SchemeId,
   code: String,
   name: String,
-  requiresSift: Boolean,
-  requiresForm: Boolean,
-  requiresNumericTest: Boolean
+  siftRequirement: Option[SiftRequirement.Value]
 )
 
 object Scheme {
   implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
-  def apply(id: String, code: String, name: String, requiresSift: Boolean, requiresForm: Boolean,
-    requiresNumericTest: Boolean
-  ): Scheme = Scheme(SchemeId(id), code, name, requiresSift, requiresForm, requiresNumericTest)
+  def apply(id: String, code: String, name: String, requiresSift: Option[SiftRequirement.Value]): Scheme =
+    Scheme(SchemeId(id), code, name, requiresSift)
 }

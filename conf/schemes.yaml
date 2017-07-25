@@ -1,72 +1,70 @@
 - id: Commercial
   code: CFS
   name: Commercial
-  requiresSift: true
+  siftRequirement: NUMERIC_TEST
 - id: DigitalAndTechnology
   code: DaT
   name: Digital And Technology
-  requiresSift: true
+  siftRequirement: FORM
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
-  requiresSift: true
+  siftRequirement: FORM
 - id: Finance
   code: FIFS
   name: Finance
-  requiresSift: true
+  siftRequirement: NUMERIC_TEST
 - id: Generalist
   code: GFS
   name: Generalist
-  requiresSift: false
 - id: GovernmentCommunicationService
   code: GCFS
   name: Government Communication Service
-  requiresSift: true
+  siftRequirement: FORM
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
-  requiresSift: true
+  siftRequirement: FORM
 - id: GovernmentEconomicsServiceDiplomaticService
   code: GESDS
   name: Government Economics Service - Diplomatic Service
-  requiresSift: true
+  siftRequirement: FORM
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
-  requiresSift: true
+  siftRequirement: FORM
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
-  requiresSift: true
+  siftRequirement: FORM
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
-  requiresSift: true
+  siftRequirement: FORM
 - id: HousesOfParliament
   code: HoP
   name: Houses Of Parliament
-  requiresSift: true
+  siftRequirement: FORM
 - id: HumanResources
   code: HRFS
   name: Human Resources
-  requiresSift: false
 - id: International
   code: INT
   name: International
-  requiresSift: true
+  siftRequirement: FORM
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
-  requiresSift: true
+  siftRequirement: FORM
 - id: ScienceAndEngineering
   code: SEFS
   name: Science And Engineering
-  requiresSift: true
+  siftRequirement: FORM
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
-  requiresSift: true
+  siftRequirement: FORM
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
-  requiresSift: true
+  siftRequirement: FORM
