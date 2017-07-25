@@ -67,7 +67,7 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val expectedResponse = AssessmentScoresFindResponse(
         RecordCandidateScores(appId, "firstName", "lastName", "venue",
           DateTimeFactory.nowLocalDate, UniqueIdentifier.randomUniqueIdentifier),
-        Some(AssessmentScoresAllExercisesExamples.Example1))
+        Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise))
       when(mockService.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)).thenReturn(
         Future.successful(expectedResponse))
 
@@ -90,7 +90,7 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val expectedResponse = List(AssessmentScoresFindResponse(
         RecordCandidateScores(appId, "firstName", "lastName", "venue",
           DateTimeFactory.nowLocalDate, sessionId),
-        Some(AssessmentScoresAllExercisesExamples.Example1)))
+        Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
       when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(
         Future.successful(expectedResponse))
 
@@ -118,7 +118,7 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
       override val auditService = mockAuditService
     }
 
-    val appId = AssessmentScoresAllExercisesExamples.Example1.applicationId
+    val appId = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise.applicationId
     val sessionId = UniqueIdentifier.randomUniqueIdentifier
     val eventId = UniqueIdentifier.randomUniqueIdentifier
   }

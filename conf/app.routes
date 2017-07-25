@@ -143,7 +143,6 @@ GET         /day-aggregate-events                                        control
 GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 
 # FSAC scores
-# TODO MIGUEL: Maybe change this to submit
 POST        /assessment-scores/submit                                                controllers.AssessmentScoresController.submit()
 POST        /assessment-scores/save                                                  controllers.AssessmentScoresController.save()
 GET         /assessment-scores/with-candidate-summary/application/:applicationId     controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)

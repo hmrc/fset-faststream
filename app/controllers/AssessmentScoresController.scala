@@ -16,11 +16,11 @@
 
 package controllers
 
+import model.Exceptions.EventNotFoundException
 import model.assessmentscores._
 import model.UniqueIdentifier
-import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, AssessmentScoresSubmitRequest }
-import model.persisted.eventschedules.EventType.EventType
-import play.api.libs.json.Json
+import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresSubmitRequest }
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.Action
 import repositories.AssessmentScoresRepository
@@ -81,7 +81,13 @@ trait AssessmentScoresController extends BaseController {
     service.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
-      case _: Exception => NotFound
+      case ex: EventNotFoundException => {
+        Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $ex")
+        NotFound
+      }
+      case other: Throwable =>
+        Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $other")
+        InternalServerError(other.getMessage)
     }
   }
 
@@ -89,7 +95,13 @@ trait AssessmentScoresController extends BaseController {
     service.findAssessmentScoresWithCandidateSummaryByEventId(eventId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
-      case _: Exception => NotFound
+      case ex: EventNotFoundException => {
+        Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $ex")
+        NotFound
+      }
+      case other: Throwable =>
+        Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $other")
+        InternalServerError(other.getMessage)
     }
   }
 
