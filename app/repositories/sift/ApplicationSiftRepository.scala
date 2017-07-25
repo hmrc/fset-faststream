@@ -67,7 +67,7 @@ class ApplicationSiftMongoRepository(
     BSONDocument("applicationStatus" -> prevPhase),
     BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
       BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
-      "result" -> EvaluationResults.Green.toPassmark)
+      "result" -> EvaluationResults.Green.toReportReadableString)
   ))))
 
   def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {

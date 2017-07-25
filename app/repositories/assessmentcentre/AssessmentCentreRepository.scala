@@ -58,12 +58,12 @@ class AssessmentCentreMongoRepository (
       "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
       "testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
         "schemeId" -> BSONDocument("$nin" -> siftableSchemeIds),
-        "result" -> EvaluationResults.Green.toPassmark
+        "result" -> EvaluationResults.Green.toReportReadableString
       ))
     )
 
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForFsac).filter { app =>
-      app.evaluationResult.result.filter(_.result == EvaluationResults.Green.toPassmark).forall(s => !siftableSchemeIds.contains(s.schemeId))
+      app.evaluationResult.result.filter(_.result == EvaluationResults.Green.toReportReadableString).forall(s => !siftableSchemeIds.contains(s.schemeId))
     })
   }
 

@@ -52,11 +52,11 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout wi
 
       val applicationsToProgressToSift = List(
         ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toReportReadableString)), "", Some(""))),
         ApplicationForSift("appId2", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toReportReadableString)), "", Some(""))),
         ApplicationForSift("appId3", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))))
+            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toReportReadableString)), "", Some(""))))
 
       when(mockRepo.nextApplicationsForSiftStage(any[Int])).thenReturn(Future.successful{ applicationsToProgressToSift })
 

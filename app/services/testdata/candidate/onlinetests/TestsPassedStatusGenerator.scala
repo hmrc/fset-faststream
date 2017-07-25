@@ -44,7 +44,7 @@ object Phase1TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
     generatorConfig.phase1TestData.flatMap(_.passmarkEvaluation)
       .getOrElse {
         val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme =>
-          SchemeEvaluationResult(scheme, EvaluationResults.Green.toPassmark))
+          SchemeEvaluationResult(scheme, EvaluationResults.Green.toReportReadableString))
         ).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
         val resultVersion = UUIDFactory.generateUUID().toString
@@ -66,7 +66,7 @@ object Phase2TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
     generatorConfig.phase2TestData.flatMap(_.passmarkEvaluation)
       .getOrElse {
         val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme,
-          EvaluationResults.Green.toPassmark
+          EvaluationResults.Green.toReportReadableString
         ))).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
         val resultVersion = UUIDFactory.generateUUID().toString
@@ -89,7 +89,7 @@ object Phase3TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
     generatorConfig.phase3TestData.flatMap(_.passmarkEvaluation)
       .getOrElse {
         val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme,
-          EvaluationResults.Green.toPassmark
+          EvaluationResults.Green.toReportReadableString
         ))).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
         val resultVersion = UUIDFactory.generateUUID().toString
