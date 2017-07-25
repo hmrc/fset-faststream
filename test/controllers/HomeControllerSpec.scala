@@ -94,7 +94,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val phase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
 
       val result = controller(phase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
@@ -114,7 +114,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val withdrawnPhase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.WithdrawnPhase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
 
       val result = controller(withdrawnPhase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
@@ -407,7 +407,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val applicationsSubmitEnabled = true
       val applicationsStartDate = None }
 
-    when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
+    when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
 
     val edipPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,

@@ -18,7 +18,7 @@ package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
-import connectors.ApplicationClient
+import connectors.{ ApplicationClient, ReferenceDataClient }
 import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange._
 import forms.WithdrawApplicationForm
@@ -36,13 +36,20 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object HomeController extends HomeController(ApplicationClient, CSRCache) {
+object HomeController extends HomeController(
+  ApplicationClient,
+  ReferenceDataClient,
+  CSRCache
+) {
   val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
-abstract class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+abstract class HomeController(
+  applicationClient: ApplicationClient,
+  refDataClient: ReferenceDataClient,
+  cacheClient: CSRCache
+) extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
   val Withdrawer = "Candidate"
 
   def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
@@ -124,11 +131,15 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
   }*/
 
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
-                                      request: Request[_], hc: HeaderCarrier) =
-    applicationClient.getFinalSchemeResults(application.applicationId).map { results =>
-      val page = PostOnlineTestsPage(CachedDataWithApp(cachedData.user, application), results.getOrElse(Nil))
+                                      request: Request[_], hc: HeaderCarrier) = {
+    for {
+      schemes <- refDataClient.allSchemes()
+      phase3Results <- applicationClient.getPhase3Results(application.applicationId)
+    } yield {
+      val page = PostOnlineTestsPage(CachedDataWithApp(cachedData.user, application), phase3Results.getOrElse(Nil), schemes)
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
+  }
 
   private def displayEdipOrSdipResultsPage(implicit cachedData: CachedData,
                                            request: Request[_], hc: HeaderCarrier) =

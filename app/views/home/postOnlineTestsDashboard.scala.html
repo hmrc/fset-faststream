@@ -1,5 +1,6 @@
 @import models.page.PostOnlineTestsPage
 @import views.html.home.commonSectionPostOnlineTests
+@import views.html.home.siftProgress
 @import views.html.home.withdrawSection
 @import security.Roles._
 @import security.RoleUtils._
@@ -17,14 +18,6 @@
   }
 }
 
-@getSuccessfulSchemes = @{
-    page.phase3EvaluationResults.zipWithIndex.filter(_._1.result == "Green")
-}
-
-@getUnSuccessfulSchemes = @{
-    page.phase3EvaluationResults.zipWithIndex.filter(_._1.result == "Red")
-}
-
 @main_template(title = "Home") {
 
     @commonSectionPostOnlineTests(page.toCachedData)
@@ -34,7 +27,7 @@
     <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.toCachedData)){disabled}" id="mainProgressPage">
         <div class="text">
             <section>
-                <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.phase3EvaluationResults.count(_.result == "Green")} of your
+                <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.noSuccessfulSchemes} of your
                     preferred schemes.</p>
                 <div class="panel-indent" id="importantToProgress">
                     <p><i class="fa fa-exclamation-triangle"></i>Important</p>
@@ -42,50 +35,31 @@
                         you've changed your mind, you can <a href="#">withdraw from individual schemes</a>.
                     </p>
                 </div>
-                @for((schemeResult, index) <- getSuccessfulSchemes) {
+                @for((schemeResult, index) <- page.successfulSchemes.zipWithIndex) {
                     <section>
                         <h3 class="bold-small">@getOrder(index + 1) preference</h3>
-                        <p>@Messages("scheme."+schemeResult.schemeId+".description")</p>
+                        <p>@{schemeResult.scheme.name}</p>
                     </section>
                 }
             </section>
 
-            @if(getUnSuccessfulSchemes.nonEmpty) {
+            @if(page.failedSchemes.nonEmpty) {
                 <details id="unsuccessfulSchemes">
                     <summary>Unsuccessful schemes</summary>
                     <div class="detail-content">
-                        @for((schemeResult, index) <- getUnSuccessfulSchemes) {
+                        @for((schemeResult, index) <- page.failedSchemes.zipWithIndex) {
                             <div class="panel-indent">
-                                <p>@Messages("scheme."+schemeResult.schemeId+".description")
-                                    <br>(unsuccessful at online tests)
+                                <p>@schemeResult.scheme.name
+                                    <br>(unsuccessful at @schemeResult.failedAtStage)
                                 </p>
                             </div>
                         }
                     </div>
                 </details>
             }
-            <h2 class="heading-medium">2. Access your assessment centre account</h2>
-            <div class="text">
-                <p>To continue onto the assessment centre, you need to visit this page
-                    <a href="https://candidate.faststream.gov.uk/faststream" target="_blank">https://candidate.faststream.gov.uk/faststream</a>.</p>
-                <p>You'll be sent an email containing the details you'll need to sign
-                    in and fill in your information.</p>
-                <div class="panel-info standard-panel">
-                    <p>You need to complete this step within 7 days of receiving the email.</p>
-                </div>
-            </div>
-            @if(AbleToWithdrawApplicationRole.isAuthorized(page.toCachedData)){
-                <h2 class="heading-medium">3. Attend the assessment centre</h2>
-                <div class="text">
-                    <div class="">
-                        <p>You'll automatically be put forward for your successful schemes at
-                            the assessment centre unless you withdraw your application.</p>
-                        <p>Unfortunately, you won't be considered for any unsuccessful schemes.</p>
-                    </div>
-                </div>
-            }
         </div>
+        <h2 class="heading-large">Next steps</h2>
+        @siftProgress(page)
     </section>
-
     @withdrawSection(page.toCachedData)
 }

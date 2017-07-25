@@ -16,10 +16,10 @@
 
 package connectors.exchange
 
-import models.SchemeType.SchemeType
+import connectors.exchange.referencedata.SchemeId
 import play.api.libs.json.Json
 
-case class SchemeEvaluationResult(schemeId: SchemeType, result: String)
+case class SchemeEvaluationResult(schemeId: SchemeId, result: String)
 
 object SchemeEvaluationResult {
   implicit val schemeEvaluationResultFormat = Json.format[SchemeEvaluationResult]

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package connectors.exchange.referencedata
 
 import play.api.libs.json._
@@ -12,8 +28,16 @@ object SchemeId {
   implicit val schemeIdFormat = Format(schemeIdReadsFormat, schemeIdWritesFormat)
 }
 
-/**
-  * Wrapper for scheme data
+object SiftRequirement extends Enumeration {
+  val FORM, NUMERIC_TEST = Value
+
+  implicit val applicationStatusFormat = new Format[SiftRequirement.Value] {
+    def reads(json: JsValue) = JsSuccess(SiftRequirement.withName(json.as[String]))
+    def writes(myEnum: SiftRequirement.Value) = JsString(myEnum.toString)
+  }
+}
+
+/** Wrapper for scheme data
   *
   * @param id The scheme ID to be delivered across the wire/stored in DB etc.
   * @param code The abbreviated form
@@ -23,15 +47,12 @@ case class Scheme(
   id: SchemeId,
   code: String,
   name: String,
-  requiresSift: Boolean,
-  requiresForm: Boolean,
-  requiresNumericTest: Boolean
+  siftRequirement: Option[SiftRequirement.Value]
 )
 
 object Scheme {
   implicit val schemeFormat = Json.format[Scheme]
 
-  def apply(id: String, code: String, name: String, requiresSift: Boolean, requiresForm: Boolean,
-    requiresNumericTest: Boolean
-  ): Scheme = Scheme(SchemeId(id), code, name, requiresSift, requiresForm, requiresNumericTest)
+  def apply(id: String, code: String, name: String, siftRequirement: Option[SiftRequirement.Value]): Scheme =
+    Scheme(SchemeId(id), code, name, siftRequirement)
 }
