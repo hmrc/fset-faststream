@@ -83,8 +83,7 @@ class ApplicationSiftMongoRepository(
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]] = {
-    val prevPhaseSchemePassed = BSONDocument("cumulativeEvalation" ->
-      BSONDocument("$elemMatch" -> BSONDocument("schemeId" -> schemeId.value, "result" -> Green.toString)))
+    val prevPhaseSchemePassed = BSONDocument(s"cumulativeEvaluation.${schemeId.value}" -> Green.toString)
 
     val notSiftedOnScheme = BSONDocument(
       s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(schemeId.value))
