@@ -17,15 +17,14 @@
 package model
 
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString, Macros }
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 case class SchemeId(value: String)
 
 object SchemeId {
   // Custom json formatter to serialise to a string
-  val schemeIdWritesFormat = Writes[SchemeId](scheme => JsString(scheme.value))
-  val schemeIdReadsFormat = Reads[SchemeId](scheme => JsSuccess(SchemeId(scheme.as[String])))
+  val schemeIdWritesFormat: Writes[SchemeId] = Writes[SchemeId](scheme => JsString(scheme.value))
+  val schemeIdReadsFormat: Reads[SchemeId] = Reads[SchemeId](scheme => JsSuccess(SchemeId(scheme.as[String])))
 
   implicit val schemeIdFormat = Format(schemeIdReadsFormat, schemeIdWritesFormat)
 
@@ -42,13 +41,19 @@ object SchemeId {
   * @param code The abbreviated form
   * @param name The form displayed to end users
   */
-case class Scheme(id: SchemeId, code: String, name: String, requiresSift: Boolean)
-
-
+case class Scheme(
+  id: SchemeId,
+  code: String,
+  name: String,
+  requiresSift: Boolean,
+  requiresForm: Boolean,
+  requiresNumericTest: Boolean
+)
 
 object Scheme {
-  implicit val schemeFormat = Json.format[Scheme]
-  implicit val schemeHandler = Macros.handler[Scheme]
+  implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
-  def apply(id: String, code: String, name: String, requiresSift: Boolean): Scheme = Scheme(SchemeId(id), code, name, requiresSift)
+  def apply(id: String, code: String, name: String, requiresSift: Boolean, requiresForm: Boolean,
+    requiresNumericTest: Boolean
+  ): Scheme = Scheme(SchemeId(id), code, name, requiresSift, requiresForm, requiresNumericTest)
 }

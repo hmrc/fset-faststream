@@ -19,17 +19,15 @@ package repositories
 import config.MicroserviceAppConfig
 import model.{ Scheme, SchemeId }
 import net.jcazevedo.moultingyaml._
-import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
 import play.api.Play
 import resource._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
 
 object SchemeConfigProtocol extends DefaultYamlProtocol {
-  implicit val schemeFormat = yamlFormat4((a: String, b: String ,c: String, d: Boolean) => Scheme(a,b,c, d))
+  implicit val schemeFormat = yamlFormat6((a: String, b: String ,c: String, d: Boolean, e: Boolean, f: Boolean) => Scheme(a,b,c, d, e, f))
 }
 
 trait SchemeRepositoryImpl {
