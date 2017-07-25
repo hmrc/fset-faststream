@@ -31,6 +31,7 @@ import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueExceptio
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import testkit.UnitWithAppSpec
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -85,7 +86,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
   "Allocate assessor" must {
     "return a 409 if an op lock exception occurs" in new TestFixture {
-      when(mockAssessorAllocationService.allocate(any[model.command.AssessorAllocations]))
+      when(mockAssessorAllocationService.allocate(any[model.command.AssessorAllocations])(any[HeaderCarrier]))
         .thenReturn(Future.failed(OptimisticLockException("error")))
 
       val request = fakeRequest(AssessorAllocations(

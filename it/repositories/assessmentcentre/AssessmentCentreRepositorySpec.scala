@@ -14,7 +14,6 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
   val Commercial: SchemeId = SchemeId("Commercial")
   val European: SchemeId = SchemeId("European")
   val Sdip: SchemeId = SchemeId("Sdip")
-  val Generalist: SchemeId = SchemeId("Generalistt status")
   val ProjectDelivery = SchemeId("Project Delivery")
   val Finance = SchemeId("Finance")
   val DiplomaticService = SchemeId("Diplomatic Service")
@@ -41,9 +40,9 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       whenReady(repository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
         appsForAc mustBe List(
           ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
+            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some(""))),
           ApplicationForFsac("appId4", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toPassmark)), "", Some(""))))
+            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some(""))))
       }
     }
 
