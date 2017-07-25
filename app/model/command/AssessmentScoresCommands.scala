@@ -34,7 +34,6 @@ object AssessmentScoresCommands {
     implicit val RecordCandidateScoresFormats: Format[RecordCandidateScores] = Json.format[RecordCandidateScores]
   }
 
-  // TODO MIGUEL: See if we will use this
   object AssessmentExerciseType extends Enumeration {
     type AssessmentExerciseType = Value
 
