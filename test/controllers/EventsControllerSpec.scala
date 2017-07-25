@@ -28,10 +28,11 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.application.GeneralApplicationRepository
-import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
+import repositories.events.{ EventsMongoRepository, LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import testkit.UnitWithAppSpec
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -86,7 +87,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
   "Allocate assessor" must {
     "return a 409 if an op lock exception occurs" in new TestFixture {
-      when(mockAssessorAllocationService.allocate(any[model.command.AssessorAllocations]))
+      when(mockAssessorAllocationService.allocate(any[model.command.AssessorAllocations])(any[HeaderCarrier]))
         .thenReturn(Future.failed(OptimisticLockException("error")))
 
       val request = fakeRequest(AssessorAllocations(
@@ -100,6 +101,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockEventsService = mock[EventsService]
+    val mockEventsRepo = mock[EventsMongoRepository]
     val mockAssessorAllocationService = mock[AssessorAllocationService]
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
@@ -114,6 +116,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
 
     val controller = new EventsController {
       val eventsService = mockEventsService
+      val eventsRepo = mockEventsRepo
       val assessorAllocationService = mockAssessorAllocationService
       val locationsAndVenuesRepository: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
       val applicationRepository = mockAppRepo
