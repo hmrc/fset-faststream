@@ -112,7 +112,7 @@ trait CommonRepository {
                             ): Future[Unit] = {
     val phase3PassMarkEvaluation = PassmarkEvaluation("", Some(""),
       List(SchemeEvaluationResult(scheme,
-        result.toReportReadableString)), "", Some(""))
+        result.toString)), "", Some(""))
 
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))

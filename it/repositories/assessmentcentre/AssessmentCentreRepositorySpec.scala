@@ -41,9 +41,9 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       whenReady(repository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
         appsForAc mustBe List(
           ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toReportReadableString)), "", Some(""))),
+            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some(""))),
           ApplicationForFsac("appId4", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toReportReadableString)), "", Some(""))))
+            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some(""))))
       }
     }
 

@@ -62,7 +62,7 @@ trait GeneralApplicationRepoBSONReader extends CommonBSONDocuments {
   }
 
 
-  implicit val toApplicationPreferencesWithTestResults = bsonReader {
+  implicit val toApplicationPreferencesWithTestResults: BSONDocumentReader[ApplicationPreferencesWithTestResults] = bsonReader {
     (doc: BSONDocument) => {
       val userId = doc.getAs[String]("userId").getOrElse("")
 
