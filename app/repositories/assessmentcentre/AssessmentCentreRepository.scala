@@ -29,7 +29,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-
+import scala.language.implicitConversions
 
 trait AssessmentCentreRepository {
   def dateTime: DateTimeFactory
@@ -63,7 +63,7 @@ class AssessmentCentreMongoRepository (
     )
 
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForFsac).filter { app =>
-      app.evaluationResult.result.filter(_.result == EvaluationResults.Green.toPassmark).forall(s => !siftableSchemeIds.contains(s.schemeId))
+      app.evaluationResult.result.filter(_.result == EvaluationResults.Green.toString).forall(s => !siftableSchemeIds.contains(s.schemeId))
     })
   }
 
