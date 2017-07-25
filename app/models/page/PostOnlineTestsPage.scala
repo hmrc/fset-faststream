@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package models
+package models.page
 
 import connectors.exchange.SchemeEvaluationResult
-import models.ApplicationData.ApplicationStatus.ApplicationStatus
+import models.{ CachedData, CachedDataWithApp }
 
-case class PostOnlineTestDashboardPage(
-  applicationStatus: ApplicationStatus,
+case class PostOnlineTestsPage(
+  userDataWithApp: CachedDataWithApp,
   phase3EvaluationResults: Seq[SchemeEvaluationResult]
-)
+) {
+  def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
+}

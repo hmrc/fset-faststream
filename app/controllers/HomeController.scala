@@ -24,8 +24,8 @@ import connectors.exchange._
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
-import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
-import models.{ ApplicationData, ApplicationRoute, CachedData }
+import models.page._
+import models._
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
 import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
@@ -50,7 +50,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
      cachedData.application.map { implicit application =>
        cachedData match {
          case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
-         case _ if isPhase3TestsPassed => displayFaststreamResultsPage
+         case _ if isPhase3TestsPassed => displayPostOnlineTestsPage
          case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
        }
      }.getOrElse { dashboardWithoutApplication }
@@ -123,10 +123,11 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       }
   }*/
 
-  private def displayFaststreamResultsPage(implicit application: ApplicationData, cachedData: CachedData,
+  private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
                                       request: Request[_], hc: HeaderCarrier) =
     applicationClient.getFinalSchemeResults(application.applicationId).map { results =>
-      Ok(views.html.home.postOnlineTestDashboard(cachedData, results.getOrElse(Nil)))
+      val page = PostOnlineTestsPage(CachedDataWithApp(cachedData.user, application), results.getOrElse(Nil))
+      Ok(views.html.home.postOnlineTestsDashboard(page))
     }
 
   private def displayEdipOrSdipResultsPage(implicit cachedData: CachedData,
