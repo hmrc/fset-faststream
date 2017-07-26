@@ -17,7 +17,7 @@
 package repositories.assessmentcentre
 
 import factories.DateTimeFactory
-import model.{ ApplicationStatus, EvaluationResults, Scheme, SchemeId }
+import model._
 import model.command.{ ApplicationForFsac, ApplicationForSift }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import reactivemongo.api.DB
@@ -73,8 +73,6 @@ class AssessmentCentreMongoRepository (
     ))
 
     val unfiltered = selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForFsac))
-
-    val uff = Await.result(unfiltered, Duration.Inf)
     unfiltered.map(_.filter { app =>
       app.siftEvaluationResult match {
         case Nil => app.phase3Evaluation.result.filter(_.result == EvaluationResults.Green.toString)
