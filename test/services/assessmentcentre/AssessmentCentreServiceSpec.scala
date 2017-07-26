@@ -34,11 +34,11 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
   "An AssessmentCentreService" should {
     val applicationsToProgressToSift = List(
       ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some(""))),
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
       ApplicationForFsac("appId2", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some(""))),
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
       ApplicationForFsac("appId3", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some(""))))
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil))
 
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
@@ -47,14 +47,14 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
       def assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
     }
 
-    (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
-      .expects(applicationsToProgressToSift.head.applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+    (mockAssessmentCentreRepo.progressToAssessmentCentre _)
+      .expects(applicationsToProgressToSift.head, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       .returning(Future.successful())
-    (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
-      .expects(applicationsToProgressToSift(1).applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+    (mockAssessmentCentreRepo.progressToAssessmentCentre _)
+      .expects(applicationsToProgressToSift(1), ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       .returning(Future.failed(new Exception))
-    (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
-      .expects(applicationsToProgressToSift(2).applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+    (mockAssessmentCentreRepo.progressToAssessmentCentre _)
+      .expects(applicationsToProgressToSift(2), ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       .returning(Future.successful())
 
     "progress candidates to assessment centre, attempting all despite errors" in {
