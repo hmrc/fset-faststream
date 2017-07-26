@@ -4,7 +4,7 @@
   siftRequirement: NUMERIC_TEST
   evaluationRequired: true
 - id: DigitalAndTechnology
-  code: DaT
+  code: DAT
   name: Digital And Technology
   siftRequirement: FORM
   evaluationRequired: true
@@ -33,7 +33,7 @@
   siftRequirement: FORM
   evaluationRequired: true
 - id: GovernmentEconomicsServiceDiplomaticService
-  code: GESDS
+  code: GES-DS
   name: Government Economics Service - Diplomatic Service
   siftRequirement: FORM
   evaluationRequired: true
@@ -53,7 +53,7 @@
   siftRequirement: FORM
   evaluationRequired: true
 - id: HousesOfParliament
-  code: HoP
+  code: HOP
   name: Houses Of Parliament
   siftRequirement: FORM
   evaluationRequired: true
@@ -62,7 +62,7 @@
   name: Human Resources
   evaluationRequired: true
 - id: International
-  code: INT
+  code: IFS
   name: International
   siftRequirement: FORM
   evaluationRequired: true

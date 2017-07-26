@@ -131,8 +131,10 @@ PUT         /assessor/:assessorId/allocations                            control
 
 # Events
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
+POST        /events/create                                               controllers.EventsController.createEvent()
 GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
 GET         /events/:eventId/sessions/:sessionId/candidateAllocations    controllers.EventsController.getCandidateAllocations(eventId: String, sessionId: String)
+POST        /events/:eventId/sessions/:sessionId/remove-candidates       controllers.EventsController.removeCandidateAllocations(eventId: String, sessionId: String)
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
@@ -147,7 +149,10 @@ GET         /day-aggregate-events/location/:location                     control
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
 GET         /reference/schemes                                           controllers.reference.SchemesController.allSchemes
+GET         /reference/fsb-types                                         controllers.reference.EventSubtypesController.getFsbTypes
+GET         /reference/telephone-interview-types                         controllers.reference.EventSubtypesController.getTelephoneInterviewTypes
 
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
 GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations
+GET         /reference/locations-with-venues                             controllers.reference.LocationAndVenueController.locationsWithVenues
 

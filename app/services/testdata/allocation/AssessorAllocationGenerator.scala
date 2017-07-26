@@ -17,9 +17,8 @@
 package services.testdata.allocation
 
 import model.exchange.testdata.CreateAssessorAllocationResponse.CreateAssessorAllocationResponse
-import model.persisted.AssessorAllocation
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
-import repositories.{ AllocationRepository, AssessorAllocationMongoRepository }
+import repositories.{ AssessorAllocationRepository, AssessorAllocationMongoRepository }
 
 import scala.concurrent.Future
 
@@ -30,7 +29,7 @@ object AssessorAllocationGenerator extends AssessorAllocationGenerator {
 trait AssessorAllocationGenerator {
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val assessorAllocationRepository: AllocationRepository[AssessorAllocation]
+  val assessorAllocationRepository: AssessorAllocationRepository
 
   def generate(generationId: Int, createData: CreateAssessorAllocationData): Future[CreateAssessorAllocationResponse] = {
     val assessorAllocation = createData.toAssessorAllocation

@@ -22,12 +22,10 @@ import model.{ SerialUpdateResult, exchange, persisted }
 import model.Exceptions.AssessorNotFoundException
 import model.command.AllocationWithEvent
 import model.exchange.{ AssessorSkill, UpdateAllocationStatusRequest }
-import model.persisted.AssessorAllocation
-import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.assessor.AssessorStatus
 import org.joda.time.LocalDate
-import repositories.{ AllocationRepository, AssessorAllocationMongoRepository, AssessorMongoRepository, AssessorRepository }
+import repositories.{ AssessorAllocationRepository, AssessorAllocationMongoRepository, AssessorMongoRepository, AssessorRepository }
 import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,7 +40,7 @@ object AssessorService extends AssessorService {
 
 trait AssessorService {
   val assessorRepository: AssessorRepository
-  val allocationRepo: AllocationRepository[AssessorAllocation]
+  val allocationRepo: AssessorAllocationRepository
   val eventsRepo: EventsRepository
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
 

@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package model.command
+package model.exchange
 
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import org.joda.time.LocalTime
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.BSONDocument
 
-case class ApplicationForFsac(
-                               applicationId: String,
-                               phase3Evaluation: PassmarkEvaluation,
-                               siftEvaluationResult: List[SchemeEvaluationResult]
-)
+case class Session(description: String,
+              capacity: Int,
+              minViableAttendees: Int,
+              attendeeSafetyMargin: Int,
+              startTime: LocalTime,
+              endTime: LocalTime)
 
-object ApplicationForFsac {
-  implicit val applicationForFsacFormat: OFormat[ApplicationForFsac] = Json.format[ApplicationForFsac]
-
-
+object Session {
+  implicit val format: OFormat[Session] = Json.format[Session]
 }
