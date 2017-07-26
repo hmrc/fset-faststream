@@ -27,23 +27,21 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AssessmentCentrePassMarkSettingsController extends AssessmentCentrePassMarkSettingsController {
-  val acpmsRepository = assessmentCentrePassMarkSettingsRepository
-  val passmarkService = AssessmentCentrePassMarkSettingsService
+  val service = AssessmentCentrePassMarkSettingsService
 }
 
 trait AssessmentCentrePassMarkSettingsController extends BaseController {
-  val acpmsRepository: AssessmentCentrePassMarkSettingsRepository
-  val passmarkService: AssessmentCentrePassMarkSettingsService
+  val service: AssessmentCentrePassMarkSettingsService
 
   def getLatestVersion = Action.async { implicit request =>
-    passmarkService.getLatestVersion.map { passmark =>
+    service.getLatestVersion.map { passmark =>
       Ok(Json.toJson(passmark))
     }
   }
 
   def create = Action.async(parse.json) { implicit request =>
     withJsonBody[AssessmentCentrePassMarkSettings] { settings =>
-      acpmsRepository.create(settings).map { _ =>
+      service.create(settings).map { _ =>
         Created
       }
     }

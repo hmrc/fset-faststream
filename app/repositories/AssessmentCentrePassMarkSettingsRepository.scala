@@ -36,7 +36,7 @@ trait AssessmentCentrePassMarkSettingsRepository {
 //scalastyle:off
 class AssessmentCentrePassMarkSettingsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[AssessmentCentrePassMarkSettings, BSONObjectID](CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS, mongo,
-    AssessmentCentrePassMarkSettings.PersistedAssessmentCentrePassMarkSettingsFormat,
+    AssessmentCentrePassMarkSettings.jsonFormat,
     ReactiveMongoFormats.objectIdFormats) with AssessmentCentrePassMarkSettingsRepository {
   //scalastyle:on
 
@@ -46,13 +46,13 @@ class AssessmentCentrePassMarkSettingsMongoRepository(implicit mongo: () => DB)
 
     collection.find(query).sort(sort).one[BSONDocument].map { docOpt =>
       docOpt.map { doc =>
-        assessmentCentrePassMarkSettingsHandler.read(doc)
+        AssessmentCentrePassMarkSettings.bsonHandler.read(doc)
       }
     }
   }
 
   def create(settings: AssessmentCentrePassMarkSettings): Future[Unit] = {
-    val doc = assessmentCentrePassMarkSettingsHandler.write(settings)
+    val doc = AssessmentCentrePassMarkSettings.bsonHandler.write(settings)
 
     collection.insert(doc) map {
       _ => ()

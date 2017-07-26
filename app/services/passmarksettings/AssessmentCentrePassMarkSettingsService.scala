@@ -17,37 +17,47 @@
 package services.passmarksettings
 
 import model.Commands.AssessmentCentrePassMarkSettingsResponse
-import model.persisted.assessmentcentre.AssessmentCentrePassMarkScheme
-import repositories._
+import model.persisted.assessmentcentre.{ AssessmentCentrePassMarkScheme, AssessmentCentrePassMarkSettings }
+import repositories.{ SchemeYamlRepository, _ }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object AssessmentCentrePassMarkSettingsService extends AssessmentCentrePassMarkSettingsService {
-  val fwRepository = frameworkRepository
-  val acpsRepository = assessmentCentrePassMarkSettingsRepository
+  val schemeRepository = SchemeYamlRepository
+  val assessmentCentrePassMarkSettingsRepository = repositories.assessmentCentrePassMarkSettingsRepository
 }
 
 trait AssessmentCentrePassMarkSettingsService {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  val fwRepository: FrameworkRepository
-  val acpsRepository: AssessmentCentrePassMarkSettingsRepository
+  val schemeRepository: SchemeRepositoryImpl
+  val assessmentCentrePassMarkSettingsRepository: AssessmentCentrePassMarkSettingsRepository
 
   def getLatestVersion: Future[AssessmentCentrePassMarkSettingsResponse] = {
+    SchemeYamlRepository.schemes
+
     for {
-      schemes <- fwRepository.getFrameworkNames
-      latestVersionOpt <- acpsRepository.tryGetLatestVersion
+      currentPassmarkSettingsOpt <- assessmentCentrePassMarkSettingsRepository.tryGetLatestVersion
     } yield {
-      val passmarkSetForSchemes = latestVersionOpt.map(_.schemes).getOrElse(List())
-      val passmarkSetForSchemesNames = passmarkSetForSchemes.map(_.schemeName)
-      val passmarkUnsetForSchemes = schemes.diff(passmarkSetForSchemesNames).map { s =>
-        AssessmentCentrePassMarkScheme(s)
+      val allSchemes = schemeRepository.schemes.map(_.id)
+
+      val passmarkSetForSchemes = currentPassmarkSettingsOpt.map(_.schemes).getOrElse(List())
+
+      val schemesPresentInCurrentPassmarkSettings = passmarkSetForSchemes.map(_.schemeId)
+      val schemesNotPresentInCurrentPassmarkSettings = allSchemes.diff(schemesPresentInCurrentPassmarkSettings)
+
+      val passmarkUnsetForSchemes = schemesNotPresentInCurrentPassmarkSettings.map { schemeId =>
+        AssessmentCentrePassMarkScheme(schemeId, None)
       }
 
       val allPassmarkSchemes = passmarkSetForSchemes ++ passmarkUnsetForSchemes
 
-      val info = latestVersionOpt.map(_.info)
+      val info = currentPassmarkSettingsOpt.map(_.info)
       AssessmentCentrePassMarkSettingsResponse(allPassmarkSchemes, info)
     }
+  }
+
+  def create(passmarks: AssessmentCentrePassMarkSettings): Future[Unit] = {
+    assessmentCentrePassMarkSettingsRepository.create(passmarks)
   }
 }

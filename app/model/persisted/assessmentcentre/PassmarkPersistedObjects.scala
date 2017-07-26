@@ -16,32 +16,38 @@
 
 package model.persisted.assessmentcentre
 
+import model.SchemeId
 import org.joda.time.DateTime
 import play.api.libs.json.Json
-
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+import repositories._
 
 case class AssessmentCentrePassMarkInfo(version: String, createDate: DateTime, createdByUser: String)
 
 object AssessmentCentrePassMarkInfo {
-  implicit val AssessmentCentrePassMarkInfoFormat = Json.format[AssessmentCentrePassMarkInfo]
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkInfo]
+  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentCentrePassMarkInfo] = Macros.handler[AssessmentCentrePassMarkInfo]
 }
 
 case class PassMarkSchemeThreshold(failThreshold: Double, passThreshold: Double)
 
 object PassMarkSchemeThreshold {
-  implicit val PersistedPassMarkSchemeThresholdFormat = Json.format[PassMarkSchemeThreshold]
+  implicit val jsonFormat = Json.format[PassMarkSchemeThreshold]
+  implicit val bsonHandler: BSONHandler[BSONDocument, PassMarkSchemeThreshold] = Macros.handler[PassMarkSchemeThreshold]
 }
 
-case class AssessmentCentrePassMarkScheme(schemeName: String, overallPassMarks: Option[PassMarkSchemeThreshold] = None)
+case class AssessmentCentrePassMarkScheme(schemeId: SchemeId, overallPassMarks: Option[PassMarkSchemeThreshold] = None)
 
 object AssessmentCentrePassMarkScheme {
-  implicit val PersistedAssessmentCentrePassMarkSchemeFormat = Json.format[AssessmentCentrePassMarkScheme]
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkScheme]
+  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentCentrePassMarkScheme] = Macros.handler[AssessmentCentrePassMarkScheme]
 }
 
 case class AssessmentCentrePassMarkSettings(schemes: List[AssessmentCentrePassMarkScheme], info: AssessmentCentrePassMarkInfo)
 
 object AssessmentCentrePassMarkSettings {
-  implicit val PersistedAssessmentCentrePassMarkSettingsFormat = Json.format[AssessmentCentrePassMarkSettings]
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettings]
+  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentCentrePassMarkSettings] = Macros.handler[AssessmentCentrePassMarkSettings]
 }
 
 

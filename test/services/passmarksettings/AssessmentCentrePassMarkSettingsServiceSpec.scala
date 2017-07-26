@@ -17,47 +17,62 @@
 package services.passmarksettings
 
 import model.Commands.AssessmentCentrePassMarkSettingsResponse
+import model.{ Scheme, SchemeId }
 import model.persisted.assessmentcentre._
 import org.joda.time.DateTime
 import org.mockito.Mockito._
-import repositories.{ AssessmentCentrePassMarkSettingsMongoRepository, FrameworkRepository }
-import testkit.UnitSpec
+import repositories.{ AssessmentCentrePassMarkSettingsMongoRepository, FrameworkRepository, SchemeRepositoryImpl }
+import testkit.{ UnitSpec, UnitWithAppSpec }
 
 import scala.concurrent.Future
 
-class AssessmentCentrePassMarkSettingsServiceSpec extends UnitSpec {
+class AssessmentCentrePassMarkSettingsServiceSpec extends UnitWithAppSpec {
   val mockAssessmentCentrePassMarkSettingsRepository = mock[AssessmentCentrePassMarkSettingsMongoRepository]
-  val mockFrameworkRepository = mock[FrameworkRepository]
+  val mockSchemeRepository = mock[SchemeRepositoryImpl]
 
-  val AllAssessmentCentrePassMarkSchemes = List(
-    AssessmentCentrePassMarkScheme("Business"),
-    AssessmentCentrePassMarkScheme("Commercial"),
-    AssessmentCentrePassMarkScheme("Digital and technology"),
-    AssessmentCentrePassMarkScheme("Finance"),
-    AssessmentCentrePassMarkScheme("Project delivery")
+  val AllAssessmentCentrePassMarkSchemeIds = List(
+    AssessmentCentrePassMarkScheme(SchemeId("Business")),
+    AssessmentCentrePassMarkScheme(SchemeId("Commercial")),
+    AssessmentCentrePassMarkScheme(SchemeId("Digital and technology")),
+    AssessmentCentrePassMarkScheme(SchemeId("Finance")),
+    AssessmentCentrePassMarkScheme(SchemeId("Project delivery"))
+  )
+
+  val AllSchemes = List(
+    Scheme(SchemeId("Business"), "Business", "Business", false),
+    Scheme(SchemeId("Commercial"), "Commercial", "Commercial", false),
+    Scheme(SchemeId("Digital and technology"), "Digital and technology", "Digital and technology", false),
+    Scheme(SchemeId("Finance"), "Finance", "Finance", false),
+    Scheme(SchemeId("Project delivery"), "Project delivery", "Project delivery", false))
+
+  val AllSchemes2 = List(
+    Scheme(SchemeId("Business"), "Business", "Business", false),
+    Scheme(SchemeId("Commercial"), "Commercial", "Commercial", false),
+    Scheme(SchemeId("Digital and technology"), "Digital and technology", "Digital and technology", false),
+    Scheme(SchemeId("Finance"), "Finance", "Finance", false),
+    Scheme(SchemeId("Project delivery"), "Project delivery", "Project delivery", false),
+    Scheme(SchemeId("New scheme"), "New scheme", "New scheme", false)
   )
 
   object TestableAssessmentCentrePassMarkSettingsService extends AssessmentCentrePassMarkSettingsService {
-    val fwRepository = mockFrameworkRepository
-    val acpsRepository = mockAssessmentCentrePassMarkSettingsRepository
+    val schemeRepository = mockSchemeRepository
+    val assessmentCentrePassMarkSettingsRepository = mockAssessmentCentrePassMarkSettingsRepository
   }
 
   "get latest version" should {
-    when(mockFrameworkRepository.getFrameworkNames).thenReturn(Future.successful(List(
-      "Business", "Commercial", "Digital and technology", "Finance", "Project delivery"
-    )))
+    when(mockSchemeRepository.schemes).thenReturn(AllSchemes)
 
     "return empty scores with Schemes when there is no passmark settings" in {
       when(mockAssessmentCentrePassMarkSettingsRepository.tryGetLatestVersion).thenReturn(Future.successful(None))
 
       val result = TestableAssessmentCentrePassMarkSettingsService.getLatestVersion.futureValue
 
-      result must be(AssessmentCentrePassMarkSettingsResponse(AllAssessmentCentrePassMarkSchemes, None))
+      result must be(AssessmentCentrePassMarkSettingsResponse(AllAssessmentCentrePassMarkSchemeIds, None))
     }
 
     "return the latest version of passmark settings" in {
       val settings = AssessmentCentrePassMarkSettings(
-        AllAssessmentCentrePassMarkSchemes.map(_.copy(overallPassMarks = Some(PassMarkSchemeThreshold(10.0, 20.0)))),
+        AllAssessmentCentrePassMarkSchemeIds.map(_.copy(overallPassMarks = Some(PassMarkSchemeThreshold(10.0, 20.0)))),
         AssessmentCentrePassMarkInfo("version1", DateTime.now(), "userName")
       )
       when(mockAssessmentCentrePassMarkSettingsRepository.tryGetLatestVersion).thenReturn(Future.successful(Some(settings)))
@@ -69,18 +84,16 @@ class AssessmentCentrePassMarkSettingsServiceSpec extends UnitSpec {
 
     "return the latest passmark settings together with new schemes even if they have not been set" in {
       val savedPassmarkSettings = AssessmentCentrePassMarkSettings(
-        AllAssessmentCentrePassMarkSchemes.map(_.copy(overallPassMarks = Some(PassMarkSchemeThreshold(10.0, 20.0)))),
+        AllAssessmentCentrePassMarkSchemeIds.map(_.copy(overallPassMarks = Some(PassMarkSchemeThreshold(10.0, 20.0)))),
         AssessmentCentrePassMarkInfo("version1", DateTime.now(), "userName")
       )
       when(mockAssessmentCentrePassMarkSettingsRepository.tryGetLatestVersion).thenReturn(Future.successful(Some(savedPassmarkSettings)))
-      when(mockFrameworkRepository.getFrameworkNames).thenReturn(Future.successful(List(
-        "Business", "Commercial", "Digital and technology", "Finance", "Project delivery", "New scheme"
-      )))
+      when(mockSchemeRepository.schemes).thenReturn(AllSchemes2)
 
       val result = TestableAssessmentCentrePassMarkSettingsService.getLatestVersion.futureValue
 
       result must be(AssessmentCentrePassMarkSettingsResponse(
-        savedPassmarkSettings.schemes :+ AssessmentCentrePassMarkScheme("New scheme"),
+        savedPassmarkSettings.schemes :+ AssessmentCentrePassMarkScheme(SchemeId("New scheme")),
         Some(savedPassmarkSettings.info)
       ))
     }

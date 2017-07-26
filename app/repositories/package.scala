@@ -18,7 +18,6 @@ import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, 
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
-import model.persisted.assessmentcentre._
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
 import factories.DateTimeFactory
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
@@ -213,14 +212,6 @@ package object repositories {
   implicit val candidateScoresHandler: BSONHandler[BSONDocument, CandidateScores] = Macros.handler[CandidateScores]
   implicit val candidateScoreFeedback: BSONHandler[BSONDocument, CandidateScoreFeedback] = Macros.handler[CandidateScoreFeedback]
   implicit val candidateScoresAndFeedback: BSONHandler[BSONDocument, CandidateScoresAndFeedback] = Macros.handler[CandidateScoresAndFeedback]
-  implicit val passMarkSchemeThresholdHandler: BSONHandler[BSONDocument, PassMarkSchemeThreshold] =
-    Macros.handler[PassMarkSchemeThreshold]
-  implicit val assessmentCentrePassMarkInfoHandler: BSONHandler[BSONDocument, AssessmentCentrePassMarkInfo] =
-    Macros.handler[AssessmentCentrePassMarkInfo]
-  implicit val assessmentCentrePassMarkSchemeHandler: BSONHandler[BSONDocument, AssessmentCentrePassMarkScheme] =
-    Macros.handler[AssessmentCentrePassMarkScheme]
-  implicit val assessmentCentrePassMarkSettingsHandler: BSONHandler[BSONDocument, AssessmentCentrePassMarkSettings] =
-    Macros.handler[AssessmentCentrePassMarkSettings]
   implicit val competencyAverageResultHandler: BSONHandler[BSONDocument, CompetencyAverageResult] =
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]

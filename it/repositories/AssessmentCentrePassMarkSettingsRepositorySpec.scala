@@ -16,8 +16,9 @@
 
 package repositories
 
+import model.SchemeId
 import model.persisted.assessmentcentre._
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{ DateTime, DateTimeZone }
 import testkit.MongoRepositorySpec
 
 class AssessmentCentrePassMarkSettingsRepositorySpec extends MongoRepositorySpec {
@@ -45,7 +46,7 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends MongoRepositorySpec
     "create and fetch the passmark settings" in {
       val info = AssessmentCentrePassMarkInfo("123", DateTime.now(DateTimeZone.UTC), "userName")
       val settings = AssessmentCentrePassMarkSettings(List(
-        AssessmentCentrePassMarkScheme("Business", Some(PassMarkSchemeThreshold(20.05, 40.06)))
+        AssessmentCentrePassMarkScheme(SchemeId("Business"), Some(PassMarkSchemeThreshold(20.05, 40.06)))
       ), info)
 
       repository.create(settings).futureValue
@@ -57,12 +58,12 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends MongoRepositorySpec
     "create two different version of pass mark settings and return the newest" in {
       val olderInfo = AssessmentCentrePassMarkInfo("123", DateTime.now(DateTimeZone.UTC).minusDays(3), "userName")
       val olderSettings = AssessmentCentrePassMarkSettings(List(
-        AssessmentCentrePassMarkScheme("Commercial", Some(PassMarkSchemeThreshold(20.05, 40.06)))
+        AssessmentCentrePassMarkScheme(SchemeId("Commercial"), Some(PassMarkSchemeThreshold(20.05, 40.06)))
       ), olderInfo)
 
       val newerInfo = AssessmentCentrePassMarkInfo("456", DateTime.now(DateTimeZone.UTC), "userName")
       val newerSettings = AssessmentCentrePassMarkSettings(List(
-        AssessmentCentrePassMarkScheme("Commercial", Some(PassMarkSchemeThreshold(30.05, 35.06)))
+        AssessmentCentrePassMarkScheme(SchemeId("Commercial"), Some(PassMarkSchemeThreshold(30.05, 35.06)))
       ), newerInfo)
 
       repository.create(newerSettings).futureValue

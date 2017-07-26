@@ -16,6 +16,7 @@
 
 package controllers
 
+import model.SchemeId
 import model.persisted.assessmentcentre._
 import org.joda.time.DateTime
 import org.mockito.Mockito._
@@ -29,20 +30,18 @@ import testkit.UnitWithAppSpec
 import scala.concurrent.Future
 
 class AssessmentCentrePassMarkSettingsControllerSpec extends UnitWithAppSpec {
-  val mockAssessmentCentrePassMarkSettingsRepository = mock[AssessmentCentrePassMarkSettingsMongoRepository]
-  val mockPassmarkService = mock[AssessmentCentrePassMarkSettingsService]
+  val mockService = mock[AssessmentCentrePassMarkSettingsService]
 
   object TestableAssessmentCentrePassMarkSettingsController extends AssessmentCentrePassMarkSettingsController {
-    val acpmsRepository = mockAssessmentCentrePassMarkSettingsRepository
-    val passmarkService = mockPassmarkService
+    val service = mockService
   }
 
   val AllAssessmentCentrePassMarkSchemes = List(
-    AssessmentCentrePassMarkScheme("Business"),
-    AssessmentCentrePassMarkScheme("Commercial"),
-    AssessmentCentrePassMarkScheme("Digital and technology"),
-    AssessmentCentrePassMarkScheme("Finance"),
-    AssessmentCentrePassMarkScheme("Project delivery")
+    AssessmentCentrePassMarkScheme(SchemeId("Business")),
+    AssessmentCentrePassMarkScheme(SchemeId("Commercial")),
+    AssessmentCentrePassMarkScheme(SchemeId("Digital and technology")),
+    AssessmentCentrePassMarkScheme(SchemeId("Finance")),
+    AssessmentCentrePassMarkScheme(SchemeId("Project delivery"))
   )
 
   "create a passmark settings" should {
@@ -51,12 +50,13 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends UnitWithAppSpec {
         AllAssessmentCentrePassMarkSchemes.map(_.copy(overallPassMarks = Some(PassMarkSchemeThreshold(10.0, 20.0)))),
         AssessmentCentrePassMarkInfo("version1", DateTime.now(), "userName")
       )
-      when(mockAssessmentCentrePassMarkSettingsRepository.create(settings)).thenReturn(Future.successful(()))
+      when(mockService.create(settings)).thenReturn(Future.successful(()))
+
 
       val result = TestableAssessmentCentrePassMarkSettingsController.create()(createRequest(Json.toJson(settings).toString))
 
       status(result) must be(CREATED)
-      verify(mockAssessmentCentrePassMarkSettingsRepository).create(settings)
+      verify(mockService).create(settings)
     }
   }
 

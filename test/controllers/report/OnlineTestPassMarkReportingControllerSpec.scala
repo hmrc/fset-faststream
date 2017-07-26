@@ -66,11 +66,11 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
-      status(response) mustBe OK
+      status(response) mustBe OKFra
       result must have size 2
       result must contain(OnlineTestPassMarkReportItem(
         ApplicationForOnlineTestPassMarkReportItemExamples.applicationWithNoTestResult1,
-        QuestionnaireReportItemExamples.questionnaire1))
+        QuestionnaireReportItemExamples.questionnaire1))Fr
       result must contain(OnlineTestPassMarkReportItem(
         ApplicationForOnlineTestPassMarkReportItemExamples.applicationWithNoTestResult2,
         QuestionnaireReportItemExamples.questionnaire2))
