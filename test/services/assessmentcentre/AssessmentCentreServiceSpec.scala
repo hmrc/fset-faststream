@@ -34,11 +34,11 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
   "An AssessmentCentreService" should {
     val applicationsToProgressToSift = List(
       ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some("")), Nil),
       ApplicationForFsac("appId2", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))),
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some("")), Nil),
       ApplicationForFsac("appId3", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some(""))))
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toPassmark)), "", Some("")), Nil))
 
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]

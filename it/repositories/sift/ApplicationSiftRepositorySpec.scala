@@ -23,25 +23,32 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   val Sdip: SchemeId = SchemeId("Sdip")
   val Generalist: SchemeId = SchemeId("Generalist")
   val ProjectDelivery = SchemeId("Project Delivery")
+  val Finance = SchemeId("Finance")
   val schemeDefinitions = List(Commercial, ProjectDelivery, Generalist)
 
   def repository: ApplicationSiftMongoRepository = applicationSiftRepository(schemeDefinitions)
 
   "next Application for sift" should {
     "ignore applications in incorrect statuses and return only the Phase3 Passed_Notified applications that are eligible for sift" in {
-      insertApplicationWithPhase3TestNotifiedResults("appId1", SchemeId("Commercial"), EvaluationResults.Green).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId1",
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))).futureValue
 
-      insertApplicationWithPhase3TestNotifiedResults("appId2", SchemeId("Commercial"), EvaluationResults.Green).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId2",
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId2", ApplicationStatus.PHASE3_TESTS_PASSED)
 
-      insertApplicationWithPhase3TestNotifiedResults("appId3", SchemeId("Commercial"), EvaluationResults.Green).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId3",
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId3", ApplicationStatus.PHASE3_TESTS_FAILED)
 
-      insertApplicationWithPhase3TestNotifiedResults("appId4", SchemeId("Project Delivery"), EvaluationResults.Green).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId4",
+        List(SchemeEvaluationResult(ProjectDelivery, EvaluationResults.Green.toString))).futureValue
 
-      insertApplicationWithPhase3TestNotifiedResults("appId5", SchemeId("Finance"), EvaluationResults.Green).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId5",
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
 
-      insertApplicationWithPhase3TestNotifiedResults("appId6", SchemeId("Generalist"), EvaluationResults.Red).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId6",
+        List(SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString))).futureValue
 
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
       appsForSift mustBe List(
@@ -53,11 +60,15 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     ("return no results when there are only phase 3 applications that aren't in Passed_Notified which apply for sift or don't have Green/Passed "
        + "results") in {
-      insertApplicationWithPhase3TestNotifiedResults("appId7", SchemeId("Finance"), EvaluationResults.Green).futureValue
-      insertApplicationWithPhase3TestNotifiedResults("appId8", SchemeId("Generalist"), EvaluationResults.Green).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId7",
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId8",
+        List(SchemeEvaluationResult(Generalist, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId8", ApplicationStatus.PHASE3_TESTS_FAILED)
-      insertApplicationWithPhase3TestNotifiedResults("appId9", SchemeId("Finance"), EvaluationResults.Green).futureValue
-      insertApplicationWithPhase3TestNotifiedResults("appId10", SchemeId("Project Delivery"), EvaluationResults.Red).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId9",
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId10",
+        List(SchemeEvaluationResult(ProjectDelivery, EvaluationResults.Red.toString))).futureValue
 
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
       appsForSift mustBe Nil
