@@ -35,7 +35,6 @@ class SignUpControllerSpec extends BaseControllerSpec {
   override def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
     CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
 
-  val continueAsSdipPanelId = "id=\"existingFSApply\""
   val applicationsClosedPanelId = "id=\"applicationsClosed\""
   val faststreamClosed = "Unfortunately, applications for the Civil Service Fast Stream are now closed."
   val faststreamEligible = "Are you eligible to apply for the Civil Service Fast Stream?"
@@ -56,7 +55,6 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val result = controller(appRouteConfigMap).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include(continueAsSdipPanelId)
       content mustNot include(faststreamClosed)
       content mustNot include(edipClosed)
       content mustNot include(sdipClosed)
@@ -73,7 +71,6 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val result = controller(appRouteConfigMap).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
-      content mustNot include(continueAsSdipPanelId)
       content mustNot include(sdipEligible)
       content must include(faststreamEligible)
       content must include(sdipClosed)
