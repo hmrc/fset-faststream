@@ -1,5 +1,5 @@
 @import connectors.exchange.SchemeEvaluationResult
-@import views.html.home.commonSectionFinalResults
+@import views.html.home.commonSectionPostOnlineTests
 @import views.html.home.withdrawSection
 @import security.Roles._
 @import views.html.home.withdrawInformation
@@ -13,7 +13,7 @@
 
 @main_template(title = "Home") {
 
-    @commonSectionFinalResults(cachedUser)
+    @commonSectionPostOnlineTests(cachedUser)
 
     <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(cachedUser)){disabled}" id="mainProgressPage">
         <section>

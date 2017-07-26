@@ -29,7 +29,7 @@ import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import security.Roles.{ AssessmentCentreFailedToAttendRole, CsrAuthorization, WithdrawComponent }
+import security.Roles.{ CsrAuthorization, WithdrawComponent }
 
 class RolesSpec extends UnitSpec {
   import RolesSpec._
@@ -62,22 +62,21 @@ class RolesSpec extends UnitSpec {
 
   "Withdraw Component" must {
     "be enabled only for specific roles" in {
-      val disabledStatuses = List(IN_PROGRESS, WITHDRAWN, CREATED,
-        ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED)
+      val disabledStatuses = List(IN_PROGRESS, WITHDRAWN, CREATED, PHASE3_TESTS_PASSED_NOTIFIED)
       val enabledStatuses = ApplicationStatus.values.toList.diff(disabledStatuses)
 
       assertValidAndInvalidStatuses(WithdrawComponent, enabledStatuses, disabledStatuses)
     }
   }
 
-  "Assessment Centre Failed to attend role" must {
+  /*"Assessment Centre Failed to attend role" must {
     "be authorised only for specific roles" in {
       val enabledStatuses = List(FAILED_TO_ATTEND)
       val disabledStatuses = ApplicationStatus.values.toList.diff(enabledStatuses)
 
       assertValidAndInvalidStatuses(AssessmentCentreFailedToAttendRole, enabledStatuses, disabledStatuses)
     }
-  }
+  }*/
 
   def assertValidAndInvalidStatuses(
     role: CsrAuthorization,

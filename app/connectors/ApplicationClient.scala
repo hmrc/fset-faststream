@@ -197,8 +197,8 @@ trait ApplicationClient {
     }
   }
 
-  def getFinalSchemeResults(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[List[SchemeEvaluationResult]]] = {
-    http.GET(s"${url.host}${url.base}/application/schemeresults/$appId").map { response =>
+  def getPhase3Results(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[List[SchemeEvaluationResult]]] = {
+    http.GET(s"${url.host}${url.base}/application/$appId/phase3/results").map { response =>
       Some(response.json.as[List[SchemeEvaluationResult]])
     } recover {
       case _: NotFoundException => None
