@@ -17,19 +17,25 @@
 package repositories
 
 import config.MicroserviceAppConfig
-import model.{ Scheme, SchemeId }
+import model.{ Scheme, SchemeId, SiftRequirement }
 import net.jcazevedo.moultingyaml._
-import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
 import play.api.Play
 import resource._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
 
 object SchemeConfigProtocol extends DefaultYamlProtocol {
-  implicit val schemeFormat = yamlFormat4((a: String, b: String ,c: String, d: Boolean) => Scheme(a,b,c, d))
+  implicit object SiftRequirementFormat extends YamlFormat[SiftRequirement.Value] {
+    def read(value: YamlValue): SiftRequirement.Value = value match {
+      case YamlString(siftReq) => SiftRequirement.withName(siftReq.toUpperCase.replaceAll("\\s|-", "_"))
+    }
+
+    def write(obj: SiftRequirement.Value): YamlValue = YamlString(obj.toString)
+  }
+
+  implicit val schemeFormat = yamlFormat5((a: String, b: String ,c: String, d: Option[SiftRequirement.Value], e: Boolean) => Scheme(a,b,c,d, e))
 }
 
 trait SchemeRepositoryImpl {
@@ -47,7 +53,7 @@ trait SchemeRepositoryImpl {
     rawConfig.parseYaml.convertTo[List[Scheme]]
   }
 
-  def siftableSchemeIds: Seq[SchemeId] = schemes.filter(_.requiresSift).map(_.id)
+  def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id}
 }
 
 object SchemeYamlRepository extends SchemeRepositoryImpl
