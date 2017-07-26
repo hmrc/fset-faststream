@@ -1,0 +1,84 @@
+@(page: models.page.PostOnlineTestsPage)(implicit request: Request[_])
+
+@renderSchemeForm = {
+ <div class="inner-block-padr" id="schemeForms">
+    <h2 class='heading-medium'>Extra information</h2>
+    <p>At least one of your scheme preferences require you to answer
+        some additional questions.</p>
+    <p>You should complete this within 7 days from the date of your
+        email. Failure to do this will hold up your application.</p>
+</div>
+}
+
+@renderNumericTest = {
+<div class="inner-block-padr" id="numericTest">
+    <h2 class="heading-medium">Take a numerical test</h2>
+    <p>At least one of your scheme preferences require you to take a
+        numerical test.</p>
+    <p>You'll be sent an email with a link to start your test. Keep
+        an eye on your email inbox, including your junk mail.</p>
+    <p>You should complete this within 7 days from the date of your
+        email. Failure to do this will hold up your application.</p>
+</div>
+}
+
+@renderAssessmentCentre = {
+ <div class="inner-block-padr">
+    <h2 class="heading-medium ">Attend an assessment centre</h2>
+    <div id="assessmentBlurb">
+        <p>If you've successfully passed the previous stages, you'll be
+            invited to an assessment centre.</p>
+        <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the assessment day</a></p>
+    </div>
+</div>
+}
+
+ <section class="text">
+    <ol class="step-by-step-coloured" id="nextStepsList">
+        @(page.hasFormRequirement, page.hasNumericRequirement, page.hasAssessmentCentreRequirement) match {
+            case (true, true, true) => {
+                <li class="first-step">
+                    @renderSchemeForm
+                    @renderNumericTest
+                </li>
+                <li class="second-step">
+                    @renderAssessmentCentre
+                </li>
+            }
+
+            case (true, false, true) => {
+                <li class="first-step">
+                    @renderSchemeForm
+                </li>
+                <li class="second-step">
+                    @renderAssessmentCentre
+                </li>
+            }
+
+            case (false, true, true) => {
+                <li class="first-step">
+                    @renderNumericTest
+                </li>
+                <li class="second-step">
+                    @renderAssessmentCentre
+                </li>
+            }
+
+            case (false, false, true) => {
+                 <li class="first-step">
+                    @renderAssessmentCentre
+                </li>
+            }
+        }
+        <li class="fourth-step">
+            <div class="inner-block-padr">
+                <h2 class="heading-medium ">Final stage</h2>
+                <p>If you've successfully passed the previous stage, you'll need to
+                    attend a final event for your chosen scheme. We'll contact you
+                    to arrange this.</p>
+                <p>We aim to make your results available as soon as possible.</p>
+            </div>
+        </li>
+    </ol>
+ </section>
+

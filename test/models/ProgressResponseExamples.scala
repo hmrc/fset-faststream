@@ -18,7 +18,7 @@ package models
 
 import java.util.UUID
 
-import connectors.exchange.ProgressResponse
+import connectors.exchange._
 
 object ProgressResponseExamples {
   val Initial = ProgressResponse(applicationId = UUID.randomUUID().toString)
@@ -33,4 +33,39 @@ object ProgressResponseExamples {
   val InPreview = InQuestionnaire.copy(preview = true)
   val Submitted = InPreview.copy(submitted = true)
   val WithdrawnAfterSubmitted = Submitted.copy(withdrawn = true)
+
+  val phase1TestsPassed = Submitted.copy(phase1ProgressResponse = Phase1ProgressResponse(
+    phase1TestsInvited = true,
+    phase1TestsFirstReminder = true,
+    phase1TestsSecondReminder = true,
+    phase1TestsStarted = true,
+    phase1TestsCompleted = true,
+    phase1TestsResultsReady = true,
+    phase1TestsResultsReceived = true,
+    phase1TestsPassed = true
+  ))
+  val phase2TestsPassed = phase1TestsPassed.copy(phase2ProgressResponse = Phase2ProgressResponse(
+    phase2TestsInvited = true,
+    phase2TestsFirstReminder = true,
+    phase2TestsSecondReminder = true,
+    phase2TestsStarted = true,
+    phase2TestsCompleted = true,
+    phase2TestsResultsReady = true,
+    phase2TestsResultsReceived = true,
+    phase2TestsPassed = true
+  ))
+
+  val phase3TestsPassed = phase2TestsPassed.copy(phase3ProgressResponse = Phase3ProgressResponse(
+    phase3TestsInvited = true,
+    phase3TestsFirstReminder = true,
+    phase3TestsSecondReminder = true,
+    phase3TestsStarted = true,
+    phase3TestsCompleted = true,
+    phase3TestsResultsReceived = true,
+    phase3TestsPassed = true
+  ))
+
+  val siftEntered = phase3TestsPassed.copy(siftProgressResponse = SiftProgressResponse(
+    siftEntered = true
+  ))
 }
