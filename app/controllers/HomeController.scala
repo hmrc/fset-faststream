@@ -123,13 +123,6 @@ abstract class HomeController(
       )
   }
 
-  /*def confirmAlloc: Action[AnyContent] = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
-    implicit user =>
-      applicationClient.confirmAllocation(user.application.get.applicationId).map { _ =>
-        Redirect(controllers.routes.HomeController.present()).flashing(success("success.allocation.confirmed"))
-      }
-  }*/
-
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
                                       request: Request[_], hc: HeaderCarrier) = {
     for {

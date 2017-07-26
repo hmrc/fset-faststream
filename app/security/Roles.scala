@@ -183,26 +183,6 @@ object Roles {
     // format: ON
   }
 
-  /*object ConfirmedAllocatedCandidateRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE)
-  }
-
-  object UnconfirmedAllocatedCandidateRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE) && assessmentCentreAllocationUnconfirmed
-  }
-
-  object AssessmentCentreFailedNotifiedRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE_FAILED_NOTIFIED)
-  }
-
-  object AssessmentCentrePassedNotifiedRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE_PASSED_NOTIFIED)
-  }*/
-
   object AssessmentCentreFailedToAttendRole extends AuthorisedUser {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader) = assessmentCentreFailedToAttend(user)
   }
@@ -223,8 +203,6 @@ object Roles {
     PreviewApplicationRole -> routes.PreviewApplicationController.present(),
     SubmitApplicationRole -> routes.PreviewApplicationController.present(),
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),
-    //ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),
-    //UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
     AbleToWithdrawApplicationRole -> routes.HomeController.present()
   ).reverse
 }
