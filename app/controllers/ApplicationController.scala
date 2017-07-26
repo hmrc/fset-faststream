@@ -100,11 +100,11 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def getSchemeResults(applicationId: String) = Action.async { implicit request =>
+  def getPhase3Results(applicationId: String) = Action.async { implicit request =>
     passmarkService.getPassmarkEvaluation(applicationId).map { passmarks =>
       Ok(Json.toJson(passmarks.result))
     } recover {
-      case e: PassMarkEvaluationNotFound => NotFound(s"No evaluation results found for applicationId: $applicationId")
+      case _: PassMarkEvaluationNotFound => NotFound(s"No evaluation results found for applicationId: $applicationId")
     }
   }
 
