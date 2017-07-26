@@ -88,7 +88,7 @@ class AssessmentCentreMongoRepository (
 
     collection.update(query, BSONDocument("$set" ->
       applicationStatusBSON(progressStatus)
-        .add(cumulativeResultsForLatestPhase(application.siftEvaluationResult match {
+        .add(cumulativeResultsForLatestPhaseBSON(application.siftEvaluationResult match {
           case Nil => application.phase3Evaluation.result
           case _ => application.siftEvaluationResult
         })))

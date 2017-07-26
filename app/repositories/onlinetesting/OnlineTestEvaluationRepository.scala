@@ -75,7 +75,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     ).add(
       newProgressStatus.map(applicationStatusBSON).getOrElse(BSONDocument.empty)
     ).add(
-      cumulativeResultsForLatestPhase(evaluation.result)
+      cumulativeResultsForLatestPhaseBSON(evaluation.result)
     ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"saving passmark evaluation during $phase evaluation")

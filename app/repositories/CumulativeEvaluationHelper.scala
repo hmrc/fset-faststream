@@ -20,7 +20,7 @@ import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONString }
 
 trait CumulativeEvaluationHelper {
-  def cumulativeResultsForLatestPhase(latestResults: List[SchemeEvaluationResult]) = {
+  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]) = {
     BSONDocument(latestResults.map(ser => s"cumulativeEvaluation.${ser.schemeId.value}" -> BSONString(ser.result)))
   }
 }
