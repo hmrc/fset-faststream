@@ -18,7 +18,7 @@ package model.persisted
 
 import controllers.DayAggregateEvent
 import factories.UUIDFactory
-import model.{ FsbType, TelephoneInterviewType }
+import model.{ FsbType, TelephoneInterviewType, UniqueIdentifier }
 import model.persisted.eventschedules._
 import org.joda.time.{ LocalDate, LocalTime }
 
