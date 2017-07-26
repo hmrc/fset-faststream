@@ -17,7 +17,7 @@
 package repositories.assessmentcentre
 
 import factories.DateTimeFactory
-import model._
+import model.{ ApplicationStatus, EvaluationResults, Scheme, SchemeId }
 import model.command.{ ApplicationForFsac, ApplicationForSift }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import reactivemongo.api.DB
@@ -26,12 +26,10 @@ import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{ CollectionNames, CommonBSONDocuments, CumulativeEvaluationHelper, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-import play.api.libs.json.Json._
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-
+import scala.language.implicitConversions
 
 trait AssessmentCentreRepository {
   def dateTime: DateTimeFactory
