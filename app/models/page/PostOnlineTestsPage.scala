@@ -18,15 +18,11 @@ package models.page
 
 import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
-import models.{ CachedData, CachedDataWithApp }
-
-object SchemeStatus extends Enumeration {
-  val GREEN, RED, WITHDRAWN = Value
-}
+import models.{ CachedData, CachedDataWithApp, SchemeStatus }
 
 case class CurrentSchemeStatus(
   scheme: Scheme,
-  status: SchemeStatus.Value,
+  status: SchemeStatus.Status,
   failedAtStage: Option[String]
 )
 
@@ -35,9 +31,9 @@ case class PostOnlineTestsPage(
   schemes: Seq[CurrentSchemeStatus]
 ) {
   def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
-  def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.GREEN)
-  def failedSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.RED)
-  def withdrawnSchemes: Seq[Scheme] = schemes.collect { case s if s.status == SchemeStatus.WITHDRAWN => s.scheme}
+  def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Green)
+  def failedSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Red)
+  def withdrawnSchemes: Seq[Scheme] = schemes.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme}
 
   val noSuccessfulSchemes = successfulSchemes.size
   val noFailedSchemes = failedSchemes.size
@@ -50,22 +46,19 @@ case class PostOnlineTestsPage(
 
 object PostOnlineTestsPage {
   def apply(userDataWithApp: CachedDataWithApp, phase3Results: Seq[SchemeEvaluationResult], allSchemes: Seq[Scheme]): PostOnlineTestsPage = {
-    play.api.Logger.error(s"\n\n CURRENT SCHEMES\n $phase3Results\n")
-    play.api.Logger.error(s"\n\n ALL SCHEMES\n $allSchemes\n")
 
     val currentSchemes = phase3Results.flatMap { schemeResult =>
       allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
 
         val (status, failedAt) = schemeResult.result match {
-          case "Red" => (SchemeStatus.RED, Some("online tests"))
-          case "Green" => (SchemeStatus.GREEN, None)
+          case "Red" => (SchemeStatus.Red, Some("online tests"))
+          case "Green" => (SchemeStatus.Green, None)
         }
 
         CurrentSchemeStatus(scheme, status, failedAt)
       }
     }
 
-    play.api.Logger.error(s"\n\n CURRENT SCHEMES\n $currentSchemes\n")
     PostOnlineTestsPage(userDataWithApp, currentSchemes)
   }
 }
