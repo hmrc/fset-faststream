@@ -16,6 +16,7 @@
 
 package services.events
 
+import model.{ FsbType, TelephoneInterviewType }
 import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.Logger
@@ -43,6 +44,10 @@ trait EventsService {
     }
   }
 
+  def save(event: Event): Future[Unit] = {
+    eventsRepo.save(event :: Nil)
+  }
+
   def getEvent(id: String): Future[Event] = {
     eventsRepo.getEvent(id)
   }
@@ -50,4 +55,8 @@ trait EventsService {
   def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue))
   }
+
+  def getFsbTypes: Future[List[FsbType]] = eventsConfigRepo.fsbTypes
+
+  def getTelephoneInterviewTypes: Future[List[TelephoneInterviewType]] = eventsConfigRepo.telephoneInterviewTypes
 }

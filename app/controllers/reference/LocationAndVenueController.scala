@@ -32,6 +32,10 @@ trait LocationAndVenueController extends BaseController {
 
   def locationsAndVenuesRepository: LocationsWithVenuesRepository
 
+  def locationsWithVenues: Action[AnyContent] = Action.async { implicit request =>
+    locationsAndVenuesRepository.locationsWithVenuesList.map(x => Ok(Json.toJson(x)))
+  }
+
   def venues: Action[AnyContent] = Action.async { implicit request =>
     locationsAndVenuesRepository.venues.map(x => Ok(Json.toJson(x)))
   }

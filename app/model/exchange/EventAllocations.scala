@@ -17,7 +17,7 @@
 package model.exchange
 
 import model.UniqueIdentifier
-import model.persisted.eventschedules.Event
+import model.persisted.eventschedules.{ Event => PersistedEvent }
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
@@ -37,7 +37,7 @@ object EventAssessorAllocationsSummaryPerSkill {
 
 case class EventWithAllocationsSummary(
   date: LocalDate,
-  event: Event,
+  event: PersistedEvent,
   candidateAllocations: List[CandidateAllocationPerSession],
   assessorAllocations: List[EventAssessorAllocationsSummaryPerSkill]
 )
