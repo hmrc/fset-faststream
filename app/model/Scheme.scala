@@ -35,6 +35,15 @@ object SchemeId {
   }
 }
 
+case class Degree(
+  required: String,
+  specificRequirement: Boolean
+)
+
+object Degree {
+  implicit val degreeFormat = Json.format[Degree]
+}
+
 object SiftRequirement extends Enumeration {
   val FORM, NUMERIC_TEST = Value
 
@@ -54,6 +63,8 @@ case class Scheme(
   id: SchemeId,
   code: String,
   name: String,
+  civilServantEligible: Boolean,
+  degree: Option[Degree],
   siftRequirement: Option[SiftRequirement.Value],
   evaluationRequired: Boolean
 )
@@ -61,6 +72,8 @@ case class Scheme(
 object Scheme {
   implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
-  def apply(id: String, code: String, name: String, requiresSift: Option[SiftRequirement.Value], evaluationRequired: Boolean): Scheme =
-    Scheme(SchemeId(id), code, name, requiresSift, evaluationRequired)
+  def apply(id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
+    requiresSift: Option[SiftRequirement.Value], evaluationRequired: Boolean
+  ): Scheme =
+    Scheme(SchemeId(id), code, name, civilServantEligible, degree, requiresSift, evaluationRequired)
 }
