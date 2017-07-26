@@ -18,8 +18,9 @@ package models.page
 
 import java.util.UUID
 
+import connectors.ReferenceDataExamples._
 import connectors.exchange.SchemeEvaluationResult
-import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
+import connectors.exchange.referencedata.SchemeId
 import controllers.UnitSpec
 import models.ApplicationData.ApplicationStatus
 import models._
@@ -33,29 +34,23 @@ class PostOnlineTestsPageSpec extends UnitSpec {
     val userDataWithApp = CachedDataWithApp(
       CachedUser(randUUID, "firstname", "lastname", Some("prefName"), "email@email.com", isActive = true, "unlocked"),
       ApplicationData(randUUID, randUUID,
-        ApplicationStatus.SIFT, ApplicationRoute.Faststream, ProgressResponseExamples.siftEntered, civilServiceExperienceDetails = None,
-        edipCompleted = None, overriddenSubmissionDeadline = None
+        ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, ApplicationRoute.Faststream, ProgressResponseExamples.siftEntered,
+        civilServiceExperienceDetails = None, edipCompleted = None, overriddenSubmissionDeadline = None
       )
     )
 
-    val commercial = Scheme(SchemeId("Commercial"), "CFS", "Commercial", Some(SiftRequirement.NUMERIC_TEST), evaluationRequired = true)
-    val dat = Scheme(SchemeId("DigitalAndTechnology"), "DAT", "Digital and Technology", Some(SiftRequirement.FORM), evaluationRequired = true)
-    val hr = Scheme(SchemeId("HumanResources"), "HR", "Human Resources", None, evaluationRequired = false)
-
-    val allSchemes = commercial :: dat :: hr :: Nil
-
-    "be correctly built for non-siftable candidates" in {
+    "be correctly built candidates after phase 3" in {
       val phase3Results = SchemeEvaluationResult(SchemeId("Commercial"), SchemeStatus.Red.toString)  ::
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), SchemeStatus.Red.toString) ::
         SchemeEvaluationResult(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
       Nil
 
-      val page = PostOnlineTestsPage.apply(userDataWithApp, phase3Results, allSchemes)
+      val page = PostOnlineTestsPage.apply(userDataWithApp, phase3Results, Schemes.AllSchemes)
 
-      page.successfulSchemes mustBe CurrentSchemeStatus(hr, SchemeStatus.Green, failedAtStage = None) :: Nil
+      page.successfulSchemes mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
 
-      page.failedSchemes mustBe  CurrentSchemeStatus(commercial, SchemeStatus.Red, failedAtStage = Some("online tests")) ::
-        CurrentSchemeStatus(dat, SchemeStatus.Red, failedAtStage = Some("online tests")) :: Nil
+      page.failedSchemes mustBe  CurrentSchemeStatus(Schemes.Commercial, SchemeStatus.Red, failedAtStage = Some("online tests")) ::
+        CurrentSchemeStatus(Schemes.DaT, SchemeStatus.Red, failedAtStage = Some("online tests")) :: Nil
 
       page.withdrawnSchemes mustBe Nil
       page.hasAssessmentCentreRequirement mustBe true

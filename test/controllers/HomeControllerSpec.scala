@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
-import connectors.{ ApplicationClient, ReferenceDataClient }
+import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples }
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange.referencedata.SchemeId
 import connectors.exchange.{ AssistanceDetailsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
@@ -34,6 +34,7 @@ import org.mockito.Mockito._
 import play.api.test.Helpers._
 import security.{ SilhouetteComponent, UserCacheService, UserService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -102,7 +103,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
 
-      content must include("Congratulations, you've been successful for at least one of your")
+      content must include("Congratulations, you're through to the next stage for 1 of your")
       content mustNot include("Your application has been withdrawn.")
     }
 
@@ -123,7 +124,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
 
       content must include("Your application has been withdrawn.")
-      content must include("Congratulations, you've been successful for at least one of your")
+      content must include("Congratulations, you're through to the next stage for 1 of your")
     }
 
     "display edip final results page" in new EdipAndSdipTestFixture {
@@ -385,6 +386,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       override lazy val silhouette = SilhouetteComponent.silhouette
       val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
     }
 
     def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,
