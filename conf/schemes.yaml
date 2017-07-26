@@ -1,72 +1,88 @@
 - id: Commercial
   code: CFS
   name: Commercial
-  requiresSift: true
+  siftRequirement: NUMERIC_TEST
+  evaluationRequired: true
 - id: DigitalAndTechnology
   code: DAT
   name: Digital And Technology
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: Finance
   code: FIFS
   name: Finance
-  requiresSift: true
+  siftRequirement: NUMERIC_TEST
+  evaluationRequired: true
 - id: Generalist
   code: GFS
   name: Generalist
-  requiresSift: false
+  evaluationRequired: true
 - id: GovernmentCommunicationService
   code: GCFS
   name: Government Communication Service
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentEconomicsServiceDiplomaticService
   code: GES-DS
   name: Government Economics Service - Diplomatic Service
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: HumanResources
   code: HRFS
   name: Human Resources
-  requiresSift: false
+  evaluationRequired: true
 - id: International
   code: IFS
   name: International
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: ScienceAndEngineering
   code: SEFS
   name: Science And Engineering
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: false
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
-  requiresSift: true
+  siftRequirement: FORM
+  evaluationRequired: true

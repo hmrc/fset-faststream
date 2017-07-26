@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package model.command
+package persisted
 
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.BSONDocument
+import model.TelephoneInterviewType
 
-case class ApplicationForFsac(
-                               applicationId: String,
-                               phase3Evaluation: PassmarkEvaluation,
-                               siftEvaluationResult: List[SchemeEvaluationResult]
-)
-
-object ApplicationForFsac {
-  implicit val applicationForFsacFormat: OFormat[ApplicationForFsac] = Json.format[ApplicationForFsac]
-
-
+object TelephoneInterviewTypeExamples {
+  val YamlTelephoneInterviewTypes = List(
+    TelephoneInterviewType("EDIP", "Early Diversity Internship Program"),
+    TelephoneInterviewType("SDIP", "Summer Diversity Internship Program")
+  )
 }

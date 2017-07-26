@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package model.command
+package repositories
 
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.BSONDocument
+import model.persisted.SchemeEvaluationResult
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONString }
 
-case class ApplicationForFsac(
-                               applicationId: String,
-                               phase3Evaluation: PassmarkEvaluation,
-                               siftEvaluationResult: List[SchemeEvaluationResult]
-)
-
-object ApplicationForFsac {
-  implicit val applicationForFsacFormat: OFormat[ApplicationForFsac] = Json.format[ApplicationForFsac]
-
-
+trait CumulativeEvaluationHelper {
+  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]) = {
+    BSONDocument(latestResults.map(ser => s"cumulativeEvaluation.${ser.schemeId.value}" -> BSONString(ser.result)))
+  }
 }

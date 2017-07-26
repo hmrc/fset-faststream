@@ -17,20 +17,19 @@
 package services.testdata.allocation
 
 import model.exchange.testdata.CreateCandidateAllocationResponse
-import model.persisted.CandidateAllocation
 import model.testdata.CreateCandidateAllocationData
-import repositories.AllocationRepository
+import repositories.CandidateAllocationRepository
 
 import scala.concurrent.Future
 
 object CandidateAllocationGenerator extends CandidateAllocationGenerator {
-  override val candidateAllocationRepository: AllocationRepository[CandidateAllocation] = repositories.candidateAllocationRepository
+  override val candidateAllocationRepository: CandidateAllocationRepository = repositories.candidateAllocationRepository
 }
 
 trait CandidateAllocationGenerator {
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val candidateAllocationRepository: AllocationRepository[CandidateAllocation]
+  val candidateAllocationRepository: CandidateAllocationRepository
 
   def generate(generationId: Int, createData: CreateCandidateAllocationData): Future[CreateCandidateAllocationResponse] = {
     val allocation = createData.toCandidateAllocation

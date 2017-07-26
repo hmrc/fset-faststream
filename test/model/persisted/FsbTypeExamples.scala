@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package model.command
+package persisted
 
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.BSONDocument
+import model.FsbType
 
-case class ApplicationForFsac(
-                               applicationId: String,
-                               phase3Evaluation: PassmarkEvaluation,
-                               siftEvaluationResult: List[SchemeEvaluationResult]
-)
-
-object ApplicationForFsac {
-  implicit val applicationForFsacFormat: OFormat[ApplicationForFsac] = Json.format[ApplicationForFsac]
-
-
+object FsbTypeExamples {
+  val YamlFsbTypes = List(
+    FsbType("SAC"),
+    FsbType("SRAC"),
+    FsbType("ORAC"),
+    FsbType("EAC"),
+    FsbType("GOV COMS"),
+    FsbType("DAT"),
+    FsbType("SEFS"),
+    FsbType("FCO"),
+    FsbType("P&D"),
+    FsbType("FIFS"),
+    FsbType("COMMERCIAL"),
+    FsbType("HOP")
+  )
 }

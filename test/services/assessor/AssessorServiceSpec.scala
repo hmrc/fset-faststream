@@ -32,6 +32,15 @@ import services.assessoravailability.AssessorService
 import testkit.MockitoImplicits._
 
 import scala.concurrent.duration._
+import model.{ AllocationStatuses, Exceptions }
+import model.Exceptions.AssessorNotFoundException
+import model.exchange.UpdateAllocationStatusRequest
+import model.persisted.{ EventExamples, ReferenceData }
+import model.persisted.eventschedules.Venue
+import model.persisted.assessor.AssessorExamples._
+import repositories.{ AssessorAllocationRepository, AssessorRepository }
+import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
+
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
@@ -171,7 +180,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
   trait TestFixture {
     val mockAssessorRepository = mock[AssessorRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
-    val mockAllocationRepo = mock[AllocationRepository[model.persisted.AssessorAllocation]]
+    val mockAllocationRepo = mock[AssessorAllocationRepository]
     val mockEventRepo = mock[EventsRepository]
     val virtualVenue = Venue("virtual", "virtual venue")
     val venues = ReferenceData(List(Venue("london fsac", "bush house"), virtualVenue), virtualVenue, virtualVenue)
@@ -181,7 +190,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
     val service = new AssessorService {
       val assessorRepository: AssessorRepository = mockAssessorRepository
-      val allocationRepo: AllocationRepository[AssessorAllocation] = mockAllocationRepo
+      val allocationRepo: AssessorAllocationRepository = mockAllocationRepo
       val eventsRepo: EventsRepository = mockEventRepo
       val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
     }
