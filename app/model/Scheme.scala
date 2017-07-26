@@ -54,12 +54,13 @@ case class Scheme(
   id: SchemeId,
   code: String,
   name: String,
-  siftRequirement: Option[SiftRequirement.Value]
+  siftRequirement: Option[SiftRequirement.Value],
+  evaluationRequired: Boolean
 )
 
 object Scheme {
   implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
-  def apply(id: String, code: String, name: String, requiresSift: Option[SiftRequirement.Value]): Scheme =
-    Scheme(SchemeId(id), code, name, requiresSift)
+  def apply(id: String, code: String, name: String, requiresSift: Option[SiftRequirement.Value], evaluationRequired: Boolean): Scheme =
+    Scheme(SchemeId(id), code, name, requiresSift, evaluationRequired)
 }

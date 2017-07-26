@@ -151,24 +151,27 @@ object DataFaker {
     */
 
     def schemeTypes = randList(List(
-        Scheme("Commercial", "CFS", "Commercial", Some(SiftRequirement.NUMERIC_TEST)),
-        Scheme("DigitalAndTechnology", "DaT", "Digital And Technology", Some(SiftRequirement.FORM)),
-        Scheme("DiplomaticService", "DS", "Diplomatic Service",  Some(SiftRequirement.FORM)),
-        Scheme("DiplomaticServiceEconomics", "DSE", "Diplomatic Service Economics", Some(SiftRequirement.FORM)),
-        Scheme("European", "EFS", "European", Some(SiftRequirement.FORM)),
-        Scheme("Finance", "FIFS", "Finance", Some(SiftRequirement.NUMERIC_TEST)),
-        Scheme("Generalist", "GFS", "Generalist", None),
-        Scheme("GovernmentCommunicationService", "GCFS", "Government Communication Service", Some(SiftRequirement.FORM)),
-        Scheme("GovernmentEconomicsService", "GES", "Government Economics Service", Some(SiftRequirement.FORM)),
-        Scheme("GovernmentOperationalResearchService", "GORS", "Government Operational Research Service",  Some(SiftRequirement.FORM)),
-        Scheme("GovernmentSocialResearchService", "GSR", "Government Social Research Service", Some(SiftRequirement.FORM)),
-        Scheme("GovernmentStatisticalService", "GSS", "Government Statistical Service", Some(SiftRequirement.FORM)),
-        Scheme("HousesOfParliament", "HoP", "Houses Of Parliament", Some(SiftRequirement.FORM)),
-        Scheme("HumanResources", "HRFS", "Human Resources", None),
-        Scheme("ProjectDelivery", "PDFS", "Project Delivery", Some(SiftRequirement.FORM)),
-        Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering", Some(SiftRequirement.FORM)),
-        Scheme("Edip", "EDIP", "Early Diversity Internship Programme", Some(SiftRequirement.FORM)),
-        Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", Some(SiftRequirement.FORM))
+        Scheme("Commercial", "CFS", "Commercial", Some(SiftRequirement.NUMERIC_TEST), evaluationRequired = true),
+        Scheme("DigitalAndTechnology", "DaT", "Digital And Technology", Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("DiplomaticService", "DS", "Diplomatic Service",  Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("DiplomaticServiceEconomics", "DSE", "Diplomatic Service Economics", Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("European", "EFS", "European", Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("Finance", "FIFS", "Finance", Some(SiftRequirement.NUMERIC_TEST), evaluationRequired = true),
+        Scheme("Generalist", "GFS", "Generalist", None, evaluationRequired = false),
+        Scheme("GovernmentCommunicationService", "GCFS", "Government Communication Service", Some(SiftRequirement.FORM),
+          evaluationRequired = true),
+        Scheme("GovernmentEconomicsService", "GES", "Government Economics Service", Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("GovernmentOperationalResearchService", "GORS", "Government Operational Research Service",  Some(SiftRequirement.FORM),
+          evaluationRequired = true),
+        Scheme("GovernmentSocialResearchService", "GSR", "Government Social Research Service", Some(SiftRequirement.FORM),
+          evaluationRequired = true),
+        Scheme("GovernmentStatisticalService", "GSS", "Government Statistical Service", Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("HousesOfParliament", "HoP", "Houses Of Parliament", Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("HumanResources", "HRFS", "Human Resources", None, evaluationRequired = false),
+        Scheme("ProjectDelivery", "PDFS", "Project Delivery", Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering", Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("Edip", "EDIP", "Early Diversity Internship Programme", Some(SiftRequirement.FORM), evaluationRequired = true),
+        Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", Some(SiftRequirement.FORM), evaluationRequired = false)
     ), randNumberOfSchemes())
 
     def gender = randOne(List(

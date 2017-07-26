@@ -35,7 +35,7 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
     def write(obj: SiftRequirement.Value): YamlValue = YamlString(obj.toString)
   }
 
-  implicit val schemeFormat = yamlFormat4((a: String, b: String ,c: String, d: Option[SiftRequirement.Value]) => Scheme(a,b,c,d))
+  implicit val schemeFormat = yamlFormat5((a: String, b: String ,c: String, d: Option[SiftRequirement.Value], e: Boolean) => Scheme(a,b,c,d, e))
 }
 
 trait SchemeRepositoryImpl {

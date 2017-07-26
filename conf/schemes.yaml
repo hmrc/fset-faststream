@@ -2,69 +2,87 @@
   code: CFS
   name: Commercial
   siftRequirement: NUMERIC_TEST
+  evaluationRequired: true
 - id: DigitalAndTechnology
   code: DaT
   name: Digital And Technology
   siftRequirement: FORM
+  evaluationRequired: true
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
   siftRequirement: FORM
+  evaluationRequired: true
 - id: Finance
   code: FIFS
   name: Finance
   siftRequirement: NUMERIC_TEST
+  evaluationRequired: true
 - id: Generalist
   code: GFS
   name: Generalist
+  evaluationRequired: true
 - id: GovernmentCommunicationService
   code: GCFS
   name: Government Communication Service
   siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
   siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentEconomicsServiceDiplomaticService
   code: GESDS
   name: Government Economics Service - Diplomatic Service
   siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
   siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
   siftRequirement: FORM
+  evaluationRequired: true
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
   siftRequirement: FORM
+  evaluationRequired: true
 - id: HousesOfParliament
   code: HoP
   name: Houses Of Parliament
   siftRequirement: FORM
+  evaluationRequired: true
 - id: HumanResources
   code: HRFS
   name: Human Resources
+  evaluationRequired: true
 - id: International
   code: INT
   name: International
   siftRequirement: FORM
+  evaluationRequired: true
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
   siftRequirement: FORM
+  evaluationRequired: true
 - id: ScienceAndEngineering
   code: SEFS
   name: Science And Engineering
   siftRequirement: FORM
+  evaluationRequired: true
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
   siftRequirement: FORM
+  evaluationRequired: false
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
   siftRequirement: FORM
+  evaluationRequired: true
