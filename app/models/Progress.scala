@@ -16,7 +16,7 @@
 
 package models
 
-import connectors.exchange.{ AssessmentCentre, AssessmentScores, ProgressResponse }
+import connectors.exchange.{ AssessmentCentre, AssessmentScores, ProgressResponse, SiftProgressResponse }
 import play.api.libs.json.{ Format, Json }
 
 import scala.language.implicitConversions
@@ -78,6 +78,7 @@ case class Progress(
   phase1TestProgress: Phase1TestProgress = Phase1TestProgress(),
   phase2TestProgress: Phase2TestProgress = Phase2TestProgress(),
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
+  siftProgressResponse: SiftProgressResponse = SiftProgressResponse(),
   exported: Boolean = false,
   updateExported: Boolean = false,
   failedToAttend: Boolean = false,

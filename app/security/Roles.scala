@@ -309,6 +309,7 @@ object RoleUtils {
 
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
 
+  def isStiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgressResponse.siftEntered)
 
   def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.failedToAttend)
 
