@@ -16,8 +16,7 @@
 
 package controllers
 
-import model.PassmarkPersistedObjects.Implicits._
-import model.PassmarkPersistedObjects._
+import model.persisted.assessmentcentre._
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import play.api.libs.json.Json

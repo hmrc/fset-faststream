@@ -16,8 +16,7 @@
 
 package repositories
 
-import model.PassmarkPersistedObjects
-import model.PassmarkPersistedObjects.AssessmentCentrePassMarkSettings
+import model.persisted.assessmentcentre.AssessmentCentrePassMarkSettings
 import play.api.libs.json.{ JsNumber, JsObject }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
@@ -36,8 +35,8 @@ trait AssessmentCentrePassMarkSettingsRepository {
 
 //scalastyle:off
 class AssessmentCentrePassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[PassmarkPersistedObjects.AssessmentCentrePassMarkSettings, BSONObjectID](CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS, mongo,
-    PassmarkPersistedObjects.Implicits.PersistedAssessmentCentrePassMarkSettingsFormat,
+  extends ReactiveRepository[AssessmentCentrePassMarkSettings, BSONObjectID](CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS, mongo,
+    AssessmentCentrePassMarkSettings.PersistedAssessmentCentrePassMarkSettingsFormat,
     ReactiveMongoFormats.objectIdFormats) with AssessmentCentrePassMarkSettingsRepository {
   //scalastyle:on
 

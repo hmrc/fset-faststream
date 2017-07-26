@@ -17,7 +17,7 @@
 package services.passmarksettings
 
 import model.Commands.AssessmentCentrePassMarkSettingsResponse
-import model.PassmarkPersistedObjects.AssessmentCentrePassMarkScheme
+import model.persisted.assessmentcentre.AssessmentCentrePassMarkScheme
 import repositories._
 
 import scala.concurrent.{ ExecutionContext, Future }

@@ -18,7 +18,7 @@ import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, 
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
-import model.PassmarkPersistedObjects._
+import model.persisted.assessmentcentre._
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
 import factories.DateTimeFactory
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }

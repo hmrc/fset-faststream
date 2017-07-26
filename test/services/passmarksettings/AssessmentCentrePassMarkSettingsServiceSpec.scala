@@ -17,7 +17,7 @@
 package services.passmarksettings
 
 import model.Commands.AssessmentCentrePassMarkSettingsResponse
-import model.PassmarkPersistedObjects._
+import model.persisted.assessmentcentre._
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import repositories.{ AssessmentCentrePassMarkSettingsMongoRepository, FrameworkRepository }
