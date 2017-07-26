@@ -21,16 +21,12 @@ import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
 import model.command.AllocationWithEvent
 import model.exchange.{ AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest }
-import model.persisted.AssessorAllocation
-import model.exchange.{ AssessorSkill, UpdateAllocationStatusRequest }
-import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.assessor.AssessorStatus
 import model.persisted.eventschedules.SkillType.SkillType
 import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
 import org.joda.time.LocalDate
-import repositories.{ AssessorAllocationRepository, AssessorAllocationMongoRepository, AssessorMongoRepository, AssessorRepository }
 import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
-import repositories.{ AssessorAllocationMongoRepository, AssessorMongoRepository, AssessorRepository }
+import repositories.{ AssessorAllocationMongoRepository, AssessorAllocationRepository, AssessorMongoRepository, AssessorRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

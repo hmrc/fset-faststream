@@ -21,26 +21,17 @@ import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
 import model.persisted.assessor.Assessor
 import model.persisted.assessor.AssessorExamples._
 import model.persisted.eventschedules.Venue
-import model.persisted.{ AssessorAllocation, EventExamples, ReferenceData }
+import model.persisted.{ EventExamples, ReferenceData }
 import model.{ AllocationStatuses, Exceptions }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
-import repositories.{ AllocationRepository, AssessorRepository }
+import repositories.{ AssessorAllocationRepository, AssessorRepository }
 import services.BaseServiceSpec
 import services.assessoravailability.AssessorService
 import testkit.MockitoImplicits._
 
 import scala.concurrent.duration._
-import model.{ AllocationStatuses, Exceptions }
-import model.Exceptions.AssessorNotFoundException
-import model.exchange.UpdateAllocationStatusRequest
-import model.persisted.{ EventExamples, ReferenceData }
-import model.persisted.eventschedules.Venue
-import model.persisted.assessor.AssessorExamples._
-import repositories.{ AssessorAllocationRepository, AssessorRepository }
-import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
-
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
