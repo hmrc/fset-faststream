@@ -20,10 +20,12 @@ import java.net.URLEncoder
 
 import config.CSRHttp
 import connectors.UserManagementClient.TokenEmailPairInvalidException
+import connectors.events.{ Event, EventSession, Session }
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.GeneralDetails._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
+import models.events.EventType.EventType
 import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -225,6 +227,24 @@ trait ApplicationClient {
 
   def confirmAllocation(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(s"${url.host}${url.base}/allocation-status/confirm/$appId", "").map(_ => ())
+  }
+
+  def sessionsForApplication(appId: UniqueIdentifier, eventType: EventType)(implicit hc: HeaderCarrier): Future[List[EventSession]] = {
+    http.GET(
+      s"${url.host}${url.base}/sessions/findByApplicationId?applicationId=$appId&sessionEventType=${eventType.toString}"
+    ).map { response =>
+      response.json.as[List[EventSession]]
+    }
+  }
+
+  def retrieveEventDetails(eventId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Event] = {
+    http.GET(s"${url.host}${url.base}/events/$eventId").map { response =>
+      if (response.status == OK) {
+        response.json.as[Event]
+      } else {
+        throw new Exception(s"Error retrieving event with id $eventId")
+      }
+    }
   }
 
   def findAdjustments(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[Adjustments]] = {

@@ -16,6 +16,9 @@
 
 package controllers
 
+import java.time.ZoneId
+import java.util.TimeZone
+
 import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient }
@@ -26,6 +29,8 @@ import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page._
 import models._
+import models.events.EventType
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
 import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
@@ -123,20 +128,30 @@ abstract class HomeController(
       )
   }
 
-  /*def confirmAlloc: Action[AnyContent] = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
-    implicit user =>
-      applicationClient.confirmAllocation(user.application.get.applicationId).map { _ =>
-        Redirect(controllers.routes.HomeController.present()).flashing(success("success.allocation.confirmed"))
-      }
-  }*/
-
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
                                       request: Request[_], hc: HeaderCarrier) = {
     for {
       schemes <- refDataClient.allSchemes()
       phase3Results <- applicationClient.getPhase3Results(application.applicationId)
-    } yield {
-      val page = PostOnlineTestsPage(CachedDataWithApp(cachedData.user, application), phase3Results.getOrElse(Nil), schemes)
+      assessmentCentreSessions <- applicationClient.sessionsForApplication(application.applicationId, EventType.FSAC)
+      assessmentCentreSession = assessmentCentreSessions.headOption
+      } yield {
+
+      val assessmentCentreStarted = assessmentCentreSession.map { eventSession =>
+        val eventDate = eventSession.event.date
+        val sessionTime = eventSession.sessions.head.startTime
+        val sessionDateTime = new DateTime(
+          eventDate.year, eventDate.monthOfYear, eventDate.dayOfMonth, sessionTime.hourOfDay, sessionTime.minuteOfHour,
+          DateTimeZone.forTimeZone(TimeZone.getTimeZone("Europe/London"))
+        )
+        val timeNow = DateTime.now
+      }
+
+      val page = PostOnlineTestsPage(
+        CachedDataWithApp(cachedData.user, application),
+        phase3Results.getOrElse(Nil), schemes, allocatedToAssessmentCentre = assessmentCentreSession.isDefined, assessmentCentreStarted = true,
+        assessmentCentreSession // Candidate can only be assigned to one assessment centre event and session
+      )
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
   }

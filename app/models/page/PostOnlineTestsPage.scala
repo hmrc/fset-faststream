@@ -16,9 +16,11 @@
 
 package models.page
 
+import connectors.events.{ EventSession, Session }
 import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import models.{ CachedData, CachedDataWithApp, SchemeStatus }
+import org.joda.time.DateTime
 
 case class CurrentSchemeStatus(
   scheme: Scheme,
@@ -28,7 +30,10 @@ case class CurrentSchemeStatus(
 
 case class PostOnlineTestsPage(
   userDataWithApp: CachedDataWithApp,
-  schemes: Seq[CurrentSchemeStatus]
+  schemes: Seq[CurrentSchemeStatus],
+  allocatedToAssessmentCentre: Boolean,
+  assessmentCentreStarted: Boolean,
+  assessmentCentre: Option[EventSession]
 ) {
   def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
   def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Green)
@@ -42,10 +47,18 @@ case class PostOnlineTestsPage(
   val hasFormRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
   val hasNumericRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   val hasAssessmentCentreRequirement: Boolean = true
+
+  def assessmentCentreStartDateAndTime(): String = assessmentCentre.map { ac =>
+    ac.event.date.toString("EEEE dd MMMM YYYY") + " at " + ac.sessions.head.startTime.toString("ha")
+  }.getOrElse("No assessment centre")
+
+  def assessmentCentreNameAndLocation(): String = assessmentCentre.map { ac => ac.event.location.name }.getOrElse("No assessment centre")
 }
 
 object PostOnlineTestsPage {
-  def apply(userDataWithApp: CachedDataWithApp, phase3Results: Seq[SchemeEvaluationResult], allSchemes: Seq[Scheme]): PostOnlineTestsPage = {
+  def apply(userDataWithApp: CachedDataWithApp, phase3Results: Seq[SchemeEvaluationResult],
+    allSchemes: Seq[Scheme], allocatedToAssessmentCentre: Boolean, assessmentCentreStarted: Boolean,
+    assessmentCentreSession: Option[EventSession]): PostOnlineTestsPage = {
 
     val currentSchemes = phase3Results.flatMap { schemeResult =>
       allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
@@ -59,6 +72,6 @@ object PostOnlineTestsPage {
       }
     }
 
-    PostOnlineTestsPage(userDataWithApp, currentSchemes)
+    PostOnlineTestsPage(userDataWithApp, currentSchemes, allocatedToAssessmentCentre, assessmentCentreStarted, assessmentCentreSession)
   }
 }

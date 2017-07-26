@@ -25,10 +25,43 @@
 @renderAssessmentCentre = {
  <div class="inner-block-padr">
     <h2 class="heading-medium ">Attend an assessment centre</h2>
+
     <div id="assessmentBlurb">
-        <p>If you've successfully passed the previous stages, you'll be
-            invited to an assessment centre.</p>
-        <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the assessment day</a></p>
+        @(page.assessmentCentreStarted, page.allocatedToAssessmentCentre) match {
+            case (true, true) => {
+                <p>
+                    @page.assessmentCentreStartDateAndTime()
+                    <br />
+                    @page.assessmentCentreNameAndLocation()
+                </p>
+                <section>
+                    <p>You need to upload your written analysis exercise.</p>
+                    <div id="attachWordDocument">
+                        <input type="file" class="input-file" id="scoresUpload" name="" accept=".doc, .docx">
+                        <label for="scoresUpload" class="button">Upload document</label>
+                        <div id="fileSelected"></div>
+                            <a href="?Status=sift-successful&Assessment=complete" class="button" id="importScoresBtn"
+                        style="display: none">Submit analysis exercise</a>
+                    </div>
+                </section>
+                <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
+                    Find out more about the assessment day</a>
+                </p>
+            }
+            case (false, true) => {
+                <p>ALLOCATED ALLOCATED ALLOCATED</p>
+                <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
+                    Find out more about the assessment day</a>
+                </p>
+            }
+            case _ => {
+                <p>If you've successfully passed the previous stages, you'll be
+                    invited to an assessment centre.</p>
+                <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
+                    Find out more about the assessment day</a>
+                </p>
+            }
+        }
     </div>
 </div>
 }
