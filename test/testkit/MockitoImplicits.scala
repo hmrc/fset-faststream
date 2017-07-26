@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package connectors.exchange
+package testkit
 
-import connectors.exchange.referencedata.SchemeId
-import play.api.libs.json.Json
+import org.mockito.stubbing.OngoingStubbing
 
-case class SchemeEvaluationResult(schemeId: SchemeId, result: String)
+import scala.concurrent.Future
 
-object SchemeEvaluationResult {
-  implicit val schemeEvaluationResultFormat = Json.format[SchemeEvaluationResult]
+object MockitoImplicits {
+  implicit class OngoingStubbingExtensionUnit(val base: OngoingStubbing[Future[Unit]]) extends AnyVal {
+    def thenReturnAsync(): OngoingStubbing[Future[Unit]] =
+      base.thenReturn(Future.successful(()))
+  }
+
+  implicit class OngoingStubbingExtension[A](val base: OngoingStubbing[Future[A]]) extends AnyVal {
+    def thenReturnAsync(value: A): OngoingStubbing[Future[A]] =
+      base.thenReturn(Future.successful(value))
+  }
 }

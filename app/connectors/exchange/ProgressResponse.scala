@@ -59,17 +59,22 @@ case class Phase2ProgressResponse(
   phase2TestsFailed: Boolean = false
  )
 
-case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
-                                  phase3TestsFirstReminder: Boolean = false,
-                                  phase3TestsSecondReminder: Boolean = false,
-                                  phase3TestsStarted: Boolean = false,
-                                  phase3TestsCompleted: Boolean = false,
-                                  phase3TestsExpired: Boolean = false,
-                                  phase3TestsResultsReceived: Boolean = false,
-                                  phase3TestsPassed: Boolean = false,
-                                  phase3TestsFailed: Boolean = false
-                                 )
+case class Phase3ProgressResponse(
+  phase3TestsInvited: Boolean = false,
+  phase3TestsFirstReminder: Boolean = false,
+  phase3TestsSecondReminder: Boolean = false,
+  phase3TestsStarted: Boolean = false,
+  phase3TestsCompleted: Boolean = false,
+  phase3TestsExpired: Boolean = false,
+  phase3TestsResultsReceived: Boolean = false,
+  phase3TestsPassed: Boolean = false,
+  phase3TestsFailed: Boolean = false
+)
 
+case class SiftProgressResponse(
+  siftEntered: Boolean = false,
+  allSchemesSiftCompleted: Boolean = false
+)
 
 case class ProgressResponse(
   applicationId: String,
@@ -84,6 +89,7 @@ case class ProgressResponse(
   phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
   phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
   phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
+  siftProgressResponse: SiftProgressResponse = SiftProgressResponse(),
   exported: Boolean = false,
   updateExported: Boolean = false,
   assessmentCentre: AssessmentCentre = AssessmentCentre()
@@ -94,5 +100,6 @@ object ProgressResponse {
   implicit val phase1ProgressResponseFormat = Json.format[Phase1ProgressResponse]
   implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
   implicit val phase3ProgressResponseFormat = Json.format[Phase3ProgressResponse]
+  implicit val siftProgressResponseFormat = Json.format[SiftProgressResponse]
   implicit val progressResponseFormat = Json.format[ProgressResponse]
 }

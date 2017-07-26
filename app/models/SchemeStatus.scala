@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-package connectors.exchange
+package models
 
-import connectors.exchange.referencedata.SchemeId
-import play.api.libs.json.Json
+object SchemeStatus {
+  sealed trait Status
+  case object Green extends Status
+  case object Amber extends Status
+  case object Red extends Status
+  case object Withdrawn extends Status
 
-case class SchemeEvaluationResult(schemeId: SchemeId, result: String)
+  object Status {
+    implicit def stringify(self: Status): String = self.toString
 
-object SchemeEvaluationResult {
-  implicit val schemeEvaluationResultFormat = Json.format[SchemeEvaluationResult]
+    def apply(s: String): Status = s match {
+      case "Red" => Red
+      case "Green" => Green
+      case "Amber" => Amber
+      case "Withdrawn" => Withdrawn
+    }
+  }
+
 }

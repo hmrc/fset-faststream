@@ -1,0 +1,64 @@
+@import models.page.PostOnlineTestsPage
+@import views.html.home.commonSectionPostOnlineTests
+@import views.html.home.siftProgress
+@import views.html.home.withdrawSection
+@import security.Roles._
+@import security.RoleUtils._
+@import views.html.home.withdrawInformation
+@import views.html.widgets.sdipFaststreamBanner
+
+@(page: PostOnlineTestsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+
+@getOrder(pos: Int) = @{
+  pos match {
+    case 1 => "1st"
+    case 2 => "2nd"
+    case 3 => "3rd"
+    case _ => s"${pos}th"
+  }
+}
+
+@main_template(title = "Home") {
+
+    @commonSectionPostOnlineTests(page.toCachedData)
+
+    @sdipFaststreamBanner(page.toCachedData)
+
+    <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.toCachedData)){disabled}" id="mainProgressPage">
+        <div class="text">
+            <section>
+                <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.noSuccessfulSchemes} of your preferred schemes.</p>
+                <div class="panel-indent" id="importantToProgress">
+                    <p><i class="fa fa-exclamation-triangle"></i>Important</p>
+                    <p><span>To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>If
+                        you've changed your mind, you can <a href="#">withdraw from individual schemes</a>.
+                    </p>
+                </div>
+                @for((schemeResult, index) <- page.successfulSchemes.zipWithIndex) {
+                    <section>
+                        <h3 class="bold-small">@getOrder(index + 1) preference</h3>
+                        <p>@{schemeResult.scheme.name}</p>
+                    </section>
+                }
+            </section>
+
+            @if(page.failedSchemes.nonEmpty) {
+                <details id="unsuccessfulSchemes">
+                    <summary>Unsuccessful schemes</summary>
+                    <div class="detail-content">
+                        @for((schemeResult, index) <- page.failedSchemes.zipWithIndex) {
+                            <div class="panel-indent">
+                                <p>@schemeResult.scheme.name
+                                    <br>(unsuccessful at @schemeResult.failedAtStage)
+                                </p>
+                            </div>
+                        }
+                    </div>
+                </details>
+            }
+        </div>
+        <h2 class="heading-large">Next steps</h2>
+        @siftProgress(page)
+    </section>
+    @withdrawSection(page.toCachedData)
+}

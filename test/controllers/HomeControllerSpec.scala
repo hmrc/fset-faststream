@@ -20,8 +20,9 @@ import java.time.LocalDateTime
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
-import connectors.ApplicationClient
+import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples }
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
+import connectors.exchange.referencedata.SchemeId
 import connectors.exchange.{ AssistanceDetailsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
 import forms.WithdrawApplicationFormExamples
 import models.ApplicationData.ApplicationStatus
@@ -33,6 +34,7 @@ import org.mockito.Mockito._
 import play.api.test.Helpers._
 import security.{ SilhouetteComponent, UserCacheService, UserService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -94,14 +96,14 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val phase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
+      when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
 
       val result = controller(phase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
 
-      content must include("Congratulations, you've been successful for at least one of your")
+      content must include("Congratulations, you're through to the next stage for 1 of your")
       content mustNot include("Your application has been withdrawn.")
     }
 
@@ -114,15 +116,15 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val withdrawnPhase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.WithdrawnPhase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
+      when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
 
       val result = controller(withdrawnPhase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
 
       content must include("Your application has been withdrawn.")
-      content must include("Congratulations, you've been successful for at least one of your")
+      content must include("Congratulations, you're through to the next stage for 1 of your")
     }
 
     "display edip final results page" in new EdipAndSdipTestFixture {
@@ -372,17 +374,19 @@ class HomeControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
+    val mockRefDataClient = mock[ReferenceDataClient]
     val mockCacheClient = mock[CSRCache]
     val mockUserService = mock[UserCacheService]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
-    class TestableHomeController extends HomeController(mockApplicationClient, mockCacheClient)
+    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
       override lazy val silhouette = SilhouetteComponent.silhouette
       val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
     }
 
     def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,
@@ -407,8 +411,8 @@ class HomeControllerSpec extends BaseControllerSpec {
       val applicationsSubmitEnabled = true
       val applicationsStartDate = None }
 
-    when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
+    when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
 
     val edipPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
       CachedDataExample.EdipPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
