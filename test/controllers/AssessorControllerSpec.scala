@@ -47,11 +47,9 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   }
 
   "add availability" must {
-    val Request = fakeRequest(AssessorAvailabilityInBothLondonAndNewcastle)
-
     "return Ok when availability is added" in {
-      when(mockAssessorService.saveAvailability(any[AssessorAvailabilities])).thenReturn(emptyFuture)
-      val response = controller.saveAvailability()(Request)
+      when(mockAssessorService.saveAvailability(any[AssessorAvailabilities])).thenReturnAsync()
+      val response = controller.saveAvailability()(fakeRequest(AssessorAvailabilitiesSum))
       status(response) mustBe OK
     }
   }
@@ -79,7 +77,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       when(mockAssessorService.findAvailability(UserId)).thenReturnAsync(AssessorAvailabilitiesSum)
       val response = controller.findAvailability(UserId)(fakeRequest)
       status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson[Set[AssessorAvailability]](AssessorAvailabilityInBothLondonAndNewcastle)
+      contentAsJson(response) mustBe Json.toJson[AssessorAvailabilities](AssessorAvailabilitiesSum)
     }
 
     "return Not Found when availability cannot be found" in {

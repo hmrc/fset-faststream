@@ -18,17 +18,16 @@ package services.assessoravailability
 
 import common.FutureEx
 import model.AllocationStatuses.AllocationStatus
-import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
 import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
 import model.command.AllocationWithEvent
 import model.exchange.{ AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest }
 import model.persisted.AssessorAllocation
-import model.persisted.eventschedules.Location
-import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.assessor.AssessorStatus
+import model.persisted.eventschedules.SkillType.SkillType
+import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
 import org.joda.time.LocalDate
-import repositories.{ AllocationRepository, AssessorAllocationMongoRepository, AssessorMongoRepository, AssessorRepository }
 import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
+import repositories.{ AllocationRepository, AssessorAllocationMongoRepository, AssessorMongoRepository, AssessorRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -47,6 +46,14 @@ trait AssessorService {
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
 
   private def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
+
+  def updateVersion(userId: String): Future[Unit] = {
+    assessorRepository.find(userId).flatMap {
+      case Some(existing) =>
+        assessorRepository.save(existing.copy(version = newVersion)).map(_ => ())
+      case None => throw AssessorNotFoundException(userId)
+    }
+  }
 
   def saveAssessor(userId: String, assessor: model.exchange.Assessor): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
@@ -150,12 +157,16 @@ trait AssessorService {
     assessorRepository.countSubmittedAvailability
   }
 
-  def updateAssessorAllocationStatuses(statusUpdates: Seq[UpdateAllocationStatusRequest]
+  def updateAssessorAllocationStatuses(
+    statusUpdates: Seq[UpdateAllocationStatusRequest]
   ): Future[SerialUpdateResult[UpdateAllocationStatusRequest]] = {
 
-    val rawResult = FutureEx.traverseSerial(statusUpdates) { statusUpdate =>
-      FutureEx.futureToEither(statusUpdate,
-        allocationRepo.updateAllocationStatus(statusUpdate.assessorId, statusUpdate.eventId, statusUpdate.newStatus)
+    val rawResult = FutureEx.traverseSerial(statusUpdates) { req =>
+      FutureEx.futureToEither(
+        req,
+        updateVersion(req.assessorId).flatMap { _ =>
+          allocationRepo.updateAllocationStatus(req.assessorId, req.eventId, req.newStatus)
+        }
       )
     }
     rawResult.map(SerialUpdateResult.fromEither)
