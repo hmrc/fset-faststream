@@ -310,7 +310,7 @@ object RoleUtils {
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
 
 
-  def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.failedToAttend)
+  def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.failedToAttend)
 
   def isFaststream(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Faststream
 
