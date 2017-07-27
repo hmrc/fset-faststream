@@ -17,15 +17,17 @@
 package services.allocation
 
 import common.FutureEx
-import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
+import connectors.{ AuthProviderClient, CSREmailClient, EmailClient, ExchangeObjects }
 import model.Exceptions.OptimisticLockException
 import model.command.CandidateAllocation
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
 import model._
+import model.persisted.eventschedules.Event
 import play.api.mvc.RequestHeader
 import repositories.{ CandidateAllocationMongoRepository, CandidateAllocationRepository }
 import repositories.application.GeneralApplicationRepository
+import services.allocation.CandidateAllocationService.{ CouldNotFindCandidateContactDetails, CouldNotFindCandidateWithApplication }
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -43,6 +45,9 @@ object CandidateAllocationService extends CandidateAllocationService {
 
   val authProviderClient = AuthProviderClient
   val emailClient = CSREmailClient
+
+  case class CouldNotFindCandidateContactDetails(userId: String) extends Exception(userId)
+  case class CouldNotFindCandidateWithApplication(appId: String) extends Exception(appId)
 }
 
 trait CandidateAllocationService extends EventSink {
@@ -63,11 +68,14 @@ trait CandidateAllocationService extends EventSink {
     candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
-  def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation]): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
+  def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation])
+                          (implicit hc: HeaderCarrier): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
     // For each allocation, reset the progress status and delete the corresponding allocation
     val res = FutureEx.traverseSerial(allocations) { allocation =>
       val fut = candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
-        applicationRepo.resetApplicationAllocationStatus(allocation.id)
+        applicationRepo.resetApplicationAllocationStatus(allocation.id).flatMap { _ =>
+          notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
+        }
       }
       FutureEx.futureToEither(allocation, fut)
     }
@@ -141,6 +149,35 @@ trait CandidateAllocationService extends EventSink {
         }
       case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.id}")
     }
+  }
+
+  private def notifyCandidateUnallocated(eventId: String, allocation: CandidateAllocation)(implicit hc: HeaderCarrier) = {
+    getFullDetails(eventId, allocation).map { case (event, userProfile) =>
+      emailClient.sendCandidateUnAllocatedFromEvent(
+        userProfile.email,
+        s"${userProfile.firstName} ${userProfile.lastName}",
+        event.date.toString("d MMMM YYYY")
+      )
+    }.map(_ => ())
+  }
+
+  private def getFullDetails(eventId: String,
+                             allocation: command.CandidateAllocation)
+                            (implicit hc: HeaderCarrier): Future[(Event, ExchangeObjects.Candidate)] = {
+    (for {
+      eventDetails <- eventsService.getEvent(eventId)
+      candidates <- applicationRepo.find(allocation.id :: Nil)
+    } yield {
+      if(candidates.isEmpty) {
+        throw CouldNotFindCandidateWithApplication(allocation.id)
+      } else {
+        for {
+          candidate <- authProviderClient.findByUserIds(candidates.head.userId :: Nil)
+        } yield {
+          (eventDetails, candidate.head)
+        }
+      }
+    }).flatMap(identity)
   }
 
 }
