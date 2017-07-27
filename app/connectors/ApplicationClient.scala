@@ -167,7 +167,7 @@ trait ApplicationClient {
   def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
                                 (implicit hc: HeaderCarrier) = {
     http.POST(
-      s"${url.host}${url.base}/scheme-specific-answer/$applicationId/$schemeId",
+      s"${url.host}${url.base}/sift-answers/$applicationId/$schemeId",
       answer
     ).map {
       case x: HttpResponse if x.status == OK => ()
@@ -177,10 +177,18 @@ trait ApplicationClient {
   }
 
   def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)(implicit hc: HeaderCarrier) = {
-    http.GET(s"${url.host}${url.base}/scheme-specific-answer/$applicationId/$schemeId").map { response =>
+    http.GET(s"${url.host}${url.base}/sift-answers/$applicationId/$schemeId").map { response =>
       response.json.as[connectors.exchange.SchemeSpecificAnswer]
     } recover {
       case _: NotFoundException => throw new SchemeSpecificAnswerNotFound()
+    }
+  }
+
+  def getSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+    http.GET(s"${url.host}${url.base}/sift-answers/$applicationId").map { response =>
+      response.json.as[connectors.exchange.SiftAnswers]
+    } recover {
+      case _: NotFoundException => throw new SiftAnswersNotFound()
     }
   }
 
@@ -307,6 +315,8 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class OnlineTestNotFound extends Exception
 
   sealed class PdfReportNotFoundException extends Exception
+
+  sealed class SiftAnswersNotFound extends Exception
 
   sealed class SchemeSpecificAnswerNotFound extends Exception
 
