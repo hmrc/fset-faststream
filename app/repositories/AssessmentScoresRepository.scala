@@ -51,13 +51,11 @@ class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo:
 
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     val query = BSONDocument("applicationId" -> applicationId.toString())
-    //collection.find(query, projection).one[FSACAllExercisesScoresAndFeedback]
     collection.find(query).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 
   def findAll: Future[List[AssessmentScoresAllExercises]] = {
     val query = BSONDocument.empty
-    //collection.find(query).cursor[FSACAllExercisesScoresAndFeedback](ReadPreference.nearest).collect[List]()
     collection.find(query).cursor[BSONDocument](ReadPreference.nearest).
       collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
