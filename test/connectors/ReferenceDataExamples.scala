@@ -24,8 +24,6 @@ object ReferenceDataExamples {
     val Commercial = Scheme("Commercial", "CFS", "Commercial", Some(SiftRequirement.NUMERIC_TEST), evaluationRequired = true)
     val DaT = Scheme("DigitalAndTechnology", "DaT", "Digital And Technology", Some(SiftRequirement.FORM), evaluationRequired = true)
     val Dip = Scheme("DiplomaticService", "DS", "Diplomatic Service",  Some(SiftRequirement.FORM), evaluationRequired = true)
-    val DipEconomics = Scheme("DiplomaticServiceEconomics", "DSE", "Diplomatic Service Economics", Some(SiftRequirement.FORM),
-      evaluationRequired = true)
     val Finance = Scheme("Finance", "FIFS", "Finance", Some(SiftRequirement.NUMERIC_TEST), evaluationRequired = true)
     val Generalist = Scheme("Generalist", "GFS", "Generalist", None, evaluationRequired = false)
     val GovComms = Scheme("GovernmentCommunicationService", "GCFS", "Government Communication Service", Some(SiftRequirement.FORM),
@@ -45,7 +43,7 @@ object ReferenceDataExamples {
     val Edip = Scheme("Edip", "EDIP", "Early Diversity Internship Programme", Some(SiftRequirement.FORM), evaluationRequired = true)
     val Sdip = Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", Some(SiftRequirement.FORM), evaluationRequired = false)
 
-    val AllSchemes = Commercial :: DaT :: Dip :: DipEconomics :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
+    val AllSchemes = Commercial :: DaT :: Dip :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
       GovSocialResearch :: GovStats :: HoP :: HR :: ProjectDelivery :: SciEng :: Edip :: Sdip :: Nil
   }
 
