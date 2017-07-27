@@ -17,10 +17,10 @@
 package repositories
 
 import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONString }
+import reactivemongo.bson.{ BSONDocument, BSONString }
 
 trait CumulativeEvaluationHelper {
-  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]) = {
+  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]): BSONDocument = {
     BSONDocument(latestResults.map(ser => s"cumulativeEvaluation.${ser.schemeId.value}" -> BSONString(ser.result)))
   }
 }

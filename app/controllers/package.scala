@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import model.UniqueIdentifier
+import model.{ SchemeId, UniqueIdentifier }
 import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
@@ -60,8 +60,13 @@ package object controllers {
       def unbind(key: String, value: UniqueIdentifier) = stringBinder.unbind(key, value.toString())
     }
 
-    val pathDateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd")
+    implicit val schemeIdPathBinder = new PathBindable.Parsing[SchemeId](
+      parse = (value: String) => SchemeId(value),
+      serialize = _.value,
+      error = (m: String, e: Exception) => "Can't parse %s as SchemeId: %s".format(m, e.getMessage)
+    )
 
+    val pathDateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd")
     implicit val localDatePathBinder = new PathBindable.Parsing[LocalDate](
       parse = (dateVal: String) => LocalDate.parse(dateVal, pathDateFormat),
       serialize = _.toString(pathDateFormat),
