@@ -158,5 +158,4 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
       )
     }
   }
-
 }

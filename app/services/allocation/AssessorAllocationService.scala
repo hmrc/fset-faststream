@@ -18,6 +18,7 @@ package services.allocation
 
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient, ExchangeObjects }
 import model.Exceptions.OptimisticLockException
+import model.{ Commands, exchange, persisted, command }
 import model._
 import model.command.{ AssessorAllocation, AssessorAllocations }
 import model.persisted.eventschedules.Event

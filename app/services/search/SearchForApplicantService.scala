@@ -32,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object SearchForApplicantService extends SearchForApplicantService {
   val appRepository = applicationRepository
-  val psRepository = faststreamPersonalDetailsRepository
+  val psRepository = personalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val authProviderClient = AuthProviderClient
 }

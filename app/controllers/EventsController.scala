@@ -16,6 +16,7 @@
 
 package controllers
 
+import model.Commands.Implicits._
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.{ command, exchange }
 import model.exchange.{ AssessorAllocations, Event => ExchangeEvent }
