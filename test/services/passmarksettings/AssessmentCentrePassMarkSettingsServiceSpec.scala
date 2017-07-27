@@ -39,19 +39,19 @@ class AssessmentCentrePassMarkSettingsServiceSpec extends UnitWithAppSpec {
   )
 
   val AllSchemes = List(
-    Scheme(SchemeId("Business"), "Business", "Business", false),
-    Scheme(SchemeId("Commercial"), "Commercial", "Commercial", false),
-    Scheme(SchemeId("Digital and technology"), "Digital and technology", "Digital and technology", false),
-    Scheme(SchemeId("Finance"), "Finance", "Finance", false),
-    Scheme(SchemeId("Project delivery"), "Project delivery", "Project delivery", false))
+    Scheme(SchemeId("Business"), "Business", "Business", None, false),
+    Scheme(SchemeId("Commercial"), "Commercial", "Commercial", None, false),
+    Scheme(SchemeId("Digital and technology"), "Digital and technology", "Digital and technology", None, false),
+    Scheme(SchemeId("Finance"), "Finance", "Finance", None, false),
+    Scheme(SchemeId("Project delivery"), "Project delivery", "Project delivery", None, false))
 
   val AllSchemes2 = List(
-    Scheme(SchemeId("Business"), "Business", "Business", false),
-    Scheme(SchemeId("Commercial"), "Commercial", "Commercial", false),
-    Scheme(SchemeId("Digital and technology"), "Digital and technology", "Digital and technology", false),
-    Scheme(SchemeId("Finance"), "Finance", "Finance", false),
-    Scheme(SchemeId("Project delivery"), "Project delivery", "Project delivery", false),
-    Scheme(SchemeId("New scheme"), "New scheme", "New scheme", false)
+    Scheme(SchemeId("Business"), "Business", "Business", None, false),
+    Scheme(SchemeId("Commercial"), "Commercial", "Commercial", None, false),
+    Scheme(SchemeId("Digital and technology"), "Digital and technology", "Digital and technology", None, false),
+    Scheme(SchemeId("Finance"), "Finance", "Finance", None, false),
+    Scheme(SchemeId("Project delivery"), "Project delivery", "Project delivery", None, false),
+    Scheme(SchemeId("New scheme"), "New scheme", "New scheme", None, false)
   )
 
   object TestableAssessmentCentrePassMarkSettingsService extends AssessmentCentrePassMarkSettingsService {
