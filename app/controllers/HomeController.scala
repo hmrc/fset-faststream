@@ -26,11 +26,13 @@ import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, Onlin
 import connectors.exchange._
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
+import helpers.Timezones
 import models.ApplicationData.ApplicationStatus
 import models.page._
 import models._
 import models.events.EventType
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
+import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
 import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
@@ -133,25 +135,14 @@ abstract class HomeController(
     for {
       schemes <- refDataClient.allSchemes()
       phase3Results <- applicationClient.getPhase3Results(application.applicationId)
-      assessmentCentreSessions <- applicationClient.sessionsForApplication(application.applicationId, EventType.FSAC)
-      assessmentCentreSession = assessmentCentreSessions.headOption
+      assessmentCentreEvents <- applicationClient.eventWithSessionsForApplicationOnly(application.applicationId, EventType.FSAC)
+      assessmentCentreEvent = assessmentCentreEvents.headOption // Candidate can only be assigned to one assessment centre event and session
       } yield {
-
-      val assessmentCentreStarted = assessmentCentreSession.map { eventSession =>
-        val eventDate = eventSession.event.date
-        val sessionTime = eventSession.sessions.head.startTime
-        val sessionDateTime = new DateTime(
-          eventDate.year, eventDate.monthOfYear, eventDate.dayOfMonth, sessionTime.hourOfDay, sessionTime.minuteOfHour,
-          DateTimeZone.forTimeZone(TimeZone.getTimeZone("Europe/London"))
-        )
-        val timeNow = DateTime.now
-      }
-
       val page = PostOnlineTestsPage(
         CachedDataWithApp(cachedData.user, application),
-        phase3Results.getOrElse(Nil), schemes, allocatedToAssessmentCentre = assessmentCentreSession.isDefined, assessmentCentreStarted = true,
-        assessmentCentreSession // Candidate can only be assigned to one assessment centre event and session
+        phase3Results.getOrElse(Nil), schemes, assessmentCentreEvent
       )
+
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
   }

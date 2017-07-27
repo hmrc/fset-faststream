@@ -16,9 +16,10 @@
 
 package models.page
 
-import connectors.events.{ EventSession, Session }
+import connectors.events.{ Event, Session }
 import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
+import helpers.Timezones
 import models.{ CachedData, CachedDataWithApp, SchemeStatus }
 import org.joda.time.DateTime
 
@@ -31,9 +32,7 @@ case class CurrentSchemeStatus(
 case class PostOnlineTestsPage(
   userDataWithApp: CachedDataWithApp,
   schemes: Seq[CurrentSchemeStatus],
-  allocatedToAssessmentCentre: Boolean,
-  assessmentCentreStarted: Boolean,
-  assessmentCentre: Option[EventSession]
+  assessmentCentreEvent: Option[Event]
 ) {
   def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
   def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Green)
@@ -48,17 +47,30 @@ case class PostOnlineTestsPage(
   val hasNumericRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   val hasAssessmentCentreRequirement: Boolean = true
 
-  def assessmentCentreStartDateAndTime(): String = assessmentCentre.map { ac =>
-    ac.event.date.toString("EEEE dd MMMM YYYY") + " at " + ac.sessions.head.startTime.toString("ha")
+  val assessmentCentreStartDateAndTime: String = assessmentCentreEvent.map { ac =>
+    ac.date.toString("EEEE d MMMM YYYY") + " at " + ac.sessions.head.startTime.toString("ha")
   }.getOrElse("No assessment centre")
 
-  def assessmentCentreNameAndLocation(): String = assessmentCentre.map { ac => ac.event.location.name }.getOrElse("No assessment centre")
+  val assessmentCentreNameAndLocation: String = assessmentCentreEvent.map { ac => ac.venue.description }.getOrElse("No assessment centre")
+
+  val assessmentCentreStarted = assessmentCentreEvent.exists { event =>
+    val eventDate = event.date
+    val sessionTime = event.sessions.head.startTime
+    val sessionDateTime = new DateTime(
+      eventDate.year.get, eventDate.monthOfYear.get, eventDate.dayOfMonth.get, sessionTime.hourOfDay.get, sessionTime.minuteOfHour.get,
+      Timezones.londonDateTimezone
+    )
+    val timeNow = DateTime.now.toDateTime(Timezones.londonDateTimezone)
+
+    timeNow.isAfter(sessionDateTime)
+  }
+
+  val allocatedToAssessmentCentre = assessmentCentreEvent.isDefined
 }
 
 object PostOnlineTestsPage {
   def apply(userDataWithApp: CachedDataWithApp, phase3Results: Seq[SchemeEvaluationResult],
-    allSchemes: Seq[Scheme], allocatedToAssessmentCentre: Boolean, assessmentCentreStarted: Boolean,
-    assessmentCentreSession: Option[EventSession]): PostOnlineTestsPage = {
+    allSchemes: Seq[Scheme], assessmentCentreSession: Option[Event]): PostOnlineTestsPage = {
 
     val currentSchemes = phase3Results.flatMap { schemeResult =>
       allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
@@ -72,6 +84,6 @@ object PostOnlineTestsPage {
       }
     }
 
-    PostOnlineTestsPage(userDataWithApp, currentSchemes, allocatedToAssessmentCentre, assessmentCentreStarted, assessmentCentreSession)
+    PostOnlineTestsPage(userDataWithApp, currentSchemes, assessmentCentreSession)
   }
 }

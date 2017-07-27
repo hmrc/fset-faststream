@@ -30,9 +30,9 @@
         @(page.assessmentCentreStarted, page.allocatedToAssessmentCentre) match {
             case (true, true) => {
                 <p>
-                    @page.assessmentCentreStartDateAndTime()
+                    @page.assessmentCentreStartDateAndTime,
                     <br />
-                    @page.assessmentCentreNameAndLocation()
+                    @page.assessmentCentreNameAndLocation
                 </p>
                 <section>
                     <p>You need to upload your written analysis exercise.</p>

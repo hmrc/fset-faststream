@@ -20,7 +20,7 @@ import java.net.URLEncoder
 
 import config.CSRHttp
 import connectors.UserManagementClient.TokenEmailPairInvalidException
-import connectors.events.{ Event, EventSession, Session }
+import connectors.events.{ Event }
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.GeneralDetails._
 import connectors.exchange.Questionnaire._
@@ -229,11 +229,11 @@ trait ApplicationClient {
     http.POST(s"${url.host}${url.base}/allocation-status/confirm/$appId", "").map(_ => ())
   }
 
-  def sessionsForApplication(appId: UniqueIdentifier, eventType: EventType)(implicit hc: HeaderCarrier): Future[List[EventSession]] = {
+  def eventWithSessionsForApplicationOnly(appId: UniqueIdentifier, eventType: EventType)(implicit hc: HeaderCarrier): Future[List[Event]] = {
     http.GET(
       s"${url.host}${url.base}/sessions/findByApplicationId?applicationId=$appId&sessionEventType=${eventType.toString}"
     ).map { response =>
-      response.json.as[List[EventSession]]
+      response.json.as[List[Event]]
     }
   }
 

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package connectors.events
+package helpers
 
-import play.api.libs.json.{ Json, OFormat }
+import java.util.TimeZone
 
-case class EventSession(event: Event, sessions: List[Session])
+import org.joda.time.DateTimeZone
 
-object EventSession {
-  implicit val format: OFormat[EventSession] = Json.format[EventSession]
+object Timezones {
+  val londonDateTimezone = DateTimeZone.forTimeZone(TimeZone.getTimeZone("Europe/London"))
 }
