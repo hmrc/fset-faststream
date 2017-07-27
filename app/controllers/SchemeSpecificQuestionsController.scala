@@ -17,7 +17,7 @@
 package controllers
 
 import config.CSRCache
-import connectors.ApplicationClient
+import connectors.{ ApplicationClient, ReferenceDataClient }
 import connectors.ApplicationClient.CannotSubmit
 import connectors.exchange.referencedata.SchemeId
 import forms.SchemeSpecificQuestionsForm
@@ -32,20 +32,25 @@ import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import security.SilhouetteComponent
 
-object SchemeSpecificQuestionsController extends SchemeSpecificQuestionsController(ApplicationClient, CSRCache) {
+object SchemeSpecificQuestionsController extends SchemeSpecificQuestionsController(ApplicationClient, ReferenceDataClient, CSRCache) {
   val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SchemeSpecificQuestionsController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+abstract class SchemeSpecificQuestionsController(
+  applicationClient: ApplicationClient, referenceDataClient: ReferenceDataClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
   def presentSchemeForm(schemeId: SchemeId) = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      if (canAnswersBeModified()) {
-        Future.successful(Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form)))
-      } else {
-        Future.successful(Redirect(routes.HomeController.present()))
+      referenceDataClient.allSchemes().map { allSchemes =>
+        val scheme = allSchemes.find(_.id == schemeId).get
+
+        if (canAnswersBeModified()) {
+          Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form, scheme))
+        } else {
+          Redirect(routes.HomeController.present())
+        }
       }
   }
 

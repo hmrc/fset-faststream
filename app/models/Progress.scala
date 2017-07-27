@@ -64,9 +64,9 @@ case class Phase3TestProgress(
 )
 
 case class SiftProgress(
-                                 siftEntered: Boolean = false,
-                                 allSchemesSiftCompleted: Boolean = false
-                               )
+  siftEntered: Boolean = false,
+  allSchemesSiftCompleted: Boolean = false
+)
 
 case class Progress(
   personalDetails: Boolean = false,
