@@ -105,7 +105,8 @@ trait AssessorAllocationService extends EventSink {
   private def notifyAllocationUnallocatedAssessors(
     allocations: command.AssessorAllocations
   )(implicit hc: HeaderCarrier): Future[Unit] = {
-    getContactDetails(allocations).map { userInfo =>
+    val eligibleAllocations = allocations.copy(allocations = allocations.allocations.filterNot(_.status == AllocationStatuses.DECLINED))
+    getContactDetails(eligibleAllocations).map { userInfo =>
       userInfo.map { case (contactDetailsForUser, eventDetails, _) =>
         emailClient.sendAssessorUnAllocatedFromEvent(
           contactDetailsForUser.email,
