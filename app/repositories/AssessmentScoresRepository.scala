@@ -40,7 +40,7 @@ class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo:
     AssessmentScoresAllExercises.jsonFormat, ReactiveMongoFormats.objectIdFormats)
     with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
-  // TODO: This save method does not remove exercise subdocument when in the case class they are None
+  // This save method does not remove exercise subdocument when allExercisesScores's field are None
   def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
     val applicationId = allExercisesScores.applicationId.toString()
     val query = BSONDocument("applicationId" -> applicationId)

@@ -108,7 +108,6 @@ trait AssessmentScoresService {
   }
 
   def findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse] = {
-    // TODO: return Option. if assessmentScores are not found, return None
     for {
       candidateAllocations <- candidateAllocationRepository.find(applicationId.toString())
       candidateAllocation = candidateAllocations.head
