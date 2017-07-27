@@ -65,7 +65,7 @@ trait CandidateAllocationService extends EventSink {
     candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
-  def getSessionsForApplication(applicationId: String, sessionEventType: EventType): Future[Map[Event, List[Session]]] = {
+  def getSessionsForApplication(applicationId: String, sessionEventType: EventType): Future[List[Event]] = {
     for {
       allocations <- candidateAllocationRepo.allocationsForApplication(applicationId)
       events <- eventsService.getEvents(allocations.map(_.eventId).toList, sessionEventType)
@@ -73,8 +73,8 @@ trait CandidateAllocationService extends EventSink {
       val sessionIdsToMatch = allocations.map(_.sessionId)
       events
         .filter(event => event.sessions.exists(session => sessionIdsToMatch.contains(session.id)))
-        .map(event => event -> event.sessions.filter(session => sessionIdsToMatch.contains(session.id)))
-    }.toMap
+        .map(event => event.copy(sessions = event.sessions.filter(session => sessionIdsToMatch.contains(session.id))))
+    }
   }
 
   def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation]): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
