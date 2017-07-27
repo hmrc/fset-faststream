@@ -17,7 +17,9 @@
 package repositories
 
 import model.Exceptions.{ TooManyEventIdsException, TooManySessionIdsException }
-import model.persisted.{ CandidateAllocation }
+import model.persisted.CandidateAllocation
+import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.Session
 import play.api.libs.json.OFormat
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
@@ -30,6 +32,7 @@ import scala.concurrent.Future
 trait CandidateAllocationRepository {
   def save(allocations: Seq[CandidateAllocation]): Future[Unit]
   def allocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]
+  def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]]
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit]
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit]
 }
@@ -50,6 +53,10 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
   def allocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]] = {
     collection.find(BSONDocument("eventId" -> eventId, "sessionId" -> sessionId), projection)
       .cursor[CandidateAllocation]().collect[Seq]()
+  }
+
+  def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]] = {
+    collection.find(BSONDocument("id" -> applicationId), projection).cursor[CandidateAllocation]().collect[Seq]()
   }
 
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit] = {

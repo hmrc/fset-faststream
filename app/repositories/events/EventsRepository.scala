@@ -35,6 +35,7 @@ trait EventsRepository {
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
+  def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -58,7 +59,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
     location: Option[Location] = None, skills: Seq[SkillType] = Nil
   ): Future[List[Event]] = {
     val query = List(
-      eventType.filterNot(_ == EventType.ALL_EVENTS).map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) },
+      buildEventTypeFilter(eventType),
       venueType.filterNot(_.name == MicroserviceAppConfig.AllVenues.name).map { v => BSONDocument("venue.name" -> v.name) },
       location.map { locationVal => BSONDocument("location" -> locationVal) },
 
@@ -68,6 +69,17 @@ class EventsMongoRepository(implicit mongo: () => DB)
         )))
       } else { None }
 
+    ).flatten.fold(BSONDocument.empty)(_ ++ _)
+
+    collection.find(query).cursor[Event]().collect[List]()
+  }
+
+  private def buildEventTypeFilter(eventType: Option[EventType]) =
+    eventType.filterNot(_ == EventType.ALL_EVENTS).map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) }
+
+  def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]] = {
+    val query = List(
+      buildEventTypeFilter(eventType)
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query).cursor[Event]().collect[List]()

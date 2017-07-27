@@ -18,7 +18,7 @@ package controllers
 
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.{ command, exchange }
-import model.exchange.{ AssessorAllocations, Event => ExchangeEvent }
+import model.exchange.{ AssessorAllocations, EventSession, Session, Event => ExchangeEvent }
 import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.{ Event, EventType }
 import model.persisted.eventschedules.EventType.EventType
@@ -119,6 +119,16 @@ trait EventsController extends BaseController {
       }.recover {
         case e: OptimisticLockException => Conflict(e.getMessage)
       }
+    }
+  }
+
+  def findSessionsForApplication(applicationId: String, sessionEventType: EventType): Action[AnyContent] = Action.async { implicit request =>
+    candidateAllocationService.getSessionsForApplication(applicationId, sessionEventType).map { eventSessionMap =>
+      val eventSessions: List[EventSession] = eventSessionMap.map {
+        case (k,v) => EventSession(model.exchange.Event(k), v.map(session => model.exchange.Session(session)))
+      }.toList
+
+      Ok(Json.toJson(eventSessions))
     }
   }
 
