@@ -32,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object SubmitApplicationController extends SubmitApplicationController {
-  override val pdRepository: PersonalDetailsRepository = faststreamPersonalDetailsRepository
+  override val pdRepository: PersonalDetailsRepository = personalDetailsRepository
   override val adRepository: AssistanceDetailsRepository = faststreamAssistanceDetailsRepository
   override val cdRepository = faststreamContactDetailsRepository
   override val frameworkPrefRepository: FrameworkPreferenceMongoRepository = frameworkPreferenceRepository
