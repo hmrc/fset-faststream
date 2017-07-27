@@ -42,7 +42,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     "save NEW assessor when assessor is new" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(None)
-      val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor.apply(AssessorNew)).futureValue
+      val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorNew)).futureValue
       response mustBe unit
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
       verify(mockAssessorRepository).save(any[Assessor])
@@ -51,7 +51,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     "update skills and do not update availability when assessor previously EXISTED" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(Some(AssessorExisting))
-      val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor.apply(AssessorNew)).futureValue
+      val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorNew)).futureValue
       response mustBe unit
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
       verify(mockAssessorRepository).save(any[Assessor])

@@ -120,14 +120,14 @@ trait AssessorService {
     for {
       location <- locationsWithVenuesRepo.location(locationName)
       assessorList <- assessorRepository.findAvailabilitiesForLocationAndDate(location, date, skills)
-    } yield assessorList.map(assessor => model.exchange.Assessor.apply(assessor))
+    } yield assessorList.map(assessor => model.exchange.Assessor(assessor))
   }
 
 
   def findAssessor(userId: String): Future[model.exchange.Assessor] = {
     assessorRepository.find(userId).map {
       case None => throw AssessorNotFoundException(userId)
-      case Some(assessor) => model.exchange.Assessor.apply(assessor)
+      case Some(assessor) => model.exchange.Assessor(assessor)
     }
   }
 
