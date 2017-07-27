@@ -16,39 +16,33 @@
 
 import model.{ SchemeId, UniqueIdentifier }
 import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
-import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
 import play.api.mvc.{ PathBindable, QueryStringBindable }
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Right, Success, Try }
 
 package object controllers {
 
   object Binders {
 
-    implicit def pathBindableIdentifier = new PathBindable[UniqueIdentifier] {
+    implicit def pathBindableUniqueIdentifier = new PathBindable[UniqueIdentifier] {
       def bind(key: String, value: String): Either[String, UniqueIdentifier] =
-        Try {
-          UniqueIdentifier(value)
-        } match {
+        Try { UniqueIdentifier(value) } match {
           case Success(v) => Right(v)
           case Failure(e: IllegalArgumentException) => Left(s"Badly formatted UniqueIdentifier $value")
           case Failure(e) => throw e
         }
-
-      def unbind(key: String, value: UniqueIdentifier): String = value.toString()
+      def unbind(key: String, value: UniqueIdentifier) = value.toString()
     }
 
-    implicit def queryBindableIdentifier(implicit stringBinder: QueryStringBindable[String]) = new QueryStringBindable[UniqueIdentifier] {
+    implicit def queryBindableUniqueIdentifier(implicit stringBinder: QueryStringBindable[String]) = new QueryStringBindable[UniqueIdentifier] {
       def bind(key: String, params: Map[String, Seq[String]]) =
         for {
           uuid <- stringBinder.bind(key, params)
         } yield {
           uuid match {
-            case Right(value) => Try {
-              UniqueIdentifier(value)
-            } match {
+            case Right(value) => Try { UniqueIdentifier(value) } match {
               case Success(v) => Right(v)
               case Failure(e: IllegalArgumentException) => Left(s"Badly formatted UniqueIdentifier $value")
               case Failure(e) => throw e

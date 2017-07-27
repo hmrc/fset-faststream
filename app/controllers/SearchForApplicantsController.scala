@@ -33,7 +33,7 @@ import scala.concurrent.Future
 
 object SearchForApplicantsController extends SearchForApplicantsController {
   val appRepository = applicationRepository
-  val psRepository = faststreamPersonalDetailsRepository
+  val psRepository = personalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val searchForApplicantService = SearchForApplicantService
 }

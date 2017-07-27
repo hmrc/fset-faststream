@@ -62,4 +62,13 @@ trait PersonalDetailsController extends BaseController {
         NotFound(s"Cannot find fast pass details for applicationId: ${e.applicationId}")
     }
   }
+
+  def findByApplicationId(applicationId: String) = Action.async { implicit request =>
+    personalDetailsService.find(applicationId) map { candidateDetails =>
+      Ok(Json.toJson(candidateDetails))
+    } recover {
+      case e: PersonalDetailsNotFound =>
+        NotFound(s"Cannot find personal details for applicationId: ${e.applicationId}")
+    }
+  }
 }

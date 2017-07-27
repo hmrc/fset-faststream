@@ -30,8 +30,4 @@ case class AssessorAvailability(
 object AssessorAvailability {
   implicit val persistedAssessorAvailabilityFormat = Json.format[AssessorAvailability]
   implicit val persistedAssessorAvailabilityHandler = Macros.handler[AssessorAvailability]
-
-  def toAvailabilityMap(o: Seq[AssessorAvailability]): Map[String, List[LocalDate]] = o groupBy(_.location) map { case (location, avail) =>
-    location.name -> avail.map(_.date).toList
-  }
 }

@@ -27,7 +27,7 @@ import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
 import repositories.csv.FSACIndicatorCSVRepository
-import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, QuestionnaireRepository, contactdetails }
+import repositories.{ AssessmentScoresRepository, MediaRepository, QuestionnaireRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -104,7 +104,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       val reportingRepository = mockReportRepository
       val contactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
       val questionnaireRepository = mockQuestionRepository
-      val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
+      val assessmentScoresRepository = mock[AssessmentScoresRepository]
       val mediaRepository: MediaRepository = mockMediaRepository
       val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
       val authProviderClient = mock[AuthProviderClient]

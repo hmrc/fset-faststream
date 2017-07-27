@@ -17,21 +17,32 @@
 package model.exchange.assessor
 
 import model.SchemeId
-import model.exchange.{ Assessor, AssessorAvailability }
+import model.exchange.{ Assessor, AssessorAvailabilities, AssessorAvailability }
 import model.persisted.EventExamples
 import model.persisted.assessor.AssessorStatus
 import org.joda.time.LocalDate
 
 object AssessorExamples {
   val UserId1 = "57364"
-  val Assessor1 = Assessor(UserId1, List("assessor", "qac"), List(SchemeId("Sdip")), civilServant = true, AssessorStatus.CREATED)
+  val Assessor1 = Assessor(
+    UserId1,
+    version = None,
+    List("assessor", "qac"),
+    List(SchemeId("Sdip")),
+    civilServant = true,
+    AssessorStatus.CREATED)
 }
 
 object AssessorAvailabilityExamples {
-  val AssessorAvailabilityInBothLondonAndNewcastle = List(
+  val AssessorAvailabilityInBothLondonAndNewcastle = Set(
     AssessorAvailability(EventExamples.LocationLondon.name, new LocalDate(2017, 10, 10)),
-    AssessorAvailability(EventExamples.LocationLondon.name, new LocalDate(2017, 10, 10)),
+    AssessorAvailability(EventExamples.LocationLondon.name, new LocalDate(2017, 10, 11)),
     AssessorAvailability(EventExamples.LocationNewcastle.name, new LocalDate(2017, 5, 10)),
-    AssessorAvailability(EventExamples.LocationNewcastle.name, new LocalDate(2017, 5, 10))
+    AssessorAvailability(EventExamples.LocationNewcastle.name, new LocalDate(2017, 5, 11))
   )
+
+  val AssessorAvailabilitiesSum = AssessorAvailabilities(
+    AssessorExamples.UserId1,
+    None,
+    AssessorAvailabilityInBothLondonAndNewcastle)
 }

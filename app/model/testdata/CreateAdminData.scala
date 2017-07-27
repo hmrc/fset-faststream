@@ -45,7 +45,7 @@ object CreateAdminData {
         val skills = createRequest.assessor.flatMap(_.skills).getOrElse(DataFaker.Random.skills)
         val sifterSchemes = createRequest.assessor.flatMap(_.sifterSchemes).getOrElse(DataFaker.Random.sifterSchemes)
         val civilServant = createRequest.assessor.flatMap(_.civilServant).getOrElse(DataFaker.Random.bool)
-        val availability: Option[List[AssessorAvailability]] = createRequest.assessor.flatMap(assessorRequest => {
+        val availability: Option[Set[AssessorAvailability]] = createRequest.assessor.flatMap(assessorRequest => {
             assessorRequest.availability.map { assessorAvailabilityRequests => {
               assessorAvailabilityRequests.map { assessorAvailabilityRequest => {
                 AssessorAvailability.apply(assessorAvailabilityRequest)
@@ -61,8 +61,13 @@ object CreateAdminData {
 
   }
 
-  case class AssessorData(skills: List[String], sifterSchemes: List[SchemeId], civilServant: Boolean,
-                          availability: Option[List[AssessorAvailability]], status: AssessorStatus)
+  case class AssessorData(
+    skills: List[String],
+    sifterSchemes: List[SchemeId],
+    civilServant: Boolean,
+    availability: Option[Set[AssessorAvailability]],
+    status: AssessorStatus
+  )
 
   object AssessorData {
     implicit val assessorDataFormat: OFormat[AssessorData] = Json.format[AssessorData]

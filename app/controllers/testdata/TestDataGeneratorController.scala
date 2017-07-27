@@ -152,7 +152,7 @@ trait TestDataGeneratorController extends BaseController {
         skills = Some(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR")),
         sifterSchemes = Some(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip"))),
         civilServant = Some(true),
-        availability = Some(List(
+        availability = Some(Set(
           AssessorAvailabilityRequest("London", LocalDate.now()),
           AssessorAvailabilityRequest("Newcastle", LocalDate.now())
         )),
