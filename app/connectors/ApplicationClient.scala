@@ -24,6 +24,7 @@ import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.GeneralDetails._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
+import connectors.exchange.referencedata.SchemeId
 import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -163,6 +164,26 @@ trait ApplicationClient {
     }
   }
 
+  def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
+                                (implicit hc: HeaderCarrier) = {
+    http.POST(
+      s"${url.host}${url.base}/scheme-specific-answer/$applicationId/$schemeId",
+      answer
+    ).map {
+      case x: HttpResponse if x.status == OK => ()
+    } recover {
+      case _: BadRequestException => throw new CannotUpdateRecord()
+    }
+  }
+
+  def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)(implicit hc: HeaderCarrier) = {
+    http.GET(s"${url.host}${url.base}/scheme-specific-answer/$applicationId/$schemeId").map { response =>
+      response.json.as[connectors.exchange.SchemeSpecificAnswer]
+    } recover {
+      case _: NotFoundException => throw new SchemeSpecificAnswerNotFound()
+    }
+  }
+
   def verifyInvigilatedToken(email: String, token: String)(implicit hc: HeaderCarrier): Future[InvigilatedTestUrl] =
     http.POST(s"${url.host}${url.base}/online-test/phase2/verifyAccessCode", VerifyInvigilatedTokenUrlRequest(email.toLowerCase, token)).map {
       (resp: HttpResponse) => {
@@ -286,6 +307,8 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class OnlineTestNotFound extends Exception
 
   sealed class PdfReportNotFoundException extends Exception
+
+  sealed class SchemeSpecificAnswerNotFound extends Exception
 
   sealed class TestForTokenExpiredException extends Exception
 }

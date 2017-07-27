@@ -1,4 +1,4 @@
-@(schemeSpecificQuestionsForm: Form[_root_.forms.SchemeSpecificQuestionsForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], scheme: Scheme, messages: Messages)
+@(schemeSpecificQuestionsForm: Form[_root_.forms.SchemeSpecificQuestionsForm.Data], scheme: _root_.connectors.exchange.referencedata.Scheme)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @import views.html.widgets.{ radioBoxHorizontal, select_guard }
 @import helpers.CSRFieldConstructor._
@@ -18,7 +18,7 @@
         </div>
     </div>
 
-    @helper.textarea(form("schemeAnswer"),
+    @helper.textarea(schemeSpecificQuestionsForm("schemeAnswer"),
     '_label -> "Stick to the maximum words in the questions document",
     'class -> "form-control",
     'rows -> 20,
