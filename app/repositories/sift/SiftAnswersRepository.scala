@@ -35,6 +35,7 @@ import scala.language.postfixOps
 trait SiftAnswersRepository {
   def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: SchemeSpecificAnswer): Future[Unit]
   def findSiftAnswers(applicationId: String): Future[Option[SiftAnswers]]
+  def findSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId) : Future[Option[SchemeSpecificAnswer]]
 }
 
 class SiftAnswersMongoRepository()(implicit mongo: () => DB)
@@ -66,5 +67,11 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
     val query = BSONDocument("applicationId" -> applicationId)
 
     collection.find(query).one[SiftAnswers]
+  }
+
+  override def findSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId) : Future[Option[SchemeSpecificAnswer]] = {
+    val query = BSONDocument("applicationId" -> applicationId, "schemeId" -> schemeId)
+
+    collection.find(query).one[SchemeSpecificAnswer]
   }
 }

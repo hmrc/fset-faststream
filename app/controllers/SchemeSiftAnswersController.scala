@@ -17,36 +17,54 @@
 package controllers
 
 import connectors.exchange.SchemeSpecificAnswer
-import model.Commands.Questionnaire
 import model.SchemeId
+import play.api.libs.json.Json
 import play.api.mvc.Action
-import repositories.application.GeneralApplicationRepository
 import repositories.sift.SiftAnswersRepository
-import repositories.{ QuestionnaireRepository, _ }
+import repositories._
 import services.AuditService
+import services.sift.SiftAnswersService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object SchemeSiftAnswersController extends SchemeSiftAnswersController {
-  val siftAnswersRepo = siftAnswersRepository
+  val siftAnswersService = SiftAnswersService
   val auditService = AuditService
 }
 
 trait SchemeSiftAnswersController extends BaseController {
 
-  val siftAnswersRepo: SiftAnswersRepository
+  val siftAnswersService: SiftAnswersService
   val auditService: AuditService
 
   import model.Commands.Implicits._
 
-  def addOrUpdateAnswer(applicationId: String, schemeId: String) = Action.async(parse.json) { implicit request =>
+  def addOrUpdateAnswer(applicationId: String, schemeId: SchemeId) = Action.async(parse.json) { implicit request =>
     withJsonBody[SchemeSpecificAnswer] { answer =>
       for {
-        _ <- siftAnswersRepo.addSchemeSpecificAnswer(applicationId, SchemeId(schemeId), model.persisted.SchemeSpecificAnswer(answer.rawText))
+        _ <- siftAnswersService.addSchemeSpecificAnswer(applicationId, schemeId, model.persisted.SchemeSpecificAnswer(answer.rawText))
       } yield {
-        auditService.logEvent("SchemeSiftAnswerSaved", Map("schemeId" -> schemeId))
+        auditService.logEvent("SchemeSiftAnswerSaved", Map("schemeId" -> schemeId.value))
         Ok
+      }
+    }
+  }
+
+  def getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)  = Action.async { implicit request =>
+    siftAnswersService.findSchemeSpecificAnswer(applicationId, schemeId).map { result =>
+      result match {
+        case Some(answer) => Ok(Json.toJson(answer))
+        case _ => NotFound(s"Cannot find scheme specific answer for applicationId: $applicationId, scheme: $schemeId")
+      }
+    }
+  }
+
+  def getSiftAnswers(applicationId: String)  = Action.async { implicit request =>
+    siftAnswersService.findSiftAnswers(applicationId).map { result =>
+      result match {
+        case Some(answers) => Ok(Json.toJson(answers))
+        case _ => NotFound(s"Cannot find answers to additional questions for applicationId: $applicationId")
       }
     }
   }

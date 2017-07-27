@@ -147,9 +147,9 @@ GET         /day-aggregate-events                                        control
 GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 
 # Scheme Specific Questions/Answers
-POST        /scheme-specific-answer/:applicationId/:schemeId             controllers.SchemeSiftAnswersController.addOrUpdateAnswer(applicationId: String, schemeId: model.SchemeId)
-GET         /scheme-specific-answer/:applicationId/:schemeId             controllers.SchemeSiftAnswersController.getAnswer(applicationId: String, schemeId: model.SchemeId)
-
+POST        /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.addOrUpdateAnswer(applicationId: String, schemeId: model.SchemeId)
+GET         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
+GET         /sift-answers/:applicationId                                 controllers.SchemeSiftAnswersController.getSiftAnswers(applicationId: String)
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

@@ -108,6 +108,7 @@ object Exceptions {
 
   case class TooManySessionIdsException(m: String) extends Exception(m)
 
+  case class SiftAnswersNotFound(m: String) extends Exception(m)
 }
 
 // scalastyle:on number.of.methods
