@@ -40,7 +40,7 @@ import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.events.EventsMongoRepository
 import repositories.fsacindicator.FSACIndicatorMongoRepository
-import repositories.sift.ApplicationSiftMongoRepository
+import repositories.sift.{ ApplicationSiftMongoRepository, SiftAnswersMongoRepository }
 import repositories.stc.StcEventMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -86,6 +86,7 @@ package object repositories {
   lazy val assessorAllocationRepository = new AssessorAllocationMongoRepository()
   lazy val candidateAllocationRepository = new CandidateAllocationMongoRepository()
   lazy val eventsRepository = new EventsMongoRepository()
+  lazy val siftAnswersRepository = new SiftAnswersMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()

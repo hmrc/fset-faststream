@@ -16,6 +16,7 @@
 
 package repositories.sift
 
+import model.SchemeId
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion, SchemeSpecificAnswer, SiftAnswers }
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
@@ -32,8 +33,8 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 trait SiftAnswersRepository {
-  def addSchemeSpecificAnswer(applicationId: String, answer: SchemeSpecificAnswer): Future[Unit]
-  def findApplicationAnswers(applicationId: String): Future[Option[SiftAnswers]]
+  def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: SchemeSpecificAnswer): Future[Unit]
+  def findSiftAnswers(applicationId: String): Future[Option[SiftAnswers]]
 }
 
 class SiftAnswersMongoRepository()(implicit mongo: () => DB)
@@ -41,20 +42,27 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
     SiftAnswers.siftAnswersFormat, ReactiveMongoFormats.objectIdFormats) with SiftAnswersRepository
     with ReactiveRepositoryHelpers with BaseBSONReader {
 
-  override def addSchemeSpecificAnswer(applicationId: String, answer: SchemeSpecificAnswer): Future[Unit] = {
+  override def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: SchemeSpecificAnswer): Future[Unit] = {
 
     val appId = "applicationId" -> applicationId
 
     val validator = singleUpsertValidator(applicationId, actionDesc = "adding scheme specific answer")
 
-    collection.update(
-      BSONDocument(appId),
-      BSONDocument("$set" -> ),
-      upsert = true
-    ) map validator
+    findSiftAnswers(applicationId).map { result =>
+      val updatedSiftAnswers: SiftAnswers = result match {
+        case Some(existing) => existing.copy(answers = existing.answers + (schemeId.value -> answer))
+        case _ => SiftAnswers(applicationId, Map(schemeId.value -> answer))
+      }
+
+      collection.update(
+        BSONDocument(appId),
+        BSONDocument("$set" -> updatedSiftAnswers),
+        upsert = true
+      ) map validator
+    }
   }
 
-  override def findApplicationAnswers(applicationId: String): Future[Option[SiftAnswers]] = {
+  override def findSiftAnswers(applicationId: String): Future[Option[SiftAnswers]] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     collection.find(query).one[SiftAnswers]

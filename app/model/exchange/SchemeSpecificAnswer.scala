@@ -16,7 +16,6 @@
 
 package connectors.exchange
 
-import connectors.exchange.referencedata.SchemeId
 import play.api.libs.json.Json
 
 case class SchemeSpecificAnswer(rawText: String)

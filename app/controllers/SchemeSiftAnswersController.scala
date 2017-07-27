@@ -21,6 +21,7 @@ import model.Commands.Questionnaire
 import model.SchemeId
 import play.api.mvc.Action
 import repositories.application.GeneralApplicationRepository
+import repositories.sift.SiftAnswersRepository
 import repositories.{ QuestionnaireRepository, _ }
 import services.AuditService
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -28,25 +29,24 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object SchemeSiftAnswersController extends SchemeSiftAnswersController {
-  val qRepository = questionnaireRepository
-  val appRepository = applicationRepository
+  val siftAnswersRepo = siftAnswersRepository
   val auditService = AuditService
 }
 
 trait SchemeSiftAnswersController extends BaseController {
 
-  val appRepository: GeneralApplicationRepository
+  val siftAnswersRepo: SiftAnswersRepository
   val auditService: AuditService
 
   import model.Commands.Implicits._
 
-  def addOrUpdateAnswer(applicationId: String, schemeId: SchemeId) = Action.async(parse.json) { implicit request =>
+  def addOrUpdateAnswer(applicationId: String, schemeId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[SchemeSpecificAnswer] { answer =>
       for {
-        _ <- qRepository.addQuestions(applicationId, questionnaire.questions.map(fromCommandToPersistedQuestion))
+        _ <- siftAnswersRepo.addSchemeSpecificAnswer(applicationId, SchemeId(schemeId), model.persisted.SchemeSpecificAnswer(answer.rawText))
       } yield {
         auditService.logEvent("SchemeSiftAnswerSaved", Map("schemeId" -> schemeId))
-        Accepted
+        Ok
       }
     }
   }
