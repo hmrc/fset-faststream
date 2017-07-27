@@ -16,7 +16,7 @@
 
 package models
 
-import connectors.exchange.{ AssessmentCentre, AssessmentScores, ProgressResponse }
+import connectors.exchange.{ AssessmentCentre, ProgressResponse }
 import play.api.libs.json.{ Format, Json }
 
 import scala.language.implicitConversions
@@ -80,13 +80,10 @@ case class Progress(
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
   exported: Boolean = false,
   updateExported: Boolean = false,
-  failedToAttend: Boolean = false,
-  assessmentScores: AssessmentScores = AssessmentScores(),
   assessmentCentre: AssessmentCentre = AssessmentCentre()
 )
 
 object Progress {
-  implicit val assessmentScoresFormat = Json.format[AssessmentScores]
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
   implicit val phase1TestProgressFormat = Json.format[Phase1TestProgress]
   implicit val phase2TestProgressFormat = Json.format[Phase2TestProgress]
@@ -147,8 +144,6 @@ object Progress {
       ),
       exported = progressResponse.exported,
       updateExported = progressResponse.updateExported,
-      failedToAttend = progressResponse.failedToAttend,
-      assessmentScores = progressResponse.assessmentScores,
       assessmentCentre = progressResponse.assessmentCentre
     )
   // scalastyle:on method.length
