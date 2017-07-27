@@ -19,31 +19,33 @@ package controllers
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.{ command, exchange }
 import model.exchange.{ AssessorAllocations, Event => ExchangeEvent }
+import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.{ Event, EventType }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
-import repositories.events.{ EventsMongoRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
-import services.allocation.AssessorAllocationService
+import repositories.application.GeneralApplicationRepository
+import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
+import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
 import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.Try
 
 object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
   val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
   val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
+  val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
+  val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
 }
 
 trait EventsController extends BaseController {
   def eventsService: EventsService
-
   def locationsAndVenuesRepository: LocationsWithVenuesRepository
-
   def assessorAllocationService: AssessorAllocationService
+  def applicationRepository: GeneralApplicationRepository
+  def candidateAllocationService: CandidateAllocationService
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
@@ -104,7 +106,7 @@ trait EventsController extends BaseController {
 
   def getEventsWithAllocationsSummary(venueName: String, eventType: EventType): Action[AnyContent] = Action.async { implicit request =>
     locationsAndVenuesRepository.venue(venueName).flatMap { venue =>
-      assessorAllocationService.getEventsWithAllocationsSummary(venue, eventType).map { eventsWithAllocations =>
+      eventsService.getEventsWithAllocationsSummary(venue, eventType).map { eventsWithAllocations =>
         Ok(Json.toJson(eventsWithAllocations))
       }
     }
@@ -112,7 +114,7 @@ trait EventsController extends BaseController {
   def allocateCandidates(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
       val newAllocations = command.CandidateAllocations.fromExchange(eventId, sessionId, candidateAllocations)
-      assessorAllocationService.allocateCandidates(newAllocations).map {
+      candidateAllocationService.allocateCandidates(newAllocations).map {
         _ => Ok
       }.recover {
         case e: OptimisticLockException => Conflict(e.getMessage)
@@ -121,12 +123,19 @@ trait EventsController extends BaseController {
   }
 
   def getCandidateAllocations(eventId: String, sessionId: String): Action[AnyContent] = Action.async { implicit request =>
-    assessorAllocationService.getCandidateAllocations(eventId, sessionId).map { allocations =>
+    candidateAllocationService.getCandidateAllocations(eventId, sessionId).map { allocations =>
       if (allocations.allocations.isEmpty) {
         NotFound
       } else {
         Ok(Json.toJson(allocations))
       }
+    }
+  }
+
+  def removeCandidateAllocations(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[exchange.CandidateAllocations] { candidateAllocs =>
+      val allocations = CandidateAllocation.fromExchange(candidateAllocs, eventId, sessionId).toList
+      candidateAllocationService.unAllocateCandidates(allocations).map( _ => Ok)
     }
   }
 }

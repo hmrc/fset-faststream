@@ -18,7 +18,7 @@ package repositories
 
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.TooManyEventIdsException
-import model.persisted.{ Allocation, AssessorAllocation, CandidateAllocation }
+import model.persisted.AssessorAllocation
 import play.api.libs.json.{ JsObject, OFormat }
 import reactivemongo.api.DB
 import reactivemongo.api.commands.MultiBulkWriteResult
@@ -29,27 +29,38 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { this: ReactiveRepository[T, BSONObjectID] =>
+trait AssessorAllocationRepository {
+  def save(allocations: Seq[AssessorAllocation]): Future[Unit]
+  def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]]
+  def delete(allocations: Seq[AssessorAllocation]): Future[Unit]
+  def allocationsForEvent(eventId: String): Future[Seq[AssessorAllocation]]
+  def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit]
+}
 
-  val format: OFormat[T]
+class AssessorAllocationMongoRepository(implicit mongo: () => DB)
+  extends ReactiveRepository[AssessorAllocation, BSONObjectID](
+    CollectionNames.ASSESSOR_ALLOCATION, mongo, AssessorAllocation.assessorAllocationFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with AssessorAllocationRepository with ReactiveRepositoryHelpers {
+  val format: OFormat[AssessorAllocation] = AssessorAllocation.assessorAllocationFormat
 
   val projection = BSONDocument("_id" -> false)
 
-  def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[T]] = {
+  def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]] = {
     val query = List(
       Some(BSONDocument("id" -> id)),
       status.map(s => BSONDocument("status" -> s))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query, projection).cursor[T]().collect[Seq]()
+    collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq]()
   }
 
-  def save(allocations: Seq[T]): Future[Unit] = {
+  def save(allocations: Seq[AssessorAllocation]): Future[Unit] = {
     val jsObjects = allocations.map(format.writes)
     collection.bulkInsert(jsObjects.toStream, ordered = false) map (_ => ())
   }
 
-  def delete(allocations: Seq[T]): Future[Unit] = {
+  def delete(allocations: Seq[AssessorAllocation]): Future[Unit] = {
     val eventIds = allocations.map(_.eventId).distinct
     val eventId = if (eventIds.size > 1) {
       throw TooManyEventIdsException(s"The delete request contained too many event Ids [$eventIds]")
@@ -66,15 +77,10 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
     val validator = multipleRemoveValidator(allocations.size, "Deleting allocations")
 
     collection.remove(query) map validator
-
   }
 
-  def allocationsForEvent(eventId: String): Future[Seq[T]] = {
-    collection.find(BSONDocument("eventId" -> eventId), projection).cursor[T]().collect[Seq]()
-  }
-
-  def allocationsForSession(eventId: String, sessionId: String): Future[Seq[T]] = {
-    collection.find(BSONDocument("eventId" -> eventId, "sessionId" -> sessionId), projection).cursor[T]().collect[Seq]()
+  def allocationsForEvent(eventId: String): Future[Seq[AssessorAllocation]] = {
+    collection.find(BSONDocument("eventId" -> eventId), projection).cursor[AssessorAllocation]().collect[Seq]()
   }
 
   def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit] = {
@@ -84,20 +90,4 @@ trait AllocationRepository[T <: Allocation] extends ReactiveRepositoryHelpers { 
 
     collection.update(query, update) map validator
   }
-}
-
-class AssessorAllocationMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[AssessorAllocation, BSONObjectID](
-    CollectionNames.ASSESSOR_ALLOCATION, mongo, AssessorAllocation.assessorAllocationFormat,
-    ReactiveMongoFormats.objectIdFormats
-  ) with AllocationRepository[AssessorAllocation] with ReactiveRepositoryHelpers {
-  val format: OFormat[AssessorAllocation] = AssessorAllocation.assessorAllocationFormat
-}
-
-class CandidateAllocationMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[CandidateAllocation, BSONObjectID](
-    CollectionNames.CANDIDATE_ALLOCATION, mongo, CandidateAllocation.candidateAllocationFormat,
-    ReactiveMongoFormats.objectIdFormats
-  ) with AllocationRepository[CandidateAllocation] with ReactiveRepositoryHelpers {
-  val format: OFormat[CandidateAllocation] = CandidateAllocation.candidateAllocationFormat
 }

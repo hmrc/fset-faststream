@@ -1,8 +1,8 @@
 London:
   - LONDON_FSAC:
-      description: London FSAC (Bush House)
+      description: London (Bush House)
   - LONDON_FSAC_2:
-      description: London FSAC (Parliament Square)
+      description: London (Parliament Square)
 Newcastle:
   - NEWCASTLE_FSAC:
       description: Newcastle (Cathedral Square Jobcentre)

@@ -106,13 +106,11 @@ trait CommonRepository {
       Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
-  def insertApplicationWithPhase3TestNotifiedResults(appId: String, scheme: SchemeId, result: EvaluationResults.Result,
+  def insertApplicationWithPhase3TestNotifiedResults(appId: String, results: List[SchemeEvaluationResult],
                              videoInterviewScore: Option[Double] = None,
                              applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                             ): Future[Unit] = {
-    val phase3PassMarkEvaluation = PassmarkEvaluation("", Some(""),
-      List(SchemeEvaluationResult(scheme,
-        result.toString)), "", Some(""))
+    val phase3PassMarkEvaluation = PassmarkEvaluation("", Some(""), results, "", Some(""))
 
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))

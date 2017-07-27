@@ -635,33 +635,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-  private def createApplications(num: Int): Future[Unit] = {
-    import repositories.BSONDateTimeHandler
-    val additionalDoc = BSONDocument(
-      "progress-status-timestamp" -> BSONDocument(
-        s"${ProgressStatuses.PHASE3_TESTS_PASSED}" -> DateTime.now()
-      ),
-      "fsac-indicator" -> BSONDocument(
-        "area" -> "London",
-        "assessmentCentre" -> "London",
-        "version" -> "1"
-      )
-    )
-
-    Future.sequence(
-      (0 until num).map { i =>
-        testDataRepo.createApplicationWithAllFields(
-          UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
-          firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d"),
-          additionalDoc = additionalDoc
-        )
-      }
-    ).map(_ => ())
-  }
-
-  "find candidates eligible for event allocation" should {
+  "Find candidates eligible for event allocation" should {
     "return an empty list when there are no applications" in {
-      createApplications(0).futureValue
+      createUnAllocatedApplications(0).futureValue
       val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
       result mustBe a[CandidatesEligibleForEventResponse]
       result.candidates mustBe empty
@@ -674,10 +650,68 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "return a ten item list when there are eligible candidates" in {
-      createApplications(10).futureValue
+      createUnAllocatedApplications(10).futureValue
       val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
       result.candidates must have size 10
     }
+  }
+
+  "reset application status" should {
+    "set progress status to awaiting allocation" in {
+      createUnAllocatedApplications(10).futureValue
+      val unallocatedCandidates = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue.candidates
+      unallocatedCandidates.size mustBe 10
+
+      val (candidatesToAllocate, _) = unallocatedCandidates.splitAt(4)
+
+      // allocate 4 candidates
+      candidatesToAllocate.foreach { candidate =>
+        repository.addProgressStatusAndUpdateAppStatus(
+          candidate.applicationId,
+          ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED).futureValue
+      }
+      val eligibleCandidates = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue.candidates
+      eligibleCandidates.size mustBe 6
+
+      // reset the allocated candidates
+      val result = candidatesToAllocate.map(_.applicationId).foreach {
+        appId => repository.resetApplicationAllocationStatus(appId).futureValue
+      }
+      result mustBe unit
+
+      val eligibleCandidatesAfterReset = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue.candidates
+      eligibleCandidatesAfterReset.size mustBe 10
+    }
+  }
+
+  private def createUnAllocatedApplications(num: Int): Future[Unit] = {
+    val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
+    createApplications(num, additionalProgressStatuses)
+  }
+
+  private def createAllocatedApplications(num: Int): Future[Unit] = {
+    val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED -> true)
+    createApplications(num, additionalProgressStatuses)
+  }
+
+  private def createApplications(num: Int, additionalProgressStatuses: List[(ProgressStatus, Boolean)]): Future[Unit] = {
+    val additionalDoc = BSONDocument(
+      "fsac-indicator" -> BSONDocument(
+        "area" -> "London",
+        "assessmentCentre" -> "London",
+        "version" -> "1"
+      )
+    )
+
+    Future.sequence(
+      (0 until num).map { i =>
+        testDataRepo.createApplicationWithAllFields(
+          UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = ApplicationStatus.ASSESSMENT_CENTRE,
+          firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d"),
+          additionalDoc = additionalDoc, additionalProgressStatuses = additionalProgressStatuses
+        )
+      }
+    ).map(_ => ())
   }
 
   private def createAppWithTestResult(progressStatuses: List[(ProgressStatus, Boolean)], testResult: Option[TestResult]) = {

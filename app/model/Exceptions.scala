@@ -106,6 +106,8 @@ object Exceptions {
 
   case class TooManyEventIdsException(m: String) extends Exception(m)
 
+  case class TooManySessionIdsException(m: String) extends Exception(m)
+
 }
 
 // scalastyle:on number.of.methods
