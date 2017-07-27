@@ -18,7 +18,7 @@ package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
-import connectors.{ ApplicationClient, ReferenceDataClient }
+import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.SchemeId
 import forms.SchemeSpecificQuestionsForm
 import models.page.GeneralQuestionsPage
@@ -30,16 +30,16 @@ import play.api.Play.current
 import play.api.mvc.{ Action, AnyContent }
 import security.{ SecurityEnvironment, SilhouetteComponent }
 
-object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, ReferenceDataClient, CSRCache) {
+object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient, CSRCache) {
   val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
 abstract class SiftQuestionsController(
-  applicationClient: ApplicationClient, referenceDataClient: ReferenceDataClient, cacheClient: CSRCache)
+  applicationClient: ApplicationClient, siftClient: SiftClient, referenceDataClient: ReferenceDataClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
-  def presentGeneralQuestions: Action[AnyContent] = CSRSecureAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def presentGeneralQuestions(): Action[AnyContent] = CSRSecureAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       Future(Ok(views.html.application.additionalquestions.generalQuestions(GeneralQuestionsPage("hello"))))
   }
