@@ -1,88 +1,154 @@
 - id: Commercial
   code: CFS
   name: Commercial
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
   siftRequirement: NUMERIC_TEST
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: DigitalAndTechnology
   code: DAT
   name: Digital And Technology
+  civilServantEligible: true
+  degree:
+    required: Degree_21_PostGrad
+    specificRequirement: false
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: Finance
   code: FIFS
   name: Finance
+  civilServantEligible: true
+  degree:
+    required: Degree_21
+    specificRequirement: false
   siftRequirement: NUMERIC_TEST
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: Generalist
   code: GFS
   name: Generalist
-  evaluationRequired: true
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
 - id: GovernmentCommunicationService
   code: GCFS
   name: Government Communication Service
+  civilServantEligible: true
+  degree:
+    required: Degree_21
+    specificRequirement: false
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
+  civilServantEligible: false
+  degree:
+    required: Degree_Economics
+    specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentEconomicsServiceDiplomaticService
   code: GES-DS
   name: Government Economics Service - Diplomatic Service
+  civilServantEligible: false
+  degree:
+    required: Degree_DipServEconomics
+    specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
+  civilServantEligible: false
+  degree:
+    required: Degree_GORS
+    specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
+  civilServantEligible: true
+  degree:
+    required: Degree_SocialScience
+    specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
+  civilServantEligible: true
+  degree:
+    required: Degree_Numerate
+    specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: HumanResources
   code: HRFS
   name: Human Resources
-  evaluationRequired: true
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
 - id: International
   code: IFS
   name: International
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: ScienceAndEngineering
   code: SEFS
   name: Science And Engineering
+  civilServantEligible: true
+  degree:
+    required: Degree_CharteredEngineer
+    specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
+  civilServantEligible: true
   siftRequirement: FORM
-  evaluationRequired: false
+  siftEvaluationRequired: false
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
+  civilServantEligible: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
