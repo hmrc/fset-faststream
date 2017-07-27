@@ -1,7 +1,6 @@
 @import models.page.GeneralQuestionsPage
 
-@(page: GeneralQuestionsPage)
-(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@(page: GeneralQuestionsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @main_template(title = "Nationality and higher education") {
 

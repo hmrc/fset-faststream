@@ -16,9 +16,9 @@
 
 package models.page
 
-class GeneralQuestionsPage {
-
-}
+case class GeneralQuestionsPage(
+  hello: String
+)
 
 object GeneralQuestionsPage {
   val Countries = Seq("",

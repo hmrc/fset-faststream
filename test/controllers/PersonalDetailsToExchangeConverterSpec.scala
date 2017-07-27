@@ -22,7 +22,7 @@ import forms.PersonalDetailsFormExamples._
 class PersonalDetailsToExchangeConverterSpec extends UnitSpec {
   val converter = new PersonalDetailsToExchangeConverter {}
 
-  "general deatils to exchange converter" should {
+  "generalQuestions deatils to exchange converter" should {
     "convert uk address, and remove country" in {
       val result = converter.toExchange(ValidUKAddressForm.copy(country = Some("France")), "email@email.com", Some(true))
 

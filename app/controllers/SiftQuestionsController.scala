@@ -16,37 +16,35 @@
 
 package controllers
 
+import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient }
-import connectors.ApplicationClient.CannotSubmit
 import connectors.exchange.referencedata.SchemeId
 import forms.SchemeSpecificQuestionsForm
-import helpers.NotificationType._
-import models.ApplicationData.ApplicationStatus.SUBMITTED
-import models.ApplicationRoute.{ ApplicationRoute, Faststream }
-import org.joda.time.DateTime
-import security.Roles.{ AbleToWithdrawApplicationRole, SchemeSpecificQuestionsRole, SubmitApplicationRole }
+import models.page.GeneralQuestionsPage
+import security.Roles.SchemeSpecificQuestionsRole
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
-import security.SilhouetteComponent
+import play.api.mvc.{ Action, AnyContent }
+import security.{ SecurityEnvironment, SilhouetteComponent }
 
 object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, ReferenceDataClient, CSRCache) {
-  val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
-  lazy val silhouette = SilhouetteComponent.silhouette
+  val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
+  lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
 abstract class SiftQuestionsController(
   applicationClient: ApplicationClient, referenceDataClient: ReferenceDataClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
-  def presentGeneralQuestions = CSRSecureAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def presentGeneralQuestions: Action[AnyContent] = CSRSecureAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      Future(Ok(views.html.application.additionalquestions.general))
+      Future(Ok(views.html.application.additionalquestions.generalQuestions(GeneralQuestionsPage("hello"))))
   }
 
-  def presentSchemeForm(schemeId: SchemeId) = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def presentSchemeForm(schemeId: SchemeId): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       referenceDataClient.allSchemes().map { allSchemes =>
         val scheme = allSchemes.find(_.id == schemeId).get
@@ -59,7 +57,7 @@ abstract class SiftQuestionsController(
       }
   }
 
-  def saveSchemeForm(schemeId: SchemeId) = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def saveSchemeForm(schemeId: SchemeId): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
         Future.successful(Redirect(routes.HomeController.present()))
@@ -68,12 +66,12 @@ abstract class SiftQuestionsController(
       }
   }
 
-  def presentSummary = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def presentSummary: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.application.success()))
   }
 
-  def submitSchemeForms = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def submitSchemeForms: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.application.success()))
   }
