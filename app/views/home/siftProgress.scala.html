@@ -1,33 +1,42 @@
+@import models.ApplicationData.ApplicationStatus
+@import security.RoleUtils.isSiftEntered
 @(page: models.page.PostOnlineTestsPage)(implicit request: Request[_])
 
 @renderSchemeForm = {
- <div class="inner-block-padr" id="schemeForms">
-    <h2 class='heading-medium'>Extra information</h2>
-    <p>At least one of your scheme preferences require you to answer
-        some additional questions.</p>
-    <p>You should complete this within 7 days from the date of your
-        email. Failure to do this will hold up your application.</p>
-    <ul class="list-text list-withicons" data-extrainfolist>
-        <li><i class="fa fa-minus the-icon"></i><a href="sift-education-details.html">Nationality and higher education</a></li>
-        @for(curSiftableScheme <- page.schemesForSiftQuestions) {
-        <li><i class="fa fa-minus the-icon"></i><a href="@routes.SchemeSpecificQuestionsController.present()">@{curSiftableScheme.name}</a>
-            <span class="font-xsmall">(this section will require you to answer questions in detail, 300 words or more)</span></li>
-        }
-        <li><i class="fa fa-minus the-icon"></i><a href="sift-preview.html">Preview before you submit</a></li>
-    </ul>
-</div>
+    @if(isSiftEntered(page.toCachedData)) {
+        <div class="inner-block-padr" id="schemeForms">
+            <h2 class='heading-medium'>Extra information</h2>
+            <p>At least one of your scheme preferences require you to answer
+                some additional questions.</p>
+            <p>You should complete this within 7 days from the date of your
+                email. Failure to do this will hold up your application.</p>
+            <ul class="list-text list-withicons" data-extrainfolist>
+                <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions()">Nationality and higher education</a></li>
+                @for(curSiftableScheme <- page.schemesForSiftForms) {
+                    <li><i class="fa fa-minus the-icon"></i>
+                        <a href="@routes.SiftQuestionsController.presentSchemeForm(curSiftableScheme.id)">@{
+                            curSiftableScheme.name
+                        }</a>
+                        <span class="font-xsmall">(this section will require you to answer questions in detail, 300 words or more)</span></li>
+                }
+                <li><i class="fa fa-minus the-icon"></i><a href="sift-preview.html">Preview before you submit</a></li>
+            </ul>
+        </div>
+    }
 }
 
 @renderNumericTest = {
-<div class="inner-block-padr" id="numericTest">
-    <h2 class="heading-medium">Take a numerical test</h2>
-    <p>At least one of your scheme preferences require you to take a
-        numerical test.</p>
-    <p>You'll be sent an email with a link to start your test. Keep
-        an eye on your email inbox, including your junk mail.</p>
-    <p>You should complete this within 7 days from the date of your
-        email. Failure to do this will hold up your application.</p>
-</div>
+    @if(isSiftEntered(page.toCachedData)) {
+        <div class="inner-block-padr" id="numericTest">
+            <h2 class="heading-medium">Take a numerical test</h2>
+            <p>At least one of your scheme preferences require you to take a
+                numerical test.</p>
+            <p>You'll be sent an email with a link to start your test. Keep
+                an eye on your email inbox, including your junk mail.</p>
+            <p>You should complete this within 7 days from the date of your
+                email. Failure to do this will hold up your application.</p>
+        </div>
+    }
 }
 
 @renderAssessmentCentre = {
@@ -77,6 +86,8 @@
                     @renderAssessmentCentre
                 </li>
             }
+
+            case _ => {}
         }
         <li class="fourth-step">
             <div class="inner-block-padr">

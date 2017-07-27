@@ -35,11 +35,11 @@ case class PostOnlineTestsPage(
   def failedSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Red)
   def withdrawnSchemes: Seq[Scheme] = schemes.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme}
   def schemesForSiftForms: Seq[Scheme] = successfulSchemes.collect {
-    case s if s.scheme.siftRequirement == Some(SiftRequirement.FORM) => s.scheme }
+    case s if s.scheme.siftRequirement.contains(SiftRequirement.FORM) => s.scheme }
 
-  val noSuccessfulSchemes = successfulSchemes.size
-  val noFailedSchemes = failedSchemes.size
-  val noWithdrawnSchemes = withdrawnSchemes.size
+  val noSuccessfulSchemes: Int = successfulSchemes.size
+  val noFailedSchemes: Int = failedSchemes.size
+  val noWithdrawnSchemes: Int = withdrawnSchemes.size
 
   val hasFormRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
   val hasNumericRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))

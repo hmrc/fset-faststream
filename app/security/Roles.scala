@@ -188,7 +188,7 @@ object Roles {
 
   object SchemeSpecificQuestionsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(SIFT) && isSiftEntered(user)
+      activeUserWithActiveApp(user) && statusIn(user)(SIFT) && isSiftEntered(user) && !isSiftComplete(user)
   }
 
   object WithdrawComponent extends AuthorisedUser {
@@ -313,7 +313,9 @@ object RoleUtils {
 
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
 
-  def isSiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgressResponse.siftEntered)
+  def isSiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftEntered) && !isSiftComplete
+
+  def isSiftComplete(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.allSchemesSiftCompleted)
 
   def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.failedToAttend)
 

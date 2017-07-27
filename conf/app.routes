@@ -96,7 +96,7 @@ GET         /address-search                                         controllers.
 GET         /address-search/:id                                     controllers.AddressLookupController.addressLookupById(id: String)
 
 # Scheme Sift Questions/Form
-GET         /additional-questions/:schemeId                         controllers.SchemeSpecificQuestions.presentSchemeForm(schemeId: SchemeId)
-POST        /additional-questions/:schemeId                         controllers.SchemeSpecificQuestions.saveSchemeForm(schemeId: SchemeId)
-GET         /additional-questions/summary                           controllers.SchemeSpecificQuestions.presentSummary
-PUT         /additional-questions/submit                            controllers.SchemeSpecificQuestions.submit
+GET         /additional-questions/:schemeId                         controllers.SiftQuestionsController.presentSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
+POST        /additional-questions/:schemeId                         controllers.SiftQuestionsController.saveSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
+GET         /additional-questions/summary                           controllers.SiftQuestionsController.presentSummary
+PUT         /additional-questions/submit                            controllers.SiftQuestionsController.submitSchemeForms

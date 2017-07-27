@@ -1,0 +1,34 @@
+@import models.page.GeneralQuestionsPage
+
+@(page: GeneralQuestionsPage)
+(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+
+@main_template(title = "Nationality and higher education") {
+
+    <h1 class="heading-xlarge">Nationality and higher education</h1>
+    <div class="form-group">
+        <fieldset>
+            <legend class="form-label">Do you currently hold more than one passport?</legend>
+            <div class="form-group inline">
+                <label data-target="secondPassport" for="passport-yes" class="block-label">
+                    <input name="passport" type="radio" id="passport-yes" aria-controls="secondPassport" aria-expanded="false">Yes
+                </label>
+                <label for="passport-no" class="block-label">
+                    <input name="passport" type="radio" id="passport-no">No
+                </label>
+            </div>
+        </fieldset>
+    </div>
+    <div class="grid-1-2">
+        <div class="form-group">
+            <label for="nationalityQuestion" class="form-label">What country is named on your current passport?</label>
+            <select id="nationalityQuestion" data-placeholder="Select one" class="form-control" style="display: none;">
+                @GeneralQuestionsPage.Countries.map { c => <option>c</option> }
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+    </div>
+}

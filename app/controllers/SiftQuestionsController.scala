@@ -32,14 +32,19 @@ import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import security.SilhouetteComponent
 
-object SchemeSpecificQuestionsController extends SchemeSpecificQuestionsController(ApplicationClient, ReferenceDataClient, CSRCache) {
+object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, ReferenceDataClient, CSRCache) {
   val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SchemeSpecificQuestionsController(
+abstract class SiftQuestionsController(
   applicationClient: ApplicationClient, referenceDataClient: ReferenceDataClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+
+  def presentGeneralQuestions = CSRSecureAction(SchemeSpecificQuestionsRole) { implicit request =>
+    implicit user =>
+      Future(Ok(views.html.application.additionalquestions.general))
+  }
 
   def presentSchemeForm(schemeId: SchemeId) = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
@@ -57,13 +62,7 @@ abstract class SchemeSpecificQuestionsController(
   def saveSchemeForm(schemeId: SchemeId) = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
-        applicationClient.submitApplication(user.user.userID, user.application.applicationId).flatMap { _ =>
-          updateProgress(data =>
-            data.copy(application = data.application.map(_.copy(applicationStatus = SUBMITTED))))(_ =>
-            Redirect(routes.SubmitApplicationController.success()))
-        }.recover {
-          case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present()).flashing(danger("error.cannot.submit"))
-        }
+        Future.successful(Redirect(routes.HomeController.present()))
       } else {
         Future.successful(Redirect(routes.HomeController.present()))
       }
@@ -74,7 +73,7 @@ abstract class SchemeSpecificQuestionsController(
       Future.successful(Ok(views.html.application.success()))
   }
 
-  def submit = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def submitSchemeForms = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.application.success()))
   }
