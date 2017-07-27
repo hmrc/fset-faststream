@@ -34,6 +34,8 @@ case class PostOnlineTestsPage(
   def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Green)
   def failedSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Red)
   def withdrawnSchemes: Seq[Scheme] = schemes.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme}
+  def schemesForSiftForms: Seq[Scheme] = successfulSchemes.collect {
+    case s if s.scheme.siftRequirement == Some(SiftRequirement.FORM) => s.scheme }
 
   val noSuccessfulSchemes = successfulSchemes.size
   val noFailedSchemes = failedSchemes.size

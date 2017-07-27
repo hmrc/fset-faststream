@@ -7,6 +7,14 @@
         some additional questions.</p>
     <p>You should complete this within 7 days from the date of your
         email. Failure to do this will hold up your application.</p>
+    <ul class="list-text list-withicons" data-extrainfolist>
+        <li><i class="fa fa-minus the-icon"></i><a href="sift-education-details.html">Nationality and higher education</a></li>
+        @for(curSiftableScheme <- page.schemesForSiftQuestions) {
+        <li><i class="fa fa-minus the-icon"></i><a href="@routes.SchemeSpecificQuestionsController.present()">@{curSiftableScheme.name}</a>
+            <span class="font-xsmall">(this section will require you to answer questions in detail, 300 words or more)</span></li>
+        }
+        <li><i class="fa fa-minus the-icon"></i><a href="sift-preview.html">Preview before you submit</a></li>
+    </ul>
 </div>
 }
 
