@@ -21,6 +21,7 @@ import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
+
 import scala.language.implicitConversions
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
@@ -38,17 +39,18 @@ object SelectedSchemesForm {
   val Degree_SocialScience = "Degree_SocialScience"
   val Degree_CharteredEngineer = "Degree_CharteredEngineer"
 
+  @deprecated("Update to use the scheme list from the refdata client", "July 2017")
   val VisibleSchemes = Seq(
     Scheme("Commercial", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("DigitalAndTechnology", Degree_21_PostGrad, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("DiplomaticService", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
-    Scheme("DiplomaticServiceEconomics", Degree_DipServEconomics, specificRequirement = true, eligibilityForCivilServant = false),
-    Scheme("DiplomaticServiceEuropean", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
-    Scheme("European", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
+    Scheme("International", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
     Scheme("Finance", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("Generalist", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("GovernmentCommunicationService", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("GovernmentEconomicsService", Degree_Economics, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("GovernmentEconomicsServiceDiplomaticService", Degree_DipServEconomics, specificRequirement = true,
+      eligibilityForCivilServant = false),
     Scheme("GovernmentOperationalResearchService", Degree_GORS, specificRequirement = true, eligibilityForCivilServant = false),
     Scheme("GovernmentSocialResearchService", Degree_SocialScience, specificRequirement = true, eligibilityForCivilServant = false),
     Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement = true, eligibilityForCivilServant = true),
@@ -58,6 +60,7 @@ object SelectedSchemesForm {
     Scheme("ScienceAndEngineering", Degree_CharteredEngineer, specificRequirement = true, eligibilityForCivilServant = true)
   )
 
+  @deprecated("Update to use the scheme list from the refdata client", "July 2017")
   val HiddenSchemes = Seq(
     Scheme("Edip", NoDegree, specificRequirement = false, eligibilityForCivilServant = false)
   )

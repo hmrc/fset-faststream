@@ -19,7 +19,7 @@ package controllers
 import _root_.forms.SelectedSchemesForm._
 import config.CSRCache
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.{ ApplicationClient, SchemeClient }
+import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient }
 import security.Roles.SchemesRole
 import security.SilhouetteComponent
 
@@ -36,6 +36,7 @@ abstract class SchemePreferencesController(applicationClient: ApplicationClient,
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
+      val schemes = ReferenceDataClient.allSchemes()
       val civilServant = user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
       schemeClient.getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
         Ok(views.html.application.schemePreferences.schemeSelection(civilServant, form.fill(selectedSchemes)))
