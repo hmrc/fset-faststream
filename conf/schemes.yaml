@@ -6,7 +6,7 @@
     required: Degree_22
     specificRequirement: false
   siftRequirement: NUMERIC_TEST
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: DigitalAndTechnology
   code: DAT
   name: Digital And Technology
@@ -15,7 +15,7 @@
     required: Degree_21_PostGrad
     specificRequirement: false
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
@@ -24,7 +24,7 @@
     required: Degree_22
     specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: Finance
   code: FIFS
   name: Finance
@@ -33,7 +33,7 @@
     required: Degree_21
     specificRequirement: false
   siftRequirement: NUMERIC_TEST
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: Generalist
   code: GFS
   name: Generalist
@@ -41,7 +41,7 @@
   degree:
     required: Degree_22
     specificRequirement: false
-  evaluationRequired: false
+  siftEvaluationRequired: false
 - id: GovernmentCommunicationService
   code: GCFS
   name: Government Communication Service
@@ -50,7 +50,7 @@
     required: Degree_21
     specificRequirement: false
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
@@ -59,7 +59,7 @@
     required: Degree_Economics
     specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentEconomicsServiceDiplomaticService
   code: GES-DS
   name: Government Economics Service - Diplomatic Service
@@ -68,7 +68,7 @@
     required: Degree_DipServEconomics
     specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -77,7 +77,7 @@
     required: Degree_GORS
     specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
@@ -86,7 +86,7 @@
     required: Degree_SocialScience
     specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
@@ -95,7 +95,7 @@
     required: Degree_Numerate
     specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
@@ -104,7 +104,7 @@
     required: Degree_22
     specificRequirement: false
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: HumanResources
   code: HRFS
   name: Human Resources
@@ -112,7 +112,7 @@
   degree:
     required: Degree_22
     specificRequirement: false
-  evaluationRequired: false
+  siftEvaluationRequired: false
 - id: International
   code: IFS
   name: International
@@ -121,7 +121,7 @@
     required: Degree_22
     specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
@@ -130,7 +130,7 @@
     required: Degree_22
     specificRequirement: false
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: ScienceAndEngineering
   code: SEFS
   name: Science And Engineering
@@ -139,16 +139,16 @@
     required: Degree_CharteredEngineer
     specificRequirement: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
   civilServantEligible: true
   siftRequirement: FORM
-  evaluationRequired: false
+  siftEvaluationRequired: false
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
   civilServantEligible: true
   siftRequirement: FORM
-  evaluationRequired: true
+  siftEvaluationRequired: true
