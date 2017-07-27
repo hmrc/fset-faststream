@@ -14,9 +14,9 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
   def repository = new AssessorMongoRepository()
 
   private val userId = "123"
-  private val AssessorWithAvailabilities = Assessor(userId,
+  private val AssessorWithAvailabilities = Assessor(userId, None,
     List("assessor", "qac"), List(SchemeId("Sdip")), true,
-    List(AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
+    Set(AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
       AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))),
     AssessorStatus.AVAILABILITIES_SUBMITTED
   )
@@ -47,7 +47,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       result.get mustBe AssessorWithAvailabilities
 
       val updated = AssessorWithAvailabilities.copy(
-        availability = List(
+        availability = Set(
           AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
           AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 10, 11)),
           AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12)))

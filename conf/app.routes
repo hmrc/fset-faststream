@@ -123,7 +123,7 @@ GET         /schools                                                     control
 POST        /assessor/save/:userId                                       controllers.AssessorController.saveAssessor(userId: String)
 GET         /assessor/find/:userId                                       controllers.AssessorController.findAssessor(userId: String)
 
-POST        /assessor/availability/save/:userId                          controllers.AssessorController.addAvailability(userId: String)
+POST        /assessor/availability/save                                  controllers.AssessorController.saveAvailability()
 GET         /assessor/availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
 GET         /assessor/availability/:locationName/:date                   controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 GET         /assessor/availability/count-submitted                       controllers.AssessorController.countSubmittedAvailability()
