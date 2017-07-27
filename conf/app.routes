@@ -94,3 +94,9 @@ GET         /assets/*file                                           controllers.
 # Postcode Lookup
 GET         /address-search                                         controllers.AddressLookupController.addressLookupByPostcode(postcode: String)
 GET         /address-search/:id                                     controllers.AddressLookupController.addressLookupById(id: String)
+
+# Scheme Sift Questions/Form
+GET         /additional-questions/:schemeId                         controllers.SchemeSpecificQuestions.presentSchemeForm(schemeId: SchemeId)
+POST        /additional-questions/:schemeId                         controllers.SchemeSpecificQuestions.saveSchemeForm(schemeId: SchemeId)
+GET         /additional-questions/summary                           controllers.SchemeSpecificQuestions.presentSummary
+PUT         /additional-questions/submit                            controllers.SchemeSpecificQuestions.submit

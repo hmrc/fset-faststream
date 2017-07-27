@@ -19,8 +19,12 @@ package controllers
 import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
+import connectors.exchange.referencedata.SchemeId
+import forms.SchemeSpecificQuestionsForm
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus.SUBMITTED
+import models.ApplicationRoute.{ ApplicationRoute, Faststream }
+import org.joda.time.DateTime
 import security.Roles.{ AbleToWithdrawApplicationRole, SchemeSpecificQuestionsRole, SubmitApplicationRole }
 
 import scala.concurrent.Future
@@ -36,21 +40,16 @@ object SchemeSpecificQuestionsController extends SchemeSpecificQuestionsControll
 abstract class SchemeSpecificQuestionsController(applicationClient: ApplicationClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
-  def present = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def presentSchemeForm(schemeId: SchemeId) = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
-        Future.successful(Ok(views.html.application.submit()))
+      if (canAnswersBeModified()) {
+        Future.successful(Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form)))
       } else {
         Future.successful(Redirect(routes.HomeController.present()))
       }
   }
 
-  def success = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
-    implicit user =>
-      Future.successful(Ok(views.html.application.success()))
-  }
-
-  def submit = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def saveSchemeForm(schemeId: SchemeId) = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
         applicationClient.submitApplication(user.user.userID, user.application.applicationId).flatMap { _ =>
@@ -63,5 +62,20 @@ abstract class SchemeSpecificQuestionsController(applicationClient: ApplicationC
       } else {
         Future.successful(Redirect(routes.HomeController.present()))
       }
+  }
+
+  def presentSummary = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+    implicit user =>
+      Future.successful(Ok(views.html.application.success()))
+  }
+
+  def submit = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+    implicit user =>
+      Future.successful(Ok(views.html.application.success()))
+  }
+
+
+  private def canAnswersBeModified(): Boolean = {
+    true
   }
 }
