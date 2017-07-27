@@ -90,7 +90,7 @@ trait AssessorService {
       case Some(existing) if assessorAvailabilities.version != existing.version =>
         throw OptimisticLockException(s"Assessor profile $userId has been modified.")
       case Some(existing) =>
-        exchangeToPersistedAvailability(assessorAvailabilities.availability).flatMap { newAvailabilities =>
+        exchangeToPersistedAvailability(assessorAvailabilities.availabilities).flatMap { newAvailabilities =>
           val assessorToPersist =
             model.persisted.assessor.Assessor(
               userId,

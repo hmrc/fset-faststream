@@ -54,7 +54,7 @@ object AssessorAvailability {
 case class AssessorAvailabilities(
   userId: String,
   version: Option[String],
-  availability: Set[AssessorAvailability]
+  availabilities: Set[AssessorAvailability]
 )
 
 object AssessorAvailabilities {
