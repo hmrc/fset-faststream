@@ -143,6 +143,8 @@ PUT         /events/:eventId/allocate                                    control
 GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
 PUT         /events/:eventId/sessions/:sessionId/allocateCandidates      controllers.EventsController.allocateCandidates(eventId: String, sessionId: String)
 
+POST        /events/fsb/:eventId/sessions/:sessionId/results            controllers.FsbEvaluationController.saveFsbResult(eventId: String, sessionId: String)
+
 # Day aggregate events
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
@@ -164,4 +166,3 @@ GET         /reference/telephone-interview-types                         control
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
 GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations
 GET         /reference/locations-with-venues                             controllers.reference.LocationAndVenueController.locationsWithVenues
-
