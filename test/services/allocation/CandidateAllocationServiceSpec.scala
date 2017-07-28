@@ -34,6 +34,9 @@ import services.stc.StcEventService
 import uk.gov.hmrc.play.http.HeaderCarrier
 import testkit.MockitoImplicits._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
+
 import scala.concurrent.Future
 
 class CandidateAllocationServiceSpec extends BaseServiceSpec {
@@ -55,6 +58,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
   trait TestFixture {
     val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
     val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
+    val mockPersonalDetailsRepo: PersonalDetailsRepository = mock[PersonalDetailsRepository]
+    val mockContactDetailsRepo: ContactDetailsRepository= mock[ContactDetailsRepository]
     val mockEventsService: EventsService = mock[EventsService]
     val mockEmailClient: EmailClient = mock[EmailClient]
     val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
@@ -63,6 +68,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
     val service = new CandidateAllocationService {
       override val eventsService: EventsService = mockEventsService
       override val applicationRepo: GeneralApplicationRepository = mockAppRepo
+      override val personalDetailsRepo: PersonalDetailsRepository = mockPersonalDetailsRepo
+      override val contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
       override def emailClient: EmailClient = mockEmailClient
       override def authProviderClient: AuthProviderClient = mockAuthProviderClient
       override val eventService: StcEventService = mockStcEventService

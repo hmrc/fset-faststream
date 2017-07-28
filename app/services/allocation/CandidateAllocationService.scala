@@ -23,11 +23,14 @@ import model.command.CandidateAllocation
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
 import model._
+import model.persisted.{ ContactDetails, PersonalDetails }
 import model.persisted.eventschedules.Event
 import play.api.mvc.RequestHeader
 import repositories.{ CandidateAllocationMongoRepository, CandidateAllocationRepository }
 import repositories.application.GeneralApplicationRepository
-import services.allocation.CandidateAllocationService.{ CouldNotFindCandidateContactDetails, CouldNotFindCandidateWithApplication }
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
+import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -39,6 +42,8 @@ import scala.concurrent.Future
 object CandidateAllocationService extends CandidateAllocationService {
   val candidateAllocationRepo: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
+  val contactDetailsRepo: ContactDetailsRepository = repositories.faststreamContactDetailsRepository
+  val personalDetailsRepo: PersonalDetailsRepository = repositories.personalDetailsRepository
 
   val eventsService = EventsService
   val eventService: StcEventService = StcEventService
@@ -46,13 +51,14 @@ object CandidateAllocationService extends CandidateAllocationService {
   val authProviderClient = AuthProviderClient
   val emailClient = CSREmailClient
 
-  case class CouldNotFindCandidateContactDetails(userId: String) extends Exception(userId)
   case class CouldNotFindCandidateWithApplication(appId: String) extends Exception(appId)
 }
 
 trait CandidateAllocationService extends EventSink {
   def candidateAllocationRepo: CandidateAllocationRepository
   def applicationRepo: GeneralApplicationRepository
+  def contactDetailsRepo: ContactDetailsRepository
+  def personalDetailsRepo: PersonalDetailsRepository
 
   def eventsService: EventsService
 
@@ -152,32 +158,25 @@ trait CandidateAllocationService extends EventSink {
   }
 
   private def notifyCandidateUnallocated(eventId: String, allocation: CandidateAllocation)(implicit hc: HeaderCarrier) = {
-    getFullDetails(eventId, allocation).map { case (event, userProfile) =>
+    getFullDetails(eventId, allocation).flatMap { case (event, personalDetails, contactDetails) =>
       emailClient.sendCandidateUnAllocatedFromEvent(
-        userProfile.email,
-        s"${userProfile.firstName} ${userProfile.lastName}",
+        contactDetails.email,
+        s"${personalDetails.firstName} ${personalDetails.lastName}",
         event.date.toString("d MMMM YYYY")
       )
     }.map(_ => ())
   }
 
   private def getFullDetails(eventId: String,
-                             allocation: command.CandidateAllocation)
-                            (implicit hc: HeaderCarrier): Future[(Event, ExchangeObjects.Candidate)] = {
-    (for {
+                              allocation: command.CandidateAllocation)
+                             (implicit hc: HeaderCarrier): Future[(Event, PersonalDetails, ContactDetails)] = {
+    for {
       eventDetails <- eventsService.getEvent(eventId)
       candidates <- applicationRepo.find(allocation.id :: Nil)
-    } yield {
-      if(candidates.isEmpty) {
-        throw CouldNotFindCandidateWithApplication(allocation.id)
-      } else {
-        for {
-          candidate <- authProviderClient.findByUserIds(candidates.head.userId :: Nil)
-        } yield {
-          (eventDetails, candidate.head)
-        }
-      }
-    }).flatMap(identity)
+      candidate = candidates.headOption.getOrElse(throw CouldNotFindCandidateWithApplication(allocation.id))
+      personalDetails <- personalDetailsRepo.find(allocation.id)
+      contactDetails <- contactDetailsRepo.find(candidate.userId)
+    } yield (eventDetails, personalDetails, contactDetails)
   }
 
 }
