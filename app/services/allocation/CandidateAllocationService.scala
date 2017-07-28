@@ -17,7 +17,7 @@
 package services.allocation
 
 import common.FutureEx
-import connectors.{ AuthProviderClient, CSREmailClient, EmailClient, ExchangeObjects }
+import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.OptimisticLockException
 import model.command.CandidateAllocation
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
@@ -164,7 +164,7 @@ trait CandidateAllocationService extends EventSink {
         s"${personalDetails.firstName} ${personalDetails.lastName}",
         event.date.toString("d MMMM YYYY")
       )
-    }.map(_ => ())
+    }
   }
 
   private def getFullDetails(eventId: String,

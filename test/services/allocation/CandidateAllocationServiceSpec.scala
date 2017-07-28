@@ -18,13 +18,13 @@ package services.allocation
 
 import connectors.{ AuthProviderClient, EmailClient }
 import connectors.ExchangeObjects.Candidate
-import model.AllocationStatuses
+import model.{ AllocationStatuses, CandidateExamples, persisted }
 import model.command.{ CandidateAllocation, CandidateAllocations }
-import model.persisted.EventExamples
+import model.persisted._
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import org.joda.time.{ LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{ when, _ }
 import org.mockito.stubbing.OngoingStubbing
 import repositories.CandidateAllocationMongoRepository
 import repositories.application.GeneralApplicationRepository
@@ -51,6 +51,32 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockCandidateAllocationRepository.allocationsForSession(eventId, sessionId)).thenReturn(Future.successful(Nil))
       when(mockAppRepo.find(appId)).thenReturn(Future.successful(None))
       service.allocateCandidates(candidateAllocations)
+    }
+
+    "unallocate candidates" in new TestFixture {
+      val eventId = "E1"
+      val sessionId = "S1"
+      val appId = "app1"
+      val userId = "userId"
+      val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
+      val persistedAllocations: Seq[persisted.CandidateAllocation] = model.persisted.CandidateAllocation.fromCommand(candidateAllocations)
+      val allocation: persisted.CandidateAllocation = persistedAllocations.head
+
+      when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation]))
+        .thenReturn(Future.successful(()))
+      when(mockAppRepo.resetApplicationAllocationStatus(any[String]))
+        .thenReturn(Future.successful(()))
+
+      when(mockEventsService.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1))
+      when(mockAppRepo.find(List(appId))).thenReturn(Future.successful(CandidateExamples.NewCandidates))
+      when(mockPersonalDetailsRepo.find(any[String])).thenReturn(Future.successful(PersonalDetailsExamples.JohnDoe))
+      when(mockContactDetailsRepo.find(any[String])).thenReturn(Future.successful(ContactDetailsExamples.ContactDetailsUK))
+
+      service.unAllocateCandidates(persistedAllocations.toList).futureValue
+
+      verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
+      verify(mockAppRepo).resetApplicationAllocationStatus(any[String])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
     }
   }
 
