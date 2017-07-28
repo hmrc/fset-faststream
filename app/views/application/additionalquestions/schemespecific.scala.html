@@ -18,14 +18,16 @@
         </div>
     </div>
 
-    @helper.textarea(schemeSpecificQuestionsForm("schemeAnswer"),
-    '_label -> "Stick to the maximum words in the questions document",
-    'class -> "form-control",
-    'rows -> 20,
-    'dataValLengthMax -> "2048",
-    '_showConstraints -> false)
+    @helper.form(action = routes.SiftQuestionsController.saveSchemeForm(scheme.id), 'novalidate -> "novalidate") {
+        @helper.textarea(schemeSpecificQuestionsForm("schemeAnswer"),
+        '_label -> "Stick to the maximum words in the questions document",
+        'class -> "form-control",
+        'rows -> 20,
+        'dataValLengthMax -> "2048",
+        '_showConstraints -> false)
 
-    <div class="form-group">
-        <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
-    </div>
+        <div class="form-group">
+            <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+        </div>
+    }
 }
