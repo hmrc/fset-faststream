@@ -16,16 +16,22 @@
 
 package controllers
 
+import java.nio.file.Files
+
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses
 import model.command.WithdrawApplication
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
 import services.application.ApplicationService
+import services.assessmentcentre.AssessmentCentreService
+import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -37,6 +43,8 @@ object ApplicationController extends ApplicationController {
   val auditService = AuditService
   val applicationService = ApplicationService
   val passmarkService = EvaluatePhase3ResultService
+  val assessmentCentreService = AssessmentCentreService
+  val uploadRepository = fileUploadRepository
 }
 
 trait ApplicationController extends BaseController {
@@ -46,6 +54,8 @@ trait ApplicationController extends BaseController {
   val auditService: AuditService
   val applicationService: ApplicationService
   val passmarkService: EvaluatePhase3ResultService
+  val assessmentCentreService: AssessmentCentreService
+  val uploadRepository: FileUploadMongoRepository
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
@@ -145,6 +155,18 @@ trait ApplicationController extends BaseController {
         appRepository.findAllocatedApplications(appIds).map { apps =>
           Ok(Json.toJson(apps))
         }
+      }
+  }
+
+  def uploadAnalysisExercise(applicationId: String, contentType: String): Action[TemporaryFile] = Action.async(parse.temporaryFile) {
+    implicit request =>
+      (for {
+        fileId <- uploadRepository.add(contentType, Files.readAllBytes(request.body.file.toPath))
+        _ <- assessmentCentreService.updateAnalysisTest(applicationId, fileId)
+      } yield {
+        Ok
+      }).recover {
+        case x: CandidateAlreadyHasAnAnalysisExerciseException => Conflict("An analysis exercise has already been added for this user")
       }
   }
 

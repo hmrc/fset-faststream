@@ -19,8 +19,11 @@ package services.assessmentcentre
 import common.FutureEx
 import model.{ ProgressStatuses, SerialUpdateResult }
 import model.command.ApplicationForFsac
+import model.persisted.fsac.AnalysisExercise
+import play.api.Logger
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.{ AssessmentCentreMongoRepository, AssessmentCentreRepository }
+import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,6 +31,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object AssessmentCentreService extends AssessmentCentreService {
   val applicationRepo = repositories.applicationRepository
   val assessmentCentreRepo = repositories.assessmentCentreRepository
+
+  case class CandidateAlreadyHasAnAnalysisExerciseException(message: String) extends Exception(message)
 }
 
 trait AssessmentCentreService {
@@ -47,5 +52,16 @@ trait AssessmentCentreService {
     }
 
     updates.map(SerialUpdateResult.fromEither)
+  }
+
+  def updateAnalysisTest(applicationId: String, fileId: String): Future[Unit] = {
+    for {
+      tests <- assessmentCentreRepo.getTests(applicationId)
+      _ = Logger.warn("=================== TESTS = " + tests)
+      hasSubmissions = tests.analysisExercise.isDefined
+      _ <- assessmentCentreRepo.updateTests(applicationId, tests.copy(analysisExercise = Some(AnalysisExercise(fileId)))) if !hasSubmissions
+    } yield {
+      if (hasSubmissions) throw CandidateAlreadyHasAnAnalysisExerciseException(s"App Id: $applicationId, File Id: $fileId")
+    }
   }
 }
