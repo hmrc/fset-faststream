@@ -22,7 +22,6 @@ import model.CandidateScoresCommands.CandidateScoresAndFeedback
 import model.CandidateScoresCommands.Implicits._
 import model.Exceptions.{ NoResultsReturned, TooManyEntries }
 import model.OnlineTestCommands.Implicits._
-import model.persisted.assessmentcentre.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme }
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
 
@@ -210,11 +209,6 @@ object Commands {
 
   object ApplicationAssessment { implicit val applicationAssessmentFormat: OFormat[ApplicationAssessment] = Json.format[ApplicationAssessment] }
 
-  case class AssessmentCentrePassMarkSettingsResponse(
-    schemes: List[AssessmentCentrePassMarkScheme],
-    info: Option[AssessmentCentrePassMarkInfo]
-  )
-
   object Implicits {
     implicit val addressFormat: OFormat[Address] = Json.format[Address]
     implicit val applicationAddedFormat: OFormat[ApplicationResponse] = Json.format[ApplicationResponse]
@@ -250,7 +244,6 @@ object Commands {
 
     implicit val phoneAndEmailFormat: OFormat[PhoneAndEmail] = Json.format[PhoneAndEmail]
     implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
-    implicit val assessmentCentrePassMarkSettingsResponseFormat: OFormat[AssessmentCentrePassMarkSettingsResponse] = Json.format[AssessmentCentrePassMarkSettingsResponse]
     implicit val passMarkEvaluationSchemes: OFormat[OnlineTestPassmarkEvaluationSchemes] = Json.format[OnlineTestPassmarkEvaluationSchemes]
     implicit val applicationPreferencesFormat: OFormat[ApplicationPreferences] = Json.format[ApplicationPreferences]
     implicit val assessmentResultsReportFormat: OFormat[AssessmentResultsReport] = Json.format[AssessmentResultsReport]
@@ -260,5 +253,4 @@ object Commands {
     implicit val applicationPreferencesWithTestResultsFormat: OFormat[ApplicationPreferencesWithTestResults] = Json.format[ApplicationPreferencesWithTestResults]
     implicit val assessmentCentreCandidatesReportFormat: OFormat[AssessmentCentreCandidatesReport] = Json.format[AssessmentCentreCandidatesReport]
   }
-
 }

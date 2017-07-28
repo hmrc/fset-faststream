@@ -78,6 +78,7 @@ package object repositories {
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
   lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
+  lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
   lazy val stcEventMongoRepository = new StcEventMongoRepository
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
@@ -89,7 +90,6 @@ package object repositories {
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
-  lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
   lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
@@ -114,7 +114,7 @@ package object repositories {
 
     phase3PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
-    assessmentCentrePassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("info.createDate", Ascending)), unique = true)),
+    assessmentCentrePassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
     applicationAssessmentRepository.collection.indexesManager.create(Index(Seq(("venue", Ascending), ("date", Ascending),
       ("session", Ascending), ("slot", Ascending)), unique = true)),
