@@ -35,6 +35,17 @@ trait SiftClient {
   import config.FrontendAppConfig.faststreamConfig._
   val apiBase: String = s"${url.host}${url.base}"
 
+  def updateGeneralAnswers(applicationId: UniqueIdentifier, answers: GeneralQuestionsAnswers)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.POST(
+      s"${url.host}${url.base}/sift-answers/$applicationId/general",
+      answers
+    ).map {
+      case x: HttpResponse if x.status == OK => ()
+    } recover {
+      case _: BadRequestException => throw new CannotUpdateRecord()
+    }
+  }
+
   def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
                                 (implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(
@@ -70,6 +81,16 @@ trait SiftClient {
     }
   }
 
+  def submitSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+    http.PUT(
+      s"${url.host}${url.base}/sift-answers/$applicationId/submit",
+      Array.empty[Byte]
+    ).map {
+      case x: HttpResponse if x.status == OK => ()
+    } recover {
+      case _: BadRequestException => throw new SiftAnswersNotFound()
+    }
+  }
 }
 
 object SiftClient extends SiftClient {

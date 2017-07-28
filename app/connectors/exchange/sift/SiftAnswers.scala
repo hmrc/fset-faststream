@@ -18,7 +18,7 @@ package connectors.exchange.sift
 
 import play.api.libs.json.Json
 
-case class SiftAnswers(applicationId: String, answers: Map[String, SchemeSpecificAnswer])
+case class SiftAnswers(applicationId: String, generalAnswers: Option[GeneralQuestionsAnswers], schemeAnswers: Map[String, SchemeSpecificAnswer])
 
 object SiftAnswers {
   implicit val siftAnswersFormat = Json.format[SiftAnswers]
