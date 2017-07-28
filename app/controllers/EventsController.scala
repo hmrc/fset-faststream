@@ -16,6 +16,7 @@
 
 package controllers
 
+import model.Commands.Implicits._
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.persisted.eventschedules
 import model.{ command, exchange }

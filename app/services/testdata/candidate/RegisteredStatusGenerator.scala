@@ -85,8 +85,12 @@ trait RegisteredStatusGenerator extends BaseGenerator {
     userFuture.flatMap {
       case user if assessorRoles.contains(role) =>
         assessorGenerator.createAssessor(user.userId,
-          AssessorData(List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString, SkillType.SIFTER.toString),
-            List(SchemeId("Sdip"), SchemeId("Commercial")), Random.bool, None, AssessorStatus.CREATED)).map {
+          AssessorData(
+            List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString, SkillType.SIFTER.toString),
+            List(SchemeId("Sdip"), SchemeId("Commercial")),
+            Random.bool,
+            None,
+            AssessorStatus.CREATED)).map {
           assessor => user.copy(assessor = Some(AssessorResponse.apply(assessor)))
         }
       case user => Future.successful(user)
