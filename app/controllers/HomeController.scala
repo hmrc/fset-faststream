@@ -23,7 +23,7 @@ import java.util.TimeZone
 import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient }
-import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
+import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange._
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
@@ -166,6 +166,11 @@ abstract class HomeController(
               val fileContents = Files.readAllBytes(document.ref.file.toPath)
               applicationClient.uploadAnalysisExercise(cachedData.application.applicationId, contentType, fileContents).map { result =>
                 Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
+              }.recover {
+                case _: CandidateAlreadyHasAnAnalysisExerciseException =>
+                  Logger.warn(s"A duplicate written analysis exercise submission was attempted " +
+                    s"(applicationId = ${cachedData.application.applicationId})")
+                  Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.error"))
               }
             case _ =>
               Future.successful(

@@ -270,7 +270,11 @@ trait ApplicationClient {
     contentType: String, fileContents: Array[Byte])(implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(
       s"$apiBaseUrl/application/uploadAnalysisExercise?applicationId=$applicationId&contentType=$contentType", fileContents
-    ).map(_ => ())
+    ).map { response =>
+      if (response.status == CONFLICT) {
+        throw new CandidateAlreadyHasAnAnalysisExerciseException
+      }
+    }
   }
 }
 // scalastyle:on
@@ -319,4 +323,6 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class PdfReportNotFoundException extends Exception
 
   sealed class TestForTokenExpiredException extends Exception
+
+  sealed class CandidateAlreadyHasAnAnalysisExerciseException extends Exception
 }
