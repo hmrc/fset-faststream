@@ -17,23 +17,18 @@
 package controllers
 
 import model.Exceptions._
-import model.exchange.Assessor
-import model.exchange.{ Assessor, AssessorAvailability }
 import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
-import model.persisted
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import model.exchange.{ Assessor, AssessorAvailabilities, AssessorAvailability }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import persisted.assessor
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import services.assessoravailability.AssessorService
+import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
-import testkit.MockitoImplicits._
-
-import scala.util.Success
 
 class AssessorControllerSpec extends UnitWithAppSpec {
   val mockAssessorService = mock[AssessorService]
@@ -52,11 +47,9 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   }
 
   "add availability" must {
-    val Request = fakeRequest(AssessorAvailabilityInBothLondonAndNewcastle)
-
     "return Ok when availability is added" in {
-      when(mockAssessorService.addAvailability(any[String], any[List[AssessorAvailability]])).thenReturn(emptyFuture)
-      val response = controller.addAvailability(UserId)(Request)
+      when(mockAssessorService.saveAvailability(any[AssessorAvailabilities])).thenReturnAsync()
+      val response = controller.saveAvailability()(fakeRequest(AssessorAvailabilitiesSum))
       status(response) mustBe OK
     }
   }
@@ -81,10 +74,10 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   "find availability" must {
 
     "return an assessor's availability" in {
-      when(mockAssessorService.findAvailability(UserId)).thenReturnAsync(AssessorAvailabilityInBothLondonAndNewcastle)
+      when(mockAssessorService.findAvailability(UserId)).thenReturnAsync(AssessorAvailabilitiesSum)
       val response = controller.findAvailability(UserId)(fakeRequest)
       status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson[List[AssessorAvailability]](AssessorAvailabilityInBothLondonAndNewcastle)
+      contentAsJson(response) mustBe Json.toJson[AssessorAvailabilities](AssessorAvailabilitiesSum)
     }
 
     "return Not Found when availability cannot be found" in {

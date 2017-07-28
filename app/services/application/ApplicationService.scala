@@ -48,7 +48,7 @@ import scala.util.{ Failure, Success, Try }
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository
   val eventService = StcEventService
-  val pdRepository = faststreamPersonalDetailsRepository
+  val pdRepository = personalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val mediaRepo = mediaRepository
   val schemeRepository = schemePreferencesRepository

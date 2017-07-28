@@ -16,8 +16,9 @@
 
 package repositories
 
+import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{ TooManyEventIdsException, TooManySessionIdsException }
-import model.persisted.{ CandidateAllocation }
+import model.persisted.CandidateAllocation
 import play.api.libs.json.OFormat
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
@@ -42,9 +43,23 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
   val format: OFormat[CandidateAllocation] = CandidateAllocation.candidateAllocationFormat
   val projection = BSONDocument("_id" -> false)
 
+  def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[CandidateAllocation]] = {
+    val query = List(
+      Some(BSONDocument("id" -> id)),
+      status.map(s => BSONDocument("status" -> s))
+    ).flatten.fold(BSONDocument.empty)(_ ++ _)
+
+    collection.find(query, projection).cursor[CandidateAllocation]().collect[Seq]()
+  }
+
   def save(allocations: Seq[CandidateAllocation]): Future[Unit] = {
     val jsObjects = allocations.map(format.writes)
     collection.bulkInsert(jsObjects.toStream, ordered = false) map (_ => ())
+  }
+
+  def allocationsForEvent(eventId: String): Future[Seq[CandidateAllocation]] = {
+    collection.find(BSONDocument("eventId" -> eventId), projection)
+      .cursor[CandidateAllocation]().collect[Seq]()
   }
 
   def allocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]] = {

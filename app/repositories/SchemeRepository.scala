@@ -17,7 +17,7 @@
 package repositories
 
 import config.MicroserviceAppConfig
-import model.{ Scheme, SchemeId, SiftRequirement }
+import model.{ Degree, Scheme, SchemeId, SiftRequirement }
 import net.jcazevedo.moultingyaml._
 import play.api.Play
 import resource._
@@ -35,7 +35,12 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
     def write(obj: SiftRequirement.Value): YamlValue = YamlString(obj.toString)
   }
 
-  implicit val schemeFormat = yamlFormat5((a: String, b: String ,c: String, d: Option[SiftRequirement.Value], e: Boolean) => Scheme(a,b,c,d, e))
+  implicit val degreeFormat = yamlFormat2((a: String, b: Boolean) => Degree(a, b))
+
+  implicit val schemeFormat = yamlFormat7((
+    id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
+    siftRequirement: Option[SiftRequirement.Value], evaluationRequired: Boolean
+  ) => Scheme(SchemeId(id),code,name, civilServantEligible, degree, siftRequirement, evaluationRequired))
 }
 
 trait SchemeRepositoryImpl {

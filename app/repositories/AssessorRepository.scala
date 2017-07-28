@@ -16,8 +16,7 @@
 
 package repositories
 
-import model.AllocationStatuses
-import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
+import model.persisted.assessor.{ Assessor, AssessorStatus }
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate

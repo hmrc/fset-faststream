@@ -3,6 +3,7 @@
 # Should it be PUT as calling this method twice does not create two users (idempotent operation)
 POST        /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.update(userId: String, applicationId: String)
 GET         /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.find(userId: String, applicationId: String)
+GET         /personal-details/:applicationId                             controllers.PersonalDetailsController.findByApplicationId(applicationId: String)
 
 POST        /fast-pass-evaluation/:userId/:applicationId                 controllers.FastPassApprovalController.processFastPassCandidate(userId: String, applicationId: String)
 
@@ -122,7 +123,7 @@ GET         /schools                                                     control
 POST        /assessor/save/:userId                                       controllers.AssessorController.saveAssessor(userId: String)
 GET         /assessor/find/:userId                                       controllers.AssessorController.findAssessor(userId: String)
 
-POST        /assessor/availability/save/:userId                          controllers.AssessorController.addAvailability(userId: String)
+POST        /assessor/availability/save                                  controllers.AssessorController.saveAvailability()
 GET         /assessor/availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
 GET         /assessor/availability/:locationName/:date                   controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 GET         /assessor/availability/count-submitted                       controllers.AssessorController.countSubmittedAvailability()
@@ -141,10 +142,17 @@ PUT         /events/:eventId/allocate                                    control
 GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
 PUT         /events/:eventId/sessions/:sessionId/allocateCandidates      controllers.EventsController.allocateCandidates(eventId: String, sessionId: String)
 
-
 # Day aggregate events
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
+
+# Assessment scores
+POST        /assessment-scores/submit                                                controllers.AssessmentScoresController.submit()
+POST        /assessment-scores/save                                                  controllers.AssessmentScoresController.save()
+GET         /assessment-scores/with-candidate-summary/application/:applicationId     controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/with-candidate-summary/event/:eventId                 controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
+GET         /assessment-scores/:applicationId                                        controllers.AssessmentScoresController.find(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores                                                       controllers.AssessmentScoresController.findAll
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
