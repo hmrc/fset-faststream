@@ -42,7 +42,6 @@ object CandidateAllocationService extends CandidateAllocationService {
   val eventService: StcEventService = StcEventService
 
   val authProviderClient = AuthProviderClient
-  val emailClient = CSREmailClient
 }
 
 trait CandidateAllocationService extends EventSink {
@@ -51,7 +50,6 @@ trait CandidateAllocationService extends EventSink {
 
   def eventsService: EventsService
 
-  def emailClient: EmailClient
   def authProviderClient: AuthProviderClient
 
 

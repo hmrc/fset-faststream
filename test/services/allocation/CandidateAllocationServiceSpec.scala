@@ -63,7 +63,6 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
     val service = new CandidateAllocationService {
       override val eventsService: EventsService = mockEventsService
       override val applicationRepo: GeneralApplicationRepository = mockAppRepo
-      override def emailClient: EmailClient = mockEmailClient
       override def authProviderClient: AuthProviderClient = mockAuthProviderClient
       override val eventService: StcEventService = mockStcEventService
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository

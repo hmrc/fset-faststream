@@ -32,9 +32,15 @@ import scala.concurrent.Future
 trait AssessorRepository {
 
   def find(userId: String): Future[Option[Assessor]]
+
   def save(settings: Assessor): Future[Unit]
+
   def countSubmittedAvailability: Future[Int]
+
   def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]]
+
+  def findAssessorsNotAvailableOnDay(skills: List[String], date: LocalDate, location: Location): Future[Seq[Assessor]]
+
   def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]]
 }
 
@@ -75,10 +81,23 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     collection.find(query).cursor[Assessor]().collect[Seq]()
   }
 
+  def findAssessorsNotAvailableOnDay(skills: List[String], date: LocalDate, location: Location): Future[Seq[Assessor]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("skills" -> BSONDocument("$in" -> skills)),
+      BSONDocument("availability" ->
+        BSONDocument("$not" ->
+          BSONDocument("$elemMatch" -> BSONDocument(
+            "location" -> location,
+            "date" -> date
+          ))))
+    ))
+
+    collection.find(query).cursor[Assessor]().collect[Seq]()
+  }
+
+
   def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]] = {
-    val query = BSONDocument("allocation" -> BSONDocument("$elemMatch" -> BSONDocument(
-      "id" -> eventId
-    )))
+    val query = BSONDocument("allocation" -> BSONDocument("$elemMatch" -> BSONDocument("id" -> eventId)))
 
     collection.find(query).cursor[Assessor]().collect[Seq]()
   }
