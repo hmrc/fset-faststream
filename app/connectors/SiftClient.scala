@@ -40,6 +40,17 @@ trait SiftClient {
   import ApplicationClient._
   import config.FrontendAppConfig.faststreamConfig._
 
+  def updateGeneralAnswers(applicationId: UniqueIdentifier, answers: GeneralQuestionsAnswers)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.POST(
+      s"${url.host}${url.base}/sift-answers/$applicationId/general",
+      answers
+    ).map {
+      case x: HttpResponse if x.status == OK => ()
+    } recover {
+      case _: BadRequestException => throw new CannotUpdateRecord()
+    }
+  }
+
   def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
                                 (implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(
