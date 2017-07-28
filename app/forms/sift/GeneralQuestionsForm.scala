@@ -42,10 +42,13 @@ object GeneralQuestionsForm {
 
   def degreeInfoFormFormatter = new Formatter[Option[DegreeInfoAnswers]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[DegreeInfoAnswers]] = {
-        DegreeInfoForm.form.mapping.bind(data)
+        DegreeInfoForm.form.mapping.bind(data) match {
+          case Right(success) => Right(Some(success))
+          case Left(error) => Left(error)
+        }
       }
 
-    override def unbind(key: String, fastPassData: Option[DegreeInfoAnswers]) =
+    override def unbind(key: String, fastPassData: Option[DegreeInfoAnswers]): Map[String, String] =
       fastPassData.map(fpd => DegreeInfoForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 }
