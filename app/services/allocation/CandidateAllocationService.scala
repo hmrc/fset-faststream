@@ -23,9 +23,14 @@ import model.command.CandidateAllocation
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
 import model._
+import model.persisted.{ ContactDetails, PersonalDetails }
+import model.persisted.eventschedules.Event
 import play.api.mvc.RequestHeader
 import repositories.{ CandidateAllocationMongoRepository, CandidateAllocationRepository }
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
+import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -37,17 +42,23 @@ import scala.concurrent.Future
 object CandidateAllocationService extends CandidateAllocationService {
   val candidateAllocationRepo: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
+  val contactDetailsRepo: ContactDetailsRepository = repositories.faststreamContactDetailsRepository
+  val personalDetailsRepo: PersonalDetailsRepository = repositories.personalDetailsRepository
 
   val eventsService = EventsService
   val eventService: StcEventService = StcEventService
 
   val authProviderClient = AuthProviderClient
   val emailClient = CSREmailClient
+
+  case class CouldNotFindCandidateWithApplication(appId: String) extends Exception(appId)
 }
 
 trait CandidateAllocationService extends EventSink {
   def candidateAllocationRepo: CandidateAllocationRepository
   def applicationRepo: GeneralApplicationRepository
+  def contactDetailsRepo: ContactDetailsRepository
+  def personalDetailsRepo: PersonalDetailsRepository
 
   def eventsService: EventsService
 
@@ -63,11 +74,14 @@ trait CandidateAllocationService extends EventSink {
     candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
-  def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation]): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
+  def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation])
+                          (implicit hc: HeaderCarrier): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
     // For each allocation, reset the progress status and delete the corresponding allocation
     val res = FutureEx.traverseSerial(allocations) { allocation =>
       val fut = candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
-        applicationRepo.resetApplicationAllocationStatus(allocation.id)
+        applicationRepo.resetApplicationAllocationStatus(allocation.id).flatMap { _ =>
+          notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
+        }
       }
       FutureEx.futureToEither(allocation, fut)
     }
@@ -141,6 +155,28 @@ trait CandidateAllocationService extends EventSink {
         }
       case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.id}")
     }
+  }
+
+  private def notifyCandidateUnallocated(eventId: String, allocation: CandidateAllocation)(implicit hc: HeaderCarrier) = {
+    getFullDetails(eventId, allocation).flatMap { case (event, personalDetails, contactDetails) =>
+      emailClient.sendCandidateUnAllocatedFromEvent(
+        contactDetails.email,
+        s"${personalDetails.firstName} ${personalDetails.lastName}",
+        event.date.toString("d MMMM YYYY")
+      )
+    }
+  }
+
+  private def getFullDetails(eventId: String,
+                              allocation: command.CandidateAllocation)
+                             (implicit hc: HeaderCarrier): Future[(Event, PersonalDetails, ContactDetails)] = {
+    for {
+      eventDetails <- eventsService.getEvent(eventId)
+      candidates <- applicationRepo.find(allocation.id :: Nil)
+      candidate = candidates.headOption.getOrElse(throw CouldNotFindCandidateWithApplication(allocation.id))
+      personalDetails <- personalDetailsRepo.find(allocation.id)
+      contactDetails <- contactDetailsRepo.find(candidate.userId)
+    } yield (eventDetails, personalDetails, contactDetails)
   }
 
 }
