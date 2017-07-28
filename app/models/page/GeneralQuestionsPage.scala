@@ -16,12 +16,23 @@
 
 package models.page
 
+import connectors.exchange.sift.GeneralQuestionsAnswers
+import forms.sift.GeneralQuestionsForm
+import play.api.data.Form
+
 case class GeneralQuestionsPage(
-  hello: String
+  form : Form[GeneralQuestionsAnswers]
 )
 
 object GeneralQuestionsPage {
-  val Countries = Seq("",
+
+  def apply(answers: Option[GeneralQuestionsAnswers]): GeneralQuestionsPage = {
+    GeneralQuestionsPage(
+      answers.map(GeneralQuestionsForm.form.fill).getOrElse(GeneralQuestionsForm.form)
+    )
+  }
+
+  val Countries = Seq(
    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua & Deps", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
 
    "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia Herzegovina",

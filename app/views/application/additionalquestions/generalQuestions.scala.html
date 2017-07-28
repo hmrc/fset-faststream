@@ -1,33 +1,45 @@
 @import models.page.GeneralQuestionsPage
+@import views.html.widgets.{ radioBoxHorizontal, select_search, yesNoRadioWithTogglePanel }
 
 @(page: GeneralQuestionsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
-@main_template(title = "Nationality and higher education") {
-
+@main_template(title = "Nationality and higher education", additionalJavascriptFilenames = List("vendor/chosen.jquery.js", "generalQuestions.js")) {
     <h1 class="heading-xlarge">Nationality and higher education</h1>
-    <div class="form-group">
+    @helper.form(action = routes.SiftQuestionsController.saveGeneralQuestions(), 'novalidate -> "novalidate") {
         <fieldset>
             <legend class="form-label">Do you currently hold more than one passport?</legend>
-            <div class="form-group inline">
-                <label data-target="secondPassport" for="passport-yes" class="block-label">
-                    <input name="passport" type="radio" id="passport-yes" aria-controls="secondPassport" aria-expanded="false">Yes
-                </label>
-                <label for="passport-no" class="block-label">
-                    <input name="passport" type="radio" id="passport-no">No
-                </label>
+            @yesNoRadioWithTogglePanel(page.form("multiplePassport"),
+                'id -> "multiplePassport"
+            ) {
+                <div id="multiplePassport-panel-yes" class="toggle-content" >
+                    <div class="form-group">
+                        @select_search(page.form("secondPassportCountry"), GeneralQuestionsPage.Countries)(Html("What country issued your second passport?"))
+                    </div>
+                </div>
+            }
+            <div class="form-group">
+                @select_search(page.form("passportCountry"), GeneralQuestionsPage.Countries)(Html("What country is named on your current passport?"))
             </div>
         </fieldset>
-    </div>
-    <div class="grid-1-2">
-        <div class="form-group">
-            <label for="nationalityQuestion" class="form-label">What country is named on your current passport?</label>
-            <select id="nationalityQuestion" data-placeholder="Select one" class="form-control" style="display: none;">
-                @GeneralQuestionsPage.Countries.map { c => <option>c</option> }
-            </select>
-        </div>
-    </div>
 
-    <div class="form-group">
-        <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
-    </div>
+        <fieldset>
+            <legend class="form-label">Do you have an undergraduate degree?</legend>
+            @yesNoRadioWithTogglePanel(page.form("hasUndergradDegree"), 'id -> "hasUndergradDegree") {
+                <div id="hasUndergradDegree-panel-yes" class="toggle-content" >
+                   <div class="form-group">
+
+                   </div>
+                </div>
+            }
+        </fieldset>
+            <!--
+        <fieldset>
+            <legend class="form-label">Do you have an postgraduate degree?</legend>
+            @radioBoxHorizontal(page.form("hasPostgradDegree"), Seq(("yes", "Yes", false), ("no", "No", false)))
+        </fieldset>
+        <div class="form-group">
+            <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+        </div>
+        -->
+    }
 }

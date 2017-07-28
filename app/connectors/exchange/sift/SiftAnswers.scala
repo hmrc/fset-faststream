@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package connectors.exchange
+package connectors.exchange.sift
 
 import play.api.libs.json.Json
 

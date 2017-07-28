@@ -21,6 +21,7 @@ import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.SchemeId
 import forms.SchemeSpecificQuestionsForm
+import forms.sift.GeneralQuestionsForm
 import models.page.GeneralQuestionsPage
 import security.Roles.SchemeSpecificQuestionsRole
 
@@ -39,21 +40,32 @@ abstract class SiftQuestionsController(
   applicationClient: ApplicationClient, siftClient: SiftClient, referenceDataClient: ReferenceDataClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
-  def presentGeneralQuestions(): Action[AnyContent] = CSRSecureAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def presentGeneralQuestions(): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      Future(Ok(views.html.application.additionalquestions.generalQuestions(GeneralQuestionsPage("hello"))))
+      for {
+        answers <- siftClient.getGeneralQuestionsAnswers(user.application.applicationId)
+      } yield {
+        val page = GeneralQuestionsPage.apply(answers)
+        Ok(views.html.application.additionalquestions.generalQuestions(page))
+      }
+  }
+
+  def saveGeneralQuestions() = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+    implicit user =>
+
+    Future(Ok(""))
   }
 
   def presentSchemeForm(schemeId: SchemeId): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       referenceDataClient.allSchemes().map { allSchemes =>
-        val scheme = allSchemes.find(_.id == schemeId).get
+//        val scheme = allSchemes.find(_.id == schemeId).get
 
-        if (canAnswersBeModified()) {
-          Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form, scheme))
-        } else {
+  //      if (canAnswersBeModified()) {
+    //      Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form, scheme))
+      //  } else {
           Redirect(routes.HomeController.present())
-        }
+        //}
       }
   }
 

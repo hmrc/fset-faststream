@@ -16,18 +16,12 @@
 
 package connectors
 
-import java.net.URLEncoder
 
 import config.CSRHttp
-import connectors.UserManagementClient.TokenEmailPairInvalidException
-import connectors.exchange.PartnerGraduateProgrammes._
-import connectors.exchange.GeneralDetails._
-import connectors.exchange.Questionnaire._
-import connectors.exchange._
 import connectors.exchange.referencedata.SchemeId
-import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
+import connectors.exchange.sift.{ SchemeSpecificAnswer, SiftAnswers, GeneralQuestionsAnswers }
+import models.UniqueIdentifier
 import play.api.http.Status._
-import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,11 +33,12 @@ trait SiftClient {
 
   import ApplicationClient._
   import config.FrontendAppConfig.faststreamConfig._
+  val apiBase: String = s"${url.host}${url.base}"
 
   def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
                                 (implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(
-      s"${url.host}${url.base}/sift-answers/$applicationId/$schemeId",
+      s"$apiBase/sift-answers/$applicationId/$schemeId",
       answer
     ).map {
       case x: HttpResponse if x.status == OK => ()
@@ -52,17 +47,24 @@ trait SiftClient {
     }
   }
 
+  def getGeneralQuestionsAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[GeneralQuestionsAnswers]] = {
+    //http.GET(s"$apiBase/sift-answers/$applicationId/generalQuestions").map { response =>
+    //  response.json.as[GeneralQuestionsAnswers]
+    //}
+    Future(None)
+  }
+
   def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)(implicit hc: HeaderCarrier): Future[SchemeSpecificAnswer] = {
-    http.GET(s"${url.host}${url.base}/sift-answers/$applicationId/$schemeId").map { response =>
-      response.json.as[connectors.exchange.SchemeSpecificAnswer]
+    http.GET(s"$apiBase/sift-answers/$applicationId/$schemeId").map { response =>
+      response.json.as[SchemeSpecificAnswer]
     } recover {
       case _: NotFoundException => throw new SchemeSpecificAnswerNotFound()
     }
   }
 
   def getSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftAnswers] = {
-    http.GET(s"${url.host}${url.base}/sift-answers/$applicationId").map { response =>
-      response.json.as[connectors.exchange.SiftAnswers]
+    http.GET(s"$apiBase/sift-answers/$applicationId").map { response =>
+      response.json.as[SiftAnswers]
     } recover {
       case _: NotFoundException => throw new SiftAnswersNotFound()
     }

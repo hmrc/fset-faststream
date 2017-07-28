@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package connectors.exchange
+package connectors.exchange.sift
 
-import connectors.exchange.referencedata.SchemeId
 import play.api.libs.json.Json
 
 case class SchemeSpecificAnswer(rawText: String)
