@@ -157,7 +157,7 @@ abstract class HomeController(
 
   def submitAnalysisExercise(): Action[AnyContent] = CSRSecureAppAction(AssessmentCentreRole) { implicit request => implicit cachedData =>
     request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
-      multiPartRequest.file("writtenExerciseFile").map { document =>
+      multiPartRequest.file("analysisExerciseFile").map { document =>
         if (document.ref.file.length() > maxWrittenExerciseFileSizeInBytes) {
           Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooBig")))
         } else {
