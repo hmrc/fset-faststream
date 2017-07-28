@@ -208,8 +208,6 @@ object Roles {
     PreviewApplicationRole -> routes.PreviewApplicationController.present(),
     SubmitApplicationRole -> routes.PreviewApplicationController.present(),
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),
-    //ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),
-    //UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
     AbleToWithdrawApplicationRole -> routes.HomeController.present()
   ).reverse
 }
@@ -317,7 +315,7 @@ object RoleUtils {
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
 
 
-  def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.failedToAttend)
+  def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.failedToAttend)
 
   def isFaststream(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Faststream
 

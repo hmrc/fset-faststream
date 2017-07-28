@@ -74,7 +74,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include ("Choose your schemes")
       content must include (s"""name="scheme_0" value='Finance'""")
-      content must include (s"""name="scheme_1" value='Europe'""")
+      content must include (s"""name="scheme_1" value='International'""")
       content must include (s"""name="scheme_2" value=''""")
       content must include (s"""name="scheme_3" value=''""")
       content must include (s"""name="scheme_4" value=''""")
@@ -83,11 +83,11 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   "submit scheme preferences" should {
     "update scheme preferences details" in {
-      val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "European", "orderAgreed" -> "true",
+      val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "International", "orderAgreed" -> "true",
         "eligible" -> "true")
       val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
         ApplicationRoute.Faststream, currentUserId, ProgressResponseExamples.InProgress, Some(CivilServantExperience), None)
-      val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true)
+      val schemePreferences = SchemePreferences(List("Finance", "International"), orderAgreed = true, eligible = true)
 
       when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
