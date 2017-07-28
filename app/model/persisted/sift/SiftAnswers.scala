@@ -14,23 +14,35 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.persisted.sift
 
-import model.SchemeId
+import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONHandler, BSONString, Macros }
+import reactivemongo.bson.{ BSON, BSONDocument, BSONHandler, BSONString, Macros }
 
 import scala.util.Try
 
-case class SchemeSpecificAnswer(rawText: String)
 
-case class SiftAnswers(applicationId: String, answers: Map[String, SchemeSpecificAnswer])
+object SiftAnswersStatus extends Enumeration {
+  type SiftAnswersStatus = Value
 
-object SchemeSpecificAnswer
-{
-  implicit val schemeSpecificAnswerFormat = Json.format[SchemeSpecificAnswer]
-  implicit val schemeAnswersHandler = Macros.handler[SchemeSpecificAnswer]
+  val DRAFT, SUBMITTED = Value
+
+  implicit val EventTypeFormat = new Format[SiftAnswersStatus] {
+    override def reads(json: JsValue): JsResult[SiftAnswersStatus] = JsSuccess(SiftAnswersStatus.withName(json.as[String].toUpperCase))
+    override def writes(eventType: SiftAnswersStatus): JsValue = JsString(eventType.toString)
+  }
+
+  implicit object BSONEnumHandler extends BSONHandler[BSONString, SiftAnswersStatus] {
+    override def write(eventType: SiftAnswersStatus): BSONString = BSON.write(eventType.toString)
+    override def read(bson: BSONString): SiftAnswersStatus = SiftAnswersStatus.withName(bson.value.toUpperCase)
+  }
 }
+
+case class SiftAnswers(applicationId: String,
+  status: SiftAnswersStatus,
+  generalAnswers: Option[GeneralQuestionsAnswers],
+  schemeAnswers: Map[String, SchemeSpecificAnswer])
 
 object SiftAnswers
 {
@@ -52,4 +64,3 @@ object SiftAnswers
   implicit val siftAnswersFormat = Json.format[SiftAnswers]
   implicit val siftAnswersHandler = Macros.handler[SiftAnswers]
 }
-

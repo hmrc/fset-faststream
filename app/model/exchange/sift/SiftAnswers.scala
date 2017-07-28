@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-package model.exchange
+package model.exchange.sift
 
-import connectors.exchange.SchemeSpecificAnswer
-import play.api.libs.json.Json
+import model.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
+import play.api.libs.json._
 
-case class SiftAnswers(applicationId: String, answers: Map[String, SchemeSpecificAnswer])
+object SiftAnswersStatus extends Enumeration {
+  type SiftAnswersStatus = Value
 
-object SchemeSpecificAnswer {
+  val DRAFT, SUBMITTED = Value
+
+  implicit val siftAnswersStatusFormat = new Format[SiftAnswersStatus] {
+    def reads(json: JsValue) = JsSuccess(SiftAnswersStatus.withName(json.as[String]))
+    def writes(myEnum: SiftAnswersStatus) = JsString(myEnum.toString)
+  }
+}
+
+case class SiftAnswers(applicationId: String, status: SiftAnswersStatus,
+  generalAnswers: Option[GeneralQuestionsAnswers], siftAnswers: Map[String, SchemeSpecificAnswer])
+
+object SiftAnswers {
   implicit val siftAnswersFormat = Json.format[SiftAnswers]
 }

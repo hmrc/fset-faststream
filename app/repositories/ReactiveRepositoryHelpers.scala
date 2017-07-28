@@ -39,11 +39,16 @@ trait ReactiveRepositoryHelpers {
       new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false)
   }
 
-  def singleUpsertValidator(id: String,
-                            actionDesc: String): UpdateWriteResult => Unit = {
+  def singleUpsertValidator(id: String, actionDesc: String): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true)
   }
+
+  def singleUpsertValidator(id: String, actionDesc: String, notFound: => Exception): UpdateWriteResult => Unit = {
+
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, notFound, upsert = true)
+  }
+
 
   def multipleRemoveValidator(expected: Int, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
     if (result.ok) {

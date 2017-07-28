@@ -16,8 +16,9 @@
 
 package controllers
 
-import connectors.exchange.SchemeSpecificAnswer
-import model.SchemeId
+import model.Exceptions.SiftAnswersIncomplete
+import model.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
+import model.{ SchemeId, persisted }
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories.sift.SiftAnswersRepository
@@ -40,18 +41,29 @@ trait SchemeSiftAnswersController extends BaseController {
 
   import model.Commands.Implicits._
 
-  def addOrUpdateAnswer(applicationId: String, schemeId: SchemeId) = Action.async(parse.json) { implicit request =>
+  def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId) = Action.async(parse.json) { implicit request =>
     withJsonBody[SchemeSpecificAnswer] { answer =>
       for {
-        _ <- siftAnswersService.addSchemeSpecificAnswer(applicationId, schemeId, model.persisted.SchemeSpecificAnswer(answer.rawText))
+        _ <- siftAnswersService.addSchemeSpecificAnswer(applicationId, schemeId, answer)
       } yield {
-        auditService.logEvent("SchemeSiftAnswerSaved", Map("schemeId" -> schemeId.value))
+        auditService.logEvent("Scheme specific answer saved", Map("applicationId" -> applicationId, "schemeId" -> schemeId.value))
         Ok
       }
     }
   }
 
-  def getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)  = Action.async { implicit request =>
+  def addOrUpdateGeneralAnswers(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[GeneralQuestionsAnswers] { answers =>
+      for {
+        _ <- siftAnswersService.addGeneralAnswers(applicationId, answers)
+      } yield {
+        auditService.logEvent("General answers saved", Map("applicationId" -> applicationId))
+        Ok
+      }
+    }
+  }
+
+  def getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId) = Action.async { implicit request =>
     siftAnswersService.findSchemeSpecificAnswer(applicationId, schemeId).map { result =>
       result match {
         case Some(answer) => Ok(Json.toJson(answer))
@@ -60,7 +72,38 @@ trait SchemeSiftAnswersController extends BaseController {
     }
   }
 
-  def getSiftAnswers(applicationId: String)  = Action.async { implicit request =>
+  def getGeneralAnswers(applicationId: String) = Action.async {
+    siftAnswersService.findGeneralAnswers(applicationId).map { result =>
+      result match {
+        case Some(answer) => Ok(Json.toJson(answer))
+        case _ => NotFound(s"Cannot find general answers for applicationId: $applicationId")
+      }
+    }
+  }
+
+  def getSiftAnswers(applicationId: String) = Action.async { implicit request =>
+    siftAnswersService.findSiftAnswers(applicationId).map { result =>
+      result match {
+        case Some(answers) => Ok(Json.toJson(answers))
+        case _ => NotFound(s"Cannot find answers to additional questions for applicationId: $applicationId")
+      }
+    }
+  }
+
+  def submitAnswers(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[SchemeSpecificAnswer] { answer =>
+      (for {
+        _ <- siftAnswersService.submitAnswers(applicationId)
+      } yield {
+        auditService.logEvent("Sift answers saved", Map("applicationId" -> applicationId))
+        Ok
+      })recover {
+        case e: SiftAnswersIncomplete => UnprocessableEntity(e.m)
+      }
+    }
+  }
+
+  def getSiftAnswersStatus(applicationId: String) = Action.async { implicit request =>
     siftAnswersService.findSiftAnswers(applicationId).map { result =>
       result match {
         case Some(answers) => Ok(Json.toJson(answers))
