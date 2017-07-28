@@ -78,6 +78,10 @@ object CandidateAllocation {
   def fromExchange(o: model.exchange.CandidateAllocation): CandidateAllocation = {
     CandidateAllocation(o.id, o.status)
   }
+
+  def fromPersisted(o: model.persisted.CandidateAllocation): CandidateAllocation = {
+    CandidateAllocation(o.id, o.status)
+  }
 }
 
 case class CandidateAllocations(
