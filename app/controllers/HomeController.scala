@@ -16,6 +16,7 @@
 
 package controllers
 
+import java.nio.file.Files
 import java.time.ZoneId
 import java.util.TimeZone
 
@@ -145,6 +146,31 @@ abstract class HomeController(
 
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
+  }
+
+  private val validMSWordContentTypes = List(
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  )
+  def submitWrittenExercise(): Action[AnyContent] = CSRSecureAppAction(AssessmentCentreRole) { implicit request => implicit cachedData =>
+    request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
+      multiPartRequest.file("writtenExerciseFile").map { document =>
+
+        val filename = document.filename
+        document.contentType match {
+          case Some(contentType) if validMSWordContentTypes.contains(contentType) => {
+            val fileContents = Files.readAllBytes(document.ref.file.toPath)
+          }
+          case _ =>
+            Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.writtenExercise.upload.invalidFileType"))
+        }
+
+        Ok("File uploaded")
+      }
+    }.getOrElse {
+      Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.writtenExercise.upload.error"))
+    }
+    Future.successful(Ok)
   }
 
   private def displayEdipOrSdipResultsPage(implicit cachedData: CachedData,

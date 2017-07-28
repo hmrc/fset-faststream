@@ -1,3 +1,5 @@
+@import helper._
+
 @(page: models.page.PostOnlineTestsPage)(implicit request: Request[_])
 
 @renderSchemeForm = {
@@ -37,11 +39,14 @@
                 <section>
                     <p>You need to upload your written analysis exercise.</p>
                     <div id="attachWordDocument">
-                        <input type="file" class="input-file" id="scoresUpload" name="" accept=".doc, .docx">
+                    @helper.form(action = routes.HomeController.submitWrittenExercise(), 'novalidate -> "novalidate") {
+                        @helper.CSRF.formField
+                        <input type="file" class="input-file" id="writtenExerciseFile" name="writtenExerciseFile" accept=".doc, .docx">
                         <label for="scoresUpload" class="button">Upload document</label>
                         <div id="fileSelected"></div>
-                            <a href="?Status=sift-successful&Assessment=complete" class="button" id="importScoresBtn"
-                        style="display: none">Submit analysis exercise</a>
+                            <button type="submit" name="writtenExerciseSubmit" class="button" id="writtenExerciseBtn"
+                        style="display: none">Submit analysis exercise</button>
+                    }
                     </div>
                 </section>
                 <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">

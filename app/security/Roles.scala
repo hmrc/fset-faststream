@@ -124,6 +124,11 @@ object Roles {
       activeUserWithActiveApp(user) && !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED)
   }
 
+  object AssessmentCentreRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
+      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE)
+  }
+
   object WithdrawnApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
       statusIn(user)(WITHDRAWN)
@@ -182,26 +187,6 @@ object Roles {
 
     // format: ON
   }
-
-  /*object ConfirmedAllocatedCandidateRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE)
-  }
-
-  object UnconfirmedAllocatedCandidateRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE) && assessmentCentreAllocationUnconfirmed
-  }
-
-  object AssessmentCentreFailedNotifiedRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE_FAILED_NOTIFIED)
-  }
-
-  object AssessmentCentrePassedNotifiedRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE_PASSED_NOTIFIED)
-  }*/
 
   object AssessmentCentreFailedToAttendRole extends AuthorisedUser {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader) = assessmentCentreFailedToAttend(user)
