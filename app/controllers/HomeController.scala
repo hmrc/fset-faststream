@@ -148,29 +148,37 @@ abstract class HomeController(
     }
   }
 
-  private val validMSWordContentTypes = List(
+  private lazy val validMSWordContentTypes = List(
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   )
-  def submitWrittenExercise(): Action[AnyContent] = CSRSecureAppAction(AssessmentCentreRole) { implicit request => implicit cachedData =>
+
+  private lazy val maxWrittenExerciseFileSizeInBytes = 4096 * 1024
+
+  def submitAnalysisExercise(): Action[AnyContent] = CSRSecureAppAction(AssessmentCentreRole) { implicit request => implicit cachedData =>
     request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
       multiPartRequest.file("writtenExerciseFile").map { document =>
-
-        val filename = document.filename
-        document.contentType match {
-          case Some(contentType) if validMSWordContentTypes.contains(contentType) => {
-            val fileContents = Files.readAllBytes(document.ref.file.toPath)
+        if (document.ref.file.length() > maxWrittenExerciseFileSizeInBytes) {
+          Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooBig")))
+        } else {
+          document.contentType match {
+            case Some(contentType) if validMSWordContentTypes.contains(contentType) =>
+              val fileContents = Files.readAllBytes(document.ref.file.toPath)
+              applicationClient.uploadAnalysisExercise(cachedData.application.applicationId, contentType, fileContents).map { result =>
+                Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
+              }
+            case _ =>
+              Future.successful(
+                Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.wrongContentType"))
+              )
           }
-          case _ =>
-            Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.writtenExercise.upload.invalidFileType"))
         }
-
-        Ok("File uploaded")
       }
     }.getOrElse {
-      Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.writtenExercise.upload.error"))
+      Logger.info(s"A malformed file request was submitted as a written analysis exercise " +
+        s"(applicationId = ${cachedData.application.applicationId})")
+      Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error")))
     }
-    Future.successful(Ok)
   }
 
   private def displayEdipOrSdipResultsPage(implicit cachedData: CachedData,

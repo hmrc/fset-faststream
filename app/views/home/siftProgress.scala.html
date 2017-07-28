@@ -39,12 +39,12 @@
                 <section>
                     <p>You need to upload your written analysis exercise.</p>
                     <div id="attachWordDocument">
-                    @helper.form(action = routes.HomeController.submitWrittenExercise(), 'novalidate -> "novalidate") {
-                        @helper.CSRF.formField
-                        <input type="file" class="input-file" id="writtenExerciseFile" name="writtenExerciseFile" accept=".doc, .docx">
-                        <label for="scoresUpload" class="button">Upload document</label>
+                    @form(action = routes.HomeController.submitAnalysisExercise(), 'novalidate -> "novalidate", 'enctype -> "multipart/form-data") {
+                        @CSRF.formField
+                        <input type="file" class="input-file" id="analysisExerciseFile" name="analysisExerciseFile" accept=".doc, .docx">
+                        <label for="analysisExerciseFile" class="button">Upload document</label>
                         <div id="fileSelected"></div>
-                            <button type="submit" name="writtenExerciseSubmit" class="button" id="writtenExerciseBtn"
+                            <button type="submit" name="analysisExerciseSubmit" class="button" id="analysisExerciseBtn"
                         style="display: none">Submit analysis exercise</button>
                     }
                     </div>

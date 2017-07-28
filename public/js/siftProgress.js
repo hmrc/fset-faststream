@@ -27,16 +27,16 @@ $(function()
                     $('#fileSelected').addClass('panel-indent').html(
                         '<h3 class="bold-small">Document you\'re submitting:</h3><p><i class="fa fa-paperclip" aria-hidden="true"></i>' +
                         fileName + '</p>');
-                    $('#importScoresBtn').show();
+                    $('#analysisExerciseBtn').show();
                     $label.removeClass('button').addClass(
                         'button-link').text(
                         'Upload different document');
-                    $('#downloadBtn').hide();
+                    // $('#downloadBtn').hide();
                 }
                 else
                 {
                     $label.html(labelVal);
-                    $('#importScoresBtn').hide();
+                    $('#analysisExerciseBtn').hide();
                 }
             });
             // Firefox bug fix
