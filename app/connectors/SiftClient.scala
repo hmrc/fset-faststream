@@ -41,7 +41,7 @@ trait SiftClient {
   import config.FrontendAppConfig.faststreamConfig._
 
   def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
-                                (implicit hc: HeaderCarrier) = {
+                                (implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(
       s"${url.host}${url.base}/sift-answers/$applicationId/$schemeId",
       answer
@@ -52,7 +52,7 @@ trait SiftClient {
     }
   }
 
-  def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)(implicit hc: HeaderCarrier) = {
+  def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)(implicit hc: HeaderCarrier): Future[SchemeSpecificAnswer] = {
     http.GET(s"${url.host}${url.base}/sift-answers/$applicationId/$schemeId").map { response =>
       response.json.as[connectors.exchange.SchemeSpecificAnswer]
     } recover {
@@ -60,7 +60,7 @@ trait SiftClient {
     }
   }
 
-  def getSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+  def getSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftAnswers] = {
     http.GET(s"${url.host}${url.base}/sift-answers/$applicationId").map { response =>
       response.json.as[connectors.exchange.SiftAnswers]
     } recover {

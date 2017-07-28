@@ -164,34 +164,6 @@ trait ApplicationClient {
     }
   }
 
-  def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
-                                (implicit hc: HeaderCarrier) = {
-    http.POST(
-      s"${url.host}${url.base}/sift-answers/$applicationId/$schemeId",
-      answer
-    ).map {
-      case x: HttpResponse if x.status == OK => ()
-    } recover {
-      case _: BadRequestException => throw new CannotUpdateRecord()
-    }
-  }
-
-  def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)(implicit hc: HeaderCarrier) = {
-    http.GET(s"${url.host}${url.base}/sift-answers/$applicationId/$schemeId").map { response =>
-      response.json.as[connectors.exchange.SchemeSpecificAnswer]
-    } recover {
-      case _: NotFoundException => throw new SchemeSpecificAnswerNotFound()
-    }
-  }
-
-  def getSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
-    http.GET(s"${url.host}${url.base}/sift-answers/$applicationId").map { response =>
-      response.json.as[connectors.exchange.SiftAnswers]
-    } recover {
-      case _: NotFoundException => throw new SiftAnswersNotFound()
-    }
-  }
-
   def verifyInvigilatedToken(email: String, token: String)(implicit hc: HeaderCarrier): Future[InvigilatedTestUrl] =
     http.POST(s"${url.host}${url.base}/online-test/phase2/verifyAccessCode", VerifyInvigilatedTokenUrlRequest(email.toLowerCase, token)).map {
       (resp: HttpResponse) => {
