@@ -47,53 +47,41 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
     with ReactiveRepositoryHelpers with BaseBSONReader {
 
   override def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: SchemeSpecificAnswer): Future[Unit] = {
-    findSiftAnswersStatus(applicationId).flatMap { status =>
-      status match {
-        case Some(SiftAnswersStatus.SUBMITTED) =>
-          Future.failed(SiftAnswersSubmitted(s"Additional answers for applicationId: $applicationId have already been submitted"))
-        case _ => {
-          val query = BSONDocument("applicationId" -> applicationId)
-          val validator = singleUpsertValidator(applicationId, "adding scheme specific answer")
+    failWithSubmitted(applicationId) {
+      val query = BSONDocument("applicationId" -> applicationId)
+      val validator = singleUpsertValidator(applicationId, "adding scheme specific answer")
 
-          findSiftAnswers(applicationId).map { result =>
-            val updatedSiftAnswers: SiftAnswers = result match {
-              case Some(existing) => existing.copy(schemeAnswers = existing.schemeAnswers + (schemeId.value -> answer))
-              case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, None, Map(schemeId.value -> answer))
-            }
-
-            collection.update(
-              query,
-              BSONDocument("$set" -> updatedSiftAnswers),
-              upsert = true
-            ) map validator
-          }
+      findSiftAnswers(applicationId).map { result =>
+        val updatedSiftAnswers: SiftAnswers = result match {
+          case Some(existing) => existing.copy(schemeAnswers = existing.schemeAnswers + (schemeId.value -> answer))
+          case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, None, Map(schemeId.value -> answer))
         }
+
+        collection.update(
+          query,
+          BSONDocument("$set" -> updatedSiftAnswers),
+          upsert = true
+        ) map validator
       }
     }
   }
 
   override def addGeneralAnswers(applicationId: String, answers: GeneralQuestionsAnswers): Future[Unit] = {
-    findSiftAnswersStatus(applicationId).flatMap { status =>
-      status match {
-        case Some(SiftAnswersStatus.SUBMITTED) =>
-          Future.failed(SiftAnswersSubmitted(s"Additional answers for applicationId: $applicationId have already been submitted"))
-        case _ => {
-          val query = BSONDocument("applicationId" -> applicationId)
-          val validator = singleUpsertValidator(applicationId, actionDesc = "adding general answers")
+    failWithSubmitted(applicationId) {
+      val query = BSONDocument("applicationId" -> applicationId)
+      val validator = singleUpsertValidator(applicationId, actionDesc = "adding general answers")
 
-          findSiftAnswers(applicationId).map { result =>
-            val updatedSiftAnswers: SiftAnswers = result match {
-              case Some(existing) => existing.copy(generalAnswers = Some(answers))
-              case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, Some(answers), Map.empty)
-            }
-
-            collection.update(
-              query,
-              BSONDocument("$set" -> updatedSiftAnswers),
-              upsert = true
-            ) map validator
-          }
+      findSiftAnswers(applicationId).map { result =>
+        val updatedSiftAnswers: SiftAnswers = result match {
+          case Some(existing) => existing.copy(generalAnswers = Some(answers))
+          case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, Some(answers), Map.empty)
         }
+
+        collection.update(
+          query,
+          BSONDocument("$set" -> updatedSiftAnswers),
+          upsert = true
+        ) map validator
       }
     }
   }
@@ -128,24 +116,29 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
   }
 
   override def submitAnswers(applicationId: String, requiredSchemes: Set[SchemeId]): Future[Unit] = {
-    findSiftAnswersStatus(applicationId).flatMap { status =>
-      status match {
-        case Some(SiftAnswersStatus.SUBMITTED) =>
-          Future.failed(SiftAnswersSubmitted(s"Additional answers for applicationId: $applicationId have already been submitted"))
-        case _ => {
-          val query = BSONDocument("$and" -> BSONArray(
-            BSONDocument("applicationId" -> applicationId),
-            BSONDocument("status" -> SiftAnswersStatus.DRAFT)
-          ))
-          val validator = singleUpdateValidator(applicationId, actionDesc = "Submitting sift answers",
-            SiftAnswersIncomplete(""))
-
-          collection.update(
-            query,
-            BSONDocument("$set" -> BSONDocument("status" -> SiftAnswersStatus.SUBMITTED))
-          ) map validator
+    failWithSubmitted(applicationId) {
+      val query = BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationId" -> applicationId),
+        BSONDocument("generalAnswers" -> BSONDocument("$exists" -> true)),
+        requiredSchemes map { schemeId =>
+          BSONDocument(s"schemeAnswers.$schemeId" -> BSONDocument("$exists" -> true))
         }
-      }
+      ))
+      val validator = singleUpdateValidator(applicationId, actionDesc = "Submitting sift answers",
+        SiftAnswersIncomplete(s"Additional questions missing general or scheme specific (${requiredSchemes.mkString(',')}) answers"))
+
+      collection.update(
+        query,
+        BSONDocument("$set" -> BSONDocument("status" -> SiftAnswersStatus.SUBMITTED))
+      ) map validator
+    }
+  }
+
+  private def failWithSubmitted(applicationId: String)(action: => Future[Unit]): Future[Unit] = {
+    findSiftAnswersStatus(applicationId).flatMap {
+      case Some(SiftAnswersStatus.SUBMITTED) =>
+        Future.failed(SiftAnswersSubmitted(s"Additional answers for applicationId: $applicationId have already been submitted"))
+      case _ => action
     }
   }
 }
