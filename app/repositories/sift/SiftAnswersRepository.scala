@@ -125,7 +125,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
         }
       ))
       val validator = singleUpdateValidator(applicationId, actionDesc = "Submitting sift answers",
-        SiftAnswersIncomplete(s"Additional questions missing general or scheme specific (${requiredSchemes.mkString(',')}) answers"))
+        SiftAnswersIncomplete(s"""Additional questions missing general or scheme specific (${requiredSchemes.mkString(",")}) answers"""))
 
       collection.update(
         query,
