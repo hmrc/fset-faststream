@@ -18,22 +18,33 @@ package connectors.exchange.sift
 
 import play.api.libs.json.Json
 
-case class DegreeInfoAnswers(
+case class UndergradDegreeInfoAnswers(
   name: String,
   classification: String,
   graduationYear: String,
   moduleDetails: String
 )
 
-object DegreeInfoAnswers {
-  implicit val degreeInfoFormat= Json.format[DegreeInfoAnswers]
+object UndergradDegreeInfoAnswers {
+  implicit val degreeInfoFormat= Json.format[UndergradDegreeInfoAnswers]
+}
+
+case class PostGradDegreeInfoAnswers(
+  name: String,
+  graduationYear: String,
+  otherDetails: String,
+  projectDetails: String
+)
+
+object PostGradDegreeInfoAnswers {
+  implicit val postGradDegreeInfoAnswersFormat = Json.format[PostGradDegreeInfoAnswers]
 }
 
 case class GeneralQuestionsAnswers(
   multiplePassports: Boolean,
   passportCountry: String,
-  hasUndergradDegree: Option[DegreeInfoAnswers],
-  hasPostgradDegree: Option[DegreeInfoAnswers]
+  hasUndergradDegree: Option[UndergradDegreeInfoAnswers],
+  hasPostgradDegree: Option[PostGradDegreeInfoAnswers]
 )
 
 object GeneralQuestionsAnswers {
