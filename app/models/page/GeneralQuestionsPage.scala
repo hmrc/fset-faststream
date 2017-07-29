@@ -21,16 +21,30 @@ import forms.sift.GeneralQuestionsForm
 import play.api.data.Form
 
 case class GeneralQuestionsPage(
-  form : Form[GeneralQuestionsAnswers]
+  form : Form[GeneralQuestionsForm.Data]
 )
 
 object GeneralQuestionsPage {
 
-  def apply(answers: Option[GeneralQuestionsAnswers]): GeneralQuestionsPage = {
+  /*def apply(answers: Option[GeneralQuestionsForm.Data]): GeneralQuestionsPage = {
     GeneralQuestionsPage(
       answers.map(GeneralQuestionsForm.form.fill).getOrElse(GeneralQuestionsForm.form)
     )
-  }
+  }*/
+
+  def apply(answers: Option[GeneralQuestionsAnswers]): GeneralQuestionsPage = GeneralQuestionsPage(
+    answers.map { a =>
+      GeneralQuestionsForm.form.fill(GeneralQuestionsForm.Data(
+        multiplePassports = a.multiplePassports,
+        secondPassportCountry = a.secondPassportCountry,
+        passportCountry = a.passportCountry,
+        hasUndergradDegree = a.undergradDegree.isDefined,
+        undergradDegree = a.undergradDegree,
+        hasPostgradDegree = a.postgradDegree.isDefined,
+        postgradDegree = a.postgradDegree
+      ))
+    }.getOrElse(GeneralQuestionsForm.form)
+  )
 
 
 }

@@ -20,14 +20,15 @@ import connectors.exchange.sift.{ GeneralQuestionsAnswers, PostGradDegreeInfoAns
 import play.api.data.Forms._
 import play.api.data.{ Form, FormError }
 import play.api.data.format.Formatter
+import play.api.i18n.Messages
 
 object UndergradDegreeInfoForm {
 
   val form = Form(
-    mapping("name" -> text,
-      "classification" -> text,
-      "graduationYear" -> text,
-      "moduleDetails" -> text
+    mapping("undergradDegree.name" -> text,
+      "undergradDegree.classification" -> text,
+      "undergradDegree.graduationYear" -> text,
+      "undergradDegree.moduleDetails" -> optional(text)
   )(UndergradDegreeInfoAnswers.apply)(UndergradDegreeInfoAnswers.unapply))
 
   val Classifications = Seq(
@@ -41,41 +42,68 @@ object UndergradDegreeInfoForm {
 
 object PostGradDegreeInfoForm {
    val form = Form(
-    mapping("name" -> text,
-      "graduationYear" -> text,
-      "otherDetails" -> text,
-      "projectDetails" -> text
+    mapping("postgradDegree.name" -> text,
+      "postgradDegree.graduationYear" -> text,
+      "postgradDegree.otherDetails" -> optional(text),
+      "postgradDegree.projectDetails" -> optional(text)
   )(PostGradDegreeInfoAnswers.apply)(PostGradDegreeInfoAnswers.unapply))
 }
 
 
 object GeneralQuestionsForm {
+
+  case class Data(
+    multiplePassports: Boolean,
+    secondPassportCountry: Option[String],
+    passportCountry: String,
+    hasUndergradDegree: Boolean,
+    undergradDegree: Option[UndergradDegreeInfoAnswers],
+    hasPostgradDegree: Boolean,
+    postgradDegree: Option[PostGradDegreeInfoAnswers]
+  )
+
   val form = Form(
     mapping("multiplePassports" -> boolean,
+      "secondPassportCountry" -> optional(text),
       "passportCountry" -> text,
-      "undergradDegree" -> of(undergradDegreeInfoFormFormatter),
-      "postgradDegree" -> of(postGradDegreeInfoFormFormatter)
-  )(GeneralQuestionsAnswers.apply)(GeneralQuestionsAnswers.unapply))
+      "hasUndergradDegree" -> boolean,
+      "undergradDegree" -> of(undergradDegreeInfoFormFormatter("hasUndergradDegree")),
+      "hasPostgradDegree" -> boolean,
+      "postgradDegree" -> of(postGradDegreeInfoFormFormatter("hasPostgradDegree"))
+  )(Data.apply)(Data.unapply))
 
-  def undergradDegreeInfoFormFormatter = new Formatter[Option[UndergradDegreeInfoAnswers]] {
+  def undergradDegreeInfoFormFormatter(yesNo: String) = new Formatter[Option[UndergradDegreeInfoAnswers]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[UndergradDegreeInfoAnswers]] = {
-        UndergradDegreeInfoForm.form.mapping.bind(data) match {
-          case Right(success) => Right(Some(success))
-          case Left(error) => Left(error)
-        }
+      play.api.Logger.error(s"\n\n DATA \n $data")
+      val requiredField: Option[String] = if (data.isEmpty) None else data.get(yesNo)
+
+      requiredField match {
+        case Some("true") =>
+          UndergradDegreeInfoForm.form.mapping.bind(data) match {
+            case Right(success) => Right(Some(success))
+            case Left(error) => Left(error)
+          }
+        case _ => Right(None)
       }
+    }
 
     override def unbind(key: String, fastPassData: Option[UndergradDegreeInfoAnswers]): Map[String, String] =
       fastPassData.map(fpd => UndergradDegreeInfoForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 
-  def postGradDegreeInfoFormFormatter = new Formatter[Option[PostGradDegreeInfoAnswers]] {
+  def postGradDegreeInfoFormFormatter(yesNo: String) = new Formatter[Option[PostGradDegreeInfoAnswers]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[PostGradDegreeInfoAnswers]] = {
-        PostGradDegreeInfoForm.form.mapping.bind(data) match {
-          case Right(success) => Right(Some(success))
-          case Left(error) => Left(error)
-        }
+      val requiredField: Option[String] = if (data.isEmpty) None else data.get(yesNo)
+
+      requiredField match {
+        case Some("true") =>
+          PostGradDegreeInfoForm.form.mapping.bind(data) match {
+            case Right(success) => Right(Some(success))
+            case Left(error) => Left(error)
+          }
+        case _ => Right(None)
       }
+    }
 
     override def unbind(key: String, fastPassData: Option[PostGradDegreeInfoAnswers]): Map[String, String] =
       fastPassData.map(fpd => PostGradDegreeInfoForm.form.fill(fpd).data).getOrElse(Map(key -> ""))

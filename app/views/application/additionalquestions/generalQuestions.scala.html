@@ -8,6 +8,7 @@
 @main_template(title = "Nationality and higher education", additionalJavascriptFilenames = List("vendor/chosen.jquery.js", "generalQuestions.js")) {
     <h1 class="heading-xlarge">Nationality and higher education</h1>
     @helper.form(action = routes.SiftQuestionsController.saveGeneralQuestions(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
         <fieldset>
             <legend class="form-label">Do you currently hold more than one passport?</legend>
             @yesNoRadioWithTogglePanel(page.form("multiplePassport"),
@@ -26,7 +27,7 @@
 
         <fieldset>
             <legend class="form-label">Do you have an undergraduate degree?</legend>
-            @yesNoRadioWithTogglePanel(page.form("undergradDegree"), 'id -> "undergradDegree") {
+            @yesNoRadioWithTogglePanel(page.form("hasUndergradDegree"), 'id -> "undergradDegree") {
                 <div id="undergradDegree-panel-yes" class="toggle-content" >
                     <h2 class="heading-medium">Undergraduate degree</h2>
                     <div class="form-group">
@@ -63,7 +64,7 @@
 
         <fieldset>
             <legend class="form-label">Do you have a postgraduate degree?</legend>
-            @yesNoRadioWithTogglePanel(page.form("postgradDegree"), 'id -> "postgradDegree") {
+            @yesNoRadioWithTogglePanel(page.form("hasPostgradDegree"), 'id -> "postgradDegree") {
                 <div id="postgradDegree-panel-yes" class="toggle-content" >
                     <h2 class="heading-medium">Postgraduate degree</h2>
                     <div class="form-group">
@@ -84,7 +85,7 @@
                         )
                     </div>
                     <div class="form-group">
-                        @helper.textarea(page.form("undergradDegree.otherDetails"),
+                        @helper.textarea(page.form("postgradDegree.otherDetails"),
                             '_label -> "List any other details about your postgraduate degree",
                             'class -> "form-control",
                             'rows -> 5,
@@ -92,7 +93,7 @@
                         )
                     </div>
                      <div class="form-group">
-                        @helper.textarea(page.form("undergradDegree.projectDetails"),
+                        @helper.textarea(page.form("postgradDegree.projectDetails"),
                             '_label -> "If you did a postgraduate project, enter the details here",
                             'class -> "form-control",
                             'rows -> 5,

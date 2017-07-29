@@ -16,13 +16,14 @@
 
 package connectors.exchange.sift
 
+import forms.sift.GeneralQuestionsForm
 import play.api.libs.json.Json
 
 case class UndergradDegreeInfoAnswers(
   name: String,
   classification: String,
   graduationYear: String,
-  moduleDetails: String
+  moduleDetails: Option[String]
 )
 
 object UndergradDegreeInfoAnswers {
@@ -32,8 +33,8 @@ object UndergradDegreeInfoAnswers {
 case class PostGradDegreeInfoAnswers(
   name: String,
   graduationYear: String,
-  otherDetails: String,
-  projectDetails: String
+  otherDetails: Option[String],
+  projectDetails: Option[String]
 )
 
 object PostGradDegreeInfoAnswers {
@@ -42,11 +43,22 @@ object PostGradDegreeInfoAnswers {
 
 case class GeneralQuestionsAnswers(
   multiplePassports: Boolean,
+  secondPassportCountry: Option[String],
   passportCountry: String,
-  hasUndergradDegree: Option[UndergradDegreeInfoAnswers],
-  hasPostgradDegree: Option[PostGradDegreeInfoAnswers]
+  undergradDegree: Option[UndergradDegreeInfoAnswers],
+  postgradDegree: Option[PostGradDegreeInfoAnswers]
 )
 
 object GeneralQuestionsAnswers {
   implicit val generalQuestionsAnswersFormat = Json.format[GeneralQuestionsAnswers]
+
+  def apply(a: GeneralQuestionsForm.Data): GeneralQuestionsAnswers = {
+    GeneralQuestionsAnswers(
+      a.multiplePassports,
+      a.secondPassportCountry,
+      a.passportCountry,
+      a.undergradDegree,
+      a.postgradDegree
+    )
+  }
 }

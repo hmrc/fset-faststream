@@ -20,7 +20,7 @@ import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.SchemeId
-import forms.SchemeSpecificQuestionsForm
+import connectors.exchange.sift.GeneralQuestionsAnswers
 import forms.sift.GeneralQuestionsForm
 import models.page.GeneralQuestionsPage
 import security.Roles.SchemeSpecificQuestionsRole
@@ -30,6 +30,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import play.api.mvc.{ Action, AnyContent }
 import security.{ SecurityEnvironment, SilhouetteComponent }
+import views.html.helper.form
 
 object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient, CSRCache) {
   val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
@@ -52,8 +53,17 @@ abstract class SiftQuestionsController(
 
   def saveGeneralQuestions() = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-
-    Future(Ok(""))
+      GeneralQuestionsForm.form.bindFromRequest.fold(
+        invalid => {
+          Future(Ok(views.html.application.additionalquestions.generalQuestions(GeneralQuestionsPage(invalid))))
+        },
+        form => {
+          val dataToSave = GeneralQuestionsAnswers.apply(form)
+          siftClient.updateGeneralAnswers(user.application.applicationId, dataToSave).map { _ =>
+            Redirect(routes.HomeController.present())
+          }
+        }
+      )
   }
 
   def presentSchemeForm(schemeId: SchemeId): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
