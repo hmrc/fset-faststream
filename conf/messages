@@ -267,3 +267,5 @@ global.error.InternalServerError500.message=Something went wrong, try again in a
 dashboard.final.results.Edip=Congratulations, you''ve been succcessful for the Early Diversity Internship Programme (EDIP).
 dashboard.final.results.Sdip=Congratulations, you''ve been succcessful for the Summer Diversity Internship Programme (SDIP).
 dashboard.final.results.SdipFaststream=Congratulations, you''ve been succcessful for the Summer Diversity Internship Programme (SDIP).
+
+additionalquestions.section.saved="You have saved your submission for this section"

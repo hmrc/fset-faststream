@@ -32,6 +32,7 @@ import play.api.Play.current
 import play.api.mvc.{ Action, AnyContent }
 import security.{ SecurityEnvironment, SilhouetteComponent }
 import views.html.helper.form
+import helpers.NotificationType._
 
 object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient, CSRCache) {
   val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
@@ -52,7 +53,7 @@ abstract class SiftQuestionsController(
       }
   }
 
-  def saveGeneralQuestions() = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def saveGeneralQuestions(): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       GeneralQuestionsForm.form.bindFromRequest.fold(
         invalid => {
@@ -61,7 +62,7 @@ abstract class SiftQuestionsController(
         form => {
           val dataToSave = GeneralQuestionsAnswers.apply(form)
           siftClient.updateGeneralAnswers(user.application.applicationId, dataToSave).map { _ =>
-            Redirect(routes.HomeController.present())
+            Redirect(routes.HomeController.present()).flashing(success("additionalquestions.section.saved"))
           }
         }
       )
