@@ -33,34 +33,24 @@ trait SiftAnswersService {
   def phase3ResultsService: EvaluatePhase3ResultService
 
   def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: model.exchange.sift.SchemeSpecificAnswer): Future[Unit] = {
-    siftAnswersRepo.addSchemeSpecificAnswer(applicationId, schemeId, model.persisted.sift.SchemeSpecificAnswer(answer.rawText))
+    siftAnswersRepo.addSchemeSpecificAnswer(applicationId, schemeId, model.persisted.sift.SchemeSpecificAnswer(answer))
   }
 
   def addGeneralAnswers(applicationId: String, answers: model.exchange.sift.GeneralQuestionsAnswers): Future[Unit] = {
-    siftAnswersRepo.addGeneralAnswers(applicationId, model.persisted.sift.GeneralQuestionsAnswers(
-      answers.multiplePassports, answers.passportCountry, answers.hasUndergradDegree, answers.hasPostgradDegree))
+    siftAnswersRepo.addGeneralAnswers(applicationId, model.persisted.sift.GeneralQuestionsAnswers(answers))
   }
 
   def findSiftAnswers(applicationId: String): Future[Option[model.exchange.sift.SiftAnswers]] = {
-    siftAnswersRepo.findSiftAnswers(applicationId).map(persisted => persisted.map(
-      psa => model.exchange.sift.SiftAnswers(
-        psa.applicationId,
-        model.exchange.sift.SiftAnswersStatus.withName(psa.status.toString),
-        psa.generalAnswers.map { ga =>
-          model.exchange.sift.GeneralQuestionsAnswers(
-            ga.multiplePassports,
-            ga.passportCountry,
-            ga.hasUndergradDegree,
-            ga.hasPostgradDegree)
-        },
-        psa.schemeAnswers.map {
-          case (k: String, v: model.persisted.sift.SchemeSpecificAnswer) => (k, model.exchange.sift.SchemeSpecificAnswer(v.rawText))
-      })))
+    siftAnswersRepo.findSiftAnswers(applicationId).map(persisted =>
+      persisted.map(
+        psa => model.exchange.sift.SiftAnswers(psa)
+      )
+    )
   }
 
-  def findSiftAnswersStatus(applicationId: String): Future[Option[model.exchange.sift.SiftAnswersStatus.SiftAnswersStatus]] = {
+  def findSiftAnswersStatus(applicationId: String): Future[Option[model.exchange.sift.SiftAnswersStatus.Value]] = {
     siftAnswersRepo.findSiftAnswersStatus(applicationId).map(persisted => persisted.map(
-      psas => model.exchange.sift.SiftAnswersStatus(psas)
+      psas => model.exchange.sift.SiftAnswersStatus.withName(psas.toString)
     ))
   }
 
@@ -72,7 +62,7 @@ trait SiftAnswersService {
 
   def findGeneralAnswers(applicationId: String): Future[Option[model.exchange.sift.GeneralQuestionsAnswers]] = {
     siftAnswersRepo.findGeneralQuestionsAnswers(applicationId).map(persisted => persisted.map(pgqa =>
-      model.exchange.sift.GeneralQuestionsAnswers(pgqa.multiplePassports, pgqa.passportCountry, pgqa.hasUndergradDegree, pgqa.hasPostgradDegree)
+      model.exchange.sift.GeneralQuestionsAnswers(pgqa)
     ))
   }
 
@@ -80,8 +70,7 @@ trait SiftAnswersService {
     for {
       phase3Results <- phase3ResultsService.getPassmarkEvaluation(applicationId)
       schemesPassedPhase3 = phase3Results.result.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
-      submitResult <- siftAnswersRepo.submitAnswers(applicationId, schemesPassedPhase3) recover {
-      }
+      submitResult <- siftAnswersRepo.submitAnswers(applicationId, schemesPassedPhase3)
     } yield submitResult
   }
 }

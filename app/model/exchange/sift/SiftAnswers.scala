@@ -30,9 +30,23 @@ object SiftAnswersStatus extends Enumeration {
   }
 }
 
-case class SiftAnswers(applicationId: String, status: SiftAnswersStatus,
-  generalAnswers: Option[GeneralQuestionsAnswers], siftAnswers: Map[String, SchemeSpecificAnswer])
+case class SiftAnswers(
+  applicationId: String,
+  status: SiftAnswersStatus,
+  generalAnswers: Option[GeneralQuestionsAnswers],
+  schemeAnswers: Map[String, SchemeSpecificAnswer])
 
 object SiftAnswers {
   implicit val siftAnswersFormat = Json.format[SiftAnswers]
+
+  def apply(a: model.persisted.sift.SiftAnswers): SiftAnswers = {
+    SiftAnswers(
+      a.applicationId,
+      model.exchange.sift.SiftAnswersStatus.withName(a.status.toString),
+      a.generalAnswers.map(model.exchange.sift.GeneralQuestionsAnswers(_)),
+      a.schemeAnswers.map{
+        case (k: String, v: model.persisted.sift.SchemeSpecificAnswer) => (k, model.exchange.sift.SchemeSpecificAnswer(v.rawText))
+      }
+    )
+  }
 }

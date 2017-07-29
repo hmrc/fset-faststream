@@ -47,24 +47,28 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
     with ReactiveRepositoryHelpers with BaseBSONReader {
 
   override def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: SchemeSpecificAnswer): Future[Unit] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId),
-      BSONDocument("status" -> BSONDocument("$ne" -> SiftAnswersStatus.SUBMITTED))
-    ))
-    val validator = singleUpsertValidator(applicationId, "adding scheme specific answer",
-      SchemeSpecificAnswerNotFound(""))
+    findSiftAnswersStatus(applicationId).flatMap { status =>
+      status match {
+        case Some(SiftAnswersStatus.SUBMITTED) =>
+          Future.failed(SiftAnswersSubmitted(s"Additional answers for applicationId: $applicationId have already been submitted"))
+        case _ => {
+          val query = BSONDocument("applicationId" -> applicationId)
+          val validator = singleUpsertValidator(applicationId, "adding scheme specific answer")
 
-    findSiftAnswers(applicationId).map { result =>
-      val updatedSiftAnswers: SiftAnswers = result match {
-        case Some(existing) => existing.copy(schemeAnswers = existing.schemeAnswers + (schemeId.value -> answer))
-        case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, None, Map(schemeId.value -> answer))
+          findSiftAnswers(applicationId).map { result =>
+            val updatedSiftAnswers: SiftAnswers = result match {
+              case Some(existing) => existing.copy(schemeAnswers = existing.schemeAnswers + (schemeId.value -> answer))
+              case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, None, Map(schemeId.value -> answer))
+            }
+
+            collection.update(
+              query,
+              BSONDocument("$set" -> updatedSiftAnswers),
+              upsert = true
+            ) map validator
+          }
+        }
       }
-
-      collection.update(
-        query,
-        BSONDocument("$set" -> updatedSiftAnswers),
-        upsert = true
-      ) map validator
     }
   }
 
@@ -72,7 +76,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
     findSiftAnswersStatus(applicationId).flatMap { status =>
       status match {
         case Some(SiftAnswersStatus.SUBMITTED) =>
-          Future.failed(SiftAnswersSubmitted(s"SiftAnswers for applicationId: $applicationId have already been submitted"))
+          Future.failed(SiftAnswersSubmitted(s"Additional answers for applicationId: $applicationId have already been submitted"))
         case _ => {
           val query = BSONDocument("applicationId" -> applicationId)
           val validator = singleUpsertValidator(applicationId, actionDesc = "adding general answers")
@@ -124,16 +128,24 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
   }
 
   override def submitAnswers(applicationId: String, requiredSchemes: Set[SchemeId]): Future[Unit] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId),
-      BSONDocument("status" -> SiftAnswersStatus.DRAFT)
-    ))
-    val validator = singleUpdateValidator(applicationId, actionDesc = "Submitting sift answers",
-      SiftAnswersIncomplete(""))
+    findSiftAnswersStatus(applicationId).flatMap { status =>
+      status match {
+        case Some(SiftAnswersStatus.SUBMITTED) =>
+          Future.failed(SiftAnswersSubmitted(s"Additional answers for applicationId: $applicationId have already been submitted"))
+        case _ => {
+          val query = BSONDocument("$and" -> BSONArray(
+            BSONDocument("applicationId" -> applicationId),
+            BSONDocument("status" -> SiftAnswersStatus.DRAFT)
+          ))
+          val validator = singleUpdateValidator(applicationId, actionDesc = "Submitting sift answers",
+            SiftAnswersIncomplete(""))
 
-    collection.update(
-      query,
-      BSONDocument("$set" -> BSONDocument("status" -> SiftAnswersStatus.SUBMITTED))
-    ) map validator
+          collection.update(
+            query,
+            BSONDocument("$set" -> BSONDocument("status" -> SiftAnswersStatus.SUBMITTED))
+          ) map validator
+        }
+      }
+    }
   }
 }

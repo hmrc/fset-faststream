@@ -22,4 +22,10 @@ case class SchemeSpecificAnswer(rawText: String)
 
 object SchemeSpecificAnswer {
   implicit val schemeSpecificAnswerFormat = Json.format[SchemeSpecificAnswer]
+
+  def apply(a: model.persisted.sift.SchemeSpecificAnswer): SchemeSpecificAnswer = {
+    SchemeSpecificAnswer(
+      a.rawText
+    )
+  }
 }
