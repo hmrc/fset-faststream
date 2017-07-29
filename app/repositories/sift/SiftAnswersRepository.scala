@@ -97,7 +97,11 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       BSONDocument(s"schemeAnswers.$schemeId" -> BSONDocument("$exists" -> true))
     ))
     val projection = BSONDocument(s"schemeAnswers.$schemeId" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[SchemeSpecificAnswer]
+    collection.find(query, projection).one[BSONDocument].map {
+      result => result.flatMap { outer =>
+        outer.getAs[BSONDocument](s"schemeAnswers.$schemeId").map(a => SchemeSpecificAnswer.schemeSpecificAnswerHandler.read(a))
+      }
+    }
   }
 
   override def findGeneralQuestionsAnswers(applicationId: String): Future[Option[GeneralQuestionsAnswers]] = {
@@ -106,13 +110,21 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       BSONDocument(s"generalAnswers" -> BSONDocument("$exists" -> true))
     ))
     val projection = BSONDocument(s"generalAnswers" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[GeneralQuestionsAnswers]
+    collection.find(query, projection).one[BSONDocument].map {
+      result => result.flatMap { outer =>
+        outer.getAs[BSONDocument]("generalAnswers").map(a => GeneralQuestionsAnswers.generalQuestionsAnswersHandler.read(a))
+      }
+    }
   }
 
   override def findSiftAnswersStatus(applicationId: String): Future[Option[SiftAnswersStatus]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("status" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[SiftAnswersStatus]
+    collection.find(query, projection).one[BSONDocument].map {
+      result => result.flatMap { outer =>
+        outer.getAs[BSONString]("status").map(a => SiftAnswersStatus.SiftAnswersStatusHandler.read(a))
+      }
+    }
   }
 
   override def submitAnswers(applicationId: String, requiredSchemes: Set[SchemeId]): Future[Unit] = {

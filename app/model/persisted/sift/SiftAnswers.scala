@@ -28,12 +28,12 @@ object SiftAnswersStatus extends Enumeration {
 
   val DRAFT, SUBMITTED = Value
 
-  implicit val EventTypeFormat = new Format[SiftAnswersStatus] {
+  implicit val SiftAnswersStatusFormat = new Format[SiftAnswersStatus] {
     override def reads(json: JsValue): JsResult[SiftAnswersStatus] = JsSuccess(SiftAnswersStatus.withName(json.as[String].toUpperCase))
     override def writes(eventType: SiftAnswersStatus): JsValue = JsString(eventType.toString)
   }
 
-  implicit object BSONEnumHandler extends BSONHandler[BSONString, SiftAnswersStatus] {
+  implicit object SiftAnswersStatusHandler extends BSONHandler[BSONString, SiftAnswersStatus] {
     override def write(eventType: SiftAnswersStatus): BSONString = BSON.write(eventType.toString)
     override def read(bson: BSONString): SiftAnswersStatus = SiftAnswersStatus.withName(bson.value.toUpperCase)
   }

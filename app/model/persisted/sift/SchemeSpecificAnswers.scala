@@ -24,7 +24,7 @@ case class SchemeSpecificAnswer(rawText: String)
 object SchemeSpecificAnswer
 {
   implicit val schemeSpecificAnswerFormat = Json.format[SchemeSpecificAnswer]
-  implicit val schemeAnswersHandler = Macros.handler[SchemeSpecificAnswer]
+  implicit val schemeSpecificAnswerHandler = Macros.handler[SchemeSpecificAnswer]
 
   def apply(a: model.exchange.sift.SchemeSpecificAnswer): SchemeSpecificAnswer = {
     SchemeSpecificAnswer(
