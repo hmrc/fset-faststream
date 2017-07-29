@@ -101,12 +101,10 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
   }
 
   override def findGeneralQuestionsAnswers(applicationId: String): Future[Option[GeneralQuestionsAnswers]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId),
-      BSONDocument(s"generalAnswers" -> BSONDocument("$exists" -> true))
-    ))
+    val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(s"generalAnswers" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[GeneralQuestionsAnswers]
+    collection.find(query, projection).one[BSONDocument].map { _.flatMap { doc => doc.getAs[GeneralQuestionsAnswers]("generalAnswers") }
+    }
   }
 
   override def findSiftAnswersStatus(applicationId: String): Future[Option[SiftAnswersStatus]] = {
