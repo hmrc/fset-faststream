@@ -109,7 +109,7 @@ trait SchemeSiftAnswersController extends BaseController {
   }
 
   def getSiftAnswersStatus(applicationId: String) = Action.async { implicit request =>
-    siftAnswersService.findSiftAnswers(applicationId).map { result =>
+    siftAnswersService.findSiftAnswersStatus(applicationId).map { result =>
       result match {
         case Some(status) => Ok(Json.toJson(status))
         case _ => NotFound(s"No existing additional answers for applicationId: $applicationId")

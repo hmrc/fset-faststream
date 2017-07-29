@@ -49,13 +49,13 @@ object SiftAnswers
   implicit object siftAnswersMapHandler extends BSONHandler[BSONDocument, Map[String, SchemeSpecificAnswer]] {
     override def read(bson: BSONDocument): Map[String, SchemeSpecificAnswer] = {
       bson.elements.map {
-        case (key, value) => key -> SchemeSpecificAnswer(value.asInstanceOf[BSONString].value)
+        case (key, value) => key -> SchemeSpecificAnswer.schemeSpecificAnswerHandler.read(value.asInstanceOf[BSONDocument])
       }.toMap
     }
 
     override def write(t: Map[String, SchemeSpecificAnswer]): BSONDocument = {
-      val stream: Stream[Try[(String, BSONString)]] = t.map {
-        case (key, value) => Try((key, BSONString(value.rawText)))
+      val stream: Stream[Try[(String, BSONDocument)]] = t.map {
+        case (key, value) => Try((key, SchemeSpecificAnswer.schemeSpecificAnswerHandler.write(value)))
       }.toStream
       BSONDocument(stream)
     }
