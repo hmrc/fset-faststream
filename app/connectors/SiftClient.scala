@@ -98,11 +98,11 @@ trait SiftClient {
     }
   }
 
-  def getSiftAnswersStatus(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftAnswersStatus] = {
+  def getSiftAnswersStatus(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[SiftAnswersStatus]] = {
     http.GET(s"$apiBase/sift-answers/$applicationId/status").map { response =>
-      response.json.as[SiftAnswersStatus]
+      Some(response.json.as[SiftAnswersStatus])
     } recover {
-      case _: NotFoundException => throw new SiftAnswersNotFound()
+      case _: NotFoundException => None
     }
   }
 }

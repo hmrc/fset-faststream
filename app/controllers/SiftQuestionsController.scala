@@ -19,8 +19,8 @@ package controllers
 import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
-import connectors.exchange.referencedata.SchemeId
-import connectors.exchange.sift.GeneralQuestionsAnswers
+import connectors.exchange.referencedata.{ Scheme, SchemeId }
+import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
 import models.page.GeneralQuestionsPage
@@ -33,6 +33,7 @@ import play.api.mvc.{ Action, AnyContent }
 import security.{ SecurityEnvironment, SilhouetteComponent }
 import views.html.helper.form
 import helpers.NotificationType._
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient, CSRCache) {
   val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
@@ -42,6 +43,10 @@ object SiftQuestionsController extends SiftQuestionsController(ApplicationClient
 abstract class SiftQuestionsController(
   applicationClient: ApplicationClient, siftClient: SiftClient, referenceDataClient: ReferenceDataClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+
+  def schemeMetadata(schemeId: SchemeId)(implicit hc: HeaderCarrier): Future[Scheme] = {
+    referenceDataClient.allSchemes().map(schemes => schemes.find(_.id == schemeId).get)
+  }
 
   def presentGeneralQuestions(): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
@@ -70,9 +75,7 @@ abstract class SiftQuestionsController(
 
   def presentSchemeForm(schemeId: SchemeId): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      referenceDataClient.allSchemes().map { allSchemes =>
-        val scheme = allSchemes.find(_.id == schemeId).get
-
+      schemeMetadata(schemeId).map { scheme =>
         if (canAnswersBeModified()) {
           Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form, scheme))
         } else {
@@ -85,14 +88,12 @@ abstract class SiftQuestionsController(
     implicit user =>
       SchemeSpecificQuestionsForm.form.bindFromRequest.fold(
         invalid => {
-          referenceDataClient.allSchemes().map { allSchemes =>
-            val scheme = allSchemes.find(_.id == schemeId).get
-
+          schemeMetadata(schemeId).map { scheme =>
             Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form, scheme))
           }
         },
         form => {
-          val dataToSave = SchemeSpecificQuestionsForm.form.value.get
+          val dataToSave = SchemeSpecificAnswer.apply(form.rawText)
           siftClient.updateSchemeSpecificAnswer(user.application.applicationId, schemeId, dataToSave).map { _ =>
             Redirect(routes.HomeController.present())
           }
@@ -105,9 +106,12 @@ abstract class SiftQuestionsController(
       Future.successful(Ok(views.html.application.success()))
   }
 
-  def submitSchemeForms: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def submitAdditionalQuestions: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      Future.successful(Ok(views.html.application.success()))
+      siftClient.submitSiftAnswers(user.application.applicationId).map { _ =>
+        //Ok(views.html.application.success())
+        Redirect(routes.HomeController.present()).flashing(success("additionalquestions.submitted"))
+      }
   }
 
 

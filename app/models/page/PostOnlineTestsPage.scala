@@ -18,6 +18,8 @@ package models.page
 
 import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
+import connectors.exchange.sift.SiftAnswersStatus
+import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
 import models.{ CachedData, CachedDataWithApp, SchemeStatus }
 
 case class CurrentSchemeStatus(
@@ -28,7 +30,8 @@ case class CurrentSchemeStatus(
 
 case class PostOnlineTestsPage(
   userDataWithApp: CachedDataWithApp,
-  schemes: Seq[CurrentSchemeStatus]
+  schemes: Seq[CurrentSchemeStatus],
+  additionalQuestionsStatus: Option[SiftAnswersStatus]
 ) {
   def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
   def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Green)
@@ -44,10 +47,13 @@ case class PostOnlineTestsPage(
   val hasFormRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
   val hasNumericRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   val hasAssessmentCentreRequirement: Boolean = true
+
+  val hasAdditionalQuestionsBeenSubmitted: Boolean = additionalQuestionsStatus == Some(SiftAnswersStatus.SUBMITTED)
 }
 
 object PostOnlineTestsPage {
-  def apply(userDataWithApp: CachedDataWithApp, phase3Results: Seq[SchemeEvaluationResult], allSchemes: Seq[Scheme]): PostOnlineTestsPage = {
+  def apply(userDataWithApp: CachedDataWithApp, phase3Results: Seq[SchemeEvaluationResult], allSchemes: Seq[Scheme],
+    siftAnswersStatus: Option[SiftAnswersStatus]): PostOnlineTestsPage = {
 
     val currentSchemes = phase3Results.flatMap { schemeResult =>
       allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
@@ -61,6 +67,6 @@ object PostOnlineTestsPage {
       }
     }
 
-    PostOnlineTestsPage(userDataWithApp, currentSchemes)
+    PostOnlineTestsPage(userDataWithApp, currentSchemes, siftAnswersStatus)
   }
 }

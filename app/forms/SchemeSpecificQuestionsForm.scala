@@ -24,7 +24,7 @@ object SchemeSpecificQuestionsForm {
 
   val form = Form(
     mapping(
-      "rawText" -> text
+      "schemeAnswer" -> text
     )(SchemeSpecificAnswer.apply)(SchemeSpecificAnswer.unapply)
   )
 }

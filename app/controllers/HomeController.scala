@@ -18,7 +18,7 @@ package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
-import connectors.{ ApplicationClient, ReferenceDataClient }
+import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange._
 import forms.WithdrawApplicationForm
@@ -39,6 +39,7 @@ import play.api.Play.current
 object HomeController extends HomeController(
   ApplicationClient,
   ReferenceDataClient,
+  SiftClient,
   CSRCache
 ) {
   val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
@@ -48,6 +49,7 @@ object HomeController extends HomeController(
 abstract class HomeController(
   applicationClient: ApplicationClient,
   refDataClient: ReferenceDataClient,
+  siftClient: SiftClient,
   cacheClient: CSRCache
 ) extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
   val Withdrawer = "Candidate"
@@ -128,8 +130,9 @@ abstract class HomeController(
     for {
       schemes <- refDataClient.allSchemes()
       phase3Results <- applicationClient.getPhase3Results(application.applicationId)
+      siftAnswersStatus <- siftClient.getSiftAnswersStatus(application.applicationId)
     } yield {
-      val page = PostOnlineTestsPage(CachedDataWithApp(cachedData.user, application), phase3Results.getOrElse(Nil), schemes)
+      val page = PostOnlineTestsPage(CachedDataWithApp(cachedData.user, application), phase3Results.getOrElse(Nil), schemes, siftAnswersStatus)
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
   }
