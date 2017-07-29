@@ -19,7 +19,8 @@ package connectors
 
 import config.CSRHttp
 import connectors.exchange.referencedata.SchemeId
-import connectors.exchange.sift.{ SchemeSpecificAnswer, SiftAnswers, GeneralQuestionsAnswers }
+import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
+import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers }
 import models.UniqueIdentifier
 import play.api.http.Status._
 import uk.gov.hmrc.play.http._
@@ -43,6 +44,7 @@ trait SiftClient {
       case x: HttpResponse if x.status == OK => ()
     } recover {
       case _: BadRequestException => throw new CannotUpdateRecord()
+      case _: ConflictException => throw new SiftAnswersSubmitted
     }
   }
 
@@ -55,14 +57,16 @@ trait SiftClient {
       case x: HttpResponse if x.status == OK => ()
     } recover {
       case _: BadRequestException => throw new CannotUpdateRecord()
+      case _: ConflictException => throw new SiftAnswersSubmitted
     }
   }
 
   def getGeneralQuestionsAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[GeneralQuestionsAnswers]] = {
-    //http.GET(s"$apiBase/sift-answers/$applicationId/generalQuestions").map { response =>
-    //  response.json.as[GeneralQuestionsAnswers]
-    //}
-    Future(None)
+    http.GET(s"$apiBase/sift-answers/$applicationId/general").map { response =>
+      Some(response.json.as[GeneralQuestionsAnswers])
+    } recover {
+      case _: NotFoundException => None
+    }
   }
 
   def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)(implicit hc: HeaderCarrier): Future[SchemeSpecificAnswer] = {
@@ -88,7 +92,17 @@ trait SiftClient {
     ).map {
       case x: HttpResponse if x.status == OK => ()
     } recover {
+      case _: UnprocessableEntityException => throw new SiftAnswersIncomplete
+      case _: ConflictException => throw new SiftAnswersSubmitted
       case _: BadRequestException => throw new SiftAnswersNotFound()
+    }
+  }
+
+  def getSiftAnswersStatus(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftAnswersStatus] = {
+    http.GET(s"$apiBase/sift-answers/$applicationId/status").map { response =>
+      response.json.as[SiftAnswersStatus]
+    } recover {
+      case _: NotFoundException => throw new SiftAnswersNotFound()
     }
   }
 }

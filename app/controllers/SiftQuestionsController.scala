@@ -21,6 +21,7 @@ import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.SchemeId
 import connectors.exchange.sift.GeneralQuestionsAnswers
+import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
 import models.page.GeneralQuestionsPage
 import security.Roles.SchemeSpecificQuestionsRole
@@ -69,23 +70,33 @@ abstract class SiftQuestionsController(
   def presentSchemeForm(schemeId: SchemeId): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       referenceDataClient.allSchemes().map { allSchemes =>
-//        val scheme = allSchemes.find(_.id == schemeId).get
+        val scheme = allSchemes.find(_.id == schemeId).get
 
-  //      if (canAnswersBeModified()) {
-    //      Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form, scheme))
-      //  } else {
+        if (canAnswersBeModified()) {
+          Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form, scheme))
+        } else {
           Redirect(routes.HomeController.present())
-        //}
+        }
       }
   }
 
   def saveSchemeForm(schemeId: SchemeId): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
-        Future.successful(Redirect(routes.HomeController.present()))
-      } else {
-        Future.successful(Redirect(routes.HomeController.present()))
-      }
+      SchemeSpecificQuestionsForm.form.bindFromRequest.fold(
+        invalid => {
+          referenceDataClient.allSchemes().map { allSchemes =>
+            val scheme = allSchemes.find(_.id == schemeId).get
+
+            Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form, scheme))
+          }
+        },
+        form => {
+          val dataToSave = SchemeSpecificQuestionsForm.form.value.get
+          siftClient.updateSchemeSpecificAnswer(user.application.applicationId, schemeId, dataToSave).map { _ =>
+            Redirect(routes.HomeController.present())
+          }
+        }
+      )
   }
 
   def presentSummary: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>

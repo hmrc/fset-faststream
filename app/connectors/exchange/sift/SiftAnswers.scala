@@ -16,9 +16,24 @@
 
 package connectors.exchange.sift
 
-import play.api.libs.json.Json
+import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
+import play.api.libs.json._
 
-case class SiftAnswers(applicationId: String, generalAnswers: Option[GeneralQuestionsAnswers], schemeAnswers: Map[String, SchemeSpecificAnswer])
+object SiftAnswersStatus extends Enumeration {
+  type SiftAnswersStatus = Value
+
+  val DRAFT, SUBMITTED = Value
+
+  implicit val siftAnswersStatusFormat = new Format[SiftAnswersStatus] {
+    def reads(json: JsValue) = JsSuccess(SiftAnswersStatus.withName(json.as[String]))
+    def writes(myEnum: SiftAnswersStatus) = JsString(myEnum.toString)
+  }
+}
+
+case class SiftAnswers(applicationId: String,
+  status: SiftAnswersStatus,
+  generalAnswers: Option[GeneralQuestionsAnswers],
+  schemeAnswers: Map[String, SchemeSpecificAnswer])
 
 object SiftAnswers {
   implicit val siftAnswersFormat = Json.format[SiftAnswers]

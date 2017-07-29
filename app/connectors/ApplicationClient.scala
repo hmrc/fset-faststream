@@ -292,5 +292,9 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
 
   sealed class SchemeSpecificAnswerNotFound extends Exception
 
+  sealed class SiftAnswersIncomplete extends Exception
+
+  sealed class SiftAnswersSubmitted extends Exception
+
   sealed class TestForTokenExpiredException extends Exception
 }
