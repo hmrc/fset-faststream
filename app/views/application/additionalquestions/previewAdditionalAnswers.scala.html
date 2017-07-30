@@ -1,0 +1,35 @@
+@(schemeSpecificQuestionsForm: Form[_root_.connectors.exchange.sift.SchemeSpecificAnswer], scheme: _root_.connectors.exchange.referencedata.Scheme)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+
+@import views.html.widgets.{ radioBoxHorizontal, select_guard }
+@import helpers.CSRFieldConstructor._
+
+@main_template(title = scheme.name, pageForms = Seq(schemeSpecificQuestionsForm)) {
+
+    <h1 class="heading-xlarge">@scheme.name</h1>
+    <div class="panel-indent">
+        <div class="text">
+            <p>This scheme requires you to answer some additional questions before you can be successful for the next stage.</p>
+            <p>Take your time with this section, when you're ready:</p>
+            <ul class="list-bullet">
+                <li>read the <a target="_blank" href="/scheme-questions-template-2.docx">scheme questions (this will open in a new window/tab)</a></li>
+                <li>use the template in the document to answer the questions</li>
+                <li>copy and paste the headings and responses into the box</li>
+            </ul>
+        </div>
+    </div>
+
+    @helper.form(action = routes.SiftQuestionsController.submitAdditionalQuestions(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+
+        @helper.textarea(schemeSpecificQuestionsForm("schemeAnswer"),
+        '_label -> "Stick to the maximum words in the questions document",
+        'class -> "form-control",
+        'rows -> 20,
+        'dataValLengthMax -> "2048",
+        '_showConstraints -> false)
+
+        <div class="form-group">
+            <button id="submit" type="submit" value="submit" class="button">Submit answers</button>
+        </div>
+    }
+}

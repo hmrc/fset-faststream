@@ -101,9 +101,11 @@ abstract class SiftQuestionsController(
       )
   }
 
-  def presentSummary: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def presentPreview: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      Future.successful(Ok(views.html.application.success()))
+      schemeMetadata(SchemeId("DigitalAndTechnology")).map { scheme =>
+        Ok(views.html.application.additionalquestions.previewAdditionalAnswers(SchemeSpecificQuestionsForm.form, scheme))
+      }
   }
 
   def submitAdditionalQuestions: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
