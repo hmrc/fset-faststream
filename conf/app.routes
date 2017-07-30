@@ -98,7 +98,7 @@ GET         /address-search/:id                                     controllers.
 # Scheme Sift Questions/Form
 GET         /additional-questions/generalQuestions                  controllers.SiftQuestionsController.presentGeneralQuestions
 GET         /additional-questions/preview                           controllers.SiftQuestionsController.presentPreview
+GET         /additional-questions/submit                            controllers.SiftQuestionsController.submitAdditionalQuestions
 GET         /additional-questions/:schemeId                         controllers.SiftQuestionsController.presentSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
-POST        /additional-questions/generalQuestions                  controllers.SiftQuestionsController.saveGeneralQuestions()
-POST        /additional-questions/submit                            controllers.SiftQuestionsController.submitAdditionalQuestions()
+POST        /additional-questions/generalQuestions                  controllers.SiftQuestionsController.saveGeneralQuestions
 POST        /additional-questions/:schemeId                         controllers.SiftQuestionsController.saveSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)

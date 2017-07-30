@@ -51,7 +51,7 @@ trait SiftClient {
   def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
                                 (implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(
-      s"$apiBase/sift-answers/$applicationId/$schemeId",
+      s"$apiBase/sift-answers/$applicationId/${schemeId.value}",
       answer
     ).map {
       case x: HttpResponse if x.status == OK => ()
@@ -69,11 +69,13 @@ trait SiftClient {
     }
   }
 
-  def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)(implicit hc: HeaderCarrier): Future[SchemeSpecificAnswer] = {
-    http.GET(s"$apiBase/sift-answers/$applicationId/$schemeId").map { response =>
-      response.json.as[SchemeSpecificAnswer]
+  def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)
+    (implicit hc: HeaderCarrier): Future[Option[SchemeSpecificAnswer]] = {
+    http.GET(s"$apiBase/sift-answers/$applicationId/${schemeId.value}").map { response =>
+      val answer = response.json.as[SchemeSpecificAnswer]
+      Some(answer)
     } recover {
-      case _: NotFoundException => throw new SchemeSpecificAnswerNotFound()
+      case _: NotFoundException => None
     }
   }
 
@@ -85,7 +87,7 @@ trait SiftClient {
     }
   }
 
-  def submitSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+  def submitSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(
       s"${url.host}${url.base}/sift-answers/$applicationId/submit",
       Array.empty[Byte]

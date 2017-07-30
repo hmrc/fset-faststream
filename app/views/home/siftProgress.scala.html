@@ -11,7 +11,7 @@
             <p>You should complete this within 7 days from the date of your
                 email. Failure to do this will hold up your application.</p>
             <ul class="list-text list-withicons" data-extrainfolist>
-                @if(!page.hasAdditionalQuestionsBeenSubmitted) {
+                @if(!page.haveAdditionalQuestionsBeenSubmitted) {
                     <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions()">Nationality and higher education</a></li>
                     @for(curSiftableScheme <- page.schemesForSiftForms) {
                     <li><i class="fa fa-minus the-icon"></i>
@@ -45,14 +45,14 @@
 }
 
 @renderAssessmentCentre = {
- <div class="inner-block-padr">
-    <h2 class="heading-medium ">Attend an assessment centre</h2>
-    <div id="assessmentBlurb">
-        <p>If you've successfully passed the previous stages, you'll be
-            invited to an assessment centre.</p>
-        <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the assessment day</a></p>
+     <div class="inner-block-padr">
+        <h2 class="heading-medium ">Attend an assessment centre</h2>
+        <div id="assessmentBlurb">
+            <p>If you've successfully passed the previous stages, you'll be
+                invited to an assessment centre.</p>
+            <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the assessment day</a></p>
+        </div>
     </div>
-</div>
 }
 
  <section class="text">

@@ -11,10 +11,10 @@
         @helper.CSRF.formField
         <fieldset>
             <legend class="form-label">Do you currently hold more than one passport?</legend>
-            @yesNoRadioWithTogglePanel(page.form("multiplePassport"),
-                'id -> "multiplePassport"
+            @yesNoRadioWithTogglePanel(page.form("multiplePassports"),
+                'id -> "multiplePassports"
             ) {
-                <div id="multiplePassport-panel-yes" class="toggle-content" >
+                <div id="multiplePassports-panel-yes" class="toggle-content" >
                     <div class="form-group">
                         @select_search(page.form("secondPassportCountry"), GeneralQuestionsForm.Countries)(Html("What country issued your second passport?"))
                     </div>
@@ -104,7 +104,8 @@
             }
         </fieldset>
         <div class="form-group">
-            <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+            <button id="saveAndContinue" type="submit" name="action" value="saveAndContinue" class="button">Save and continue</button>
+            <button id="saveAndReturnHome" type="submit" name="action" value="saveAndReturn" class="button-link">Save and return home</button>
         </div>
     }
 }

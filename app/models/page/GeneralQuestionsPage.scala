@@ -26,12 +26,6 @@ case class GeneralQuestionsPage(
 
 object GeneralQuestionsPage {
 
-  /*def apply(answers: Option[GeneralQuestionsForm.Data]): GeneralQuestionsPage = {
-    GeneralQuestionsPage(
-      answers.map(GeneralQuestionsForm.form.fill).getOrElse(GeneralQuestionsForm.form)
-    )
-  }*/
-
   def apply(answers: Option[GeneralQuestionsAnswers]): GeneralQuestionsPage = GeneralQuestionsPage(
     answers.map { a =>
       GeneralQuestionsForm.form.fill(GeneralQuestionsForm.Data(

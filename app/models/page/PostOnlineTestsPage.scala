@@ -48,7 +48,7 @@ case class PostOnlineTestsPage(
   val hasNumericRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   val hasAssessmentCentreRequirement: Boolean = true
 
-  val hasAdditionalQuestionsBeenSubmitted: Boolean = additionalQuestionsStatus == Some(SiftAnswersStatus.SUBMITTED)
+  val haveAdditionalQuestionsBeenSubmitted: Boolean = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 }
 
 object PostOnlineTestsPage {
