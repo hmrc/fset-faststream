@@ -16,7 +16,8 @@
 
 package services.sift
 
-import model.{ EvaluationResults, SchemeId }
+import model.{ EvaluationResults, SchemeId, SiftRequirement }
+import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
 import repositories.sift.SiftAnswersRepository
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 
@@ -26,11 +27,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object SiftAnswersService extends SiftAnswersService {
   val siftAnswersRepo: SiftAnswersRepository = repositories.siftAnswersRepository
   val phase3ResultsService = EvaluatePhase3ResultService
+  val schemeRepository = SchemeYamlRepository
 }
 
 trait SiftAnswersService {
   def siftAnswersRepo: SiftAnswersRepository
   def phase3ResultsService: EvaluatePhase3ResultService
+  def schemeRepository: SchemeRepositoryImpl
 
   def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: model.exchange.sift.SchemeSpecificAnswer): Future[Unit] = {
     siftAnswersRepo.addSchemeSpecificAnswer(applicationId, schemeId, model.persisted.sift.SchemeSpecificAnswer(answer))
@@ -70,7 +73,9 @@ trait SiftAnswersService {
     for {
       phase3Results <- phase3ResultsService.getPassmarkEvaluation(applicationId)
       schemesPassedPhase3 = phase3Results.result.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
-      submitResult <- siftAnswersRepo.submitAnswers(applicationId, schemesPassedPhase3)
+      schemesPassedRequiringSift = schemeRepository.schemes.filter(
+        s => schemesPassedPhase3.contains(s.id) && s.siftRequirement == Some(SiftRequirement.FORM)).map(_.id).toSet
+      submitResult <- siftAnswersRepo.submitAnswers(applicationId, schemesPassedRequiringSift)
     } yield submitResult
   }
 }

@@ -95,16 +95,14 @@ trait SchemeSiftAnswersController extends BaseController {
   }
 
   def submitAnswers(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[SchemeSpecificAnswer] { answer =>
-      (for {
-        _ <- siftAnswersService.submitAnswers(applicationId)
-      } yield {
-        auditService.logEvent("Additional answers saved", Map("applicationId" -> applicationId))
-        Ok
-      })recover {
-        case e: SiftAnswersIncomplete => UnprocessableEntity(e.m)
-        case e: SiftAnswersSubmitted => Conflict(e.m)
-      }
+    (for {
+      _ <- siftAnswersService.submitAnswers(applicationId)
+    } yield {
+      auditService.logEvent("Additional answers saved", Map("applicationId" -> applicationId))
+      Ok
+    })recover {
+      case e: SiftAnswersIncomplete => UnprocessableEntity(e.m)
+      case e: SiftAnswersSubmitted => Conflict(e.m)
     }
   }
 

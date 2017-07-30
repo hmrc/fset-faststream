@@ -131,13 +131,13 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
     failWithSubmitted(applicationId) {
       val query = BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationId" -> applicationId),
-        BSONDocument("generalAnswers" -> BSONDocument("$exists" -> true)),
-        requiredSchemes map { schemeId =>
-          BSONDocument(s"schemeAnswers.$schemeId" -> BSONDocument("$exists" -> true))
-        }
-      ))
+        BSONDocument("generalAnswers" -> BSONDocument("$exists" -> true))
+      ).add(BSONDocument("$and" -> BSONArray(requiredSchemes map { schemeId =>
+        BSONDocument(s"schemeAnswers.$schemeId" -> BSONDocument("$exists" -> true))
+      } toSeq))))
       val validator = singleUpdateValidator(applicationId, actionDesc = "Submitting sift answers",
-        SiftAnswersIncomplete(s"""Additional questions missing general or scheme specific (${requiredSchemes.mkString(",")}) answers"""))
+        SiftAnswersIncomplete(
+          s"""Additional questions missing general or scheme specific (${requiredSchemes.map(_.value).mkString(", ")}) answers"""))
 
       collection.update(
         query,
