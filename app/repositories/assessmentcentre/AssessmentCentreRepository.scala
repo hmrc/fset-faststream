@@ -21,8 +21,6 @@ import model._
 import model.command.{ ApplicationForFsac, ApplicationForSift }
 import model.persisted.fsac.AssessmentCentreTests
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.Logger
-import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader

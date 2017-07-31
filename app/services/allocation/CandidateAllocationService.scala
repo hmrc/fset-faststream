@@ -74,7 +74,7 @@ trait CandidateAllocationService extends EventSink {
   def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
     candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
-  
+
   def getSessionsForApplication(applicationId: String, sessionEventType: EventType): Future[List[Event]] = {
     for {
       allocations <- candidateAllocationRepo.allocationsForApplication(applicationId)

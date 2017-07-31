@@ -138,12 +138,6 @@ package object repositories {
       Seq("id"-> Ascending, "eventId" -> Ascending, "sessionId" -> Ascending),
       unique = false
     ))
-
- /*   fileUploadRepository.collection.indexesManager.create(Index(
-      Seq("id" -> Ascending, "created" -> Ascending),
-      unique = false
-    )) */
-
   )), 30 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {

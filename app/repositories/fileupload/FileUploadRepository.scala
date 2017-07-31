@@ -21,16 +21,11 @@ import java.util.UUID
 
 import model.persisted.fileupload.FileUpload
 import org.joda.time.DateTime
-import play.api.Logger
 import reactivemongo.api.gridfs.{ DefaultFileToSave, GridFS }
 import reactivemongo.api.{ BSONSerializationPack, DB, DefaultDB }
-import reactivemongo.bson.Subtype.GenericBinarySubtype
-import reactivemongo.bson.buffer.ArrayReadableBuffer
-import reactivemongo.bson.{ BSONArray, BSONBinary, BSONDocument, BSONObjectID }
-import repositories.{ BSONDateTimeHandler, CollectionNames }
+import reactivemongo.bson.BSONDocument
+import repositories.CollectionNames
 import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import reactivemongo.api.gridfs.Implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global

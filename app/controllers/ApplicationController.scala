@@ -16,22 +16,17 @@
 
 package controllers
 
-import java.nio.charset.Charset
 import java.nio.file.Files
 
 import akka.stream.scaladsl.Source
-import akka.util.ByteString
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses
 import model.command.WithdrawApplication
-import play.api.Logger
-import play.api.http.HttpEntity
-import play.api.libs.Files.TemporaryFile
-import play.api.libs.iteratee.Enumerator
+
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
-import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
+import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadMongoRepository

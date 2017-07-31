@@ -28,8 +28,3 @@ case class FileUpload(
   created: DateTime,
   fileContents: Enumerator[Array[Byte]]
 )
-
-object FileUpload {
-  // implicit val fileUploadFormat: OFormat[FileUpload] = Json.format[FileUpload]
-  // implicit val fileUploadHandler = Macros.handler[FileUpload]
-}

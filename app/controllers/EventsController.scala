@@ -20,7 +20,7 @@ import model.Commands.Implicits._
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.persisted.eventschedules
 import model.{ command, exchange }
-import model.exchange.{ AssessorAllocations, EventSession, Session, Event => ExchangeEvent }
+import model.exchange.{ AssessorAllocations, Event => ExchangeEvent }
 import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.{ Event, EventType }
 import model.persisted.eventschedules.EventType.EventType
