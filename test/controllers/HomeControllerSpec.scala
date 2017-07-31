@@ -31,13 +31,26 @@ import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import play.api.libs.Files
+import testkit.MockitoImplicits._
+import play.api.libs.Files.TemporaryFile
+import play.api.mvc.MultipartFormData.FilePart
+import play.api.mvc.{ AnyContent, Flash, MultipartFormData, Request }
 import play.api.test.Helpers._
+import play.test.Helpers
 import security.{ SilhouetteComponent, UserCacheService, UserService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import java.io.File
+import java.util.UUID
+
+import connectors.events.{ Event, Location, Session, Venue }
+import models.events.EventType
+import org.joda.time.{ LocalDate, LocalTime }
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 class HomeControllerSpec extends BaseControllerSpec {
 
@@ -99,6 +112,8 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
 
+      mockPostOnlineTestsDashboardCalls
+
       val result = controller(phase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
@@ -118,6 +133,8 @@ class HomeControllerSpec extends BaseControllerSpec {
         CachedDataExample.WithdrawnPhase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
+
+      mockPostOnlineTestsDashboardCalls
 
       val result = controller(withdrawnPhase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
@@ -315,6 +332,56 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
   }
 
+  "submitAnalysisExercise" should {
+    "show a too big message when file is too large" in new TestFixture {
+
+      mockPostOnlineTestsDashboardCalls
+      fileUploadMocks(10000000)
+
+      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+
+      status(result) mustBe 303
+    }
+
+    "show success when preconditions for upload are met" in new TestFixture {
+
+      mockPostOnlineTestsDashboardCalls
+      fileUploadMocks(3500000)
+
+      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+
+      status(result) mustBe 303
+    }
+
+    "show an error if this candidate has already uploaded an analysis exercise" in new TestFixture {
+      mockPostOnlineTestsDashboardCalls
+      fileUploadMocks(3500000, hasAnalysisExerciseAlready = true)
+
+      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+
+      status(result) mustBe 303
+    }
+
+    "show an error if the content type is not on the allowed list" in new TestFixture {
+      mockPostOnlineTestsDashboardCalls
+      fileUploadMocks(3500000)
+
+      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+
+      status(result) mustBe 303
+    }
+
+    "Show an error if the file POST is not as expected" in new TestFixture {
+      mockPostOnlineTestsDashboardCalls
+      fileUploadMocks(3500000)
+
+      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+
+      status(result) mustBe 303
+    }
+
+  }
+
   "presentWithdrawApplication" should {
     "display withdraw page" in new TestFixture {
       val result = controller.presentWithdrawApplication()(fakeRequest)
@@ -378,6 +445,62 @@ class HomeControllerSpec extends BaseControllerSpec {
     val mockCacheClient = mock[CSRCache]
     val mockUserService = mock[UserCacheService]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
+
+
+    val anyContentMock = mock[AnyContent]
+    lazy val fakeRequest = FakeRequest("POST", "/", FakeHeaders(), anyContentMock)
+    val fileMock = mock[File]
+    val msWordContentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+    def mockPostOnlineTestsDashboardCalls = {
+      when(mockApplicationClient.eventWithSessionsForApplicationOnly(
+        any[UniqueIdentifier], eqTo(EventType.FSAC))(any[HeaderCarrier]())).thenReturnAsync {
+        List(
+          Event(
+            UniqueIdentifier(UUID.randomUUID()),
+            EventType.FSAC,
+            Location("London"),
+            Venue("London FSAC", "London Test FSAC"),
+            LocalDate.now,
+            10,
+            10,
+            10,
+            LocalTime.now,
+            LocalTime.now.plusHours(24),
+            Map(),
+            List(
+              Session(
+                UniqueIdentifier(UUID.randomUUID()),
+                "TestSession",
+                10,
+                10,
+                10,
+                LocalTime.now,
+                LocalTime.now.plusHours(12)
+              )
+            )
+          )
+        )
+      }
+
+      when(mockApplicationClient.hasAnalysisExercise(any[UniqueIdentifier]())(any[HeaderCarrier])).thenReturnAsync(false)
+    }
+
+    def fileUploadMocks(fileSize: Int, hasAnalysisExerciseAlready: Boolean = false) = {
+      when(mockApplicationClient.hasAnalysisExercise(any[UniqueIdentifier]())(any[HeaderCarrier])).thenReturnAsync(hasAnalysisExerciseAlready)
+      when(fileMock.length()).thenReturn(fileSize)
+      when(anyContentMock.asMultipartFormData).thenReturn(
+        Some(
+          MultipartFormData[Files.TemporaryFile](
+            dataParts = Map(),
+            files = Seq(
+              new FilePart[Files.TemporaryFile]("test", "myFileName.docx", Some(msWordContentType), TemporaryFile(fileMock))
+            ),
+            badParts = Seq()
+          )
+        )
+      )
+    }
 
     class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockCacheClient)
       with TestableSecureActions {

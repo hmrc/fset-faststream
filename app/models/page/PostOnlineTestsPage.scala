@@ -21,7 +21,7 @@ import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import helpers.Timezones
 import models.{ CachedData, CachedDataWithApp, SchemeStatus }
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, LocalTime }
 
 case class CurrentSchemeStatus(
   scheme: Scheme,
@@ -48,8 +48,17 @@ case class PostOnlineTestsPage(
   val hasNumericRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   val hasAssessmentCentreRequirement: Boolean = true
 
+  private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {
+    val minutes = localTime.toString("mm")
+    if (minutes == "00") {
+      localTime.toString("ha")
+    } else {
+      localTime.toString("h:mma")
+    }
+  }
+
   val assessmentCentreStartDateAndTime: String = assessmentCentreEvent.map { ac =>
-    ac.date.toString("EEEE d MMMM YYYY") + " at " + ac.sessions.head.startTime.toString("ha")
+    ac.date.toString("EEEE d MMMM YYYY") + " at " + dateTimeToStringWithOptionalMinutes(ac.sessions.head.startTime)
   }.getOrElse("No assessment centre")
 
   val assessmentCentreNameAndLocation: String = assessmentCentreEvent.map { ac => ac.venue.description }.getOrElse("No assessment centre")
@@ -58,8 +67,8 @@ case class PostOnlineTestsPage(
     val eventDate = event.date
     val sessionTime = event.sessions.head.startTime
     val sessionDateTime = new DateTime(
-      eventDate.year.get, eventDate.monthOfYear.get, eventDate.dayOfMonth.get, sessionTime.hourOfDay.get, sessionTime.minuteOfHour.get,
-      Timezones.londonDateTimezone
+      eventDate.year.get, eventDate.getMonthOfYear, eventDate.getDayOfMonth, sessionTime.getHourOfDay, sessionTime.getMinuteOfHour,
+      sessionTime.getSecondOfMinute, Timezones.londonDateTimezone
     )
     val timeNow = DateTime.now.toDateTime(Timezones.londonDateTimezone)
 
