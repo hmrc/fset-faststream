@@ -97,11 +97,11 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       BSONDocument(s"schemeAnswers.$schemeId" -> BSONDocument("$exists" -> true))
     ))
     val projection = BSONDocument(s"schemeAnswers.$schemeId" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[BSONDocument].map {
-      result => result.flatMap { outer =>
-        outer.getAs[BSONDocument](s"schemeAnswers.$schemeId").map(a => SchemeSpecificAnswer.schemeSpecificAnswerHandler.read(a))
-      }
-    }
+    collection.find(query, projection).one[BSONDocument].map(_.flatMap { doc =>
+        doc.getAs[BSONDocument]("schemeAnswers").flatMap { sa =>
+          sa.getAs[SchemeSpecificAnswer](s"$schemeId")
+        }
+    })
   }
 
   override def findGeneralQuestionsAnswers(applicationId: String): Future[Option[GeneralQuestionsAnswers]] = {

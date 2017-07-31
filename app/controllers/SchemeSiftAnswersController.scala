@@ -19,8 +19,8 @@ package controllers
 import model.Exceptions.{ SiftAnswersIncomplete, SiftAnswersSubmitted }
 import model.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
 import model.{ SchemeId, persisted }
-import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Action, AnyContent }
 import repositories.sift.SiftAnswersRepository
 import repositories._
 import services.AuditService
@@ -41,7 +41,7 @@ trait SchemeSiftAnswersController extends BaseController {
 
   import model.Commands.Implicits._
 
-  def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId) = Action.async(parse.json) { implicit request =>
+  def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SchemeSpecificAnswer] { answer =>
       (for {
         _ <- siftAnswersService.addSchemeSpecificAnswer(applicationId, schemeId, answer)
@@ -54,7 +54,7 @@ trait SchemeSiftAnswersController extends BaseController {
     }
   }
 
-  def addOrUpdateGeneralAnswers(applicationId: String) = Action.async(parse.json) { implicit request =>
+  def addOrUpdateGeneralAnswers(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[GeneralQuestionsAnswers] { answers =>
       (for {
         _ <- siftAnswersService.addGeneralAnswers(applicationId, answers)
@@ -67,34 +67,28 @@ trait SchemeSiftAnswersController extends BaseController {
     }
   }
 
-  def getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId) = Action.async { implicit request =>
-    siftAnswersService.findSchemeSpecificAnswer(applicationId, schemeId).map { result =>
-      result match {
-        case Some(answer) => Ok(Json.toJson(answer))
-        case _ => NotFound(s"Cannot find scheme specific answer for applicationId: $applicationId, scheme: $schemeId")
-      }
+  def getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async { implicit request =>
+    siftAnswersService.findSchemeSpecificAnswer(applicationId, schemeId).map {
+      case Some(answer) => Ok(Json.toJson(answer))
+      case _ => NotFound(s"Cannot find scheme specific answer for applicationId: $applicationId, scheme: $schemeId")
     }
   }
 
-  def getGeneralAnswers(applicationId: String) = Action.async {
-    siftAnswersService.findGeneralAnswers(applicationId).map { result =>
-      result match {
-        case Some(answer) => Ok(Json.toJson(answer))
-        case _ => NotFound(s"Cannot find additional general answers for applicationId: $applicationId")
-      }
+  def getGeneralAnswers(applicationId: String): Action[AnyContent] = Action.async {
+    siftAnswersService.findGeneralAnswers(applicationId).map {
+      case Some(answer) => Ok(Json.toJson(answer))
+      case _ => NotFound(s"Cannot find additional general answers for applicationId: $applicationId")
     }
   }
 
-  def getSiftAnswers(applicationId: String) = Action.async { implicit request =>
-    siftAnswersService.findSiftAnswers(applicationId).map { result =>
-      result match {
-        case Some(answers) => Ok(Json.toJson(answers))
-        case _ => NotFound(s"Cannot find answers to additional questions for applicationId: $applicationId")
-      }
+  def getSiftAnswers(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    siftAnswersService.findSiftAnswers(applicationId).map {
+      case Some(answers) => Ok(Json.toJson(answers))
+      case _ => NotFound(s"Cannot find answers to additional questions for applicationId: $applicationId")
     }
   }
 
-  def submitAnswers(applicationId: String) = Action.async(parse.json) { implicit request =>
+  def submitAnswers(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     (for {
       _ <- siftAnswersService.submitAnswers(applicationId)
     } yield {
@@ -106,12 +100,10 @@ trait SchemeSiftAnswersController extends BaseController {
     }
   }
 
-  def getSiftAnswersStatus(applicationId: String) = Action.async { implicit request =>
-    siftAnswersService.findSiftAnswersStatus(applicationId).map { result =>
-      result match {
-        case Some(status) => Ok(Json.toJson(status))
-        case _ => NotFound(s"No existing additional answers for applicationId: $applicationId")
-      }
+  def getSiftAnswersStatus(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    siftAnswersService.findSiftAnswersStatus(applicationId).map {
+      case Some(status) => Ok(Json.toJson(status))
+      case _ => NotFound(s"No existing additional answers for applicationId: $applicationId")
     }
   }
 }
