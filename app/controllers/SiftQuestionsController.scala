@@ -21,7 +21,7 @@ import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
-import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
+import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers }
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
 import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
@@ -119,20 +119,24 @@ abstract class SiftQuestionsController(
 
   def presentPreview: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      siftClient.getSiftAnswers(user.application.applicationId).flatMap { answers =>
-        Future.traverse(answers.schemeAnswers) { case (schemeId, answer) =>
-          schemeMetadata(SchemeId(schemeId)).map { scheme =>
-            scheme -> answer
-          }
-        }.map { schemeAnswers =>
-          val page = SiftPreviewPage(
-            answers.applicationId,
-            answers.status,
-            answers.generalAnswers,
-            schemeAnswers.toMap
-          )
-          Ok(views.html.application.additionalquestions.previewAdditionalAnswers(page))
+
+      def enrichSchemeAnsers(siftAnswers: SiftAnswers) = Future.traverse(siftAnswers.schemeAnswers) { case (schemeId, answer) =>
+        schemeMetadata(SchemeId(schemeId)).map { scheme =>
+          scheme -> answer
         }
+      }.map(_.toMap)
+
+      for {
+        answers <- siftClient.getSiftAnswers(user.application.applicationId)
+        enrichedAnswers <- enrichSchemeAnsers(answers)
+      } yield {
+         val page = SiftPreviewPage(
+          answers.applicationId,
+          answers.status,
+          answers.generalAnswers,
+           enrichedAnswers
+        )
+        Ok(views.html.application.additionalquestions.previewAdditionalAnswers(page))
       }
   }
 

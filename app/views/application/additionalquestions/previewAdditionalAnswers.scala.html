@@ -7,7 +7,10 @@
     <section class="section-border">
         <h2 class="heading-large">
             Nationality
-            <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">Edit section</span></a>
+            @if(!page.areAnswersSubmitted) {
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                    Edit section</span></a>
+            }
         </h2>
         <div class="text">
             <h4 class="bold-small">Do you currently hold more than one passport?</h4>
@@ -24,7 +27,10 @@
     <section class="section-border">
         <h2 class="heading-large">
             Undergraduate degree
-            <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">Edit section</span></a>
+            @if(!page.areAnswersSubmitted) {
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                    Edit section</span></a>
+            }
         </h2>
             @page.generalAnswers.map { ga =>
                 @ga.undergradDegree.map { ug =>
@@ -56,7 +62,10 @@
     <section class="section-border">
         <h2 class="heading-large">
             Postgraduate degree
-            <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">Edit section</span></a>
+            @if(!page.areAnswersSubmitted) {
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                    Edit section</span></a>
+            }
         </h2>
         @page.generalAnswers.map { ga =>
             @ga.postgradDegree.map { pg =>
@@ -89,7 +98,10 @@
         <section class="section-border">
             <h2 class="heading-large">
                 @scheme.name
-                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentSchemeForm(scheme.id)"><i class="the-icon fa fa-pencil"></i><span class="the-text">Edit section</span></a>
+                @if(!page.areAnswersSubmitted) {
+                    <a class="icon-with-text" href="@routes.SiftQuestionsController.presentSchemeForm(scheme.id)"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                        Edit section</span></a>
+                }
             </h2>
             <div class="text">
                 <h4 class="bold-small">Your response</h4>
@@ -97,25 +109,27 @@
             </div>
         </section>
     }
-    <fieldset>
-        <legend class="form-label">Do you want to submit your answers?</legend>
-        <div class="form-group">
-            <label data-target="submit-yes-panel" for="submit-yes" class="block-label">
-                <input name="submit" type="radio" id="submit-yes" aria-controls="submit-yes-panel" aria-expanded="false">Yes
-            </label>
-            <label for="submit-no" class="block-label">
-                <input name="submit" type="radio" id="submit-no">No
-            </label>
-        </div>
-        <div id="submit-yes-panel" class="toggle-content">
-            <div class="panel-warning standard-panel">
-                <div class="text">
-                    <p><i class="fa fa-warning"></i>You won't be able to change your answers
-                        after you submit.</p>
-                </div>
+    @if(!page.areAnswersSubmitted) {
+        <fieldset>
+            <legend class="form-label">Do you want to submit your answers?</legend>
+            <div class="form-group">
+                <label data-target="submit-yes-panel" for="submit-yes" class="block-label">
+                    <input name="submit" type="radio" id="submit-yes" aria-controls="submit-yes-panel" aria-expanded="false">Yes
+                </label>
+                <label for="submit-no" class="block-label">
+                    <input name="submit" type="radio" id="submit-no">No
+                </label>
             </div>
-            <a href="@routes.SiftQuestionsController.submitAdditionalQuestions()" class="button">Submit </a>
-        </div>
-    </fieldset>
+            <div id="submit-yes-panel" class="toggle-content">
+                <div class="panel-warning standard-panel">
+                    <div class="text">
+                        <p><i class="fa fa-warning"></i>You won't be able to change your answers
+                            after you submit.</p>
+                    </div>
+                </div>
+                <a href="@routes.SiftQuestionsController.submitAdditionalQuestions()" class="button">Submit </a>
+            </div>
+        </fieldset>
+    }
     <a href="@routes.HomeController.present()">Return to home</a>
 }

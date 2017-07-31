@@ -18,14 +18,16 @@ package models.page
 
 import connectors.exchange.referencedata.Scheme
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
+import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswersStatus }
 
 case class SiftPreviewPage(
   applicationId: String,
   status: SiftAnswersStatus,
   generalAnswers: Option[GeneralQuestionsAnswers],
   schemeAnswers: Map[Scheme, SchemeSpecificAnswer]
-)
+) {
+  def areAnswersSubmitted: Boolean = status == SiftAnswersStatus.SUBMITTED
+}
 
 object SiftPreviewPage {
   def booleanToYesNo(o: Boolean): String = if(o) "Yes" else "No"
