@@ -28,6 +28,7 @@ object PassmarkPersistedObjects {
 
   case class AssessmentCentrePassMarkInfo(version: String, createDate: DateTime, createdByUser: String)
 
+  // TODO: Ian Miguel should change to SchemeId
   case class AssessmentCentrePassMarkScheme(schemeName: String, overallPassMarks: Option[PassMarkSchemeThreshold] = None)
 
   case class PassMarkSchemeThreshold(failThreshold: Double, passThreshold: Double)

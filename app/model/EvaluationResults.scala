@@ -16,6 +16,8 @@
 
 package model
 
+import model.persisted.SchemeEvaluationResult
+
 object EvaluationResults {
   sealed trait Result {
     def toPassmark: String
@@ -38,32 +40,28 @@ object EvaluationResults {
     }
   }
 
+  @deprecated("This should be deleted", since = "31/07/2017")
   case class RuleCategoryResult(location1Scheme1: Result, location1Scheme2: Option[Result],
     location2Scheme1: Option[Result], location2Scheme2: Option[Result], alternativeScheme: Option[Result])
 
-  case class CompetencyAverageResult(leadingAndCommunicatingAverage: Double, collaboratingAndPartneringAverage: Double,
-    deliveringAtPaceAverage: Double, makingEffectiveDecisionsAverage: Double,
-    changingAndImprovingAverage: Double, buildingCapabilityForAllAverage: Double,
-    motivationFitAverage: Double, overallScore: Double) {
+  case class CompetencyAverageResult(
+    analysisAndDecisionMakingAverage: Double,
+    buildingProductiveRelationshipsAverage: Double,
+    leadingAndCommunicatingAverage: Double,
+    strategicApproachToObjectivesAverage: Double,
+    overallScore: Double) {
 
-    def scoresWithWeightOne = List(
-      leadingAndCommunicatingAverage,
-      collaboratingAndPartneringAverage, deliveringAtPaceAverage,
-      makingEffectiveDecisionsAverage, changingAndImprovingAverage, buildingCapabilityForAllAverage
+    def competencyAverageScores = List(
+      analysisAndDecisionMakingAverage, buildingProductiveRelationshipsAverage,
+      leadingAndCommunicatingAverage, strategicApproachToObjectivesAverage
     )
-
-    def scoresWithWeightTwo = List(motivationFitAverage)
-
   }
 
   @deprecated("Use SchemeEvaluationResult with SchemeId", since = "10/10/2016")
   case class PerSchemeEvaluation(schemeName: String, result: Result)
 
-  case class AssessmentRuleCategoryResult(
+  case class AssessmentEvaluationResult(
     passedMinimumCompetencyLevel: Option[Boolean],
-    location1Scheme1: Option[Result], location1Scheme2: Option[Result],
-    location2Scheme1: Option[Result], location2Scheme2: Option[Result], alternativeScheme: Option[Result],
-    competencyAverageResult: Option[CompetencyAverageResult], schemesEvaluation: Option[List[PerSchemeEvaluation]]
-  )
-
+    competencyAverageResult: CompetencyAverageResult,
+    schemesEvaluation: List[SchemeEvaluationResult])
 }

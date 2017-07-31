@@ -44,8 +44,6 @@ object SchemeId {
   */
 case class Scheme(id: SchemeId, code: String, name: String, requiresSift: Boolean)
 
-
-
 object Scheme {
   implicit val schemeFormat = Json.format[Scheme]
   implicit val schemeHandler = Macros.handler[Scheme]

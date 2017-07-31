@@ -33,3 +33,4 @@ GET     /candidate-application/test-data-generator/example-candidate-allocations
 GET     /candidate-application/evaluate-phase1-candidate                            controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
 GET     /candidate-application/evaluate-phase2-candidate                            controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
 GET     /candidate-application/evaluate-phase3-candidate                            controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
+GET     /candidate-application/evaluate-assessment-scores-candidate                 controllers.testdata.TestJobsController.evaluateAssessmentScoresCandidate

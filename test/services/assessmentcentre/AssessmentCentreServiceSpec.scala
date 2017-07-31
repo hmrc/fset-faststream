@@ -16,15 +16,18 @@
 
 package services.assessmentcentre
 
-import model.{ EvaluationResults, ProgressStatuses, SchemeId, SerialUpdateResult }
 import model.command.ApplicationForFsac
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.{ EvaluationResults, ProgressStatuses, SchemeId, SerialUpdateResult }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.mvc.Results
+import repositories.AssessmentScoresRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.assessmentcentre.AssessmentCentreRepository
+import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
+import services.evaluation.AssessmentCentreEvaluationEngine
+import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.{ ExtendedTimeout, FutureHelper }
 
 import scala.concurrent.Future
@@ -42,9 +45,19 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
 
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
+    val mockAssessmentCentrePassMarkSettingsService = mock[AssessmentCentrePassMarkSettingsService]
+    val mockAssessmentScoresRepo = mock[AssessmentScoresRepository]
+    val mockCurrentSchemeStatusRepo = mock[CurrentSchemeStatusRepository]
+    val mockEvaluationEngine = mock[AssessmentCentreEvaluationEngine]
+
+
     val service = new AssessmentCentreService {
-      def applicationRepo: GeneralApplicationRepository = mockAppRepo
-      def assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
+      val applicationRepo: GeneralApplicationRepository = mockAppRepo
+      val assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
+      val passmarkService: AssessmentCentrePassMarkSettingsService = mockAssessmentCentrePassMarkSettingsService
+      val assessmentScoresRepo: AssessmentScoresRepository = mockAssessmentScoresRepo
+      val currentSchemeStatusRepo: CurrentSchemeStatusRepository = mockCurrentSchemeStatusRepo
+      val evaluationEngine: AssessmentCentreEvaluationEngine = mockEvaluationEngine
     }
 
     (mockAppRepo.addProgressStatusAndUpdateAppStatus _)

@@ -43,9 +43,13 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends MongoRepositorySpec
     }
 
     "create and fetch the passmark settings" in {
-      val info = AssessmentCentrePassMarkInfo("123", DateTime.now(DateTimeZone.UTC), "userName")
+      val info = AssessmentCentrePassMarkInfo(version = "123", createDate = DateTime.now(DateTimeZone.UTC), createdByUser = "testUser")
       val settings = AssessmentCentrePassMarkSettings(List(
-        AssessmentCentrePassMarkScheme("Business", Some(PassMarkSchemeThreshold(20.05, 40.06)))
+        AssessmentCentrePassMarkScheme("Commercial", Some(PassMarkSchemeThreshold(5.0, 20.0))),
+        AssessmentCentrePassMarkScheme("DigitalAndTechnology", Some(PassMarkSchemeThreshold(5.0, 20.0))),
+        AssessmentCentrePassMarkScheme("DiplomaticService", Some(PassMarkSchemeThreshold(5.0, 20.0))),
+        AssessmentCentrePassMarkScheme("Finance", Some(PassMarkSchemeThreshold(5.0, 20.0))),
+        AssessmentCentrePassMarkScheme("Generalist", Some(PassMarkSchemeThreshold(5.0, 20.0)))
       ), info)
 
       repository.create(settings).futureValue

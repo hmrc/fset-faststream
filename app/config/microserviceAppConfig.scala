@@ -132,9 +132,8 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
 
 case class LocationsAndVenuesConfig(yamlFilePath: String)
 
-case class AssessmentEvaluationMinimumCompetencyLevel(enabled: Boolean, minimumCompetencyLevelScore: Option[Double],
-  motivationalFitMinimumCompetencyLevelScore: Option[Double]) {
-  require(!enabled || (minimumCompetencyLevelScore.isDefined && motivationalFitMinimumCompetencyLevelScore.isDefined))
+case class AssessmentEvaluationMinimumCompetencyLevel(enabled: Boolean, minimumCompetencyLevelScore: Option[Double]) {
+  require(!enabled || minimumCompetencyLevelScore.isDefined)
 }
 
 object AssessmentEvaluationMinimumCompetencyLevel {

@@ -16,24 +16,25 @@
 
 package services.passmarksettings
 
-import model.Commands.AssessmentCentrePassMarkSettingsResponse
-import model.PassmarkPersistedObjects.AssessmentCentrePassMarkScheme
+import model.PassmarkPersistedObjects.AssessmentCentrePassMarkSettings
 import repositories._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object AssessmentCentrePassMarkSettingsService extends AssessmentCentrePassMarkSettingsService {
-  val fwRepository = frameworkRepository
-  val acpsRepository = assessmentCentrePassMarkSettingsRepository
+//  val fwRepository = frameworkRepository
+  val assessmentCentrePassMarkSettingsRepo = assessmentCentrePassMarkSettingsRepository
 }
 
+// TODO: Ian merge in with Miguel's pass mark changes
 trait AssessmentCentrePassMarkSettingsService {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  val fwRepository: FrameworkRepository
-  val acpsRepository: AssessmentCentrePassMarkSettingsRepository
+//  val fwRepository: FrameworkRepository
+//  val acpsRepository: AssessmentCentrePassMarkSettingsRepository
+  val assessmentCentrePassMarkSettingsRepo: AssessmentCentrePassMarkSettingsRepository
 
-  def getLatestVersion: Future[AssessmentCentrePassMarkSettingsResponse] = {
+/*  def getLatestVersion: Future[AssessmentCentrePassMarkSettingsResponse] = {
     for {
       schemes <- fwRepository.getFrameworkNames
       latestVersionOpt <- acpsRepository.tryGetLatestVersion
@@ -49,5 +50,9 @@ trait AssessmentCentrePassMarkSettingsService {
       val info = latestVersionOpt.map(_.info)
       AssessmentCentrePassMarkSettingsResponse(allPassmarkSchemes, info)
     }
+  }*/
+
+  def getLatestVersion: Future[Option[AssessmentCentrePassMarkSettings]] = {
+    assessmentCentrePassMarkSettingsRepo.tryGetLatestVersion
   }
 }

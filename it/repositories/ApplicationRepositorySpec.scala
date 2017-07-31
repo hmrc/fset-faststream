@@ -20,7 +20,7 @@ import config.MicroserviceAppConfig.cubiksGatewayConfig
 import model.ApplicationStatus._
 import model.Commands._
 import model.{ ApplicationRoute, EvaluationResults, ProgressStatuses }
-import model.EvaluationResults.AssessmentRuleCategoryResult
+import model.EvaluationResults.AssessmentEvaluationResult
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
