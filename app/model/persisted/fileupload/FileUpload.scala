@@ -17,6 +17,7 @@
 package model.persisted.fileupload
 
 import org.joda.time.DateTime
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import repositories.BSONDateTimeHandler
@@ -25,10 +26,10 @@ case class FileUpload(
   id: String,
   contentType: String,
   created: DateTime,
-  fileContents: Array[Byte]
+  fileContents: Enumerator[Array[Byte]]
 )
 
 object FileUpload {
-  implicit val fileUploadFormat: OFormat[FileUpload] = Json.format[FileUpload]
-  implicit val fileUploadHandler = Macros.handler[FileUpload]
+  // implicit val fileUploadFormat: OFormat[FileUpload] = Json.format[FileUpload]
+  // implicit val fileUploadHandler = Macros.handler[FileUpload]
 }

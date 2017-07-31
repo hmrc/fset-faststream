@@ -16,17 +16,22 @@
 
 package repositories.fileupload
 
+import java.io.ByteArrayInputStream
 import java.util.UUID
 
 import model.persisted.fileupload.FileUpload
 import org.joda.time.DateTime
-import reactivemongo.api.DB
+import play.api.Logger
+import reactivemongo.api.gridfs.{ DefaultFileToSave, GridFS }
+import reactivemongo.api.{ BSONSerializationPack, DB, DefaultDB }
 import reactivemongo.bson.Subtype.GenericBinarySubtype
+import reactivemongo.bson.buffer.ArrayReadableBuffer
 import reactivemongo.bson.{ BSONArray, BSONBinary, BSONDocument, BSONObjectID }
 import repositories.{ BSONDateTimeHandler, CollectionNames }
 import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import reactivemongo.api.gridfs.Implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -40,27 +45,29 @@ trait FileUploadRepository {
   def retrieve(fileId: String): Future[FileUpload]
 }
 
-class FileUploadMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[FileUpload, BSONObjectID](CollectionNames.FILE_UPLOAD,
-    mongo, FileUpload.fileUploadFormat, ReactiveMongoFormats.objectIdFormats)
-    with FileUploadRepository {
+class FileUploadMongoRepository(implicit mongo: () => DB) extends FileUploadRepository {
+
+  val gridFS = new GridFS[BSONSerializationPack.type](DefaultDB(mongo.apply.name, mongo.apply.connection), CollectionNames.FILE_UPLOAD)
 
   def add(contentType: String, fileContents: Array[Byte]): Future[String] = {
-    val created = DateTime.now
     val newId = UUID.randomUUID().toString
 
-    collection.insert(BSONDocument(
-        "id" -> newId,
-        "contentType" -> contentType,
-        "created" -> created,
-        "fileContents" -> BSONBinary(fileContents, GenericBinarySubtype)
-      )).map(_ => newId)
+    val fileToSave = DefaultFileToSave(Some(newId), Some(contentType), Some(DateTime.now.getMillis))
+
+    gridFS.writeFromInputStream(fileToSave, new ByteArrayInputStream(fileContents)) map(_ => newId)
   }
 
   def retrieve(fileId: String): Future[FileUpload] = {
-    collection.find(BSONDocument("id" -> fileId)).one[FileUpload].map {
-      case Some(upload) => upload
-      case None => throw FileUploadNotFoundException(s"No file upload found with id $fileId")
+     gridFS.find(BSONDocument("filename" -> fileId)).headOption.map {
+      case Some(res) =>
+      val body = gridFS.enumerate(res)
+      FileUpload(
+        fileId,
+        res.contentType.get,
+        new DateTime(res.uploadDate.get),
+        body
+      )
+      case _ => throw FileUploadNotFoundException(s"No file upload found with id $fileId")
     }
   }
 }

@@ -106,13 +106,13 @@ class AssessmentCentreMongoRepository (
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("_id" -> 0, s"testGroups.$fsacKey.tests" -> 2)
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { x =>
-      Logger.warn("================= FIND = " + Json.toJson(x))
-    }
-
     collection.find(query, projection).one[BSONDocument].map {
-      case Some(tests) => tests.getAs[BSONDocument]("testGroups")
-        .getAs[BSONDocument](fsacKey).getAs[BSONDocument]("tests").getAs[AssessmentCentreTests]
+      case Some(bsonTests) => (for {
+        testGroups <- bsonTests.getAs[BSONDocument]("testGroups")
+        fsac <- testGroups.getAs[BSONDocument](fsacKey)
+        tests <- fsac.getAs[AssessmentCentreTests]("tests")
+      } yield tests).getOrElse(AssessmentCentreTests())
+
       case _ => AssessmentCentreTests()
     }
   }

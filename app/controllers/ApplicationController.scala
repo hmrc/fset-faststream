@@ -16,22 +16,29 @@
 
 package controllers
 
+import java.nio.charset.Charset
 import java.nio.file.Files
 
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses
 import model.command.WithdrawApplication
+import play.api.Logger
+import play.api.http.HttpEntity
 import play.api.libs.Files.TemporaryFile
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.libs.streams.Streams
+import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
 import services.application.ApplicationService
 import services.assessmentcentre.AssessmentCentreService
-import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
+import services.assessmentcentre.AssessmentCentreService.{ CandidateAlreadyHasAnAnalysisExerciseException, CandidateAlreadyHasNoAnalysisExerciseException }
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -158,7 +165,7 @@ trait ApplicationController extends BaseController {
       }
   }
 
-  def uploadAnalysisExercise(applicationId: String, contentType: String): Action[TemporaryFile] = Action.async(parse.temporaryFile) {
+  def uploadAnalysisExercise(applicationId: String, contentType: String) = Action.async(parse.temporaryFile) {
     implicit request =>
       (for {
         fileId <- uploadRepository.add(contentType, Files.readAllBytes(request.body.file.toPath))
@@ -167,6 +174,32 @@ trait ApplicationController extends BaseController {
         Ok
       }).recover {
         case x: CandidateAlreadyHasAnAnalysisExerciseException => Conflict("An analysis exercise has already been added for this user")
+      }
+  }
+
+  def downloadAnalysisExercise(applicationId: String) = Action.async {
+    implicit request =>
+      for {
+        assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
+        analysis = assessmentCentreTests.analysisExercise.getOrElse(throw CandidateAlreadyHasNoAnalysisExerciseException(applicationId))
+        file <- uploadRepository.retrieve(analysis.fileId)
+      } yield {
+        val source = Source.fromPublisher(Streams.enumeratorToPublisher(file.fileContents))
+
+        Ok.chunked(source).withHeaders(
+          "Content-Disposition" -> s"attachment; filename= $applicationId-exercise.docx",
+          "Content-Type" -> file.contentType
+        )
+      }
+  }
+
+  def hasAnalysisExercise(applicationId: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      for {
+        assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
+        analysis = assessmentCentreTests.analysisExercise
+      } yield {
+        Ok(Json.toJson(analysis.nonEmpty))
       }
   }
 

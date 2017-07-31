@@ -137,12 +137,12 @@ package object repositories {
     candidateAllocationRepository.collection.indexesManager.create(Index(
       Seq("id"-> Ascending, "eventId" -> Ascending, "sessionId" -> Ascending),
       unique = false
-    )),
+    ))
 
-    fileUploadRepository.collection.indexesManager.create(Index(
+ /*   fileUploadRepository.collection.indexesManager.create(Index(
       Seq("id" -> Ascending, "created" -> Ascending),
       unique = false
-    ))
+    )) */
 
   )), 30 seconds)
 

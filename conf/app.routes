@@ -30,6 +30,8 @@ GET         /application/location/:location                              control
 POST        /applications/allocated                                      controllers.ApplicationController.findAllocatedApplications()
 POST        /application/status                                          controllers.ApplicationController.updateStatus
 POST        /application/uploadAnalysisExercise                          controllers.ApplicationController.uploadAnalysisExercise(applicationId: String, contentType: String)
+GET         /application/downloadAnalysisExercise                        controllers.ApplicationController.downloadAnalysisExercise(applicationId: String)
+GET         /application/hasAnalysisExercise                             controllers.ApplicationController.hasAnalysisExercise(applicationId: String)
 
 GET         /application/:applicationId/phase3/results                   controllers.ApplicationController.getPhase3Results(applicationId: String)
 #GET         /application/:applicationId/sift/results                    controllers.ApplicationController.getSchemeResults(applicationId: String)
