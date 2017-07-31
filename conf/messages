@@ -268,5 +268,6 @@ dashboard.final.results.Edip=Congratulations, you''ve been succcessful for the E
 dashboard.final.results.Sdip=Congratulations, you''ve been succcessful for the Summer Diversity Internship Programme (SDIP).
 dashboard.final.results.SdipFaststream=Congratulations, you''ve been succcessful for the Summer Diversity Internship Programme (SDIP).
 
-additionalquestions.section.saved="You have saved your submission for this section"
-additionalquestions.submitted="You have submitted your additional questions"
+additionalquestions.section.saved=You have saved your submission for this section
+additionalquestions.section.missing=You have not saved your answers for some of the sections.  Please review each section and try again.
+additionalquestions.submitted=You have submitted your additional questions

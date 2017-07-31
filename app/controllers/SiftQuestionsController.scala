@@ -19,6 +19,7 @@ package controllers
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import config.CSRCache
+import connectors.ApplicationClient.SiftAnswersIncomplete
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
 import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers }
@@ -120,7 +121,7 @@ abstract class SiftQuestionsController(
   def presentPreview: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
 
-      def enrichSchemeAnsers(siftAnswers: SiftAnswers) = Future.traverse(siftAnswers.schemeAnswers) { case (schemeId, answer) =>
+      def enrichSchemeAnswers(siftAnswers: SiftAnswers) = Future.traverse(siftAnswers.schemeAnswers) { case (schemeId, answer) =>
         schemeMetadata(SchemeId(schemeId)).map { scheme =>
           scheme -> answer
         }
@@ -128,7 +129,7 @@ abstract class SiftQuestionsController(
 
       for {
         answers <- siftClient.getSiftAnswers(user.application.applicationId)
-        enrichedAnswers <- enrichSchemeAnsers(answers)
+        enrichedAnswers <- enrichSchemeAnswers(answers)
       } yield {
          val page = SiftPreviewPage(
           answers.applicationId,
@@ -142,9 +143,11 @@ abstract class SiftQuestionsController(
 
   def submitAdditionalQuestions: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      play.api.Logger.error("VALID")
       siftClient.submitSiftAnswers(user.application.applicationId).map { _ =>
         Redirect(routes.HomeController.present()).flashing(success("additionalquestions.submitted"))
+      } recover {
+        case _: SiftAnswersIncomplete =>
+          Redirect(routes.HomeController.present()).flashing(danger("additionalquestions.section.missing"))
       }
   }
 

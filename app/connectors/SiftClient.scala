@@ -94,9 +94,9 @@ trait SiftClient {
     ).map {
       case x: HttpResponse if x.status == OK => ()
     } recover {
-      case _: UnprocessableEntityException => throw new SiftAnswersIncomplete
-      case _: ConflictException => throw new SiftAnswersSubmitted
-      case _: BadRequestException => throw new SiftAnswersNotFound()
+      case e: Upstream4xxResponse if e.upstreamResponseCode == UNPROCESSABLE_ENTITY => throw new SiftAnswersIncomplete
+      case e: Upstream4xxResponse if e.upstreamResponseCode == CONFLICT => throw new SiftAnswersSubmitted
+      case e: Upstream4xxResponse if e.upstreamResponseCode == BAD_REQUEST => throw new SiftAnswersNotFound()
     }
   }
 
