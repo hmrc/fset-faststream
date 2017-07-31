@@ -189,9 +189,8 @@ trait ApplicationController extends BaseController {
         val fileExt = contentTypeToExtension(file.contentType)
 
         Ok.chunked(source).withHeaders(
-          "Content-Disposition" -> s"attachment; filename= $applicationId-exercise.$fileExt",
-          "Content-Type" -> file.contentType
-        )
+          "Content-Disposition" -> s"attachment; filename= $applicationId-exercise.$fileExt"
+        ).as(file.contentType)
       }
   }
 
