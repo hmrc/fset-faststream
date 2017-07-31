@@ -18,13 +18,13 @@ package services.allocation
 
 import connectors.{ AuthProviderClient, EmailClient }
 import connectors.ExchangeObjects.Candidate
-import model.AllocationStatuses
+import model.{ AllocationStatuses, CandidateExamples, persisted }
 import model.command.{ CandidateAllocation, CandidateAllocations }
-import model.persisted.EventExamples
+import model.persisted._
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import org.joda.time.{ LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{ when, _ }
 import org.mockito.stubbing.OngoingStubbing
 import repositories.CandidateAllocationMongoRepository
 import repositories.application.GeneralApplicationRepository
@@ -34,6 +34,9 @@ import services.stc.StcEventService
 import uk.gov.hmrc.play.http.HeaderCarrier
 import testkit.MockitoImplicits._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
+
 import scala.concurrent.Future
 
 class CandidateAllocationServiceSpec extends BaseServiceSpec {
@@ -49,12 +52,40 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockAppRepo.find(appId)).thenReturn(Future.successful(None))
       service.allocateCandidates(candidateAllocations)
     }
+
+    "unallocate candidates" in new TestFixture {
+      val eventId = "E1"
+      val sessionId = "S1"
+      val appId = "app1"
+      val userId = "userId"
+      val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
+      val persistedAllocations: Seq[persisted.CandidateAllocation] = model.persisted.CandidateAllocation.fromCommand(candidateAllocations)
+      val allocation: persisted.CandidateAllocation = persistedAllocations.head
+
+      when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation]))
+        .thenReturn(Future.successful(()))
+      when(mockAppRepo.resetApplicationAllocationStatus(any[String]))
+        .thenReturn(Future.successful(()))
+
+      when(mockEventsService.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1))
+      when(mockAppRepo.find(List(appId))).thenReturn(Future.successful(CandidateExamples.NewCandidates))
+      when(mockPersonalDetailsRepo.find(any[String])).thenReturn(Future.successful(PersonalDetailsExamples.JohnDoe))
+      when(mockContactDetailsRepo.find(any[String])).thenReturn(Future.successful(ContactDetailsExamples.ContactDetailsUK))
+
+      service.unAllocateCandidates(persistedAllocations.toList).futureValue
+
+      verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
+      verify(mockAppRepo).resetApplicationAllocationStatus(any[String])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
+    }
   }
 
 
   trait TestFixture {
     val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
     val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
+    val mockPersonalDetailsRepo: PersonalDetailsRepository = mock[PersonalDetailsRepository]
+    val mockContactDetailsRepo: ContactDetailsRepository= mock[ContactDetailsRepository]
     val mockEventsService: EventsService = mock[EventsService]
     val mockEmailClient: EmailClient = mock[EmailClient]
     val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
@@ -63,6 +94,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
     val service = new CandidateAllocationService {
       override val eventsService: EventsService = mockEventsService
       override val applicationRepo: GeneralApplicationRepository = mockAppRepo
+      override val personalDetailsRepo: PersonalDetailsRepository = mockPersonalDetailsRepo
+      override val contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
       override def emailClient: EmailClient = mockEmailClient
       override def authProviderClient: AuthProviderClient = mockAuthProviderClient
       override val eventService: StcEventService = mockStcEventService
