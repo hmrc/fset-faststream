@@ -20,6 +20,7 @@ import common.FutureEx
 import model.{ Commands, ProgressStatuses, SchemeId, SerialUpdateResult }
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
+import reactivemongo.bson.BSONDocument
 import repositories.CurrentSchemeStatusHelper
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
@@ -58,10 +59,13 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper{
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
     applicationRepo.getCurrentSchemeStatus(applicationId).flatMap { currentSchemeStatus =>
       val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
+      play.api.Logger.error(s"\n$newSchemeStatus")
       val (predicate, update) = applicationSiftRepo.siftApplicationForSchemeBSON(applicationId, result)
-      val action = s"Sifting application for $SchemeId"
+      val action = s"Sifting application for ${result.schemeId.value}"
 
-      applicationSiftRepo.update(applicationId, predicate, update ++ currentSchemeStatusBSON(newSchemeStatus), action).map(_ => ())
+      val mergedUpdate = update ++ BSONDocument("$set" -> currentSchemeStatusBSON(newSchemeStatus))
+
+      applicationSiftRepo.update(applicationId, predicate, mergedUpdate, action).map(_ => ())
     }
   }
 }

@@ -136,8 +136,8 @@ class ApplicationSiftMongoRepository(
      (predicate, update)
    }
 
-  def update(applicationId: String, predicate: BSONDocument, update: BSONDocument): Future[Unit] = {
-    val validator = singleUpdateValidator()
-    collection.update(predicate, update).map ( _ => ())
+  def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit] = {
+    val validator = singleUpdateValidator(applicationId, action)
+    collection.update(predicate, update) map validator
   }
 }
