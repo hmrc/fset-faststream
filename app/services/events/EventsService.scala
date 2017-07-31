@@ -16,11 +16,14 @@
 
 package services.events
 
+import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
+import model.{ AllocationStatuses, FsbType, TelephoneInterviewType, UniqueIdentifier }
 import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.Logger
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
 import repositories.eventsRepository
+import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,12 +31,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object EventsService extends EventsService {
   val eventsRepo: EventsMongoRepository = eventsRepository
   val eventsConfigRepo = EventsConfigRepository
+  val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
+  val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
 }
 
 trait EventsService {
 
   def eventsRepo: EventsRepository
-
+  def assessorAllocationService: AssessorAllocationService
+  def candidateAllocationService: CandidateAllocationService
   def eventsConfigRepo: EventsConfigRepository
 
   def saveAssessmentEvents(): Future[Unit] = {
@@ -43,6 +49,10 @@ trait EventsService {
     }
   }
 
+  def save(event: Event): Future[Unit] = {
+    eventsRepo.save(event :: Nil)
+  }
+
   def getEvent(id: String): Future[Event] = {
     eventsRepo.getEvent(id)
   }
@@ -50,4 +60,35 @@ trait EventsService {
   def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue))
   }
+
+  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
+    getEvents(eventType, venue).flatMap { events =>
+      val res = events.map { event =>
+        assessorAllocationService.getAllocations(event.id).flatMap { allocations =>
+          val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)
+          val allocationsGroupedBySkillWithSummary = allocationsGroupedBySkill.map { allocationGroupedBySkill =>
+            val assessorAllocation = allocationGroupedBySkill._2
+            val skill = allocationGroupedBySkill._1.name
+            val allocated = assessorAllocation.length
+            val confirmed = assessorAllocation.count(_.status == AllocationStatuses.CONFIRMED)
+            EventAssessorAllocationsSummaryPerSkill(skill, allocated, confirmed)
+          }.toList
+          val candidateAllocBySession = event.sessions.sortBy(_.startTime.getMillisOfDay).map { session =>
+            candidateAllocationService.getCandidateAllocations(event.id, session.id).map { candidateAllocations =>
+              CandidateAllocationPerSession(UniqueIdentifier(session.id),
+                candidateAllocations.allocations.count(_.status == AllocationStatuses.CONFIRMED))
+            }
+          }
+          Future.sequence(candidateAllocBySession).map { cs =>
+            EventWithAllocationsSummary(event.date, event, cs, allocationsGroupedBySkillWithSummary)
+          }
+        }
+      }
+      Future.sequence(res)
+    }
+  }
+
+  def getFsbTypes: Future[List[FsbType]] = eventsConfigRepo.fsbTypes
+
+  def getTelephoneInterviewTypes: Future[List[TelephoneInterviewType]] = eventsConfigRepo.telephoneInterviewTypes
 }

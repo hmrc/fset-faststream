@@ -16,6 +16,7 @@
 
 package model.persisted.eventschedules
 
+import model.exchange.{ Session => ExchangeSession }
 import factories.UUIDFactory
 import org.joda.time.LocalTime
 import play.api.libs.json.{ Json, OFormat }
@@ -39,5 +40,15 @@ object Session {
 
   def apply(s: SessionConfig): Session = {
     Session(UUIDFactory.generateUUID(), s.description, s.capacity, s.minViableAttendees, s.attendeeSafetyMargin, s.startTime, s.endTime)
+  }
+
+  def apply(exchangeSession: ExchangeSession): Session = {
+    Session(id = UUIDFactory.generateUUID(),
+      description = exchangeSession.description,
+      capacity = exchangeSession.capacity,
+      minViableAttendees = exchangeSession.minViableAttendees,
+      attendeeSafetyMargin = exchangeSession.attendeeSafetyMargin,
+      startTime = exchangeSession.startTime,
+      endTime = exchangeSession.endTime)
   }
 }

@@ -130,6 +130,8 @@ trait GeneralApplicationRepository {
 
   def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse]
 
+  def resetApplicationAllocationStatus(applicationId: String): Future[Unit]
+
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
 }
 
@@ -438,11 +440,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
         val pe = document.getAs[BSONDocument]("passmarkEvaluation")
 
-        val otLocation1Scheme1PassmarkEvaluation = pe.flatMap(_.getAs[String]("location1Scheme1").map(Result(_).toPassmark))
-        val otLocation1Scheme2PassmarkEvaluation = pe.flatMap(_.getAs[String]("location1Scheme2").map(Result(_).toPassmark))
-        val otLocation2Scheme1PassmarkEvaluation = pe.flatMap(_.getAs[String]("location2Scheme1").map(Result(_).toPassmark))
-        val otLocation2Scheme2PassmarkEvaluation = pe.flatMap(_.getAs[String]("location2Scheme2").map(Result(_).toPassmark))
-        val otAlternativeSchemePassmarkEvaluation = pe.flatMap(_.getAs[String]("alternativeScheme").map(Result(_).toPassmark))
+        val otLocation1Scheme1PassmarkEvaluation = pe.flatMap(_.getAs[String]("location1Scheme1").map(Result(_).toReportReadableString))
+        val otLocation1Scheme2PassmarkEvaluation = pe.flatMap(_.getAs[String]("location1Scheme2").map(Result(_).toReportReadableString))
+        val otLocation2Scheme1PassmarkEvaluation = pe.flatMap(_.getAs[String]("location2Scheme1").map(Result(_).toReportReadableString))
+        val otLocation2Scheme2PassmarkEvaluation = pe.flatMap(_.getAs[String]("location2Scheme2").map(Result(_).toReportReadableString))
+        val otAlternativeSchemePassmarkEvaluation = pe.flatMap(_.getAs[String]("alternativeScheme").map(Result(_).toReportReadableString))
 
         ApplicationPreferences(userId, applicationId, fr1FirstLocation, fr1FirstFramework, fr1SecondFramework,
           fr2FirstLocation, fr2FirstFramework, fr2SecondFramework, location, framework, needsAssistance,
@@ -912,10 +914,16 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = {
-    val validStates = List(ApplicationStatus.PHASE3_TESTS_PASSED, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+    val awaitingAllocation = ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key
+    val confirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED.key
+    val unconfirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED.key
+
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> validStates)),
-      BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
+      BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE),
+      BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations)),
+      BSONDocument(s"progress-status.$awaitingAllocation" -> true),
+      BSONDocument(s"progress-status.$confirmedAllocation" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.$unconfirmedAllocation" -> BSONDocument("$exists" -> false))
     ))
 
     collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
@@ -933,6 +941,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         )
 
         val ascending = JsNumber(1)
+        // Eligible candidates should be sorted based on when they passed PHASE 3
         val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
 
         collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List]()
@@ -945,6 +954,20 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         }
       }
     }
+  }
+
+  override def resetApplicationAllocationStatus(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val progressStatuses = List(
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED)
+    val statusesToRemove = progressStatuses.map(p => s"progress-status.${p.key}" -> BSONString(""))
+
+    val updateQuery = BSONDocument(
+      "$unset" -> BSONDocument(statusesToRemove),
+      "$set" -> BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key}" -> true)
+    )
+    collection.update(query, updateQuery).map(_ => ())
   }
 
   private def bsonDocToCandidatesEligibleForEvent(doc: BSONDocument) = {

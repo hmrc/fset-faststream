@@ -67,7 +67,7 @@ class ApplicationSiftMongoRepository(
     BSONDocument("applicationStatus" -> prevPhase),
     BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
       BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
-      "result" -> EvaluationResults.Green.toPassmark)
+      "result" -> EvaluationResults.Green.toString)
   ))))
 
   def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
@@ -83,6 +83,8 @@ class ApplicationSiftMongoRepository(
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]] = {
+    val prevPhaseSchemePassed = BSONDocument(s"cumulativeEvaluation.${schemeId.value}" -> Green.toString)
+
     val notSiftedOnScheme = BSONDocument(
       s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(schemeId.value))
     )
@@ -92,6 +94,7 @@ class ApplicationSiftMongoRepository(
       BSONDocument(s"progress-status.${ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED}" -> true),
       BSONDocument(s"scheme-preferences.schemes" -> BSONDocument("$all" -> BSONArray(schemeId.value))),
       BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
+      prevPhaseSchemePassed,
       notSiftedOnScheme
     ))
     bsonCollection.find(query).cursor[Candidate]().collect[List]()

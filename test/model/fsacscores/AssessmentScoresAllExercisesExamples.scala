@@ -22,17 +22,50 @@ import model.UniqueIdentifier
 object AssessmentScoresAllExercisesExamples {
   val AppId1 = UniqueIdentifier.randomUniqueIdentifier
   val AppId2 = UniqueIdentifier.randomUniqueIdentifier
+  val AppId3 = UniqueIdentifier.randomUniqueIdentifier
+  val AppId4 = UniqueIdentifier.randomUniqueIdentifier
+  val AppId5 = UniqueIdentifier.randomUniqueIdentifier
+  val AppId6 = UniqueIdentifier.randomUniqueIdentifier
 
-  val Example1 = AssessmentScoresAllExercises(
+  val OnlyAnalysisExercise = AssessmentScoresAllExercises(
     AppId1,
     Some(AssessmentScoresExerciseExamples.Example1),
+    None,
+    None
+  )
+
+  val OnlyGroupExercise = AssessmentScoresAllExercises(
+    AppId2,
+    None,
+    Some(AssessmentScoresExerciseExamples.Example2),
+    None
+  )
+
+  val OnlyLeadershipExercise = AssessmentScoresAllExercises(
+    AppId3,
+    None,
+    None,
+    Some(AssessmentScoresExerciseExamples.Example3)
+  )
+
+  val AllButAnalysisExercise = AssessmentScoresAllExercises(
+    AppId4,
+    None,
     Some(AssessmentScoresExerciseExamples.Example2),
     Some(AssessmentScoresExerciseExamples.Example3)
   )
-  val Example2 = AssessmentScoresAllExercises(
-    AppId2,
-    Some(AssessmentScoresExerciseExamples.Example3),
+
+  val NoExercises = AssessmentScoresAllExercises(
+    AppId5,
+    None,
+    None,
+    None
+  )
+
+  val AllExercises = AssessmentScoresAllExercises(
+    AppId6,
     Some(AssessmentScoresExerciseExamples.Example1),
-    Some(AssessmentScoresExerciseExamples.Example2)
+    Some(AssessmentScoresExerciseExamples.Example2),
+    Some(AssessmentScoresExerciseExamples.Example3)
   )
 }

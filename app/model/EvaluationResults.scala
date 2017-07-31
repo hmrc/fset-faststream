@@ -20,16 +20,16 @@ import model.persisted.SchemeEvaluationResult
 
 object EvaluationResults {
   sealed trait Result {
-    def toPassmark: String
+    def toReportReadableString: String
   }
   case object Green extends Result {
-    def toPassmark: String = "Pass"
+    def toReportReadableString: String = "Pass"
   }
   case object Amber extends Result {
-    def toPassmark: String = "Amber"
+    def toReportReadableString: String = "Amber"
   }
   case object Red extends Result {
-    def toPassmark: String = "Fail"
+    def toReportReadableString: String = "Fail"
   }
 
   object Result {

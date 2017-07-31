@@ -18,21 +18,21 @@ package services.assessmentscores
 
 import factories.DateTimeFactory
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
-import model.UniqueIdentifier
-import model.command.AssessmentScoresCommands.AssessmentExerciseType.AssessmentExerciseType
+import model.{ ProgressStatuses, UniqueIdentifier }
 import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
+import model.persisted.eventschedules.Event
 import play.api.mvc.RequestHeader
+import repositories.application.GeneralApplicationRepository
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.{ AssessmentScoresRepository, CandidateAllocationMongoRepository }
-import services.AuditService
-import services.assessmentscores.AssessmentScoresService._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AssessmentScoresService extends AssessmentScoresService {
+  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
   override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessmentScoresRepository
   override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
   override val eventsRepository: EventsRepository = repositories.eventsRepository
@@ -42,6 +42,7 @@ object AssessmentScoresService extends AssessmentScoresService {
 }
 
 trait AssessmentScoresService {
+  val applicationRepository: GeneralApplicationRepository
   val assessmentScoresRepository: AssessmentScoresRepository
   val candidateAllocationRepository: CandidateAllocationMongoRepository
   val eventsRepository: EventsRepository
@@ -55,7 +56,12 @@ trait AssessmentScoresService {
       groupExercise = scores.groupExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
       leadershipExercise = scores.leadershipExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone)))
     )
-    assessmentScoresRepository.save(scoresWithSubmittedDate)
+    for {
+      _ <- assessmentScoresRepository.save(scoresWithSubmittedDate)
+      _ <- updateStatusIfNeeded(scores)
+    } yield {
+      ()
+    }
   }
 
   def saveExercise(applicationId: UniqueIdentifier,
@@ -79,30 +85,77 @@ trait AssessmentScoresService {
       newExerciseScoresWithSubmittedDate = newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))
       newAllExercisesScores = updateAllExercisesWithExercise(oldAllExercisesScores, newExerciseScoresWithSubmittedDate)
       _ <- assessmentScoresRepository.save(newAllExercisesScores)
+      _ <- updateStatusIfNeeded(newAllExercisesScores)
     } yield {
       ()
     })
   }
 
-  def findAssessmentScoresWithCandidateSummary(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse] = {
-    val candidateAllocationsFut = candidateAllocationRepository.find(applicationId.toString())
+  private def updateStatusIfNeeded(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
+    def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean = {
+      allExercisesScores.analysisExercise.map(_.isSubmitted).getOrElse(false) &&
+        allExercisesScores.groupExercise.map(_.isSubmitted).getOrElse(false) &&
+        allExercisesScores.leadershipExercise.map(_.isSubmitted).getOrElse(false)
+    }
+
+    if (shouldUpdateStatus(allExercisesScores)) {
+      applicationRepository.addProgressStatusAndUpdateAppStatus(
+        allExercisesScores.applicationId.toString(),
+        ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED)
+    } else {
+      Future.successful(())
+    }
+  }
+
+  def findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse] = {
+    for {
+      candidateAllocations <- candidateAllocationRepository.find(applicationId.toString())
+      candidateAllocation = candidateAllocations.head
+      event <- eventsRepository.getEvent(candidateAllocation.eventId)
+      assessmentScoresWithCandidateSummary <- findOneAssessmentScoresWithCandidateSummaryByApplicationId(
+        applicationId,
+        event,
+        UniqueIdentifier(candidateAllocation.sessionId))
+    } yield {
+      assessmentScoresWithCandidateSummary
+    }
+  }
+
+  def findAssessmentScoresWithCandidateSummaryByEventId(eventId: UniqueIdentifier)
+  : Future[List[AssessmentScoresFindResponse]] = {
+    (for {
+      event <- eventsRepository.getEvent(eventId.toString())
+      candidateAllocations <- candidateAllocationRepository.allocationsForEvent(eventId.toString())
+    } yield {
+      candidateAllocations.foldLeft(Future.successful[List[AssessmentScoresFindResponse]](Nil)) {
+        (listFuture, candidateAllocation) => listFuture.flatMap { list => {
+          findOneAssessmentScoresWithCandidateSummaryByApplicationId(
+            UniqueIdentifier(candidateAllocation.id),
+            event,
+            UniqueIdentifier(candidateAllocation.sessionId))
+          }.map(_ :: list)
+        }
+      } map (_.reverse)
+    }).flatMap(identity)
+  }
+
+  private def findOneAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier,
+                                                                         event: Event,
+                                                                         sessionId: UniqueIdentifier) = {
     val personalDetailsFut = personalDetailsRepository.find(applicationId.toString())
     val assessmentScoresFut = assessmentScoresRepository.find(applicationId)
 
     for {
-      candidateAllocations <- candidateAllocationsFut
       personalDetails <- personalDetailsFut
       assessmentScores <- assessmentScoresFut
-      event <- eventsRepository.getEvent(candidateAllocations.head.eventId)
     } yield {
       AssessmentScoresFindResponse(RecordCandidateScores(
+        applicationId,
         personalDetails.firstName,
         personalDetails.lastName,
-        // TODO MIGUEL: we are in the process of refactoring Event class, at the end it will case class Venue(key: VenueKey, name: String)
-        // But it is case class Venue(name: String, description: String)
-        // The implication is now we do event.venue.description, but once the merge is done, it should be event.venue.name
         event.venue.description,
-        event.date),
+        event.date,
+        sessionId),
         assessmentScores)
     }
   }

@@ -54,7 +54,7 @@ trait TestDataGeneratorController extends BaseController {
     Ok("OK")
   }
 
-  def clearDatabase(generateDefaultUsers: Boolean) = Action.async { implicit request =>
+  def clearDatabase(generateDefaultUsers: Boolean): Action[AnyContent] = Action.async { implicit request =>
     TestDataGeneratorService.clearDatabase(generateDefaultUsers).map { _ =>
       Ok(Json.parse("""{"message": "success"}"""))
     }
@@ -152,7 +152,7 @@ trait TestDataGeneratorController extends BaseController {
         skills = Some(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR")),
         sifterSchemes = Some(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip"))),
         civilServant = Some(true),
-        availability = Some(List(
+        availability = Some(Set(
           AssessorAvailabilityRequest("London", LocalDate.now()),
           AssessorAvailabilityRequest("Newcastle", LocalDate.now())
         )),

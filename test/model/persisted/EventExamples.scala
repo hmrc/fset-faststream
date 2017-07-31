@@ -18,7 +18,7 @@ package model.persisted
 
 import controllers.DayAggregateEvent
 import factories.UUIDFactory
-import model.UniqueIdentifier
+import model.{ FsbType, TelephoneInterviewType, UniqueIdentifier }
 import model.persisted.eventschedules._
 import org.joda.time.{ LocalDate, LocalTime }
 
@@ -31,10 +31,13 @@ object EventExamples {
   val LocationLondon = Location("London")
   val LocationNewcastle = Location("Newcastle")
 
-  val e1 = Event(id = "1", eventType = EventType.FSAC, description = "PDFS FSB", location = LocationLondon,
-    venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+  val e1 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString, eventType = EventType.FSAC, description = "PDFS FSB",
+    location = LocationLondon, venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
     attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(),
     sessions = List())
+
+  val e1WithSessions = e1.copy(sessions = List(Session(UniqueIdentifier.randomUniqueIdentifier.toString(),
+  "session1", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4))))
 
   val EventsNew = List(
     e1,
@@ -90,5 +93,4 @@ object EventExamples {
           12, 4, LocalTime.parse("10:30:00.000"), LocalTime.parse("12:00:00.000")))
     )
   )
-
 }

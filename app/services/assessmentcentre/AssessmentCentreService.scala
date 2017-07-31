@@ -43,7 +43,6 @@ object AssessmentCentreService extends AssessmentCentreService {
 
 trait AssessmentCentreService {
 
-  def applicationRepo: GeneralApplicationRepository
   def assessmentCentreRepo: AssessmentCentreRepository
   def passmarkService: AssessmentCentrePassMarkSettingsService
   def assessmentScoresRepo: AssessmentScoresRepository
@@ -57,7 +56,7 @@ trait AssessmentCentreService {
   def progressApplicationsToAssessmentCentre(applications: Seq[ApplicationForFsac]): Future[SerialUpdateResult[ApplicationForFsac]] = {
       val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
-        applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId,
+        assessmentCentreRepo.progressToAssessmentCentre(application,
           ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       )
     }

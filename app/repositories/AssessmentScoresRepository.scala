@@ -40,7 +40,7 @@ class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo:
     AssessmentScoresAllExercises.jsonFormat, ReactiveMongoFormats.objectIdFormats)
     with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
-  // TODO: This save method does not remove exercise subdocument when in the case class they are None
+  // This save method does not remove exercise subdocument when allExercisesScores's field are None
   def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
     val applicationId = allExercisesScores.applicationId.toString()
     val query = BSONDocument("applicationId" -> applicationId)
@@ -51,13 +51,11 @@ class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo:
 
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     val query = BSONDocument("applicationId" -> applicationId.toString())
-    //collection.find(query, projection).one[FSACAllExercisesScoresAndFeedback]
     collection.find(query).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 
   def findAll: Future[List[AssessmentScoresAllExercises]] = {
     val query = BSONDocument.empty
-    //collection.find(query).cursor[FSACAllExercisesScoresAndFeedback](ReadPreference.nearest).collect[List]()
     collection.find(query).cursor[BSONDocument](ReadPreference.nearest).
       collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }

@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package model
+package persisted
 
-import model.command.AssessmentScoresCommands.{ AssessmentScoresFindResponse, AssessmentScoresSubmitRequest }
+import model.TelephoneInterviewType
 
-/**
-  * Created by miguelgil_garcia on 19/07/2017.
-  */
-package object assessmentscores {
-//  type CandidateScoresAndFeedback = AssessmentScoresAllExercises
-//  type ScoresAndFeedback = AssessmentScoresExercise
-//  type ExerciseScoresAndFeedback = AssessmentScoresSubmitRequest
-//  type ApplicationScores = AssessmentScoresFindResponse
+object TelephoneInterviewTypeExamples {
+  val YamlTelephoneInterviewTypes = List(
+    TelephoneInterviewType("EDIP", "Early Diversity Internship Program"),
+    TelephoneInterviewType("SDIP", "Summer Diversity Internship Program")
+  )
 }

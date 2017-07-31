@@ -23,6 +23,7 @@ import model._
 import model.exchange.AssessorAvailability
 import model.persisted.eventschedules.{ EventType, Session, _ }
 import org.joda.time.{ LocalDate, LocalTime }
+import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 
 import scala.concurrent.Await
@@ -30,8 +31,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
+object DataFaker extends DataFaker(SchemeYamlRepository)
+
 //scalastyle:off number.of.methods
-object DataFaker {
+abstract class DataFaker(schemeRepo: SchemeRepositoryImpl) {
 
   object ExchangeObjects {
 
@@ -150,27 +153,7 @@ object DataFaker {
     }
     */
 
-    def schemeTypes = randList(List(
-        Scheme("Commercial", "CFS", "Commercial", true),
-        Scheme("DigitalAndTechnology", "DaT", "Digital And Technology", true),
-        Scheme("DiplomaticService", "DS", "Diplomatic Service", true),
-        Scheme("DiplomaticServiceEconomics", "DSE", "Diplomatic Service Economics", true),
-        Scheme("DiplomaticServiceEuropean", "EFSDS", "Diplomatic Service European", true),
-        Scheme("European", "EFS", "European", true),
-        Scheme("Finance", "FIFS", "Finance", true),
-        Scheme("Generalist", "GFS", "Generalist", true),
-        Scheme("GovernmentCommunicationService", "GCFS", "Government Communication Service", true),
-        Scheme("GovernmentEconomicsService", "GES", "Government Economics Service", true),
-        Scheme("GovernmentOperationalResearchService", "GORS", "Government Operational Research Service", true),
-        Scheme("GovernmentSocialResearchService", "GSR", "Government Social Research Service", true),
-        Scheme("GovernmentStatisticalService", "GSS", "Government Statistical Service", true),
-        Scheme("HousesOfParliament", "HoP", "Houses Of Parliament", true),
-        Scheme("HumanResources", "HRFS", "Human Resources", true),
-        Scheme("ProjectDelivery", "PDFS", "Project Delivery", true),
-        Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering", true),
-        Scheme("Edip", "EDIP", "Early Diversity Internship Programme", true),
-        Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", true)
-    ), randNumberOfSchemes())
+    def schemeTypes = randList(schemeRepo.schemes.toList, randNumberOfSchemes())
 
     def gender = randOne(List(
       "Male",
@@ -714,11 +697,11 @@ object DataFaker {
     object Assessor {
       private def location = randOne(List("London", "Newcastle"))
 
-      def availability: Option[List[AssessorAvailability]] = {
+      def availability: Option[Set[AssessorAvailability]] = {
         if (boolTrue20percent) {
-          Some(List.empty)
+          Some(Set.empty)
         } else {
-          val dates = ( 15 to 25 ).map(i => LocalDate.parse(s"2017-06-$i")).toList
+          val dates = ( 15 to 25 ).map(i => LocalDate.parse(s"2017-06-$i")).toSet
           Option(dates.flatMap { date =>
             if (bool) {
               Some(AssessorAvailability(location, date))

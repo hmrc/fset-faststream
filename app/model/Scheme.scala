@@ -17,15 +17,14 @@
 package model
 
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString, Macros }
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 case class SchemeId(value: String)
 
 object SchemeId {
   // Custom json formatter to serialise to a string
-  val schemeIdWritesFormat = Writes[SchemeId](scheme => JsString(scheme.value))
-  val schemeIdReadsFormat = Reads[SchemeId](scheme => JsSuccess(SchemeId(scheme.as[String])))
+  val schemeIdWritesFormat: Writes[SchemeId] = Writes[SchemeId](scheme => JsString(scheme.value))
+  val schemeIdReadsFormat: Reads[SchemeId] = Reads[SchemeId](scheme => JsSuccess(SchemeId(scheme.as[String])))
 
   implicit val schemeIdFormat = Format(schemeIdReadsFormat, schemeIdWritesFormat)
 
@@ -36,17 +35,45 @@ object SchemeId {
   }
 }
 
+case class Degree(
+  required: String,
+  specificRequirement: Boolean
+)
+
+object Degree {
+  implicit val degreeFormat = Json.format[Degree]
+}
+
+object SiftRequirement extends Enumeration {
+  val FORM, NUMERIC_TEST = Value
+
+  implicit val applicationStatusFormat = new Format[SiftRequirement.Value] {
+    def reads(json: JsValue) = JsSuccess(SiftRequirement.withName(json.as[String]))
+    def writes(myEnum: SiftRequirement.Value) = JsString(myEnum.toString)
+  }
+}
+
 /** Wrapper for scheme data
   *
   * @param id The scheme ID to be delivered across the wire/stored in DB etc.
   * @param code The abbreviated form
   * @param name The form displayed to end users
   */
-case class Scheme(id: SchemeId, code: String, name: String, requiresSift: Boolean)
+case class Scheme(
+  id: SchemeId,
+  code: String,
+  name: String,
+  civilServantEligible: Boolean,
+  degree: Option[Degree],
+  siftRequirement: Option[SiftRequirement.Value],
+  siftEvaluationRequired: Boolean
+)
 
 object Scheme {
-  implicit val schemeFormat = Json.format[Scheme]
-  implicit val schemeHandler = Macros.handler[Scheme]
+  implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
-  def apply(id: String, code: String, name: String, requiresSift: Boolean): Scheme = Scheme(SchemeId(id), code, name, requiresSift)
+  def apply(id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
+    requiresSift: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean
+  ): Scheme =
+    Scheme(SchemeId(id), code, name, civilServantEligible, degree, requiresSift, siftEvaluationRequired)
 }

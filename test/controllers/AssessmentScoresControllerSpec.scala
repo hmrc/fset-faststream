@@ -18,7 +18,8 @@ package controllers
 
 import config.TestFixtureBase
 import factories.DateTimeFactory
-import model.Exceptions.CannotUpdateRecord
+import model.Exceptions.{ CannotUpdateRecord, EventNotFoundException }
+import model.UniqueIdentifier
 import model.assessmentscores.{ AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
 import model.command.AssessmentScoresCommands._
 import org.joda.time.DateTimeZone
@@ -50,10 +51,9 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
         "exercise" -> AssessmentExerciseType.analysisExercise.toString,
         "assessorId" -> exerciseScores.updatedBy.toString())
 
+      val response = controller.submit()(request)
 
-      val result = controller.submit()(request)
-
-      status(result) must be(OK)
+      status(response) must be(OK)
       verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise), any())
       verify(mockAuditService).logEvent(
         eqTo(AssessmentScoresController.AssessmentScoresOneExerciseSubmitted),
@@ -62,23 +62,48 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "findAssessmentScoresWithCandidateSummary" should {
+  "findAssessmentScoresWithCandidateSummaryByApplicationId" should {
     "return OK with corresponding assessment scores" in new TestFixture {
       val expectedResponse = AssessmentScoresFindResponse(
-        RecordCandidateScores("firstName", "lastName", "venue", DateTimeFactory.nowLocalDate),
-        Some(AssessmentScoresAllExercisesExamples.Example1))
-      when(mockService.findAssessmentScoresWithCandidateSummary(appId)).thenReturn(
+        RecordCandidateScores(appId, "firstName", "lastName", "venue",
+          DateTimeFactory.nowLocalDate, UniqueIdentifier.randomUniqueIdentifier),
+        Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise))
+      when(mockService.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)).thenReturn(
         Future.successful(expectedResponse))
 
-      val result = controller.findAssessmentScoresWithCandidateSummary(appId)(fakeRequest)
+      val response = controller.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)(fakeRequest)
 
-      status(result) must be (OK)
-      contentAsJson(result) mustBe Json.toJson(expectedResponse)
+      status(response) must be (OK)
+      contentAsJson(response) mustBe Json.toJson(expectedResponse)
     }
 
     "return NOT_FOUND if there is any error" in new TestFixture {
-      when(mockService.findAssessmentScoresWithCandidateSummary(appId)).thenReturn(Future.failed(CannotUpdateRecord(appId.toString())))
-      val response = controller.findAssessmentScoresWithCandidateSummary(appId)(fakeRequest)
+      when(mockService.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)).thenReturn(
+        Future.failed(EventNotFoundException(eventId.toString())))
+      val response = controller.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
+    }
+  }
+
+  "findAssessmentScoresWithCandidateSummaryByEventId" should {
+    "return OK with corresponding assessment scores" in new TestFixture {
+      val expectedResponse = List(AssessmentScoresFindResponse(
+        RecordCandidateScores(appId, "firstName", "lastName", "venue",
+          DateTimeFactory.nowLocalDate, sessionId),
+        Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
+      when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(
+        Future.successful(expectedResponse))
+
+      val response = controller.findAssessmentScoresWithCandidateSummaryByEventId(eventId)(fakeRequest)
+
+      status(response) must be (OK)
+      contentAsJson(response) mustBe Json.toJson(expectedResponse)
+    }
+
+    "return NOT_FOUND if there is any error" in new TestFixture {
+      when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(
+        Future.failed(EventNotFoundException(eventId.toString())))
+      val response = controller.findAssessmentScoresWithCandidateSummaryByEventId(eventId)(fakeRequest)
       status(response) mustBe NOT_FOUND
     }
   }
@@ -93,6 +118,8 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
       override val auditService = mockAuditService
     }
 
-    val appId = AssessmentScoresAllExercisesExamples.Example1.applicationId
+    val appId = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise.applicationId
+    val sessionId = UniqueIdentifier.randomUniqueIdentifier
+    val eventId = UniqueIdentifier.randomUniqueIdentifier
   }
 }

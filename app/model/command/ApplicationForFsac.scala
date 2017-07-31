@@ -16,13 +16,14 @@
 
 package model.command
 
-import model.persisted.PassmarkEvaluation
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.BSONDocument
 
 case class ApplicationForFsac(
-  applicationId: String,
-  evaluationResult: PassmarkEvaluation
+                               applicationId: String,
+                               phase3Evaluation: PassmarkEvaluation,
+                               siftEvaluationResult: List[SchemeEvaluationResult]
 )
 
 object ApplicationForFsac {

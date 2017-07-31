@@ -38,8 +38,8 @@ class AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  val FsacScores = AssessmentScoresAllExercisesExamples.Example1
-  val ApplicationId = AssessmentScoresAllExercisesExamples.Example1.applicationId
+  val FsacScores = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise
+  val ApplicationId = FsacScores.applicationId
 
   "save" should {
     "create new assessment scores when it does not exist" in {
@@ -53,7 +53,7 @@ class AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       val FsacScoresRead = repository.find(ApplicationId).futureValue
 
       val FsacScoresModified =
-        FsacScores.copy(analysisExercise = FsacScores.analysisExercise.map(_.copy(leadingAndCommunicatingAverage = Some(3.7192))))
+        FsacScores.copy(leadershipExercise = FsacScores.leadershipExercise.map(_.copy(leadingAndCommunicatingAverage = Some(3.7192))))
       repository.save(FsacScoresModified).futureValue
       val FsacScoresModifiedRead = repository.find(ApplicationId).futureValue
 
@@ -83,7 +83,7 @@ class AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
 
     "return all assessment scores when there are some" in {
-      val FsacScores2 = AssessmentScoresAllExercisesExamples.Example2
+      val FsacScores2 = AssessmentScoresAllExercisesExamples.OnlyGroupExercise
 
       repository.save(FsacScores).futureValue
       repository.save(FsacScores2).futureValue

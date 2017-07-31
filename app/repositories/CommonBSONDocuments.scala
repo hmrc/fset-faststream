@@ -156,6 +156,9 @@ trait CommonBSONDocuments extends BaseBSONReader {
             allSchemesSiftCompleted = getProgress(ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED.key)
           ),
           assessmentCentre = AssessmentCentre(
+            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND.key),
+            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED.key),
+            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.key),
             getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
             getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
             getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key)
