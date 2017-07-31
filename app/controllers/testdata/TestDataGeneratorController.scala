@@ -54,7 +54,7 @@ trait TestDataGeneratorController extends BaseController {
     Ok("OK")
   }
 
-  def clearDatabase(generateDefaultUsers: Boolean) = Action.async { implicit request =>
+  def clearDatabase(generateDefaultUsers: Boolean): Action[AnyContent] = Action.async { implicit request =>
     TestDataGeneratorService.clearDatabase(generateDefaultUsers).map { _ =>
       Ok(Json.parse("""{"message": "success"}"""))
     }
