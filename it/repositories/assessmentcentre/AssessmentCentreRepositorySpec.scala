@@ -30,7 +30,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
   def repository = assessmentCentreRepository(siftableSchemeDefinitions)
   def siftRepository = applicationSiftRepository(siftableSchemeDefinitions)
 
-  "next Application for sift" should {
+  "next Application for sift" must {
     "ignore applications in incorrect statuses and return only the Phase3 Passed_Notified applications that are not eligible for sift" in {
       insertApplicationWithPhase3TestNotifiedResults("appId1",
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))).futureValue
@@ -83,7 +83,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
   }
 
-  "progressToFsac" should {
+  "progressToFsac" must {
     "update cumulative evaluation results from sift and phase 3" in {
       insertApplicationWithPhase3TestNotifiedResults("appId11",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
@@ -105,7 +105,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
   }
 
-  "getTests" should {
+  "getTests" must {
     "get tests when they exist" in new TestFixture {
       insertApplicationWithAssessmentCentreAwaitingAllocation("appId1")
       repository.getTests("appId1").futureValue mustBe expectedAssessmentCentreTests
@@ -117,7 +117,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
   }
 
-  "updateTests" should {
+  "updateTests" must {
     "update the tests key and be retrievable" in new TestFixture {
       insertApplication("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)

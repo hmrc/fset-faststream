@@ -31,13 +31,18 @@ object EventExamples {
   val LocationLondon = Location("London")
   val LocationNewcastle = Location("Newcastle")
 
-  val e1 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString, eventType = EventType.FSAC, description = "PDFS FSB",
+  val e1 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSAC, description = "PDFS FSB",
     location = LocationLondon, venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
     attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(),
     sessions = List())
 
-  val e1WithSessions = e1.copy(sessions = List(Session(UniqueIdentifier.randomUniqueIdentifier.toString(),
-  "session1", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4))))
+  val e1WithSession = e1.copy(sessions = List(Session("session1",
+  "session1 desc", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4))))
+
+  val e1WithSessions = e1.copy(sessions = List(
+    Session("session1", "session1 desc", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4)),
+    Session("session2", "session2 desc", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4))
+  ))
 
   val EventsNew = List(
     e1,

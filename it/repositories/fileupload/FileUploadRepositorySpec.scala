@@ -21,13 +21,13 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
     retrievedFile.fileContents.run(Iteratee.consume[Array[Byte]]()).futureValue mustBe testContent
   }
 
-  "add" should {
+  "add" must {
     "store a file with contentType" in {
       storeAndRetrieveFile
     }
   }
 
-  "retrieve" should {
+  "retrieve" must {
     "retrieve a file by id" in {
       storeAndRetrieveFile
     }
