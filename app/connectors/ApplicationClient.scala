@@ -240,6 +240,14 @@ trait ApplicationClient {
     }
   }
 
+  def hasAnalysisExercise(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Boolean] = {
+    http.GET(
+      s"$apiBaseUrl/application/hasAnalysisExercise?applicationId=$applicationId"
+    ).map { response =>
+      response.json.as[Boolean]
+    }
+  }
+
   def retrieveEventDetails(eventId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Event] = {
     http.GET(s"$apiBaseUrl/events/$eventId").map { response =>
       if (response.status == OK) {
@@ -268,13 +276,12 @@ trait ApplicationClient {
 
   def uploadAnalysisExercise(applicationId: UniqueIdentifier,
     contentType: String, fileContents: Array[Byte])(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.POST(
+    http.POSTBinary(
       s"$apiBaseUrl/application/uploadAnalysisExercise?applicationId=$applicationId&contentType=$contentType", fileContents
-    ).map { response =>
-      if (response.status == CONFLICT) {
-        throw new CandidateAlreadyHasAnAnalysisExerciseException
+    ).map { _=> () }.recover {
+      case response: Upstream4xxResponse if response.upstreamResponseCode == CONFLICT =>
+          throw new CandidateAlreadyHasAnAnalysisExerciseException
       }
-    }
   }
 }
 // scalastyle:on

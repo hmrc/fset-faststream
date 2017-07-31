@@ -16,6 +16,7 @@
 
 package controllers
 
+import java.nio.charset.Charset
 import java.nio.file.Files
 import java.time.ZoneId
 import java.util.TimeZone
@@ -61,24 +62,30 @@ abstract class HomeController(
   val Withdrawer = "Candidate"
 
   def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
-    implicit request => implicit cachedData =>
-     cachedData.application.map { implicit application =>
-       cachedData match {
-         case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
-         case _ if isPhase3TestsPassed => displayPostOnlineTestsPage
-         case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
-       }
-     }.getOrElse { dashboardWithoutApplication }
+    implicit request =>
+      implicit cachedData =>
+        cachedData.application.map { implicit application =>
+          cachedData match {
+            case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
+            case _ if isPhase3TestsPassed => displayPostOnlineTestsPage
+            case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
+          }
+        }.getOrElse {
+          dashboardWithoutApplication
+        }
   }
 
-  def showSdipNextSteps: Action[AnyContent] = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
-    implicit val displaySdipEligibilityInfo = false
-    cachedData.application.map { implicit application =>
-      cachedData match {
-        case _ if isPhase1TestsPassed && isSdipFaststream => displayEdipOrSdipResultsPage
-        case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
+  def showSdipNextSteps: Action[AnyContent] = CSRSecureAction(ActiveUserRole) { implicit request =>
+    implicit cachedData =>
+      implicit val displaySdipEligibilityInfo = false
+      cachedData.application.map { implicit application =>
+        cachedData match {
+          case _ if isPhase1TestsPassed && isSdipFaststream => displayEdipOrSdipResultsPage
+          case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
+        }
+      }.getOrElse {
+        dashboardWithoutApplication
       }
-    }.getOrElse { dashboardWithoutApplication }
   }
 
   def resume: Action[AnyContent] = CSRSecureAppAction(ActiveUserRole) { implicit request =>
@@ -132,16 +139,17 @@ abstract class HomeController(
   }
 
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
-                                      request: Request[_], hc: HeaderCarrier) = {
+    request: Request[_], hc: HeaderCarrier) = {
     for {
       schemes <- refDataClient.allSchemes()
       phase3Results <- applicationClient.getPhase3Results(application.applicationId)
       assessmentCentreEvents <- applicationClient.eventWithSessionsForApplicationOnly(application.applicationId, EventType.FSAC)
       assessmentCentreEvent = assessmentCentreEvents.headOption // Candidate can only be assigned to one assessment centre event and session
-      } yield {
+      hasWrittenAnalysisExercise <- applicationClient.hasAnalysisExercise(application.applicationId)
+    } yield {
       val page = PostOnlineTestsPage(
         CachedDataWithApp(cachedData.user, application),
-        phase3Results.getOrElse(Nil), schemes, assessmentCentreEvent
+        phase3Results.getOrElse(Nil), schemes, assessmentCentreEvent, hasWrittenAnalysisExercise
       )
 
       Ok(views.html.home.postOnlineTestsDashboard(page))
@@ -149,50 +157,51 @@ abstract class HomeController(
   }
 
   private lazy val validMSWordContentTypes = List(
+    "text/plain",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   )
 
   private lazy val maxWrittenExerciseFileSizeInBytes = 4096 * 1024
 
-  def submitAnalysisExercise(): Action[AnyContent] = CSRSecureAppAction(AssessmentCentreRole) { implicit request => implicit cachedData =>
-    request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
-      multiPartRequest.file("analysisExerciseFile").map { document =>
-        if (document.ref.file.length() > maxWrittenExerciseFileSizeInBytes) {
-          Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooBig")))
-        } else {
-          document.contentType match {
-            case Some(contentType) if validMSWordContentTypes.contains(contentType) =>
-              val fileContents = Files.readAllBytes(document.ref.file.toPath)
-              applicationClient.uploadAnalysisExercise(cachedData.application.applicationId, contentType, fileContents).map { result =>
-                Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
-              }.recover {
-                case _: CandidateAlreadyHasAnAnalysisExerciseException =>
-                  Logger.warn(s"A duplicate written analysis exercise submission was attempted " +
-                    s"(applicationId = ${cachedData.application.applicationId})")
-                  Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.error"))
-              }
-            case _ =>
-              Future.successful(
-                Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.wrongContentType"))
-              )
-          }
+  def submitAnalysisExercise(): Action[AnyContent] = CSRSecureAppAction(AssessmentCentreRole) { implicit request =>
+    implicit cachedData =>
+      request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
+        multiPartRequest.file("analysisExerciseFile").map {
+          case document if document.ref.file.length() > maxWrittenExerciseFileSizeInBytes =>
+            Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooBig")))
+          case document =>
+            document.contentType match {
+              case Some(contentType) if validMSWordContentTypes.contains(contentType) =>
+                applicationClient.uploadAnalysisExercise(cachedData.application.applicationId, contentType,
+                  Files.readAllBytes(document.ref.file.toPath)).map { result =>
+                  Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
+                }.recover {
+                  case _: CandidateAlreadyHasAnAnalysisExerciseException =>
+                    Logger.warn(s"A duplicate written analysis exercise submission was attempted " +
+                      s"(applicationId = ${cachedData.application.applicationId})")
+                    Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error"))
+                }
+              case Some(contentType) =>
+                Future.successful(
+                  Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.wrongContentType"))
+                )
+            }
         }
+      }.getOrElse {
+        Logger.info(s"A malformed file request was submitted as a written analysis exercise " +
+          s"(applicationId = ${cachedData.application.applicationId})")
+        Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error")))
       }
-    }.getOrElse {
-      Logger.info(s"A malformed file request was submitted as a written analysis exercise " +
-        s"(applicationId = ${cachedData.application.applicationId})")
-      Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error")))
-    }
   }
 
   private def displayEdipOrSdipResultsPage(implicit cachedData: CachedData,
-                                           request: Request[_], hc: HeaderCarrier) =
-      Future.successful(Ok(views.html.home.edipAndSdipFinalResults(cachedData)))
+    request: Request[_], hc: HeaderCarrier) =
+    Future.successful(Ok(views.html.home.edipAndSdipFinalResults(cachedData)))
 
   private def dashboardWithOnlineTests(implicit application: ApplicationData,
-                                       displaySdipEligibilityInfo: Boolean,
-                                       cachedData: CachedData, request: Request[_]) = {
+    displaySdipEligibilityInfo: Boolean,
+    cachedData: CachedData, request: Request[_]) = {
     for {
       adjustmentsOpt <- getAdjustments
       assistanceDetailsOpt <- getAssistanceDetails
@@ -211,9 +220,9 @@ abstract class HomeController(
   }
 
   private def dashboardWithoutOnlineTests(implicit application: ApplicationData,
-                                          displaySdipEligibilityInfo: Boolean,
-                                          cachedData: CachedData,
-                                          request: Request[_]):PartialFunction[Throwable, Future[Result]] = {
+    displaySdipEligibilityInfo: Boolean,
+    cachedData: CachedData,
+    request: Request[_]): PartialFunction[Throwable, Future[Result]] = {
     case e: OnlineTestNotFound =>
       val applicationSubmitted = !cachedData.application.forall { app =>
         app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
@@ -227,14 +236,14 @@ abstract class HomeController(
   }
 
   private def dashboardWithoutApplication(implicit cachedData: CachedData,
-                                          displaySdipEligibilityInfo: Boolean,
-                                          request: Request[_]) = {
-      val dashboardPage = DashboardPage(cachedData, None, None, None)
-      Future.successful(
-        Ok(views.html.home.dashboard(cachedData, dashboardPage,
-          submitApplicationsEnabled = canApplicationBeSubmitted(None),
-          displaySdipEligibilityInfo = displaySdipEligibilityInfo))
-      )
+    displaySdipEligibilityInfo: Boolean,
+    request: Request[_]) = {
+    val dashboardPage = DashboardPage(cachedData, None, None, None)
+    Future.successful(
+      Ok(views.html.home.dashboard(cachedData, dashboardPage,
+        submitApplicationsEnabled = canApplicationBeSubmitted(None),
+        displaySdipEligibilityInfo = displaySdipEligibilityInfo))
+    )
   }
 
   private def getPhase2Test(implicit application: ApplicationData, hc: HeaderCarrier) = if (application.isPhase2) {
@@ -250,18 +259,18 @@ abstract class HomeController(
   }
 
   private def getAdjustments(implicit application: ApplicationData, hc: HeaderCarrier) =
-  if (application.progress.assistanceDetails) {
-    applicationClient.findAdjustments(application.applicationId)
-  } else {
-    Future.successful(None)
-  }
+    if (application.progress.assistanceDetails) {
+      applicationClient.findAdjustments(application.applicationId)
+    } else {
+      Future.successful(None)
+    }
 
   private def getAssistanceDetails(implicit application: ApplicationData,
-                                   hc: HeaderCarrier, cachedData: CachedData) =
-  if (application.progress.assistanceDetails) {
-    applicationClient.getAssistanceDetails(cachedData.user.userID, application.applicationId).map(a => Some(a))
-  } else {
-    Future.successful(None)
-  }
+    hc: HeaderCarrier, cachedData: CachedData) =
+    if (application.progress.assistanceDetails) {
+      applicationClient.getAssistanceDetails(cachedData.user.userID, application.applicationId).map(a => Some(a))
+    } else {
+      Future.successful(None)
+    }
 
 }

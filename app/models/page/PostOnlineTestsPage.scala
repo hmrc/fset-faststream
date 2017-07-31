@@ -32,7 +32,8 @@ case class CurrentSchemeStatus(
 case class PostOnlineTestsPage(
   userDataWithApp: CachedDataWithApp,
   schemes: Seq[CurrentSchemeStatus],
-  assessmentCentreEvent: Option[Event]
+  assessmentCentreEvent: Option[Event],
+  hasAnalysisExercise: Boolean
 ) {
   def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
   def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Green)
@@ -70,7 +71,7 @@ case class PostOnlineTestsPage(
 
 object PostOnlineTestsPage {
   def apply(userDataWithApp: CachedDataWithApp, phase3Results: Seq[SchemeEvaluationResult],
-    allSchemes: Seq[Scheme], assessmentCentreSession: Option[Event]): PostOnlineTestsPage = {
+    allSchemes: Seq[Scheme], assessmentCentreSession: Option[Event], hasAnalysisExercise: Boolean): PostOnlineTestsPage = {
 
     val currentSchemes = phase3Results.flatMap { schemeResult =>
       allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
@@ -84,6 +85,6 @@ object PostOnlineTestsPage {
       }
     }
 
-    PostOnlineTestsPage(userDataWithApp, currentSchemes, assessmentCentreSession)
+    PostOnlineTestsPage(userDataWithApp, currentSchemes, assessmentCentreSession, hasAnalysisExercise)
   }
 }
