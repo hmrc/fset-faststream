@@ -26,45 +26,64 @@
             Undergraduate degree
             <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">Edit section</span></a>
         </h2>
-            <div class="text">
-                <h4 class="bold-small">What was the name of your degree?</h4>
-                <p>@page.generalAnswers.flatMap(ga => ga.undergradDegree.map(ug => ug.name))</p>
-            </div>
-            <div class="text">
-                <h4 class="bold-small">What was your degree classification?</h4>
-                <p>@page.generalAnswers.flatMap(ga => ga.undergradDegree.map(ug => ug.classification))</p>
-            </div>
-            <div class="text">
-                <h4 class="bold-small">What year did you graduate?</h4>
-                <p>@page.generalAnswers.flatMap(ga => ga.undergradDegree.map(ug => ug.graduationYear))</p>
-            </div>
+            @page.generalAnswers.map { ga =>
+                @ga.undergradDegree.map { ug =>
+                    <div class="text">
+                        <h4 class="bold-small">What was the name of your degree?</h4>
+                        <p>@ug.name</p>
+                    </div>
+                    <div class="text">
+                        <h4 class="bold-small">What was your degree classification?</h4>
+                        <p>@ug.classification</p>
+                    </div>
+                    <div class="text">
+                        <h4 class="bold-small">What year did you graduate?</h4>
+                        <p>@ug.graduationYear</p>
+                    </div>
 
-            <div class="text">
-                <h4 class="bold-small">List the details of the subjects studied in each year</h4>
-                <p>@page.generalAnswers.flatMap(ga => ga.undergradDegree.map(ug => ug.moduleDetails))</p>
-            </div>
+                    <div class="text">
+                        <h4 class="bold-small">List the details of the subjects studied in each year</h4>
+                        <p>@ug.moduleDetails</p>
+                    </div>
+                }.getOrElse {
+                    <div class="text">
+                        <h4 class="bold-small">Do you have an undergraduate degree?</h4>
+                        <p>No</p>
+                    </div>
+                }
+            }
     </section>
     <section class="section-border">
         <h2 class="heading-large">
             Postgraduate degree
             <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">Edit section</span></a>
         </h2>
-        <div class="text">
-            <h4 class="bold-small">What was the name of your degree?</h4>
-            <p>@page.generalAnswers.flatMap(ga => ga.postgradDegree.map(pg => pg.name))</p>
-        </div>
-        <div class="text">
-            <h4 class="bold-small">What year did you graduate?</h4>
-            <p>@page.generalAnswers.flatMap(ga => ga.postgradDegree.map(pg => pg.graduationYear))</p>
-        </div>
-        <div class="text">
-            <h4 class="bold-small">List any other details about your postgraduate degree</h4>
-            <p>@page.generalAnswers.flatMap(ga => ga.postgradDegree.map(pg => pg.otherDetails))</p>
-        </div>
-        <div class="text">
-            <h4 class="bold-small">If you did a postgraduate project, enter the details here</h4>
-            <p>@page.generalAnswers.flatMap(ga => ga.postgradDegree.map(pg => pg.projectDetails))</p>
-        </div>
+        @page.generalAnswers.map { ga =>
+            @ga.postgradDegree.map { pg =>
+                <div class="text">
+                    <h4 class="bold-small">What was the name of your degree?</h4>
+                    <p>@pg.name</p>
+                </div>
+                <div class="text">
+                    <h4 class="bold-small">What year did you graduate?</h4>
+                    <p>@pg.graduationYear</p>
+                </div>
+                <div class="text">
+                    <h4 class="bold-small">List any other details about your postgraduate degree</h4>
+                    <p>@pg.otherDetails</p>
+                </div>
+                <div class="text">
+                    <h4 class="bold-small">If you did a postgraduate project, enter the details here</h4>
+                    <p>@pg.projectDetails</p>
+                </div>
+            }.getOrElse {
+                <div class="text">
+                    <h4 class="bold-small">Do you have an postgraduate degree?</h4>
+                    <p>No</p>
+                </div>
+            }
+        }
+
     </section>
     @page.schemeAnswers.map { case (scheme, answer) =>
         <section class="section-border">
