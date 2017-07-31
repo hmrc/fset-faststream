@@ -20,9 +20,10 @@ import java.time.LocalDateTime
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
-import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples }
+import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples, SiftClient }
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange.referencedata.SchemeId
+import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.{ AssistanceDetailsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
 import forms.WithdrawApplicationFormExamples
 import models.ApplicationData.ApplicationStatus
@@ -375,11 +376,12 @@ class HomeControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockRefDataClient = mock[ReferenceDataClient]
+    val mockSiftClient = mock[SiftClient]
     val mockCacheClient = mock[CSRCache]
     val mockUserService = mock[UserCacheService]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
-    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockCacheClient)
+    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
@@ -387,6 +389,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockSiftClient.getSiftAnswersStatus(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(Some(SiftAnswersStatus.DRAFT))
     }
 
     def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,

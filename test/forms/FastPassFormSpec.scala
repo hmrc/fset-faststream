@@ -17,7 +17,7 @@
 package forms
 
 import controllers.UnitSpec
-import forms.sift.FastPassForm.{ form => fastPassForm, _ }
+import forms.FastPassForm.{ form => fastPassForm, _ }
 import org.scalatestplus.play.PlaySpec
 import testkit.UnitWithAppSpec
 
