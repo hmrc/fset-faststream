@@ -76,6 +76,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsFailed, 390, Phase3TestsFailed),
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
     (progress.siftProgressResponse.siftEntered, 396, SiftEntered),
+    (progress.siftProgressResponse.allFormsSubmitted, 397, SiftFormsSubmitted),
     (progress.siftProgressResponse.allSchemesSiftCompleted, 397, SiftCompleted),
     (progress.assessmentCentre.failed, 440, AssessmentCentreFailedProgress),
     (progress.assessmentCentre.passed, 460, AssessmentCentrePassedProgress),
@@ -159,6 +160,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsPassedNotified = "phase3_tests_passed_notified"
   val SiftEntered = "all_schemes_sift_entered"
+  val SiftFormsSubmitted = "all_sift_forms_entered"
   val SiftCompleted = "all_schemes_sift_completed"
   val ApplicationArchived = "application_archived"
   val FastPassAccepted = "fast_pass_accepted"

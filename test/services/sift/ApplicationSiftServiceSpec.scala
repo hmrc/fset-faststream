@@ -19,6 +19,7 @@ package services.sift
 import java.util
 
 import model.Commands.Candidate
+import model.EvaluationResults.Result
 import model._
 import model.command.ApplicationForSift
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
@@ -28,7 +29,9 @@ import repositories.sift.ApplicationSiftRepository
 import testkit.{ ExtendedTimeout, MockitoSugar, UnitWithAppSpec }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationRepository
+import testkit.MockitoImplicits._
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
@@ -92,6 +95,18 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout wi
       whenReady(TestApplicationSiftService(mockRepo, mockAppRepo).findApplicationsReadyForSchemeSift(SchemeId("scheme1"))) { result =>
         result mustBe candidates
       }
+    }
+
+    "sift a candidate for a scheme" in {
+      when(mockAppRepo.getCurrentSchemeStatus(any[String])).thenReturnAsync(
+        Seq(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))
+      )
+
+      val queryBson = BSONDocument("applicationId" -> "applicationId")
+      val updateBson = BSONDocument("test" -> "test")
+      when(mocka)
+
+      val result =
     }
   }
 }

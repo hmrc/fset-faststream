@@ -80,6 +80,7 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
 
 case class SiftProgressResponse(
   siftEntered: Boolean = false,
+  allFormsSubmitted: Boolean = false,
   allSchemesSiftCompleted: Boolean = false
 )
 

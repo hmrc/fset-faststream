@@ -134,6 +134,7 @@ trait GeneralApplicationRepository {
 
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
 
+  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
   }
 
 // scalastyle:off number.of.methods
@@ -180,6 +181,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       case None => throw ApplicationNotFound(applicationId)
     }
   }
+  
+  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
+    collection.find(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument("_id" -> 0, "currentSchemeStatus" -> 1)
+    ).one[BSONDocument].map(_.flatMap{ doc =>
+      doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus")
+    }.getOrElse(Nil))
+  }
 
   def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -191,6 +201,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "submissionDeadline" -> 1,
       "_id" -> 0
     )
+
+
 
     def progressStatusDateFallback(applicationStatus: ApplicationStatus, document: BSONDocument) = {
       document.getAs[BSONDocument]("progress-status-dates")

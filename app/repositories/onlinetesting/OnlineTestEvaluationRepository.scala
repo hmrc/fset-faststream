@@ -27,7 +27,7 @@ import model.{ ApplicationStatus, Phase => _, _ }
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
-import repositories.{ BaseBSONReader, CollectionNames, CommonBSONDocuments, CumulativeEvaluationHelper }
+import repositories.{ BaseBSONReader, CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper }
 import repositories.{ RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -39,7 +39,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRepositoryHelpers with RandomSelection
-  with CumulativeEvaluationHelper {
+  with CurrentSchemeStatusHelper {
 
   this: ReactiveRepository[ApplicationReadyForEvaluation, _] =>
 
@@ -75,7 +75,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     ).add(
       newProgressStatus.map(applicationStatusBSON).getOrElse(BSONDocument.empty)
     ).add(
-      cumulativeResultsForLatestPhaseBSON(evaluation.result)
+      currentSchemeStatusBSON(evaluation.result)
     ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"saving passmark evaluation during $phase evaluation")

@@ -23,7 +23,7 @@ import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
-import repositories.{ CollectionNames, CommonBSONDocuments, CumulativeEvaluationHelper, RandomSelection, ReactiveRepositoryHelpers }
+import repositories.{ CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -45,7 +45,7 @@ class AssessmentCentreMongoRepository (
     ApplicationForSift.applicationForSiftFormat,
     ReactiveMongoFormats.objectIdFormats
 ) with AssessmentCentreRepository with RandomSelection with ReactiveRepositoryHelpers with GeneralApplicationRepoBSONReader
-    with CommonBSONDocuments with CumulativeEvaluationHelper {
+    with CommonBSONDocuments with CurrentSchemeStatusHelper {
 
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
     implicit def applicationForFsacBsonReads(document: BSONDocument): ApplicationForFsac = {
@@ -88,7 +88,7 @@ class AssessmentCentreMongoRepository (
 
     collection.update(query, BSONDocument("$set" ->
       applicationStatusBSON(progressStatus)
-        .add(cumulativeResultsForLatestPhaseBSON(application.siftEvaluationResult match {
+        .add(currentSchemeStatusBSON(application.siftEvaluationResult match {
           case Nil => application.phase3Evaluation.result
           case _ => application.siftEvaluationResult
         })))

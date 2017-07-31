@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package repositories
+package services.sift
 
-import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.{ BSONDocument, BSONString }
+import testkit.UnitWithAppSpec
 
-trait CumulativeEvaluationHelper {
-  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]): BSONDocument = {
-    BSONDocument(latestResults.map(ser => s"cumulativeEvaluation.${ser.schemeId.value}" -> BSONString(ser.result)))
-  }
+class SiftAnswersServiceSpec extends UnitWithAppSpec {
+
 }

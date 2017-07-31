@@ -20,6 +20,7 @@ import common.FutureEx
 import model.{ Commands, ProgressStatuses, SchemeId, SerialUpdateResult }
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
+import repositories.CurrentSchemeStatusHelper
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 
@@ -32,7 +33,7 @@ object ApplicationSiftService extends ApplicationSiftService {
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
 }
 
-trait ApplicationSiftService {
+trait ApplicationSiftService extends CurrentSchemeStatusHelper{
   def applicationSiftRepo: ApplicationSiftRepository
   def applicationRepo: GeneralApplicationRepository
 
@@ -55,6 +56,12 @@ trait ApplicationSiftService {
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    applicationSiftRepo.siftApplicationForScheme(applicationId, result)
+    applicationRepo.getCurrentSchemeStatus(applicationId).flatMap { currentSchemeStatus =>
+      val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
+      val (predicate, update) = applicationSiftRepo.siftApplicationForSchemeBSON(applicationId, result)
+      val action = s"Sifting application for $SchemeId"
+
+      applicationSiftRepo.update(applicationId, predicate, update ++ currentSchemeStatusBSON(newSchemeStatus), action).map(_ => ())
+    }
   }
 }
