@@ -51,9 +51,8 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
       insertApplicationWithPhase3TestNotifiedResults("appId6",
         List(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Red.toString))).futureValue
-      
+
       whenReady(repository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
-        Logger.warn("AFA = " + appsForAc)
         appsForAc must contain(
           ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil)
@@ -119,7 +118,15 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
   }
 
   "updateTests" should {
+    "update the tests key and be retrievable" in new TestFixture {
+      insertApplication("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
+        additionalProgressStatuses = List(ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
+      )
 
+      repository.updateTests("appId1", expectedAssessmentCentreTests).futureValue
+
+      repository.getTests("appId1").futureValue mustBe expectedAssessmentCentreTests
+    }
   }
 
   trait TestFixture {
