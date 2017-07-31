@@ -46,6 +46,7 @@ trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryH
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
+  def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def siftApplicationForSchemeBSON(applicationId: String, result: SchemeEvaluationResult): (BSONDocument, BSONDocument)
 
@@ -102,18 +103,7 @@ class ApplicationSiftMongoRepository(
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-
-    val update = BSONDocument(
-      "$addToSet" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result),
-      "$set" -> BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "1")
-    )
-
-    val applicationNotSiftedForScheme = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId),
-      BSONDocument(
-        s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
-      )
-    ))
+    val (update, applicationNotSiftedForScheme) = siftApplicationForSchemeBSON(applicationId, result)
 
     val validator = singleUpdateValidator(applicationId, s"sifting for ${result.schemeId}", ApplicationNotFound(applicationId))
     collection.update(applicationNotSiftedForScheme, update) map validator
@@ -135,6 +125,19 @@ class ApplicationSiftMongoRepository(
 
      (predicate, update)
    }
+
+  def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
+    val predicate = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("_id" -> 0, s"testGroups.$phaseName.evaluation.result" -> 1)
+
+    collection.find(predicate, projection).one[BSONDocument].map(_.flatMap { doc =>
+      doc.getAs[BSONDocument]("testGroups")
+        .flatMap(_.getAs[BSONDocument](phaseName))
+        .flatMap(_.getAs[BSONDocument]("evaluation"))
+        .flatMap(_.getAs[BSONDocument]("result"))
+        .flatMap(_.getAs[Seq[SchemeEvaluationResult]]("result"))
+    }.getOrElse(Nil))
+  }
 
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit] = {
     val validator = singleUpdateValidator(applicationId, action)

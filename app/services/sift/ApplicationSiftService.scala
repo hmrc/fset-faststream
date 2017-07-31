@@ -21,7 +21,7 @@ import model.{ Commands, ProgressStatuses, SchemeId, SerialUpdateResult }
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
-import repositories.CurrentSchemeStatusHelper
+import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepositoryImpl, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 
@@ -32,11 +32,13 @@ import scala.language.postfixOps
 object ApplicationSiftService extends ApplicationSiftService {
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
+  val schemeRepo = SchemeYamlRepository
 }
 
-trait ApplicationSiftService extends CurrentSchemeStatusHelper{
+trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
   def applicationSiftRepo: ApplicationSiftRepository
   def applicationRepo: GeneralApplicationRepository
+  def schemeRepo: SchemeRepositoryImpl
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
@@ -57,13 +59,24 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper{
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    applicationRepo.getCurrentSchemeStatus(applicationId).flatMap { currentSchemeStatus =>
+    for {
+      currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
+      currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId)
+      (predicate, siftBson) = applicationSiftRepo.siftApplicationForSchemeBSON(applicationId, result)
+    } yield {
       val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
-      play.api.Logger.error(s"\n$newSchemeStatus")
-      val (predicate, update) = applicationSiftRepo.siftApplicationForSchemeBSON(applicationId, result)
       val action = s"Sifting application for ${result.schemeId.value}"
+      val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => currentSchemeStatus.map(_.schemeId).contains(s))
+      val siftedSchemes = currentSiftEvaluation.map(_.schemeId) :+ result.schemeId
+      val schemeUpdateBson = BSONDocument("$set" -> currentSchemeStatusBSON(newSchemeStatus))
 
-      val mergedUpdate = update ++ BSONDocument("$set" -> currentSchemeStatusBSON(newSchemeStatus))
+      val progressUpdate = if (siftedSchemes.distinct == candidatesSiftableSchemes) {
+        progressStatusOnlyBSON(ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED)
+      } else {
+        BSONDocument.empty
+      }
+
+      val mergedUpdate = Seq(schemeUpdateBson, progressUpdate).foldLeft(siftBson) { (acc, doc) => acc ++ doc }
 
       applicationSiftRepo.update(applicationId, predicate, mergedUpdate, action).map(_ => ())
     }

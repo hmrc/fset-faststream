@@ -30,6 +30,7 @@ import testkit.{ ExtendedTimeout, MockitoSugar, UnitWithAppSpec }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import reactivemongo.bson.BSONDocument
+import repositories.SchemeRepositoryImpl
 import repositories.application.GeneralApplicationRepository
 import testkit.MockitoImplicits._
 
@@ -41,12 +42,14 @@ class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout wi
   trait TestFixture  {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockSiftRepo = mock[ApplicationSiftRepository]
+    val mockSchemeRepo = mock[SchemeRepositoryImpl]
 
     when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(Future.successful())
 
     val service = new ApplicationSiftService {
       def applicationSiftRepo: ApplicationSiftRepository = mockSiftRepo
       def applicationRepo: GeneralApplicationRepository = mockAppRepo
+      def schemeRepo: SchemeRepositoryImpl = mockSchemeRepo
     }
   }
 
