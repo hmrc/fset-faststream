@@ -268,5 +268,14 @@ dashboard.final.results.Edip=Congratulations, you''ve been succcessful for the E
 dashboard.final.results.Sdip=Congratulations, you''ve been succcessful for the Summer Diversity Internship Programme (SDIP).
 dashboard.final.results.SdipFaststream=Congratulations, you''ve been succcessful for the Summer Diversity Internship Programme (SDIP).
 
-additionalquestions.section.saved="You have saved your submission for this section"
-additionalquestions.submitted="You have submitted your additional questions"
+passportCountry.chooseOne=You must select a country from the list
+passportCountry.unsupported.value=You must select a valid country from the list
+secondPassportCountry.chooseOne=You must select a country from the list
+secondPassportCountry.unsupported.value=You must select a country from the list
+
+generalquestions.error.multiplepassports.required=You must tell us if you have multiple passports
+generalquestions.error.undergraduatedegree.required=You must tell us if you have an undergraduate degree
+generalquestions.error.postgraduatedegree.required=You must tell us if you have a postgraduate degree
+
+additionalquestions.section.saved=You have saved your submission for this section
+additionalquestions.submitted=You have submitted your additional questions

@@ -28,16 +28,16 @@ object GeneralQuestionsPage {
 
   def apply(answers: Option[GeneralQuestionsAnswers]): GeneralQuestionsPage = GeneralQuestionsPage(
     answers.map { a =>
-      GeneralQuestionsForm.form.fill(GeneralQuestionsForm.Data(
+      GeneralQuestionsForm().form.fill(GeneralQuestionsForm.Data(
         multiplePassports = a.multiplePassports,
         secondPassportCountry = a.secondPassportCountry,
-        passportCountry = a.passportCountry,
+        passportCountry = Option(a.passportCountry).filter(_.trim.nonEmpty),
         hasUndergradDegree = a.undergradDegree.isDefined,
         undergradDegree = a.undergradDegree,
         hasPostgradDegree = a.postgradDegree.isDefined,
         postgradDegree = a.postgradDegree
       ))
-    }.getOrElse(GeneralQuestionsForm.form)
+    }.getOrElse(GeneralQuestionsForm().form)
   )
 
 

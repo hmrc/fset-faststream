@@ -17,10 +17,14 @@
 package forms.sift
 
 import connectors.exchange.sift.{ GeneralQuestionsAnswers, PostGradDegreeInfoAnswers, UndergradDegreeInfoAnswers }
+import forms.sift.GeneralQuestionsForm.{ Countries, Data, postGradDegreeInfoFormFormatter, undergradDegreeInfoFormFormatter }
+import mappings.SetMapping
 import play.api.data.Forms._
 import play.api.data.{ Form, FormError }
 import play.api.data.format.Formatter
 import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 object UndergradDegreeInfoForm {
 
@@ -50,27 +54,31 @@ object PostGradDegreeInfoForm {
 }
 
 
+class GeneralQuestionsForm(validCountries: Set[String]) {
+  val form = Form(
+    mapping("multiplePassports" -> checked(Messages("generalquestions.error.multiplepassports.required")),
+      "secondPassportCountry" -> of(SetMapping.conditionalRequiredSetFormatter(
+        data => data.get("multiplePassports").getOrElse("") == "true", validCountries)),
+      "passportCountry" -> of(SetMapping.requiredSetFormatter(validCountries)),
+      "hasUndergradDegree" -> checked(Messages("generalquestions.error.undergraduatedegree.required")),
+      "undergradDegree" -> of(undergradDegreeInfoFormFormatter("hasUndergradDegree")),
+      "hasPostgradDegree" -> checked(Messages("generalquestions.error.postgraduatedegree.required")),
+      "postgradDegree" -> of(postGradDegreeInfoFormFormatter("hasPostgradDegree"))
+    )(Data.apply)(Data.unapply))
+}
+
 object GeneralQuestionsForm {
+  def apply() = new GeneralQuestionsForm(Countries)
 
   case class Data(
     multiplePassports: Boolean,
     secondPassportCountry: Option[String],
-    passportCountry: String,
+    passportCountry: Option[String],
     hasUndergradDegree: Boolean,
     undergradDegree: Option[UndergradDegreeInfoAnswers],
     hasPostgradDegree: Boolean,
     postgradDegree: Option[PostGradDegreeInfoAnswers]
   )
-
-  val form = Form(
-    mapping("multiplePassports" -> boolean,
-      "secondPassportCountry" -> optional(text),
-      "passportCountry" -> text,
-      "hasUndergradDegree" -> boolean,
-      "undergradDegree" -> of(undergradDegreeInfoFormFormatter("hasUndergradDegree")),
-      "hasPostgradDegree" -> boolean,
-      "postgradDegree" -> of(postGradDegreeInfoFormFormatter("hasPostgradDegree"))
-  )(Data.apply)(Data.unapply))
 
   def undergradDegreeInfoFormFormatter(yesNo: String) = new Formatter[Option[UndergradDegreeInfoAnswers]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[UndergradDegreeInfoAnswers]] = {
@@ -109,7 +117,7 @@ object GeneralQuestionsForm {
       fastPassData.map(fpd => PostGradDegreeInfoForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 
-   val Countries = Seq(
+   val Countries = Set(
    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua & Deps", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
 
    "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia Herzegovina",

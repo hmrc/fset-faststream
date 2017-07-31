@@ -65,7 +65,7 @@ abstract class SiftQuestionsController(
   def saveGeneralQuestions(): Action[AnyContent] =
     CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      GeneralQuestionsForm.form.bindFromRequest.fold(
+      GeneralQuestionsForm().form.bindFromRequest.fold(
         invalid => {
           Future(Ok(views.html.application.additionalquestions.generalQuestions(GeneralQuestionsPage(invalid))))
         },

@@ -15,13 +15,13 @@
                 'id -> "multiplePassports"
             ) {
                 <div id="multiplePassports-panel-yes" class="toggle-content" >
-                    <div class="form-group">
-                        @select_search(page.form("secondPassportCountry"), GeneralQuestionsForm.Countries)(Html("What country issued your second passport?"))
+                    <div>
+                        @select_search(page.form("secondPassportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What country issued your second passport?"))
                     </div>
                 </div>
             }
             <div class="form-group">
-                @select_search(page.form("passportCountry"), GeneralQuestionsForm.Countries)(Html("What country is named on your current passport?"))
+                @select_search(page.form("passportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What country is named on your current passport?"))
             </div>
         </fieldset>
 

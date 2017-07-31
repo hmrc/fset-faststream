@@ -56,7 +56,7 @@ object GeneralQuestionsAnswers {
     GeneralQuestionsAnswers(
       a.multiplePassports,
       a.secondPassportCountry,
-      a.passportCountry,
+      a.passportCountry.getOrElse(""),
       a.undergradDegree,
       a.postgradDegree
     )
