@@ -278,4 +278,5 @@ generalquestions.error.undergraduatedegree.required=You must tell us if you have
 generalquestions.error.postgraduatedegree.required=You must tell us if you have a postgraduate degree
 
 additionalquestions.section.saved=You have saved your submission for this section
+additionalquestions.section.missing=You have not saved your answers for some of the sections.  Please review each section and try again.
 additionalquestions.submitted=You have submitted your additional questions
