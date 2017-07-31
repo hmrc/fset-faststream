@@ -18,7 +18,7 @@ package forms.sift
 
 import connectors.exchange.sift.{ GeneralQuestionsAnswers, PostGradDegreeInfoAnswers, UndergradDegreeInfoAnswers }
 import forms.sift.GeneralQuestionsForm.{ Countries, Data, postGradDegreeInfoFormFormatter, undergradDegreeInfoFormFormatter }
-import mappings.SetMapping
+import mappings.SeqMapping
 import play.api.data.Forms._
 import play.api.data.{ Form, FormError }
 import play.api.data.format.Formatter
@@ -54,12 +54,12 @@ object PostGradDegreeInfoForm {
 }
 
 
-class GeneralQuestionsForm(validCountries: Set[String]) {
+class GeneralQuestionsForm(validCountries: Seq[String]) {
   val form = Form(
     mapping("multiplePassports" -> checked(Messages("generalquestions.error.multiplepassports.required")),
-      "secondPassportCountry" -> of(SetMapping.conditionalRequiredSetFormatter(
+      "secondPassportCountry" -> of(SeqMapping.conditionalRequiredSetFormatter(
         data => data.get("multiplePassports").getOrElse("") == "true", validCountries)),
-      "passportCountry" -> of(SetMapping.requiredSetFormatter(validCountries)),
+      "passportCountry" -> of(SeqMapping.requiredSetFormatter(validCountries)),
       "hasUndergradDegree" -> checked(Messages("generalquestions.error.undergraduatedegree.required")),
       "undergradDegree" -> of(undergradDegreeInfoFormFormatter("hasUndergradDegree")),
       "hasPostgradDegree" -> checked(Messages("generalquestions.error.postgraduatedegree.required")),
@@ -117,7 +117,7 @@ object GeneralQuestionsForm {
       fastPassData.map(fpd => PostGradDegreeInfoForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 
-   val Countries = Set(
+   val Countries = Seq(
    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua & Deps", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
 
    "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia Herzegovina",

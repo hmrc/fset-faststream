@@ -22,12 +22,12 @@ import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object SetMapping {
-  def requiredSetFormatter(allowedValues: Set[String]) = conditionalRequiredSetFormatter(_ => true, allowedValues)
+object SeqMapping {
+  def requiredSetFormatter(allowedValues: Seq[String]) = conditionalRequiredSetFormatter(_ => true, allowedValues)
 
   def conditionalRequiredSetFormatter(
     enableCondition: (Map[String, String]) => Boolean,
-    allowedValues: Set[String]
+    allowedValues: Seq[String]
   ) = new Formatter[Option[String]] {
 
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {

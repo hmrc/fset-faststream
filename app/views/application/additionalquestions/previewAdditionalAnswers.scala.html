@@ -13,14 +13,14 @@
             }
         </h2>
         <div class="text">
-            <h4 class="bold-small">Do you currently hold more than one passport?</h4>
+            <h4 class="bold-small">What country is named on your current passport?</h4>
+            <p>@page.generalAnswers.map(ga => ga.passportCountry)</p>
+            <h4 class="bold-small">Do you currently hold a second passport?</h4>
             <p>@SiftPreviewPage.booleanToYesNo(page.generalAnswers.map(ga => ga.multiplePassports))</p>
             @page.generalAnswers.map { ga =>
                 <h4 class="bold-small">What country is named on your second passport?</h4>
                 <p>@ga.secondPassportCountry.map(sp => sp )</p>
             }
-            <h4 class="bold-small">What country is named on your current passport?</h4>
-            <p>@page.generalAnswers.map(ga => ga.passportCountry)</p>
         </div>
     </section>
 
@@ -28,7 +28,7 @@
         <h2 class="heading-large">
             Undergraduate degree
             @if(!page.areAnswersSubmitted) {
-                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()#UndergraduateDegree"><i class="the-icon fa fa-pencil"></i><span class="the-text">
                     Edit section</span></a>
             }
         </h2>
@@ -63,7 +63,7 @@
         <h2 class="heading-large">
             Postgraduate degree
             @if(!page.areAnswersSubmitted) {
-                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()#PostgraduateDegree"><i class="the-icon fa fa-pencil"></i><span class="the-text">
                     Edit section</span></a>
             }
         </h2>
