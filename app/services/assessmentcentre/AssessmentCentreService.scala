@@ -65,9 +65,7 @@ trait AssessmentCentreService {
       hasSubmissions = tests.analysisExercise.isDefined
       _ <- if (!hasSubmissions) {
                 assessmentCentreRepo.updateTests(applicationId, tests.copy(analysisExercise = Some(AnalysisExercise(fileId))))
-            } else { Future.successful() }
-    } yield {
-      if (hasSubmissions) throw CandidateAlreadyHasAnAnalysisExerciseException(s"App Id: $applicationId, File Id: $fileId")
-    }
+            } else { throw CandidateAlreadyHasAnAnalysisExerciseException(s"App Id: $applicationId, File Id: $fileId") }
+    } yield ()
   }
 }
