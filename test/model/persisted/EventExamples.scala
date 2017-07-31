@@ -36,12 +36,15 @@ object EventExamples {
     attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(),
     sessions = List())
 
-  val e1WithSession = e1.copy(sessions = List(Session("session1",
+  val e1Session1Id = UniqueIdentifier.randomUniqueIdentifier.toString()
+  val session2Id = UniqueIdentifier.randomUniqueIdentifier.toString()
+
+  val e1WithSession = e1.copy(sessions = List(Session(e1Session1Id,
   "session1 desc", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4))))
 
   val e1WithSessions = e1.copy(sessions = List(
-    Session("session1", "session1 desc", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4)),
-    Session("session2", "session2 desc", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4))
+    Session(e1Session1Id, "session1 desc", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4)),
+    Session(session2Id, "session2 desc", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4))
   ))
 
   val EventsNew = List(

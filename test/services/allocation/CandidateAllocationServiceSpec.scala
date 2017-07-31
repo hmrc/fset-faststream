@@ -88,7 +88,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockCandidateAllocationRepository.allocationsForApplication(any[String]())).thenReturnAsync(
         Seq(
           model.persisted.CandidateAllocation(
-            "appId1", EventExamples.e1.id, "session1", AllocationStatuses.UNCONFIRMED, "version1"
+            "appId1", EventExamples.e1.id, EventExamples.e1Session1Id, AllocationStatuses.UNCONFIRMED, "version1"
           )
         )
       )
@@ -100,7 +100,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       )
 
       service.getSessionsForApplication("appId1", EventType.FSAC).futureValue mustBe List(
-        EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == "session1"))
+        EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
       )
 
     }
