@@ -59,6 +59,11 @@ trait ApplicationController extends BaseController {
   val assessmentCentreService: AssessmentCentreService
   val uploadRepository: FileUploadMongoRepository
 
+  protected val contentTypeToExtension: Map[String, String] = Map[String, String](
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> "docx",
+    "application/msword" -> "doc"
+  )
+
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
       appRepository.create(applicationRequest.userId, applicationRequest.frameworkId, applicationRequest.applicationRoute).map { result =>
@@ -181,8 +186,10 @@ trait ApplicationController extends BaseController {
       } yield {
         val source = Source.fromPublisher(Streams.enumeratorToPublisher(file.fileContents))
 
+        val fileExt = contentTypeToExtension(file.contentType)
+
         Ok.chunked(source).withHeaders(
-          "Content-Disposition" -> s"attachment; filename= $applicationId-exercise.docx",
+          "Content-Disposition" -> s"attachment; filename= $applicationId-exercise.$fileExt",
           "Content-Type" -> file.contentType
         )
       }
