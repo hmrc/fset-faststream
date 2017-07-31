@@ -159,6 +159,10 @@ object Mappings {
       .verifying(emptyErrorKey, paramVal => paramVal == true.toString || paramVal == false.toString)
   }
 
+  def nonemptyBoolean(emptyErrorKey: String): Mapping[Boolean] = {
+    boolean verifying (emptyErrorKey, value => value == true || value == false)
+  }
+
   def mayBeOptionalString(emptyErrorKey: String, maxLength: Int,
                           required: Map[String, String] => Boolean) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {

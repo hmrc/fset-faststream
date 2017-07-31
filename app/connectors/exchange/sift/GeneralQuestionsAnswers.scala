@@ -16,7 +16,7 @@
 
 package connectors.exchange.sift
 
-import forms.sift.GeneralQuestionsForm
+import forms.sift.{ GeneralQuestionsForm, PostGradDegreeInfoForm, UndergradDegreeInfoForm }
 import play.api.libs.json.Json
 
 case class UndergradDegreeInfoAnswers(
@@ -28,6 +28,14 @@ case class UndergradDegreeInfoAnswers(
 
 object UndergradDegreeInfoAnswers {
   implicit val degreeInfoFormat= Json.format[UndergradDegreeInfoAnswers]
+
+  def apply(a: UndergradDegreeInfoForm.Data): UndergradDegreeInfoAnswers = {
+    UndergradDegreeInfoAnswers(
+      a.name,
+      a.classification.getOrElse(""),
+      a.graduationYear.getOrElse(""),
+      a.moduleDetails)
+  }
 }
 
 case class PostGradDegreeInfoAnswers(
@@ -39,6 +47,15 @@ case class PostGradDegreeInfoAnswers(
 
 object PostGradDegreeInfoAnswers {
   implicit val postGradDegreeInfoAnswersFormat = Json.format[PostGradDegreeInfoAnswers]
+
+  def apply(a: PostGradDegreeInfoForm.Data): PostGradDegreeInfoAnswers = {
+    PostGradDegreeInfoAnswers(
+      a.name,
+      a.graduationYear.getOrElse(""),
+      a.otherDetails,
+      a.projectDetails
+    )
+  }
 }
 
 case class GeneralQuestionsAnswers(
@@ -57,8 +74,8 @@ object GeneralQuestionsAnswers {
       a.multiplePassports,
       a.secondPassportCountry,
       a.passportCountry.getOrElse(""),
-      a.undergradDegree,
-      a.postgradDegree
+      a.undergradDegree map(UndergradDegreeInfoAnswers(_)),
+      a.postgradDegree map(PostGradDegreeInfoAnswers(_))
     )
   }
 }

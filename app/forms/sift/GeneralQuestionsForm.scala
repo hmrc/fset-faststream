@@ -17,8 +17,9 @@
 package forms.sift
 
 import connectors.exchange.sift.{ GeneralQuestionsAnswers, PostGradDegreeInfoAnswers, UndergradDegreeInfoAnswers }
-import forms.sift.GeneralQuestionsForm.{ Countries, Data, postGradDegreeInfoFormFormatter, undergradDegreeInfoFormFormatter }
-import mappings.SeqMapping
+import forms.Mappings._
+import forms.sift.GeneralQuestionsForm.{ Countries, postGradDegreeInfoFormFormatter, undergradDegreeInfoFormFormatter }
+import mappings.{ SeqMapping, Year }
 import play.api.data.Forms._
 import play.api.data.{ Form, FormError }
 import play.api.data.format.Formatter
@@ -26,14 +27,17 @@ import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object UndergradDegreeInfoForm {
-
+class UndergradDegreeInfoForm(classifications: Seq[String]) {
   val form = Form(
-    mapping("undergradDegree.name" -> text,
-      "undergradDegree.classification" -> text,
-      "undergradDegree.graduationYear" -> text,
+    mapping("undergradDegree.name" -> nonEmptyTrimmedText("undergradDegree.error.required", 300),
+      "undergradDegree.classification" -> of(SeqMapping.requiredSetFormatter(classifications)),
+      "undergradDegree.graduationYear" -> of(Year.yearFormatter),
       "undergradDegree.moduleDetails" -> optional(text)
-  )(UndergradDegreeInfoAnswers.apply)(UndergradDegreeInfoAnswers.unapply))
+    )(UndergradDegreeInfoForm.Data.apply)(UndergradDegreeInfoForm.Data.unapply))
+}
+
+object UndergradDegreeInfoForm {
+  def apply() = new UndergradDegreeInfoForm(Classifications)
 
   val Classifications = Seq(
     "First-class honours",
@@ -42,29 +46,43 @@ object UndergradDegreeInfoForm {
     "Third-class honours",
     "Ordinary degree"
   )
+
+  case class Data(
+    name: String,
+    classification: Option[String],
+    graduationYear: Option[String],
+    moduleDetails: Option[String]
+  )
 }
 
 object PostGradDegreeInfoForm {
    val form = Form(
-    mapping("postgradDegree.name" -> text,
-      "postgradDegree.graduationYear" -> text,
+    mapping("postgradDegree.name" -> nonEmptyTrimmedText("postgradDegree.error.required", 400),
+      "postgradDegree.graduationYear" -> of(Year.yearFormatter),
       "postgradDegree.otherDetails" -> optional(text),
       "postgradDegree.projectDetails" -> optional(text)
-  )(PostGradDegreeInfoAnswers.apply)(PostGradDegreeInfoAnswers.unapply))
+  )(Data.apply)(Data.unapply))
+
+  case class Data(
+    name: String,
+    graduationYear: Option[String],
+    otherDetails: Option[String],
+    projectDetails: Option[String]
+  )
 }
 
 
 class GeneralQuestionsForm(validCountries: Seq[String]) {
   val form = Form(
-    mapping("multiplePassports" -> checked(Messages("generalquestions.error.multiplepassports.required")),
+    mapping("multiplePassports" -> nonemptyBoolean("generalquestions.error.multiplepassports.required"),
       "secondPassportCountry" -> of(SeqMapping.conditionalRequiredSetFormatter(
         data => data.get("multiplePassports").getOrElse("") == "true", validCountries)),
       "passportCountry" -> of(SeqMapping.requiredSetFormatter(validCountries)),
-      "hasUndergradDegree" -> checked(Messages("generalquestions.error.undergraduatedegree.required")),
+      "hasUndergradDegree" -> nonemptyBoolean("generalquestions.error.undergraduatedegree.required"),
       "undergradDegree" -> of(undergradDegreeInfoFormFormatter("hasUndergradDegree")),
-      "hasPostgradDegree" -> checked(Messages("generalquestions.error.postgraduatedegree.required")),
+      "hasPostgradDegree" -> nonemptyBoolean("generalquestions.error.postgraduatedegree.required"),
       "postgradDegree" -> of(postGradDegreeInfoFormFormatter("hasPostgradDegree"))
-    )(Data.apply)(Data.unapply))
+    )(GeneralQuestionsForm.Data.apply)(GeneralQuestionsForm.Data.unapply))
 }
 
 object GeneralQuestionsForm {
@@ -75,19 +93,19 @@ object GeneralQuestionsForm {
     secondPassportCountry: Option[String],
     passportCountry: Option[String],
     hasUndergradDegree: Boolean,
-    undergradDegree: Option[UndergradDegreeInfoAnswers],
+    undergradDegree: Option[UndergradDegreeInfoForm.Data],
     hasPostgradDegree: Boolean,
-    postgradDegree: Option[PostGradDegreeInfoAnswers]
+    postgradDegree: Option[PostGradDegreeInfoForm.Data]
   )
 
-  def undergradDegreeInfoFormFormatter(yesNo: String) = new Formatter[Option[UndergradDegreeInfoAnswers]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[UndergradDegreeInfoAnswers]] = {
+  def undergradDegreeInfoFormFormatter(yesNo: String) = new Formatter[Option[UndergradDegreeInfoForm.Data]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[UndergradDegreeInfoForm.Data]] = {
       play.api.Logger.error(s"\n\n DATA \n $data")
       val requiredField: Option[String] = if (data.isEmpty) None else data.get(yesNo)
 
       requiredField match {
         case Some("true") =>
-          UndergradDegreeInfoForm.form.mapping.bind(data) match {
+          UndergradDegreeInfoForm().form.mapping.bind(data) match {
             case Right(success) => Right(Some(success))
             case Left(error) => Left(error)
           }
@@ -95,12 +113,12 @@ object GeneralQuestionsForm {
       }
     }
 
-    override def unbind(key: String, fastPassData: Option[UndergradDegreeInfoAnswers]): Map[String, String] =
-      fastPassData.map(fpd => UndergradDegreeInfoForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
+    override def unbind(key: String, fastPassData: Option[UndergradDegreeInfoForm.Data]): Map[String, String] =
+      fastPassData.map(fpd => UndergradDegreeInfoForm().form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 
-  def postGradDegreeInfoFormFormatter(yesNo: String) = new Formatter[Option[PostGradDegreeInfoAnswers]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[PostGradDegreeInfoAnswers]] = {
+  def postGradDegreeInfoFormFormatter(yesNo: String) = new Formatter[Option[PostGradDegreeInfoForm.Data]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[PostGradDegreeInfoForm.Data]] = {
       val requiredField: Option[String] = if (data.isEmpty) None else data.get(yesNo)
 
       requiredField match {
@@ -113,7 +131,7 @@ object GeneralQuestionsForm {
       }
     }
 
-    override def unbind(key: String, fastPassData: Option[PostGradDegreeInfoAnswers]): Map[String, String] =
+    override def unbind(key: String, fastPassData: Option[PostGradDegreeInfoForm.Data]): Map[String, String] =
       fastPassData.map(fpd => PostGradDegreeInfoForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 

@@ -17,7 +17,8 @@
 package models.page
 
 import connectors.exchange.sift.GeneralQuestionsAnswers
-import forms.sift.GeneralQuestionsForm
+import forms.sift.{ GeneralQuestionsForm, PostGradDegreeInfoForm, UndergradDegreeInfoForm }
+import mappings.Year
 import play.api.data.Form
 
 case class GeneralQuestionsPage(
@@ -33,9 +34,13 @@ object GeneralQuestionsPage {
         secondPassportCountry = a.secondPassportCountry,
         passportCountry = Option(a.passportCountry).filter(_.trim.nonEmpty),
         hasUndergradDegree = a.undergradDegree.isDefined,
-        undergradDegree = a.undergradDegree,
+        undergradDegree = a.undergradDegree map(
+          ud => UndergradDegreeInfoForm.Data(
+            ud.name, Option(ud.classification).filter(_.trim.nonEmpty), Option(ud.graduationYear).filter(_.trim.nonEmpty), ud.moduleDetails)),
         hasPostgradDegree = a.postgradDegree.isDefined,
-        postgradDegree = a.postgradDegree
+        postgradDegree = a.postgradDegree map(
+          pd => PostGradDegreeInfoForm.Data(
+            pd.name, Option(pd.graduationYear).filter(_.trim.nonEmpty), pd.otherDetails, pd.projectDetails))
       ))
     }.getOrElse(GeneralQuestionsForm().form)
   )
