@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples }
-import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
+import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange.referencedata.SchemeId
 import connectors.exchange.{ AssistanceDetailsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
 import forms.WithdrawApplicationFormExamples
@@ -45,11 +45,14 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import java.io.File
+import java.nio.file.Path
 import java.util.UUID
 
 import connectors.events.{ Event, Location, Session, Venue }
 import models.events.EventType
 import org.joda.time.{ LocalDate, LocalTime }
+import play.api.Logger
+import play.api.i18n.Messages.Message
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 class HomeControllerSpec extends BaseControllerSpec {
@@ -112,7 +115,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
 
-      mockPostOnlineTestsDashboardCalls
+      mockPostOnlineTestsDashboardCalls()
 
       val result = controller(phase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
@@ -134,7 +137,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
 
-      mockPostOnlineTestsDashboardCalls
+      mockPostOnlineTestsDashboardCalls()
 
       val result = controller(withdrawnPhase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
@@ -335,49 +338,54 @@ class HomeControllerSpec extends BaseControllerSpec {
   "submitAnalysisExercise" should {
     "show a too big message when file is too large" in new TestFixture {
 
-      mockPostOnlineTestsDashboardCalls
+      mockPostOnlineTestsDashboardCalls()
       fileUploadMocks(10000000)
 
-      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+      val result = controller().submitAnalysisExercise().apply(fakePostRequestWithContentMock)
 
       status(result) mustBe 303
+      flash(result).get("danger") mustBe Some("Your analysis exercise must be less than 4MB")
     }
 
     "show success when preconditions for upload are met" in new TestFixture {
 
-      mockPostOnlineTestsDashboardCalls
+      mockPostOnlineTestsDashboardCalls()
       fileUploadMocks(3500000)
 
-      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+      val result = controller().submitAnalysisExercise().apply(fakePostRequestWithContentMock)
 
       status(result) mustBe 303
+      flash(result).get("success") mustBe Some("You've successfully submitted your analysis exercise.")
     }
 
     "show an error if this candidate has already uploaded an analysis exercise" in new TestFixture {
-      mockPostOnlineTestsDashboardCalls
-      fileUploadMocks(3500000, hasAnalysisExerciseAlready = true)
+      mockPostOnlineTestsDashboardCalls(hasAnalysisExerciseAlready = true)
+      fileUploadMocks(3500000, analysisExerciseUploadedAlready = true)
 
-      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+      val result = controller().submitAnalysisExercise().apply(fakePostRequestWithContentMock)
 
       status(result) mustBe 303
+      flash(result).get("danger") mustBe Some("There was a problem uploading your analysis exercise. You can try again or speak to an assessor.")
     }
 
     "show an error if the content type is not on the allowed list" in new TestFixture {
-      mockPostOnlineTestsDashboardCalls
+      mockPostOnlineTestsDashboardCalls()
       fileUploadMocks(3500000)
 
-      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+      val result = controller().submitAnalysisExercise().apply(fakePostRequestWithBadContentTypeMock)
 
       status(result) mustBe 303
+      flash(result).get("danger") mustBe Some("Your analysis exercise must be in the .doc or .docx format")
     }
 
     "Show an error if the file POST is not as expected" in new TestFixture {
-      mockPostOnlineTestsDashboardCalls
+      mockPostOnlineTestsDashboardCalls()
       fileUploadMocks(3500000)
 
-      val result = controller().submitAnalysisExercise().apply(fakeRequest)
+      val result = controller().submitAnalysisExercise().apply(fakePostRequestWithoutProperMultipartFormData)
 
       status(result) mustBe 303
+      flash(result).get("danger") mustBe Some("There was a problem uploading your analysis exercise. You can try again or speak to an assessor.")
     }
 
   }
@@ -448,11 +456,31 @@ class HomeControllerSpec extends BaseControllerSpec {
 
 
     val anyContentMock = mock[AnyContent]
-    lazy val fakeRequest = FakeRequest("POST", "/", FakeHeaders(), anyContentMock)
+
+    def multipartFormData(contentType: String, key: String = "analysisExerciseFile") = MultipartFormData[Files.TemporaryFile](
+      dataParts = Map(),
+      files = Seq(
+        new FilePart[Files.TemporaryFile](key, "myFileName.docx", Some(contentType), TemporaryFile(fileMock))
+      ),
+      badParts = Seq()
+    )
+
+    def fakePostRequestWithoutProperMultipartFormData = FakeRequest("POST", "/", FakeHeaders(), anyContentMock).withMultipartFormDataBody(
+      multipartFormData(msWordContentType, "randomWrongKey")
+    )
+
+    def fakePostRequestWithContentMock = FakeRequest("POST", "/", FakeHeaders(), anyContentMock).withMultipartFormDataBody(
+      multipartFormData(msWordContentType)
+    )
+
+    def fakePostRequestWithBadContentTypeMock = FakeRequest("POST", "/", FakeHeaders(), anyContentMock).withMultipartFormDataBody(
+      multipartFormData("application/octet-stream")
+    )
+
     val fileMock = mock[File]
     val msWordContentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
-    def mockPostOnlineTestsDashboardCalls = {
+    def mockPostOnlineTestsDashboardCalls(hasAnalysisExerciseAlready: Boolean = false) = {
       when(mockApplicationClient.eventWithSessionsForApplicationOnly(
         any[UniqueIdentifier], eqTo(EventType.FSAC))(any[HeaderCarrier]())).thenReturnAsync {
         List(
@@ -483,23 +511,20 @@ class HomeControllerSpec extends BaseControllerSpec {
         )
       }
 
-      when(mockApplicationClient.hasAnalysisExercise(any[UniqueIdentifier]())(any[HeaderCarrier])).thenReturnAsync(false)
+      when(mockApplicationClient.hasAnalysisExercise(any[UniqueIdentifier]())(any[HeaderCarrier])).thenReturnAsync(hasAnalysisExerciseAlready)
     }
 
-    def fileUploadMocks(fileSize: Int, hasAnalysisExerciseAlready: Boolean = false) = {
-      when(mockApplicationClient.hasAnalysisExercise(any[UniqueIdentifier]())(any[HeaderCarrier])).thenReturnAsync(hasAnalysisExerciseAlready)
+    def fileUploadMocks(fileSize: Int, analysisExerciseUploadedAlready: Boolean = false) = {
+      if (analysisExerciseUploadedAlready) {
+        when(mockApplicationClient.uploadAnalysisExercise(any[UniqueIdentifier](),
+          any[String](),
+          any[Array[Byte]]())(any[HeaderCarrier])).thenReturn(Future.failed(new CandidateAlreadyHasAnAnalysisExerciseException))
+      } else {
+        when(mockApplicationClient.uploadAnalysisExercise(any[UniqueIdentifier](),
+          any[String](),
+          any[Array[Byte]]())(any[HeaderCarrier])).thenReturnAsync()
+      }
       when(fileMock.length()).thenReturn(fileSize)
-      when(anyContentMock.asMultipartFormData).thenReturn(
-        Some(
-          MultipartFormData[Files.TemporaryFile](
-            dataParts = Map(),
-            files = Seq(
-              new FilePart[Files.TemporaryFile]("test", "myFileName.docx", Some(msWordContentType), TemporaryFile(fileMock))
-            ),
-            badParts = Seq()
-          )
-        )
-      )
     }
 
     class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockCacheClient)
@@ -510,6 +535,11 @@ class HomeControllerSpec extends BaseControllerSpec {
       val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+
+      // Analysis file upload tests
+      override protected def getAllBytesInFile(path: Path): Array[Byte] = {
+        "This is a test string".toCharArray.map(_.toByte)
+      }
     }
 
     def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,

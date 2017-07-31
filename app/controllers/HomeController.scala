@@ -16,7 +16,7 @@
 
 package controllers
 
-import java.nio.file.Files
+import java.nio.file.{ Files, Path }
 
 import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
@@ -159,6 +159,8 @@ abstract class HomeController(
     }
   }
 
+  protected def getAllBytesInFile(path: Path): Array[Byte] = Files.readAllBytes(path)
+
   def submitAnalysisExercise(): Action[AnyContent] = CSRSecureAppAction(AssessmentCentreRole) { implicit request =>
     implicit cachedData =>
       request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
@@ -169,7 +171,7 @@ abstract class HomeController(
             document.contentType match {
               case Some(contentType) if validMSWordContentTypes.contains(contentType) =>
                 applicationClient.uploadAnalysisExercise(cachedData.application.applicationId, contentType,
-                  Files.readAllBytes(document.ref.file.toPath)).map { result =>
+                  getAllBytesInFile(document.ref.file.toPath)).map { result =>
                   Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
                 }.recover {
                   case _: CandidateAlreadyHasAnAnalysisExerciseException =>
