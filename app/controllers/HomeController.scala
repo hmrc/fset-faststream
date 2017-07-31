@@ -16,10 +16,7 @@
 
 package controllers
 
-import java.nio.charset.Charset
 import java.nio.file.Files
-import java.time.ZoneId
-import java.util.TimeZone
 
 import com.mohiva.play.silhouette.api.Silhouette
 import config.CSRCache
@@ -28,12 +25,10 @@ import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAn
 import connectors.exchange._
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
-import helpers.Timezones
 import models.ApplicationData.ApplicationStatus
 import models.page._
 import models._
 import models.events.EventType
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
@@ -59,7 +54,15 @@ abstract class HomeController(
   refDataClient: ReferenceDataClient,
   cacheClient: CSRCache
 ) extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+
   val Withdrawer = "Candidate"
+
+  private lazy val validMSWordContentTypes = List(
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  )
+
+  private lazy val maxAnalysisExerciseFileSizeInBytes = 4096 * 1024
 
   def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>
@@ -156,19 +159,11 @@ abstract class HomeController(
     }
   }
 
-  private lazy val validMSWordContentTypes = List(
-    "text/plain",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  )
-
-  private lazy val maxWrittenExerciseFileSizeInBytes = 4096 * 1024
-
   def submitAnalysisExercise(): Action[AnyContent] = CSRSecureAppAction(AssessmentCentreRole) { implicit request =>
     implicit cachedData =>
       request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
         multiPartRequest.file("analysisExerciseFile").map {
-          case document if document.ref.file.length() > maxWrittenExerciseFileSizeInBytes =>
+          case document if document.ref.file.length() > maxAnalysisExerciseFileSizeInBytes =>
             Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooBig")))
           case document =>
             document.contentType match {

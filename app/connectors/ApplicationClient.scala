@@ -248,16 +248,6 @@ trait ApplicationClient {
     }
   }
 
-  def retrieveEventDetails(eventId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Event] = {
-    http.GET(s"$apiBaseUrl/events/$eventId").map { response =>
-      if (response.status == OK) {
-        response.json.as[Event]
-      } else {
-        throw new Exception(s"Error retrieving event with id $eventId")
-      }
-    }
-  }
-
   def findAdjustments(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[Adjustments]] = {
     http.GET(s"$apiBaseUrl/adjustments/$appId").map { response =>
       Some(response.json.as[Adjustments])
