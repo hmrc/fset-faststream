@@ -280,6 +280,7 @@ generalquestions.error.postgraduatedegree.required=You must tell us if you have 
 additionalquestions.section.saved=You have saved your submission for this section
 additionalquestions.section.missing=You have not saved your answers for some of the sections.  Please review each section and try again.
 additionalquestions.submitted=You have submitted your additional questions
+additionalquestions.error.schemespecific=You must enter an answer
 
 undergradDegree.classification.unsupported.value=You much select a degree classification from the list
 undergradDegree.error.required=You must tell us the name of your degree

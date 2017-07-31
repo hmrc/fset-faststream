@@ -38,7 +38,7 @@ trait SiftClient {
 
   def updateGeneralAnswers(applicationId: UniqueIdentifier, answers: GeneralQuestionsAnswers)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(
-      s"${url.host}${url.base}/sift-answers/$applicationId/general",
+      s"$apiBase/sift-answers/$applicationId/general",
       answers
     ).map {
       case x: HttpResponse if x.status == OK => ()
@@ -89,7 +89,7 @@ trait SiftClient {
 
   def submitSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(
-      s"${url.host}${url.base}/sift-answers/$applicationId/submit",
+      s"$apiBase/sift-answers/$applicationId/submit",
       Array.empty[Byte]
     ).map {
       case x: HttpResponse if x.status == OK => ()

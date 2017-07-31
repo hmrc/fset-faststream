@@ -48,6 +48,8 @@ abstract class SiftQuestionsController(
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
   val GeneralQuestions = "generalQuestions"
+  val SaveAndReturnAction = "saveAndReturn"
+  val SaveAndContinueAction = "saveAndContinue"
 
   def schemeMetadata(schemeId: SchemeId)(implicit hc: HeaderCarrier): Future[Scheme] = {
     referenceDataClient.allSchemes().map { _.find(_.id == schemeId).get }
@@ -101,7 +103,7 @@ abstract class SiftQuestionsController(
       SchemeSpecificQuestionsForm.form.bindFromRequest.fold(
         invalid => {
           schemeMetadata(schemeId).map { scheme =>
-            Ok(views.html.application.additionalquestions.schemespecific(SchemeSpecificQuestionsForm.form, scheme))
+            Ok(views.html.application.additionalquestions.schemespecific(invalid, scheme))
           }
         },
         form => {
@@ -151,7 +153,6 @@ abstract class SiftQuestionsController(
       }
   }
 
-  // TODO This is horrible
   private def candidateCurrentSiftableSchemes(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     applicationClient.getPhase3Results(applicationId).flatMap(_.map { s =>
       Future.traverse(s.collect {
@@ -164,13 +165,13 @@ abstract class SiftQuestionsController(
 
   private def getFormAction(implicit request: SecuredRequest[_, _]) = {
     request.body.asInstanceOf[AnyContent].asFormUrlEncoded.getOrElse(Map.empty).get("action").flatMap(_.headOption)
-        .getOrElse("saveAndReturn")
+        .getOrElse(SaveAndReturnAction)
   }
 
   private def continueOrReturn(continue: Result, returnHome: Result)(implicit request: SecuredRequest[_, _]) = {
     getFormAction match {
-      case "saveAndContinue" => continue
-      case "saveAndReturn" => returnHome
+      case SaveAndContinueAction => continue
+      case SaveAndReturnAction => returnHome
       case _ => returnHome
     }
   }

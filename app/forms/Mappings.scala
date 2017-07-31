@@ -16,9 +16,10 @@
 
 package forms
 
+import mappings.Year
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.validation.Constraints
+import play.api.data.validation._
 import play.api.data.{ FormError, Mapping }
 import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
@@ -32,10 +33,15 @@ object Mappings {
 
   // Max error key not always required: may only be intended to prevent attackers, so helpful error message not required.
   def nonEmptyTrimmedText(
+    emptyErrorKey: String
+  ): Mapping[String] =
+    trimmedText(None, None, None, None, Some(emptyErrorKey))
+
+  def nonEmptyTrimmedText(
     emptyErrorKey: String,
     maxLength: Int
   ): Mapping[String] =
-    trimmedText(maxLength, None, None, None, Some(emptyErrorKey))
+    trimmedText(Some(maxLength), None, None, None, Some(emptyErrorKey))
 
   // When user is expected to exceed max length under normal usage.
   def nonEmptyTrimmedText(
@@ -43,7 +49,7 @@ object Mappings {
     maxLength: Int,
     maxErrorKey: String
   ): Mapping[String] =
-    trimmedText(maxLength, Some(maxErrorKey), None, None, Some(emptyErrorKey))
+    trimmedText(Some(maxLength), Some(maxErrorKey), None, None, Some(emptyErrorKey))
 
   def nonEmptyTrimmedText(
     emptyErrorKey: String,
@@ -52,15 +58,15 @@ object Mappings {
     minLength: Int,
     minErrorKey: String
   ): Mapping[String] =
-    trimmedText(maxLength, Some(maxErrorKey), Some(minLength), Some(minErrorKey), Some(emptyErrorKey))
+    trimmedText(Some(maxLength), Some(maxErrorKey), Some(minLength), Some(minErrorKey), Some(emptyErrorKey))
 
   // Max error key not always required: may only be intended to prevent attackers, so helpful error message not required.
   def optionalTrimmedText(maxLength: Int): Mapping[Option[String]] =
-    optional(trimmedText(maxLength, None, None, None, None))
+    optional(trimmedText(Some(maxLength), None, None, None, None))
 
   // When user is expected to exceed max length under normal usage.
   def optionalTrimmedText(maxLength: Int, maxErrorKey: String): Mapping[Option[String]] =
-    optional(trimmedText(maxLength, Some(maxErrorKey), None, None, None))
+    optional(trimmedText(Some(maxLength), Some(maxErrorKey), None, None, None))
 
   def optionalTrimmedText(
     maxLength: Int,
@@ -68,10 +74,10 @@ object Mappings {
     minLength: Int,
     minErrorKey: String
   ): Mapping[Option[String]] =
-    optional(trimmedText(maxLength, Some(maxErrorKey), Some(minLength), Some(minErrorKey), None))
+    optional(trimmedText(Some(maxLength), Some(maxErrorKey), Some(minLength), Some(minErrorKey), None))
 
   private def trimmedText(
-    maxLength: Int,
+    maxLength: Option[Int],
     maxErrorKey: Option[String],
     minLength: Option[Int],
     minErrorKey: Option[String],
@@ -80,7 +86,7 @@ object Mappings {
     textWithTransform(_.replaceAll("(^\\h*)|(\\h*$)", "").trim)(maxLength, maxErrorKey, minLength, minErrorKey, emptyErrorKey)
 
   private def textWithTransform(transform: String => String)(
-    maxLength: Int,
+    maxLength: Option[Int],
     maxErrorKey: Option[String],
     minLength: Option[Int],
     minErrorKey: Option[String],
@@ -98,7 +104,7 @@ object Mappings {
           case Some(value) =>
             if (minLength.exists(_ > value.length)) {
               Left(Seq(FormError(key, minError, Nil)))
-            } else if (maxLength < value.length) {
+            } else if (maxLength.exists(_ < value.length)) {
               Left(Seq(FormError(key, maxError, Nil)))
             } else {
               Right(value)
@@ -114,10 +120,11 @@ object Mappings {
     val fieldMapping = of[String](transformedStringFormat(emptyError, transform))
 
     (minLength, maxLength) match {
-      case (Some(0) | None, Int.MaxValue) => fieldMapping
-      case (Some(0) | None, max) => fieldMapping verifying Constraints.maxLength(max)
-      case (Some(min), Int.MaxValue) => fieldMapping verifying Constraints.minLength(min)
-      case (Some(min), max) => fieldMapping verifying (Constraints.minLength(min), Constraints.maxLength(max))
+      case (Some(0) | None, Some(Int.MaxValue)) => fieldMapping
+      case (Some(0) | None, Some(max)) => fieldMapping verifying Constraints.maxLength(max)
+      case (Some(min), None | Some(Int.MaxValue)) => fieldMapping verifying Constraints.minLength(min)
+      case (Some(min), Some(max)) => fieldMapping verifying (Constraints.minLength(min), Constraints.maxLength(max))
+      case (None, None) => fieldMapping
     }
   }
 
@@ -159,8 +166,25 @@ object Mappings {
       .verifying(emptyErrorKey, paramVal => paramVal == true.toString || paramVal == false.toString)
   }
 
-  def nonemptyBoolean(emptyErrorKey: String): Mapping[Boolean] = {
-    boolean verifying (emptyErrorKey, value => value == true || value == false)
+
+  object BooleanMapping {
+    type BooleanMapping = Option[Boolean]
+
+    def validateBoolean(boolean: String): Boolean = ("true" :: "false" :: Nil).contains(boolean)
+
+    def booleanFormatter(errorPrefix: String) = new Formatter[Option[Boolean]] {
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[Boolean]] = {
+        val booleanString: Option[String] = data.get(key)
+
+        booleanString match {
+          case None | Some("") => Left(List(FormError(key, s"$errorPrefix.required")))
+          case Some(m) if !m.isEmpty && !validateBoolean(m) => Left(List(FormError(key, s"$errorPrefix.format")))
+          case _ => Right(booleanString.map(_.trim.toBoolean))
+        }
+      }
+
+      override def unbind(key: String, value: Option[Boolean]) = Map(key -> value.map(_.toString).getOrElse(""))
+    }
   }
 
   def mayBeOptionalString(emptyErrorKey: String, maxLength: Int,

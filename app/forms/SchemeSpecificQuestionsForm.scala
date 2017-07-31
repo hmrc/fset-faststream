@@ -21,10 +21,9 @@ import play.api.data.Form
 import play.api.data.Forms._
 
 object SchemeSpecificQuestionsForm {
-
   val form = Form(
     mapping(
-      "schemeAnswer" -> nonEmptyText
+      "rawText" -> Mappings.nonEmptyTrimmedText("additionalquestions.error.schemespecific")
     )(SchemeSpecificAnswer.apply)(SchemeSpecificAnswer.unapply)
   )
 }

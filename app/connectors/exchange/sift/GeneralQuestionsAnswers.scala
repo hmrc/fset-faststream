@@ -71,7 +71,7 @@ object GeneralQuestionsAnswers {
 
   def apply(a: GeneralQuestionsForm.Data): GeneralQuestionsAnswers = {
     GeneralQuestionsAnswers(
-      a.multiplePassports,
+      a.multiplePassports.get,
       a.secondPassportCountry,
       a.passportCountry.getOrElse(""),
       a.undergradDegree map(UndergradDegreeInfoAnswers(_)),

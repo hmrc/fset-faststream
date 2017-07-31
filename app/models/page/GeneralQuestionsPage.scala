@@ -30,14 +30,14 @@ object GeneralQuestionsPage {
   def apply(answers: Option[GeneralQuestionsAnswers]): GeneralQuestionsPage = GeneralQuestionsPage(
     answers.map { a =>
       GeneralQuestionsForm().form.fill(GeneralQuestionsForm.Data(
-        multiplePassports = a.multiplePassports,
+        multiplePassports = Some(a.multiplePassports),
         secondPassportCountry = a.secondPassportCountry,
         passportCountry = Option(a.passportCountry).filter(_.trim.nonEmpty),
-        hasUndergradDegree = a.undergradDegree.isDefined,
+        hasUndergradDegree = Some(a.undergradDegree.isDefined),
         undergradDegree = a.undergradDegree map(
           ud => UndergradDegreeInfoForm.Data(
             ud.name, Option(ud.classification).filter(_.trim.nonEmpty), Option(ud.graduationYear).filter(_.trim.nonEmpty), ud.moduleDetails)),
-        hasPostgradDegree = a.postgradDegree.isDefined,
+        hasPostgradDegree = Some(a.postgradDegree.isDefined),
         postgradDegree = a.postgradDegree map(
           pd => PostGradDegreeInfoForm.Data(
             pd.name, Option(pd.graduationYear).filter(_.trim.nonEmpty), pd.otherDetails, pd.projectDetails))

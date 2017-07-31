@@ -84,12 +84,12 @@ object Year {
 
   val yearFormatter = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      val phone: Option[String] = data.get(key)
+      val year: Option[String] = data.get(key)
 
-      phone match {
+      year match {
         case None | Some("") => Left(List(FormError(key, "error.year.required")))
         case Some(m) if !m.isEmpty && !Year.validateYear(m) => Left(List(FormError(key, "error.year.format")))
-        case _ => Right(phone.map(_.trim))
+        case _ => Right(year.map(_.trim))
       }
     }
 

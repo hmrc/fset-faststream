@@ -74,13 +74,13 @@ object PostGradDegreeInfoForm {
 
 class GeneralQuestionsForm(validCountries: Seq[String]) {
   val form = Form(
-    mapping("multiplePassports" -> nonemptyBoolean("generalquestions.error.multiplepassports.required"),
+    mapping("multiplePassports" -> of(BooleanMapping.booleanFormatter("generalquestions.error.multiplepassports")),
       "secondPassportCountry" -> of(SeqMapping.conditionalRequiredSetFormatter(
         data => data.get("multiplePassports").getOrElse("") == "true", validCountries)),
       "passportCountry" -> of(SeqMapping.requiredSetFormatter(validCountries)),
-      "hasUndergradDegree" -> nonemptyBoolean("generalquestions.error.undergraduatedegree.required"),
+      "hasUndergradDegree" -> of(BooleanMapping.booleanFormatter("generalquestions.error.undergraduatedegree")),
       "undergradDegree" -> of(undergradDegreeInfoFormFormatter("hasUndergradDegree")),
-      "hasPostgradDegree" -> nonemptyBoolean("generalquestions.error.postgraduatedegree.required"),
+      "hasPostgradDegree" -> of(BooleanMapping.booleanFormatter("generalquestions.error.postgraduatedegree")),
       "postgradDegree" -> of(postGradDegreeInfoFormFormatter("hasPostgradDegree"))
     )(GeneralQuestionsForm.Data.apply)(GeneralQuestionsForm.Data.unapply))
 }
@@ -89,12 +89,12 @@ object GeneralQuestionsForm {
   def apply() = new GeneralQuestionsForm(Countries)
 
   case class Data(
-    multiplePassports: Boolean,
+    multiplePassports: Option[Boolean],
     secondPassportCountry: Option[String],
     passportCountry: Option[String],
-    hasUndergradDegree: Boolean,
+    hasUndergradDegree: Option[Boolean],
     undergradDegree: Option[UndergradDegreeInfoForm.Data],
-    hasPostgradDegree: Boolean,
+    hasPostgradDegree: Option[Boolean],
     postgradDegree: Option[PostGradDegreeInfoForm.Data]
   )
 
