@@ -1,13 +1,18 @@
 package repositories.assessmentcentre
 
+import model.ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION
 import model._
 import model.command.ApplicationForFsac
+import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.scalatest.concurrent.ScalaFutures
+import play.api.Logger
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
+
+import scala.concurrent.Future
 
 class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutures with CommonRepository {
 
@@ -46,13 +51,18 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
       insertApplicationWithPhase3TestNotifiedResults("appId6",
         List(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Red.toString))).futureValue
-
+      
       whenReady(repository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
-        appsForAc mustBe List(
+        Logger.warn("AFA = " + appsForAc)
+        appsForAc must contain(
           ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
+            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil)
+        )
+        appsForAc must contain(
           ApplicationForFsac("appId4", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some("")), Nil))
+            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some("")), Nil)
+        )
+        appsForAc.length mustBe 2
       }
     }
 
@@ -93,6 +103,41 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       )
 
       repository.progressToAssessmentCentre(nextResults.head, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).futureValue
+    }
+  }
+
+  "getTests" should {
+    "get tests when they exist" in new TestFixture {
+      insertApplicationWithAssessmentCentreAwaitingAllocation("appId1")
+      repository.getTests("appId1").futureValue mustBe expectedAssessmentCentreTests
+    }
+
+    "return empty when there are no tests" in new TestFixture {
+      insertApplicationWithAssessmentCentreAwaitingAllocation("appId1", withTests = false)
+      repository.getTests("appId1").futureValue mustBe AssessmentCentreTests()
+    }
+  }
+
+  "updateTests" should {
+
+  }
+
+  trait TestFixture {
+
+    val expectedAssessmentCentreTests = AssessmentCentreTests(
+      Some(AnalysisExercise(
+        fileId = "fileId1"
+      ))
+    )
+
+    def insertApplicationWithAssessmentCentreAwaitingAllocation(appId: String, withTests: Boolean = true): Unit = {
+      insertApplication(appId, ApplicationStatus.ASSESSMENT_CENTRE,
+        additionalProgressStatuses = List(ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
+      )
+
+      if (withTests) {
+        repository.updateTests(appId, expectedAssessmentCentreTests).futureValue
+      }
     }
   }
 }

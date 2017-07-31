@@ -31,6 +31,14 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       result mustBe expectedAllocations
     }
 
+    "correctly find allocations by application" in {
+      repository.save(allocations).futureValue
+      val result = repository.allocationsForApplication("candId1").futureValue
+      result.size mustBe 1
+      val expectedAllocations = allocations.filter(_.id == "candId1")
+      result mustBe expectedAllocations
+    }
+
     "return an empty list for sessions that don`t exist" in {
       val result = repository.allocationsForSession("eventId1", "invalid_session_id").futureValue
       result.isEmpty mustBe true
