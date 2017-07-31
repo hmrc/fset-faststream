@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package repositories.assessmentcentre
 
 import model._
@@ -57,7 +73,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     ("return no results when there are only phase 3 applications that aren't in Passed_Notified which don't apply for sift or don't have "
-       + "Green/Passed results") in {
+      + "Green/Passed results") in {
       insertApplicationWithPhase3TestNotifiedResults("appId7",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString))).futureValue
       insertApplicationWithPhase3TestNotifiedResults("appId8",
@@ -78,18 +94,22 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     "update cumulative evaluation results from sift and phase 3" in {
       insertApplicationWithPhase3TestNotifiedResults("appId11",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString))).futureValue
+          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))).futureValue
 
       applicationRepository.addProgressStatusAndUpdateAppStatus("appId11", ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED).futureValue
       siftRepository.siftApplicationForScheme("appId11", SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)).futureValue
+      siftRepository.siftApplicationForScheme("appId11", SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)).futureValue
       applicationRepository.addProgressStatusAndUpdateAppStatus("appId11", ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED).futureValue
 
       val nextResults = repository.nextApplicationForAssessmentCentre(1).futureValue
       nextResults mustBe List(
         ApplicationForFsac("appId11",
           PassmarkEvaluation("", Some(""), List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
-            SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString)), "", Some("")),
-          List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)))
+            SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString)), "", Some("")),
+          List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
+            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
       )
 
       repository.progressToAssessmentCentre(nextResults.head, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).futureValue
