@@ -1,13 +1,18 @@
 package repositories.assessmentcentre
 
+import model.ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION
 import model._
 import model.command.ApplicationForFsac
+import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.scalatest.concurrent.ScalaFutures
+import play.api.Logger
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
+
+import scala.concurrent.Future
 
 class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutures with CommonRepository {
 
@@ -25,7 +30,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
   def repository = assessmentCentreRepository(siftableSchemeDefinitions)
   def siftRepository = applicationSiftRepository(siftableSchemeDefinitions)
 
-  "next Application for sift" should {
+  "next Application for sift" must {
     "ignore applications in incorrect statuses and return only the Phase3 Passed_Notified applications that are not eligible for sift" in {
       insertApplicationWithPhase3TestNotifiedResults("appId1",
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))).futureValue
@@ -48,11 +53,15 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
         List(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Red.toString))).futureValue
 
       whenReady(repository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
-        appsForAc mustBe List(
+        appsForAc must contain(
           ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
+            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil)
+        )
+        appsForAc must contain(
           ApplicationForFsac("appId4", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some("")), Nil))
+            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some("")), Nil)
+        )
+        appsForAc.length mustBe 2
       }
     }
 
@@ -74,7 +83,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
   }
 
-  "progressToFsac" should {
+  "progressToFsac" must {
     "update cumulative evaluation results from sift and phase 3" in {
       insertApplicationWithPhase3TestNotifiedResults("appId11",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
@@ -93,6 +102,49 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       )
 
       repository.progressToAssessmentCentre(nextResults.head, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).futureValue
+    }
+  }
+
+  "getTests" must {
+    "get tests when they exist" in new TestFixture {
+      insertApplicationWithAssessmentCentreAwaitingAllocation("appId1")
+      repository.getTests("appId1").futureValue mustBe expectedAssessmentCentreTests
+    }
+
+    "return empty when there are no tests" in new TestFixture {
+      insertApplicationWithAssessmentCentreAwaitingAllocation("appId1", withTests = false)
+      repository.getTests("appId1").futureValue mustBe AssessmentCentreTests()
+    }
+  }
+
+  "updateTests" must {
+    "update the tests key and be retrievable" in new TestFixture {
+      insertApplication("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
+        additionalProgressStatuses = List(ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
+      )
+
+      repository.updateTests("appId1", expectedAssessmentCentreTests).futureValue
+
+      repository.getTests("appId1").futureValue mustBe expectedAssessmentCentreTests
+    }
+  }
+
+  trait TestFixture {
+
+    val expectedAssessmentCentreTests = AssessmentCentreTests(
+      Some(AnalysisExercise(
+        fileId = "fileId1"
+      ))
+    )
+
+    def insertApplicationWithAssessmentCentreAwaitingAllocation(appId: String, withTests: Boolean = true): Unit = {
+      insertApplication(appId, ApplicationStatus.ASSESSMENT_CENTRE,
+        additionalProgressStatuses = List(ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
+      )
+
+      if (withTests) {
+        repository.updateTests(appId, expectedAssessmentCentreTests).futureValue
+      }
     }
   }
 }

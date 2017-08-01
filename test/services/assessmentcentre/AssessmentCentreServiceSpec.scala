@@ -22,6 +22,7 @@ import model.assessmentscores.AssessmentScoresAllExercises
 import model.command.ApplicationForFsac
 import model.exchange.passmarksettings._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
@@ -34,6 +35,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
 import services.evaluation.AssessmentCentreEvaluationEngine
 import services.passmarksettings.PassMarkSettingsService
+import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import testkit.{ ExtendedTimeout, FutureHelper }
 
 import scala.concurrent.Future
@@ -41,32 +43,51 @@ import scala.concurrent.Future
 class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Results with ScalaFutures with FutureHelper with MockFactory
   with ExtendedTimeout {
 
-  "An AssessmentCentreService" should {
-    "progress candidates to assessment centre, attempting all despite errors" in new ServiceFixture {
-
-      val applicationsToProgressToSift = List(
-        ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
-        ApplicationForFsac("appId2", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
-        ApplicationForFsac("appId3", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil))
-
-      (mockAssessmentCentreRepo.progressToAssessmentCentre _)
-        .expects(applicationsToProgressToSift.head, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
-        .returning(Future.successful())
-      (mockAssessmentCentreRepo.progressToAssessmentCentre _)
-        .expects(applicationsToProgressToSift(1), ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
-        .returning(Future.failed(new Exception))
-      (mockAssessmentCentreRepo.progressToAssessmentCentre _)
-        .expects(applicationsToProgressToSift(2), ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
-        .returning(Future.successful())
-
+  "progress candidates to assessment centre" must {
+    "progress candidates to assessment centre, attempting all despite errors" in new TestFixture {
+      progressToAssessmentCentreMocks
       whenReady(service.progressApplicationsToAssessmentCentre(applicationsToProgressToSift)) {
         results =>
           val failedApplications = Seq(applicationsToProgressToSift(1))
           val passedApplications = Seq(applicationsToProgressToSift.head, applicationsToProgressToSift(2))
           results mustBe SerialUpdateResult(failedApplications, passedApplications)
+      }
+    }
+  }
+
+  "getTests" must {
+    "call the assessment centre repository" in new TestFixture {
+      (mockAssessmentCentreRepo.getTests _).expects("appId1").returning(Future.successful(AssessmentCentreTests()))
+
+      whenReady(service.getTests("appId1")) { results =>
+          results mustBe AssessmentCentreTests()
+      }
+    }
+  }
+
+  "updateAnalysisTest" must {
+    val assessmentCentreTestsWithTests = AssessmentCentreTests(
+      Some(AnalysisExercise(
+        "fileId1"
+      ))
+    )
+
+    "update when submissions are not present" in new TestFixture {
+      (mockAssessmentCentreRepo.getTests _).expects("appId1").returning(Future.successful(AssessmentCentreTests()))
+      (mockAssessmentCentreRepo.updateTests _).expects("appId1", assessmentCentreTestsWithTests).returning(Future.successful(()))
+
+      whenReady(service.updateAnalysisTest("appId1", "fileId1")) { results =>
+         results mustBe (())
+      }
+    }
+
+    "do not update when submissions are already present" in new TestFixture {
+      (mockAssessmentCentreRepo.getTests _).expects("appId1").returning(Future.successful(
+        assessmentCentreTestsWithTests
+      ))
+
+      whenReady(service.updateAnalysisTest("appId1", "fileId1").failed) { result =>
+        result mustBe a[CandidateAlreadyHasAnAnalysisExerciseException]
       }
     }
   }
@@ -107,7 +128,7 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
       result.get.scores.applicationId mustBe applicationId
     }
 
-    "return none if there is no passmark settings set" in new ServiceFixture {
+    "return none if there is no passmark settings set" in new TestFixture {
       implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
       (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
         .returning(Future.successful(None))
@@ -127,7 +148,7 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
     }
   }
 
-  trait ServiceFixture {
+  trait TestFixture {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
     val mockAssessmentCentrePassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
@@ -144,10 +165,30 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
       val evaluationEngine: AssessmentCentreEvaluationEngine = mockEvaluationEngine
     }
 
+    val applicationsToProgressToSift = List(
+      ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
+      ApplicationForFsac("appId2", PassmarkEvaluation("", Some(""),
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
+      ApplicationForFsac("appId3", PassmarkEvaluation("", Some(""),
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil))
+
+    def progressToAssessmentCentreMocks = {
+      (mockAssessmentCentreRepo.progressToAssessmentCentre _)
+        .expects(applicationsToProgressToSift.head, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+        .returning(Future.successful(()))
+      (mockAssessmentCentreRepo.progressToAssessmentCentre _)
+        .expects(applicationsToProgressToSift(1), ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+        .returning(Future.failed(new Exception))
+      (mockAssessmentCentreRepo.progressToAssessmentCentre _)
+        .expects(applicationsToProgressToSift(2), ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+        .returning(Future.successful(()))
+    }
+
     val applicationId = UniqueIdentifier.randomUniqueIdentifier
   }
 
-  trait ReturnPassMarksFixture extends ServiceFixture {
+  trait ReturnPassMarksFixture extends TestFixture {
     val passMarkSettings = AssessmentCentrePassMarkSettings(List(
       AssessmentCentrePassMark(SchemeId("Commercial"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
       AssessmentCentrePassMark(SchemeId("DigitalAndTechnology"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),

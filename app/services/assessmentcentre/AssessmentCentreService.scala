@@ -18,17 +18,17 @@ package services.assessmentcentre
 
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
-
-//import model.PassmarkPersistedObjects.AssessmentCentrePassMarkSettings
 import model.command.ApplicationForFsac
+import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
+import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import model.persisted.phase3tests.Phase3TestGroup
 import model.{ AssessmentPassmarkPreferencesAndScores, ProgressStatuses, SerialUpdateResult, UniqueIdentifier }
 import play.api.Logger
 import repositories.AssessmentScoresRepository
 import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
+import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.{ PassMarkSettingsService, AssessmentCentrePassMarkSettingsService }
+import services.passmarksettings.{ AssessmentCentrePassMarkSettingsService, PassMarkSettingsService }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -40,6 +40,9 @@ object AssessmentCentreService extends AssessmentCentreService {
   val assessmentScoresRepo = repositories.assessmentScoresRepository
   val currentSchemeStatusRepo = repositories.currentSchemeStatusRepository
   val evaluationEngine = AssessmentCentreEvaluationEngine
+
+  case class CandidateAlreadyHasAnAnalysisExerciseException(message: String) extends Exception(message)
+  case class CandidateHasNoAnalysisExerciseException(message: String) extends Exception(message)
 }
 
 trait AssessmentCentreService {
@@ -127,5 +130,19 @@ trait AssessmentCentreService {
     assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation).map { _ =>
       Logger.debug(s"**** written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
+  }
+
+  def getTests(applicationId: String): Future[AssessmentCentreTests] = {
+    assessmentCentreRepo.getTests(applicationId)
+  }
+
+  def updateAnalysisTest(applicationId: String, fileId: String): Future[Unit] = {
+    for {
+      tests <- getTests(applicationId)
+      hasSubmissions = tests.analysisExercise.isDefined
+      _ <- if (!hasSubmissions) {
+                assessmentCentreRepo.updateTests(applicationId, tests.copy(analysisExercise = Some(AnalysisExercise(fileId))))
+            } else { throw CandidateAlreadyHasAnAnalysisExerciseException(s"App Id: $applicationId, File Id: $fileId") }
+    } yield ()
   }
 }

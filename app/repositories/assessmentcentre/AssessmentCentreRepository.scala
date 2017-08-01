@@ -19,6 +19,7 @@ package repositories.assessmentcentre
 import factories.DateTimeFactory
 import model._
 import model.command.{ ApplicationForFsac, ApplicationForSift }
+import model.persisted.fsac.AssessmentCentreTests
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONArray, BSONObjectID }
@@ -36,6 +37,8 @@ trait AssessmentCentreRepository {
   def dateTime: DateTimeFactory
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]]
   def progressToAssessmentCentre(application: ApplicationForFsac, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
+  def getTests(applicationId: String): Future[AssessmentCentreTests]
+  def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]]
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation): Future[Unit]
 }
@@ -49,6 +52,8 @@ class AssessmentCentreMongoRepository (
     ReactiveMongoFormats.objectIdFormats
 ) with AssessmentCentreRepository with RandomSelection with ReactiveRepositoryHelpers with GeneralApplicationRepoBSONReader
     with CommonBSONDocuments with CumulativeEvaluationHelper {
+
+  val fsacKey = "FSAC"
 
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
     implicit def applicationForFsacBsonReads(document: BSONDocument): ApplicationForFsac = {
@@ -143,5 +148,29 @@ class AssessmentCentreMongoRepository (
           case _ => application.siftEvaluationResult
         })))
     ) map validator
+  }
+
+  def getTests(applicationId: String): Future[AssessmentCentreTests] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("_id" -> 0, s"testGroups.$fsacKey.tests" -> 2)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      case Some(bsonTests) => (for {
+        testGroups <- bsonTests.getAs[BSONDocument]("testGroups")
+        fsac <- testGroups.getAs[BSONDocument](fsacKey)
+        tests <- fsac.getAs[AssessmentCentreTests]("tests")
+      } yield tests).getOrElse(AssessmentCentreTests())
+
+      case _ => AssessmentCentreTests()
+    }
+  }
+
+  def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument("$set" -> BSONDocument(s"testGroups.$fsacKey.tests" -> tests))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "Updating assessment centre tests")
+
+    collection.update(query, update) map validator
   }
 }

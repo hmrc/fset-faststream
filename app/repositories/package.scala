@@ -37,6 +37,7 @@ import repositories.assessmentcentre.{ CurrentSchemeStatusMongoRepository, Asses
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.events.EventsMongoRepository
+import repositories.fileupload.FileUploadMongoRepository
 import repositories.fsacindicator.FSACIndicatorMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 import repositories.sift.ApplicationSiftMongoRepository
@@ -86,14 +87,15 @@ package object repositories {
   lazy val assessorAllocationRepository = new AssessorAllocationMongoRepository()
   lazy val candidateAllocationRepository = new CandidateAllocationMongoRepository()
   lazy val eventsRepository = new EventsMongoRepository()
+  lazy val fileUploadRepository = new FileUploadMongoRepository()
+  lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
+  lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val assessmentScoresRepository = new AssessmentScoresMongoRepository(DateTimeFactory)
-  lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
-  lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
   lazy val currentSchemeStatusRepository = new CurrentSchemeStatusMongoRepository
 
   /** Create indexes */
@@ -136,7 +138,7 @@ package object repositories {
       Seq("id"-> Ascending, "eventId" -> Ascending, "sessionId" -> Ascending),
       unique = false
     ))
-  )), 20 seconds)
+  )), 30 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
     def read(time: BSONDateTime) = new DateTime(time.value, DateTimeZone.UTC)
