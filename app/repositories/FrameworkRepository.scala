@@ -31,7 +31,6 @@ import scala.concurrent.Future
 
 @deprecated("fasttrack version. Framework need to be renamed to Scheme", "July 2016")
 trait FrameworkRepository {
-  def getFrameworkNames: Future[List[String]]
   def getFrameworksByRegion: Future[List[Region]]
   def getFrameworksByRegionFilteredByQualification(criteriaMet: CandidateHighestQualification): Future[List[Region]] =
     getFrameworksByRegion.map { regions =>
@@ -89,10 +88,6 @@ class FrameworkYamlRepository extends FrameworkRepository {
     val sortedCollatedRegions = sortRegions(collatedRegions)
     sortedCollatedRegions
   })
-
-  override def getFrameworkNames: Future[List[String]] = Future.successful(
-    frameworks.map(_.name).toList
-  )
 
   override def getFrameworksByRegion: Future[List[Region]] =
     frameworksByRegionCached
