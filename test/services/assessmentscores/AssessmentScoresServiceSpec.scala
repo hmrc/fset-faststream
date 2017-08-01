@@ -262,8 +262,13 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
 
   trait FindAssessmentScoresWithCandidateSummaryTestFixture extends BaseTestFixture {
     val eventId = EventExamples.e1WithSessions.id
-    val candidateAllocations = List(CandidateAllocation(appId.toString(), eventId, EventExamples.e1WithSessions.sessions.head.id,
-      AllocationStatuses.CONFIRMED, "version1"))
+    val candidateAllocations = List(CandidateAllocation(
+      appId.toString(),
+      eventId,
+      EventExamples.e1WithSessions.sessions.head.id,
+      AllocationStatuses.CONFIRMED,
+      "version1",
+      None))
     when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSessions))
     when(candidateAllocationRepositoryMock.find(appId.toString())).thenReturn(Future.successful(candidateAllocations))
     when(personalDetailsRepositoryMock.find(appId.toString())).thenReturn(Future.successful(PersonalDetailsExamples.completed))

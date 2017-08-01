@@ -26,8 +26,6 @@ PUT         /application/withdraw/:applicationId                         control
 PUT         /application/consider-for-sdip/:applicationId                controllers.ApplicationController.considerForSdip(applicationId: String)
 PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
 PUT         /application/overrideSubmissionDeadline/:applicationId       controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
-GET         /application/location/:location                              controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String)
-POST        /applications/allocated                                      controllers.ApplicationController.findAllocatedApplications()
 POST        /application/status                                          controllers.ApplicationController.updateStatus
 
 GET         /application/:applicationId/phase3/results                   controllers.ApplicationController.getPhase3Results(applicationId: String)
@@ -134,8 +132,12 @@ PUT         /assessor/:assessorId/allocations                            control
 POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
 POST        /events/create                                               controllers.EventsController.createEvent()
 GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
+
+GET         /events/applications/location/:location                      controllers.EventsController.findCandidatesEligibleForEventAllocation(location: String)
+POST        /events/applications/allocated                               controllers.EventsController.findAllocatedApplications()
 GET         /events/:eventId/sessions/:sessionId/candidateAllocations    controllers.EventsController.getCandidateAllocations(eventId: String, sessionId: String)
 POST        /events/:eventId/sessions/:sessionId/remove-candidates       controllers.EventsController.removeCandidateAllocations(eventId: String, sessionId: String)
+
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
@@ -157,8 +159,9 @@ GET         /assessment-scores                                                  
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
 GET         /reference/schemes                                           controllers.reference.SchemesController.allSchemes
-GET         /reference/fsb-types                                         controllers.reference.EventSubtypesController.getFsbTypes
-GET         /reference/telephone-interview-types                         controllers.reference.EventSubtypesController.getTelephoneInterviewTypes
+GET         /reference/fsb-types                                         controllers.reference.EventDataController.getFsbTypes
+GET         /reference/telephone-interview-types                         controllers.reference.EventDataController.getTelephoneInterviewTypes
+GET         /reference/candidate-remove-reasons                          controllers.reference.EventDataController.candidateRemoveReasons
 
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
 GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations

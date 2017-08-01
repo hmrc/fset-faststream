@@ -16,8 +16,10 @@
 
 package repositories
 
+import model.AllocationStatuses
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{ TooManyEventIdsException, TooManySessionIdsException }
+import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
 import play.api.libs.json.OFormat
 import reactivemongo.api.DB
@@ -30,8 +32,13 @@ import scala.concurrent.Future
 
 trait CandidateAllocationRepository {
   def save(allocations: Seq[CandidateAllocation]): Future[Unit]
+
+  def findNoShowCandidates(applications: Seq[String]): Future[Seq[CandidateAllocation]]
+
   def allocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]
+
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit]
+
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit]
 }
 
@@ -53,17 +60,43 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
   }
 
   def save(allocations: Seq[CandidateAllocation]): Future[Unit] = {
-    val jsObjects = allocations.map(format.writes)
-    collection.bulkInsert(jsObjects.toStream, ordered = false) map (_ => ())
+    delete(allocations, ignoreMissed = true).flatMap { _ =>
+      val jsObjects = allocations.map(format.writes)
+      collection.bulkInsert(jsObjects.toStream, ordered = false)
+    } map ( _ => () )
+  }
+
+  def findCandidateRemovals(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
+    collection.find(BSONDocument(
+      // "id" -> BSONDocument("$in" -> applications),
+      "status" -> AllocationStatuses.REMOVED
+    ), projection)
+      .cursor[CandidateAllocation]().collect[Seq]()
+  }
+
+  def findNoShowCandidates(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
+    collection.find(BSONDocument(
+        "id" -> BSONDocument("$in" -> applications),
+        "status" -> AllocationStatuses.REMOVED,
+        "removeReason" -> CandidateRemoveReason.NoShow
+      ), projection)
+      .cursor[CandidateAllocation]().collect[Seq]()
   }
 
   def allocationsForEvent(eventId: String): Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument("eventId" -> eventId), projection)
+    collection.find(BSONDocument(
+      "eventId" -> eventId,
+      "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
+    ), projection)
       .cursor[CandidateAllocation]().collect[Seq]()
   }
 
   def allocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument("eventId" -> eventId, "sessionId" -> sessionId), projection)
+    collection.find(BSONDocument(
+      "eventId" -> eventId,
+      "sessionId" -> sessionId,
+      "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
+    ), projection)
       .cursor[CandidateAllocation]().collect[Seq]()
   }
 
@@ -77,10 +110,23 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       BSONDocument("sessionId" -> sessionId)
     ))
 
-    collection.remove(query).map (_ => ())
+    val update = BSONDocument("$set" ->
+      BSONDocument(
+        "status" -> AllocationStatuses.REMOVED,
+        "removeReason" -> allocation.removeReason
+      )
+    )
+
+    val validator = singleUpdateValidator(allocation.id, actionDesc = "confirming allocation")
+
+    collection.update(query, update) map validator
   }
 
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit] = {
+    delete(allocations, ignoreMissed = false)
+  }
+
+  def delete(allocations: Seq[CandidateAllocation], ignoreMissed: Boolean): Future[Unit] = {
     val eventIds = allocations.map(_.eventId).distinct
     val eventId = if (eventIds.size > 1) {
       throw TooManyEventIdsException(s"The delete request contained too many event Ids [$eventIds]")
@@ -104,6 +150,11 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
 
     val validator = multipleRemoveValidator(allocations.size, "Deleting allocations")
 
-    collection.remove(query) map validator
+    val remove = collection.remove(query)
+    if (!ignoreMissed){
+      remove.map(validator)
+    } else {
+      remove.map(_ => ())
+    }
   }
 }

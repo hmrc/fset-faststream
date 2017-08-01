@@ -115,6 +115,18 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
+  def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String) = {
+    applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation)).flatMap { resp =>
+      candidateAllocationRepo.findNoShowCandidates(resp.candidates.map(_.applicationId)).map { noShowCandidates =>
+        val noShowCandidatesIds = noShowCandidates.map(_.id)
+        val c = resp.copy(candidates = resp.candidates.filter(c => !noShowCandidatesIds.contains(c.applicationId)))
+        c
+      }
+    }
+  }
+
+  def findAllocatedApplications(appIds: List[String]) = applicationRepo.findAllocatedApplications(appIds)
+
   private def updateExistingAllocations(existingAllocations: exchange.CandidateAllocations,
                                         newAllocations: command.CandidateAllocations): Future[Unit] = {
 

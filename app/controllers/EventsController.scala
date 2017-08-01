@@ -139,4 +139,23 @@ trait EventsController extends BaseController {
       candidateAllocationService.unAllocateCandidates(allocations).map( _ => Ok)
     }
   }
+
+
+  def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String) = Action.async {
+    implicit request =>
+      candidateAllocationService.findCandidatesEligibleForEventAllocation(assessmentCenterLocation) map { apps =>
+        Ok(Json.toJson(apps))
+      }
+  }
+
+  def findAllocatedApplications() = Action.async(parse.json) {
+    implicit request =>
+      withJsonBody[List[String]] { appIds =>
+        candidateAllocationService.findAllocatedApplications(appIds).map { apps =>
+          Ok(Json.toJson(apps))
+        }
+      }
+  }
+
+
 }
