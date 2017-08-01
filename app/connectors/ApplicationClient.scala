@@ -234,7 +234,7 @@ trait ApplicationClient {
 
   def eventWithSessionsForApplicationOnly(appId: UniqueIdentifier, eventType: EventType)(implicit hc: HeaderCarrier): Future[List[Event]] = {
     http.GET(
-      s"$apiBaseUrl/sessions/findByApplicationId?applicationId=$appId&sessionEventType=${eventType.toString}"
+      s"$apiBaseUrl/sessions/findByApplicationId", Seq("applicationId" -> appId.toString, "sessionEventType" -> eventType.toString)
     ).map { response =>
       response.json.as[List[Event]]
     }
@@ -242,7 +242,7 @@ trait ApplicationClient {
 
   def hasAnalysisExercise(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Boolean] = {
     http.GET(
-      s"$apiBaseUrl/application/hasAnalysisExercise?applicationId=$applicationId"
+      s"$apiBaseUrl/application/hasAnalysisExercise", Seq("applicationId" -> applicationId.toString)
     ).map { response =>
       response.json.as[Boolean]
     }
