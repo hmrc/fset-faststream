@@ -124,6 +124,11 @@ object Roles {
       activeUserWithActiveApp(user) && !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED)
   }
 
+  object AssessmentCentreRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
+      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE)
+  }
+
   object WithdrawnApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
       statusIn(user)(WITHDRAWN)
