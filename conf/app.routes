@@ -160,11 +160,11 @@ GET         /assessment-scores                                                  
 
 # Scheme Specific Questions/Answers
 GET         /sift-answers/:applicationId/general                         controllers.SchemeSiftAnswersController.getGeneralAnswers(applicationId: String)
-POST        /sift-answers/:applicationId/general                         controllers.SchemeSiftAnswersController.addOrUpdateGeneralAnswers(applicationId: String)
+PUT         /sift-answers/:applicationId/general                         controllers.SchemeSiftAnswersController.addOrUpdateGeneralAnswers(applicationId: String)
 GET         /sift-answers/:applicationId/status                          controllers.SchemeSiftAnswersController.getSiftAnswersStatus(applicationId: String)
 PUT         /sift-answers/:applicationId/submit                          controllers.SchemeSiftAnswersController.submitAnswers(applicationId: String)
 GET         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
-POST        /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
+PUT         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
 GET         /sift-answers/:applicationId                                 controllers.SchemeSiftAnswersController.getSiftAnswers(applicationId: String)
 
 # Reference data
