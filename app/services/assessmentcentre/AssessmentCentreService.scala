@@ -24,7 +24,6 @@ import model.persisted.phase3tests.Phase3TestGroup
 import model.{ AssessmentPassmarkPreferencesAndScores, ProgressStatuses, SerialUpdateResult, UniqueIdentifier }
 import play.api.Logger
 import repositories.AssessmentScoresRepository
-import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
 import services.evaluation.AssessmentCentreEvaluationEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
