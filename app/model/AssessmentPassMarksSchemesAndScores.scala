@@ -16,18 +16,15 @@
 
 package model
 
-//import model.PassmarkPersistedObjects.AssessmentCentrePassMarkSettings
-//import model.PassmarkPersistedObjects.Implicits._
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import play.api.libs.json.Json
 
-// TODO: rename to AssessmentPassMarksSchemesAndScores
-case class AssessmentPassmarkPreferencesAndScores(
+case class AssessmentPassMarksSchemesAndScores(
   passmark: AssessmentCentrePassMarkSettings,
   schemes: List[SchemeId],
   scores: AssessmentScoresAllExercises)
 
-object  AssessmentPassmarkPreferencesAndScores {
-  implicit val assessmentPassmarkPreferencesAndScoresFormat = Json.format[AssessmentPassmarkPreferencesAndScores]
+object  AssessmentPassMarksSchemesAndScores {
+  implicit val assessmentPassmarkPreferencesAndScoresFormat = Json.format[AssessmentPassMarksSchemesAndScores]
 }

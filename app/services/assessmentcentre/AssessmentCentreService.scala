@@ -22,7 +22,7 @@ import model.command.ApplicationForFsac
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import model.persisted.phase3tests.Phase3TestGroup
-import model.{ AssessmentPassmarkPreferencesAndScores, ProgressStatuses, SerialUpdateResult, UniqueIdentifier }
+import model.{ AssessmentPassMarksSchemesAndScores, ProgressStatuses, SerialUpdateResult, UniqueIdentifier }
 import play.api.Logger
 import repositories.AssessmentScoresRepository
 import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
@@ -68,7 +68,7 @@ trait AssessmentCentreService {
     updates.map(SerialUpdateResult.fromEither)
   }
 
-  def nextAssessmentCandidateReadyForEvaluation: Future[Option[AssessmentPassmarkPreferencesAndScores]] = {
+  def nextAssessmentCandidateReadyForEvaluation: Future[Option[AssessmentPassMarksSchemesAndScores]] = {
     passmarkService.getLatestPassMarkSettings.flatMap {
       case Some(passmark) =>
         Logger.debug(s"2. Assessment evaluation found pass marks - $passmark")
@@ -88,7 +88,7 @@ trait AssessmentCentreService {
 
   // Find existing evaluation data: 1. assessment centre pass marks, 2. the schemes to evaluate and 3. the scores awarded by the reviewer
   def tryToFindEvaluationData(appId: String,
-    passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassmarkPreferencesAndScores]] = {
+    passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
     // TODO: we will eventually need to read this data from the current scheme status
     def fetchSchemesToEvaluate(phase3TestResultsOpt: Option[Phase3TestGroup]) = {
       val schemes = phase3TestResultsOpt.flatMap { testResults =>
@@ -111,12 +111,12 @@ trait AssessmentCentreService {
         val passedSchemes = fetchSchemesToEvaluate(phase3TestResultsOpt)
 
         Logger.debug(s"**** AssessmentCentreService - tryToFindEvaluationData - phase3 test schemes GREEN ONLY = $passedSchemes")
-        AssessmentPassmarkPreferencesAndScores(passmark, passedSchemes, scores)
+        AssessmentPassMarksSchemesAndScores(passmark, passedSchemes, scores)
       }
     }
   }
 
-  def evaluateAssessmentCandidate(assessmentPassMarksSchemesAndScores: AssessmentPassmarkPreferencesAndScores,
+  def evaluateAssessmentCandidate(assessmentPassMarksSchemesAndScores: AssessmentPassMarksSchemesAndScores,
     config: AssessmentEvaluationMinimumCompetencyLevel): Future[Unit] = {
 
     Logger.debug(s"**** evaluateAssessmentCandidate - RUNNING")

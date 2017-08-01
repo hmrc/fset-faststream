@@ -17,21 +17,21 @@
 package services.evaluation
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.AssessmentPassmarkPreferencesAndScores
+import model.AssessmentPassMarksSchemesAndScores
 import model.EvaluationResults._
 import model.persisted.SchemeEvaluationResult
 import play.api.Logger
 
 trait AssessmentCentreEvaluationEngine {
 
-  def evaluate(candidateScores: AssessmentPassmarkPreferencesAndScores,
+  def evaluate(candidateScores: AssessmentPassMarksSchemesAndScores,
     config: AssessmentEvaluationMinimumCompetencyLevel): AssessmentEvaluationResult
 }
 
 object AssessmentCentreEvaluationEngine extends AssessmentCentreEvaluationEngine with AssessmentScoreCalculator
   with AssessmentCentreAllSchemesEvaluator {
 
-  def evaluate(candidateScores: AssessmentPassmarkPreferencesAndScores,
+  def evaluate(candidateScores: AssessmentPassMarksSchemesAndScores,
     mclConfig: AssessmentEvaluationMinimumCompetencyLevel): AssessmentEvaluationResult = {
     val appId = candidateScores.scores.applicationId
     val competencyAverage = countAverage(candidateScores.scores)
