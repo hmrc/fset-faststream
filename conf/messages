@@ -268,6 +268,11 @@ dashboard.final.results.Edip=Congratulations, you''ve been succcessful for the E
 dashboard.final.results.Sdip=Congratulations, you''ve been succcessful for the Summer Diversity Internship Programme (SDIP).
 dashboard.final.results.SdipFaststream=Congratulations, you''ve been succcessful for the Summer Diversity Internship Programme (SDIP).
 
+assessmentCentre.analysisExercise.upload.error=There was a problem uploading your analysis exercise. You can try again or speak to an assessor.
+assessmentCentre.analysisExercise.upload.tooBig=Your analysis exercise must be less than 4MB
+assessmentCentre.analysisExercise.upload.wrongContentType=Your analysis exercise must be in the .doc or .docx format
+assessmentCentre.analysisExercise.upload.success=You''ve successfully submitted your analysis exercise.
+
 passportCountry.chooseOne=You must select a country from the list
 passportCountry.unsupported.value=You must select a valid country from the list
 secondPassportCountry.chooseOne=You must select a country from the list

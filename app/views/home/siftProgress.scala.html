@@ -1,5 +1,7 @@
+@import helper._
 @import models.ApplicationData.ApplicationStatus
 @import security.RoleUtils.isSiftEntered
+
 @(page: models.page.PostOnlineTestsPage)(implicit request: Request[_])
 
 @renderSchemeForm = {
@@ -47,12 +49,53 @@
 @renderAssessmentCentre = {
      <div class="inner-block-padr">
         <h2 class="heading-medium ">Attend an assessment centre</h2>
+
         <div id="assessmentBlurb">
+        @(page.assessmentCentreStarted, page.allocatedToAssessmentCentre, page.hasAnalysisExercise) match {
+            case (true, true, false) => {
+                <p>
+                    @page.assessmentCentreStartDateAndTime,
+                    <br />
+                    @page.assessmentCentreNameAndLocation
+                </p>
+                <section>
+                    <p>You need to upload your written analysis exercise.</p>
+                    <div id="attachWordDocument">
+                    @form(action = routes.HomeController.submitAnalysisExercise(), 'novalidate -> "novalidate", 'enctype -> "multipart/form-data") {
+                        @CSRF.formField
+                        <input type="file" class="input-file" id="analysisExerciseFile" name="analysisExerciseFile" accept=".doc, .docx">
+                        <label for="analysisExerciseFile" class="button">Upload document</label>
+                        <div id="fileSelected"></div>
+                            <button type="submit" name="analysisExerciseSubmit" class="button" id="analysisExerciseBtn"
+                        style="display: none">Submit analysis exercise</button>
+                    }
+                    </div>
+                </section>
+                <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
+                    Find out more about the assessment day</a>
+                </p>
+            }
+            case (false, true, false) => {
+                <p>Your assessment centre is booked</p>
+                <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
+                    Find out more about the assessment day</a>
+                </p>
+            }
+            case (true, true, true) => {
+                <p>Thanks for attending the assessment centre.</p>
+                <p>We'll contact you as soon as we've got your result. Keep an eye on your email inbox, including your junk mail.</p>
+            }
+            case _ => {
             <p>If you've successfully passed the previous stages, you'll be
                 invited to an assessment centre.</p>
-            <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the assessment day</a></p>
+            <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
+                Find out more about the assessment day</a>
+            </p>
+            }
+        }
         </div>
     </div>
+<br />
 }
 
  <section class="text">
