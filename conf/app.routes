@@ -29,6 +29,9 @@ PUT         /application/overrideSubmissionDeadline/:applicationId       control
 GET         /application/location/:location                              controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String)
 POST        /applications/allocated                                      controllers.ApplicationController.findAllocatedApplications()
 POST        /application/status                                          controllers.ApplicationController.updateStatus
+POST        /application/uploadAnalysisExercise                          controllers.ApplicationController.uploadAnalysisExercise(applicationId: String, contentType: String)
+GET         /application/downloadAnalysisExercise                        controllers.ApplicationController.downloadAnalysisExercise(applicationId: String)
+GET         /application/hasAnalysisExercise                             controllers.ApplicationController.hasAnalysisExercise(applicationId: String)
 
 GET         /application/:applicationId/phase3/results                   controllers.ApplicationController.getPhase3Results(applicationId: String)
 #GET         /application/:applicationId/sift/results                    controllers.ApplicationController.getSchemeResults(applicationId: String)
@@ -141,6 +144,7 @@ GET         /events/:venue/:eventType                                    control
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
 GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
 PUT         /events/:eventId/sessions/:sessionId/allocateCandidates      controllers.EventsController.allocateCandidates(eventId: String, sessionId: String)
+GET         /sessions/findByApplicationId                                controllers.EventsController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
 
 # Day aggregate events
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
