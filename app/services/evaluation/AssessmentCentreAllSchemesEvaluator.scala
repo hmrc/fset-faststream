@@ -17,7 +17,10 @@
 package services.evaluation
 
 import model.EvaluationResults._
-import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkScheme, AssessmentCentrePassMarkSettings, PassMarkSchemeThreshold }
+import model.exchange.passmarksettings.{ AssessmentCentrePassMark, AssessmentCentrePassMarkSettings, PassMarkThreshold}
+
+//import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkScheme, AssessmentCentrePassMarkSettings, PassMarkSchemeThreshold }
+//import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold }
 import model.SchemeId
 import model.persisted.SchemeEvaluationResult
 
@@ -29,26 +32,24 @@ trait AssessmentCentreAllSchemesEvaluator {
     schemes: List[SchemeId]): List[SchemeEvaluationResult] = {
     schemes.map { scheme =>
       // Get the pass marks for the scheme
-      val assessmentCentrePassMarkScheme = passmark.schemes.find { s => SchemeId(s.schemeName) == scheme }
+      val assessmentCentrePassMark = passmark.schemes.find { _.schemeId == scheme }
         .getOrElse(throw new IllegalStateException(s"Did not find assessment centre pass mark for scheme = $scheme, " +
           s"applicationId = $applicationId"))
       // Evaluate the scheme
-      val result = evaluateScore(assessmentCentrePassMarkScheme, passmark, overallScore)
+      val result = evaluateScore(assessmentCentrePassMark, passmark, overallScore)
       // Store the results
       SchemeEvaluationResult(scheme, result.toString)
     }
   }
 
-  private def evaluateScore(scheme: AssessmentCentrePassMarkScheme,
+  private def evaluateScore(scheme: AssessmentCentrePassMark,
     passmark: AssessmentCentrePassMarkSettings,
     overallScore: Double): Result = {
-    val passmarkSetting = scheme.overallPassMarks
-      .getOrElse(throw new IllegalStateException(s"Scheme threshold for ${scheme.schemeName} is not set in Passmark settings"))
-
+    val passmarkSetting = scheme.schemeThresholds.assessmentCentre
     determineSchemeResult(overallScore, passmarkSetting)
   }
 
-  private def determineSchemeResult(overallScore: Double, passmarkThreshold: PassMarkSchemeThreshold): Result = {
+  private def determineSchemeResult(overallScore: Double, passmarkThreshold: PassMarkThreshold): Result = {
     if (overallScore >= passmarkThreshold.passThreshold) {
       Green
     } else if (overallScore >= passmarkThreshold.failThreshold) {

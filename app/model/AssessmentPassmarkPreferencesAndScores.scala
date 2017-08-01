@@ -16,9 +16,10 @@
 
 package model
 
-import model.PassmarkPersistedObjects.AssessmentCentrePassMarkSettings
-import model.PassmarkPersistedObjects.Implicits._
+//import model.PassmarkPersistedObjects.AssessmentCentrePassMarkSettings
+//import model.PassmarkPersistedObjects.Implicits._
 import model.assessmentscores.AssessmentScoresAllExercises
+import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import play.api.libs.json.Json
 
 // TODO: rename to AssessmentPassMarksSchemesAndScores

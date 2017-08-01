@@ -18,7 +18,7 @@ package services.evaluation
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.EvaluationResults.{ Amber, CompetencyAverageResult, Green, Red }
-import model.PassmarkPersistedObjects._
+import model.exchange.passmarksettings._
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
 import model.persisted.SchemeEvaluationResult
 import model.{ AssessmentPassmarkPreferencesAndScores, SchemeId, UniqueIdentifier }
@@ -32,11 +32,11 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
   val diplomaticService = "DiplomaticService"
 
   // The pass marks which the evaluation engine uses to work out if each scheme has passed/failed
-  val passmarkSettings = AssessmentCentrePassMarkSettings(List(
-    AssessmentCentrePassMarkScheme(commercial, Some(PassMarkSchemeThreshold(10.0, 15.0))),
-    AssessmentCentrePassMarkScheme(digitalAndTechnology, Some(PassMarkSchemeThreshold(10.0, 16.0))),
-    AssessmentCentrePassMarkScheme(diplomaticService, Some(PassMarkSchemeThreshold(16.0, 20.0)))
-  ), AssessmentCentrePassMarkInfo("1", DateTime.now, "user"))
+  val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+    AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
+    AssessmentCentrePassMark(SchemeId(digitalAndTechnology), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 16.0))),
+    AssessmentCentrePassMark(SchemeId(diplomaticService), AssessmentCentrePassMarkThresholds(PassMarkThreshold(16.0, 20.0)))),
+    "1", DateTime.now(), "user")
 
   val applicationId = UniqueIdentifier.randomUniqueIdentifier
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
@@ -78,7 +78,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
   "Assessment Centre Passmark Rules engine evaluation" should {
     "evaluate to passedMinimumCompetencyLevel=false when minimum competency level is enabled and not met" in {
       val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = true, minimumCompetencyLevelScore = Some(3.1))
-      val candidateScore = AssessmentPassmarkPreferencesAndScores(passmarkSettings, candidateSchemes, candidateScores)
+      val candidateScore = AssessmentPassmarkPreferencesAndScores(passMarkSettings, candidateSchemes, candidateScores)
 
       val result = evaluationEngine.evaluate(candidateScore, config)
       result.passedMinimumCompetencyLevel mustBe Some(false)
@@ -100,7 +100,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
 
     "evaluate to passedMinimumCompetencyLevel is empty and evaluate the schemes when MCL is turned off" in {
       val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, minimumCompetencyLevelScore = Some(3.0))
-      val candidateScore = AssessmentPassmarkPreferencesAndScores(passmarkSettings, candidateSchemes, candidateScores)
+      val candidateScore = AssessmentPassmarkPreferencesAndScores(passMarkSettings, candidateSchemes, candidateScores)
 
       val result = evaluationEngine.evaluate(candidateScore, config)
       result.passedMinimumCompetencyLevel mustBe None
@@ -113,7 +113,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
 
     "evaluate to passedMinimumCompetencyLevel=true and evaluate the schemes" in {
       val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = true, Some(3.0))
-      val candidateScore = AssessmentPassmarkPreferencesAndScores(passmarkSettings, candidateSchemes, candidateScores)
+      val candidateScore = AssessmentPassmarkPreferencesAndScores(passMarkSettings, candidateSchemes, candidateScores)
 
       val result = evaluationEngine.evaluate(candidateScore, config)
       result.passedMinimumCompetencyLevel mustBe Some(true)
@@ -141,7 +141,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
           ))
       )
 
-      val candidateScore = AssessmentPassmarkPreferencesAndScores(passmarkSettings, candidateSchemes, candidateScores)
+      val candidateScore = AssessmentPassmarkPreferencesAndScores(passMarkSettings, candidateSchemes, candidateScores)
 
       val result = evaluationEngine.evaluate(candidateScore, config)
       result.passedMinimumCompetencyLevel mustBe Some(true)

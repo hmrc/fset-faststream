@@ -18,7 +18,9 @@ package services.assessmentcentre
 
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.PassmarkPersistedObjects.AssessmentCentrePassMarkSettings
+import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
+
+//import model.PassmarkPersistedObjects.AssessmentCentrePassMarkSettings
 import model.command.ApplicationForFsac
 import model.persisted.phase3tests.Phase3TestGroup
 import model.{ AssessmentPassmarkPreferencesAndScores, ProgressStatuses, SerialUpdateResult, UniqueIdentifier }
@@ -26,7 +28,7 @@ import play.api.Logger
 import repositories.AssessmentScoresRepository
 import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.AssessmentCentrePassMarkSettingsService
+import services.passmarksettings.{ PassMarkSettingsService, AssessmentCentrePassMarkSettingsService }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -43,7 +45,7 @@ object AssessmentCentreService extends AssessmentCentreService {
 trait AssessmentCentreService {
 
   def assessmentCentreRepo: AssessmentCentreRepository
-  def passmarkService: AssessmentCentrePassMarkSettingsService
+  def passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings]
   def assessmentScoresRepo: AssessmentScoresRepository
   def currentSchemeStatusRepo: CurrentSchemeStatusRepository
   def evaluationEngine: AssessmentCentreEvaluationEngine
@@ -64,10 +66,10 @@ trait AssessmentCentreService {
   }
 
   def nextAssessmentCandidateReadyForEvaluation: Future[Option[AssessmentPassmarkPreferencesAndScores]] = {
-    passmarkService.getLatestVersion.flatMap {
+    passmarkService.getLatestPassMarkSettings.flatMap {
       case Some(passmark) =>
         Logger.debug(s"2. Assessment evaluation found pass marks - $passmark")
-        assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.info.version).flatMap {
+        assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.version).flatMap {
           case Some(appId) =>
             Logger.debug(s"**** 2. Assessment evaluation found candidate to process - applicationId = $appId")
             tryToFindEvaluationData(appId, passmark)
@@ -121,7 +123,7 @@ trait AssessmentCentreService {
 
     Logger.debug(s"**** now writing to DB...")
     val evaluation = model.AssessmentPassMarkEvaluation(assessmentPassMarksSchemesAndScores.scores.applicationId,
-      assessmentPassMarksSchemesAndScores.passmark.info.version, evaluationResult)
+      assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
     assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation).map { _ =>
       Logger.debug(s"**** written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }

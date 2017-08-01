@@ -17,22 +17,23 @@
 package services.assessmentcentre
 
 import model.EvaluationResults.Green
-import model.PassmarkPersistedObjects._
+import model._
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.command.ApplicationForFsac
+import model.exchange.passmarksettings._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import model._
 import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
+import play.api.libs.json.Format
 import play.api.mvc.Results
 import repositories.AssessmentScoresRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.AssessmentCentrePassMarkSettingsService
+import services.passmarksettings.PassMarkSettingsService
 import testkit.{ ExtendedTimeout, FutureHelper }
 
 import scala.concurrent.Future
@@ -101,13 +102,16 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
       val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
 
       result must not be empty
-      result.get.passmark mustBe passmarkSettings
+      result.get.passmark mustBe passMarkSettings
       result.get.schemes mustBe List(SchemeId("Commercial"))
       result.get.scores.applicationId mustBe applicationId
     }
 
     "return none if there is no passmark settings set" in new ServiceFixture {
-      (mockAssessmentCentrePassMarkSettingsService.getLatestVersion _).expects().returning(Future.successful(None))
+      implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
+      (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
+        .returning(Future.successful(None))
+
 
       val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
       result mustBe empty
@@ -126,7 +130,7 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
   trait ServiceFixture {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
-    val mockAssessmentCentrePassMarkSettingsService = mock[AssessmentCentrePassMarkSettingsService]
+    val mockAssessmentCentrePassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
     val mockAssessmentScoresRepo = mock[AssessmentScoresRepository]
     val mockCurrentSchemeStatusRepo = mock[CurrentSchemeStatusRepository]
     val mockEvaluationEngine = mock[AssessmentCentreEvaluationEngine]
@@ -134,7 +138,7 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
     val service = new AssessmentCentreService {
       val applicationRepo: GeneralApplicationRepository = mockAppRepo
       val assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
-      val passmarkService: AssessmentCentrePassMarkSettingsService = mockAssessmentCentrePassMarkSettingsService
+      val passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings] = mockAssessmentCentrePassMarkSettingsService
       val assessmentScoresRepo: AssessmentScoresRepository = mockAssessmentScoresRepo
       val currentSchemeStatusRepo: CurrentSchemeStatusRepository = mockCurrentSchemeStatusRepo
       val evaluationEngine: AssessmentCentreEvaluationEngine = mockEvaluationEngine
@@ -144,14 +148,14 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
   }
 
   trait ReturnPassMarksFixture extends ServiceFixture {
-    val threshold = PassMarkSchemeThreshold(10.0, 20.0)
-    val passmarkSettings = AssessmentCentrePassMarkSettings(List(
-      AssessmentCentrePassMarkScheme("Commercial", Some(threshold)),
-      AssessmentCentrePassMarkScheme("DigitalAndTechnology", Some(threshold)),
-      AssessmentCentrePassMarkScheme("Finance", Some(threshold))
-    ), AssessmentCentrePassMarkInfo("1", DateTime.now, "user"))
+    val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+      AssessmentCentrePassMark(SchemeId("Commercial"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
+      AssessmentCentrePassMark(SchemeId("DigitalAndTechnology"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
+      AssessmentCentrePassMark(SchemeId("DiplomaticService"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0)))),
+      "1", DateTime.now(), "user")
 
-    (mockAssessmentCentrePassMarkSettingsService.getLatestVersion _).expects()
-      .returning(Future.successful(Some(passmarkSettings)))
+    implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
+    (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
+      .returning(Future.successful(Some(passMarkSettings)))
   }
 }

@@ -40,19 +40,19 @@ PUT         /adjustments/comment/:applicationId                          control
 GET         /adjustments/comment/:applicationId                          controllers.AdjustmentsManagementController.findAdjustmentsComment(applicationId: String)
 DELETE      /adjustments/comment/:applicationId                          controllers.AdjustmentsManagementController.removeAdjustmentsComment(applicationId: String)
 
+PUT         /questionnaire/:applicationId/:sectionKey                    controllers.QuestionnaireController.addSection(applicationId: String,sectionKey: String)
+
 PUT         /media/create                                                controllers.MediaController.addMedia()
 
-PUT         /phase1/pass-mark-settings/create                            controllers.Phase1PassMarkSettingsController.create
-GET         /phase1/pass-mark-settings/getLatestVersion                  controllers.Phase1PassMarkSettingsController.getLatestVersion
-PUT         /phase2/pass-mark-settings/create                            controllers.Phase2PassMarkSettingsController.create
-GET         /phase2/pass-mark-settings/getLatestVersion                  controllers.Phase2PassMarkSettingsController.getLatestVersion
-PUT         /phase3/pass-mark-settings/create                            controllers.Phase3PassMarkSettingsController.create
-GET         /phase3/pass-mark-settings/getLatestVersion                  controllers.Phase3PassMarkSettingsController.getLatestVersion
+PUT         /phase1/pass-mark-settings                                   controllers.Phase1PassMarkSettingsController.create
+GET         /phase1/pass-mark-settings                                   controllers.Phase1PassMarkSettingsController.getLatestVersion
+PUT         /phase2/pass-mark-settings                                   controllers.Phase2PassMarkSettingsController.create
+GET         /phase2/pass-mark-settings                                   controllers.Phase2PassMarkSettingsController.getLatestVersion
+PUT         /phase3/pass-mark-settings                                   controllers.Phase3PassMarkSettingsController.create
+GET         /phase3/pass-mark-settings                                   controllers.Phase3PassMarkSettingsController.getLatestVersion
 
-GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 PUT         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.create
-
-PUT         /questionnaire/:applicationId/:sectionKey                    controllers.QuestionnaireController.addSection(applicationId: String,sectionKey: String)
+GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 
 GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
 POST        /search/find-by-criteria                                     controllers.SearchForApplicantsController.findByCriteria
