@@ -35,17 +35,17 @@ object AssessmentCentreEvaluationEngine extends AssessmentCentreEvaluationEngine
     mclConfig: AssessmentEvaluationMinimumCompetencyLevel): AssessmentEvaluationResult = {
     val appId = candidateScores.scores.applicationId
     val competencyAverage = countAverage(candidateScores.scores)
-    Logger.debug(s"**** competencyAverage = $competencyAverage - applicationId = $appId")
+    Logger.debug(s"CompetencyAverage = $competencyAverage - applicationId = $appId")
     val passedMinimumCompetencyLevelCheckOpt = passMinimumCompetencyLevel(competencyAverage, mclConfig)
 
 
     passedMinimumCompetencyLevelCheckOpt match {
       case Some(false) =>
-        Logger.debug(s"**** Minimum competency level check failed - mcl = ${mclConfig.minimumCompetencyLevelScore}, applicationId = $appId")
+        Logger.debug(s"Minimum competency level check failed - mcl = ${mclConfig.minimumCompetencyLevelScore}, applicationId = $appId")
         val allSchemesRed = candidateScores.schemes.map(s => SchemeEvaluationResult(s, Red.toString))
         AssessmentEvaluationResult(passedMinimumCompetencyLevelCheckOpt, competencyAverage, allSchemesRed)
       case _ =>
-        Logger.debug(s"**** Minimum competency level check passed - mcl = $mclConfig, applicationId = $appId")
+        Logger.debug(s"Minimum competency level check passed - mcl = $mclConfig, applicationId = $appId")
 
         val evaluationResult = evaluateSchemes(appId.toString(), candidateScores.passmark,
           competencyAverage.overallScore, candidateScores.schemes)

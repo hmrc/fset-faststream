@@ -28,8 +28,7 @@ case class AssessmentScoresAllExercises(
                                             ) {
 
   def strategicApproachToObjectivesAvg: Double = {
-    val data = List(analysisExercise, leadershipExercise).flatMap(_.flatMap(_.strategicApproachToObjectivesAverage))
-    average(data, 2)
+    average(List(analysisExercise, leadershipExercise).flatMap(_.flatMap(_.strategicApproachToObjectivesAverage)), 2)
   }
 
   def buildingProductiveRelationshipsAvg: Double = {

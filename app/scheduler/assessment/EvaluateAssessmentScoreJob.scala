@@ -35,12 +35,10 @@ trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob[BasicJobConf
   val config = EvaluateAssessmentScoreJobConfig
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    //scalastyle:off
-    Logger.debug(s"**** START EvaluateAssessmentScoreJob - calling nextAssessmentCandidateReadyForEvaluation...")
+    Logger.debug(s"EvaluateAssessmentScoreJob starting")
     applicationAssessmentService.nextAssessmentCandidateReadyForEvaluation.flatMap { candidateResultsOpt =>
-      Logger.debug(s"**** EvaluateAssessmentScoreJob - candidateResultsOpt = $candidateResultsOpt")
       candidateResultsOpt.map { candidateResults =>
-        Logger.debug(s"**** EvaluateAssessmentScoreJob - YES FOUND DATA now calling applicationAssessmentService.evaluateAssessmentCandidate...")
+        Logger.debug(s"EvaluateAssessmentScoreJob found a candidate - now evaluating...")
         applicationAssessmentService.evaluateAssessmentCandidate(candidateResults, minimumCompetencyLevelConfig)
       }.getOrElse(Future.successful(()))
     }

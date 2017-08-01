@@ -22,7 +22,7 @@ import model.command.{ ApplicationForFsac, ApplicationForSift }
 import model.persisted.fsac.AssessmentCentreTests
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONDocument, BSONArray, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.competencyAverageResultHandler
 import repositories.{ CollectionNames, CommonBSONDocuments, CumulativeEvaluationHelper, RandomSelection, ReactiveRepositoryHelpers }

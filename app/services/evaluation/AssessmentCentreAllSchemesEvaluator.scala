@@ -17,11 +17,8 @@
 package services.evaluation
 
 import model.EvaluationResults._
-import model.exchange.passmarksettings.{ AssessmentCentrePassMark, AssessmentCentrePassMarkSettings, PassMarkThreshold}
-
-//import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkScheme, AssessmentCentrePassMarkSettings, PassMarkSchemeThreshold }
-//import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold }
 import model.SchemeId
+import model.exchange.passmarksettings.{ AssessmentCentrePassMark, AssessmentCentrePassMarkSettings, PassMarkThreshold }
 import model.persisted.SchemeEvaluationResult
 
 trait AssessmentCentreAllSchemesEvaluator {
@@ -31,13 +28,10 @@ trait AssessmentCentreAllSchemesEvaluator {
     overallScore: Double,
     schemes: List[SchemeId]): List[SchemeEvaluationResult] = {
     schemes.map { scheme =>
-      // Get the pass marks for the scheme
       val assessmentCentrePassMark = passmark.schemes.find { _.schemeId == scheme }
         .getOrElse(throw new IllegalStateException(s"Did not find assessment centre pass mark for scheme = $scheme, " +
           s"applicationId = $applicationId"))
-      // Evaluate the scheme
       val result = evaluateScore(assessmentCentrePassMark, passmark, overallScore)
-      // Store the results
       SchemeEvaluationResult(scheme, result.toString)
     }
   }

@@ -71,17 +71,17 @@ trait AssessmentCentreService {
   def nextAssessmentCandidateReadyForEvaluation: Future[Option[AssessmentPassMarksSchemesAndScores]] = {
     passmarkService.getLatestPassMarkSettings.flatMap {
       case Some(passmark) =>
-        Logger.debug(s"2. Assessment evaluation found pass marks - $passmark")
+        Logger.debug(s"Assessment evaluation found pass marks - $passmark")
         assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.version).flatMap {
           case Some(appId) =>
-            Logger.debug(s"**** 2. Assessment evaluation found candidate to process - applicationId = $appId")
+            Logger.debug(s"Assessment evaluation found candidate to process - applicationId = $appId")
             tryToFindEvaluationData(appId, passmark)
           case None =>
-            Logger.debug(s"**** 2. Assessment evaluation completed - no candidates found")
+            Logger.debug(s"Assessment evaluation completed - no candidates found")
             Future.successful(None)
         }
       case None =>
-        Logger.debug("**** 2. Assessment centre pass marks have not been set")
+        Logger.debug("Assessment centre pass marks have not been set")
         Future.successful(None)
     }
   }
@@ -95,7 +95,6 @@ trait AssessmentCentreService {
         testResults.evaluation.map(_.result)
       }.fold(throw new Exception(s"Error - no scheme evaluation results found when attempting evaluation for applicationId $appId")){s => s}
 
-      Logger.debug(s"**** tryToFindEvaluationData - phase3 test schemes ALL RESULTS = $schemes")
       schemes.filter( schemeEvaluationResult => schemeEvaluationResult.result == model.EvaluationResults.Green.toString)
         .map(_.schemeId)
     }
@@ -107,10 +106,10 @@ trait AssessmentCentreService {
       phase3TestResultsOpt <- currentSchemeStatusRepo.getTestGroup(appId)
     } yield {
       assessmentCentreScoresOpt.map { scores =>
-        Logger.debug(s"**** AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
+        Logger.debug(s"AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
         val passedSchemes = fetchSchemesToEvaluate(phase3TestResultsOpt)
 
-        Logger.debug(s"**** AssessmentCentreService - tryToFindEvaluationData - phase3 test schemes GREEN ONLY = $passedSchemes")
+        Logger.debug(s"AssessmentCentreService - tryToFindEvaluationData - phase3 test schemes GREEN ONLY = $passedSchemes")
         AssessmentPassMarksSchemesAndScores(passmark, passedSchemes, scores)
       }
     }
@@ -119,16 +118,16 @@ trait AssessmentCentreService {
   def evaluateAssessmentCandidate(assessmentPassMarksSchemesAndScores: AssessmentPassMarksSchemesAndScores,
     config: AssessmentEvaluationMinimumCompetencyLevel): Future[Unit] = {
 
-    Logger.debug(s"**** evaluateAssessmentCandidate - RUNNING")
+    Logger.debug(s"evaluateAssessmentCandidate - running")
 
     val evaluationResult = evaluationEngine.evaluate(assessmentPassMarksSchemesAndScores, config)
-    Logger.debug(s"**** evaluation result = $evaluationResult")
+    Logger.debug(s"evaluation result = $evaluationResult")
 
-    Logger.debug(s"**** now writing to DB...")
+    Logger.debug(s"now writing to DB...")
     val evaluation = model.AssessmentPassMarkEvaluation(assessmentPassMarksSchemesAndScores.scores.applicationId,
       assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
     assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation).map { _ =>
-      Logger.debug(s"**** written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+      Logger.debug(s"written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
   }
 
