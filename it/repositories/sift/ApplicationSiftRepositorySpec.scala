@@ -51,11 +51,17 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         List(SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString))).futureValue
 
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
-      appsForSift mustBe List(
+      appsForSift must contain(
         ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some(""))),
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")))
+      )
+
+      appsForSift must contain(
         ApplicationForSift("appId4", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some(""))))
+          List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some("")))
+      )
+
+      appsForSift.size mustBe 2
     }
 
     ("return no results when there are only phase 3 applications that aren't in Passed_Notified which apply for sift or don't have Green/Passed "

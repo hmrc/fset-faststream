@@ -147,9 +147,9 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
         appId,
         PersonalDetailsExamples.completed.firstName,
         PersonalDetailsExamples.completed.lastName,
-        EventExamples.e1WithSessions.venue.description,
+        EventExamples.e1WithSession.venue.description,
         today,
-        UniqueIdentifier(EventExamples.e1WithSessions.sessions.head.id)
+        UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
       )
       val expectedResult = AssessmentScoresFindResponse(expectedCandidate, None)
       result mustBe expectedResult
@@ -166,9 +166,9 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
         appId,
         PersonalDetailsExamples.completed.firstName,
         PersonalDetailsExamples.completed.lastName,
-        EventExamples.e1WithSessions.venue.description,
+        EventExamples.e1WithSession.venue.description,
         today,
-        UniqueIdentifier(EventExamples.e1WithSessions.sessions.head.id)
+        UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
       )
       val expectedResult = AssessmentScoresFindResponse(expectedCandidate, Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise))
       result mustBe expectedResult
@@ -197,9 +197,9 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
           appId,
           PersonalDetailsExamples.completed.firstName,
           PersonalDetailsExamples.completed.lastName,
-          EventExamples.e1WithSessions.venue.description,
+          EventExamples.e1WithSession.venue.description,
           today,
-          UniqueIdentifier(EventExamples.e1WithSessions.sessions.head.id)
+          UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
         )
         val expectedResult = List(AssessmentScoresFindResponse(expectedCandidate, None))
         result mustBe expectedResult
@@ -217,9 +217,9 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
           appId,
           PersonalDetailsExamples.completed.firstName,
           PersonalDetailsExamples.completed.lastName,
-          EventExamples.e1WithSessions.venue.description,
+          EventExamples.e1WithSession.venue.description,
           today,
-          UniqueIdentifier(EventExamples.e1WithSessions.sessions.head.id)
+          UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
         )
         val expectedResult = List(AssessmentScoresFindResponse(expectedCandidate,
           Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
@@ -261,12 +261,12 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
   }
 
   trait FindAssessmentScoresWithCandidateSummaryTestFixture extends BaseTestFixture {
-    val eventId = EventExamples.e1WithSessions.id
-    val candidateAllocations = List(CandidateAllocation(appId.toString(), eventId, EventExamples.e1WithSessions.sessions.head.id,
+    val eventId = EventExamples.e1WithSession.id
+    val candidateAllocations = List(CandidateAllocation(appId.toString(), eventId, EventExamples.e1WithSession.sessions.head.id,
       AllocationStatuses.CONFIRMED, "version1"))
-    when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSessions))
+    when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSession))
     when(candidateAllocationRepositoryMock.find(appId.toString())).thenReturn(Future.successful(candidateAllocations))
     when(personalDetailsRepositoryMock.find(appId.toString())).thenReturn(Future.successful(PersonalDetailsExamples.completed))
-    when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSessions))
+    when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSession))
   }
 }

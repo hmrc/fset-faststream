@@ -16,6 +16,7 @@
 
 package model.exchange
 
+import factories.UUIDFactory
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Location, Venue }
 import org.joda.time.{ LocalDate, LocalTime }
@@ -36,4 +37,21 @@ case class Event(eventType: EventType,
 
 object Event {
   implicit val format: OFormat[Event] = Json.format[Event]
+
+  def apply(persistedEvent: model.persisted.eventschedules.Event): Event = {
+    new Event(
+      eventType = persistedEvent.eventType,
+      description = persistedEvent.description,
+      location = persistedEvent.location,
+      venue = persistedEvent.venue,
+      date = persistedEvent.date,
+      capacity = persistedEvent.capacity,
+      minViableAttendees = persistedEvent.minViableAttendees,
+      attendeeSafetyMargin = persistedEvent.attendeeSafetyMargin,
+      startTime = persistedEvent.startTime,
+      endTime = persistedEvent.endTime,
+      skillRequirements = persistedEvent.skillRequirements,
+      sessions = persistedEvent.sessions.map(Session.apply)
+    )
+  }
 }

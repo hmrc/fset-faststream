@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package mocks
+package model.persisted.fileupload
 
-import repositories.FrameworkRepository
-import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
+import org.joda.time.DateTime
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.Macros
+import repositories.BSONDateTimeHandler
 
-import scala.concurrent.Future
-
-object FrameworkInMemoryRepository extends FrameworkRepository {
-  override def getFrameworksByRegion = Future.successful(List(
-    Region("Winter", List(
-      Location("Wonder", List(
-        Framework("Land", CandidateHighestQualification.GCSE)
-      )),
-      Location("Wonderful", List(
-        Framework("Land", CandidateHighestQualification.GCSE)
-      ))
-    ))
-  ))
-
-}
+case class FileUpload(
+  id: String,
+  contentType: String,
+  created: DateTime,
+  fileContents: Enumerator[Array[Byte]]
+)

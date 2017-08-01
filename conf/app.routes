@@ -29,6 +29,9 @@ PUT         /application/overrideSubmissionDeadline/:applicationId       control
 GET         /application/location/:location                              controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String)
 POST        /applications/allocated                                      controllers.ApplicationController.findAllocatedApplications()
 POST        /application/status                                          controllers.ApplicationController.updateStatus
+POST        /application/uploadAnalysisExercise                          controllers.ApplicationController.uploadAnalysisExercise(applicationId: String, contentType: String)
+GET         /application/downloadAnalysisExercise                        controllers.ApplicationController.downloadAnalysisExercise(applicationId: String)
+GET         /application/hasAnalysisExercise                             controllers.ApplicationController.hasAnalysisExercise(applicationId: String)
 
 GET         /application/:applicationId/phase3/results                   controllers.ApplicationController.getPhase3Results(applicationId: String)
 #GET         /application/:applicationId/sift/results                    controllers.ApplicationController.getSchemeResults(applicationId: String)
@@ -40,19 +43,19 @@ PUT         /adjustments/comment/:applicationId                          control
 GET         /adjustments/comment/:applicationId                          controllers.AdjustmentsManagementController.findAdjustmentsComment(applicationId: String)
 DELETE      /adjustments/comment/:applicationId                          controllers.AdjustmentsManagementController.removeAdjustmentsComment(applicationId: String)
 
+PUT         /questionnaire/:applicationId/:sectionKey                    controllers.QuestionnaireController.addSection(applicationId: String,sectionKey: String)
+
 PUT         /media/create                                                controllers.MediaController.addMedia()
 
-PUT         /phase1/pass-mark-settings/create                            controllers.Phase1PassMarkSettingsController.create
-GET         /phase1/pass-mark-settings/getLatestVersion                  controllers.Phase1PassMarkSettingsController.getLatestVersion
-PUT         /phase2/pass-mark-settings/create                            controllers.Phase2PassMarkSettingsController.create
-GET         /phase2/pass-mark-settings/getLatestVersion                  controllers.Phase2PassMarkSettingsController.getLatestVersion
-PUT         /phase3/pass-mark-settings/create                            controllers.Phase3PassMarkSettingsController.create
-GET         /phase3/pass-mark-settings/getLatestVersion                  controllers.Phase3PassMarkSettingsController.getLatestVersion
+PUT         /phase1/pass-mark-settings                                   controllers.Phase1PassMarkSettingsController.create
+GET         /phase1/pass-mark-settings                                   controllers.Phase1PassMarkSettingsController.getLatestVersion
+PUT         /phase2/pass-mark-settings                                   controllers.Phase2PassMarkSettingsController.create
+GET         /phase2/pass-mark-settings                                   controllers.Phase2PassMarkSettingsController.getLatestVersion
+PUT         /phase3/pass-mark-settings                                   controllers.Phase3PassMarkSettingsController.create
+GET         /phase3/pass-mark-settings                                   controllers.Phase3PassMarkSettingsController.getLatestVersion
 
-GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 PUT         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.create
-
-PUT         /questionnaire/:applicationId/:sectionKey                    controllers.QuestionnaireController.addSection(applicationId: String,sectionKey: String)
+GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 
 GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
 POST        /search/find-by-criteria                                     controllers.SearchForApplicantsController.findByCriteria
@@ -141,6 +144,7 @@ GET         /events/:venue/:eventType                                    control
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
 GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
 PUT         /events/:eventId/sessions/:sessionId/allocateCandidates      controllers.EventsController.allocateCandidates(eventId: String, sessionId: String)
+GET         /sessions/findByApplicationId                                controllers.EventsController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
 
 # Day aggregate events
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
