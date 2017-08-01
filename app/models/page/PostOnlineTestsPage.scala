@@ -34,7 +34,7 @@ case class CurrentSchemeStatus(
 case class PostOnlineTestsPage(
   userDataWithApp: CachedDataWithApp,
   schemes: Seq[CurrentSchemeStatus],
-  additionalQuestionsStatus: Option[SiftAnswersStatus]
+  additionalQuestionsStatus: Option[SiftAnswersStatus],
   assessmentCentreEvent: Option[Event],
   hasAnalysisExercise: Boolean
 ) {
@@ -54,7 +54,7 @@ case class PostOnlineTestsPage(
   val hasAssessmentCentreRequirement: Boolean = true
 
   val haveAdditionalQuestionsBeenSubmitted: Boolean = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
-  
+
   private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {
     val minutes = localTime.toString("mm")
     if (minutes == "00") {

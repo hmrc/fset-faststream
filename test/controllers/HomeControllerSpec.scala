@@ -529,7 +529,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(fileMock.length()).thenReturn(fileSize)
     }
 
-    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockCacheClient)
+    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
