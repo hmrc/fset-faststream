@@ -49,9 +49,10 @@ object CandidateAllocationService extends CandidateAllocationService {
   val eventService: StcEventService = StcEventService
 
   val authProviderClient = AuthProviderClient
-  val emailClient = CSREmailClient
+  def emailClient: EmailClient = CSREmailClient
 
   case class CouldNotFindCandidateWithApplication(appId: String) extends Exception(appId)
+
 }
 
 trait CandidateAllocationService extends EventSink {

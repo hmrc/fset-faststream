@@ -37,4 +37,6 @@ object EmailEvents {
   case class CandidateAllocationConfirmationRequest(to: String, name: String, eventDate: String, eventTime: String,
                                                     deadlineDate: String) extends EmailEvent
 
+  case class AssessorNewEventCreated(to: String, name: String, eventDate: String) extends EmailEvent
+
 }

@@ -69,5 +69,19 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
       result mustBe 2
     }
+
+
+    "find assessor without availability on day" in {
+      val availability = AssessorWithAvailabilities
+      repository.save(availability).futureValue
+
+      val a = availability.availability.head
+      val findNone = repository.findAssessorsNotAvailableOnDay(List(availability.skills.head), a.date, a.location).futureValue
+      findNone mustBe Seq.empty[Assessor]
+
+      val findOne = repository.findAssessorsNotAvailableOnDay(
+        List(availability.skills.head), a.date, Location("Not exists")).futureValue
+      findOne mustBe Seq(availability)
+    }
   }
 }

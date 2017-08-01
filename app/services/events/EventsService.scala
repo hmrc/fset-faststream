@@ -16,30 +16,47 @@
 
 package services.events
 
+import connectors.AuthProviderClient
 import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
-import model.{ AllocationStatuses, FsbType, TelephoneInterviewType, UniqueIdentifier }
-import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.{ Event, Venue }
+import model.stc.EmailEvents.AssessorNewEventCreated
+import model.{ AllocationStatuses, FsbType, TelephoneInterviewType, UniqueIdentifier }
+import org.joda.time.LocalDate
 import play.api.Logger
+import play.api.mvc.RequestHeader
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
 import repositories.eventsRepository
 import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
+import services.assessoravailability.AssessorService
+import services.stc.{ EventSink, StcEventService }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object EventsService extends EventsService {
   val eventsRepo: EventsMongoRepository = eventsRepository
   val eventsConfigRepo = EventsConfigRepository
+  val assessorService = AssessorService
+  val authProviderClient = AuthProviderClient
   val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
   val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
+  val eventService: StcEventService = StcEventService
 }
 
-trait EventsService {
+trait EventsService extends EventSink {
 
   def eventsRepo: EventsRepository
+
+  def assessorService: AssessorService
+
+  def authProviderClient: AuthProviderClient
+
   def assessorAllocationService: AssessorAllocationService
+
   def candidateAllocationService: CandidateAllocationService
+
   def eventsConfigRepo: EventsConfigRepository
 
   def saveAssessmentEvents(): Future[Unit] = {
@@ -49,8 +66,21 @@ trait EventsService {
     }
   }
 
-  def save(event: Event): Future[Unit] = {
-    eventsRepo.save(event :: Nil)
+  protected[events] def renderLongDate(date: LocalDate): String = date.toString("EEEE, d MMMM yyyy")
+  private def sendNewEventEmailToAssessors(event: Event)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    val date = renderLongDate(event.date)
+    val requiredSkills = event.skillRequirements.keySet
+    assessorService.findAssessorsNotAvailableOnDay(requiredSkills.toList, event.date, event.location).flatMap { assessors =>
+      eventSink {
+        authProviderClient.findByUserIds(assessors.map(_.userId)).map { candidates =>
+          candidates.toList.map(c => AssessorNewEventCreated(c.email, c.name, date))
+        }
+      }
+    }
+  }
+
+  def save(event: Event)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    eventsRepo.save(List(event)).flatMap(_ => sendNewEventEmailToAssessors(event))
   }
 
   def getEvent(id: String): Future[Event] = {

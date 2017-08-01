@@ -21,7 +21,8 @@ import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
 import model.command.AllocationWithEvent
 import model.exchange.{ AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest }
-import model.persisted.assessor.AssessorStatus
+import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
 import org.joda.time.LocalDate
@@ -39,6 +40,7 @@ object AssessorService extends AssessorService {
 }
 
 trait AssessorService {
+
   val assessorRepository: AssessorRepository
   val allocationRepo: AssessorAllocationRepository
   val eventsRepo: EventsRepository
@@ -113,6 +115,14 @@ trait AssessorService {
       case Some(a) => AssessorAvailabilities(a)
     }
   }
+
+  def findAssessorsNotAvailableOnDay(
+    skills: List[String],
+    availabilityDate: LocalDate,
+    availabilityLocation: Location): Future[Seq[Assessor]] = {
+    assessorRepository.findAssessorsNotAvailableOnDay(skills, availabilityDate, availabilityLocation)
+  }
+
 
   def findAvailabilitiesForLocationAndDate(
     locationName: String, date: LocalDate, skills: Seq[SkillType]
