@@ -16,7 +16,7 @@
 
 package services.assessmentcentre
 
-import model.{ EvaluationResults, ProgressStatuses, SchemeId, SerialUpdateResult }
+import model._
 import model.command.ApplicationForFsac
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.scalamock.scalatest.MockFactory
@@ -33,12 +33,13 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
   with ExtendedTimeout {
   "An AssessmentCentreService" should {
     val applicationsToProgressToSift = List(
-      ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
-      ApplicationForFsac("appId2", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
-      ApplicationForFsac("appId3", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil))
+      ApplicationForFsac("appId1", ApplicationStatus.SIFT,
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
+      ApplicationForFsac("appId2", ApplicationStatus.SIFT,
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
+      ApplicationForFsac("appId3", ApplicationStatus.SIFT,
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
+    )
 
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]

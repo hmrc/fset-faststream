@@ -63,12 +63,11 @@ class AssessmentCentreMongoRepository (
           "schemeId" -> BSONDocument("$nin" -> siftableSchemeIds),
           "result" -> EvaluationResults.Green.toString
         ))),
-      BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
-        BSONDocument(s"progress-status.${ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED}" -> true),
-        BSONDocument("currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument(
-          "result" -> EvaluationResults.Green.toString)))
-      ))
+      BSONDocument(
+        "applicationStatus" -> ApplicationStatus.SIFT,
+        s"progress-status.${ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED}" -> true,
+        "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument( "result" -> EvaluationResults.Green.toString))
+      )
     ))
 
     val unfiltered = selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForFsac))

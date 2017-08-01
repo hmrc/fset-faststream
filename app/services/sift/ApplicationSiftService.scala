@@ -60,8 +60,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
 
-    def maybeSetProgressStatus(siftedSchemes: Seq[SchemeId], siftableSchemes: Seq[SchemeId]) =
-      if (siftedSchemes.distinct == siftableSchemes) {
+    def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], siftableSchemes: Set[SchemeId]) =
+      if (siftedSchemes equals  siftableSchemes) {
         BSONDocument("$set" -> progressStatusOnlyBSON(ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED))
       } else {
         BSONDocument.empty
@@ -76,14 +76,12 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       val action = s"Sifting application for ${result.schemeId.value}"
       val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => currentSchemeStatus.map(_.schemeId).contains(s))
 
-      val siftedSchemes = currentSiftEvaluation.map(_.schemeId) :+ result.schemeId
+      val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
       val mergedUpdate = Seq(
         BSONDocument("$set" -> currentSchemeStatusBSON(newSchemeStatus)),
-        maybeSetProgressStatus(siftedSchemes, candidatesSiftableSchemes)
+        maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
       ).foldLeft(siftBson) { (acc, doc) => acc ++ doc }
-
-      play.api.Logger.error(s"\n\nMERGED UPDATE ${BSONDocument.pretty(mergedUpdate)}")
 
       applicationSiftRepo.update(applicationId, predicate, mergedUpdate, action)
     }) flatMap identity
