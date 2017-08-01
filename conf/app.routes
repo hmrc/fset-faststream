@@ -31,6 +31,7 @@ POST        /applications/allocated                                      control
 POST        /application/status                                          controllers.ApplicationController.updateStatus
 
 GET         /application/:applicationId/phase3/results                   controllers.ApplicationController.getPhase3Results(applicationId: String)
+GET         /application/:applicationId/currentSchemeStatus              controllers.ApplicationController.getCurrentSchemeStatus(applicationId: String)
 #GET         /application/:applicationId/sift/results                    controllers.ApplicationController.getSchemeResults(applicationId: String)
 #GET         /application/:applicationId/assessmentcentre/results        controllers.ApplicationController.getSchemeResults(applicationId: String)
 

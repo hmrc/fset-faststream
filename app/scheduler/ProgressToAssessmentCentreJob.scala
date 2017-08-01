@@ -46,6 +46,6 @@ trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobC
 }
 
 object ProgressToAssessmentCentreJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
-  configPrefix = "scheduling.progress-to-sift-job",
-  name = "ProgressToSiftJob"
+  configPrefix = "scheduling.progress-to-assessment-centre-job",
+  name = "ProgressToAssessmentCentreJob"
 )

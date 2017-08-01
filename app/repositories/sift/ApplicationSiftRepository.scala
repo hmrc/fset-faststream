@@ -132,10 +132,9 @@ class ApplicationSiftMongoRepository(
 
     collection.find(predicate, projection).one[BSONDocument].map(_.flatMap { doc =>
       doc.getAs[BSONDocument]("testGroups")
-        .flatMap(_.getAs[BSONDocument](phaseName))
-        .flatMap(_.getAs[BSONDocument]("evaluation"))
-        .flatMap(_.getAs[BSONDocument]("result"))
-        .flatMap(_.getAs[Seq[SchemeEvaluationResult]]("result"))
+        .flatMap { _.getAs[BSONDocument](phaseName) }
+        .flatMap { _.getAs[BSONDocument]("evaluation") }
+        .flatMap { _.getAs[Seq[SchemeEvaluationResult]]("result") }
     }.getOrElse(Nil))
   }
 

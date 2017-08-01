@@ -64,19 +64,28 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId)
       (predicate, siftBson) = applicationSiftRepo.siftApplicationForSchemeBSON(applicationId, result)
     } yield {
+      play.api.Logger.error(s"\n\nCURRENT SCHEME STATUS $currentSchemeStatus")
+      play.api.Logger.error(s"\n\nCURRENT EVALUATION $currentSiftEvaluation")
+
       val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
+      play.api.Logger.error(s"\n\nNEW SCHEME STATUS $newSchemeStatus")
       val action = s"Sifting application for ${result.schemeId.value}"
       val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => currentSchemeStatus.map(_.schemeId).contains(s))
+      play.api.Logger.error(s"\n\nCANDIDATES SIFTABLE SCHEMES $candidatesSiftableSchemes")
+
       val siftedSchemes = currentSiftEvaluation.map(_.schemeId) :+ result.schemeId
+      play.api.Logger.error(s"\n\nSIFTED SCHEMES $siftedSchemes")
       val schemeUpdateBson = BSONDocument("$set" -> currentSchemeStatusBSON(newSchemeStatus))
 
       val progressUpdate = if (siftedSchemes.distinct == candidatesSiftableSchemes) {
-        progressStatusOnlyBSON(ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED)
+        BSONDocument("$set" -> progressStatusOnlyBSON(ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED))
       } else {
         BSONDocument.empty
       }
+      play.api.Logger.error(s"\n\nPROGRESS UPDATE  ${reactivemongo.bson.BSONDocument.pretty(progressUpdate)}")
 
       val mergedUpdate = Seq(schemeUpdateBson, progressUpdate).foldLeft(siftBson) { (acc, doc) => acc ++ doc }
+      play.api.Logger.error(s"\n\nMERGED UPDATE ${BSONDocument.pretty(mergedUpdate)}")
 
       applicationSiftRepo.update(applicationId, predicate, mergedUpdate, action).map(_ => ())
     }

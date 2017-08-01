@@ -153,6 +153,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
           ),
           siftProgressResponse = SiftProgressResponse(
             siftEntered = getProgress(ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED.key),
+            allFormsSubmitted = getProgress(ProgressStatuses.ALL_SCHEMES_SIFT_FORMS_SUBMITTED),
             allSchemesSiftCompleted = getProgress(ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED.key)
           ),
           assessmentCentre = AssessmentCentre(

@@ -41,7 +41,9 @@ trait CurrentSchemeStatusHelper {
   }
 
   def currentSchemeStatusBSON(latestResults: Seq[SchemeEvaluationResult]): BSONDocument = {
-    BSONDocument(latestResults.map(ser => s"currentSchemeStatus.${ser.schemeId.value}" -> BSONString(ser.result)))
+    BSONDocument("currentSchemeStatus" -> latestResults.map { r =>
+      SchemeEvaluationResult.schemeEvaluationResultHandler.write(r)
+    })
   }
 
   def currentSchemeStatusGreen(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Green, schemeIds:_*)
@@ -52,8 +54,9 @@ trait CurrentSchemeStatusHelper {
 
   def currentSchemeStatusWithdrawn(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Withdrawn, schemeIds:_*)
 
-  private def currentSchemeStatus(status: Result, schemeIds: SchemeId*): BSONDocument =
+  private def currentSchemeStatus(status: Result, schemeIds: SchemeId*): BSONDocument = {
     schemeIds.foldLeft(BSONDocument.empty) { case (doc, id) =>
-      doc ++ BSONDocument(s"currentSchemeStatus.$id" -> status.toString)
+      doc ++ BSONDocument(s"currentSchemeStatus" -> BSONDocument("$exists" -> SchemeEvaluationResult(id, status.toString)))
+    }
   }
 }

@@ -16,14 +16,14 @@
 
 package model.command
 
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.ApplicationStatus.ApplicationStatus
+import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.BSONDocument
 
 case class ApplicationForFsac(
-                               applicationId: String,
-                               phase3Evaluation: PassmarkEvaluation,
-                               siftEvaluationResult: List[SchemeEvaluationResult]
+  applicationId: String,
+  applicationStatus: ApplicationStatus,
+  currentSchemeStatus: Seq[SchemeEvaluationResult]
 )
 
 object ApplicationForFsac {

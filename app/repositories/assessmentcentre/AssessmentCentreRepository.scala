@@ -17,6 +17,7 @@
 package repositories.assessmentcentre
 
 import factories.DateTimeFactory
+import model.ApplicationStatus.ApplicationStatus
 import model._
 import model.command.{ ApplicationForFsac, ApplicationForSift }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
@@ -50,48 +51,42 @@ class AssessmentCentreMongoRepository (
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
     implicit def applicationForFsacBsonReads(document: BSONDocument): ApplicationForFsac = {
       val applicationId = document.getAs[String]("applicationId").get
-      val testGroupsRoot = document.getAs[BSONDocument]("testGroups").get
-      val phase3Evaluation = testGroupsRoot.getAs[BSONDocument]("PHASE3").flatMap(_.getAs[PassmarkEvaluation]("evaluation")).get
-      val siftEvaluation = testGroupsRoot.getAs[BSONDocument]("SIFT_PHASE").flatMap(_.getAs[BSONDocument]("evaluation")
-        .flatMap(_.getAs[List[SchemeEvaluationResult]]("result"))).getOrElse(Nil)
-      ApplicationForFsac(applicationId, phase3Evaluation, siftEvaluation)
+      val appStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+      val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+      ApplicationForFsac(applicationId, appStatus, currentSchemeStatus)
     }
 
     val query = BSONDocument("$or" -> BSONArray(
       BSONDocument(
         "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-        "testGroups.PHASE3.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
+        "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument(
           "schemeId" -> BSONDocument("$nin" -> siftableSchemeIds),
           "result" -> EvaluationResults.Green.toString
         ))),
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
         BSONDocument(s"progress-status.${ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED}" -> true),
-        BSONDocument("testGroups.SIFT_PHASE.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument(
+        BSONDocument("currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument(
           "result" -> EvaluationResults.Green.toString)))
       ))
     ))
 
     val unfiltered = selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForFsac))
     unfiltered.map(_.filter { app =>
-      app.siftEvaluationResult match {
-        case Nil => app.phase3Evaluation.result.filter(_.result == EvaluationResults.Green.toString)
-          .forall(s => !siftableSchemeIds.contains(s.schemeId))
-        case _ => true
+      app.applicationStatus match {
+        case ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED => app.currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString)
+            .forall(s => !siftableSchemeIds.contains(s.schemeId))
+        case ApplicationStatus.SIFT => app.currentSchemeStatus.exists(_.result == EvaluationResults.Green.toString)
       }
     })
   }
 
   def progressToAssessmentCentre(application: ApplicationForFsac, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
-    val validator = singleUpdateValidator(application.applicationId, actionDesc = "updating progress and app status")
+    val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to assessment centre")
 
     collection.update(query, BSONDocument("$set" ->
       applicationStatusBSON(progressStatus)
-        .add(currentSchemeStatusBSON(application.siftEvaluationResult match {
-          case Nil => application.phase3Evaluation.result
-          case _ => application.siftEvaluationResult
-        })))
-    ) map validator
+    )) map validator
   }
 }
