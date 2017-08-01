@@ -33,7 +33,7 @@ object AssessmentCentreService extends AssessmentCentreService {
   val assessmentCentreRepo = repositories.assessmentCentreRepository
 
   case class CandidateAlreadyHasAnAnalysisExerciseException(message: String) extends Exception(message)
-  case class CandidateAlreadyHasNoAnalysisExerciseException(message: String) extends Exception(message)
+  case class CandidateHasNoAnalysisExerciseException(message: String) extends Exception(message)
 }
 
 trait AssessmentCentreService {

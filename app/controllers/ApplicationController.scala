@@ -33,7 +33,7 @@ import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
 import services.application.ApplicationService
 import services.assessmentcentre.AssessmentCentreService
-import services.assessmentcentre.AssessmentCentreService.{ CandidateAlreadyHasAnAnalysisExerciseException, CandidateAlreadyHasNoAnalysisExerciseException }
+import services.assessmentcentre.AssessmentCentreService.{ CandidateAlreadyHasAnAnalysisExerciseException, CandidateHasNoAnalysisExerciseException }
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -181,7 +181,7 @@ trait ApplicationController extends BaseController {
     implicit request =>
       for {
         assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
-        analysis = assessmentCentreTests.analysisExercise.getOrElse(throw CandidateAlreadyHasNoAnalysisExerciseException(applicationId))
+        analysis = assessmentCentreTests.analysisExercise.getOrElse(throw CandidateHasNoAnalysisExerciseException(applicationId))
         file <- uploadRepository.retrieve(analysis.fileId)
       } yield {
         val source = Source.fromPublisher(Streams.enumeratorToPublisher(file.fileContents))
