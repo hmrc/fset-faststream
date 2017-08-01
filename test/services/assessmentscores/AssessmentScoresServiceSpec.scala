@@ -189,7 +189,7 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
     "return List Assessment Scores find response with empty assessment scores if there is not any" in
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
         when(assessmentScoresRepositoryMock.find(appId)).thenReturn(Future.successful(None))
-        when(candidateAllocationRepositoryMock.allocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
+        when(candidateAllocationRepositoryMock.activeAllocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
 
         val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
 
@@ -209,7 +209,7 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
         when(assessmentScoresRepositoryMock.find(appId)).thenReturn(
           Future.successful(Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
-        when(candidateAllocationRepositoryMock.allocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
+        when(candidateAllocationRepositoryMock.activeAllocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
 
         val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
 

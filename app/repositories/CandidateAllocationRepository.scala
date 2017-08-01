@@ -33,9 +33,11 @@ import scala.concurrent.Future
 trait CandidateAllocationRepository {
   def save(allocations: Seq[CandidateAllocation]): Future[Unit]
 
-  def findNoShowCandidates(applications: Seq[String]): Future[Seq[CandidateAllocation]]
+  def findNoShowAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]]
 
-  def allocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]
+  def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]]
+
+  def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]
 
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit]
 
@@ -74,16 +76,22 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       .cursor[CandidateAllocation]().collect[Seq]()
   }
 
-  def findNoShowCandidates(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
+  def findNoShowAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
     collection.find(BSONDocument(
-        "id" -> BSONDocument("$in" -> applications),
-        "status" -> AllocationStatuses.REMOVED,
-        "removeReason" -> CandidateRemoveReason.NoShow
-      ), projection)
+      "id" -> BSONDocument("$in" -> applications),
+      "status" -> AllocationStatuses.REMOVED,
+      "removeReason" -> CandidateRemoveReason.NoShow
+    ), projection)
       .cursor[CandidateAllocation]().collect[Seq]()
   }
 
-  def allocationsForEvent(eventId: String): Future[Seq[CandidateAllocation]] = {
+  def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
+    collection.find(BSONDocument("id" -> BSONDocument("$in" -> applications)), projection)
+      .cursor[CandidateAllocation]().collect[Seq]()
+  }
+
+
+  def activeAllocationsForEvent(eventId: String): Future[Seq[CandidateAllocation]] = {
     collection.find(BSONDocument(
       "eventId" -> eventId,
       "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
@@ -91,7 +99,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       .cursor[CandidateAllocation]().collect[Seq]()
   }
 
-  def allocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]] = {
+  def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]] = {
     collection.find(BSONDocument(
       "eventId" -> eventId,
       "sessionId" -> sessionId,
@@ -151,7 +159,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     val validator = multipleRemoveValidator(allocations.size, "Deleting allocations")
 
     val remove = collection.remove(query)
-    if (!ignoreMissed){
+    if (!ignoreMissed) {
       remove.map(validator)
     } else {
       remove.map(_ => ())

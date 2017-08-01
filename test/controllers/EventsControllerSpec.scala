@@ -99,43 +99,9 @@ class EventsControllerSpec extends UnitWithAppSpec {
   }
 
 
-  "Find candidates eligible for event allocation" must {
-
-    "handle no candidates" in new TestFixture {
-      when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String]))
-        .thenReturnAsync(CandidatesEligibleForEventResponse(List.empty, 0))
-
-      val result = controller.findCandidatesEligibleForEventAllocation("London")(
-        findCandidatesEligibleForEventAllocationRequest("london")).run
-      val jsonResponse = contentAsJson(result)
-
-      (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List.empty
-      (jsonResponse \ "totalCandidates").as[Int] mustBe 0
-
-      status(result) mustBe OK
-    }
-
-    "handle candidates" in new TestFixture {
-      val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
-        needsAdjustment = true, dateReady = DateTime.now())
-      when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String]))
-        .thenReturnAsync(CandidatesEligibleForEventResponse(List(candidate), 1))
-
-      val result = controller.findCandidatesEligibleForEventAllocation("London")(
-        findCandidatesEligibleForEventAllocationRequest("london")).run
-      val jsonResponse = contentAsJson(result)
-
-      (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List(candidate)
-      (jsonResponse \ "totalCandidates").as[Int] mustBe 1
-
-      status(result) mustBe OK
-    }
-  }
-
   trait TestFixture extends TestFixtureBase {
     val mockEventsService = mock[EventsService]
     val mockAssessorAllocationService = mock[AssessorAllocationService]
-    val mockCandidateAllocationService = mock[CandidateAllocationService]
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val MockVenue = Venue("London FSAC", "Bush House")
@@ -150,15 +116,9 @@ class EventsControllerSpec extends UnitWithAppSpec {
     val controller = new EventsController {
       val eventsService = mockEventsService
       val assessorAllocationService = mockAssessorAllocationService
-      val candidateAllocationService: CandidateAllocationService = mockCandidateAllocationService
       val locationsAndVenuesRepository: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
       val applicationRepository = mockAppRepo
     }
-  }
-
-  def findCandidatesEligibleForEventAllocationRequest(location: String) = {
-    FakeRequest(Helpers.GET, controllers.routes.EventsController.findCandidatesEligibleForEventAllocation(location).url,
-      FakeHeaders(), "").withHeaders("Content-Type" -> "application/json")
   }
 
 }

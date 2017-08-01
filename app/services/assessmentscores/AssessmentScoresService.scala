@@ -125,7 +125,7 @@ trait AssessmentScoresService {
   : Future[List[AssessmentScoresFindResponse]] = {
     (for {
       event <- eventsRepository.getEvent(eventId.toString())
-      candidateAllocations <- candidateAllocationRepository.allocationsForEvent(eventId.toString())
+      candidateAllocations <- candidateAllocationRepository.activeAllocationsForEvent(eventId.toString())
     } yield {
       candidateAllocations.foldLeft(Future.successful[List[AssessmentScoresFindResponse]](Nil)) {
         (listFuture, candidateAllocation) => listFuture.flatMap { list => {

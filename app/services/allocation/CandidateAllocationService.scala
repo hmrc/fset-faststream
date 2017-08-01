@@ -23,6 +23,8 @@ import model.command.CandidateAllocation
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
 import model._
+import model.exchange.CandidatesEligibleForEventResponse
+import model.exchange.candidateevents.{ CandidateAllocationSummary, CandidateRemoveReason }
 import model.persisted.{ ContactDetails, PersonalDetails }
 import model.persisted.eventschedules.Event
 import play.api.mvc.RequestHeader
@@ -71,7 +73,7 @@ trait CandidateAllocationService extends EventSink {
 
 
   def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
-    candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
+    candidateAllocationRepo.activeAllocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
   def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation])
@@ -117,7 +119,7 @@ trait CandidateAllocationService extends EventSink {
 
   def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String) = {
     applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation)).flatMap { resp =>
-      candidateAllocationRepo.findNoShowCandidates(resp.candidates.map(_.applicationId)).map { noShowCandidates =>
+      candidateAllocationRepo.findNoShowAllocations(resp.candidates.map(_.applicationId)).map { noShowCandidates =>
         val noShowCandidatesIds = noShowCandidates.map(_.id)
         val c = resp.copy(candidates = resp.candidates.filter(c => !noShowCandidatesIds.contains(c.applicationId)))
         c
@@ -125,7 +127,27 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
-  def findAllocatedApplications(appIds: List[String]) = applicationRepo.findAllocatedApplications(appIds)
+  def findAllocatedApplications(appIds: List[String]): Future[CandidatesEligibleForEventResponse] = {
+    applicationRepo.findAllocatedApplications(appIds)
+  }
+
+
+  def getCandidateAllocationsSummary(appIds: Seq[String]): Future[Seq[CandidateAllocationSummary]] = {
+    candidateAllocationRepo.findAllAllocations(appIds).flatMap { allocs =>
+      Future.sequence(allocs.map { ca =>
+        eventsService.getEvent(ca.eventId).map { event =>
+          CandidateAllocationSummary(
+            event.eventType,
+            event.date,
+            event.sessions.find(_.id == ca.sessionId).map(_.description).getOrElse(""),
+            ca.status,
+            CandidateRemoveReason.find(ca.removeReason.getOrElse(""))
+          )
+        }
+      })
+    }
+  }
+
 
   private def updateExistingAllocations(existingAllocations: exchange.CandidateAllocations,
                                         newAllocations: command.CandidateAllocations): Future[Unit] = {

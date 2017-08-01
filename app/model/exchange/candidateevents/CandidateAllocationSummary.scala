@@ -16,23 +16,20 @@
 
 package model.exchange.candidateevents
 
-import play.api.libs.json.{ Format, Json }
 
-case class CandidateRemoveReason(key: String, description: String)
+import model.AllocationStatuses
+import model.persisted.eventschedules.EventType.EventType
+import org.joda.time.LocalDate
+import play.api.libs.json.Json
 
-object CandidateRemoveReason {
+case class CandidateAllocationSummary(
+  eventType: EventType,
+  eventDate: LocalDate,
+  sessionDescription: String,
+  allocationStatus: AllocationStatuses.AllocationStatus,
+  removeReason: Option[CandidateRemoveReason])
 
-  implicit val candidateRemoveReason: Format[CandidateRemoveReason] = Json.format[CandidateRemoveReason]
 
-  val NoShow = "No-show"
-
-  val Values = List(
-    CandidateRemoveReason(NoShow, NoShow),
-    CandidateRemoveReason("Candidate_contacted", "Candidate contacted"),
-    CandidateRemoveReason("Expired", "Expired"),
-    CandidateRemoveReason("Other", "Other")
-  )
-
-  def find(key: String): Option[CandidateRemoveReason] = Values.find(_.key == key)
-
+object CandidateAllocationSummary {
+  implicit val allocationEventSummaryFormat = Json.format[CandidateAllocationSummary]
 }

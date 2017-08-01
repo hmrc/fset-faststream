@@ -27,14 +27,14 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
     "correctly find allocations by session" in {
       storeAllocations
-      val result = repository.allocationsForSession("eventId1", "sessionId1").futureValue
+      val result = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
       result.size mustBe 2
       val expectedAllocations = allocations.filter(_.sessionId == "sessionId1")
       result mustBe expectedAllocations
     }
 
     "return an empty list for sessions that don`t exist" in {
-      val result = repository.allocationsForSession("eventId1", "invalid_session_id").futureValue
+      val result = repository.activeAllocationsForSession("eventId1", "invalid_session_id").futureValue
       result.isEmpty mustBe true
     }
 
@@ -44,7 +44,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       val result = repository.removeCandidateAllocation(app).futureValue
       result mustBe unit
 
-      val docs2 = repository.allocationsForSession("eventId1", "sessionId1").futureValue
+      val docs2 = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
       docs2.size mustBe 1
     }
 
@@ -57,10 +57,10 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       val markedAsRemoved = repository.findCandidateRemovals(Seq(app.id)).futureValue
       markedAsRemoved mustBe Seq(app.copy(status = AllocationStatuses.REMOVED))
 
-      val docs1 = repository.allocationsForEvent("eventId1").futureValue
+      val docs1 = repository.activeAllocationsForEvent("eventId1").futureValue
       docs1.size mustBe 1
 
-      val docs2 = repository.allocationsForSession("eventId1", "sessionId1").futureValue
+      val docs2 = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
       docs2.size mustBe 1
     }
 
@@ -73,7 +73,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       storeAllocations
       val result = repository.delete(allocations.head :: Nil).futureValue
       result mustBe unit
-      val docs = repository.allocationsForSession("eventId1", "sessionId1").futureValue
+      val docs = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
       docs.size mustBe 1
       docs.head mustBe allocations.tail.head
     }
