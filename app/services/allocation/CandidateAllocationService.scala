@@ -81,12 +81,8 @@ trait CandidateAllocationService extends EventSink {
       allocations <- candidateAllocationRepo.allocationsForApplication(applicationId)
       events <- eventsService.getEvents(allocations.map(_.eventId).toList, sessionEventType)
     } yield {
-      Logger.warn("ALL = " + allocations)
-      Logger.warn("Events = " + events)
       val sessionIdsToMatch = allocations.map(_.sessionId)
-      Logger.warn("post filter = " + events
-        .filter(event => event.sessions.exists(session => sessionIdsToMatch.contains(session.id))))
-
+      
       events
         .filter(event => event.sessions.exists(session => sessionIdsToMatch.contains(session.id)))
         .map(event => event.copy(sessions = event.sessions.filter(session => sessionIdsToMatch.contains(session.id))))
