@@ -40,7 +40,7 @@ import repositories.events.EventsMongoRepository
 import repositories.fileupload.FileUploadMongoRepository
 import repositories.fsacindicator.FSACIndicatorMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
-import repositories.sift.ApplicationSiftMongoRepository
+import repositories.sift.{ ApplicationSiftMongoRepository, SiftAnswersMongoRepository }
 import repositories.stc.StcEventMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -87,6 +87,7 @@ package object repositories {
   lazy val assessorAllocationRepository = new AssessorAllocationMongoRepository()
   lazy val candidateAllocationRepository = new CandidateAllocationMongoRepository()
   lazy val eventsRepository = new EventsMongoRepository()
+  lazy val siftAnswersRepository = new SiftAnswersMongoRepository()
   lazy val fileUploadRepository = new FileUploadMongoRepository()
   lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
   lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)

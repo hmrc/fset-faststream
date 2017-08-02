@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package repositories
+package model.persisted.sift
 
-import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.{ BSONDocument, BSONString }
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-trait CumulativeEvaluationHelper {
-  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]): BSONDocument = {
-    BSONDocument(latestResults.map(ser => s"cumulativeEvaluation.${ser.schemeId.value}" -> BSONString(ser.result)))
+case class SchemeSpecificAnswer(rawText: String)
+
+object SchemeSpecificAnswer
+{
+  implicit val schemeSpecificAnswerFormat = Json.format[SchemeSpecificAnswer]
+  implicit val schemeSpecificAnswerHandler = Macros.handler[SchemeSpecificAnswer]
+
+  def apply(a: model.exchange.sift.SchemeSpecificAnswer): SchemeSpecificAnswer = {
+    SchemeSpecificAnswer(
+      a.rawText
+    )
   }
 }
