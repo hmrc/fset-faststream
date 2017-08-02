@@ -64,14 +64,6 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     } map ( _ => () )
   }
 
-  def findCandidateRemovals(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument(
-      // "id" -> BSONDocument("$in" -> applications),
-      "status" -> AllocationStatuses.REMOVED
-    ), projection)
-      .cursor[CandidateAllocation]().collect[Seq]()
-  }
-
   def findNoShowAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
     collection.find(BSONDocument(
       "id" -> BSONDocument("$in" -> applications),

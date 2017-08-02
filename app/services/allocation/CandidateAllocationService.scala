@@ -137,8 +137,7 @@ trait CandidateAllocationService extends EventSink {
       candidateAllocationRepo.findNoShowAllocations(resp.candidates.map(_.applicationId)).map { noShowCandidates =>
         val noShowCandidatesIds = noShowCandidates.map(_.id)
         val resCandidates = resp.candidates.filter(c => !noShowCandidatesIds.contains(c.applicationId))
-        val c = resp.copy(candidates = resCandidates, totalCandidates = resCandidates.size)
-        c
+        resp.copy(candidates = resCandidates, totalCandidates = resCandidates.size)
       }
     }
   }

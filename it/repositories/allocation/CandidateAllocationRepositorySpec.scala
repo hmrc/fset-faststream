@@ -1,6 +1,7 @@
 package repositories.allocation
 
 import model.AllocationStatuses
+import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
 import repositories.{ CandidateAllocationMongoRepository, CollectionNames }
 import testkit.MongoRepositorySpec
@@ -58,11 +59,11 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
     "remove candidate allocations and find it in removal list" in {
       storeAllocations
-      val app = allocations.head
+      val app = allocations.head.copy(removeReason = Some(CandidateRemoveReason.NoShow))
       val result = repository.removeCandidateAllocation(app).futureValue
       result mustBe unit
 
-      val markedAsRemoved = repository.findCandidateRemovals(Seq(app.id)).futureValue
+      val markedAsRemoved = repository.findNoShowAllocations(Seq(app.id)).futureValue
       markedAsRemoved mustBe Seq(app.copy(status = AllocationStatuses.REMOVED))
 
       val docs1 = repository.activeAllocationsForEvent("eventId1").futureValue
