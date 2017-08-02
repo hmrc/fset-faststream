@@ -16,10 +16,12 @@
             <h4 class="bold-small">What country is named on your current passport?</h4>
             <p>@page.generalAnswers.map(ga => ga.passportCountry)</p>
             <h4 class="bold-small">Do you currently hold a second passport?</h4>
-            <p>@SiftPreviewPage.booleanToYesNo(page.generalAnswers.map(ga => ga.multiplePassports))</p>
+            <p>@SiftPreviewPage.booleanToYesNo(page.generalAnswers.map(ga => ga.multiplePassports).getOrElse(false))</p>
             @page.generalAnswers.map { ga =>
-                <h4 class="bold-small">What country is named on your second passport?</h4>
-                <p>@ga.secondPassportCountry.map(sp => sp )</p>
+                @ga.secondPassportCountry.map { sp =>
+                    <h4 class="bold-small">What country is named on your second passport?</h4>
+                    <p>@{sp}</p>
+                }
             }
         </div>
     </section>
