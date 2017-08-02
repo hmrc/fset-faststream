@@ -34,4 +34,5 @@ object CollectionNames {
   val PHASE1_PASS_MARK_SETTINGS = "phase1-pass-mark-settings18"
   val PHASE2_PASS_MARK_SETTINGS = "phase2-pass-mark-settings18"
   val PHASE3_PASS_MARK_SETTINGS = "phase3-pass-mark-settings18"
+  val SIFT_ANSWERS = "sift-answers18"
 }
