@@ -136,7 +136,7 @@ trait GeneralApplicationRepository {
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
 
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
-  }
+}
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit

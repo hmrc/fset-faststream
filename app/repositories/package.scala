@@ -33,7 +33,7 @@ import model.AdjustmentDetail
 import model.command.WithdrawApplication
 import play.api.libs.json._
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
-import repositories.assessmentcentre.AssessmentCentreMongoRepository
+import repositories.assessmentcentre.{ CurrentSchemeStatusMongoRepository, AssessmentCentreMongoRepository }
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.events.EventsMongoRepository
@@ -97,6 +97,7 @@ package object repositories {
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val assessmentScoresRepository = new AssessmentScoresMongoRepository(DateTimeFactory)
+  lazy val currentSchemeStatusRepository = new CurrentSchemeStatusMongoRepository
 
   /** Create indexes */
   Await.result(Future.sequence(List(

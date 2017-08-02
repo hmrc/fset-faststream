@@ -16,7 +16,6 @@
 
 package model.exchange.testdata
 
-import model.ApplicationStatus.ApplicationStatus
 import model.Commands.ApplicationAssessment
 import model.command.GeneralDetails
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse

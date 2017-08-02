@@ -66,7 +66,8 @@ trait PassMarkSettingsRepository[T <: PassMarkSettings] {
 
   def getLatestVersion(implicit jsonFormat: Format[T]): Future[Option[T]] = {
     val query = BSONDocument.empty
-    val sort = JsObject(Seq("createDate" -> JsNumber(-1)))
+    val descending = -1
+    val sort = JsObject(Seq("createDate" -> JsNumber(descending)))
     collection.find(query).sort(sort).one[T]
   }
 }
