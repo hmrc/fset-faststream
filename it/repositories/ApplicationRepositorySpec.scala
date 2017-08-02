@@ -17,20 +17,18 @@
 package repositories
 
 import config.MicroserviceAppConfig.cubiksGatewayConfig
+import factories.DateTimeFactoryMock
 import model.ApplicationStatus._
 import model.Commands._
-import model.{ ApplicationRoute, EvaluationResults, ProgressStatuses }
-import model.EvaluationResults.AssessmentRuleCategoryResult
+import model.{ ApplicationRoute, ProgressStatuses }
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import model.report.AdjustmentReportItem
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONReader, TestDataMongoRepository }
+import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Await
@@ -43,7 +41,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val collectionName = CollectionNames.APPLICATION
 
-  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
 
   def assistanceRepo = new AssistanceDetailsMongoRepository()
 

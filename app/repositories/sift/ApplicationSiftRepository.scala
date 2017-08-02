@@ -105,10 +105,10 @@ class ApplicationSiftMongoRepository(
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    val (update, applicationNotSiftedForScheme) = siftApplicationForSchemeBSON(applicationId, result)
+    val (predicate, update) = siftApplicationForSchemeBSON(applicationId, result)
 
     val validator = singleUpdateValidator(applicationId, s"sifting for ${result.schemeId}", ApplicationNotFound(applicationId))
-    collection.update(applicationNotSiftedForScheme, update) map validator
+    collection.update(predicate, update) map validator
   }
 
    def siftApplicationForSchemeBSON(applicationId: String, result: SchemeEvaluationResult): (BSONDocument, BSONDocument) = {

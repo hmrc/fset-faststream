@@ -77,7 +77,6 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     ).add(
       currentSchemeStatusBSON(evaluation.result)
     ))
-
     val validator = singleUpdateValidator(applicationId, actionDesc = s"saving passmark evaluation during $phase evaluation")
 
     collection.update(query, passMarkEvaluation) map validator

@@ -18,6 +18,7 @@ package repositories.onlinetesting
 
 import java.util.UUID
 
+import factories.DateTimeFactoryMock
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.{ CannotFindTestByCubiksId, PassMarkEvaluationNotFound }
 import model.OnlineTestCommands.OnlineTestApplication
@@ -60,7 +61,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       phase1Test.copy(usedForResults = true, resultsReadyToDownload = true))
     )
   )
-  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository()
+  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository(DateTimeFactoryMock)
 
   "Get online test" should {
     "return None if there is no test for the specific user id" in {

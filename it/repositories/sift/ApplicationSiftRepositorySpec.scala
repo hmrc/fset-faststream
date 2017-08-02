@@ -2,7 +2,7 @@ package repositories.sift
 
 import model.EvaluationResults.{ Green, Red }
 import model.Phase3TestProfileExamples.phase3TestWithResult
-import model.ProgressStatuses.PHASE3_TESTS_PASSED
+import model.ProgressStatuses.{ PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_NOTIFIED }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
@@ -52,13 +52,13 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
       appsForSift must contain(
-        ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")))
+        ApplicationForSift("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
       )
 
       appsForSift must contain(
-        ApplicationForSift("appId4", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some("")))
+        ApplicationForSift("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)))
       )
 
       appsForSift.size mustBe 2
@@ -135,12 +135,12 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     insertApplication(appId,
       ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
       Some(phase3TestWithResult),
-      schemes = List(Commercial, Sdip, European),
+      schemes = List(Commercial, European),
       phase2Evaluation = Some(phase2Evaluation))
 
     val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
       "phase3_version1-res", Some("phase2_version1-res"))
     phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3Evaluation, Some(PHASE3_TESTS_PASSED)).futureValue
-    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_SCHEMES_SIFT_FORMS_SUBMITTED).futureValue
   }
 }

@@ -70,12 +70,12 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
       whenReady(repository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
         appsForAc must contain(
-          ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil)
+          ApplicationForFsac("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
         )
         appsForAc must contain(
-          ApplicationForFsac("appId4", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some("")), Nil)
+          ApplicationForFsac("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)))
         )
         appsForAc.length mustBe 2
       }
@@ -113,12 +113,11 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
       val nextResults = repository.nextApplicationForAssessmentCentre(1).futureValue
       nextResults mustBe List(
-        ApplicationForFsac("appId11",
-          PassmarkEvaluation("", Some(""), List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
-            SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
-            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString)), "", Some("")),
+        ApplicationForFsac("appId11", ApplicationStatus.SIFT,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
-            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
+            SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))
+        )
       )
 
       repository.progressToAssessmentCentre(nextResults.head, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).futureValue

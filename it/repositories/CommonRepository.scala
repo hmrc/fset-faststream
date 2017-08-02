@@ -36,7 +36,7 @@ trait CommonRepository {
 
   val mockLaunchpadConfig = mock[LaunchpadGatewayConfig]
 
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig)
+  def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, mockGatewayConfig)
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 
@@ -48,9 +48,9 @@ trait CommonRepository {
 
   def phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
 
-  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository()
+  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository(DateTimeFactory)
 
-  def phase2EvaluationRepo = new Phase2EvaluationMongoRepository()
+  def phase2EvaluationRepo = new Phase2EvaluationMongoRepository(DateTimeFactory)
 
   def phase3EvaluationRepo = new Phase3EvaluationMongoRepository(mockLaunchpadConfig, DateTimeFactory)
 
