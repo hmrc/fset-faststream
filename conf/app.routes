@@ -150,13 +150,22 @@ GET         /sessions/findByApplicationId                                control
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 
-# Assessment scores
-POST        /assessment-scores/submit                                                controllers.AssessmentScoresController.submit()
-POST        /assessment-scores/save                                                  controllers.AssessmentScoresController.save()
-GET         /assessment-scores/with-candidate-summary/application/:applicationId     controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
-GET         /assessment-scores/with-candidate-summary/event/:eventId                 controllers.AssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
-GET         /assessment-scores/:applicationId                                        controllers.AssessmentScoresController.find(applicationId: model.UniqueIdentifier)
-GET         /assessment-scores                                                       controllers.AssessmentScoresController.findAll
+# assessor assessment scores
+POST        /assessment-scores/assessor/submit                                                controllers.AssessorAssessmentScoresController.submit()
+POST        /assessment-scores/assessor/save                                                  controllers.AssessorAssessmentScoresController.save()
+GET         /assessment-scores/assessor/with-candidate-summary/application/:applicationId     controllers.AssessorAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/assessor/with-candidate-summary/event/:eventId                 controllers.AssessorAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
+GET         /assessment-scores/assessor/:applicationId                                        controllers.AssessorAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/assessor                                                       controllers.AssessorAssessmentScoresController.findAll
+
+# reviewer assessment scores
+POST        /assessment-scores/reviewer/submit                                                controllers.ReviewerAssessmentScoresController.submit()
+POST        /assessment-scores/reviewer/save                                                  controllers.ReviewerAssessmentScoresController.save()
+GET         /assessment-scores/reviewer/with-candidate-summary/application/:applicationId     controllers.ReviewerAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/reviewer/with-candidate-summary/event/:eventId                 controllers.ReviewerAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
+GET         /assessment-scores/reviewer/:applicationId                                        controllers.ReviewerAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/reviewer                                                       controllers.ReviewerAssessmentScoresController.findAll
+
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

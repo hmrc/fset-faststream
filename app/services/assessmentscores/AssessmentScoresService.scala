@@ -31,9 +31,19 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object AssessmentScoresService extends AssessmentScoresService {
+object AssessorAssessmentScoresService extends AssessmentScoresService {
   override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
-  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessmentScoresRepository
+  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
+  override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
+  override val eventsRepository: EventsRepository = repositories.eventsRepository
+  override val personalDetailsRepository: PersonalDetailsRepository = repositories.personalDetailsRepository
+
+  override val dateTimeFactory = DateTimeFactory
+}
+
+object ReviewerAssessmentScoresService extends AssessmentScoresService {
+  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
+  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
   override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
   override val eventsRepository: EventsRepository = repositories.eventsRepository
   override val personalDetailsRepository: PersonalDetailsRepository = repositories.personalDetailsRepository

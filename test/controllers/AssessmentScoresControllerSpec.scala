@@ -29,6 +29,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
 import repositories.AssessmentScoresRepository
+import services.AuditService
 import services.assessmentscores.AssessmentScoresService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -36,7 +37,24 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class AssessmentScoresControllerSpec extends UnitWithAppSpec {
+class AssessorAssessmentScoresControllerSpec extends AssessmentScoresControllerSpec {
+  override val userIdForAudit = "assessorId"
+  override val assessmentScoresAllExercisesSaved = "AssessorAssessmentScoresAllExercisesSaved"
+  override val assessmentScoresOneExerciseSaved = "AssessorAssessmentScoresOneExerciseSaved"
+}
+
+class ReviewerAssessmentScoresControllerSpec extends AssessmentScoresControllerSpec {
+  override val userIdForAudit = "reviewerId"
+  override val assessmentScoresAllExercisesSaved = "ReviewerAssessmentScoresAllExercisesSaved"
+  override val assessmentScoresOneExerciseSaved = "ReviewerAssessmentScoresOneExerciseSaved"
+}
+
+
+trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
+
+  val userIdForAudit: String
+  val assessmentScoresAllExercisesSaved: String
+  val assessmentScoresOneExerciseSaved: String
 
   "submit" should {
     "save exercise, send AssessmentScoresOneExerciseSubmitted audit event and return OK" in new TestFixture {
@@ -49,16 +67,13 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val auditDetails = Map(
         "applicationId" -> appId.toString(),
         "exercise" -> AssessmentExerciseType.analysisExercise.toString,
-        "assessorId" -> exerciseScores.updatedBy.toString())
+        userIdForAudit -> exerciseScores.updatedBy.toString())
 
       val response = controller.submit()(request)
 
       status(response) must be(OK)
       verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise), any())
-      verify(mockAuditService).logEvent(
-        eqTo(AssessmentScoresController.AssessmentScoresOneExerciseSubmitted),
-        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
-
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSaved), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
     }
   }
 
@@ -112,14 +127,17 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
     val mockService = mock[AssessmentScoresService]
     val mockAssessmentScoresRepository = mock[AssessmentScoresRepository]
 
-    val controller = new AssessmentScoresController {
-      override val service = mockService
-      override val repository = mockAssessmentScoresRepository
-      override val auditService = mockAuditService
-    }
-
     val appId = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise.applicationId
     val sessionId = UniqueIdentifier.randomUniqueIdentifier
     val eventId = UniqueIdentifier.randomUniqueIdentifier
+
+    def controller = new AssessmentScoresController {
+      override val service = mockService
+      override val repository = mockAssessmentScoresRepository
+      override val auditService = mockAuditService
+      override val UserIdForAudit = userIdForAudit
+      override val AssessmentScoresAllExercisesSaved = assessmentScoresAllExercisesSaved
+      override val AssessmentScoresOneExerciseSaved = assessmentScoresOneExerciseSaved
+    }
   }
 }

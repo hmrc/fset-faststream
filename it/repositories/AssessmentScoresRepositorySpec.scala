@@ -21,16 +21,24 @@ import model.UniqueIdentifier
 import model.assessmentscores._
 import testkit.MongoRepositorySpec
 
-class AssessmentScoresRepositorySpec extends MongoRepositorySpec {
+class AssessorAssessmentScoresRepositorySpec extends AssessmentScoresRepositorySpec {
+  override val collectionName = CollectionNames.ASSESSOR_ASSESSMENT_SCORES
+  override def repository = new AssessorAssessmentScoresMongoRepository(DateTimeFactory)
+  override lazy val repo = repositories.assessorAssessmentScoresRepository
+}
 
-  override val collectionName = CollectionNames.ASSESSMENT_SCORES
+class ReviewerAssessmentScoresRepositorySpec extends AssessmentScoresRepositorySpec {
+  override val collectionName = CollectionNames.REVIEWER_ASSESSMENT_SCORES
+  override def repository = new ReviewerAssessmentScoresMongoRepository(DateTimeFactory)
+  override lazy val repo = repositories.reviewerAssessmentScoresRepository
+}
 
-  def repository = new AssessmentScoresMongoRepository(DateTimeFactory)
+trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
+  def repository: AssessmentScoresMongoRepository
+  val repo: AssessmentScoresMongoRepository
 
   "Assessment Scores Repository" should {
     "create indexes for the repository" in {
-      val repo = repositories.assessmentScoresRepository
-
       val indexes = indexesWithFields(repo)
       indexes must contain(List("_id"))
       indexes must contain(List("applicationId"))

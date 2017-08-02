@@ -36,7 +36,7 @@ object ReportingController extends ReportingController {
   val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
   val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
-  val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.assessmentScoresRepository
+  val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
   val authProviderClient = AuthProviderClient

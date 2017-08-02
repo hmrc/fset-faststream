@@ -35,8 +35,8 @@ trait AssessmentScoresRepository {
   def findAll: Future[List[AssessmentScoresAllExercises]]
 }
 
-class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[AssessmentScoresAllExercises, BSONObjectID](CollectionNames.ASSESSMENT_SCORES, mongo,
+abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collectionName: String)(implicit mongo: () => DB)
+  extends ReactiveRepository[AssessmentScoresAllExercises, BSONObjectID](collectionName, mongo,
     AssessmentScoresAllExercises.jsonFormat, ReactiveMongoFormats.objectIdFormats)
     with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
@@ -60,3 +60,9 @@ class AssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo:
       collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 }
+
+class AssessorAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
+  extends AssessmentScoresMongoRepository(dateTime, CollectionNames.ASSESSOR_ASSESSMENT_SCORES)
+
+class ReviewerAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
+  extends AssessmentScoresMongoRepository(dateTime, CollectionNames.REVIEWER_ASSESSMENT_SCORES)
