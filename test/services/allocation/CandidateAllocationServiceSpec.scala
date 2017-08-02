@@ -21,6 +21,7 @@ import connectors.ExchangeObjects.Candidate
 import model.{ AllocationStatuses, CandidateExamples, persisted }
 import model.command.{ CandidateAllocation, CandidateAllocations }
 import model.persisted._
+import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import org.joda.time.{ LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.any
@@ -52,7 +53,9 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockAppRepo.find(appId)).thenReturn(Future.successful(None))
       service.allocateCandidates(candidateAllocations)
     }
+  }
 
+  "Unallocate candidate" must {
     "unallocate candidates" in new TestFixture {
       val eventId = "E1"
       val sessionId = "S1"
@@ -77,6 +80,29 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
       verify(mockAppRepo).resetApplicationAllocationStatus(any[String])
       verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
+    }
+  }
+
+  "get sessions for application" must {
+    "get list of events with sessions only that the application is a part of" in new TestFixture {
+      when(mockCandidateAllocationRepository.allocationsForApplication(any[String]())).thenReturnAsync(
+        Seq(
+          model.persisted.CandidateAllocation(
+            "appId1", EventExamples.e1.id, EventExamples.e1Session1Id, AllocationStatuses.UNCONFIRMED, "version1"
+          )
+        )
+      )
+
+      when(mockEventsService.getEvents(any[List[String]](), any[EventType]())).thenReturnAsync(
+        List(
+          EventExamples.e1WithSessions
+        )
+      )
+
+      service.getSessionsForApplication("appId1", EventType.FSAC).futureValue mustBe List(
+        EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
+      )
+
     }
   }
 

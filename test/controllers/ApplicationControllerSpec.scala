@@ -31,8 +31,10 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
+import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
 import services.application.ApplicationService
+import services.assessmentcentre.AssessmentCentreService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -174,6 +176,9 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
   trait TestFixture extends TestFixtureBase {
     val mockApplicationService = mock[ApplicationService]
     val mockPassmarkService = mock[EvaluatePhase3ResultService]
+    val mockAssessmentCentreService = mock[AssessmentCentreService]
+    val mockFileUploadRepository = mock[FileUploadMongoRepository]
+
     when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))(any[HeaderCarrier], any[RequestHeader]))
       .thenReturn(Future.successful(()))
 
@@ -182,6 +187,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       override val auditService: AuditService = mockAuditService
       override val applicationService: ApplicationService = mockApplicationService
       override val passmarkService: EvaluatePhase3ResultService = mockPassmarkService
+      override val assessmentCentreService: AssessmentCentreService = mockAssessmentCentreService
+      override val uploadRepository: FileUploadMongoRepository = mockFileUploadRepository
     }
 
     def applicationProgressRequest(applicationId: String) = {

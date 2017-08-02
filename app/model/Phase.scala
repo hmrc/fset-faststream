@@ -22,8 +22,7 @@ object Phase extends Enumeration {
 
   type Phase = Value
 
-  val PHASE1, PHASE2, PHASE3 = Value
+  val PHASE1, PHASE2, PHASE3, ASSESSMENT_CENTRE = Value
 
-  implicit def toString(phase: Phase): String = phase.toString
-
+  implicit def toString(phase: Phase): String = phase.toString.replace("_", "-")
 }

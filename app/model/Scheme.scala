@@ -19,7 +19,9 @@ package model
 import play.api.libs.json._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
-case class SchemeId(value: String)
+case class SchemeId(value: String) {
+  implicit override def toString: String = value
+}
 
 object SchemeId {
   // Custom json formatter to serialise to a string

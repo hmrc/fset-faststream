@@ -108,6 +108,7 @@ object ProgressStatuses {
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
   case object ALL_SCHEMES_SIFT_ENTERED extends ProgressStatus(ApplicationStatus.SIFT)
+  case object ALL_SCHEMES_SIFT_FORMS_SUBMITTED extends ProgressStatus(ApplicationStatus.SIFT)
   case object ALL_SCHEMES_SIFT_COMPLETED extends ProgressStatus(ApplicationStatus.SIFT)
 
   case object ASSESSMENT_CENTRE_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)

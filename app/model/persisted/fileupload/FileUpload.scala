@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package repositories
+package model.persisted.fileupload
 
-import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.{ BSONDocument, BSONString }
+import org.joda.time.DateTime
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.Macros
+import repositories.BSONDateTimeHandler
 
-trait CumulativeEvaluationHelper {
-  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]): BSONDocument = {
-    BSONDocument(latestResults.map(ser => s"cumulativeEvaluation.${ser.schemeId.value}" -> BSONString(ser.result)))
-  }
-}
+case class FileUpload(
+  id: String,
+  contentType: String,
+  created: DateTime,
+  fileContents: Enumerator[Array[Byte]]
+)

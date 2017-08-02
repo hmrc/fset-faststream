@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package repositories
+package model.persisted.fsac
 
-import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.{ BSONDocument, BSONString }
+import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.Macros
 
-trait CumulativeEvaluationHelper {
-  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]): BSONDocument = {
-    BSONDocument(latestResults.map(ser => s"cumulativeEvaluation.${ser.schemeId.value}" -> BSONString(ser.result)))
-  }
+case class AnalysisExercise(
+  fileId: String
+)
+
+object AnalysisExercise {
+  implicit val analysisExerciseFormat: OFormat[AnalysisExercise] = Json.format[AnalysisExercise]
+  implicit val analysisExerciseHandler = Macros.handler[AnalysisExercise]
 }

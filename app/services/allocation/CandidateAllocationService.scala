@@ -25,8 +25,10 @@ import model.stc.StcEventTypes.StcEvents
 import model._
 import model.exchange.CandidatesEligibleForEventResponse
 import model.exchange.candidateevents.{ CandidateAllocationSummary, CandidateRemoveReason }
+import model.persisted.eventschedules.EventType.EventType
 import model.persisted.{ ContactDetails, PersonalDetails }
 import model.persisted.eventschedules.Event
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.{ CandidateAllocationMongoRepository, CandidateAllocationRepository }
 import repositories.application.GeneralApplicationRepository
@@ -74,6 +76,19 @@ trait CandidateAllocationService extends EventSink {
 
   def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
     candidateAllocationRepo.activeAllocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
+  }
+
+  def getSessionsForApplication(applicationId: String, sessionEventType: EventType): Future[List[Event]] = {
+    for {
+      allocations <- candidateAllocationRepo.allocationsForApplication(applicationId)
+      events <- eventsService.getEvents(allocations.map(_.eventId).toList, sessionEventType)
+    } yield {
+      val sessionIdsToMatch = allocations.map(_.sessionId)
+
+      events
+        .filter(event => event.sessions.exists(session => sessionIdsToMatch.contains(session.id)))
+        .map(event => event.copy(sessions = event.sessions.filter(session => sessionIdsToMatch.contains(session.id))))
+    }
   }
 
   def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation])

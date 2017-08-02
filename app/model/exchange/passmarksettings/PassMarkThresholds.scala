@@ -34,6 +34,10 @@ trait Phase3Thresholds {
   def videoInterview: PassMarkThreshold
 }
 
+trait AssessmentCentreThresholds {
+  def assessmentCentre: PassMarkThreshold
+}
+
 case class Phase1PassMarkThresholds(
   situational: PassMarkThreshold,
   behavioural: PassMarkThreshold
@@ -60,4 +64,13 @@ case class Phase3PassMarkThresholds(
 object Phase3PassMarkThresholds {
   implicit val phase3PassMarkThresholds = Json.format[Phase3PassMarkThresholds]
   implicit val phase3PassMarkThresholdsHandler = Macros.handler[Phase3PassMarkThresholds]
+}
+
+case class AssessmentCentrePassMarkThresholds(
+                                     assessmentCentre: PassMarkThreshold
+                                   ) extends PassMarkThresholds with AssessmentCentreThresholds
+
+object AssessmentCentrePassMarkThresholds {
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkThresholds]
+  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkThresholds]
 }

@@ -32,15 +32,10 @@ import scala.concurrent.Future
 
 trait CandidateAllocationRepository {
   def save(allocations: Seq[CandidateAllocation]): Future[Unit]
-
   def findNoShowAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]]
-
   def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]]
-
-  def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]
-
+  def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]]
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit]
-
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit]
 }
 
@@ -106,6 +101,10 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
     ), projection)
       .cursor[CandidateAllocation]().collect[Seq]()
+  }
+
+  def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]] = {
+    collection.find(BSONDocument("id" -> applicationId), projection).cursor[CandidateAllocation]().collect[Seq]()
   }
 
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit] = {
