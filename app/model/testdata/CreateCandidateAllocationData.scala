@@ -28,7 +28,7 @@ case class CreateCandidateAllocationData(id: String,
                                          status: AllocationStatus,
                                          version: String) extends CreateTestData {
   def toCandidateAllocation: CandidateAllocation = {
-    CandidateAllocation(id, eventId, sessionId, status, version)
+    CandidateAllocation(id, eventId, sessionId, status, version, None)
   }
 }
 

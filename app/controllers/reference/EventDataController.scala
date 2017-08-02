@@ -16,18 +16,20 @@
 
 package controllers.reference
 
+import model.exchange.candidateevents.CandidateRemoveReason
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object EventSubtypesController extends EventSubtypesController {
+object EventDataController extends EventDataController {
   val eventsService: EventsService = EventsService
 }
 
-trait EventSubtypesController extends BaseController {
+trait EventDataController extends BaseController {
 
   def eventsService: EventsService
 
@@ -37,5 +39,9 @@ trait EventSubtypesController extends BaseController {
 
   def getTelephoneInterviewTypes: Action[AnyContent] = Action.async { implicit request =>
     eventsService.getTelephoneInterviewTypes.map(res => Ok(Json.toJson(res)))
+  }
+
+  def candidateRemoveReasons: Action[AnyContent] = Action.async { implicit request =>
+    Future.successful(Ok(Json.toJson(CandidateRemoveReason.Values)))
   }
 }

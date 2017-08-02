@@ -149,22 +149,6 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String) = Action.async {
-    implicit request =>
-      appRepository.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation)) map { apps =>
-        Ok(Json.toJson(apps))
-      }
-  }
-
-  def findAllocatedApplications() = Action.async(parse.json) {
-    implicit request =>
-      withJsonBody[List[String]] { appIds =>
-        appRepository.findAllocatedApplications(appIds).map { apps =>
-          Ok(Json.toJson(apps))
-        }
-      }
-  }
-
   def uploadAnalysisExercise(applicationId: String, contentType: String) = Action.async(parse.temporaryFile) {
     implicit request =>
       (for {
