@@ -16,7 +16,8 @@
 
 package services.assessmentcentre
 
-import model.EvaluationResults.Green
+import config.AssessmentEvaluationMinimumCompetencyLevel
+import model.EvaluationResults.{ CompetencyAverageResult, AssessmentEvaluationResult, Green }
 import model._
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.command.ApplicationForFsac
@@ -148,6 +149,38 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
     }
   }
 
+  "evaluate assessment scores" should {
+    "save passed evaluation result" in new TestFixture {
+      val competencyAverageResult = CompetencyAverageResult(
+        analysisAndDecisionMakingAverage = 4.0,
+        buildingProductiveRelationshipsAverage = 4.0,
+        leadingAndCommunicatingAverage = 4.0,
+        strategicApproachToObjectivesAverage = 4.0,
+        overallScore = 16.0
+      )
+
+      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+      val evaluationResult = AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult)
+
+      (mockEvaluationEngine.evaluate _)
+        .expects(*, *)
+        .returning(evaluationResult)
+
+      val expected = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
+
+      (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
+        .expects(expected)
+        .returning(Future.successful(()))
+
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId("Commercial")),
+        scores = AssessmentScoresAllExercises(applicationId = applicationId))
+      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, None)
+      service.evaluateAssessmentCandidate(assessmentData, config).futureValue
+    }
+  }
+
   trait TestFixture {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
@@ -186,15 +219,15 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
     }
 
     val applicationId = UniqueIdentifier.randomUniqueIdentifier
-  }
 
-  trait ReturnPassMarksFixture extends TestFixture {
     val passMarkSettings = AssessmentCentrePassMarkSettings(List(
       AssessmentCentrePassMark(SchemeId("Commercial"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
       AssessmentCentrePassMark(SchemeId("DigitalAndTechnology"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
       AssessmentCentrePassMark(SchemeId("DiplomaticService"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0)))),
       "1", DateTime.now(), "user")
+  }
 
+  trait ReturnPassMarksFixture extends TestFixture {
     implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
     (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
       .returning(Future.successful(Some(passMarkSettings)))

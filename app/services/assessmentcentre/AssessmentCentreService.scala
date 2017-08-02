@@ -22,7 +22,7 @@ import model.command.ApplicationForFsac
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import model.persisted.phase3tests.Phase3TestGroup
-import model.{ AssessmentPassMarksSchemesAndScores, ProgressStatuses, SerialUpdateResult, UniqueIdentifier }
+import model._
 import play.api.Logger
 import repositories.AssessmentScoresRepository
 import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
@@ -124,7 +124,7 @@ trait AssessmentCentreService {
     Logger.debug(s"evaluation result = $evaluationResult")
 
     Logger.debug(s"now writing to DB...")
-    val evaluation = model.AssessmentPassMarkEvaluation(assessmentPassMarksSchemesAndScores.scores.applicationId,
+    val evaluation = AssessmentPassMarkEvaluation(assessmentPassMarksSchemesAndScores.scores.applicationId,
       assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
     assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation).map { _ =>
       Logger.debug(s"written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
