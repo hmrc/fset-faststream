@@ -133,8 +133,7 @@ trait GeneralApplicationRepository {
   def resetApplicationAllocationStatus(applicationId: String): Future[Unit]
 
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
-
-  }
+}
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit

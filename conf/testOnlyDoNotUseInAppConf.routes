@@ -36,3 +36,4 @@ GET     /candidate-application/evaluate-phase2-candidate                        
 GET     /candidate-application/evaluate-phase3-candidate                            controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
 GET     /candidate-application/progress-candidates-to-sift                          controllers.testdata.TestJobsController.progressCandidatesToSift
 GET     /candidate-application/progress-candidates-to-ac                            controllers.testdata.TestJobsController.progressCandidatesToAssessmentCentre
+GET     /candidate-application/evaluate-assessment-scores-candidate                 controllers.testdata.TestJobsController.evaluateAssessmentScoresCandidate

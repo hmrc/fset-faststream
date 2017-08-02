@@ -16,16 +16,26 @@
 
 package services.assessmentcentre
 
-import model.{ EvaluationResults, ProgressStatuses, SchemeId, SerialUpdateResult }
+import config.AssessmentEvaluationMinimumCompetencyLevel
+import model.EvaluationResults.{ CompetencyAverageResult, AssessmentEvaluationResult, Green }
+import model._
+import model.assessmentscores.AssessmentScoresAllExercises
 import model.command.ApplicationForFsac
+import model.exchange.passmarksettings._
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
+import play.api.libs.json.Format
 import play.api.mvc.Results
+import repositories.AssessmentScoresRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.assessmentcentre.AssessmentCentreRepository
+import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
+import services.evaluation.AssessmentCentreEvaluationEngine
+import services.passmarksettings.PassMarkSettingsService
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import testkit.{ ExtendedTimeout, FutureHelper }
 
@@ -33,6 +43,7 @@ import scala.concurrent.Future
 
 class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Results with ScalaFutures with FutureHelper with MockFactory
   with ExtendedTimeout {
+
   "progress candidates to assessment centre" must {
     "progress candidates to assessment centre, attempting all despite errors" in new TestFixture {
       progressToAssessmentCentreMocks
@@ -82,12 +93,109 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
     }
   }
 
+  "next assessment candidate" should {
+    "return an assessment candidate score with application Id" in new ReturnPassMarksFixture {
+      (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
+        .expects(*)
+        .returning(Future.successful(Some(applicationId)))
+
+      (mockAssessmentScoresRepo.find _)
+        .expects(*)
+        .returning(Future.successful(Some(AssessmentScoresAllExercises(applicationId))))
+
+      (mockCurrentSchemeStatusRepo.getTestGroup _)
+        .expects(*)
+        .returning(Future.successful(
+          Some(Phase3TestGroup(
+            expirationDate = DateTime.now,
+            tests = List.empty[LaunchpadTest],
+            evaluation = Some(
+              PassmarkEvaluation(passmarkVersion = "version1",
+                previousPhasePassMarkVersion = None,
+                result = List(
+                  SchemeEvaluationResult(schemeId = SchemeId("Commercial"), result = Green.toString)
+                ),
+                resultVersion = "version1",
+                previousPhaseResultVersion = None)
+            )
+          ))
+      ))
+
+      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+
+      result must not be empty
+      result.get.passmark mustBe passMarkSettings
+      result.get.schemes mustBe List(SchemeId("Commercial"))
+      result.get.scores.applicationId mustBe applicationId
+    }
+
+    "return none if there is no passmark settings set" in new TestFixture {
+      implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
+      (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
+        .returning(Future.successful(None))
+
+
+      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+      result mustBe empty
+    }
+
+    "return none if there is no application ready for assessment score evaluation" in new ReturnPassMarksFixture {
+      (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
+        .expects(*)
+        .returning(Future.successful(None))
+
+      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+      result mustBe empty
+    }
+  }
+
+  "evaluate assessment scores" should {
+    "save passed evaluation result" in new TestFixture {
+      val competencyAverageResult = CompetencyAverageResult(
+        analysisAndDecisionMakingAverage = 4.0,
+        buildingProductiveRelationshipsAverage = 4.0,
+        leadingAndCommunicatingAverage = 4.0,
+        strategicApproachToObjectivesAverage = 4.0,
+        overallScore = 16.0
+      )
+
+      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+      val evaluationResult = AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult)
+
+      (mockEvaluationEngine.evaluate _)
+        .expects(*, *)
+        .returning(evaluationResult)
+
+      val expected = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
+
+      (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
+        .expects(expected)
+        .returning(Future.successful(()))
+
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId("Commercial")),
+        scores = AssessmentScoresAllExercises(applicationId = applicationId))
+      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, None)
+      service.evaluateAssessmentCandidate(assessmentData, config).futureValue
+    }
+  }
+
   trait TestFixture {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
+    val mockAssessmentCentrePassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
+    val mockAssessmentScoresRepo = mock[AssessmentScoresRepository]
+    val mockCurrentSchemeStatusRepo = mock[CurrentSchemeStatusRepository]
+    val mockEvaluationEngine = mock[AssessmentCentreEvaluationEngine]
+
     val service = new AssessmentCentreService {
-      def applicationRepo: GeneralApplicationRepository = mockAppRepo
-      def assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
+      val applicationRepo: GeneralApplicationRepository = mockAppRepo
+      val assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
+      val passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings] = mockAssessmentCentrePassMarkSettingsService
+      val assessmentScoresRepo: AssessmentScoresRepository = mockAssessmentScoresRepo
+      val currentSchemeStatusRepo: CurrentSchemeStatusRepository = mockCurrentSchemeStatusRepo
+      val evaluationEngine: AssessmentCentreEvaluationEngine = mockEvaluationEngine
     }
 
     val applicationsToProgressToSift = List(
@@ -109,5 +217,19 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
         .expects(applicationsToProgressToSift(2), ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
         .returning(Future.successful(()))
     }
+
+    val applicationId = UniqueIdentifier.randomUniqueIdentifier
+
+    val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+      AssessmentCentrePassMark(SchemeId("Commercial"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
+      AssessmentCentrePassMark(SchemeId("DigitalAndTechnology"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
+      AssessmentCentrePassMark(SchemeId("DiplomaticService"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0)))),
+      "1", DateTime.now(), "user")
+  }
+
+  trait ReturnPassMarksFixture extends TestFixture {
+    implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
+    (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
+      .returning(Future.successful(Some(passMarkSettings)))
   }
 }

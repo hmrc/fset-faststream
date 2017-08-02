@@ -24,6 +24,7 @@ import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
+import repositories.competencyAverageResultHandler
 import repositories.{ CollectionNames, CommonBSONDocuments, CumulativeEvaluationHelper, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -38,6 +39,8 @@ trait AssessmentCentreRepository {
   def progressToAssessmentCentre(application: ApplicationForFsac, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
+  def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[UniqueIdentifier]]
+  def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation): Future[Unit]
 }
 
 class AssessmentCentreMongoRepository (
@@ -85,6 +88,53 @@ class AssessmentCentreMongoRepository (
         case _ => true
       }
     })
+  }
+
+  override def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[UniqueIdentifier]] = {
+
+    val query =
+      BSONDocument("$or" ->
+        BSONArray(
+          BSONDocument(
+            "$and" -> BSONArray(
+              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED}" -> true),
+              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false))
+            )
+          ),
+          BSONDocument(
+            "$and" -> BSONArray(
+              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED}" -> true),
+              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
+              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
+            )
+          )
+        )
+      )
+
+    selectOneRandom[BSONDocument](query).map(_.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get)
+    )
+  }
+
+  override def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation): Future[Unit] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> evaluation.applicationId),
+      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN))
+    ))
+
+    val passMarkEvaluation = BSONDocument("$set" ->
+      BSONDocument(
+        "testGroups.FSAC.evaluation" -> BSONDocument("passmarkVersion" -> evaluation.passmarkVersion)
+          .add(booleanToBSON("passedMinimumCompetencyLevel", evaluation.evaluationResult.passedMinimumCompetencyLevel))
+          .add(BSONDocument("competency-average" -> evaluation.evaluationResult.competencyAverageResult))
+          .add(BSONDocument("schemes-evaluation" -> evaluation.evaluationResult.schemesEvaluation))
+      ))
+
+    collection.update(query, passMarkEvaluation, upsert = false) map { _ => () }
+  }
+
+  private def booleanToBSON(schemeName: String, result: Option[Boolean]): BSONDocument = result match {
+    case Some(r) => BSONDocument(schemeName -> r)
+    case _ => BSONDocument.empty
   }
 
   def progressToAssessmentCentre(application: ApplicationForFsac, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
