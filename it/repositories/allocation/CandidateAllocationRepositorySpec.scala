@@ -34,7 +34,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "correctly find allocations by application" in {
-      repository.save(allocations).futureValue
+      storeAllocations
       val result = repository.allocationsForApplication("candId1").futureValue
       result.size mustBe 1
       val expectedAllocations = allocations.filter(_.id == "candId1")
