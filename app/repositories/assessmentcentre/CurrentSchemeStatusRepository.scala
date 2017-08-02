@@ -32,6 +32,7 @@ package repositories.assessmentcentre
  * limitations under the License.
  */
 
+import model.UniqueIdentifier
 import model.persisted.phase3tests.Phase3TestGroup
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -44,7 +45,7 @@ import scala.concurrent.Future
 
 trait CurrentSchemeStatusRepository {
 
-  def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]]
+  def getTestGroup(applicationId: UniqueIdentifier): Future[Option[Phase3TestGroup]]
 }
 
 class CurrentSchemeStatusMongoRepository()(implicit mongo: () => DB)
@@ -52,7 +53,7 @@ class CurrentSchemeStatusMongoRepository()(implicit mongo: () => DB)
     model.persisted.phase3tests.Phase3TestGroup.phase3TestGroupFormat, ReactiveMongoFormats.objectIdFormats
   ) with CurrentSchemeStatusRepository {
 
-  override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = {
+  override def getTestGroup(applicationId: UniqueIdentifier): Future[Option[Phase3TestGroup]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     phaseTestProfileByQuery(query, "PHASE3")
   }

@@ -87,7 +87,7 @@ trait AssessmentCentreService {
   }
 
   // Find existing evaluation data: 1. assessment centre pass marks, 2. the schemes to evaluate and 3. the scores awarded by the reviewer
-  def tryToFindEvaluationData(appId: String,
+  def tryToFindEvaluationData(appId: UniqueIdentifier,
     passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
     // TODO: we will eventually need to read this data from the current scheme status
     def fetchSchemesToEvaluate(phase3TestResultsOpt: Option[Phase3TestGroup]) = {
@@ -101,7 +101,7 @@ trait AssessmentCentreService {
 
     for {
       // get the assessor entered scores for the candidate (TODO: will have to change this to fetch the reviewer scores)
-      assessmentCentreScoresOpt <- assessmentScoresRepo.find(UniqueIdentifier(appId))
+      assessmentCentreScoresOpt <- assessmentScoresRepo.find(appId)
       // get the phase 3 evaluation results (TODO: will have to change this to fetch from the current evaluation section)
       phase3TestResultsOpt <- currentSchemeStatusRepo.getTestGroup(appId)
     } yield {

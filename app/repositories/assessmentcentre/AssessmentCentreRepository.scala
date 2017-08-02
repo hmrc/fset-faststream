@@ -39,7 +39,7 @@ trait AssessmentCentreRepository {
   def progressToAssessmentCentre(application: ApplicationForFsac, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
-  def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]]
+  def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[UniqueIdentifier]]
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation): Future[Unit]
 }
 
@@ -90,7 +90,7 @@ class AssessmentCentreMongoRepository (
     })
   }
 
-  override def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]] = {
+  override def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[UniqueIdentifier]] = {
 
     val query =
       BSONDocument("$or" ->
@@ -111,7 +111,7 @@ class AssessmentCentreMongoRepository (
         )
       )
 
-    selectOneRandom[BSONDocument](query).map(_.map(doc => doc.getAs[String]("applicationId").get)
+    selectOneRandom[BSONDocument](query).map(_.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get)
     )
   }
 

@@ -97,7 +97,7 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
     "return an assessment candidate score with application Id" in new ReturnPassMarksFixture {
       (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
         .expects(*)
-        .returning(Future.successful(Some(applicationId.toString())))
+        .returning(Future.successful(Some(applicationId)))
 
       (mockAssessmentScoresRepo.find _)
         .expects(*)
