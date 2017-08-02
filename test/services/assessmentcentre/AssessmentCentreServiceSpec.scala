@@ -18,19 +18,15 @@ package services.assessmentcentre
 
 import model._
 import model.command.ApplicationForFsac
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
-import play.api.mvc.Results
+import model.persisted.SchemeEvaluationResult
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
-import testkit.{ ExtendedTimeout, FutureHelper }
+import testkit.ScalaMockUnitSpec
+import testkit.ScalaMockImplicits._
 
 import scala.concurrent.Future
 
-class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Results with ScalaFutures with FutureHelper with MockFactory
-  with ExtendedTimeout {
+class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
   "An AssessmentCentreService" should {
     val applicationsToProgressToSift = List(
       ApplicationForFsac("appId1", ApplicationStatus.SIFT,
@@ -50,13 +46,13 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
 
     (mockAssessmentCentreRepo.progressToAssessmentCentre _)
       .expects(applicationsToProgressToSift.head, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
-      .returning(Future.successful())
+      .returningAsync
     (mockAssessmentCentreRepo.progressToAssessmentCentre _)
       .expects(applicationsToProgressToSift(1), ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       .returning(Future.failed(new Exception))
     (mockAssessmentCentreRepo.progressToAssessmentCentre _)
       .expects(applicationsToProgressToSift(2), ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
-      .returning(Future.successful())
+      .returningAsync
 
     "progress candidates to assessment centre, attempting all despite errors" in {
 

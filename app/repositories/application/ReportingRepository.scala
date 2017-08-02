@@ -16,6 +16,7 @@
 
 package repositories.application
 
+import factories.DateTimeFactory
 import model.ApplicationStatus._
 import model.Commands._
 import model.command._
@@ -65,7 +66,7 @@ trait ReportingRepository {
   def candidatesForTimeToOfferReport: Future[List[TimeToOfferPartialItem]]
 }
 
-class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
+class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with ReportingRepository with RandomSelection with
     CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {

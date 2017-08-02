@@ -21,6 +21,7 @@ import java.util.regex.Pattern
 
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
 import config.CubiksGatewayConfig
+import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Commands._
@@ -139,8 +140,10 @@ trait GeneralApplicationRepository {
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
-class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
-                                        gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
+class GeneralApplicationMongoRepository(
+  val dateTimeFactory: DateTimeFactory,
+  gatewayConfig: CubiksGatewayConfig
+)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments

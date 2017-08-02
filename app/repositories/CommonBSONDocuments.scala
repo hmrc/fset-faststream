@@ -16,16 +16,18 @@
 
 package repositories
 
+import factories.DateTimeFactory
 import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
 import model.command._
 import model.{ ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType }
-import org.joda.time.DateTime
 import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader }
 
 import scala.language.implicitConversions
 
 trait CommonBSONDocuments extends BaseBSONReader {
+
+  def dateTimeFactory: DateTimeFactory
 
   protected def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
@@ -37,7 +39,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
         BSONDocument(
           "applicationStatus" -> applicationStatus,
           s"progress-status.${progressStatus.key}" -> true,
-          s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
+          s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
         )
         // For in progress application status we store application status in
         // progress-status-timestamp.
@@ -45,7 +47,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
         BSONDocument(
           "applicationStatus" -> applicationStatus,
           s"progress-status.${ApplicationStatus.IN_PROGRESS}" -> true,
-          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> DateTime.now()
+          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> dateTimeFactory.nowLocalTimeZone
         )
       case _ =>
         BSONDocument(
@@ -58,14 +60,14 @@ trait CommonBSONDocuments extends BaseBSONReader {
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
       s"progress-status.${progressStatus.key}" -> true,
-      s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
+      s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
     )
   }
 
   def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {
      BSONDocument(
       s"progress-status.${progressStatus.key}" -> true,
-      s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
+      s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
     )
   }
 

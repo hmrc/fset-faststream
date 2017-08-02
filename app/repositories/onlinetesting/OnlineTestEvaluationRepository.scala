@@ -132,7 +132,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   }
 }
 
-class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
+class Phase1EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments{
@@ -178,7 +178,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   }
 }
 
-class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
+class Phase2EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository
@@ -213,8 +213,10 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
       ))
 }
 
-class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayConfig,
-                                      dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
+class Phase3EvaluationMongoRepository(
+  launchpadGatewayConfig: LaunchpadGatewayConfig,
+  val dateTimeFactory: DateTimeFactory
+)(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with BaseBSONReader {

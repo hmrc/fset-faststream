@@ -35,8 +35,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-trait ApplicationSiftRepository extends RandomSelection with ReactiveRepositoryHelpers with GeneralApplicationRepoBSONReader {
-  this: ReactiveRepository[_, _] =>
+trait ApplicationSiftRepository {
 
   def thisApplicationStatus: ApplicationStatus
   def dateTime: DateTimeFactory
@@ -61,7 +60,9 @@ class ApplicationSiftMongoRepository(
   extends ReactiveRepository[ApplicationForSift, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationForSift.applicationForSiftFormat,
     ReactiveMongoFormats.objectIdFormats
-) with ApplicationSiftRepository with CurrentSchemeStatusHelper {
+) with ApplicationSiftRepository with CurrentSchemeStatusHelper with RandomSelection with ReactiveRepositoryHelpers
+  with GeneralApplicationRepoBSONReader
+{
 
   val thisApplicationStatus = ApplicationStatus.SIFT
   val prevPhase = ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
@@ -75,14 +76,15 @@ class ApplicationSiftMongoRepository(
   ))))
 
   def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
+    def applicationForSiftBsonReads(document: BSONDocument): ApplicationForSift = {
+      val applicationId = document.getAs[String]("applicationId").get
+      val appStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+      val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+      ApplicationForSift(applicationId, appStatus, currentSchemeStatus)
+    }
+
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
-      _.map { document =>
-        val applicationId = document.getAs[String]("applicationId").get
-        val testGroupsRoot = document.getAs[BSONDocument]("testGroups").get
-        val phase3PassMarks = testGroupsRoot.getAs[BSONDocument](prevTestGroup).get
-        val phase3Evaluation = phase3PassMarks.getAs[PassmarkEvaluation]("evaluation").get
-        ApplicationForSift(applicationId, phase3Evaluation)
-      }
+      _.map { document => applicationForSiftBsonReads(document) }
     }
   }
 

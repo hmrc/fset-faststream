@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package model.command
+package testkit
 
-import model.ApplicationStatus.ApplicationStatus
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.libs.json.Json
+import org.scalamock.handlers.CallHandler
 
-case class ApplicationForSift(
-  applicationId: String,
-  applicationStatus: ApplicationStatus,
-  currentSchemeStatus: Seq[SchemeEvaluationResult]
-)
+import scala.concurrent.Future
 
-object ApplicationForSift {
-  implicit val applicationForSiftFormat = Json.format[ApplicationForSift]
+object ScalaMockImplicits {
+
+  implicit class CallHandlerExtension[A](val base: CallHandler[Future[A]]) extends AnyVal {
+    def returningAsync(a: A): CallHandler[Future[A]] =
+      base.returning(Future.successful(a))
+  }
+
+  implicit class CallHandlerUnit(val base: CallHandler[Future[Unit]]) extends AnyVal {
+    def returningAsync: CallHandler[Future[Unit]] =
+      base.returning(Future.successful(()))
+  }
 }

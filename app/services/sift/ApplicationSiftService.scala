@@ -17,6 +17,7 @@
 package services.sift
 
 import common.FutureEx
+import factories.DateTimeFactory
 import model.{ Commands, ProgressStatuses, SchemeId, SerialUpdateResult }
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
@@ -33,6 +34,7 @@ object ApplicationSiftService extends ApplicationSiftService {
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
   val schemeRepo = SchemeYamlRepository
+  val dateTimeFactory = DateTimeFactory
 }
 
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
@@ -75,13 +77,17 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
       val action = s"Sifting application for ${result.schemeId.value}"
       val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => currentSchemeStatus.map(_.schemeId).contains(s))
-
       val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
+      play.api.Logger.error(s"\n\nSIFTABLE SCHEMES $candidatesSiftableSchemes")
+      play.api.Logger.error(s"\n\nSIFTED SCHEMES $siftedSchemes")
 
       val mergedUpdate = Seq(
         BSONDocument("$set" -> currentSchemeStatusBSON(newSchemeStatus)),
         maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
       ).foldLeft(siftBson) { (acc, doc) => acc ++ doc }
+
+      play.api.Logger.error(s"\n\nBSON ${BSONDocument.pretty(mergedUpdate)}")
+      play.api.Logger.error(s"\n\nBSON ${BSONDocument.pretty(predicate)}")
 
       applicationSiftRepo.update(applicationId, predicate, mergedUpdate, action)
     }) flatMap identity

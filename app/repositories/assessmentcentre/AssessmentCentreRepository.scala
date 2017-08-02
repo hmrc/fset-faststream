@@ -33,13 +33,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.implicitConversions
 
 trait AssessmentCentreRepository {
-  def dateTime: DateTimeFactory
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]]
   def progressToAssessmentCentre(application: ApplicationForFsac, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
 }
 
 class AssessmentCentreMongoRepository (
-  val dateTime: DateTimeFactory,
+  val dateTimeFactory: DateTimeFactory,
   val siftableSchemeIds: Seq[SchemeId]
 )(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationForSift, BSONObjectID](CollectionNames.APPLICATION, mongo,
