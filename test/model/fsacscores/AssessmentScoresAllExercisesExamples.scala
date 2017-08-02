@@ -17,6 +17,7 @@
 package model.assessmentscores
 
 import model.UniqueIdentifier
+import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 
 
 object AssessmentScoresAllExercisesExamples {
@@ -27,45 +28,47 @@ object AssessmentScoresAllExercisesExamples {
   val AppId5 = UniqueIdentifier.randomUniqueIdentifier
   val AppId6 = UniqueIdentifier.randomUniqueIdentifier
 
-  val OnlyAnalysisExercise = AssessmentScoresAllExercises(
+  val AssessorOnlyAnalysisExercise = AssessmentScoresAllExercises(
     AppId1,
     Some(AssessmentScoresExerciseExamples.Example1),
     None,
     None
   )
 
-  val OnlyGroupExercise = AssessmentScoresAllExercises(
+  val AssessorOnlyGroupExercise = AssessmentScoresAllExercises(
     AppId2,
     None,
     Some(AssessmentScoresExerciseExamples.Example2),
     None
   )
 
-  val OnlyLeadershipExercise = AssessmentScoresAllExercises(
+  val AssessorOnlyLeadershipExercise = AssessmentScoresAllExercises(
     AppId3,
     None,
     None,
     Some(AssessmentScoresExerciseExamples.Example3)
   )
 
-  val AllButAnalysisExercise = AssessmentScoresAllExercises(
+  val AssessorAllButAnalysisExercise = AssessmentScoresAllExercises(
     AppId4,
     None,
     Some(AssessmentScoresExerciseExamples.Example2),
-    Some(AssessmentScoresExerciseExamples.Example3)
+    Some(AssessmentScoresExerciseExamples.Example3),
+    Some(AssessmentScoresFinalFeedbackExamples.Example1)
   )
 
-  val NoExercises = AssessmentScoresAllExercises(
+  val AssessorNoExercises = AssessmentScoresAllExercises(
     AppId5,
     None,
     None,
     None
   )
 
-  val AllExercises = AssessmentScoresAllExercises(
+  val AssessorAllExercises = AssessmentScoresAllExercises(
     AppId6,
     Some(AssessmentScoresExerciseExamples.Example1),
     Some(AssessmentScoresExerciseExamples.Example2),
-    Some(AssessmentScoresExerciseExamples.Example3)
+    Some(AssessmentScoresExerciseExamples.Example3),
+    Some(AssessmentScoresFinalFeedbackExamples.Example1)
   )
 }

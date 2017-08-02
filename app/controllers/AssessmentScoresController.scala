@@ -31,25 +31,6 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AssessorAssessmentScoresController extends AssessmentScoresController {
-  val service: AssessmentScoresService = AssessorAssessmentScoresService
-  val auditService: AuditService = AuditService
-  val repository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
-  val AssessmentScoresAllExercisesSaved = "AssessorAssessmentScoresAllExercisesSaved"
-  val AssessmentScoresOneExerciseSaved = "AssessorAssessmentScoresOneExerciseSaved"
-  val UserIdForAudit = "reviewerId"
-}
-
-object ReviewerAssessmentScoresController extends AssessmentScoresController {
-  val service: AssessmentScoresService = ReviewerAssessmentScoresService
-  val auditService: AuditService = AuditService
-  val repository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
-  val AssessmentScoresAllExercisesSaved = "ReviewerAssessmentScoresAllExercisesSaved"
-  val AssessmentScoresOneExerciseSaved = "ReviewerAssessmentScoresOneExerciseSaved"
-  val UserIdForAudit = "assessorId"
-}
-
-
 trait AssessmentScoresController extends BaseController {
   val service: AssessmentScoresService
   val auditService: AuditService
@@ -129,4 +110,22 @@ trait AssessmentScoresController extends BaseController {
       Ok(Json.toJson(scores))
     }
   }
+}
+
+object AssessorAssessmentScoresController extends AssessmentScoresController {
+  val service: AssessmentScoresService = AssessorAssessmentScoresService
+  val auditService: AuditService = AuditService
+  val repository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
+  val AssessmentScoresAllExercisesSaved = "AssessorAssessmentScoresAllExercisesSaved"
+  val AssessmentScoresOneExerciseSaved = "AssessorAssessmentScoresOneExerciseSaved"
+  val UserIdForAudit = "reviewerId"
+}
+
+object ReviewerAssessmentScoresController extends AssessmentScoresController {
+  val service: AssessmentScoresService = ReviewerAssessmentScoresService
+  val auditService: AuditService = AuditService
+  val repository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
+  val AssessmentScoresAllExercisesSaved = "ReviewerAssessmentScoresAllExercisesSaved"
+  val AssessmentScoresOneExerciseSaved = "ReviewerAssessmentScoresOneExerciseSaved"
+  val UserIdForAudit = "assessorId"
 }

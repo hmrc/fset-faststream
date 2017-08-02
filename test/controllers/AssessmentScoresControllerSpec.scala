@@ -82,7 +82,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val expectedResponse = AssessmentScoresFindResponse(
         RecordCandidateScores(appId, "firstName", "lastName", "venue",
           DateTimeFactory.nowLocalDate, UniqueIdentifier.randomUniqueIdentifier),
-        Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise))
+        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise))
       when(mockService.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)).thenReturn(
         Future.successful(expectedResponse))
 
@@ -105,7 +105,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val expectedResponse = List(AssessmentScoresFindResponse(
         RecordCandidateScores(appId, "firstName", "lastName", "venue",
           DateTimeFactory.nowLocalDate, sessionId),
-        Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
+        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
       when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(
         Future.successful(expectedResponse))
 
@@ -127,7 +127,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     val mockService = mock[AssessmentScoresService]
     val mockAssessmentScoresRepository = mock[AssessmentScoresRepository]
 
-    val appId = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise.applicationId
+    val appId = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.applicationId
     val sessionId = UniqueIdentifier.randomUniqueIdentifier
     val eventId = UniqueIdentifier.randomUniqueIdentifier
 

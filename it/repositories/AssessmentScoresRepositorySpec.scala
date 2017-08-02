@@ -46,7 +46,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  val FsacScores = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise
+  val FsacScores = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise
   val ApplicationId = FsacScores.applicationId
 
   "save" should {
@@ -91,7 +91,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
 
     "return all assessment scores when there are some" in {
-      val FsacScores2 = AssessmentScoresAllExercisesExamples.OnlyGroupExercise
+      val FsacScores2 = AssessmentScoresAllExercisesExamples.AssessorOnlyGroupExercise
 
       repository.save(FsacScores).futureValue
       repository.save(FsacScores2).futureValue
