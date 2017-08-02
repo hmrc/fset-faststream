@@ -27,12 +27,13 @@ import play.api.mvc.Results
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
-import testkit.{ ExtendedTimeout, FutureHelper }
+import testkit.{ ExtendedTimeout, FutureHelper, ScalaMockUnitSpec }
+import testkit.ScalaMockImplicits._
 
 import scala.concurrent.Future
 
-class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Results with ScalaFutures with FutureHelper with MockFactory
-  with ExtendedTimeout {
+class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
+
   "progress candidates to assessment centre" must {
     "progress candidates to assessment centre, attempting all despite errors" in new TestFixture {
       progressToAssessmentCentreMocks
@@ -67,7 +68,7 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
       (mockAssessmentCentreRepo.updateTests _).expects("appId1", assessmentCentreTestsWithTests).returningAsync
 
       whenReady(service.updateAnalysisTest("appId1", "fileId1")) { results =>
-         results mustBe (())
+         results mustBe unit
       }
     }
 
@@ -89,12 +90,13 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
     }
 
     val applicationsToProgressToSift = List(
-      ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
-      ApplicationForFsac("appId2", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
-      ApplicationForFsac("appId3", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil))
+      ApplicationForFsac("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
+      ApplicationForFsac("appId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
+      ApplicationForFsac("appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
+    )
 
     def progressToAssessmentCentreMocks = {
       (mockAssessmentCentreRepo.progressToAssessmentCentre _)
