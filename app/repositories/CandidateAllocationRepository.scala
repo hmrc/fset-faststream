@@ -34,7 +34,8 @@ trait CandidateAllocationRepository {
   def save(allocations: Seq[CandidateAllocation]): Future[Unit]
   def findNoShowAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]]
   def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]]
-  def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]]
+  def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]
+  def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]]
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit]
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit]
 }
