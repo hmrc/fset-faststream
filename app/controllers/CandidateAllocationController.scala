@@ -17,12 +17,14 @@
 package controllers
 
 import model.Exceptions.OptimisticLockException
-import model.persisted.CandidateAllocation
+import model.persisted.{ CandidateAllocation, eventschedules }
+import model.persisted.eventschedules.EventType.EventType
 import model.{ command, exchange }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import services.allocation.CandidateAllocationService
 import uk.gov.hmrc.play.microservice.controller.BaseController
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
@@ -82,6 +84,14 @@ trait CandidateAllocationController extends BaseController {
   def candidateAllocationsSummary(applicationId: String) = Action.async { implicit request =>
     candidateAllocationService.getCandidateAllocationsSummary(Seq(applicationId)) map {
       res => Ok(Json.toJson(res))
+    }
+  }
+
+  def findSessionsForApplication(applicationId: String, sessionEventType: EventType): Action[AnyContent] = Action.async { implicit request =>
+    candidateAllocationService.getSessionsForApplication(applicationId, sessionEventType).map { eventSessionMap =>
+      val eventSessions: List[eventschedules.Event] = eventSessionMap.map(event => eventschedules.Event(model.exchange.Event(event)))
+
+      Ok(Json.toJson(eventSessions))
     }
   }
 
