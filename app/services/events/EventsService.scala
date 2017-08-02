@@ -61,6 +61,10 @@ trait EventsService {
     eventsRepo.getEvents(Some(eventType), Some(venue))
   }
 
+  def getEvents(ids: List[String], eventType: EventType): Future[List[Event]] = {
+    eventsRepo.getEventsById(ids, Some(eventType))
+  }
+
   def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
     getEvents(eventType, venue).flatMap { events =>
       val res = events.map { event =>

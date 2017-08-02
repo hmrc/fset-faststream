@@ -91,5 +91,18 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       val result = repository.getEvent("fakeid").failed.futureValue
       result mustBe a[EventNotFoundException]
     }
+
+    "return multiple events by Id" in {
+      val result = repository.getEventsById(EventExamples.EventsNew.map(_.id)).futureValue
+      result mustBe EventExamples.EventsNew
+    }
+
+    "return multiple events by Id with filter on event type" in {
+      val result = repository.getEventsById(
+        EventExamples.EventsNew.map(_.id),
+        Some(EventType.TELEPHONE_INTERVIEW)
+      ).futureValue
+      result mustBe EventExamples.EventsNew.filter(_.eventType == EventType.TELEPHONE_INTERVIEW)
+    }
   }
 }

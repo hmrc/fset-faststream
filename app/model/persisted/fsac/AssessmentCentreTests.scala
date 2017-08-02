@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package mocks
+package model.persisted.fsac
 
-import repositories.FrameworkRepository
-import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
+import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.Macros
 
-import scala.concurrent.Future
+case class AssessmentCentreTests(
+  analysisExercise: Option[AnalysisExercise] = None
+)
 
-object FrameworkInMemoryRepository extends FrameworkRepository {
-  override def getFrameworksByRegion = Future.successful(List(
-    Region("Winter", List(
-      Location("Wonder", List(
-        Framework("Land", CandidateHighestQualification.GCSE)
-      )),
-      Location("Wonderful", List(
-        Framework("Land", CandidateHighestQualification.GCSE)
-      ))
-    ))
-  ))
-
+object AssessmentCentreTests {
+  implicit val assessmentCentreTestsFormat: OFormat[AssessmentCentreTests] = Json.format[AssessmentCentreTests]
+  implicit val assessmentCentreTestsHandler = Macros.handler[AssessmentCentreTests]
 }
