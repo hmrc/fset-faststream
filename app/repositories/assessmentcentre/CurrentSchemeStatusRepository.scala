@@ -44,7 +44,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait CurrentSchemeStatusRepository {
-
   def getTestGroup(applicationId: UniqueIdentifier): Future[Option[Phase3TestGroup]]
 }
 
