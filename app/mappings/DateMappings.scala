@@ -16,10 +16,16 @@
 
 package mappings
 
-import org.joda.time.LocalDate
+import org.joda.time.{ LocalDate, Years }
 import play.api.data.Forms._
 import play.api.data.Mapping
+import play.api.data.format.Formatter
 import play.api.data.validation.{ Constraint, Invalid, Valid, ValidationError }
+import play.api.data.FormError
+import play.api.data.format.Formatter
+import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 import scala.language.implicitConversions
 import scala.util.{ Success, Try }
@@ -58,4 +64,35 @@ object DayMonthYear {
     "month" -> text,
     "year" -> text
   )(DayMonthYear.apply)(DayMonthYear.unapply)
+}
+
+object Year {
+  type Year = String
+  // scalastyle:off line.size.limit
+  val yearPattern = """^([0-9]){4}$""".r
+  // scalastyle:on line.size.limit
+
+  def validYearConstraint: Constraint[Year] = Constraint[Year]("constraint.year") { year =>
+    yearPattern.pattern.matcher(year).matches match {
+      case true => Valid
+      case false if year.isEmpty => Invalid(ValidationError("error.year.required"))
+      case false => Invalid(ValidationError("error.year.invalid"))
+    }
+  }
+
+  def validateYear(year: String): Boolean = yearPattern.pattern.matcher(year).matches
+
+  val yearFormatter = new Formatter[Option[String]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      val year: Option[String] = data.get(key)
+
+      year match {
+        case None | Some("") => Left(List(FormError(key, "error.year.required")))
+        case Some(m) if !m.isEmpty && !Year.validateYear(m) => Left(List(FormError(key, "error.year.format")))
+        case _ => Right(year.map(_.trim))
+      }
+    }
+
+    override def unbind(key: String, value: Option[String]) = Map(key -> value.map(_.trim).getOrElse(""))
+  }
 }

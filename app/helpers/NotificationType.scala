@@ -39,7 +39,7 @@ object NotificationType extends Enumeration {
   // Shows a warning banner used for optional errors (if any) or important messages to the user e.g. deadline for applications is near
   object Warning extends NotificationType("warning")
 
-  // shows a info banner, for general information
+  // shows a info banner, for generalQuestions information
   object Info extends NotificationType("info")
 
   val all = Seq(Success, Danger, Warning, Info)

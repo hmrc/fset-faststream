@@ -65,6 +65,9 @@ package object forms {
   }
 
   // scalastyle:off cyclomatic.complexity
+
+
+
   def requiredFormatterWithValidationCheckAndSeparatePreferNotToSay(
         requiredKey: String,
         key: String,

@@ -16,7 +16,7 @@
 
 package controllers
 
-import _root_.forms.FastPassForm._
+import forms.FastPassForm._
 import _root_.forms.PersonalDetailsForm
 import config.CSRCache
 import connectors.ApplicationClient.PersonalDetailsNotFound

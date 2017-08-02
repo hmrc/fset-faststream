@@ -19,7 +19,9 @@ package models.page
 import connectors.events.{ Event, Session }
 import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
+import connectors.exchange.sift.SiftAnswersStatus
 import helpers.Timezones
+import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
 import models.{ CachedData, CachedDataWithApp, SchemeStatus }
 import org.joda.time.{ DateTime, LocalTime }
 
@@ -32,6 +34,7 @@ case class CurrentSchemeStatus(
 case class PostOnlineTestsPage(
   userDataWithApp: CachedDataWithApp,
   schemes: Seq[CurrentSchemeStatus],
+  additionalQuestionsStatus: Option[SiftAnswersStatus],
   assessmentCentreEvent: Option[Event],
   hasAnalysisExercise: Boolean
 ) {
@@ -39,14 +42,18 @@ case class PostOnlineTestsPage(
   def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Green)
   def failedSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Red)
   def withdrawnSchemes: Seq[Scheme] = schemes.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme}
+  def schemesForSiftForms: Seq[Scheme] = successfulSchemes.collect {
+    case s if s.scheme.siftRequirement.contains(SiftRequirement.FORM) => s.scheme }
 
-  val noSuccessfulSchemes = successfulSchemes.size
-  val noFailedSchemes = failedSchemes.size
-  val noWithdrawnSchemes = withdrawnSchemes.size
+  val noSuccessfulSchemes: Int = successfulSchemes.size
+  val noFailedSchemes: Int = failedSchemes.size
+  val noWithdrawnSchemes: Int = withdrawnSchemes.size
 
   val hasFormRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
   val hasNumericRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   val hasAssessmentCentreRequirement: Boolean = true
+
+  val haveAdditionalQuestionsBeenSubmitted: Boolean = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 
   private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {
     val minutes = localTime.toString("mm")
@@ -79,8 +86,14 @@ case class PostOnlineTestsPage(
 }
 
 object PostOnlineTestsPage {
-  def apply(userDataWithApp: CachedDataWithApp, phase3Results: Seq[SchemeEvaluationResult],
-    allSchemes: Seq[Scheme], assessmentCentreSession: Option[Event], hasAnalysisExercise: Boolean): PostOnlineTestsPage = {
+  def apply(
+    userDataWithApp: CachedDataWithApp,
+    phase3Results: Seq[SchemeEvaluationResult],
+    allSchemes: Seq[Scheme],
+    siftAnswersStatus: Option[SiftAnswersStatus],
+    assessmentCentreSession: Option[Event],
+    hasAnalysisExercise: Boolean
+  ): PostOnlineTestsPage = {
 
     val currentSchemes = phase3Results.flatMap { schemeResult =>
       allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
@@ -94,6 +107,6 @@ object PostOnlineTestsPage {
       }
     }
 
-    PostOnlineTestsPage(userDataWithApp, currentSchemes, assessmentCentreSession, hasAnalysisExercise)
+    PostOnlineTestsPage(userDataWithApp, currentSchemes, siftAnswersStatus, assessmentCentreSession, hasAnalysisExercise)
   }
 }

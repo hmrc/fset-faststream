@@ -16,7 +16,7 @@
 
 package connectors.exchange
 
-import models.{ Phase1TestProgress, Phase2TestProgress, Phase3TestProgress, Progress }
+import models._
 
 object ProgressExamples {
   val InitialProgress = Progress()
@@ -150,9 +150,13 @@ object ProgressExamples {
       phase3TestsResultsReceived = true,
       phase3TestsPassed = true
     ),
+    siftProgress = SiftProgress(
+      siftEntered = true,
+      allSchemesSiftCompleted = true
+    ),
     exported = false,
     updateExported = false,
-    AssessmentCentre(failedToAttend = true, scoresEntered = true, scoresAccepted = true, awaitingReevaluation = true,
+    assessmentCentre = AssessmentCentre(failedToAttend = true, scoresEntered = true, scoresAccepted = true, awaitingReevaluation = true,
       passed = true, passedNotified = true)
   )
 

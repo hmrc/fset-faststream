@@ -21,6 +21,7 @@ import java.util.UUID
 import connectors.ReferenceDataExamples._
 import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.SchemeId
+import connectors.exchange.sift.SiftAnswersStatus
 import controllers.UnitSpec
 import models.ApplicationData.ApplicationStatus
 import models._
@@ -45,7 +46,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResult(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
       Nil
 
-      val page = PostOnlineTestsPage.apply(userDataWithApp, phase3Results, Schemes.AllSchemes, None, hasAnalysisExercise = false)
+      val page = PostOnlineTestsPage.apply(userDataWithApp, phase3Results, Schemes.AllSchemes, None, None, hasAnalysisExercise = false)
 
       page.successfulSchemes mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
 

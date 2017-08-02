@@ -319,6 +319,14 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
 
   sealed class PdfReportNotFoundException extends Exception
 
+  sealed class SiftAnswersNotFound extends Exception
+
+  sealed class SchemeSpecificAnswerNotFound extends Exception
+
+  sealed class SiftAnswersIncomplete extends Exception
+
+  sealed class SiftAnswersSubmitted extends Exception
+
   sealed class TestForTokenExpiredException extends Exception
 
   sealed class CandidateAlreadyHasAnAnalysisExerciseException extends Exception
