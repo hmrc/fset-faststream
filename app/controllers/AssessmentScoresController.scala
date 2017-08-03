@@ -19,7 +19,7 @@ package controllers
 import model.Exceptions.EventNotFoundException
 import model.assessmentscores._
 import model.UniqueIdentifier
-import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresSubmitRequest }
+import model.command.AssessmentScoresCommands._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.Action
@@ -31,25 +31,6 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AssessorAssessmentScoresController extends AssessmentScoresController {
-  val service: AssessmentScoresService = AssessorAssessmentScoresService
-  val auditService: AuditService = AuditService
-  val repository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
-  val AssessmentScoresAllExercisesSaved = "AssessorAssessmentScoresAllExercisesSaved"
-  val AssessmentScoresOneExerciseSaved = "AssessorAssessmentScoresOneExerciseSaved"
-  val UserIdForAudit = "reviewerId"
-}
-
-object ReviewerAssessmentScoresController extends AssessmentScoresController {
-  val service: AssessmentScoresService = ReviewerAssessmentScoresService
-  val auditService: AuditService = AuditService
-  val repository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
-  val AssessmentScoresAllExercisesSaved = "ReviewerAssessmentScoresAllExercisesSaved"
-  val AssessmentScoresOneExerciseSaved = "ReviewerAssessmentScoresOneExerciseSaved"
-  val UserIdForAudit = "assessorId"
-}
-
-
 trait AssessmentScoresController extends BaseController {
   val service: AssessmentScoresService
   val auditService: AuditService
@@ -59,7 +40,7 @@ trait AssessmentScoresController extends BaseController {
   val AssessmentScoresOneExerciseSaved: String
   val UserIdForAudit: String
 
-  def submit() = Action.async(parse.json) {
+  def submitExercise() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[AssessmentScoresSubmitRequest] { submitRequest =>
         val assessmentExerciseType = AssessmentExerciseType.withName(submitRequest.exercise)
@@ -72,6 +53,22 @@ trait AssessmentScoresController extends BaseController {
             "applicationId" -> submitRequest.applicationId.toString(),
             "exercise" -> assessmentExerciseType.toString,
             UserIdForAudit -> submitRequest.scoresAndFeedback.updatedBy.toString())
+          auditService.logEvent(AssessmentScoresOneExerciseSaved, auditDetails)
+        }.map (_ => Ok)
+      }
+  }
+
+  def submitFinalFeedback() = Action.async(parse.json) {
+    implicit request =>
+      withJsonBody[AssessmentScoresFinalFeedbackSubmitRequest] { submitRequest =>
+        service.saveFinalFeedback(
+          submitRequest.applicationId,
+          submitRequest.finalFeedback
+        ).map { _ =>
+          val auditDetails = Map(
+            "applicationId" -> submitRequest.applicationId.toString(),
+            "exercise" -> "finalFeedback",
+            UserIdForAudit -> submitRequest.finalFeedback.updatedBy.toString())
           auditService.logEvent(AssessmentScoresOneExerciseSaved, auditDetails)
         }.map (_ => Ok)
       }
@@ -129,4 +126,22 @@ trait AssessmentScoresController extends BaseController {
       Ok(Json.toJson(scores))
     }
   }
+}
+
+object AssessorAssessmentScoresController extends AssessmentScoresController {
+  val service: AssessmentScoresService = AssessorAssessmentScoresService
+  val auditService: AuditService = AuditService
+  val repository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
+  val AssessmentScoresAllExercisesSaved = "AssessorAssessmentScoresAllExercisesSaved"
+  val AssessmentScoresOneExerciseSaved = "AssessorAssessmentScoresOneExerciseSaved"
+  val UserIdForAudit = "reviewerId"
+}
+
+object ReviewerAssessmentScoresController extends AssessmentScoresController {
+  val service: AssessmentScoresService = ReviewerAssessmentScoresService
+  val auditService: AuditService = AuditService
+  val repository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
+  val AssessmentScoresAllExercisesSaved = "ReviewerAssessmentScoresAllExercisesSaved"
+  val AssessmentScoresOneExerciseSaved = "ReviewerAssessmentScoresOneExerciseSaved"
+  val UserIdForAudit = "assessorId"
 }
