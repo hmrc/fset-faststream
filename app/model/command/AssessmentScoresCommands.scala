@@ -16,7 +16,7 @@
 
 package model.command
 
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
+import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
 import model.UniqueIdentifier
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json._
@@ -59,6 +59,14 @@ object AssessmentScoresCommands {
   )
   object AssessmentScoresSubmitRequest {
     implicit val jsonFormat: Format[AssessmentScoresSubmitRequest] = Json.format[AssessmentScoresSubmitRequest]
+  }
+
+  case class AssessmentScoresFinalFeedbackSubmitRequest(
+                                            applicationId: UniqueIdentifier,
+                                            finalFeedback: AssessmentScoresFinalFeedback
+                                          )
+  object AssessmentScoresFinalFeedbackSubmitRequest {
+    implicit val jsonFormat: Format[AssessmentScoresFinalFeedbackSubmitRequest] = Json.format[AssessmentScoresFinalFeedbackSubmitRequest]
   }
 
   case class AssessmentScoresFindResponse(candidate: RecordCandidateScores, scoresAndFeedback: Option[AssessmentScoresAllExercises])

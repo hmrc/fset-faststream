@@ -17,7 +17,7 @@
 package services.assessmentscores
 
 import factories.DateTimeFactory
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
+import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
 import model.{ ProgressStatuses, UniqueIdentifier }
 import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
 import model.persisted.eventschedules.Event
@@ -83,6 +83,24 @@ trait AssessmentScoresService {
     })
   }
 
+  def saveFinalFeedback(applicationId: UniqueIdentifier,
+                        newFinalFeedback: AssessmentScoresFinalFeedback): Future[Unit] = {
+    def updateAllExercisesWithFinalFeedback(oldAllExercisesScores: AssessmentScoresAllExercises,
+                                            newFinalFeedbackWithSubmittedDate: AssessmentScoresFinalFeedback) = {
+      oldAllExercisesScores.copy(finalFeedback = Some(newFinalFeedbackWithSubmittedDate))
+    }
+
+    (for {
+      oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
+      oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
+      newFinalFeedbackWithSubmittedDate = newFinalFeedback.copy(submittedDate = dateTimeFactory.nowLocalTimeZone)
+      newAllExercisesScores = updateAllExercisesWithFinalFeedback(oldAllExercisesScores, newFinalFeedbackWithSubmittedDate)
+      _ <- assessmentScoresRepository.save(newAllExercisesScores)
+      _ <- updateStatusIfNeeded(newAllExercisesScores)
+    } yield {
+      ()
+    })
+  }
 
   protected def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean
 

@@ -57,18 +57,27 @@ object AssessmentScoresAllExercisesExamples {
     Some(AssessmentScoresFinalFeedbackExamples.Example1)
   )
 
-  val AssessorNoExercises = AssessmentScoresAllExercises(
+  val NoExercises = AssessmentScoresAllExercises(
     AppId5,
+    None,
     None,
     None,
     None
   )
 
-  val AssessorAllExercises = AssessmentScoresAllExercises(
+  val AllExercises = AssessmentScoresAllExercises(
     AppId6,
     Some(AssessmentScoresExerciseExamples.Example1),
     Some(AssessmentScoresExerciseExamples.Example2),
     Some(AssessmentScoresExerciseExamples.Example3),
     Some(AssessmentScoresFinalFeedbackExamples.Example1)
+  )
+
+  val AllExercisesButFinalFeedback = AssessmentScoresAllExercises(
+    AppId6,
+    Some(AssessmentScoresExerciseExamples.Example1),
+    Some(AssessmentScoresExerciseExamples.Example2),
+    Some(AssessmentScoresExerciseExamples.Example3),
+    None
   )
 }
