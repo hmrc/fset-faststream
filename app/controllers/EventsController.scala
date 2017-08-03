@@ -96,6 +96,13 @@ trait EventsController extends BaseController {
     }
   }
 
+  def getAssessorAllocation(eventId: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.getAllocation(eventId, userId).map {
+      case Some(allocation) => Ok(Json.toJson(allocation))
+      case None => NotFound
+    }
+  }
+
   def allocateAssessor(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
