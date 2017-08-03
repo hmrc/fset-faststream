@@ -15,19 +15,20 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.junit.Assert._
 import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-import repositories.application.GeneralApplicationMongoRepository
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting._
 import repositories.passmarksettings._
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import services.GBTimeZoneService
+import services.sift.ApplicationSiftService
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future
 
 
-trait CommonRepository {
+trait CommonRepository extends CurrentSchemeStatusHelper {
   this: MongoRepositorySpec with ScalaFutures =>
 
   import reactivemongo.json.ImplicitBSONHandlers._
@@ -35,6 +36,11 @@ trait CommonRepository {
   val mockGatewayConfig = mock[CubiksGatewayConfig]
 
   val mockLaunchpadConfig = mock[LaunchpadGatewayConfig]
+
+  val European: SchemeId = SchemeId("European")
+  val Finance = SchemeId("Finance")
+  val DiplomaticService = SchemeId("Diplomatic Service")
+  val siftableSchemeDefinitions = List(European, Finance, DiplomaticService)
 
   def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, mockGatewayConfig)
 
@@ -60,9 +66,9 @@ trait CommonRepository {
 
   def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
 
-  def applicationSiftRepository(schemeDefinitions: List[SchemeId]) = new ApplicationSiftMongoRepository(DateTimeFactory, schemeDefinitions)
+  def applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, siftableSchemeDefinitions)
 
-  def assessmentCentreRepository(schemeDefinitions: List[SchemeId]) = new AssessmentCentreMongoRepository(DateTimeFactory, schemeDefinitions)
+  def assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, siftableSchemeDefinitions)
 
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
@@ -118,6 +124,14 @@ trait CommonRepository {
     phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None).futureValue
 
     updateApplicationStatus(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+  }
+
+  def insertApplicationWithSiftComplete(appId: String, results: Seq[SchemeEvaluationResult],
+    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+  ) = {
+    insertApplicationWithPhase3TestNotifiedResults(appId, results.toList, applicationRoute = applicationRoute).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED).futureValue
   }
 
   def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
