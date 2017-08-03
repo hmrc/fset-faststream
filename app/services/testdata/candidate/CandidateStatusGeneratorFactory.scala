@@ -31,8 +31,8 @@ import services.testdata.candidate.sift.SiftEnteredStatusGenerator
 
 object AdminStatusGeneratorFactory {
   def getGenerator(createData: CreateAdminData): AdminUserBaseGenerator = {
-    createData.role match {
-      case "assessor" => AssessorCreatedStatusGenerator
+    createData.roles match {
+      case createRoles: List[String] if createRoles.contains("assessor") => AssessorCreatedStatusGenerator
       case _ => AdminCreatedStatusGenerator
     }
   }

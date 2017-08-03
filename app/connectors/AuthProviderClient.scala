@@ -69,8 +69,8 @@ trait AuthProviderClient {
     }
 
   def addUser(email: String, password: String, firstName: String,
-              lastName: String, role: UserRole)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    WSHttp.POST(s"$url/add", AddUserRequest(email.toLowerCase, password, firstName, lastName, role.name, ServiceName)).map { response =>
+              lastName: String, roles: List[UserRole])(implicit hc: HeaderCarrier): Future[UserResponse] =
+    WSHttp.POST(s"$url/add", AddUserRequest(email.toLowerCase, password, firstName, lastName, roles.map(_.name), ServiceName)).map { response =>
       response.json.as[UserResponse]
     }.recover {
       case Upstream4xxResponse(_, CONFLICT, _, _) => throw EmailTakenException()

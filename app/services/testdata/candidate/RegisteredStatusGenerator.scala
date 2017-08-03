@@ -49,7 +49,8 @@ trait RegisteredStatusGenerator extends BaseGenerator {
   val assessorGenerator: AssessorCreatedStatusGenerator
 
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     val firstName = generatorConfig.personalData.firstName
     val lastName = generatorConfig.personalData.lastName
@@ -57,8 +58,9 @@ trait RegisteredStatusGenerator extends BaseGenerator {
     val email = s"${generatorConfig.personalData.emailPrefix}@mailinator.com"
     val mediaReferrer = Random.mediaReferrer
 
+    val roles = List(AuthProviderClient.CandidateRole)
     for {
-      user <- createUser(generationId, email, firstName, lastName, preferredName, AuthProviderClient.CandidateRole)
+      user <- createUser(generationId, email, firstName, lastName, preferredName, roles)
       _ <- medRepository.create(Media(user.userId, mediaReferrer.getOrElse("")))
 
     } yield {
@@ -67,14 +69,13 @@ trait RegisteredStatusGenerator extends BaseGenerator {
 
   }
 
-  def createUser(
-                  generationId: Int,
-                  email: String,
-                  firstName: String, lastName: String, preferredName: Option[String], role: AuthProviderClient.UserRole
-                )(implicit hc: HeaderCarrier) = {
+  def createUser(generationId: Int, email: String,
+                 firstName: String, lastName: String,
+                 preferredName: Option[String], roles: List[AuthProviderClient.UserRole])
+                (implicit hc: HeaderCarrier): Future[CreateCandidateResponse] = {
 
     val userFuture = for {
-      user <- authProviderClient.addUser(email, "Service01", firstName, lastName, role)
+      user <- authProviderClient.addUser(email, "Service01", firstName, lastName, roles)
       token <- authProviderClient.getToken(email)
       _ <- authProviderClient.activate(email, token)
     } yield {
@@ -83,7 +84,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
 
     val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)
     userFuture.flatMap {
-      case user if assessorRoles.contains(role) =>
+      case user if assessorRoles.contains(roles) =>
         assessorGenerator.createAssessor(user.userId,
           AssessorData(
             List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString, SkillType.SIFTER.toString),
