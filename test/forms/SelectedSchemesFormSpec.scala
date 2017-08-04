@@ -36,8 +36,6 @@ class SelectedSchemesFormSpec extends UnitWithAppSpec {
         "scheme_1" -> "GovernmentEconomicsService",
         "scheme_2" -> "Commercial",
         "scheme_3" -> "DigitalAndTechnology",
-        "scheme_4" -> "DiplomaticService",
-        "scheme_5" -> "GovernmentOperationalResearchService",
         "orderAgreed" -> "true",
         "eligible" -> "true"))
       form.hasErrors mustBe false
@@ -70,6 +68,20 @@ class SelectedSchemesFormSpec extends UnitWithAppSpec {
     "be invalid when eligibility criteria is not met by the candidate for selected scheme" in {
       val form = selectedSchemesForm.bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "true",
         "eligible" -> "false"))
+      form.hasErrors mustBe true
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when schemes exceed the maximum" in {
+      val form = selectedSchemesForm.bind(Map(
+        "scheme_0" -> "Finance",
+        "scheme_1" -> "GovernmentEconomicsService",
+        "scheme_2" -> "Commercial",
+        "scheme_3" -> "DigitalAndTechnology",
+        "scheme_4" -> "GovernmentDiplomaticService",
+        "scheme_5" -> "GovernmentDiplomaticServiceEconomicsService",
+        "orderAgreed" -> "true",
+        "eligible" -> "true"))
       form.hasErrors mustBe true
       form.hasGlobalErrors mustBe false
     }
