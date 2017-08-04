@@ -20,6 +20,7 @@ import connectors.events.{ Event, Session }
 import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import helpers.Timezones
+import models.page.PostOnlineTestsStage.PostOnlineTestsStage
 import models.{ CachedData, CachedDataWithApp, SchemeStatus }
 import org.joda.time.{ DateTime, LocalTime }
 
@@ -29,12 +30,33 @@ case class CurrentSchemeStatus(
   failedAtStage: Option[String]
 )
 
+
+object PostOnlineTestsStage extends Enumeration {
+  type PostOnlineTestsStage = Value
+  val FAILED_TO_ATTEND, CONFIRMED_FOR_EVENT, EVENT_BOOKED, EVENT_ATTENDED, OTHER = Value
+}
+
 case class PostOnlineTestsPage(
   userDataWithApp: CachedDataWithApp,
   schemes: Seq[CurrentSchemeStatus],
   assessmentCentreEvent: Option[Event],
   hasAnalysisExercise: Boolean
 ) {
+
+  def stage: PostOnlineTestsStage = {
+    import PostOnlineTestsStage._
+    val failedToAttend = userDataWithApp.application.progress.assessmentCentre.failedToAttend
+
+
+    (failedToAttend, assessmentCentreStarted, allocatedToAssessmentCentre, hasAnalysisExercise) match {
+      case (true, _, _, _) => FAILED_TO_ATTEND
+      case (_, true, true, false) => CONFIRMED_FOR_EVENT
+      case (_, false, true, false) => EVENT_BOOKED
+      case (_, true, true, true) => EVENT_ATTENDED
+      case _ => OTHER
+    }
+  }
+
   def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
   def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Green)
   def failedSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Red)

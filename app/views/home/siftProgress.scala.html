@@ -1,4 +1,5 @@
 @import helper._
+@import models.page.PostOnlineTestsStage
 
 @(page: models.page.PostOnlineTestsPage)(implicit request: Request[_])
 
@@ -29,8 +30,18 @@
     <h2 class="heading-medium ">Attend an assessment centre</h2>
 
     <div id="assessmentBlurb">
-        @(page.assessmentCentreStarted, page.allocatedToAssessmentCentre, page.hasAnalysisExercise) match {
-            case (true, true, false) => {
+        @(page.stage) match {
+            case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
+                <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                    Important</p>
+                <div id="assessmentFailedToAttend">
+                    <p>Unfortunately, you have not attended assessment centre event.</p>
+                    <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>.</p>
+                    <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
+                        site for more opportunities with us.</p>
+                </div>
+            }
+            case (PostOnlineTestsStage.CONFIRMED_FOR_EVENT) => {
                 <p>
                     @page.assessmentCentreStartDateAndTime,
                     <br />
@@ -53,13 +64,13 @@
                     Find out more about the assessment day</a>
                 </p>
             }
-            case (false, true, false) => {
+            case (PostOnlineTestsStage.EVENT_BOOKED) => {
                 <p>Your assessment centre is booked</p>
                 <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
                     Find out more about the assessment day</a>
                 </p>
             }
-            case (true, true, true) => {
+            case (PostOnlineTestsStage.EVENT_ATTENDED) => {
                 <p>Thanks for attending the assessment centre.</p>
                 <p>We'll contact you as soon as we've got your result. Keep an eye on your email inbox, including your junk mail.</p>
             }

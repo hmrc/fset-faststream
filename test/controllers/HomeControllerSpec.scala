@@ -114,6 +114,9 @@ class HomeControllerSpec extends BaseControllerSpec {
         CachedDataExample.Phase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
 
       mockPostOnlineTestsDashboardCalls()
 
@@ -132,6 +135,10 @@ class HomeControllerSpec extends BaseControllerSpec {
         val applicationsSubmitEnabled = true
         val applicationsStartDate = None }
 
+
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
       val withdrawnPhase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.WithdrawnPhase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))

@@ -149,9 +149,10 @@ abstract class HomeController(
       assessmentCentreEvents <- applicationClient.eventWithSessionsForApplicationOnly(application.applicationId, EventType.FSAC)
       assessmentCentreEvent = assessmentCentreEvents.headOption // Candidate can only be assigned to one assessment centre event and session
       hasWrittenAnalysisExercise <- applicationClient.hasAnalysisExercise(application.applicationId)
+      updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
     } yield {
       val page = PostOnlineTestsPage(
-        CachedDataWithApp(cachedData.user, application),
+        CachedDataWithApp(updatedData.user, updatedData.application.getOrElse(application)),
         phase3Results.getOrElse(Nil), schemes, assessmentCentreEvent, hasWrittenAnalysisExercise
       )
 
