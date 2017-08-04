@@ -125,6 +125,14 @@ trait ApplicationController extends BaseController {
     }
   }
 
+  def getCurrentSchemeStatus(applicationId: String) = Action.async { implicit request =>
+    appRepository.getCurrentSchemeStatus(applicationId).map { schemeStatus =>
+      Ok(Json.toJson(schemeStatus))
+    } recover {
+      case _: PassMarkEvaluationNotFound => NotFound(s"No evaluation results found for applicationId: $applicationId")
+    }
+  }
+
   def considerForSdip(applicationId: String) = Action.async { implicit request =>
     applicationService.considerForSdip(applicationId).map { _ => Ok
     }.recover {

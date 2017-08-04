@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package model.command
+package factories
 
-import model.ApplicationStatus.ApplicationStatus
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.libs.json.Json
+import org.joda.time.{ DateTime, LocalDate }
 
-case class ApplicationForSift(
-  applicationId: String,
-  applicationStatus: ApplicationStatus,
-  currentSchemeStatus: Seq[SchemeEvaluationResult]
-)
-
-object ApplicationForSift {
-  implicit val applicationForSiftFormat = Json.format[ApplicationForSift]
+object DateTimeFactoryMock extends  DateTimeFactory {
+  val nowLocalTimeZone: DateTime = DateTime.now()
+  val nowLocalDate: LocalDate = LocalDate.now()
 }

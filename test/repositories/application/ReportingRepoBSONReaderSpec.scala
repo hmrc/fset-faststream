@@ -16,6 +16,7 @@
 
 package repositories.application
 
+import factories.DateTimeFactoryMock
 import model.ApplicationRoute.{ apply => _ }
 import model.BSONExamples
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
@@ -25,7 +26,9 @@ import testkit.UnitWithAppSpec
 
 class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
 
-  def bsonReader = new ReportingRepoBSONReader {}
+  def bsonReader = new ReportingRepoBSONReader {
+    def dateTimeFactory = DateTimeFactoryMock
+  }
 
   "toCandidateProgressReport" should {
     "return sdip candidate correctly" in new CandidateProgressReportFixture {

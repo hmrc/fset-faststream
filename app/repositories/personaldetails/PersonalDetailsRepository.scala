@@ -16,6 +16,7 @@
 
 package repositories.personaldetails
 
+import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
@@ -37,7 +38,7 @@ trait PersonalDetailsRepository {
   def find(appId: String): Future[PersonalDetails]
 }
 
-class PersonalDetailsMongoRepository(implicit mongo: () => DB)
+class PersonalDetailsMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[PersonalDetails, BSONObjectID](CollectionNames.APPLICATION, mongo, PersonalDetails.personalDetailsFormat,
     ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
   val PersonalDetailsCollection = "personal-details"

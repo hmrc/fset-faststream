@@ -2,7 +2,7 @@ package repositories.sift
 
 import model.EvaluationResults.{ Green, Red }
 import model.Phase3TestProfileExamples.phase3TestWithResult
-import model.ProgressStatuses.PHASE3_TESTS_PASSED
+import model.ProgressStatuses.{ PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_NOTIFIED }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
@@ -19,60 +19,54 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   val collectionName: String = CollectionNames.APPLICATION
 
   val Commercial: SchemeId = SchemeId("Commercial")
-  val European: SchemeId = SchemeId("European")
   val Sdip: SchemeId = SchemeId("Sdip")
   val Generalist: SchemeId = SchemeId("Generalist")
   val ProjectDelivery = SchemeId("Project Delivery")
-  val Finance = SchemeId("Finance")
   val schemeDefinitions = List(Commercial, ProjectDelivery, Generalist)
 
-  def repository: ApplicationSiftMongoRepository = applicationSiftRepository(schemeDefinitions)
+  def repository: ApplicationSiftMongoRepository = applicationSiftRepository
 
   "next Application for sift" should {
     "ignore applications in incorrect statuses and return only the Phase3 Passed_Notified applications that are eligible for sift" in {
       insertApplicationWithPhase3TestNotifiedResults("appId1",
-        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId2",
         List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))).futureValue
-      updateApplicationStatus("appId2", ApplicationStatus.PHASE3_TESTS_PASSED)
+      updateApplicationStatus("appId2", ApplicationStatus.PHASE3_TESTS_FAILED)
 
       insertApplicationWithPhase3TestNotifiedResults("appId3",
-        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))).futureValue
-      updateApplicationStatus("appId3", ApplicationStatus.PHASE3_TESTS_FAILED)
+        List(SchemeEvaluationResult(European, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId4",
-        List(SchemeEvaluationResult(ProjectDelivery, EvaluationResults.Green.toString))).futureValue
-
-      insertApplicationWithPhase3TestNotifiedResults("appId5",
         List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
 
-      insertApplicationWithPhase3TestNotifiedResults("appId6",
+      insertApplicationWithPhase3TestNotifiedResults("appId5",
         List(SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString))).futureValue
 
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
-      appsForSift must contain(
-        ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")))
+      appsForSift must contain theSameElementsAs List(
+        ApplicationForSift("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))),
+        ApplicationForSift("appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(European, EvaluationResults.Green.toString))),
+        ApplicationForSift("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)))
       )
 
-      appsForSift must contain(
-        ApplicationForSift("appId4", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)), "", Some("")))
-      )
-
-      appsForSift.size mustBe 2
+      appsForSift.size mustBe 3
     }
 
     ("return no results when there are only phase 3 applications that aren't in Passed_Notified which apply for sift or don't have Green/Passed "
        + "results") in {
-      insertApplicationWithPhase3TestNotifiedResults("appId7",
-        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
+      insertApplicationWithPhase3TestResults("appId7", None,
+        PassmarkEvaluation("1", None, List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)), "1", None))(Finance)
+
       insertApplicationWithPhase3TestNotifiedResults("appId8",
         List(SchemeEvaluationResult(Generalist, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId8", ApplicationStatus.PHASE3_TESTS_FAILED)
       insertApplicationWithPhase3TestNotifiedResults("appId9",
-        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Red.toString))).futureValue
       insertApplicationWithPhase3TestNotifiedResults("appId10",
         List(SchemeEvaluationResult(ProjectDelivery, EvaluationResults.Red.toString))).futureValue
 
@@ -135,12 +129,12 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     insertApplication(appId,
       ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
       Some(phase3TestWithResult),
-      schemes = List(Commercial, Sdip, European),
+      schemes = List(Commercial, European),
       phase2Evaluation = Some(phase2Evaluation))
 
     val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
       "phase3_version1-res", Some("phase2_version1-res"))
     phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3Evaluation, Some(PHASE3_TESTS_PASSED)).futureValue
-    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_SCHEMES_SIFT_FORMS_SUBMITTED).futureValue
   }
 }

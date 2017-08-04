@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package model.command
+package services.sift
 
-import model.ApplicationStatus.ApplicationStatus
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.libs.json.Json
+import testkit.UnitWithAppSpec
 
-case class ApplicationForSift(
-  applicationId: String,
-  applicationStatus: ApplicationStatus,
-  currentSchemeStatus: Seq[SchemeEvaluationResult]
-)
+class SiftAnswersServiceSpec extends UnitWithAppSpec {
 
-object ApplicationForSift {
-  implicit val applicationForSiftFormat = Json.format[ApplicationForSift]
 }
