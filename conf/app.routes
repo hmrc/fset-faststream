@@ -161,7 +161,7 @@ GET         /assessment-scores/assessor                                         
 
 # reviewer assessment scores
 POST        /assessment-scores/reviewer/submit-exercise                                       controllers.ReviewerAssessmentScoresController.submitExercise()
-POST        /assessment-scores/assessor/submit-final-feedback                                 controllers.AssessorAssessmentScoresController.submitFinalFeedback()
+POST        /assessment-scores/reviewer/submit-final-feedback                                 controllers.AssessorAssessmentScoresController.submitFinalFeedback()
 POST        /assessment-scores/reviewer/save                                                  controllers.ReviewerAssessmentScoresController.save()
 GET         /assessment-scores/reviewer/with-candidate-summary/application/:applicationId     controllers.ReviewerAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
 GET         /assessment-scores/reviewer/with-candidate-summary/event/:eventId                 controllers.ReviewerAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
