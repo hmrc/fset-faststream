@@ -17,7 +17,7 @@
 package repositories.application
 
 import _root_.services.testdata.TestDataGeneratorService
-import factories.UUIDFactory
+import factories.{ DateTimeFactoryMock, UUIDFactory }
 import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model._
 import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
@@ -29,22 +29,22 @@ import model.command.{ ProgressResponse, WithdrawApplication }
 import model.persisted._
 import model.testdata.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
-import repositories.{ CollectionNames, CommonBSONDocuments }
+import repositories.CollectionNames
 import _root_.services.testdata.candidate.CandidateStatusGeneratorFactory
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Await
 
-class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
+class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   val frameworkId = "FastStream-2016"
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new ReportingMongoRepository(GBTimeZoneService)
+  def repository = new ReportingMongoRepository(GBTimeZoneService, DateTimeFactoryMock)
 
-  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
 
   def testDataRepo = new TestDataMongoRepository()
 

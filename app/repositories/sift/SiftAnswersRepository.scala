@@ -51,7 +51,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       val query = BSONDocument("applicationId" -> applicationId)
       val validator = singleUpsertValidator(applicationId, "adding scheme specific answer")
 
-      findSiftAnswers(applicationId).map { result =>
+      findSiftAnswers(applicationId).flatMap { result =>
         val updatedSiftAnswers: SiftAnswers = result match {
           case Some(existing) => existing.copy(schemeAnswers = existing.schemeAnswers + (schemeId.value -> answer))
           case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, None, Map(schemeId.value -> answer))
@@ -71,7 +71,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       val query = BSONDocument("applicationId" -> applicationId)
       val validator = singleUpsertValidator(applicationId, actionDesc = "adding general answers")
 
-      findSiftAnswers(applicationId).map { result =>
+      findSiftAnswers(applicationId).flatMap { result =>
         val updatedSiftAnswers: SiftAnswers = result match {
           case Some(existing) => existing.copy(generalAnswers = Some(answers))
           case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, Some(answers), Map.empty)
@@ -137,7 +137,8 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       } toSeq))))
       val validator = singleUpdateValidator(applicationId, actionDesc = "Submitting sift answers",
         SiftAnswersIncomplete(
-          s"""Additional questions missing general or scheme specific (${requiredSchemes.map(_.value).mkString(", ")}) answers"""))
+          s"Additional questions missing general or scheme specific " +
+             s"(${requiredSchemes.map(_.value).mkString(", ")}) answers for $applicationId"))
 
       collection.update(
         query,

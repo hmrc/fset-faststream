@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package repositories
+package testkit
 
-import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.{ BSONDocument, BSONString }
+import org.scalamock.handlers.CallHandler
 
-trait CumulativeEvaluationHelper {
-  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]): BSONDocument = {
-    BSONDocument(latestResults.map(ser => s"cumulativeEvaluation.${ser.schemeId.value}" -> BSONString(ser.result)))
+import scala.concurrent.Future
+
+object ScalaMockImplicits {
+
+  implicit class CallHandlerExtension[A](val base: CallHandler[Future[A]]) extends AnyVal {
+    def returningAsync(a: A): CallHandler[Future[A]] =
+      base.returning(Future.successful(a))
+  }
+
+  implicit class CallHandlerUnit(val base: CallHandler[Future[Unit]]) extends AnyVal {
+    def returningAsync: CallHandler[Future[Unit]] =
+      base.returning(Future.successful(()))
   }
 }

@@ -21,6 +21,7 @@ import java.util.regex.Pattern
 
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
 import config.CubiksGatewayConfig
+import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Commands._
@@ -133,12 +134,16 @@ trait GeneralApplicationRepository {
   def resetApplicationAllocationStatus(applicationId: String): Future[Unit]
 
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
+
+  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
 }
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
-class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
-                                        gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
+class GeneralApplicationMongoRepository(
+  val dateTimeFactory: DateTimeFactory,
+  gatewayConfig: CubiksGatewayConfig
+)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
@@ -179,6 +184,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       case None => throw ApplicationNotFound(applicationId)
     }
   }
+  
+  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
+    collection.find(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument("_id" -> 0, "currentSchemeStatus" -> 1)
+    ).one[BSONDocument].map(_.flatMap{ doc =>
+      doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus")
+    }.getOrElse(Nil))
+  }
 
   def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -190,6 +204,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "submissionDeadline" -> 1,
       "_id" -> 0
     )
+
+
 
     def progressStatusDateFallback(applicationStatus: ApplicationStatus, document: BSONDocument) = {
       document.getAs[BSONDocument]("progress-status-dates")

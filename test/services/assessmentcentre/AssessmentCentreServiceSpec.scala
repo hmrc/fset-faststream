@@ -17,7 +17,7 @@
 package services.assessmentcentre
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.EvaluationResults.{ CompetencyAverageResult, AssessmentEvaluationResult, Green }
+import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult, Green }
 import model._
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.command.ApplicationForFsac
@@ -37,12 +37,12 @@ import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentScheme
 import services.evaluation.AssessmentCentreEvaluationEngine
 import services.passmarksettings.PassMarkSettingsService
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
-import testkit.{ ExtendedTimeout, FutureHelper }
+import testkit.{ ExtendedTimeout, FutureHelper, ScalaMockUnitSpec }
+import testkit.ScalaMockImplicits._
 
 import scala.concurrent.Future
 
-class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Results with ScalaFutures with FutureHelper with MockFactory
-  with ExtendedTimeout {
+class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
   "progress candidates to assessment centre" must {
     "progress candidates to assessment centre, attempting all despite errors" in new TestFixture {
@@ -74,18 +74,16 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
     )
 
     "update when submissions are not present" in new TestFixture {
-      (mockAssessmentCentreRepo.getTests _).expects("appId1").returning(Future.successful(AssessmentCentreTests()))
-      (mockAssessmentCentreRepo.updateTests _).expects("appId1", assessmentCentreTestsWithTests).returning(Future.successful(()))
+      (mockAssessmentCentreRepo.getTests _).expects("appId1").returningAsync(AssessmentCentreTests())
+      (mockAssessmentCentreRepo.updateTests _).expects("appId1", assessmentCentreTestsWithTests).returningAsync
 
       whenReady(service.updateAnalysisTest("appId1", "fileId1")) { results =>
-         results mustBe (())
+         results mustBe unit
       }
     }
 
     "do not update when submissions are already present" in new TestFixture {
-      (mockAssessmentCentreRepo.getTests _).expects("appId1").returning(Future.successful(
-        assessmentCentreTestsWithTests
-      ))
+      (mockAssessmentCentreRepo.getTests _).expects("appId1").returningAsync(assessmentCentreTestsWithTests)
 
       whenReady(service.updateAnalysisTest("appId1", "fileId1").failed) { result =>
         result mustBe a[CandidateAlreadyHasAnAnalysisExerciseException]
@@ -199,12 +197,13 @@ class AssessmentCentreServiceSpec extends PlaySpec with OneAppPerSuite with Resu
     }
 
     val applicationsToProgressToSift = List(
-      ApplicationForFsac("appId1", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
-      ApplicationForFsac("appId2", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil),
-      ApplicationForFsac("appId3", PassmarkEvaluation("", Some(""),
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some("")), Nil))
+      ApplicationForFsac("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
+      ApplicationForFsac("appId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
+      ApplicationForFsac("appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
+    )
 
     def progressToAssessmentCentreMocks = {
       (mockAssessmentCentreRepo.progressToAssessmentCentre _)

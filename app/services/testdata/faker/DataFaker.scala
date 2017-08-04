@@ -778,6 +778,18 @@ abstract class DataFaker(schemeRepo: SchemeRepositoryImpl) {
       Await.result(venues, 1 second)
     }
   }
+
+  //scalastyle :off
+  val loremIpsum = """
+    |Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec bibendum odio ac dictum tincidunt. Pellentesque at suscipit metus. Phasellus ac ante at dolor eleifend tincidunt efficitur ut purus. Donec pharetra leo sed malesuada luctus. Proin ac egestas turpis. Vivamus aliquam nunc ac dapibus pharetra. Maecenas dignissim maximus ligula, eu rutrum odio malesuada ac. Fusce euismod lobortis pretium. Ut blandit commodo erat, porttitor eleifend nisl consectetur sed. Duis varius nisi sit amet elit convallis interdum.
+    |
+    |Nam et gravida leo. Maecenas non elementum justo. Praesent nec congue purus. Cras luctus vitae velit at cursus. Maecenas aliquet mauris pulvinar, scelerisque diam vel, tincidunt diam. Curabitur vulputate elementum nulla non rutrum. Sed consequat urna eget mi vestibulum, nec placerat urna tempor.
+    |
+    |Praesent nec nibh felis. Vestibulum porttitor, risus vitae ultrices facilisis, tortor dui elementum dui, nec bibendum tellus diam non nulla. Fusce sagittis quam non feugiat pellentesque. Sed ac auctor quam. Sed nec sem accumsan sem facilisis tincidunt convallis tincidunt ante. Ut mi lorem, consectetur quis magna id, congue molestie dui. Pellentesque auctor, mi molestie feugiat commodo, dui nisl ornare nisi, nec tincidunt erat lacus quis lorem. Nulla rutrum rutrum velit, nec sodales tellus molestie aca
+  """.stripMargin
+  //scalastyle :on
+
+
 }
 
 //scalastyle:on number.of.methods
