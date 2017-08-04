@@ -23,7 +23,6 @@ import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses
 import model.command.WithdrawApplication
-import play.api.Logger
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
 import play.api.mvc.{ Action, AnyContent }
@@ -173,7 +172,6 @@ trait ApplicationController extends BaseController {
       } yield {
         val source = Source.fromPublisher(Streams.enumeratorToPublisher(file.fileContents))
 
-        Logger.debug("========= Content Type = " + file.contentType)
         Ok.chunked(source).as(file.contentType)
       }
   }
