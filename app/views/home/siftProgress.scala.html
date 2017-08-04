@@ -44,6 +44,13 @@
     }
 }
 
+@renderPassedSectionOne = {
+    <div class="inner-block-padr" id="schemeForms">
+        <h2 class='heading-medium'>Extra information</h2>
+        <p>You've completed this section</p>
+    </div>
+}
+
 @renderAssessmentCentre = {
      <div class="inner-block-padr">
         <h2 class="heading-medium ">Attend an assessment centre</h2>
@@ -60,8 +67,12 @@
         @(page.hasFormRequirement, page.hasNumericRequirement, page.hasAssessmentCentreRequirement) match {
             case (true, true, true) => {
                 <li class="first-step">
-                    @renderSchemeForm
-                    @renderNumericTest
+                    @if(isSiftEntered(page.toCachedData)) {
+                        @renderSchemeForm
+                        @renderNumericTest
+                    } else {
+                        @renderPassedSectionOne
+                    }
                 </li>
                 <li class="second-step">
                     @renderAssessmentCentre
@@ -70,7 +81,11 @@
 
             case (true, false, true) => {
                 <li class="first-step">
-                    @renderSchemeForm
+                    @if(isSiftEntered(page.toCachedData)) {
+                        @renderSchemeForm
+                    } else {
+                        @renderPassedSectionOne
+                    }
                 </li>
                 <li class="second-step">
                     @renderAssessmentCentre
@@ -79,7 +94,11 @@
 
             case (false, true, true) => {
                 <li class="first-step">
-                    @renderNumericTest
+                    @if(isSiftEntered(page.toCachedData)) {
+                        @renderNumericTest
+                    } else {
+                        @renderPassedSectionOne
+                    }
                 </li>
                 <li class="second-step">
                     @renderAssessmentCentre

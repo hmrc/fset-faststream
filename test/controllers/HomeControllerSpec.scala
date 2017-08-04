@@ -22,7 +22,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples, SiftClient }
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.referencedata.SchemeId
+import connectors.exchange.referencedata.{ Scheme, SchemeId }
 import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.{ AssistanceDetailsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
 import forms.WithdrawApplicationFormExamples
@@ -88,7 +88,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       content must include("""<ol class="step-by-step-coloured disabled" id="sixSteps">""")
     }
 
-    "display faststream final scheme results page" in new TestFixture {
+    "display display post online tests page" in new TestFixture {
       val applicationRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
@@ -97,8 +97,13 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val phase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
+      when(mockApplicationClient.getCurrentSchemeStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        Scheme("DiplomaticService", "GDS", "Diplomatic Service", None, siftEvaluationRequired = true)
+      ))
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+          .thenReturnAsync(None)
 
       val result = controller(phase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
@@ -117,8 +122,13 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val withdrawnPhase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.WithdrawnPhase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
+      when(mockApplicationClient.getCurrentSchemeStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        Scheme("DiplomaticService", "GDS", "Diplomatic Service", None, siftEvaluationRequired = true)
+      ))
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+          .thenReturnAsync(None)
 
       val result = controller(withdrawnPhase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)

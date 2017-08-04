@@ -129,10 +129,10 @@ abstract class HomeController(
                                       request: Request[_], hc: HeaderCarrier) = {
     for {
       schemes <- refDataClient.allSchemes()
-      phase3Results <- applicationClient.getPhase3Results(application.applicationId)
+      currentSchemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
       siftAnswersStatus <- siftClient.getSiftAnswersStatus(application.applicationId)
     } yield {
-      val page = PostOnlineTestsPage(CachedDataWithApp(cachedData.user, application), phase3Results.getOrElse(Nil), schemes, siftAnswersStatus)
+      val page = PostOnlineTestsPage(CachedDataWithApp(cachedData.user, application), currentSchemeStatus, schemes, siftAnswersStatus)
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
   }
