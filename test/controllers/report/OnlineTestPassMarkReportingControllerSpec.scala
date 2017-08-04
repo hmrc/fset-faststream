@@ -85,11 +85,13 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
-      result must contain(OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItemExamples.application1,
-          QuestionnaireReportItemExamples.questionnaire1))
-      result must contain(OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItemExamples.application2,
-          QuestionnaireReportItemExamples.questionnaire2))
-      result must have length 2
+
+      result must contain theSameElementsAs List(
+        OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItemExamples.application1,
+          QuestionnaireReportItemExamples.questionnaire1),
+        OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItemExamples.application2,
+          QuestionnaireReportItemExamples.questionnaire2)
+      )
     }
   }
 
