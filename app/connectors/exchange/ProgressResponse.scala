@@ -73,7 +73,8 @@ case class Phase3ProgressResponse(
 
 case class SiftProgressResponse(
   siftEntered: Boolean = false,
-  allSchemesSiftCompleted: Boolean = false
+  siftReady: Boolean = false,
+  siftCompleted: Boolean = false
 )
 
 case class ProgressResponse(
