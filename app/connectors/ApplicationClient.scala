@@ -210,6 +210,12 @@ trait ApplicationClient {
     }
   }
 
+  def getCurrentSchemeStatus(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Seq[SchemeEvaluationResult]] = {
+    http.GET(s"${url.host}${url.base}/application/$appId/currentSchemeStatus").map { response =>
+      response.json.as[Seq[SchemeEvaluationResult]]
+    }
+  }
+
   private def encodeUrlParam(str: String) = URLEncoder.encode(str, "UTF-8")
 
   def startPhase3TestByToken(launchpadInviteId: String)(implicit hc: HeaderCarrier): Future[Unit] = {

@@ -147,7 +147,7 @@ abstract class HomeController(
     request: Request[_], hc: HeaderCarrier) = {
     for {
       schemes <- refDataClient.allSchemes()
-      phase3Results <- applicationClient.getPhase3Results(application.applicationId)
+      currentSchemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
       siftAnswersStatus <- siftClient.getSiftAnswersStatus(application.applicationId)
       assessmentCentreEvents <- applicationClient.eventWithSessionsForApplicationOnly(application.applicationId, EventType.FSAC)
       assessmentCentreEvent = assessmentCentreEvents.headOption // Candidate can only be assigned to one assessment centre event and session
@@ -155,13 +155,12 @@ abstract class HomeController(
     } yield {
       val page = PostOnlineTestsPage(
         CachedDataWithApp(cachedData.user, application),
-        phase3Results.getOrElse(Nil),
+        currentSchemeStatus,
         schemes,
         siftAnswersStatus,
         assessmentCentreEvent,
         hasWrittenAnalysisExercise
       )
-
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
   }

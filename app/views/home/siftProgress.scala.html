@@ -46,6 +46,13 @@
     }
 }
 
+@renderPassedSectionOne = {
+    <div class="inner-block-padr" id="schemeForms">
+        <h2 class='heading-medium'>Extra information</h2>
+        <p>You've completed this section</p>
+    </div>
+}
+
 @renderAssessmentCentre = {
      <div class="inner-block-padr">
         <h2 class="heading-medium ">Attend an assessment centre</h2>
@@ -65,6 +72,7 @@
                         @CSRF.formField
                         <input type="file" class="input-file" id="analysisExerciseFile" name="analysisExerciseFile" accept=".doc, .docx">
                         <label for="analysisExerciseFile" class="button">Upload document</label>
+                        <span class="font-xsmall">Maximum file size: 4MB</span>
                         <div id="fileSelected"></div>
                             <button type="submit" name="analysisExerciseSubmit" class="button" id="analysisExerciseBtn"
                         style="display: none">Submit analysis exercise</button>
@@ -103,8 +111,12 @@
         @(page.hasFormRequirement, page.hasNumericRequirement, page.hasAssessmentCentreRequirement) match {
             case (true, true, true) => {
                 <li class="first-step">
-                    @renderSchemeForm
-                    @renderNumericTest
+                    @if(isSiftEntered(page.toCachedData)) {
+                        @renderSchemeForm
+                        @renderNumericTest
+                    } else {
+                        @renderPassedSectionOne
+                    }
                 </li>
                 <li class="second-step">
                     @renderAssessmentCentre
@@ -113,7 +125,11 @@
 
             case (true, false, true) => {
                 <li class="first-step">
-                    @renderSchemeForm
+                    @if(isSiftEntered(page.toCachedData)) {
+                        @renderSchemeForm
+                    } else {
+                        @renderPassedSectionOne
+                    }
                 </li>
                 <li class="second-step">
                     @renderAssessmentCentre
@@ -122,7 +138,11 @@
 
             case (false, true, true) => {
                 <li class="first-step">
-                    @renderNumericTest
+                    @if(isSiftEntered(page.toCachedData)) {
+                        @renderNumericTest
+                    } else {
+                        @renderPassedSectionOne
+                    }
                 </li>
                 <li class="second-step">
                     @renderAssessmentCentre
