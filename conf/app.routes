@@ -26,14 +26,13 @@ PUT         /application/withdraw/:applicationId                         control
 PUT         /application/consider-for-sdip/:applicationId                controllers.ApplicationController.considerForSdip(applicationId: String)
 PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
 PUT         /application/overrideSubmissionDeadline/:applicationId       controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
-GET         /application/location/:location                              controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String)
-POST        /applications/allocated                                      controllers.ApplicationController.findAllocatedApplications()
 POST        /application/status                                          controllers.ApplicationController.updateStatus
 POST        /application/uploadAnalysisExercise                          controllers.ApplicationController.uploadAnalysisExercise(applicationId: String, contentType: String)
 GET         /application/downloadAnalysisExercise                        controllers.ApplicationController.downloadAnalysisExercise(applicationId: String)
 GET         /application/hasAnalysisExercise                             controllers.ApplicationController.hasAnalysisExercise(applicationId: String)
 
 GET         /application/:applicationId/phase3/results                   controllers.ApplicationController.getPhase3Results(applicationId: String)
+GET         /application/:applicationId/currentSchemeStatus              controllers.ApplicationController.getCurrentSchemeStatus(applicationId: String)
 #GET         /application/:applicationId/sift/results                    controllers.ApplicationController.getSchemeResults(applicationId: String)
 #GET         /application/:applicationId/assessmentcentre/results        controllers.ApplicationController.getSchemeResults(applicationId: String)
 
@@ -138,14 +137,20 @@ POST        /events/save                                                 control
 POST        /events/create                                               controllers.EventsController.createEvent()
 GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
 GET         /events/:eventId/users/:userId/allocation                    controllers.EventsController.getAssessorAllocation(eventId: String, userId: String)
-GET         /events/:eventId/sessions/:sessionId/candidateAllocations    controllers.EventsController.getCandidateAllocations(eventId: String, sessionId: String)
-POST        /events/:eventId/sessions/:sessionId/remove-candidates       controllers.EventsController.removeCandidateAllocations(eventId: String, sessionId: String)
+
+# candidate allocations
+GET         /candidate-allocations/find-applications/location/:location            controllers.CandidateAllocationController.findCandidatesEligibleForEventAllocation(location: String)
+POST        /candidate-allocations/find-allocated                                  controllers.CandidateAllocationController.findAllocatedApplications()
+GET         /candidate-allocations/events/:eventId/sessions/:sessionId             controllers.CandidateAllocationController.getCandidateAllocations(eventId: String, sessionId: String)
+POST        /candidate-allocations/remove/events/:eventId/sessions/:sessionId      controllers.CandidateAllocationController.removeCandidateAllocations(eventId: String, sessionId: String)
+GET         /candidate-allocations/summary/:applicationId                          controllers.CandidateAllocationController.candidateAllocationsSummary(applicationId: String)
+PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String)
+GET         /sessions/findByApplicationId                                          controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
+
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
 GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
-PUT         /events/:eventId/sessions/:sessionId/allocateCandidates      controllers.EventsController.allocateCandidates(eventId: String, sessionId: String)
-GET         /sessions/findByApplicationId                                controllers.EventsController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
 
 # Day aggregate events
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
@@ -169,11 +174,21 @@ GET         /assessment-scores/reviewer/:applicationId                          
 GET         /assessment-scores/reviewer                                                       controllers.ReviewerAssessmentScoresController.findAll
 
 
+# Scheme Specific Questions/Answers
+GET         /sift-answers/:applicationId/general                         controllers.SchemeSiftAnswersController.getGeneralAnswers(applicationId: String)
+PUT         /sift-answers/:applicationId/general                         controllers.SchemeSiftAnswersController.addOrUpdateGeneralAnswers(applicationId: String)
+GET         /sift-answers/:applicationId/status                          controllers.SchemeSiftAnswersController.getSiftAnswersStatus(applicationId: String)
+PUT         /sift-answers/:applicationId/submit                          controllers.SchemeSiftAnswersController.submitAnswers(applicationId: String)
+GET         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
+PUT         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
+GET         /sift-answers/:applicationId                                 controllers.SchemeSiftAnswersController.getSiftAnswers(applicationId: String)
+
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
 GET         /reference/schemes                                           controllers.reference.SchemesController.allSchemes
-GET         /reference/fsb-types                                         controllers.reference.EventSubtypesController.getFsbTypes
-GET         /reference/telephone-interview-types                         controllers.reference.EventSubtypesController.getTelephoneInterviewTypes
+GET         /reference/fsb-types                                         controllers.reference.EventDataController.getFsbTypes
+GET         /reference/telephone-interview-types                         controllers.reference.EventDataController.getTelephoneInterviewTypes
+GET         /reference/candidate-remove-reasons                          controllers.reference.EventDataController.candidateRemoveReasons
 
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
 GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations

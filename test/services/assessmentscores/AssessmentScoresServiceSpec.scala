@@ -303,7 +303,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
     "return List Assessment Scores find response with empty assessment scores if there is not any" in
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
         when(assessmentScoresRepositoryMock.find(appId)).thenReturn(Future.successful(None))
-        when(candidateAllocationRepositoryMock.allocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
+        when(candidateAllocationRepositoryMock.activeAllocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
         val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
           eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
         val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
@@ -324,7 +324,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
         when(assessmentScoresRepositoryMock.find(appId)).thenReturn(
           Future.successful(Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
-        when(candidateAllocationRepositoryMock.allocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
+        when(candidateAllocationRepositoryMock.activeAllocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
         val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
           eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
         val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
@@ -368,8 +368,13 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
 
   trait FindAssessmentScoresWithCandidateSummaryTestFixture extends BaseTestFixture {
     val eventId = EventExamples.e1WithSession.id
-    val candidateAllocations = List(CandidateAllocation(appId.toString(), eventId, EventExamples.e1WithSession.sessions.head.id,
-      AllocationStatuses.CONFIRMED, "version1"))
+    val candidateAllocations = List(CandidateAllocation(
+      appId.toString(),
+      eventId,
+      EventExamples.e1WithSession.sessions.head.id,
+      AllocationStatuses.CONFIRMED,
+      "version1",
+      None))
     when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSession))
     when(candidateAllocationRepositoryMock.find(appId.toString())).thenReturn(Future.successful(candidateAllocations))
     when(personalDetailsRepositoryMock.find(appId.toString())).thenReturn(Future.successful(PersonalDetailsExamples.completed))

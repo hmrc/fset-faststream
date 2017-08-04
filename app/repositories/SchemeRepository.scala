@@ -58,6 +58,8 @@ trait SchemeRepositoryImpl {
     rawConfig.parseYaml.convertTo[List[Scheme]]
   }
 
+  def getSchemesForId(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => schemes.find(_.id == id) }
+
   def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id}
 }
 

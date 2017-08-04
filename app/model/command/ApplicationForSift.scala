@@ -16,12 +16,14 @@
 
 package model.command
 
-import model.persisted.PassmarkEvaluation
+import model.ApplicationStatus.ApplicationStatus
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import play.api.libs.json.Json
 
 case class ApplicationForSift(
   applicationId: String,
-  evaluationResult: PassmarkEvaluation
+  applicationStatus: ApplicationStatus,
+  currentSchemeStatus: Seq[SchemeEvaluationResult]
 )
 
 object ApplicationForSift {

@@ -23,7 +23,6 @@ import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses
 import model.command.WithdrawApplication
-
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
 import play.api.mvc.{ Action, AnyContent }
@@ -58,11 +57,6 @@ trait ApplicationController extends BaseController {
   val passmarkService: EvaluatePhase3ResultService
   val assessmentCentreService: AssessmentCentreService
   val uploadRepository: FileUploadMongoRepository
-
-  protected val contentTypeToExtension: Map[String, String] = Map[String, String](
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> "docx",
-    "application/msword" -> "doc"
-  )
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
@@ -125,6 +119,14 @@ trait ApplicationController extends BaseController {
     }
   }
 
+  def getCurrentSchemeStatus(applicationId: String) = Action.async { implicit request =>
+    appRepository.getCurrentSchemeStatus(applicationId).map { schemeStatus =>
+      Ok(Json.toJson(schemeStatus))
+    } recover {
+      case _: PassMarkEvaluationNotFound => NotFound(s"No evaluation results found for applicationId: $applicationId")
+    }
+  }
+
   def considerForSdip(applicationId: String) = Action.async { implicit request =>
     applicationService.considerForSdip(applicationId).map { _ => Ok
     }.recover {
@@ -149,22 +151,6 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String) = Action.async {
-    implicit request =>
-      appRepository.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation)) map { apps =>
-        Ok(Json.toJson(apps))
-      }
-  }
-
-  def findAllocatedApplications() = Action.async(parse.json) {
-    implicit request =>
-      withJsonBody[List[String]] { appIds =>
-        appRepository.findAllocatedApplications(appIds).map { apps =>
-          Ok(Json.toJson(apps))
-        }
-      }
-  }
-
   def uploadAnalysisExercise(applicationId: String, contentType: String) = Action.async(parse.temporaryFile) {
     implicit request =>
       (for {
@@ -186,11 +172,7 @@ trait ApplicationController extends BaseController {
       } yield {
         val source = Source.fromPublisher(Streams.enumeratorToPublisher(file.fileContents))
 
-        val fileExt = contentTypeToExtension(file.contentType)
-
-        Ok.chunked(source).withHeaders(
-          "Content-Disposition" -> s"attachment; filename= $applicationId-exercise.$fileExt"
-        ).as(file.contentType)
+        Ok.chunked(source).as(file.contentType)
       }
   }
 

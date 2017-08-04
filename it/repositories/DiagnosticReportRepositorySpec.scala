@@ -16,15 +16,12 @@
 
 package repositories
 
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
-import model.PersistedObjects.{ ApplicationProgressStatus, ApplicationProgressStatuses, ApplicationUser }
-import reactivemongo.bson.{ BSONBoolean, BSONDocument }
 import model.Exceptions.ApplicationNotFound
 import reactivemongo.bson.{ BSONBoolean, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
-import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
+import factories.DateTimeFactory
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.JsValue
 import testkit.MongoRepositorySpec
@@ -35,7 +32,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   override val collectionName = CollectionNames.APPLICATION
   
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository()
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
 
 
   "Find by user id" should {
