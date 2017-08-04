@@ -81,7 +81,7 @@ activation.code-resent = A new activation code has been sent. Check your email.<
 passwordreset.required = Enter your password reset code
 passwordreset.wrong-format = The password reset code must have 7 characters
 
-#general authentication /authorization
+#generalQuestions authentication /authorization
 user.exists = An account with this email address already exists
 access.denied = You don''t have permission to access this page
 questionnaire.completed = You''ve now completed this part of the application and for security reasons you can''t go back and change your answers.
@@ -272,3 +272,23 @@ assessmentCentre.analysisExercise.upload.error=There was a problem uploading you
 assessmentCentre.analysisExercise.upload.tooBig=Your analysis exercise must be less than 4MB
 assessmentCentre.analysisExercise.upload.wrongContentType=Your analysis exercise must be in the .doc or .docx format
 assessmentCentre.analysisExercise.upload.success=You''ve successfully submitted your analysis exercise.
+
+passportCountry.chooseOne=You must select a country from the list
+passportCountry.unsupported.value=You must select a valid country from the list
+secondPassportCountry.chooseOne=You must select a country from the list
+secondPassportCountry.unsupported.value=You must select a country from the list
+
+generalquestions.error.multiplepassports.required=You must tell us if you have multiple passports
+generalquestions.error.undergraduatedegree.required=You must tell us if you have an undergraduate degree
+generalquestions.error.postgraduatedegree.required=You must tell us if you have a postgraduate degree
+
+additionalquestions.section.saved=You have saved your submission for this section
+additionalquestions.section.missing=You have not saved your answers for some of the sections.  Please review each section and try again.
+additionalquestions.submitted=You have submitted your additional questions
+additionalquestions.error.schemespecific=You must enter an answer
+
+undergradDegree.classification.unsupported.value=You much select a degree classification from the list
+undergradDegree.error.required=You must tell us the name of your degree
+postgradDegree.error.required=You must tell us the name of your degree
+error.year.required=You must specify a year
+error.year.format=You must specify a valid 4 digit year

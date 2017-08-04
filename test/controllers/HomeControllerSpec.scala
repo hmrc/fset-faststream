@@ -20,9 +20,10 @@ import java.time.LocalDateTime
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
-import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples }
+import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples, SiftClient }
+import connectors.exchange.referencedata.{ Scheme, SchemeId }
 import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.referencedata.SchemeId
+import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.{ AssistanceDetailsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
 import forms.WithdrawApplicationFormExamples
 import models.ApplicationData.ApplicationStatus
@@ -103,7 +104,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       content must include("""<ol class="step-by-step-coloured disabled" id="sixSteps">""")
     }
 
-    "display faststream final scheme results page" in new TestFixture {
+    "display display post online tests page" in new TestFixture {
       val applicationRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
@@ -112,8 +113,13 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val phase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
+      when(mockApplicationClient.getCurrentSchemeStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        Scheme("DiplomaticService", "GDS", "Diplomatic Service", None, siftEvaluationRequired = true)
+      ))
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+          .thenReturnAsync(None)
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
         .thenReturn(Future.successful(ActiveCandidate))
@@ -141,8 +147,13 @@ class HomeControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(ActiveCandidate))
       val withdrawnPhase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.WithdrawnPhase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
+      when(mockApplicationClient.getCurrentSchemeStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        Scheme("DiplomaticService", "GDS", "Diplomatic Service", None, siftEvaluationRequired = true)
+      ))
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+          .thenReturnAsync(None)
 
       mockPostOnlineTestsDashboardCalls()
 
@@ -457,6 +468,7 @@ class HomeControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockRefDataClient = mock[ReferenceDataClient]
+    val mockSiftClient = mock[SiftClient]
     val mockCacheClient = mock[CSRCache]
     val mockUserService = mock[UserCacheService]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
@@ -534,7 +546,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(fileMock.length()).thenReturn(fileSize)
     }
 
-    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockCacheClient)
+    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
@@ -542,6 +554,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockSiftClient.getSiftAnswersStatus(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(Some(SiftAnswersStatus.DRAFT))
 
       // Analysis file upload tests
       override protected def getAllBytesInFile(path: Path): Array[Byte] = {

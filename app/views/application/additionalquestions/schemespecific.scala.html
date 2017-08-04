@@ -1,0 +1,36 @@
+@(schemeSpecificQuestionsForm: Form[_root_.connectors.exchange.sift.SchemeSpecificAnswer], scheme: _root_.connectors.exchange.referencedata.Scheme)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+
+@import controllers.SiftQuestionsController
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.{ radioBoxHorizontal, select_guard }
+
+@main_template(title = scheme.name, pageForms = Seq(schemeSpecificQuestionsForm)) {
+
+    <h1 class="heading-xlarge">@scheme.name</h1>
+    <div class="panel-indent">
+        <div class="text">
+            <p>This scheme requires you to answer some additional questions before you can be successful for the next stage.</p>
+            <p>Take your time with this section, when you're ready:</p>
+            <ul class="list-bullet">
+                <li>read the <a target="_blank" href="/scheme-questions-template-2.docx">scheme questions (this will open in a new window/tab)</a></li>
+                <li>use the template in the document to answer the questions</li>
+                <li>copy and paste the headings and responses into the box</li>
+            </ul>
+        </div>
+    </div>
+
+    @helper.form(action = routes.SiftQuestionsController.saveSchemeForm(scheme.id), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+
+        @helper.textarea(schemeSpecificQuestionsForm("rawText"),
+        '_label -> "Stick to the maximum words in the questions document",
+        'class -> "form-control form-control-3-4",
+        'rows -> 20,
+        '_showConstraints -> true)
+
+        <div class="form-group">
+            <button id="@SiftQuestionsController.SaveAndContinueAction" type="submit" name="action" value="@SiftQuestionsController.SaveAndContinueAction" class="button">Save and continue</button>
+            <button id="@SiftQuestionsController.SaveAndReturnAction" type="submit" name="action" value="@SiftQuestionsController.SaveAndReturnAction" class="button-link">Save and return home</button>
+        </div>
+    }
+}

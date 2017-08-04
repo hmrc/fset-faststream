@@ -1,4 +1,4 @@
-@(field : play.api.data.Field, options: List[(String, Boolean)])(labelContent: Html)(implicit messages: Messages)
+@(field : play.api.data.Field, options: Seq[String])(labelContent: Html)(implicit messages: Messages)
 
 @import helpers.CSRSkinnyFieldConstructor._
 
@@ -7,7 +7,7 @@
     <select name="@name" id="@id" class="chosen-select" data-placeholder="Choose from list or begin typing">
         <option value=""></option>
         @for(option <- options) {
-            <option value="@option"@if(value.contains(option._1)) { selected="selected"}>@option</option>
+            <option value="@option"@if(value.contains(option)) { selected="selected"}>@option</option>
         }
     </select>
 }

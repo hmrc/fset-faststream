@@ -63,6 +63,12 @@ case class Phase3TestProgress(
   phase3TestsFailed: Boolean = false
 )
 
+case class SiftProgress(
+  siftEntered: Boolean = false,
+  siftFormsSubmitted: Boolean = false,
+  allSchemesSiftCompleted: Boolean = false
+)
+
 case class Progress(
   personalDetails: Boolean = false,
   schemePreferences: Boolean = false,
@@ -78,6 +84,7 @@ case class Progress(
   phase1TestProgress: Phase1TestProgress = Phase1TestProgress(),
   phase2TestProgress: Phase2TestProgress = Phase2TestProgress(),
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
+  siftProgress: SiftProgress = SiftProgress(),
   exported: Boolean = false,
   updateExported: Boolean = false,
   assessmentCentre: AssessmentCentre = AssessmentCentre()
@@ -88,6 +95,7 @@ object Progress {
   implicit val phase1TestProgressFormat = Json.format[Phase1TestProgress]
   implicit val phase2TestProgressFormat = Json.format[Phase2TestProgress]
   implicit val phase3TestProgressFormat = Json.format[Phase3TestProgress]
+  implicit val siftProgressFormat = Json.format[SiftProgress]
   implicit val progressFormat: Format[Progress] = Json.format[Progress]
 
   // scalastyle:off method.length
@@ -141,6 +149,11 @@ object Progress {
         phase3TestsResultsReceived = progressResponse.phase3ProgressResponse.phase3TestsResultsReceived,
         phase3TestsPassed = progressResponse.phase3ProgressResponse.phase3TestsPassed,
         phase3TestsFailed = progressResponse.phase3ProgressResponse.phase3TestsFailed
+      ),
+      siftProgress = SiftProgress(
+        siftEntered = progressResponse.siftProgressResponse.siftEntered,
+        siftFormsSubmitted = progressResponse.siftProgressResponse.siftReady,
+        allSchemesSiftCompleted = progressResponse.siftProgressResponse.siftCompleted
       ),
       exported = progressResponse.exported,
       updateExported = progressResponse.updateExported,

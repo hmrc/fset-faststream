@@ -16,8 +16,8 @@
 
 package connectors.exchange
 
-import forms.FastPassForm
 import forms.FastPassForm._
+import forms.FastPassForm
 import play.api.libs.json.Json
 
 import language.implicitConversions

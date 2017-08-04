@@ -1,6 +1,6 @@
 @(personalDetails: connectors.exchange.GeneralDetails)(edit: Html)(implicit user: Option[CachedData])
 
-@import _root_.forms.FastPassForm
+@import forms.FastPassForm
 @import security.RoleUtils._
 
 @displayFastPassSection(id:String, display:Boolean, heading: String, text: => String) = @{

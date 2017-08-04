@@ -210,6 +210,12 @@ trait ApplicationClient {
     }
   }
 
+  def getCurrentSchemeStatus(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Seq[SchemeEvaluationResult]] = {
+    http.GET(s"${url.host}${url.base}/application/$appId/currentSchemeStatus").map { response =>
+      response.json.as[Seq[SchemeEvaluationResult]]
+    }
+  }
+
   private def encodeUrlParam(str: String) = URLEncoder.encode(str, "UTF-8")
 
   def startPhase3TestByToken(launchpadInviteId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -318,6 +324,14 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class OnlineTestNotFound extends Exception
 
   sealed class PdfReportNotFoundException extends Exception
+
+  sealed class SiftAnswersNotFound extends Exception
+
+  sealed class SchemeSpecificAnswerNotFound extends Exception
+
+  sealed class SiftAnswersIncomplete extends Exception
+
+  sealed class SiftAnswersSubmitted extends Exception
 
   sealed class TestForTokenExpiredException extends Exception
 
