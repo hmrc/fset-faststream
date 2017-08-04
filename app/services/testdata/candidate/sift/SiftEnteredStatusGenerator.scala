@@ -16,7 +16,7 @@
 
 package services.testdata.candidate.sift
 
-import model.EvaluationResults
+import model.{ ApplicationStatus, EvaluationResults }
 import model.command.ApplicationForSift
 import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, SiftForm }
 import model.testdata.CreateCandidateData.CreateCandidateData
@@ -42,7 +42,8 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- siftService.progressApplicationToSiftStage(Seq(ApplicationForSift(candidateInPreviousStatus.applicationId.get,
-        candidateInPreviousStatus.phase3TestGroup.get.schemeResult.get)))
+        ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        candidateInPreviousStatus.phase3TestGroup.get.schemeResult.get.result)))
     } yield {
 
       val greenSchemes = candidateInPreviousStatus.phase3TestGroup.flatMap(tg =>

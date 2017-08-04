@@ -157,4 +157,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = ???
 
   override def setFailedToAttendAssessmentStatus(applicationId: String): Future[Unit] = ???
+
+  override def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = ???
 }

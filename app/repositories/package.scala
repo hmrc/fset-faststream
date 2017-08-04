@@ -57,22 +57,22 @@ package object repositories {
     MongoDbConnection.mongoConnector.db
   }
 
-  lazy val personalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
+  lazy val personalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository(DateTimeFactory)
   lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository()
   lazy val schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
   lazy val civilServiceExperienceDetailsRepository = new CivilServiceExperienceDetailsMongoRepository()
   lazy val faststreamPartnerGraduateProgrammesRepository = new partnergraduateprogrammes.PartnerGraduateProgrammesMongoRepository()
   lazy val faststreamAssistanceDetailsRepository = new assistancedetails.AssistanceDetailsMongoRepository()
-  lazy val faststreamPhase1EvaluationRepository = new onlinetesting.Phase1EvaluationMongoRepository()
-  lazy val faststreamPhase2EvaluationRepository = new onlinetesting.Phase2EvaluationMongoRepository()
+  lazy val faststreamPhase1EvaluationRepository = new onlinetesting.Phase1EvaluationMongoRepository(DateTimeFactory)
+  lazy val faststreamPhase2EvaluationRepository = new onlinetesting.Phase2EvaluationMongoRepository(DateTimeFactory)
   lazy val faststreamPhase3EvaluationRepository = new onlinetesting.Phase3EvaluationMongoRepository(launchpadGatewayConfig, DateTimeFactory)
   lazy val schoolsRepository = SchoolsCSVRepository
   lazy val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
   lazy val fsacIndicatorRepository = new FSACIndicatorMongoRepository
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)
-  lazy val reportingRepository = new ReportingMongoRepository(timeZoneService)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
+  lazy val reportingRepository = new ReportingMongoRepository(timeZoneService, DateTimeFactory)
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)

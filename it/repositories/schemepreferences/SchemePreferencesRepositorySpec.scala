@@ -5,10 +5,10 @@ import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFou
 import model.SelectedSchemesExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, TestDataMongoRepository }
-import services.GBTimeZoneService
+import repositories.application.GeneralApplicationMongoRepository
 import config.MicroserviceAppConfig._
-import model.{ SchemeId, SelectedSchemes }
+import factories.DateTimeFactoryMock
+import model.SchemeId
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
@@ -18,7 +18,7 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   val collectionName: String = CollectionNames.APPLICATION
 
   def repository = new SchemePreferencesMongoRepository
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
 
   "save and find" should {
     "save and return scheme preferences" in {
