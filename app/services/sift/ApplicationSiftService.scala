@@ -18,7 +18,7 @@ package services.sift
 
 import common.FutureEx
 import factories.DateTimeFactory
-import model.{ Commands, ProgressStatuses, SchemeId, SerialUpdateResult }
+import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
@@ -46,10 +46,21 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
   }
 
+  private def requiresForms(schemeIds: Seq[SchemeId]) = {
+    schemeRepo.getSchemesForId(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
+  }
+
+  private def progressStatusForSiftStage(app: ApplicationForSift) = if (requiresForms(app.currentSchemeStatus.map(_.schemeId))) {
+    ProgressStatuses.SIFT_ENTERED
+  } else {
+    ProgressStatuses.SIFT_READY
+  }
+
   def progressApplicationToSiftStage(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
+
       FutureEx.futureToEither(application,
-        applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.SIFT_ENTERED)
+        applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, progressStatusForSiftStage(application))
       )
     }
 
