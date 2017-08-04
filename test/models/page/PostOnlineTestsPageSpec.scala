@@ -46,7 +46,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResult(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
       Nil
 
-      val page = PostOnlineTestsPage.apply(userDataWithApp, phase3Results, Schemes.AllSchemes, None)
+      val page = PostOnlineTestsPage.apply(userDataWithApp, phase3Results, Schemes.AllSchemes, None, None, hasAnalysisExercise = false)
 
       page.successfulSchemes mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
 

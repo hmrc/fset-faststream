@@ -60,7 +60,7 @@ abstract class SiftQuestionsController(
       for {
         answers <- siftClient.getGeneralQuestionsAnswers(user.application.applicationId)
       } yield {
-        val page = GeneralQuestionsPage.apply(answers)
+        val page = GeneralQuestionsPage(answers)
         Ok(views.html.application.additionalquestions.generalQuestions(page))
       }
   }
@@ -75,7 +75,7 @@ abstract class SiftQuestionsController(
         form => {
           for {
             schemes <- candidateCurrentSiftableSchemes(user.application.applicationId)
-            _ <- siftClient.updateGeneralAnswers(user.application.applicationId, GeneralQuestionsAnswers.apply(form))
+            _ <- siftClient.updateGeneralAnswers(user.application.applicationId, GeneralQuestionsAnswers(form))
           } yield {
             continueOrReturn(
               getNextStep(schemes),

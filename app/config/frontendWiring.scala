@@ -24,6 +24,7 @@ import com.mohiva.play.silhouette.api.crypto.Base64AuthenticatorEncoder
 import com.mohiva.play.silhouette.api.util.{ Clock, FingerprintGenerator }
 import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticatorService, SessionAuthenticatorSettings }
 import connectors.{ ApplicationClient, UserManagementClient }
+import helpers.WSBinaryPost
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.ws.WS
@@ -46,7 +47,7 @@ object FrontendAuditConnector extends AuditConnector {
 
 object CSRHttp extends CSRHttp
 
-trait CSRHttp extends WSHttp {
+trait CSRHttp extends WSHttp with WSBinaryPost {
   override val hooks = NoneRequired
   val wS = WS
 }

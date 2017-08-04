@@ -37,7 +37,7 @@ trait SiftClient {
   val apiBase: String = s"${url.host}${url.base}"
 
   def updateGeneralAnswers(applicationId: UniqueIdentifier, answers: GeneralQuestionsAnswers)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.POST(
+    http.PUT(
       s"$apiBase/sift-answers/$applicationId/general",
       answers
     ).map {
@@ -50,7 +50,7 @@ trait SiftClient {
 
   def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
                                 (implicit hc: HeaderCarrier): Future[Unit] = {
-    http.POST(
+    http.PUT(
       s"$apiBase/sift-answers/$applicationId/${schemeId.value}",
       answer
     ).map {
