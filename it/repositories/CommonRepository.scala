@@ -130,8 +130,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
   ) = {
     insertApplicationWithPhase3TestNotifiedResults(appId, results.toList, applicationRoute = applicationRoute).futureValue
-    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED).futureValue
-    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
   }
 
   def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {

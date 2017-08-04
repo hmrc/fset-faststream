@@ -96,7 +96,7 @@ class ApplicationSiftMongoRepository(
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"applicationStatus" -> ApplicationStatus.SIFT),
-      BSONDocument(s"progress-status.${ProgressStatuses.ALL_SCHEMES_SIFT_FORMS_SUBMITTED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> true),
       currentSchemeStatusGreen(schemeId),
       BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
       notSiftedOnScheme

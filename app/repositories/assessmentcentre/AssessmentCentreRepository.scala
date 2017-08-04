@@ -72,7 +72,7 @@ class AssessmentCentreMongoRepository (
         ))),
       BSONDocument(
         "applicationStatus" -> ApplicationStatus.SIFT,
-        s"progress-status.${ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED}" -> true,
+        s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
         "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument( "result" -> EvaluationResults.Green.toString))
       )
     ))

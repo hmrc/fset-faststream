@@ -124,8 +124,8 @@ object CandidateStatusGeneratorFactory {
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED)) => Phase3TestsFailedNotifiedStatusGenerator
 
-      case (SIFT, Some(ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED)) => SiftEnteredStatusGenerator
-      case (SIFT, Some(ProgressStatuses.ALL_SCHEMES_SIFT_FORMS_SUBMITTED)) => SiftFormsSubmittedStatusGenerator
+      case (SIFT, Some(ProgressStatuses.SIFT_ENTERED)) => SiftEnteredStatusGenerator
+      case (SIFT, Some(ProgressStatuses.SIFT_READY)) => SiftFormsSubmittedStatusGenerator
 
       case (ASSESSMENT_CENTRE, Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)) => AssessmentCentreAwaitingAllocationStatusGenerator
 
