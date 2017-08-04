@@ -18,7 +18,7 @@ package model.exchange.candidateevents
 
 import play.api.libs.json.{ Format, Json }
 
-case class CandidateRemoveReason(key: String, description: String)
+case class CandidateRemoveReason(key: String, description: String, failApp: Boolean)
 
 object CandidateRemoveReason {
 
@@ -27,10 +27,10 @@ object CandidateRemoveReason {
   val NoShow = "No-show"
 
   val Values = List(
-    CandidateRemoveReason(NoShow, NoShow),
-    CandidateRemoveReason("Candidate_contacted", "Candidate contacted"),
-    CandidateRemoveReason("Expired", "Expired"),
-    CandidateRemoveReason("Other", "Other")
+    CandidateRemoveReason(NoShow, NoShow, failApp = true),
+    CandidateRemoveReason("Candidate_contacted", "Candidate contacted", failApp = false),
+    CandidateRemoveReason("Expired", "Expired", failApp = true),
+    CandidateRemoveReason("Other", "Other", failApp = false)
   )
 
   def find(key: String): Option[CandidateRemoveReason] = Values.find(_.key == key)

@@ -132,6 +132,8 @@ trait GeneralApplicationRepository {
 
   def resetApplicationAllocationStatus(applicationId: String): Future[Unit]
 
+  def setFailedToAttendAssessmentStatus(applicationId: String): Future[Unit]
+
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
 }
 
@@ -957,15 +959,27 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def resetApplicationAllocationStatus(applicationId: String): Future[Unit] = {
+    replaceAllocationStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+  }
+
+  override def setFailedToAttendAssessmentStatus(applicationId: String): Future[Unit] = {
+    replaceAllocationStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
+  }
+
+  import ProgressStatuses._
+  private val progressStatuses = List(
+    ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+    ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+    ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+    ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
+
+  private def replaceAllocationStatus(applicationId: String, newStatus: ProgressStatuses.ProgressStatus) = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val progressStatuses = List(
-      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
-      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED)
-    val statusesToRemove = progressStatuses.map(p => s"progress-status.${p.key}" -> BSONString(""))
+    val statusesToRemove = progressStatuses.filter(_ != newStatus).map(p => s"progress-status.${p.key}" -> BSONString(""))
 
     val updateQuery = BSONDocument(
       "$unset" -> BSONDocument(statusesToRemove),
-      "$set" -> BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key}" -> true)
+      "$set" -> BSONDocument(s"progress-status.${newStatus.key}" -> true)
     )
     collection.update(query, updateQuery).map(_ => ())
   }

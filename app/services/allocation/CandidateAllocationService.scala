@@ -92,11 +92,14 @@ trait CandidateAllocationService extends EventSink {
   }
 
   def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation])
-                          (implicit hc: HeaderCarrier): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
+    (implicit hc: HeaderCarrier): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
     // For each allocation, reset the progress status and delete the corresponding allocation
     val res = FutureEx.traverseSerial(allocations) { allocation =>
       val fut = candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
-        applicationRepo.resetApplicationAllocationStatus(allocation.id).flatMap { _ =>
+        ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
+          case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id)
+          case _ => applicationRepo.resetApplicationAllocationStatus(allocation.id)
+        } ).flatMap { _ =>
           notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
         }
       }
@@ -133,13 +136,7 @@ trait CandidateAllocationService extends EventSink {
   }
 
   def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String) = {
-    applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation)).flatMap { resp =>
-      candidateAllocationRepo.findNoShowAllocations(resp.candidates.map(_.applicationId)).map { noShowCandidates =>
-        val noShowCandidatesIds = noShowCandidates.map(_.id)
-        val resCandidates = resp.candidates.filter(c => !noShowCandidatesIds.contains(c.applicationId))
-        resp.copy(candidates = resCandidates, totalCandidates = resCandidates.size)
-      }
-    }
+    applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation))
   }
 
   def findAllocatedApplications(appIds: List[String]): Future[CandidatesEligibleForEventResponse] = {
@@ -161,6 +158,12 @@ trait CandidateAllocationService extends EventSink {
         }
       })
     }
+  }
+
+  def removeEventsRemovals(appId: String): Future[Unit] = {
+    candidateAllocationRepo.removeEventsRemovals(appId).flatMap(_ =>
+      applicationRepo.resetApplicationAllocationStatus(appId)
+    )
   }
 
 
