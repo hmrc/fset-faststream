@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package repositories.fsb
+package model.exchange
 
-import factories.DateTimeFactory
-import model.persisted.FsbTestGroup
-import reactivemongo.api.DB
-import reactivemongo.bson.BSONObjectID
-import repositories.CollectionNames
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-object FsbTestRepository {
+case class ApplicationResult(applicationId: String, result: String)
+
+object ApplicationResult {
+  implicit val format = Json.format[ApplicationResult]
+  implicit val bsonHandler = Macros.handler[ApplicationResult]
 }
 
-class FsbTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[FsbTestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    model.persisted.FsbTestGroup.format, ReactiveMongoFormats.objectIdFormats
-  )
+case class FsbEvaluationResults(applicationResults: List[ApplicationResult])
+
+object FsbEvaluationResults {
+  implicit val format = Json.format[FsbEvaluationResults]
+  implicit val bsonHandler = Macros.handler[FsbEvaluationResults]
+}

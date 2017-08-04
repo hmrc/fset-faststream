@@ -18,7 +18,7 @@ package model
 
 import play.api.libs.json.{ Json, OFormat }
 
-case class FsbType(key: String)
+case class FsbType(key: String, schemeId: String)
 
 object FsbType {
   implicit val format: OFormat[FsbType] = Json.format[FsbType]

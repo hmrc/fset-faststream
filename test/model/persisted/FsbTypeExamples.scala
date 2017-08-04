@@ -20,17 +20,18 @@ import model.FsbType
 
 object FsbTypeExamples {
   val YamlFsbTypes = List(
-    FsbType("SAC"),
-    FsbType("SRAC"),
-    FsbType("ORAC"),
-    FsbType("EAC"),
-    FsbType("GOV COMS"),
-    FsbType("DAT"),
-    FsbType("SEFS"),
-    FsbType("FCO"),
-    FsbType("P&D"),
-    FsbType("FIFS"),
-    FsbType("COMMERCIAL"),
-    FsbType("HOP")
+    FsbType("SAC", "GSS"),
+    FsbType("SRAC", "GSR"),
+    FsbType("ORAC", "GORS"),
+    FsbType("EAC", "GES"),
+    FsbType("EAC_DS", "GES_DS"),
+    FsbType("GOV COMS", ""),
+    FsbType("DAT", "DAT"),
+    FsbType("SEFS", "SEFS"),
+    FsbType("FCO", "DS"),
+    FsbType("P&D", ""),
+    FsbType("FIFS", ""),
+    FsbType("COMMERCIAL", ""),
+    FsbType("HOP", "HOP")
   )
 }
