@@ -80,7 +80,7 @@ trait SiftAnswersService {
       schemesPassedRequiringSift = schemeRepository.schemes.filter(
         s => schemesPassedPhase3.contains(s.id) && s.siftRequirement == Some(SiftRequirement.FORM)).map(_.id).toSet
       _ <- siftAnswersRepo.submitAnswers(applicationId, schemesPassedRequiringSift)
-      _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ALL_SCHEMES_SIFT_FORMS_SUBMITTED)
+      _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
     } yield {}
   }
 }

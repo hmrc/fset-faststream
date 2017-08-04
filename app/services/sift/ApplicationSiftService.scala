@@ -49,7 +49,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   def progressApplicationToSiftStage(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
-        applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED)
+        applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.SIFT_ENTERED)
       )
     }
 
@@ -64,7 +64,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
     def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], siftableSchemes: Set[SchemeId]) =
       if (siftedSchemes equals  siftableSchemes) {
-        BSONDocument("$set" -> progressStatusOnlyBSON(ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED))
+        BSONDocument("$set" -> progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED))
       } else {
         BSONDocument.empty
       }

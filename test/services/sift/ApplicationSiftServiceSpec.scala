@@ -51,8 +51,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
   trait SiftUpdateTest extends TestFixture {
     val progressStatusUpdateBson = BSONDocument(
       "$set" -> BSONDocument(
-        s"progress-status.${ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED}" -> true,
-        s"progress-status-timestamp.${ProgressStatuses.ALL_SCHEMES_SIFT_COMPLETED}" ->
+        s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
+        s"progress-status-timestamp.${ProgressStatuses.SIFT_COMPLETED}" ->
           BSONDateTimeHandler.write(DateTimeFactoryMock.nowLocalTimeZone)
       )
     )
@@ -83,10 +83,10 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
       )
 
-      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED).returningAsync
-      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId2", ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED)
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_ENTERED).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId2", ProgressStatuses.SIFT_ENTERED)
         .returning(Future.failed(new Exception))
-      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId3", ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId3", ProgressStatuses.SIFT_ENTERED).returningAsync
 
       whenReady(service.progressApplicationToSiftStage(applicationsToProgressToSift)) { results =>
 
