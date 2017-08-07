@@ -18,13 +18,15 @@ package controllers
 
 import java.nio.file.{ Files, Path }
 
-import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.{ LogoutEvent, Silhouette }
 import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
+import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.exchange._
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
+import helpers.CachedUserMetadata
 import models.ApplicationData.ApplicationStatus
 import models.page._
 import models._
@@ -39,6 +41,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import play.api.mvc.Results.Redirect
 
 object HomeController extends HomeController(
   ApplicationClient,
@@ -66,19 +69,40 @@ abstract class HomeController(
 
   private lazy val maxAnalysisExerciseFileSizeInBytes = 4096 * 1024
 
+  // scalastyle:off cyclomatic.complexity
   def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>
       implicit cachedData =>
-        cachedData.application.map { implicit application =>
-          cachedData match {
-            case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
+        val process = for {
+        updatedCachedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
+        page <- updatedCachedData.application.map { implicit application =>
+          updatedCachedData match {
+            case _ if isPhase1TestsPassed && (isEdip(updatedCachedData) || isSdip(updatedCachedData)) => displayEdipOrSdipResultsPage
             case _ if isPhase3TestsPassed => displayPostOnlineTestsPage
             case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
           }
         }.getOrElse {
           dashboardWithoutApplication
         }
+      } yield page
+
+      process.recoverWith {
+        case e: ApplicationNotFound => dashboardWithoutApplication
+        case e: InvalidCredentialsException => {
+          //Future.successful(Redirect(routes.SignInController.signIn()))
+          env.eventBus.publish(LogoutEvent(request.identity, request))
+          env.authenticatorService.retrieve.flatMap {
+            case Some(authenticator) =>
+              Logger.info(s"No keystore record found for user with valid cookie (identity = ${request.identity}). " +
+                s"Removing cookie and redirecting to sign in.")
+              CSRCache.remove()
+              env.authenticatorService.discard(authenticator, Redirect(routes.SignInController.present()))
+            case None => Future.successful(Redirect(routes.SignInController.present()))
+          }
+        }
+      }
   }
+  // scalastyle:on cyclomatic.complexity
 
   def showSdipNextSteps: Action[AnyContent] = CSRSecureAction(ActiveUserRole) { implicit request =>
     implicit cachedData =>
@@ -146,19 +170,17 @@ abstract class HomeController(
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
     request: Request[_], hc: HeaderCarrier) = {
     for {
-      schemes <- refDataClient.allSchemes()
-      currentSchemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
+      allSchemes <- refDataClient.allSchemes()
+      schemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
       siftAnswersStatus <- siftClient.getSiftAnswersStatus(application.applicationId)
       assessmentCentreEvents <- applicationClient.eventWithSessionsForApplicationOnly(application.applicationId, EventType.FSAC)
       assessmentCentreEvent = assessmentCentreEvents.headOption // Candidate can only be assigned to one assessment centre event and session
       hasWrittenAnalysisExercise <- applicationClient.hasAnalysisExercise(application.applicationId)
     } yield {
       val page = PostOnlineTestsPage(
-        CachedDataWithApp(cachedData.user, application),
-        currentSchemeStatus,
-        schemes,
-        siftAnswersStatus,
+        CachedUserMetadata(cachedData.user, application, allSchemes, schemeStatus),
         assessmentCentreEvent,
+        siftAnswersStatus,
         hasWrittenAnalysisExercise
       )
       Ok(views.html.home.postOnlineTestsDashboard(page))

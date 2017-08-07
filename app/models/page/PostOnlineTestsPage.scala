@@ -20,40 +20,24 @@ import connectors.events.{ Event, Session }
 import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import connectors.exchange.sift.SiftAnswersStatus
-import helpers.Timezones
+import helpers.{ CachedUserMetadata, Timezones }
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
 import models.{ CachedData, CachedDataWithApp, SchemeStatus }
 import org.joda.time.{ DateTime, LocalTime }
 
-case class CurrentSchemeStatus(
-  scheme: Scheme,
-  status: SchemeStatus.Status,
-  failedAtStage: Option[String]
-)
+
 
 case class PostOnlineTestsPage(
-  userDataWithApp: CachedDataWithApp,
-  schemes: Seq[CurrentSchemeStatus],
-  additionalQuestionsStatus: Option[SiftAnswersStatus],
+  userDataWithApp: CachedUserMetadata,
   assessmentCentreEvent: Option[Event],
+  additionalQuestionsStatus: Option[SiftAnswersStatus],
   hasAnalysisExercise: Boolean
 ) {
   def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
-  def successfulSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Green)
-  def failedSchemes: Seq[CurrentSchemeStatus] = schemes.filter(_.status == SchemeStatus.Red)
-  def withdrawnSchemes: Seq[Scheme] = schemes.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme}
-  def schemesForSiftForms: Seq[Scheme] = successfulSchemes.collect {
-    case s if s.scheme.siftRequirement.contains(SiftRequirement.FORM) => s.scheme }
 
-  val noSuccessfulSchemes: Int = successfulSchemes.size
-  val noFailedSchemes: Int = failedSchemes.size
-  val noWithdrawnSchemes: Int = withdrawnSchemes.size
+  def hasAssessmentCentreRequirement: Boolean = true
 
-  val hasFormRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
-  val hasNumericRequirement: Boolean = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
-  val hasAssessmentCentreRequirement: Boolean = true
-
-  val haveAdditionalQuestionsBeenSubmitted: Boolean = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
+  def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 
   private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {
     val minutes = localTime.toString("mm")
@@ -83,30 +67,4 @@ case class PostOnlineTestsPage(
   }
 
   val allocatedToAssessmentCentre = assessmentCentreEvent.isDefined
-}
-
-object PostOnlineTestsPage {
-  def apply(
-    userDataWithApp: CachedDataWithApp,
-    phase3Results: Seq[SchemeEvaluationResult],
-    allSchemes: Seq[Scheme],
-    siftAnswersStatus: Option[SiftAnswersStatus],
-    assessmentCentreSession: Option[Event],
-    hasAnalysisExercise: Boolean
-  ): PostOnlineTestsPage = {
-
-    val currentSchemes = phase3Results.flatMap { schemeResult =>
-      allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
-
-        val (status, failedAt) = schemeResult.result match {
-          case "Red" => (SchemeStatus.Red, Some("online tests"))
-          case "Green" => (SchemeStatus.Green, None)
-        }
-
-        CurrentSchemeStatus(scheme, status, failedAt)
-      }
-    }
-
-    PostOnlineTestsPage(userDataWithApp, currentSchemes, siftAnswersStatus, assessmentCentreSession, hasAnalysisExercise)
-  }
 }

@@ -23,6 +23,7 @@ import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.SchemeId
 import connectors.exchange.sift.SiftAnswersStatus
 import controllers.UnitSpec
+import helpers.{ CachedUserMetadata, CurrentSchemeStatus }
 import models.ApplicationData.ApplicationStatus
 import models._
 
@@ -40,23 +41,25 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       )
     )
 
+
     "be correctly built candidates after phase 3" in {
       val phase3Results = SchemeEvaluationResult(SchemeId("Commercial"), SchemeStatus.Red.toString)  ::
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), SchemeStatus.Red.toString) ::
         SchemeEvaluationResult(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
       Nil
+      val cachedUserMetadata = CachedUserMetadata(userDataWithApp.user, userDataWithApp.application, Schemes.AllSchemes, phase3Results)
 
-      val page = PostOnlineTestsPage.apply(userDataWithApp, phase3Results, Schemes.AllSchemes, None, None, hasAnalysisExercise = false)
+      val page = PostOnlineTestsPage.apply(cachedUserMetadata, None, None, hasAnalysisExercise = false)
 
-      page.successfulSchemes mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
+      page.userDataWithApp.successfulSchemes mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
 
-      page.failedSchemes mustBe  CurrentSchemeStatus(Schemes.Commercial, SchemeStatus.Red, failedAtStage = Some("online tests")) ::
-        CurrentSchemeStatus(Schemes.DaT, SchemeStatus.Red, failedAtStage = Some("online tests")) :: Nil
+      page.userDataWithApp.failedSchemes mustBe  CurrentSchemeStatus(Schemes.Commercial, SchemeStatus.Red, failedAtStage
+        = Some("online tests")) :: CurrentSchemeStatus(Schemes.DaT, SchemeStatus.Red, failedAtStage = Some("online tests")) :: Nil
 
-      page.withdrawnSchemes mustBe Nil
+      page.userDataWithApp.withdrawnSchemes mustBe Nil
       page.hasAssessmentCentreRequirement mustBe true
-      page.hasNumericRequirement mustBe false
-      page.hasFormRequirement mustBe false
+      page.userDataWithApp.hasNumericRequirement mustBe false
+      page.userDataWithApp.hasFormRequirement mustBe false
     }
 
   }
