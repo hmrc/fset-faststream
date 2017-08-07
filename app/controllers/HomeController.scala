@@ -75,7 +75,7 @@ abstract class HomeController(
   def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>
       implicit cachedData =>
-        val process = for {
+        for {
         page <- cachedData.application.map { implicit application =>
           cachedData match {
             case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
@@ -86,10 +86,6 @@ abstract class HomeController(
           dashboardWithoutApplication
         }
       } yield page
-
-      process.recoverWith {
-        case e: ApplicationNotFound => dashboardWithoutApplication
-      }
   }
   // scalastyle:on cyclomatic.complexity
 
