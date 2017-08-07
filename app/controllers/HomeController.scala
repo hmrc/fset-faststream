@@ -47,7 +47,6 @@ object HomeController extends HomeController(
   ApplicationClient,
   ReferenceDataClient,
   SiftClient,
-  SignInController,
   CSRCache
 ) {
   val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
@@ -58,7 +57,6 @@ abstract class HomeController(
   applicationClient: ApplicationClient,
   refDataClient: ReferenceDataClient,
   siftClient: SiftClient,
-  signInService: SignInService,
   cacheClient: CSRCache
 ) extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
