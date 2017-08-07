@@ -60,7 +60,7 @@ case class PostOnlineTestsPage(
 
   def hasAssessmentCentreRequirement: Boolean = true
 
-  def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)  
+  def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 
   private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {
     val minutes = localTime.toString("mm")

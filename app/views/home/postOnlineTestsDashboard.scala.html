@@ -20,7 +20,7 @@
 }
 
 @unsuccessfulSchemes = {
-    @if(page.failedSchemes.nonEmpty) {
+    @if(page.userDataWithApp.failedSchemes.nonEmpty) {
     <details id="unsuccessfulSchemes">
         <summary>Unsuccessful schemes</summary>
         <div class="detail-content">
@@ -61,7 +61,7 @@ case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
                 <ul class="list-text">
                     <li>
                         <h3 class="bold-small">1st preference</h3>
-                        @page.successfulSchemes.headOption.map { schemeResult =>
+                        @page.userDataWithApp.successfulSchemes.headOption.map { schemeResult =>
                             <p>@{schemeResult.scheme.name}
                             <br>(unsuccessful at the assessment centre)</p>
                         }
