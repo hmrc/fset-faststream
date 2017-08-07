@@ -159,6 +159,9 @@ trait CommonBSONDocuments extends BaseBSONReader {
             siftCompleted = getProgress(ProgressStatuses.SIFT_COMPLETED.key)
           ),
           assessmentCentre = AssessmentCentre(
+            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION),
+            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED),
+            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED),
             getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND.key),
             getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED.key),
             getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.key),

@@ -24,6 +24,7 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object AssessmentScoresCommands {
 
+  // TODO MIGUEL: Rename it to AssessmentScoresCandidateSummary in BE and FE
   case class RecordCandidateScores(applicationId: UniqueIdentifier,
                                    firstName: String,
                                    lastName: String,
