@@ -78,6 +78,7 @@ trait SecureActions {
   : Action[AnyContent] = {
     silhouette.SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
+      env.userService.refreshCachedUser(UniqueIdentifier(secondRequest.identity.userID))(carrier, secondRequest)
       getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
         case Some(data) => SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
         case None => gotoAuthentication(secondRequest)

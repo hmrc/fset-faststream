@@ -28,6 +28,7 @@ import forms.SignInForm
 import forms.SignInForm.Data
 import helpers.NotificationType._
 import models.{ ApplicationData, CachedData, CachedUser, SecurityUser }
+import play.api.Logger
 import play.api.i18n.Lang
 import play.api.mvc.{ AnyContent, Request, RequestHeader, Result }
 
@@ -71,10 +72,22 @@ trait SignInService {
       SignInForm.form.fill(SignInForm.Data(signIn = data.signIn, signInPassword = "", route = data.route)), Some(danger(errorMsg))
     ))
 
-  def logOutAndRedirectUserAware(successAction: Result, failAction: Result)(implicit request: UserAwareRequest[_,_]): Future[Result] = {
-    request.identity.foreach(identity => env.eventBus.publish(LogoutEvent(identity, request)))
+  def logOutAndRedirectUserAware(successAction: Result, failAction: Result)(implicit request: Request[_]): Future[Result] = {
     env.authenticatorService.retrieve.map {
       case Some(authenticator) =>
+        val userDetails = request match {
+          case sr: SecuredRequest[_,_] => {
+            s" (identity = ${sr.identity})"
+            env.eventBus.publish(LogoutEvent(sr.identity, request))
+          }
+          case uar: UserAwareRequest[_,_] => {
+            s" (identity = ${uar.identity})"
+            uar.identity.foreach(identity => env.eventBus.publish(LogoutEvent(identity, request)))
+          }
+          case _ => ""
+        }
+        Logger.info(s"No keystore record found for user with valid cookie$userDetails. " +
+          s"Removing cookie and redirecting to sign in.")
         CSRCache.remove()
         env.authenticatorService.discard(authenticator, successAction)
       case None => Future.successful(failAction)

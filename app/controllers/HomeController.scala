@@ -34,7 +34,7 @@ import models.events.EventType
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
-import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
+import security.{ Roles, SecurityEnvironment, SignInService, SilhouetteComponent }
 import security.Roles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -47,6 +47,7 @@ object HomeController extends HomeController(
   ApplicationClient,
   ReferenceDataClient,
   SiftClient,
+  SignInController,
   CSRCache
 ) {
   val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
@@ -57,6 +58,7 @@ abstract class HomeController(
   applicationClient: ApplicationClient,
   refDataClient: ReferenceDataClient,
   siftClient: SiftClient,
+  signInService: SignInService,
   cacheClient: CSRCache
 ) extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
@@ -89,16 +91,8 @@ abstract class HomeController(
       process.recoverWith {
         case e: ApplicationNotFound => dashboardWithoutApplication
         case e: InvalidCredentialsException => {
-          //Future.successful(Redirect(routes.SignInController.signIn()))
-          env.eventBus.publish(LogoutEvent(request.identity, request))
-          env.authenticatorService.retrieve.flatMap {
-            case Some(authenticator) =>
-              Logger.info(s"No keystore record found for user with valid cookie (identity = ${request.identity}). " +
-                s"Removing cookie and redirecting to sign in.")
-              CSRCache.remove()
-              env.authenticatorService.discard(authenticator, Redirect(routes.SignInController.present()))
-            case None => Future.successful(Redirect(routes.SignInController.present()))
-          }
+          val redirectToLogin = Redirect(routes.SignInController.present())
+          signInService.logOutAndRedirectUserAware(redirectToLogin, redirectToLogin)
         }
       }
   }
