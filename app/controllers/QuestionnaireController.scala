@@ -39,8 +39,8 @@ object QuestionnaireController extends QuestionnaireController(ApplicationClient
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
-abstract class QuestionnaireController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) with CachedProgressHelper {
+abstract class QuestionnaireController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(cacheClient) {
 
   val QuestionnaireCompletedBanner: (NotificationType, String) = danger("questionnaire.completed")
 
@@ -173,9 +173,7 @@ abstract class QuestionnaireController(val applicationClient: ApplicationClient,
     implicit
     user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]
   ) = {
-    applicationClient.updateQuestionnaire(user.application.applicationId, sectionId, data).flatMap { _ =>
-      updateProgress()(_ => onSuccess)
-    }
+    applicationClient.updateQuestionnaire(user.application.applicationId, sectionId, data).map { _ => onSuccess }
   }
 
   private def universityMessageKey(implicit app: CachedDataWithApp) = app.application.applicationRoute match {

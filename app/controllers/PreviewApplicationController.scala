@@ -34,8 +34,8 @@ object PreviewApplicationController extends PreviewApplicationController(Applica
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class PreviewApplicationController(val applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
-  extends BaseController(cacheClient) with CachedProgressHelper {
+abstract class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
+  extends BaseController(cacheClient) {
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
@@ -64,10 +64,8 @@ abstract class PreviewApplicationController(val applicationClient: ApplicationCl
 
   def submit = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
-      applicationClient.updatePreview(user.application.applicationId).flatMap { _ =>
-        updateProgress() { usr =>
+      applicationClient.updatePreview(user.application.applicationId).map { _ =>
           Redirect(routes.SubmitApplicationController.present())
-        }
       }
   }
 

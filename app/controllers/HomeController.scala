@@ -54,11 +54,11 @@ object HomeController extends HomeController(
 }
 
 abstract class HomeController(
-  val applicationClient: ApplicationClient,
+  applicationClient: ApplicationClient,
   refDataClient: ReferenceDataClient,
   siftClient: SiftClient,
   cacheClient: CSRCache
-) extends BaseController(cacheClient) with CachedProgressHelper with CampaignAwareController {
+) extends BaseController(cacheClient) with CampaignAwareController {
 
   val Withdrawer = "Candidate"
 
@@ -126,23 +126,12 @@ abstract class HomeController(
   def withdrawApplication: Action[AnyContent] = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
 
-      def updateApplicationStatus(data: CachedData): CachedData = {
-        data.copy(application = data.application.map { app =>
-          app.copy(
-            applicationStatus = ApplicationStatus.WITHDRAWN,
-            progress = app.progress.copy(withdrawn = true)
-          )
-        }
-        )
-      }
-
       WithdrawApplicationForm.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.application.withdraw(invalidForm))),
         data => {
           applicationClient.withdrawApplication(user.application.applicationId, WithdrawApplication(data.reason.get, data.otherReason,
-            Withdrawer)).flatMap { _ =>
-            updateProgress(updateApplicationStatus)(_ =>
-              Redirect(routes.HomeController.present()).flashing(success("application.withdrawn", feedbackUrl)))
+            Withdrawer)).map { _ =>
+              Redirect(routes.HomeController.present()).flashing(success("application.withdrawn", feedbackUrl))
           }.recover {
             case _: CannotWithdraw => Redirect(routes.HomeController.present()).flashing(danger("error.cannot.withdraw"))
           }

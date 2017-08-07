@@ -33,8 +33,8 @@ object SubmitApplicationController extends SubmitApplicationController(Applicati
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SubmitApplicationController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) with CachedProgressHelper with CampaignAwareController {
+abstract class SubmitApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(cacheClient) with CampaignAwareController {
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
@@ -53,10 +53,8 @@ abstract class SubmitApplicationController(val applicationClient: ApplicationCli
   def submit = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
       if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
-        applicationClient.submitApplication(user.user.userID, user.application.applicationId).flatMap { _ =>
-          updateProgress(data =>
-            data.copy(application = data.application.map(_.copy(applicationStatus = SUBMITTED))))(_ =>
-            Redirect(routes.SubmitApplicationController.success()))
+        applicationClient.submitApplication(user.user.userID, user.application.applicationId).map { _ =>
+            Redirect(routes.SubmitApplicationController.success())
         }.recover {
           case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present()).flashing(danger("error.cannot.submit"))
         }

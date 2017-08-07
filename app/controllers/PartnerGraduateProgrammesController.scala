@@ -31,8 +31,8 @@ object PartnerGraduateProgrammesController extends PartnerGraduateProgrammesCont
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class PartnerGraduateProgrammesController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) with CachedProgressHelper {
+abstract class PartnerGraduateProgrammesController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(cacheClient) {
 
   def present = CSRSecureAppAction(PartnerGraduateProgrammesRole) { implicit request =>
     implicit user =>
@@ -52,9 +52,7 @@ abstract class PartnerGraduateProgrammesController(val applicationClient: Applic
           Future.successful(Ok(views.html.application.partnerGraduateProgrammes(invalidForm))),
         data => {
           applicationClient.updatePartnerGraduateProgrammes(user.application.applicationId, data.sanitizeData.exchange)
-            .flatMap { _ =>
-              updateProgress()(_ => Redirect(routes.AssistanceDetailsController.present()))
-            }
+            .map { _ => Redirect(routes.AssistanceDetailsController.present()) }
         }
       )
   }

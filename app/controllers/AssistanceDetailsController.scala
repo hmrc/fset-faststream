@@ -32,8 +32,8 @@ object AssistanceDetailsController extends AssistanceDetailsController(Applicati
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class AssistanceDetailsController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) with CachedProgressHelper {
+abstract class AssistanceDetailsController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(cacheClient) {
 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
@@ -52,14 +52,12 @@ abstract class AssistanceDetailsController(val applicationClient: ApplicationCli
           Future.successful(Ok(views.html.application.assistanceDetails(invalidForm))),
         data => {
           applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID,
-            data.sanitizeData.exchange).flatMap { _ =>
-            updateProgress()(_ => {
-              if (RoleUtils.hasOccupation(CachedData(user.user, Some(user.application)))) {
-                Redirect(routes.PreviewApplicationController.present())
-              } else {
-                Redirect(routes.QuestionnaireController.presentStartOrContinue())
-              }
-            })
+            data.sanitizeData.exchange).map { _ =>
+            if (RoleUtils.hasOccupation(CachedData(user.user, Some(user.application)))) {
+              Redirect(routes.PreviewApplicationController.present())
+            } else {
+              Redirect(routes.QuestionnaireController.presentStartOrContinue())
+            }
           }
         }
       )
