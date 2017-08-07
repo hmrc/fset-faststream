@@ -142,6 +142,7 @@ secondScheme.duplicate=Second preference of scheme can''t be the same as your fi
 
 #Schemes & qualification
 schemes.required=You must choose a scheme
+schemes.tooMany=You can only select a maximum of 4 schemes
 orderAgreed.required=Review your preferences and confirm you''re happy with the order to continue
 eligible.required=You can only select preferences you''re eligible for
 alternatives.required=Select whether or not you would consider other schemes
