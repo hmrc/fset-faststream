@@ -22,6 +22,7 @@ import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest
 import com.mohiva.play.silhouette.api.{ Authorization, LogoutEvent, Silhouette }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import config.{ CSRCache, SecurityEnvironmentImpl }
+import connectors.UserManagementClient.InvalidCredentialsException
 import controllers.routes
 import helpers.NotificationType._
 import models.{ CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier }
@@ -55,33 +56,24 @@ trait SecureActions {
   val silhouette: Silhouette[SecurityEnvironment]
   val cacheClient: CSRCache
 
-  protected[security] def getCachedData(securityUser: SecurityUser)(implicit hc: HeaderCarrier,
-                                                              request: Request[_]): Future[Option[CachedData]] = {
-    cacheClient.fetchAndGetEntry[CachedData](securityUser.userID).recoverWith {
-      case ex: KeyStoreEntryValidationException =>
-        Logger.warn(s"Retrieved invalid cache entry for userId '${securityUser.userID}' (structure changed?). " +
-          s"Attempting cache refresh from database...")
-        env.userService.refreshCachedUser(UniqueIdentifier(securityUser.userID)).map(Some(_))
-      case ex: Throwable =>
-        Logger.warn(s"Retrieved invalid cache entry for userID '${securityUser.userID}. Could not recover!")
-        throw ex
-    }
-  }
-
   /**
     * Wraps the csrAction helper on a secure action.
     * If the user is not logged in then the onNotAuthenticated method on global (or controller if it overrides it) will be called.
     * The Action gets a default role that checks  if the user is active or not. \
     * If the user is inactive then the onNotAuthorized method on global will be called.
     */
-  def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_,_] => CachedData => Future[Result])
-  : Action[AnyContent] = {
+  def CSRSecureAction(role: CsrAuthorization)
+                     (block: SecuredRequest[_,_] => CachedData => Future[Result]): Action[AnyContent] = {
     silhouette.SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
-      env.userService.refreshCachedUser(UniqueIdentifier(secondRequest.identity.userID))(carrier, secondRequest)
-      getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
-        case Some(data) => SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
-        case None => gotoAuthentication(secondRequest)
+
+      env.userService.refreshCachedUser(UniqueIdentifier(secondRequest.identity.userID))(carrier, secondRequest).flatMap { data =>
+        SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
+      } recoverWith {
+        case ice: InvalidCredentialsException => {
+          Logger.warn(s"Retrieved user cache data failed for userID '${secondRequest.identity.userID}. Could not recover!")
+          gotoAuthentication(secondRequest)
+        }
       }
     }
   }
@@ -90,11 +82,13 @@ trait SecureActions {
                         (block: SecuredRequest[_,_] => CachedDataWithApp => Future[Result]): Action[AnyContent] = {
     silhouette.SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
-      getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
-        case Some(CachedData(_, None)) => gotoUnauthorised
-        case Some(data @ CachedData(u, Some(app))) => SecuredActionWithCSRAuthorisation(secondRequest,
-          block, role, data, CachedDataWithApp(u, app))
-        case None => gotoAuthentication(secondRequest)
+
+      env.userService.refreshCachedUser(UniqueIdentifier(secondRequest.identity.userID))(carrier, secondRequest).flatMap {
+          case CachedData(_, None) => gotoUnauthorised
+          case data @ CachedData(u, Some(app)) => SecuredActionWithCSRAuthorisation(secondRequest,
+            block, role, data, CachedDataWithApp(u, app))
+      } recoverWith {
+        case ice: InvalidCredentialsException => gotoAuthentication(secondRequest)
       }
     }
   }
@@ -103,7 +97,10 @@ trait SecureActions {
     withSession {
       silhouette.UserAwareAction.async { request =>
         request.identity match {
-          case Some(securityUser: SecurityUser) => getCachedData(securityUser)(hc(request.request), request).flatMap(r => block(request)(r))
+          case Some(securityUser: SecurityUser) => {
+            env.userService.refreshCachedUser(UniqueIdentifier(securityUser.userID))(hc(request.request), request)
+              .flatMap(r => block(request)(Some(r)))
+          }
           case None => block(request)(None)
         }
       }

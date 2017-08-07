@@ -76,10 +76,9 @@ abstract class HomeController(
     implicit request =>
       implicit cachedData =>
         val process = for {
-        updatedCachedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
-        page <- updatedCachedData.application.map { implicit application =>
-          updatedCachedData match {
-            case _ if isPhase1TestsPassed && (isEdip(updatedCachedData) || isSdip(updatedCachedData)) => displayEdipOrSdipResultsPage
+        page <- cachedData.application.map { implicit application =>
+          cachedData match {
+            case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
             case _ if isPhase3TestsPassed => displayPostOnlineTestsPage
             case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
           }
@@ -90,10 +89,6 @@ abstract class HomeController(
 
       process.recoverWith {
         case e: ApplicationNotFound => dashboardWithoutApplication
-        case e: InvalidCredentialsException => {
-          val redirectToLogin = Redirect(routes.SignInController.present())
-          signInService.logOutAndRedirectUserAware(redirectToLogin, redirectToLogin)
-        }
       }
   }
   // scalastyle:on cyclomatic.complexity
