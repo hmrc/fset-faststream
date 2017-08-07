@@ -39,8 +39,8 @@ object QuestionnaireController extends QuestionnaireController(ApplicationClient
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
-abstract class QuestionnaireController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) {
+abstract class QuestionnaireController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(cacheClient) with CachedProgressHelper {
 
   val QuestionnaireCompletedBanner: (NotificationType, String) = danger("questionnaire.completed")
 

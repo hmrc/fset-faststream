@@ -31,8 +31,8 @@ object PartnerGraduateProgrammesController extends PartnerGraduateProgrammesCont
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class PartnerGraduateProgrammesController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) {
+abstract class PartnerGraduateProgrammesController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(cacheClient) with CachedProgressHelper {
 
   def present = CSRSecureAppAction(PartnerGraduateProgrammesRole) { implicit request =>
     implicit user =>

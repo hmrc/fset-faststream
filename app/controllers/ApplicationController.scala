@@ -34,7 +34,7 @@ object ApplicationController extends ApplicationController(ApplicationClient, CS
 }
 
 abstract class ApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) {
+  extends BaseController(cacheClient) {
 
   def index = Action {
     Redirect(routes.SignInController.signIn())

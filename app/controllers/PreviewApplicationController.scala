@@ -34,16 +34,17 @@ object PreviewApplicationController extends PreviewApplicationController(Applica
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
-  extends BaseController(applicationClient, cacheClient) {
+abstract class PreviewApplicationController(val applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
+  extends BaseController(cacheClient) with CachedProgressHelper {
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
       val personalDetailsFut = applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
       val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
-      val partnerGraduateProgrammesFut = isFastStreamAndNotCivilServant(user) match {
-        case true => applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
-        case false => Future.successful(None)
+      val partnerGraduateProgrammesFut = if (isFastStreamAndNotCivilServant(user)) {
+        applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
+      } else {
+        Future.successful(None)
       }
       val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
 

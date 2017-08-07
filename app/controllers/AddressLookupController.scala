@@ -30,7 +30,7 @@ import uk.gov.hmrc.play.http.BadRequestException
 abstract class AddressLookupController(addressLookupClient: AddressLookupClient,
   applicationClient: ApplicationClient,
   cacheClient: CSRCache
-) extends BaseController(applicationClient, cacheClient) {
+) extends BaseController(cacheClient) {
 
   def addressLookupByPostcode(postcode: String): Action[AnyContent] = CSRSecureAction(EditPersonalDetailsAndContinueRole) {
     implicit request => implicit cachedData =>

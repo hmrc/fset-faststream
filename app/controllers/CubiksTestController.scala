@@ -34,7 +34,7 @@ object CubiksTestController extends CubiksTestController(ApplicationClient, CSRC
 }
 
 abstract class CubiksTestController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) {
+  extends BaseController(cacheClient) {
 
   def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>

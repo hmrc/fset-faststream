@@ -34,7 +34,7 @@ object SignInController extends SignInController(ApplicationClient, CSRCache) wi
 }
 
 abstract class SignInController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) with SignInService {
+  extends BaseController(cacheClient) with SignInService {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

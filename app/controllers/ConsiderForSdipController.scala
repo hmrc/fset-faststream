@@ -37,7 +37,7 @@ object ConsiderForSdipController extends ConsiderForSdipController(ApplicationCl
 }
 
 abstract class ConsiderForSdipController(applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
-  extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+  extends BaseController(cacheClient) with CampaignAwareController {
 
   val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] = config.FrontendAppConfig.applicationRoutesFrontend
 

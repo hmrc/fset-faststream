@@ -42,11 +42,11 @@ object PersonalDetailsController extends PersonalDetailsController(ApplicationCl
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class PersonalDetailsController(applicationClient: ApplicationClient,
+abstract class PersonalDetailsController(val applicationClient: ApplicationClient,
                                 schemeClient: SchemeClient,
                                 cacheClient: CSRCache,
                                 userManagementClient: UserManagementClient)
-  extends BaseController(applicationClient, cacheClient) with PersonalDetailsToExchangeConverter {
+  extends BaseController(cacheClient) with CachedProgressHelper with PersonalDetailsToExchangeConverter {
 
   private sealed trait OnSuccess
   private case object ContinueToNextStepInJourney extends OnSuccess

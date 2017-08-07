@@ -33,10 +33,9 @@ class SchoolsControllerSpec extends BaseControllerSpec {
 
   val schoolClient = mock[SchoolsClient]
   val mockCacheClient = mock[CSRCache]
-  val mockApplicationClient = mock[ApplicationClient]
   val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
-  def schoolsController = new SchoolsController(schoolClient, mockCacheClient, mockApplicationClient) with TestableSecureActions {
+  def schoolsController = new SchoolsController(schoolClient, mockCacheClient) with TestableSecureActions {
     override val env = mockSecurityEnvironment
     override lazy val silhouette = SilhouetteComponent.silhouette
   }

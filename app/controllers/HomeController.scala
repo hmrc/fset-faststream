@@ -51,11 +51,11 @@ object HomeController extends HomeController(
 }
 
 abstract class HomeController(
-  applicationClient: ApplicationClient,
+  val applicationClient: ApplicationClient,
   refDataClient: ReferenceDataClient,
   siftClient: SiftClient,
   cacheClient: CSRCache
-) extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+) extends BaseController(cacheClient) with CachedProgressHelper with CampaignAwareController {
 
   val Withdrawer = "Candidate"
 

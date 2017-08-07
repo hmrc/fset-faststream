@@ -33,7 +33,7 @@ object LaunchpadTestController extends LaunchpadTestController(ApplicationClient
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class LaunchpadTestController(applicationClient: ApplicationClient, cache: CSRCache) extends BaseController(applicationClient, cache) {
+abstract class LaunchpadTestController(applicationClient: ApplicationClient, cache: CSRCache) extends BaseController(cache) {
 
   def startPhase3Tests = CSRSecureAppAction(Phase3TestInvitedRole) { implicit request =>
     implicit cachedUserData =>

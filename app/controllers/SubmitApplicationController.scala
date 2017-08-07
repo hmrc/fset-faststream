@@ -33,8 +33,8 @@ object SubmitApplicationController extends SubmitApplicationController(Applicati
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SubmitApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+abstract class SubmitApplicationController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(cacheClient) with CachedProgressHelper with CampaignAwareController {
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>

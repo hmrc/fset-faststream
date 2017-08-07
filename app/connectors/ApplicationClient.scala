@@ -35,6 +35,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 // scalastyle:off number.of.methods
+trait AppProgressClient {
+
+}
+
 trait ApplicationClient {
 
   val http: CSRHttp
@@ -283,7 +287,7 @@ trait ApplicationClient {
 // scalastyle:on
 
 trait TestDataClient {
-  this: ApplicationClient =>
+  val http: CSRHttp
 
   import config.FrontendAppConfig.faststreamConfig._
 
@@ -299,6 +303,10 @@ trait TestDataClient {
   }
 
   sealed class TestDataGeneratorException(message: String) extends Exception(message)
+}
+
+object TestDataClient extends TestDataClient {
+  override val http: CSRHttp = CSRHttp
 }
 
 object ApplicationClient extends ApplicationClient with TestDataClient {

@@ -27,12 +27,12 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, CSRCache, SchemeClient) {
+object SchemePreferencesController extends SchemePreferencesController(CSRCache, SchemeClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SchemePreferencesController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
-  extends BaseController(applicationClient, cacheClient){
+abstract class SchemePreferencesController(cacheClient: CSRCache, schemeClient: SchemeClient)
+  extends BaseController(cacheClient){
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>

@@ -32,8 +32,8 @@ object AssistanceDetailsController extends AssistanceDetailsController(Applicati
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class AssistanceDetailsController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) {
+abstract class AssistanceDetailsController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(cacheClient) with CachedProgressHelper {
 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>

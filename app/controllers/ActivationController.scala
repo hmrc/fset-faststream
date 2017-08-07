@@ -35,12 +35,13 @@ object ActivationController extends ActivationController(ApplicationClient, CSRC
 
 abstract class ActivationController(val applicationClient: ApplicationClient,
                                     cacheClient: CSRCache, userManagementClient: UserManagementClient) extends
-  BaseController(applicationClient, cacheClient) with SignInService {
+  BaseController(cacheClient) with SignInService {
 
   def present = CSRSecureAction(NoRole) { implicit request =>
-    implicit user => user.user.isActive match {
-      case true => Future.successful(Redirect(routes.HomeController.present()).flashing(warning("activation.already")))
-      case false => Future.successful(Ok(views.html.registration.activation(user.user.email, ActivateAccountForm.form)))
+    implicit user => if (user.user.isActive) {
+      Future.successful(Redirect(routes.HomeController.present()).flashing(warning("activation.already")))
+    } else {
+      Future.successful(Ok(views.html.registration.activation(user.user.email, ActivateAccountForm.form)))
     }
   }
 

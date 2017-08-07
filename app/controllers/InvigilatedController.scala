@@ -35,7 +35,7 @@ object InvigilatedController extends InvigilatedController(ApplicationClient, CS
 }
 
 abstract class InvigilatedController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) {
+  extends BaseController(cacheClient) {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

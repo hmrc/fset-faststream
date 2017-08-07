@@ -40,7 +40,7 @@ object SignUpController extends SignUpController(ApplicationClient, CSRCache, Us
 }
 
 abstract class SignUpController(val applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
-  extends BaseController(applicationClient, cacheClient) with SignInService with CampaignAwareController {
+  extends BaseController(cacheClient) with SignInService with CampaignAwareController {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

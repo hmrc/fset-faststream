@@ -37,7 +37,7 @@ object PasswordResetController extends PasswordResetController(ApplicationClient
 
 abstract class PasswordResetController(val applicationClient: ApplicationClient,
                                        cacheClient: CSRCache, userManagementClient: UserManagementClient)
-  extends BaseController(applicationClient, cacheClient) with SignInService {
+  extends BaseController(cacheClient) with SignInService {
 
   def presentCode() = CSRUserAwareAction { implicit request =>
     implicit user =>

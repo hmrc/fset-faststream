@@ -17,8 +17,6 @@
 package controllers
 
 import config.{ CSRCache, SecurityEnvironmentImpl }
-import connectors.ApplicationClient
-import play.api.mvc._
 import play.api.test.Helpers._
 import security._
 import testables.NoIdentityTestableCSRUserAwareAction
@@ -54,7 +52,7 @@ class LockAccountControllerSpec extends BaseControllerSpec {
       ))
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustEqual Some(routes.LockAccountController.present().toString())
+      redirectLocation(result) mustBe Some(routes.LockAccountController.present().toString)
       session(result).get("email") mustBe None
     }
 
@@ -67,7 +65,7 @@ class LockAccountControllerSpec extends BaseControllerSpec {
       val result = lockAccountController.submit(lockAccountRequest)
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustEqual Some(routes.PasswordResetController.presentReset().toString())
+      redirectLocation(result) mustBe Some(routes.PasswordResetController.presentReset().toString)
       val sess = session(result)
       sess.get("email") mustBe Some("testEmail123@mailinator.com")
     }
@@ -77,16 +75,15 @@ class LockAccountControllerSpec extends BaseControllerSpec {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-    val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
     val mockEnvironment = mock[SecurityEnvironment]
 
-    class TestableLockAccountController extends LockAccountController(mockApplicationClient, mockCacheClient) {
+    class TestableLockAccountController extends LockAccountController(mockCacheClient) {
       override val env = mockSecurityEnvironment
       override lazy val silhouette = SilhouetteComponent.silhouette
     }
 
-    def lockAccountController = new LockAccountController(mockApplicationClient, mockCacheClient) with NoIdentityTestableCSRUserAwareAction {
+    def lockAccountController = new LockAccountController(mockCacheClient) with NoIdentityTestableCSRUserAwareAction {
       override val env = mockSecurityEnvironment
       override lazy val silhouette = SilhouetteComponent.silhouette
     }
