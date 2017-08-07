@@ -20,32 +20,40 @@ import java.util.UUID
 
 import config.{ CSRCache, SecurityEnvironmentImpl }
 import controllers.UnitSpec
-import models.{ CachedData, CachedUser, SecurityUser, UniqueIdentifier }
+import models._
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import play.api.libs.json.{ JsString, Reads }
 import play.api.mvc.Request
+import play.api.mvc.Results._
+import play.api.Play.current
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import security.Roles.NoRole
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class SecureActionsSpec extends UnitSpec {
+class SecureActionsSpec extends UnitWithAppSpec {
 
   "getCachedData" should {
-    "return cachedData when parsing succeeds" in new TestFixture {
-      val result = successfulCacheParseController.getCachedData(testSecurityUser).futureValue
+    "always refresh cached user data" ignore new TestFixture {
+      alwaysRefreshCacheParseController.CSRSecureAction(NoRole) {
+        _ => _ => Future.successful(Ok(""))
+      }.apply(request).futureValue
 
-      result.get mustBe an[CachedData]
-    }
+      alwaysRefreshCacheParseController.CSRSecureAppAction(NoRole) {
+        _ => _ => Future.successful(Ok(""))
+      }.apply(request).futureValue
 
-    "call for cache refresh when a parsing error occurs" in new TestFixture {
-      val result = unSuccessfulCacheParseController.getCachedData(testSecurityUser).futureValue
+      alwaysRefreshCacheParseController.CSRUserAwareAction {
+        _ => _ => Future.successful(Ok(""))
+      }.apply(request).futureValue
 
-      result.get mustBe an[CachedData]
+      verify(mockUserCacheService, times(3)).refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any[Request[_]])
     }
   }
 
@@ -71,18 +79,7 @@ class SecureActionsSpec extends UnitSpec {
     val mockCacheClient = mock[CSRCache]
     val mockUserCacheService = mock[UserCacheService]
 
-    lazy val successfulCacheParseController = makeSecureActions {
-      when(mockCacheClient.fetchAndGetEntry[CachedData](any())(
-        any[HeaderCarrier](), any[Reads[CachedData]]())).thenReturn(Future.successful(Some(
-          testCachedData
-      )))
-    }
-
-    lazy val unSuccessfulCacheParseController = makeSecureActions {
-      when(mockCacheClient.fetchAndGetEntry[CachedData](any())(
-        any[HeaderCarrier](), any[Reads[CachedData]]())).thenReturn(Future.failed(
-        new KeyStoreEntryValidationException("WantedKey", JsString("/wantedKey"), CachedData.getClass, Seq())
-      ))
+    lazy val alwaysRefreshCacheParseController = makeSecureActions {
       when(mockUserCacheService.refreshCachedUser(any[UniqueIdentifier]())(any[HeaderCarrier](), any[Request[_]]())).thenReturn(
         Future.successful(testCachedData)
       )

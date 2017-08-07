@@ -18,13 +18,15 @@ package controllers
 
 import java.nio.file.{ Files, Path }
 
-import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.{ LogoutEvent, Silhouette }
 import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
+import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.exchange._
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
+import helpers.CachedUserWithSchemeData
 import models.ApplicationData.ApplicationStatus
 import models.page._
 import models._
@@ -32,13 +34,14 @@ import models.events.EventType
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
-import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
+import security.{ Roles, SecurityEnvironment, SignInService, SilhouetteComponent }
 import security.Roles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import play.api.mvc.Results.Redirect
 
 object HomeController extends HomeController(
   ApplicationClient,
@@ -66,10 +69,12 @@ abstract class HomeController(
 
   private lazy val maxAnalysisExerciseFileSizeInBytes = 4096 * 1024
 
+  // scalastyle:off cyclomatic.complexity
   def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>
       implicit cachedData =>
-        cachedData.application.map { implicit application =>
+        for {
+        page <- cachedData.application.map { implicit application =>
           cachedData match {
             case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
             case _ if isPhase3TestsPassed => displayPostOnlineTestsPage
@@ -78,7 +83,9 @@ abstract class HomeController(
         }.getOrElse {
           dashboardWithoutApplication
         }
+      } yield page
   }
+  // scalastyle:on cyclomatic.complexity
 
   def showSdipNextSteps: Action[AnyContent] = CSRSecureAction(ActiveUserRole) { implicit request =>
     implicit cachedData =>
@@ -146,19 +153,17 @@ abstract class HomeController(
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
     request: Request[_], hc: HeaderCarrier) = {
     for {
-      schemes <- refDataClient.allSchemes()
-      currentSchemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
+      allSchemes <- refDataClient.allSchemes()
+      schemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
       siftAnswersStatus <- siftClient.getSiftAnswersStatus(application.applicationId)
       assessmentCentreEvents <- applicationClient.eventWithSessionsForApplicationOnly(application.applicationId, EventType.FSAC)
       assessmentCentreEvent = assessmentCentreEvents.headOption // Candidate can only be assigned to one assessment centre event and session
       hasWrittenAnalysisExercise <- applicationClient.hasAnalysisExercise(application.applicationId)
     } yield {
       val page = PostOnlineTestsPage(
-        CachedDataWithApp(cachedData.user, application),
-        currentSchemeStatus,
-        schemes,
-        siftAnswersStatus,
+        CachedUserWithSchemeData(cachedData.user, application, allSchemes, schemeStatus),
         assessmentCentreEvent,
+        siftAnswersStatus,
         hasWrittenAnalysisExercise
       )
       Ok(views.html.home.postOnlineTestsDashboard(page))
