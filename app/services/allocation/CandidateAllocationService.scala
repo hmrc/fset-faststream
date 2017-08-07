@@ -160,8 +160,8 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
-  def removeEventsRemovals(appId: String): Future[Unit] = {
-    candidateAllocationRepo.removeEventsRemovals(appId).flatMap(_ =>
+  def removeCandidateRemovalReason(appId: String): Future[Unit] = {
+    candidateAllocationRepo.removeCandidateRemovalReason(appId).flatMap(_ =>
       applicationRepo.resetApplicationAllocationStatus(appId)
     )
   }

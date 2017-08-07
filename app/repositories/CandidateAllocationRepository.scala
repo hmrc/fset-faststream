@@ -36,7 +36,7 @@ trait CandidateAllocationRepository {
   def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]
   def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]]
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit]
-  def removeEventsRemovals(applicationId: String): Future[Unit]
+  def removeCandidateRemovalReason(applicationId: String): Future[Unit]
 
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit]
 }
@@ -117,7 +117,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     collection.update(query, update) map validator
   }
 
-  def removeEventsRemovals(applicationId: String): Future[Unit] = {
+  def removeCandidateRemovalReason(applicationId: String): Future[Unit] = {
     val query = BSONDocument(
       "id" -> applicationId,
       "status" -> AllocationStatuses.REMOVED

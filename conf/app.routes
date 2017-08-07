@@ -144,7 +144,7 @@ GET         /candidate-allocations/events/:eventId/sessions/:sessionId          
 POST        /candidate-allocations/remove/events/:eventId/sessions/:sessionId      controllers.CandidateAllocationController.removeCandidateAllocations(eventId: String, sessionId: String)
 GET         /candidate-allocations/summary/:applicationId                          controllers.CandidateAllocationController.candidateAllocationsSummary(applicationId: String)
 PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String)
-DELETE      /candidate-allocations/reset-removals/:applicationId                   controllers.CandidateAllocationController.resetEventsRemovals(applicationId: String)
+DELETE      /candidate-allocations/reset-removals/:applicationId                   controllers.CandidateAllocationController.removeCandidateRemovalReason(applicationId: String)
 
 GET         /sessions/findByApplicationId                                          controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
 
