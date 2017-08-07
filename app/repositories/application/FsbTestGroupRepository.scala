@@ -16,9 +16,9 @@
 
 package repositories.application
 
-import model.persisted.{ FsbTestGroup, SchemeEvaluationResult }
+import model.persisted.{ FsbResult, FsbTestGroup, SchemeEvaluationResult }
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -28,11 +28,14 @@ import scala.concurrent.Future
 
 trait FsbTestGroupRepository {
   def save(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
+
+  def findByApplicationIds(applicationIds: List[String]): Future[List[FsbResult]]
 }
 
 class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
-  ReactiveRepository[FsbTestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo, FsbTestGroup.format,
+  ReactiveRepository[FsbTestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo, FsbTestGroup.jsonFormat,
     ReactiveMongoFormats.objectIdFormats) with FsbTestGroupRepository with ReactiveRepositoryHelpers {
 
   private val APPLICATION_ID = "applicationId"
@@ -41,15 +44,18 @@ class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
   override def save(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
     val selector = BSONDocument("$and" -> BSONArray(
       BSONDocument(APPLICATION_ID -> applicationId),
-      BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value)))))
+      BSONDocument(
+        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
+      )
+    ))
     val modifier = BSONDocument("$addToSet" -> BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result))
     val validator = singleUpsertValidator(applicationId, actionDesc = "saving fsb assessment result")
-    collection.update(selector, modifier, upsert = true) map validator
+    collection.update(selector, modifier) map validator
   }
 
-  def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]] = {
+  override def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]] = {
     val query = BSONDocument(APPLICATION_ID -> applicationId)
-    val projection = BSONDocument(FSB_TEST_GROUPS -> 1, "_id" -> 0)
+    val projection = BSONDocument(FSB_TEST_GROUPS -> 1)
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) =>
@@ -58,6 +64,15 @@ class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
           fsb <- testGroups.getAs[FsbTestGroup]("FSB")
         } yield fsb
       case _ => None
+    }
+  }
+
+  override def findByApplicationIds(applicationIds: List[String]): Future[List[FsbResult]] = {
+    val applicationIdFilter = applicationIds.foldLeft(BSONArray())((bsonArray, applicationId) => bsonArray ++ applicationId)
+    val query = BSONDocument(APPLICATION_ID -> BSONDocument("$in" -> applicationIdFilter))
+    val projection = BSONDocument(FSB_TEST_GROUPS -> 1, APPLICATION_ID -> 1)
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]() map { documents =>
+      documents.foldLeft(List[FsbResult]())((list, document) => list :+ BSON.readDocument[FsbResult](document))
     }
   }
 

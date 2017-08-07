@@ -16,9 +16,9 @@
 
 package controllers
 
-import model.{EvaluationResults, FsbType, SchemeId}
 import model.exchange.FsbEvaluationResults
-import play.api.libs.json.{JsValue, Json}
+import model.{ EvaluationResults, FsbType, SchemeId }
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Action
 import services.application.FsbTestGroupService
 import services.events.EventsService
@@ -50,6 +50,12 @@ trait FsbTestGroupController extends BaseController {
         result <- service.saveResults(schemeId, greenRedResults)
       } yield Ok
     }
+  }
+
+  def find(applicationIds: List[String]) = Action.async { implicit request =>
+      service.find(applicationIds).map { results =>
+        Ok(Json.toJson(results))
+      }
   }
 
   private def fromPassMark(s: String): EvaluationResults.Result = s match {

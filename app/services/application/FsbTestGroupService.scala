@@ -18,7 +18,7 @@ package services.application
 
 import model.SchemeId
 import model.exchange.ApplicationResult
-import model.persisted.SchemeEvaluationResult
+import model.persisted.{ FsbResult, SchemeEvaluationResult }
 import repositories.application.FsbTestGroupRepository
 
 import scala.concurrent.Future
@@ -41,5 +41,7 @@ trait FsbTestGroupService {
     fsbTestGroupRepository.save(applicationResult.applicationId, schemeEvaluationResult)
   }
 
+  def find(applicationIds: List[String]): Future[List[FsbResult]] = {
+    fsbTestGroupRepository.findByApplicationIds(applicationIds)
+  }
 }
-

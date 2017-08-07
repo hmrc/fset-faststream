@@ -16,30 +16,38 @@
 
 package model.persisted
 
-import model.SchemeId
-import model.exchange.ApplicationResult
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, Macros }
 
 case class FsbEvaluation(result: List[SchemeEvaluationResult])
 
 object FsbEvaluation {
-  implicit val format = Json.format[FsbEvaluation]
+  implicit val jsonFormat = Json.format[FsbEvaluation]
   implicit val bsonHandler = Macros.handler[FsbEvaluation]
 }
 
 case class FsbTestGroup(evaluation: FsbEvaluation)
 
 object FsbTestGroup {
-  implicit val format = Json.format[FsbTestGroup]
+  implicit val jsonFormat = Json.format[FsbTestGroup]
   implicit val bsonHandler = Macros.handler[FsbTestGroup]
 
-  def apply(schemeId: SchemeId, result: ApplicationResult): FsbTestGroup = {
-    val schemeEvaluation = List(SchemeEvaluationResult(schemeId, result.result))
-    val fsbEvaluation = FsbEvaluation(schemeEvaluation)
-    FsbTestGroup(fsbEvaluation)
-  }
-
   def apply(results: List[SchemeEvaluationResult]): FsbTestGroup = new FsbTestGroup(FsbEvaluation(results))
+
+}
+
+case class FsbResult(applicationId: String, evaluation: FsbEvaluation)
+
+object FsbResult {
+  implicit val jsonFormat = Json.format[FsbResult]
+
+  implicit object FsbResultReader extends BSONDocumentReader[FsbResult] {
+    def read(document: BSONDocument): FsbResult = {
+      val applicationId = document.getAs[String]("applicationId").get
+      val testGroups = document.getAs[BSONDocument]("testGroups").get
+      val fsbTestGroup = testGroups.getAs[FsbTestGroup]("FSB").get
+      FsbResult(applicationId, fsbTestGroup.evaluation)
+    }
+  }
 
 }
