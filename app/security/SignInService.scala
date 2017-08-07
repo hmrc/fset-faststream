@@ -22,12 +22,13 @@ import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import config.{ CSRCache, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.ApplicationClient
+import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.exchange.FrameworkId
 import controllers.{ BaseController, routes }
 import forms.SignInForm
 import forms.SignInForm.Data
 import helpers.NotificationType._
-import models.{ ApplicationData, CachedData, CachedUser, SecurityUser }
+import models._
 import play.api.Logger
 import play.api.i18n.Lang
 import play.api.mvc.{ AnyContent, Request, RequestHeader, Result }
@@ -96,9 +97,14 @@ trait SignInService {
 
   def notAuthorised(request: RequestHeader): Future[Result] = {
     val sec = request.asInstanceOf[SecuredRequest[SecurityEnvironment, AnyContent]]
-      getCachedData(sec.identity)(hc(sec), sec).map {
-        case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
-        case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
+    env.userService.refreshCachedUser(UniqueIdentifier(sec.identity.userID))(hc(sec), sec).map {
+      case cd: CachedData if cd.user.isActive => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
+      case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
+    } recoverWith {
+      case ice: InvalidCredentialsException => {
+        val signInAction = Redirect(routes.SignInController.present())
+        logOutAndRedirectUserAware(signInAction, signInAction)(sec)
       }
+    }
   }
 }
