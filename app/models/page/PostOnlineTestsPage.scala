@@ -23,6 +23,7 @@ import connectors.exchange.sift.SiftAnswersStatus
 import helpers.Timezones
 import models.page.PostOnlineTestsStage.PostOnlineTestsStage
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
+import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled, ProgressStepVisibility }
 import models.{ CachedData, CachedDataWithApp, SchemeStatus }
 import org.joda.time.{ DateTime, LocalTime }
 
@@ -43,7 +44,8 @@ case class PostOnlineTestsPage(
   schemes: Seq[CurrentSchemeStatus],
   additionalQuestionsStatus: Option[SiftAnswersStatus],
   assessmentCentreEvent: Option[Event],
-  hasAnalysisExercise: Boolean
+  hasAnalysisExercise: Boolean,
+  fourthStepVisibility: ProgressStepVisibility
 ) {
 
   def stage: PostOnlineTestsStage = {
@@ -129,6 +131,12 @@ object PostOnlineTestsPage {
       }
     }
 
-    PostOnlineTestsPage(userDataWithApp, currentSchemes, siftAnswersStatus, assessmentCentreSession, hasAnalysisExercise)
+    val appFailed = if (userDataWithApp.application.progress.assessmentCentre.failedToAttend) {
+      ProgressInactiveDisabled
+    } else {
+      ProgressActive
+    }
+
+    PostOnlineTestsPage(userDataWithApp, currentSchemes, siftAnswersStatus, assessmentCentreSession, hasAnalysisExercise, appFailed)
   }
 }

@@ -2,6 +2,7 @@
 @import views.html.home.commonSectionPostOnlineTests
 @import views.html.home.siftProgress
 @import views.html.home.withdrawSection
+@import models.page.PostOnlineTestsStage
 @import security.Roles._
 @import security.RoleUtils._
 @import views.html.home.withdrawInformation
@@ -18,11 +19,62 @@
   }
 }
 
+@unsuccessfulSchemes = {
+    @if(page.failedSchemes.nonEmpty) {
+    <details id="unsuccessfulSchemes">
+        <summary>Unsuccessful schemes</summary>
+        <div class="detail-content">
+            @for((schemeResult, index) <- page.failedSchemes.zipWithIndex) {
+            <div class="panel-indent">
+                <p>@schemeResult.scheme.name
+                    <br>(unsuccessful at @schemeResult.failedAtStage)
+                </p>
+            </div>
+            }
+        </div>
+    </details>
+    }
+}
+
 @main_template(title = "Home", additionalJavascriptFilenames = List("siftProgress.js")) {
 
     @commonSectionPostOnlineTests(page.toCachedData)
 
     @sdipFaststreamBanner(page.toCachedData)
+
+@(page.stage) match {
+
+case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
+    <section class="section-border">
+        <section class="text" data-successtop>
+            <div id="unsuccessfulNoAttend">
+                <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                    Important</p>
+                <div id="assessmentFailedToAttend">
+                    <p>Unfortunately, you've been unsuccessful as you didn't attend the assessment centre.</p>
+                    <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact
+                        us</a>.</p>
+                    <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil
+                        Service jobs</a>
+                        site for more opportunities with us.</p>
+                </div>
+                <ul class="list-text">
+                    <li>
+                        <h3 class="bold-small">1st preference</h3>
+                        @page.successfulSchemes.headOption.map { schemeResult =>
+                            <p>@{schemeResult.scheme.name}
+                            <br>(unsuccessful at the assessment centre)</p>
+                        }
+                    </li>
+                </ul>
+            </div>
+            @unsuccessfulSchemes
+        </section>
+
+    </section>
+}
+
+case _ => {
 
     <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.toCachedData)){disabled}" id="mainProgressPage">
         <div class="text">
@@ -42,23 +94,14 @@
                 }
             </section>
 
-            @if(page.failedSchemes.nonEmpty) {
-                <details id="unsuccessfulSchemes">
-                    <summary>Unsuccessful schemes</summary>
-                    <div class="detail-content">
-                        @for((schemeResult, index) <- page.failedSchemes.zipWithIndex) {
-                            <div class="panel-indent">
-                                <p>@schemeResult.scheme.name
-                                    <br>(unsuccessful at @schemeResult.failedAtStage)
-                                </p>
-                            </div>
-                        }
-                    </div>
-                </details>
-            }
+            @unsuccessfulSchemes
+
         </div>
         <h2 class="heading-large">Next steps</h2>
         @siftProgress(page)
     </section>
     @withdrawSection(page.toCachedData)
+}
+
+}
 }

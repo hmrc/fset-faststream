@@ -1,4 +1,5 @@
 @import helper._
+@import models.page.DashboardPage.activateByStep
 @import models.page.PostOnlineTestsStage
 @import models.ApplicationData.ApplicationStatus
 @import security.RoleUtils.isSiftEntered
@@ -60,16 +61,6 @@
 
         <div id="assessmentBlurb">
         @(page.stage) match {
-            case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
-                <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
-                    Important</p>
-                <div id="assessmentFailedToAttend">
-                    <p>Unfortunately, you have not attended assessment centre event.</p>
-                    <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>.</p>
-                    <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
-                        site for more opportunities with us.</p>
-                </div>
-            }
             case (PostOnlineTestsStage.CONFIRMED_FOR_EVENT) => {
                 <p>
                     @page.assessmentCentreStartDateAndTime,
@@ -168,7 +159,7 @@
 
             case _ => {}
         }
-        <li class="fourth-step">
+        <li class="fourth-step @activateByStep(page.fourthStepVisibility)">
             <div class="inner-block-padr">
                 <h2 class="heading-medium ">Final stage</h2>
                 <p>If you've successfully passed the previous stage, you'll need to
