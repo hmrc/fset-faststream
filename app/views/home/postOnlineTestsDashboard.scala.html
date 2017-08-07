@@ -28,12 +28,17 @@
         <div class="text">
             <section>
                 <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.noSuccessfulSchemes} of your preferred schemes.</p>
-                <div class="panel-indent" id="importantToProgress">
-                    <p><i class="fa fa-exclamation-triangle"></i>Important</p>
-                    <p><span>To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>If
-                        you've changed your mind, you can <a href="#">withdraw from individual schemes</a>.
-                    </p>
-                </div>
+                <p>Check your scheme preferences, as the order may have changed.</p>
+                @if(SchemeWithdrawRole.isAuthorized(page.toCachedData)) {
+                    <div class="panel-indent" id="importantToProgress">
+                        <p><i class="fa fa-exclamation-triangle"></i>Important</p>
+                        <p><span>
+                            To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
+                            If
+                            you've changed your mind, you can <a href="#">withdraw from individual schemes</a>.
+                        </p>
+                    </div>
+                }
                 @for((schemeResult, index) <- page.successfulSchemes.zipWithIndex) {
                     <section>
                         <h3 class="bold-small">@getOrder(index + 1) preference</h3>
@@ -56,6 +61,7 @@
                     </div>
                 </details>
             }
+
         </div>
         <h2 class="heading-large">Next steps</h2>
         @siftProgress(page)
