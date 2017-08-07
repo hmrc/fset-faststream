@@ -31,7 +31,7 @@ case class CurrentSchemeStatus(
   failedAtStage: Option[String]
 )
 
-class CachedUserMetadata(
+class CachedUserWithSchemeData(
   val user: CachedUser,
   val application: ApplicationData,
   val allSchemes: Seq[Scheme],
@@ -63,12 +63,12 @@ class CachedUserMetadata(
   lazy val hasNumericRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
 }
 
-object CachedUserMetadata {
+object CachedUserWithSchemeData {
   def apply(
     user: CachedUser,
     application: ApplicationData,
     allSchemes: Seq[Scheme],
-    rawSchemesStatus: Seq[SchemeEvaluationResult]): CachedUserMetadata =
-      new CachedUserMetadata(user, application, allSchemes, rawSchemesStatus
+    rawSchemesStatus: Seq[SchemeEvaluationResult]): CachedUserWithSchemeData =
+      new CachedUserWithSchemeData(user, application, allSchemes, rawSchemesStatus
   )
 }

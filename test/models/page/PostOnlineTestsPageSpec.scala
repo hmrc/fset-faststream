@@ -23,7 +23,7 @@ import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.SchemeId
 import connectors.exchange.sift.SiftAnswersStatus
 import controllers.UnitSpec
-import helpers.{ CachedUserMetadata, CurrentSchemeStatus }
+import helpers.{ CachedUserWithSchemeData, CurrentSchemeStatus }
 import models.ApplicationData.ApplicationStatus
 import models._
 
@@ -47,19 +47,19 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), SchemeStatus.Red.toString) ::
         SchemeEvaluationResult(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
       Nil
-      val cachedUserMetadata = CachedUserMetadata(userDataWithApp.user, userDataWithApp.application, Schemes.AllSchemes, phase3Results)
+      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application, Schemes.AllSchemes, phase3Results)
 
       val page = PostOnlineTestsPage.apply(cachedUserMetadata, None, None, hasAnalysisExercise = false)
 
-      page.userDataWithApp.successfulSchemes mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
+      page.userDataWithSchemes.successfulSchemes mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
 
-      page.userDataWithApp.failedSchemes mustBe  CurrentSchemeStatus(Schemes.Commercial, SchemeStatus.Red, failedAtStage
+      page.userDataWithSchemes.failedSchemes mustBe  CurrentSchemeStatus(Schemes.Commercial, SchemeStatus.Red, failedAtStage
         = Some("online tests")) :: CurrentSchemeStatus(Schemes.DaT, SchemeStatus.Red, failedAtStage = Some("online tests")) :: Nil
 
-      page.userDataWithApp.withdrawnSchemes mustBe Nil
+      page.userDataWithSchemes.withdrawnSchemes mustBe Nil
       page.hasAssessmentCentreRequirement mustBe true
-      page.userDataWithApp.hasNumericRequirement mustBe false
-      page.userDataWithApp.hasFormRequirement mustBe false
+      page.userDataWithSchemes.hasNumericRequirement mustBe false
+      page.userDataWithSchemes.hasFormRequirement mustBe false
     }
 
   }

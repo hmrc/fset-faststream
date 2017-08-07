@@ -26,7 +26,7 @@ import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.exchange._
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
-import helpers.CachedUserMetadata
+import helpers.CachedUserWithSchemeData
 import models.ApplicationData.ApplicationStatus
 import models.page._
 import models._
@@ -161,7 +161,7 @@ abstract class HomeController(
       hasWrittenAnalysisExercise <- applicationClient.hasAnalysisExercise(application.applicationId)
     } yield {
       val page = PostOnlineTestsPage(
-        CachedUserMetadata(cachedData.user, application, allSchemes, schemeStatus),
+        CachedUserWithSchemeData(cachedData.user, application, allSchemes, schemeStatus),
         assessmentCentreEvent,
         siftAnswersStatus,
         hasWrittenAnalysisExercise

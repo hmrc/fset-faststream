@@ -20,7 +20,7 @@ import connectors.events.{ Event, Session }
 import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import connectors.exchange.sift.SiftAnswersStatus
-import helpers.{ CachedUserMetadata, Timezones }
+import helpers.{ CachedUserWithSchemeData, Timezones }
 import models.page.PostOnlineTestsStage.PostOnlineTestsStage
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
 import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled, ProgressStepVisibility }
@@ -36,7 +36,7 @@ object PostOnlineTestsStage extends Enumeration {
 }
 
 case class PostOnlineTestsPage(
-  userDataWithApp: CachedUserMetadata,
+  userDataWithSchemes: CachedUserWithSchemeData,
   assessmentCentreEvent: Option[Event],
   additionalQuestionsStatus: Option[SiftAnswersStatus],
   hasAnalysisExercise: Boolean
@@ -44,7 +44,7 @@ case class PostOnlineTestsPage(
 
   def stage: PostOnlineTestsStage = {
     import PostOnlineTestsStage._
-    val failedToAttend = userDataWithApp.application.progress.assessmentCentre.failedToAttend
+    val failedToAttend = userDataWithSchemes.application.progress.assessmentCentre.failedToAttend
 
 
     (failedToAttend, assessmentCentreStarted, allocatedToAssessmentCentre, hasAnalysisExercise) match {
@@ -56,7 +56,7 @@ case class PostOnlineTestsPage(
     }
   }
 
-  def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
+  def toCachedData: CachedData = CachedData(userDataWithSchemes.user, Some(userDataWithSchemes.application))
 
   def hasAssessmentCentreRequirement: Boolean = true
 
@@ -91,7 +91,7 @@ case class PostOnlineTestsPage(
 
   val allocatedToAssessmentCentre = assessmentCentreEvent.isDefined
 
-  val fourthStepVisibility = if (userDataWithApp.application.progress.assessmentCentre.failedToAttend) {
+  val fourthStepVisibility = if (userDataWithSchemes.application.progress.assessmentCentre.failedToAttend) {
     ProgressInactiveDisabled
   } else {
     ProgressActive

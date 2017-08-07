@@ -25,8 +25,8 @@ import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
 import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
-import helpers.CachedUserMetadata
-import helpers.CachedUserMetadata._
+import helpers.CachedUserWithSchemeData
+import helpers.CachedUserWithSchemeData._
 import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
 import security.Roles.SchemeSpecificQuestionsRole
 
@@ -125,7 +125,7 @@ abstract class SiftQuestionsController(
   def presentPreview: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
 
-      def enrichSchemeAnswersAddingMissingSiftSchemes(siftAnswers: SiftAnswers, userMetadata: CachedUserMetadata) = {
+      def enrichSchemeAnswersAddingMissingSiftSchemes(siftAnswers: SiftAnswers, userMetadata: CachedUserWithSchemeData) = {
         val enrichedExisting = referenceDataClient.allSchemes map { allSchemes =>
           siftAnswers.schemeAnswers map { case (schemeId, answer) =>
             allSchemes.find(_.id == SchemeId(schemeId)).map { scheme =>
@@ -153,7 +153,7 @@ abstract class SiftQuestionsController(
         allSchemes <- referenceDataClient.allSchemes()
         schemeStatus <- applicationClient.getCurrentSchemeStatus(user.application.applicationId)
         answers <- siftClient.getSiftAnswers(user.application.applicationId) recoverWith(noSiftAnswersRecovery)
-        userMetadata = CachedUserMetadata(user.user, user.application, allSchemes, schemeStatus)
+        userMetadata = CachedUserWithSchemeData(user.user, user.application, allSchemes, schemeStatus)
         enrichedAnswers <- enrichSchemeAnswersAddingMissingSiftSchemes(answers, userMetadata)
       } yield {
          val page = SiftPreviewPage(
