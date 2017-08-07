@@ -104,7 +104,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       content must include("""<ol class="step-by-step-coloured disabled" id="sixSteps">""")
     }
 
-    "display display post online tests page" in new TestFixture {
+    "display post online tests page" in new TestFixture {
       val applicationRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
