@@ -28,6 +28,8 @@ import play.api.Play.current
 
 object SelectedSchemesForm {
 
+  protected val maxSchemes = 4
+
   val NoDegree = "None"
   val Degree_21 = "Degree_21"
   val Degree_22 = "Degree_22"
@@ -98,6 +100,7 @@ object SelectedSchemesForm {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
       getSchemesByPriority(data) match {
         case selectedSchemes if selectedSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes if selectedSchemes.size > maxSchemes => Left(List(FormError(formKey, Messages("schemes.tooMany"))))
         case selectedSchemes if selectedSchemes.size > AllSchemes.size => Left(List(FormError(formKey, Messages("schemes.required"))))
         case selectedSchemes if getInvalidSchemes(selectedSchemes).nonEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
         case selectedSchemes => Right(selectedSchemes)

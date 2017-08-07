@@ -1,4 +1,6 @@
 @import helper._
+@import models.page.DashboardPage.activateByStep
+@import models.page.PostOnlineTestsStage
 @import models.ApplicationData.ApplicationStatus
 @import security.RoleUtils.isSiftEntered
 
@@ -58,8 +60,8 @@
         <h2 class="heading-medium ">Attend an assessment centre</h2>
 
         <div id="assessmentBlurb">
-        @(page.assessmentCentreStarted, page.allocatedToAssessmentCentre, page.hasAnalysisExercise) match {
-            case (true, true, false) => {
+        @(page.stage) match {
+            case (PostOnlineTestsStage.CONFIRMED_FOR_EVENT) => {
                 <p>
                     @page.assessmentCentreStartDateAndTime,
                     <br />
@@ -83,13 +85,13 @@
                     Find out more about the assessment day</a>
                 </p>
             }
-            case (false, true, false) => {
+            case (PostOnlineTestsStage.EVENT_BOOKED) => {
                 <p>Your assessment centre is booked</p>
                 <p><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
                     Find out more about the assessment day</a>
                 </p>
             }
-            case (true, true, true) => {
+            case (PostOnlineTestsStage.EVENT_ATTENDED) => {
                 <p>Thanks for attending the assessment centre.</p>
                 <p>We'll contact you as soon as we've got your result. Keep an eye on your email inbox, including your junk mail.</p>
             }
@@ -157,7 +159,7 @@
 
             case _ => {}
         }
-        <li class="fourth-step">
+        <li class="fourth-step @activateByStep(page.fourthStepVisibility)">
             <div class="inner-block-padr">
                 <h2 class="heading-medium ">Final stage</h2>
                 <p>If you've successfully passed the previous stage, you'll need to

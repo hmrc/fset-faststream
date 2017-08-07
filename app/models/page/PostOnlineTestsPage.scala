@@ -21,11 +21,19 @@ import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import connectors.exchange.sift.SiftAnswersStatus
 import helpers.{ CachedUserMetadata, Timezones }
+import models.page.PostOnlineTestsStage.PostOnlineTestsStage
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
+import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled, ProgressStepVisibility }
 import models.{ CachedData, CachedDataWithApp, SchemeStatus }
 import org.joda.time.{ DateTime, LocalTime }
 
 
+
+
+object PostOnlineTestsStage extends Enumeration {
+  type PostOnlineTestsStage = Value
+  val FAILED_TO_ATTEND, CONFIRMED_FOR_EVENT, EVENT_BOOKED, EVENT_ATTENDED, OTHER = Value
+}
 
 case class PostOnlineTestsPage(
   userDataWithApp: CachedUserMetadata,
@@ -33,11 +41,26 @@ case class PostOnlineTestsPage(
   additionalQuestionsStatus: Option[SiftAnswersStatus],
   hasAnalysisExercise: Boolean
 ) {
+
+  def stage: PostOnlineTestsStage = {
+    import PostOnlineTestsStage._
+    val failedToAttend = userDataWithApp.application.progress.assessmentCentre.failedToAttend
+
+
+    (failedToAttend, assessmentCentreStarted, allocatedToAssessmentCentre, hasAnalysisExercise) match {
+      case (true, _, _, _) => FAILED_TO_ATTEND
+      case (_, true, true, false) => CONFIRMED_FOR_EVENT
+      case (_, false, true, false) => EVENT_BOOKED
+      case (_, true, true, true) => EVENT_ATTENDED
+      case _ => OTHER
+    }
+  }
+
   def toCachedData: CachedData = CachedData(userDataWithApp.user, Some(userDataWithApp.application))
 
   def hasAssessmentCentreRequirement: Boolean = true
 
-  def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
+  def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)  
 
   private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {
     val minutes = localTime.toString("mm")
@@ -67,4 +90,10 @@ case class PostOnlineTestsPage(
   }
 
   val allocatedToAssessmentCentre = assessmentCentreEvent.isDefined
+
+  val fourthStepVisibility = if (userDataWithApp.application.progress.assessmentCentre.failedToAttend) {
+    ProgressInactiveDisabled
+  } else {
+    ProgressActive
+  }
 }
