@@ -179,7 +179,6 @@ abstract class AssessorAssessmentScoresService extends AssessmentScoresService {
   }
 }
 
-
 object AssessorAssessmentScoresService extends AssessorAssessmentScoresService {
   override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
   override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
@@ -189,6 +188,7 @@ object AssessorAssessmentScoresService extends AssessorAssessmentScoresService {
 
   override val dateTimeFactory = DateTimeFactory
 }
+
 
 abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
   override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
@@ -201,7 +201,6 @@ abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
   }
 
 }
-
 
 object ReviewerAssessmentScoresService extends ReviewerAssessmentScoresService {
   override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
