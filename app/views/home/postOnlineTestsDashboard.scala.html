@@ -20,11 +20,11 @@
 }
 
 @unsuccessfulSchemes = {
-    @if(page.failedSchemes.nonEmpty) {
+    @if(page.userDataWithApp.failedSchemes.nonEmpty) {
     <details id="unsuccessfulSchemes">
         <summary>Unsuccessful schemes</summary>
         <div class="detail-content">
-            @for((schemeResult, index) <- page.failedSchemes.zipWithIndex) {
+            @for((schemeResult, index) <- page.userDataWithApp.failedSchemes.zipWithIndex) {
             <div class="panel-indent">
                 <p>@schemeResult.scheme.name
                     <br>(unsuccessful at @schemeResult.failedAtStage)
@@ -61,7 +61,7 @@ case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
                 <ul class="list-text">
                     <li>
                         <h3 class="bold-small">1st preference</h3>
-                        @page.successfulSchemes.headOption.map { schemeResult =>
+                        @page.userDataWithApp.successfulSchemes.headOption.map { schemeResult =>
                             <p>@{schemeResult.scheme.name}
                             <br>(unsuccessful at the assessment centre)</p>
                         }
@@ -79,14 +79,14 @@ case _ => {
     <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.toCachedData)){disabled}" id="mainProgressPage">
         <div class="text">
             <section>
-                <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.noSuccessfulSchemes} of your preferred schemes.</p>
+                <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.userDataWithApp.noSuccessfulSchemes} of your preferred schemes.</p>
                 <div class="panel-indent" id="importantToProgress">
                     <p><i class="fa fa-exclamation-triangle"></i>Important</p>
                     <p><span>To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>If
                         you've changed your mind, you can <a href="#">withdraw from individual schemes</a>.
                     </p>
                 </div>
-                @for((schemeResult, index) <- page.successfulSchemes.zipWithIndex) {
+                @for((schemeResult, index) <- page.userDataWithApp.successfulSchemes.zipWithIndex) {
                     <section>
                         <h3 class="bold-small">@getOrder(index + 1) preference</h3>
                         <p>@{schemeResult.scheme.name}</p>

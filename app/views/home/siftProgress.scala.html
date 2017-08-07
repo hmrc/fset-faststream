@@ -17,7 +17,7 @@
             <ul class="list-text list-withicons" data-extrainfolist>
                 @if(!page.haveAdditionalQuestionsBeenSubmitted) {
                     <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions()">Nationality and higher education</a></li>
-                    @for(curSiftableScheme <- page.schemesForSiftForms) {
+                    @for(curSiftableScheme <- page.userDataWithApp.schemesForSiftForms) {
                     <li><i class="fa fa-minus the-icon"></i>
                         <a href="@routes.SiftQuestionsController.presentSchemeForm(curSiftableScheme.id)">@{
                             curSiftableScheme.name
@@ -110,7 +110,7 @@
 
  <section class="text">
     <ol class="step-by-step-coloured" id="nextStepsList">
-        @(page.hasFormRequirement, page.hasNumericRequirement, page.hasAssessmentCentreRequirement) match {
+        @(page.userDataWithApp.hasFormRequirement, page.userDataWithApp.hasNumericRequirement, page.hasAssessmentCentreRequirement) match {
             case (true, true, true) => {
                 <li class="first-step">
                     @if(isSiftEntered(page.toCachedData)) {
