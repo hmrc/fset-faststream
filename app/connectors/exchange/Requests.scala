@@ -30,7 +30,7 @@ object CreateApplicationRequest {
   implicit val format = Json.format[CreateApplicationRequest]
 }
 
-case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, role: String, service: String)
+case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, roles: List[String], service: String)
 object AddUserRequest {
   implicit val format = Json.format[AddUserRequest]
 }
@@ -38,7 +38,7 @@ object AddUserRequest {
 case class UpdateUserRequest(email: String, password: String, firstName: String, lastName: String,
                              userId: UniqueIdentifier, isActive: Boolean, service: String)
 object UpdateUserRequest {
-  implicit val foramt = Json.format[UpdateUserRequest]
+  implicit val format = Json.format[UpdateUserRequest]
 }
 
 case class SignInRequest(email: String, password: String, service: String)

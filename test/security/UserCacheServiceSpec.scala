@@ -73,7 +73,7 @@ class UserCacheServiceSpec extends UnitSpec {
       "barry@smith.com",
       false,
       "UNLOCKED",
-      "candidate",
+      List("candidate"),
       "faststream",
       None
     )

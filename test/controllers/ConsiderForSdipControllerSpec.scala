@@ -105,7 +105,8 @@ class ConsiderForSdipControllerSpec extends BaseControllerSpec {
       val archiveEmail = ConsiderMeForSdipHelper.convertToArchiveEmail(currentCandidateWithApp.user.email)
       when(mockUserManagementClient.register(eqTo(archiveEmail), any[String],
         eqTo(currentCandidateWithApp.user.firstName), eqTo(currentCandidateWithApp.user.lastName))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(UserResponse("", "", None, isActive = false, UniqueIdentifier(UUID.randomUUID()), "", disabled=false, "", "", "", None)))
+        .thenReturn(Future.successful(
+          UserResponse("", "", None, isActive = false, UniqueIdentifier(UUID.randomUUID()), "", disabled=false, "", Nil, "", None)))
       when(mockApplicationClient.continueAsSdip(any[UniqueIdentifier], any[UniqueIdentifier])(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)

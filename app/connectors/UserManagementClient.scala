@@ -36,7 +36,7 @@ trait UserManagementClient {
 
   def register(email: String, password: String, firstName: String, lastName: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
     http.POST(s"${url.host}/add",
-      AddUserRequest(email.toLowerCase, password, firstName, lastName, role, ServiceName)).map { (resp: HttpResponse) =>
+      AddUserRequest(email.toLowerCase, password, firstName, lastName, List(role), ServiceName)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
       case Upstream4xxResponse(_, 409, _, _) => throw new EmailTakenException()
@@ -45,7 +45,7 @@ trait UserManagementClient {
   def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
     http.POST(s"${url.host}/authenticate", SignInRequest(email.toLowerCase, password, ServiceName)).map { (resp: HttpResponse) =>
       val response = resp.json.as[UserResponse]
-      if (response.role != role) throw new InvalidRoleException() else {
+      if (response.roles.head != role) throw new InvalidRoleException() else {
         response
       }
     }.recover {
