@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.TestForTokenExpiredException
 import connectors.UserManagementClient.TokenEmailPairInvalidException
@@ -73,7 +73,6 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
-    val mockCacheClient = mock[CSRCache]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
     val testUrl = "http://localhost:9284/fset-fast-stream/invigilated-etray"
@@ -81,7 +80,7 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
     val failedValidationResponse = Future.failed(new TokenEmailPairInvalidException())
     val testExpiredResponse = Future.failed(new TestForTokenExpiredException())
 
-    class TestableInvigilatedController extends InvigilatedController(mockApplicationClient, mockCacheClient) {
+    class TestableInvigilatedController extends InvigilatedController(mockApplicationClient) {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
       override lazy val silhouette = SilhouetteComponent.silhouette

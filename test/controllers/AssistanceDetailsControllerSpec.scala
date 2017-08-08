@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import connectors.exchange.AssistanceDetailsExamples
@@ -106,7 +106,6 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       val Application = currentCandidateWithApp.application
         .copy(progress = ProgressResponseExamples.InAssistanceDetails)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
-      when(mockUserService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
 
       val result = controller.submit()(Request)
 
@@ -133,7 +132,6 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       val Application = currentCandidateWithApp.application
         .copy(progress = ProgressResponseExamples.InQuestionnaire)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
-      when(mockUserService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
 
       val result = controller.submit()(Request)
 
@@ -144,11 +142,10 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
-    val mockCacheClient = mock[CSRCache]
     val mockUserService = mock[UserCacheService]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
-    class TestableAssistanceDetailsController extends AssistanceDetailsController(mockApplicationClient, mockCacheClient)
+    class TestableAssistanceDetailsController extends AssistanceDetailsController(mockApplicationClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
 

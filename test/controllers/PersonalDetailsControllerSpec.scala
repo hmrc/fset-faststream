@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.{ CivilServiceExperienceDetailsExamples, GeneralDetailsExamples, SelectedSchemes }
 import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
@@ -37,14 +37,13 @@ import scala.concurrent.Future
 
 class PersonalDetailsControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]
-  val mockCacheClient = mock[CSRCache]
   val mockSchemeClient = mock[SchemeClient]
   val mockUserManagementClient = mock[UserManagementClient]
   val userService = mock[UserCacheService]
   val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
   class TestablePersonalDetailsController extends PersonalDetailsController(mockApplicationClient, mockSchemeClient,
-    mockCacheClient, mockUserManagementClient)
+    mockUserManagementClient)
     with TestableSecureActions {
     val http: CSRHttp = CSRHttp
     override val env = mockSecurityEnvironment
@@ -185,7 +184,6 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
         .copy(progress = ProgressResponseExamples.InProgress, applicationStatus = ApplicationStatus.IN_PROGRESS,
           civilServiceExperienceDetails = Some(CivilServiceExperienceDetailsExamples.CivilServantExperience))
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
-      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
       when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
@@ -204,7 +202,6 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(mockSchemeClient.updateSchemePreferences(eqTo(SelectedSchemes(List(Edip), orderAgreed = true, eligible = true))
       )(eqTo(Application.applicationId))(any[HeaderCarrier])).thenReturn(Future.successful(()))
-      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
       when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier],
         any[Request[_]])).thenReturn(Future.successful(UpdatedCandidate))
       when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
@@ -226,7 +223,6 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(mockSchemeClient.updateSchemePreferences(eqTo(SelectedSchemes(List(Edip), orderAgreed = true, eligible = true))
       )(eqTo(Application.applicationId))(any[HeaderCarrier])).thenReturn(Future.successful(()))
-      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
       when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier],
         any[Request[_]])).thenReturn(Future.successful(UpdatedCandidate))
       when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
@@ -249,8 +245,6 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.Submitted))
-
-      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
 
       when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressWithoutCivilServiceDetailsForm.toExchange(currentEmail, Some(false)))

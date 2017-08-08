@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
 import connectors.exchange.PartnerGraduateProgrammesExamples
@@ -76,7 +76,6 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
       val Application = currentCandidateWithApp.application
         .copy(progress = ProgressResponseExamples.InPartnerGraduateProgrammes)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
-      when(mockUserService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
 
       val result = controller.submit()(Request)
 
@@ -87,11 +86,10 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
-    val mockCacheClient = mock[CSRCache]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
     val mockUserService = mock[UserCacheService]
 
-    class TestablePartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(mockApplicationClient, mockCacheClient)
+    class TestablePartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(mockApplicationClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment

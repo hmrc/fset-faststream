@@ -19,12 +19,12 @@ package controllers
 import java.nio.file.{ Files, Path }
 
 import com.mohiva.play.silhouette.api.Silhouette
-import config.CSRCache
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange._
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
+import helpers.CachedUserWithSchemeData
 import models.ApplicationData.ApplicationStatus
 import models.page._
 import models._
@@ -43,8 +43,7 @@ import play.api.Play.current
 object HomeController extends HomeController(
   ApplicationClient,
   ReferenceDataClient,
-  SiftClient,
-  CSRCache
+  SiftClient
 ) {
   val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
@@ -53,9 +52,8 @@ object HomeController extends HomeController(
 abstract class HomeController(
   applicationClient: ApplicationClient,
   refDataClient: ReferenceDataClient,
-  siftClient: SiftClient,
-  cacheClient: CSRCache
-) extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+  siftClient: SiftClient
+) extends BaseController with CampaignAwareController {
 
   val Withdrawer = "Candidate"
 
@@ -66,10 +64,12 @@ abstract class HomeController(
 
   private lazy val maxAnalysisExerciseFileSizeInBytes = 4096 * 1024
 
+  // scalastyle:off cyclomatic.complexity
   def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>
       implicit cachedData =>
-        cachedData.application.map { implicit application =>
+        for {
+        page <- cachedData.application.map { implicit application =>
           cachedData match {
             case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
             case _ if isPhase3TestsPassed => displayPostOnlineTestsPage
@@ -78,7 +78,9 @@ abstract class HomeController(
         }.getOrElse {
           dashboardWithoutApplication
         }
+      } yield page
   }
+  // scalastyle:on cyclomatic.complexity
 
   def showSdipNextSteps: Action[AnyContent] = CSRSecureAction(ActiveUserRole) { implicit request =>
     implicit cachedData =>
@@ -104,7 +106,6 @@ abstract class HomeController(
         response <- applicationClient.findApplication(cachedData.user.userID, FrameworkId).recoverWith {
           case _: ApplicationNotFound => applicationClient.createApplication(cachedData.user.userID, FrameworkId)
         }
-        _ <- env.userService.save(cachedData.copy(application = Some(response)))
         if canApplicationBeSubmitted(response.overriddenSubmissionDeadline)(response.applicationRoute)
       } yield {
         Redirect(routes.PersonalDetailsController.presentAndContinue())
@@ -119,23 +120,12 @@ abstract class HomeController(
   def withdrawApplication: Action[AnyContent] = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
 
-      def updateApplicationStatus(data: CachedData): CachedData = {
-        data.copy(application = data.application.map { app =>
-          app.copy(
-            applicationStatus = ApplicationStatus.WITHDRAWN,
-            progress = app.progress.copy(withdrawn = true)
-          )
-        }
-        )
-      }
-
       WithdrawApplicationForm.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.application.withdraw(invalidForm))),
         data => {
           applicationClient.withdrawApplication(user.application.applicationId, WithdrawApplication(data.reason.get, data.otherReason,
-            Withdrawer)).flatMap { _ =>
-            updateProgress(updateApplicationStatus)(_ =>
-              Redirect(routes.HomeController.present()).flashing(success("application.withdrawn", feedbackUrl)))
+            Withdrawer)).map { _ =>
+              Redirect(routes.HomeController.present()).flashing(success("application.withdrawn", feedbackUrl))
           }.recover {
             case _: CannotWithdraw => Redirect(routes.HomeController.present()).flashing(danger("error.cannot.withdraw"))
           }
@@ -146,20 +136,17 @@ abstract class HomeController(
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
     request: Request[_], hc: HeaderCarrier) = {
     for {
-      schemes <- refDataClient.allSchemes()
-      currentSchemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
+      allSchemes <- refDataClient.allSchemes()
+      schemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
       siftAnswersStatus <- siftClient.getSiftAnswersStatus(application.applicationId)
       assessmentCentreEvents <- applicationClient.eventWithSessionsForApplicationOnly(application.applicationId, EventType.FSAC)
       assessmentCentreEvent = assessmentCentreEvents.headOption // Candidate can only be assigned to one assessment centre event and session
       hasWrittenAnalysisExercise <- applicationClient.hasAnalysisExercise(application.applicationId)
-      updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
     } yield {
       val page = PostOnlineTestsPage(
-        CachedDataWithApp(updatedData.user, updatedData.application.getOrElse(application)),
-        currentSchemeStatus,
-        schemes,
-        siftAnswersStatus,
+        CachedUserWithSchemeData(cachedData.user, application, allSchemes, schemeStatus),
         assessmentCentreEvent,
+        siftAnswersStatus,
         hasWrittenAnalysisExercise
       )
       Ok(views.html.home.postOnlineTestsDashboard(page))

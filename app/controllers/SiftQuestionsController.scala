@@ -18,34 +18,33 @@ package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import config.CSRCache
-import connectors.ApplicationClient.SiftAnswersIncomplete
+import connectors.ApplicationClient.{ SiftAnswersIncomplete, SiftAnswersNotFound }
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
-import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers }
+import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
+import helpers.CachedUserWithSchemeData
 import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
 import security.Roles.SchemeSpecificQuestionsRole
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
-import play.api.mvc.{ Action, AnyContent, Call, Result }
+import play.api.mvc.{ Action, AnyContent, Result }
 import security.{ SecurityEnvironment, SilhouetteComponent }
-import views.html.helper.form
 import helpers.NotificationType._
 import models.UniqueIdentifier
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient, CSRCache) {
+object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient) {
   val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
 abstract class SiftQuestionsController(
-  applicationClient: ApplicationClient, siftClient: SiftClient, referenceDataClient: ReferenceDataClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+  applicationClient: ApplicationClient, siftClient: SiftClient, referenceDataClient: ReferenceDataClient)
+  extends BaseController with CampaignAwareController {
 
   val GeneralQuestions = "generalQuestions"
   val SaveAndReturnAction = "saveAndReturn"
@@ -123,20 +122,41 @@ abstract class SiftQuestionsController(
   def presentPreview: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
 
-      def enrichSchemeAnswers(siftAnswers: SiftAnswers) = Future.traverse(siftAnswers.schemeAnswers) { case (schemeId, answer) =>
-        schemeMetadata(SchemeId(schemeId)).map { scheme =>
-          scheme -> answer
+      def enrichSchemeAnswersAddingMissingSiftSchemes(siftAnswers: SiftAnswers, userMetadata: CachedUserWithSchemeData) = {
+        val enrichedExisting = referenceDataClient.allSchemes map { allSchemes =>
+          siftAnswers.schemeAnswers map { case (schemeId, answer) =>
+            allSchemes.find(_.id == SchemeId(schemeId)).map { scheme =>
+              scheme -> answer
+            }.get
+          }
         }
-      }.map(_.toMap)
+
+        enrichedExisting map { ee =>
+          val toAdd = ee.keySet diff userMetadata.schemesForSiftForms.toSet
+          ee ++ toAdd.map {scheme => scheme -> SchemeSpecificAnswer("")}
+        }
+      }
+
+      def noSiftAnswersRecovery: PartialFunction[Throwable, Future[SiftAnswers]] = {
+        case sanf: SiftAnswersNotFound =>
+          for {
+            schemeIds <- candidateCurrentSiftableSchemes(user.application.applicationId)
+            sa = SiftAnswers(user.application.applicationId.toString, SiftAnswersStatus.DRAFT, None,
+              schemeIds.map(s => s.value -> SchemeSpecificAnswer("")).toMap)
+          } yield sa
+      }
 
       for {
-        answers <- siftClient.getSiftAnswers(user.application.applicationId)
-        enrichedAnswers <- enrichSchemeAnswers(answers)
+        allSchemes <- referenceDataClient.allSchemes()
+        schemeStatus <- applicationClient.getCurrentSchemeStatus(user.application.applicationId)
+        answers <- siftClient.getSiftAnswers(user.application.applicationId) recoverWith(noSiftAnswersRecovery)
+        userMetadata = CachedUserWithSchemeData(user.user, user.application, allSchemes, schemeStatus)
+        enrichedAnswers <- enrichSchemeAnswersAddingMissingSiftSchemes(answers, userMetadata)
       } yield {
          val page = SiftPreviewPage(
-          answers.applicationId,
-          answers.status,
-          answers.generalAnswers,
+           answers.applicationId,
+           answers.status,
+           answers.generalAnswers,
            enrichedAnswers
         )
         Ok(views.html.application.additionalquestions.previewAdditionalAnswers(page))
@@ -154,13 +174,13 @@ abstract class SiftQuestionsController(
   }
 
   private def candidateCurrentSiftableSchemes(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
-    applicationClient.getPhase3Results(applicationId).flatMap(_.map { s =>
-      Future.traverse(s.collect {
+    applicationClient.getCurrentSchemeStatus(applicationId).flatMap { schemes =>
+      Future.traverse(schemes.collect {
         case scheme if scheme.result == "Green" => scheme.schemeId
       }) { schemeId =>
         schemeMetadata(schemeId)
       }.map(_.collect { case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id})
-    }.getOrElse(Future(Nil)))
+    }
   }
 
   private def getFormAction(implicit request: SecuredRequest[_, _]) = {

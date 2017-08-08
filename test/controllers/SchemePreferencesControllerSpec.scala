@@ -16,18 +16,18 @@
 
 package controllers
 
-import config.{ CSRCache, SecurityEnvironmentImpl }
+import config.SecurityEnvironmentImpl
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.CivilServiceExperienceDetailsExamples._
 import connectors.exchange.{ ApplicationResponse, SchemePreferencesExamples }
-import connectors.{ ApplicationClient, SchemeClient }
+import connectors.SchemeClient
 import forms.SelectedSchemesForm._
 import models.ApplicationData.ApplicationStatus
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserCacheService, UserService }
+import security.{ SilhouetteComponent, UserCacheService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -36,12 +36,10 @@ import scala.concurrent.Future
 class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-  val applicationClient = mock[ApplicationClient]
-  val mockCacheClient = mock[CSRCache]
   val schemeClient  = mock[SchemeClient]
   val userService = mock[UserCacheService]
 
-  def controllerUnderTest = new SchemePreferencesController(applicationClient, mockCacheClient, schemeClient) with TestableSecureActions {
+  def controllerUnderTest = new SchemePreferencesController(schemeClient) with TestableSecureActions {
     override val env = mockSecurityEnvironment
     override lazy val silhouette = SilhouetteComponent.silhouette
     when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any())).thenReturn(Future.successful(CachedData(
@@ -91,10 +89,6 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
       when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
-      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(currentCandidate))
-      when(applicationClient.findApplication(eqTo(currentUserId), any[String])(any[HeaderCarrier]))
-
-        .thenReturn(Future.successful(applicationResponse))
 
       val result = controllerUnderTest.submit(request)
       status(result) mustBe SEE_OTHER

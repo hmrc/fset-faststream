@@ -16,7 +16,7 @@
             <div class="form-group">
                 @select_search(page.form("passportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What country is named on your current passport?"))
             </div>
-            <legend class="form-label">Do you currently hold a second passport?</legend>
+            <label class="form-label">Do you currently hold a second passport?</label>
             @yesNoRadioWithTogglePanel(page.form("multiplePassports"),
                 'id -> "multiplePassports"
             ) {

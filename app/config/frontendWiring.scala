@@ -30,7 +30,6 @@ import play.api.Play.current
 import play.api.libs.ws.WS
 import play.api.mvc.{ Call, RequestHeader }
 import security.{ CsrCredentialsProvider, UserCacheService }
-import uk.gov.hmrc.http.cache.client.SessionCache
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.config.{ AppName, RunMode, ServicesConfig }
@@ -50,18 +49,6 @@ object CSRHttp extends CSRHttp
 trait CSRHttp extends WSHttp with WSBinaryPost {
   override val hooks = NoneRequired
   val wS = WS
-}
-
-trait CSRCache extends SessionCache with AppName with ServicesConfig
-
-object CSRCache extends CSRCache {
-  override lazy val http = CSRHttp
-  override lazy val defaultSource = appName
-  override lazy val baseUri = baseUrl("cachable.session-cache")
-  override lazy val domain = getConfString(
-    "cachable.session-cache.domain",
-    throw new Exception(s"Could not find config 'cachable.session-cache.domain'")
-  )
 }
 
 object CaseInSensitiveFingerPrintGenerator extends  FingerprintGenerator {
