@@ -16,7 +16,6 @@
 
 package controllers
 
-import config.CSRCache
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
@@ -30,12 +29,12 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, CSRCache, SchemeClient) {
+object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, SchemeClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
-  extends BaseController(cacheClient) {
+abstract class PreviewApplicationController(applicationClient: ApplicationClient, schemeClient: SchemeClient)
+  extends BaseController {
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>

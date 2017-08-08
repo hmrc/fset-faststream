@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.exchange.UserResponse
 import connectors.{ ApplicationClient, UserManagementClient }
 import helpers.NotificationType.{ apply => _ }
@@ -124,11 +124,10 @@ class ConsiderForSdipControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-    val mockCacheClient = mock[CSRCache]
     val mockUserService = mock[UserCacheService]
     val mockUserManagementClient = mock[UserManagementClient]
 
-    class TestableConsiderForSdipController extends ConsiderForSdipController(mockApplicationClient, mockCacheClient, mockUserManagementClient)
+    class TestableConsiderForSdipController extends ConsiderForSdipController(mockApplicationClient, mockUserManagementClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment

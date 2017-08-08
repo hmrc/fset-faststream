@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{ CSRCache, SecurityEnvironmentImpl }
+import config.SecurityEnvironmentImpl
 import connectors.{ ApplicationClient, SchoolsClient }
 import connectors.SchoolsClient.SchoolsNotFound
 import connectors.exchange.School
@@ -32,10 +32,9 @@ import scala.concurrent.Future
 class SchoolsControllerSpec extends BaseControllerSpec {
 
   val schoolClient = mock[SchoolsClient]
-  val mockCacheClient = mock[CSRCache]
   val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
-  def schoolsController = new SchoolsController(schoolClient, mockCacheClient) with TestableSecureActions {
+  def schoolsController = new SchoolsController(schoolClient) with TestableSecureActions {
     override val env = mockSecurityEnvironment
     override lazy val silhouette = SilhouetteComponent.silhouette
   }

@@ -18,7 +18,6 @@ package controllers
 
 import java.util.UUID
 
-import config.CSRCache
 import connectors.{ ApplicationClient, UserManagementClient }
 import forms.ConsiderForSdipForm
 import helpers.NotificationType._
@@ -32,12 +31,12 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object ConsiderForSdipController extends ConsiderForSdipController(ApplicationClient, CSRCache, UserManagementClient) {
+object ConsiderForSdipController extends ConsiderForSdipController(ApplicationClient, UserManagementClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class ConsiderForSdipController(applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
-  extends BaseController(cacheClient) with CampaignAwareController {
+abstract class ConsiderForSdipController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
+  extends BaseController with CampaignAwareController {
 
   val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] = config.FrontendAppConfig.applicationRoutesFrontend
 

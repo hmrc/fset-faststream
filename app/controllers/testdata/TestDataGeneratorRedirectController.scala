@@ -16,20 +16,20 @@
 
 package controllers.testdata
 
-import config.{ CSRCache, CSRHttp }
+import config.CSRHttp
 import connectors.TestDataClient
 import controllers.BaseController
 import security.SilhouetteComponent
 
 import scala.concurrent.Future
 
-object TestDataGeneratorRedirectController extends TestDataGeneratorRedirectController(TestDataClient, CSRCache) {
+object TestDataGeneratorRedirectController extends TestDataGeneratorRedirectController(TestDataClient) {
   val http = CSRHttp
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class TestDataGeneratorRedirectController(testDataClient: TestDataClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) {
+abstract class TestDataGeneratorRedirectController(testDataClient: TestDataClient)
+  extends BaseController {
 
   def generateTestData(path: String) = CSRUserAwareAction { implicit request =>
     implicit user =>

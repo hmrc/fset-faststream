@@ -19,7 +19,7 @@ package security
 import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest }
 import com.mohiva.play.silhouette.api.{ LoginEvent, LoginInfo, LogoutEvent }
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
-import config.{ CSRCache, SecurityEnvironmentImpl }
+import config.SecurityEnvironmentImpl
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.ApplicationClient
 import connectors.UserManagementClient.InvalidCredentialsException
@@ -29,8 +29,6 @@ import forms.SignInForm
 import forms.SignInForm.Data
 import helpers.NotificationType._
 import models._
-import play.api.Logger
-import play.api.i18n.Lang
 import play.api.mvc.{ AnyContent, Request, RequestHeader, Result }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -51,7 +49,6 @@ trait SignInService {
       Future.successful(Redirect(routes.LockAccountController.present()).addingToSession("email" -> user.email))
     } else {
       def signIn(app: Option[ApplicationData]) = for {
-        u <- env.userService.save(CachedData(user, app))
         authenticator <- env.authenticatorService.create(LoginInfo(CredentialsProvider.ID, user.userID.toString()))
         value <- env.authenticatorService.init(authenticator)
         result <- env.authenticatorService.embed(value, redirect)
@@ -63,7 +60,7 @@ trait SignInService {
       applicationClient.findApplication(user.userID, FrameworkId).map { appData =>
         signIn(Some(appData))
       } recover {
-        case e: ApplicationNotFound => signIn(None)
+        case _: ApplicationNotFound => signIn(None)
       } flatMap identity
     }
   }
@@ -76,20 +73,15 @@ trait SignInService {
   def logOutAndRedirectUserAware(successAction: Result, failAction: Result)(implicit request: Request[_]): Future[Result] = {
     env.authenticatorService.retrieve.map {
       case Some(authenticator) =>
-        val userDetails = request match {
+        request match {
           case sr: SecuredRequest[_,_] => {
-            s" (identity = ${sr.identity})"
             env.eventBus.publish(LogoutEvent(sr.identity, request))
           }
           case uar: UserAwareRequest[_,_] => {
-            s" (identity = ${uar.identity})"
             uar.identity.foreach(identity => env.eventBus.publish(LogoutEvent(identity, request)))
           }
-          case _ => ""
+          case _ => ()
         }
-        Logger.info(s"No keystore record found for user with valid cookie$userDetails. " +
-          s"Removing cookie and redirecting to sign in.")
-        CSRCache.remove()
         env.authenticatorService.discard(authenticator, successAction)
       case None => Future.successful(failAction)
     }.flatMap(identity)

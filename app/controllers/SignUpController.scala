@@ -19,7 +19,7 @@ package controllers
 import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
-import config.{ CSRCache, CSRHttp }
+import config.CSRHttp
 import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange._
@@ -33,14 +33,14 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object SignUpController extends SignUpController(ApplicationClient, CSRCache, UserManagementClient) {
+object SignUpController extends SignUpController(ApplicationClient, UserManagementClient) {
   val http = CSRHttp
   val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SignUpController(val applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
-  extends BaseController(cacheClient) with SignInService with CampaignAwareController {
+abstract class SignUpController(val applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
+  extends BaseController with SignInService with CampaignAwareController {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

@@ -21,7 +21,7 @@ import java.util.UUID
 import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest }
 import com.mohiva.play.silhouette.api.{ Authorization, LogoutEvent, Silhouette }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
-import config.{ CSRCache, SecurityEnvironmentImpl }
+import config.SecurityEnvironmentImpl
 import connectors.UserManagementClient.InvalidCredentialsException
 import controllers.routes
 import helpers.NotificationType._
@@ -30,7 +30,7 @@ import play.api.Logger
 import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import security.Roles.CsrAuthorization
-import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
+//import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
 import uk.gov.hmrc.play.http.{ HeaderCarrier, SessionKeys }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -54,7 +54,7 @@ import language.postfixOps
 trait SecureActions {
 
   val silhouette: Silhouette[SecurityEnvironment]
-  val cacheClient: CSRCache
+  //val cacheClient: CSRCache
 
   /**
     * Wraps the csrAction helper on a secure action.
@@ -141,7 +141,7 @@ trait SecureActions {
       case Some(authenticator) =>
         Logger.info(s"No keystore record found for user with valid cookie (User Id = ${request.identity.userID}). " +
           s"Removing cookie and redirecting to sign in.")
-        CSRCache.remove()
+        //CSRCache.remove()
         env.authenticatorService.discard(authenticator, Redirect(routes.SignInController.present()))
       case None => Future.successful(Redirect(routes.SignInController.present()))
     }

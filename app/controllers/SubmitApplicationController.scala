@@ -16,11 +16,9 @@
 
 package controllers
 
-import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
 import helpers.NotificationType._
-import models.ApplicationData.ApplicationStatus.SUBMITTED
 import security.Roles.{ AbleToWithdrawApplicationRole, SubmitApplicationRole }
 
 import scala.concurrent.Future
@@ -28,13 +26,13 @@ import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import security.SilhouetteComponent
 
-object SubmitApplicationController extends SubmitApplicationController(ApplicationClient, CSRCache) {
+object SubmitApplicationController extends SubmitApplicationController(ApplicationClient) {
   val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SubmitApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) with CampaignAwareController {
+abstract class SubmitApplicationController(applicationClient: ApplicationClient)
+  extends BaseController with CampaignAwareController {
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>

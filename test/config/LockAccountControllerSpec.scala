@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{ CSRCache, SecurityEnvironmentImpl }
+import config.SecurityEnvironmentImpl
 import play.api.test.Helpers._
 import security._
 import testables.NoIdentityTestableCSRUserAwareAction
@@ -75,15 +75,14 @@ class LockAccountControllerSpec extends BaseControllerSpec {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-    val mockCacheClient = mock[CSRCache]
     val mockEnvironment = mock[SecurityEnvironment]
 
-    class TestableLockAccountController extends LockAccountController(mockCacheClient) {
+    class TestableLockAccountController extends LockAccountController {
       override val env = mockSecurityEnvironment
       override lazy val silhouette = SilhouetteComponent.silhouette
     }
 
-    def lockAccountController = new LockAccountController(mockCacheClient) with NoIdentityTestableCSRUserAwareAction {
+    def lockAccountController = new LockAccountController with NoIdentityTestableCSRUserAwareAction {
       override val env = mockSecurityEnvironment
       override lazy val silhouette = SilhouetteComponent.silhouette
     }

@@ -18,11 +18,9 @@ package controllers
 
 import java.nio.file.{ Files, Path }
 
-import com.mohiva.play.silhouette.api.{ LogoutEvent, Silhouette }
-import config.CSRCache
+import com.mohiva.play.silhouette.api.Silhouette
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
-import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.exchange._
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
@@ -34,20 +32,18 @@ import models.events.EventType
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
-import security.{ Roles, SecurityEnvironment, SignInService, SilhouetteComponent }
+import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
 import security.Roles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
-import play.api.mvc.Results.Redirect
 
 object HomeController extends HomeController(
   ApplicationClient,
   ReferenceDataClient,
-  SiftClient,
-  CSRCache
+  SiftClient
 ) {
   val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
@@ -56,9 +52,8 @@ object HomeController extends HomeController(
 abstract class HomeController(
   applicationClient: ApplicationClient,
   refDataClient: ReferenceDataClient,
-  siftClient: SiftClient,
-  cacheClient: CSRCache
-) extends BaseController(cacheClient) with CampaignAwareController {
+  siftClient: SiftClient
+) extends BaseController with CampaignAwareController {
 
   val Withdrawer = "Candidate"
 
@@ -111,7 +106,6 @@ abstract class HomeController(
         response <- applicationClient.findApplication(cachedData.user.userID, FrameworkId).recoverWith {
           case _: ApplicationNotFound => applicationClient.createApplication(cachedData.user.userID, FrameworkId)
         }
-        _ <- env.userService.save(cachedData.copy(application = Some(response)))
         if canApplicationBeSubmitted(response.overriddenSubmissionDeadline)(response.applicationRoute)
       } yield {
         Redirect(routes.PersonalDetailsController.presentAndContinue())

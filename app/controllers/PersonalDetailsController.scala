@@ -18,14 +18,12 @@ package controllers
 
 import forms.FastPassForm._
 import _root_.forms.PersonalDetailsForm
-import config.CSRCache
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.CivilServiceExperienceDetails._
 import connectors.exchange.{ CivilServiceExperienceDetails, SelectedSchemes }
 import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
-import models.ApplicationData.ApplicationStatus._
 import models.{ ApplicationRoute, CachedDataWithApp }
 import org.joda.time.LocalDate
 import play.api.data.Form
@@ -38,15 +36,14 @@ import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import security.SilhouetteComponent
 
-object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, CSRCache, UserManagementClient) {
+object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, UserManagementClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class PersonalDetailsController(val applicationClient: ApplicationClient,
+abstract class PersonalDetailsController(applicationClient: ApplicationClient,
                                 schemeClient: SchemeClient,
-                                cacheClient: CSRCache,
                                 userManagementClient: UserManagementClient)
-  extends BaseController(cacheClient) with CachedProgressHelper with PersonalDetailsToExchangeConverter {
+  extends BaseController with PersonalDetailsToExchangeConverter {
 
   private sealed trait OnSuccess
   private case object ContinueToNextStepInJourney extends OnSuccess
@@ -141,15 +138,8 @@ abstract class PersonalDetailsController(val applicationClient: ApplicationClien
           toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), edipCompleted))
         _ <- createDefaultSchemes
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
-        redirect <- updateProgress(data => {
-          val applicationCopy = data.application.map(
-            _.copy(civilServiceExperienceDetails = civilServiceExperienceDetails, edipCompleted = edipCompleted))
-          data.copy(user = cachedData.user.copy(firstName = form.firstName, lastName = form.lastName,
-            preferredName = Some(form.preferredName)), application =
-            if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)
-        })(_ => redirectOnSuccess)
       } yield {
-        redirect
+        redirectOnSuccess
       }
     }
     personalDetailsForm.bindFromRequest.fold(handleFormWithErrors, handleValidForm)

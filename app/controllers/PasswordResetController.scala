@@ -19,7 +19,7 @@ package controllers
 import _root_.forms.{ RequestResetPasswordForm, ResetPasswordForm, SignInForm }
 import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.{ CSRCache, CSRHttp }
+import config.CSRHttp
 import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.UserManagementClient.{ InvalidEmailException, TokenEmailPairInvalidException, TokenExpiredException }
 import helpers.NotificationType._
@@ -30,14 +30,13 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object PasswordResetController extends PasswordResetController(ApplicationClient, CSRCache, UserManagementClient) {
+object PasswordResetController extends PasswordResetController(ApplicationClient, UserManagementClient) {
   val http = CSRHttp
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class PasswordResetController(val applicationClient: ApplicationClient,
-                                       cacheClient: CSRCache, userManagementClient: UserManagementClient)
-  extends BaseController(cacheClient) with SignInService {
+abstract class PasswordResetController(val applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
+  extends BaseController with SignInService {
 
   def presentCode() = CSRUserAwareAction { implicit request =>
     implicit user =>

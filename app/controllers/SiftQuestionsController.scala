@@ -18,7 +18,6 @@ package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import config.CSRCache
 import connectors.ApplicationClient.{ SiftAnswersIncomplete, SiftAnswersNotFound }
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
@@ -26,7 +25,6 @@ import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer,
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
 import helpers.CachedUserWithSchemeData
-import helpers.CachedUserWithSchemeData._
 import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
 import security.Roles.SchemeSpecificQuestionsRole
 
@@ -39,14 +37,14 @@ import helpers.NotificationType._
 import models.UniqueIdentifier
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient, CSRCache) {
+object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient) {
   val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
 abstract class SiftQuestionsController(
-  applicationClient: ApplicationClient, siftClient: SiftClient, referenceDataClient: ReferenceDataClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) with CampaignAwareController {
+  applicationClient: ApplicationClient, siftClient: SiftClient, referenceDataClient: ReferenceDataClient)
+  extends BaseController with CampaignAwareController {
 
   val GeneralQuestions = "generalQuestions"
   val SaveAndReturnAction = "saveAndReturn"

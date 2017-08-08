@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{ CSRCache, CSRHttp }
+import config.CSRHttp
 import connectors.ApplicationClient
 import play.api.mvc.Action
 import security.SilhouetteComponent
@@ -28,13 +28,13 @@ import play.api.Play.current
 /**
  * Provide all the peripheral links from this controller, like T&C link
  */
-object ApplicationController extends ApplicationController(ApplicationClient, CSRCache) {
+object ApplicationController extends ApplicationController(ApplicationClient) {
   val http = CSRHttp
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class ApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) {
+abstract class ApplicationController(applicationClient: ApplicationClient)
+  extends BaseController {
 
   def index = Action {
     Redirect(routes.SignInController.signIn())

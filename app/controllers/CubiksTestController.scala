@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{ CSRCache, CSRHttp }
+import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
@@ -28,13 +28,13 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object CubiksTestController extends CubiksTestController(ApplicationClient, CSRCache) {
+object CubiksTestController extends CubiksTestController(ApplicationClient) {
   val http = CSRHttp
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class CubiksTestController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) {
+abstract class CubiksTestController(applicationClient: ApplicationClient)
+  extends BaseController {
 
   def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>

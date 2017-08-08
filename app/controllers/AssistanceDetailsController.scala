@@ -17,7 +17,6 @@
 package controllers
 
 import _root_.forms.AssistanceDetailsForm
-import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import models.CachedData
@@ -28,12 +27,12 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient, CSRCache) {
+object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class AssistanceDetailsController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(cacheClient) {
+abstract class AssistanceDetailsController(applicationClient: ApplicationClient)
+  extends BaseController {
 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>

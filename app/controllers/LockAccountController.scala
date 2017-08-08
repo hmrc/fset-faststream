@@ -17,20 +17,20 @@
 package controllers
 
 import _root_.forms.LockAccountForm
-import config.{ CSRCache, CSRHttp }
+import config.CSRHttp
 import security.SilhouetteComponent
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object LockAccountController extends LockAccountController(CSRCache) {
+object LockAccountController extends LockAccountController {
   val http = CSRHttp
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class LockAccountController(cacheClient: CSRCache)
-  extends BaseController(cacheClient) {
+abstract class LockAccountController
+  extends BaseController {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

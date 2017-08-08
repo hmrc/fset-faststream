@@ -16,26 +16,17 @@
 
 package controllers
 
-import java.time.{ LocalDateTime, ZoneId }
 
-import config.{ ApplicationRouteFrontendConfig, CSRCache }
-import connectors.ApplicationClient
 import helpers.NotificationType._
-import models.ApplicationRoute.{ apply => _, _ }
-import models.{ CachedData, CachedDataWithApp }
-import play.api.mvc.Request
 import security.SecureActions
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * should be extended by all controllers
  */
-abstract class BaseController(val cacheClient: CSRCache)
-  extends SecureActions with FrontendController {
+abstract class BaseController extends SecureActions with FrontendController {
 
   implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
 
@@ -47,20 +38,4 @@ abstract class BaseController(val cacheClient: CSRCache)
     Redirect(routes.PreviewApplicationController.present()).flashing(warning("info.application.readonly"))
   }
 
-}
-
-trait CachedProgressHelper extends SecureActions {
-
-  val applicationClient: ApplicationClient
-
-  def updateProgress[A](additionalChanges: CachedData => CachedData = { d => d })(onUpdate: CachedData => A)
-                       (implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[A] =
-    applicationClient.getApplicationProgress(user.application.applicationId).flatMap { progress =>
-      val cd = CachedData(user.user, Some(user.application)).copy(application = Some(user.application.copy(progress = progress)))
-      env.userService.save(
-        additionalChanges(cd)
-      ).map { _ =>
-          onUpdate(cd)
-        }
-    }
 }

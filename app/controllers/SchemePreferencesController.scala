@@ -17,9 +17,8 @@
 package controllers
 
 import _root_.forms.SelectedSchemesForm._
-import config.CSRCache
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient }
+import connectors.{ ReferenceDataClient, SchemeClient }
 import security.Roles.SchemesRole
 import security.SilhouetteComponent
 
@@ -27,12 +26,12 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object SchemePreferencesController extends SchemePreferencesController(CSRCache, SchemeClient) {
+object SchemePreferencesController extends SchemePreferencesController(SchemeClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SchemePreferencesController(cacheClient: CSRCache, schemeClient: SchemeClient)
-  extends BaseController(cacheClient){
+abstract class SchemePreferencesController(schemeClient: SchemeClient)
+  extends BaseController {
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>

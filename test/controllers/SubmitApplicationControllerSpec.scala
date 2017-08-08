@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
@@ -75,15 +75,12 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(()))
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InPreview))
-      when(mockUserService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(currentCandidate))
 
       val result = controller(currentCandidateWithEdipApp, applicationRouteState).submit()(fakeRequest)
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SubmitApplicationController.success().url))
       verify(mockApplicationClient).submitApplication(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier])
-      verify(mockApplicationClient).getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier])
-      verify(mockUserService).save(any[CachedData])(any[HeaderCarrier])
     }
     "redirect to home page" in new TestFixture {
       val applicationRouteState =  new ApplicationRouteState {
@@ -100,11 +97,10 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
-    val mockCacheClient = mock[CSRCache]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
     val mockUserService = mock[UserCacheService]
 
-    class TestableSubmitApplicationController extends SubmitApplicationController(mockApplicationClient, mockCacheClient)
+    class TestableSubmitApplicationController extends SubmitApplicationController(mockApplicationClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
