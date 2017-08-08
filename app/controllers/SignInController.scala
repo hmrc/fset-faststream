@@ -18,7 +18,7 @@ package controllers
 
 import _root_.forms.SignInForm
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.{ CSRCache, CSRHttp }
+import config.CSRHttp
 import connectors.ApplicationClient
 import helpers.NotificationType._
 import models.ApplicationRoute
@@ -28,13 +28,13 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object SignInController extends SignInController(ApplicationClient, CSRCache) with SignInService {
+object SignInController extends SignInController(ApplicationClient) with SignInService {
   val http = CSRHttp
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SignInController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) with SignInService {
+abstract class SignInController(val applicationClient: ApplicationClient)
+  extends BaseController with SignInService {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

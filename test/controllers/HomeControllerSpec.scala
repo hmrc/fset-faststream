@@ -19,7 +19,7 @@ package controllers
 import java.time.LocalDateTime
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples, SiftClient }
 import connectors.exchange.referencedata.{ Scheme, SchemeId }
 import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
@@ -449,7 +449,6 @@ class HomeControllerSpec extends BaseControllerSpec {
       val UpdatedApplication = currentCandidateWithApp.application
         .copy(applicationStatus= ApplicationStatus.WITHDRAWN,  progress = ProgressResponseExamples.WithdrawnAfterSubmitted)
       val UpdatedCandidate = currentCandidate.copy(application = Some(UpdatedApplication))
-      when(mockUserService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
 
       val result = controller.withdrawApplication()(Request)
 
@@ -465,7 +464,6 @@ class HomeControllerSpec extends BaseControllerSpec {
     val mockApplicationClient = mock[ApplicationClient]
     val mockRefDataClient = mock[ReferenceDataClient]
     val mockSiftClient = mock[SiftClient]
-    val mockCacheClient = mock[CSRCache]
     val mockUserService = mock[UserCacheService]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
@@ -542,7 +540,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(fileMock.length()).thenReturn(fileSize)
     }
 
-    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient, mockCacheClient)
+    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment

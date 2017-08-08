@@ -17,7 +17,7 @@
 package controllers
 
 import _root_.forms.ActivateAccountForm
-import config.{ CSRCache, CSRHttp }
+import config.CSRHttp
 import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.UserManagementClient.{ TokenEmailPairInvalidException, TokenExpiredException }
 import helpers.NotificationType._
@@ -28,19 +28,20 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object ActivationController extends ActivationController(ApplicationClient, CSRCache, UserManagementClient) {
+object ActivationController extends ActivationController(ApplicationClient, UserManagementClient) {
   val http = CSRHttp
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class ActivationController(val applicationClient: ApplicationClient,
-                                    cacheClient: CSRCache, userManagementClient: UserManagementClient) extends
-  BaseController(applicationClient, cacheClient) with SignInService {
+                                    userManagementClient: UserManagementClient) extends
+  BaseController with SignInService {
 
   def present = CSRSecureAction(NoRole) { implicit request =>
-    implicit user => user.user.isActive match {
-      case true => Future.successful(Redirect(routes.HomeController.present()).flashing(warning("activation.already")))
-      case false => Future.successful(Ok(views.html.registration.activation(user.user.email, ActivateAccountForm.form)))
+    implicit user => if (user.user.isActive) {
+      Future.successful(Redirect(routes.HomeController.present()).flashing(warning("activation.already")))
+    } else {
+      Future.successful(Ok(views.html.registration.activation(user.user.email, ActivateAccountForm.form)))
     }
   }
 

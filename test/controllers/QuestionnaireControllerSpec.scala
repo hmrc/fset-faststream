@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{ CSRCache, SecurityEnvironmentImpl }
+import config.SecurityEnvironmentImpl
 import connectors.ApplicationClient
 import models.CachedDataWithApp
 import models.Progress
@@ -31,14 +31,13 @@ import scala.concurrent._
 class QuestionnaireControllerSpec extends BaseControllerSpec {
 
   val applicationClient = mock[ApplicationClient]
-  val mockCacheClient = mock[CSRCache]
   val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
   val candWithApp = currentCandidateWithApp.copy(
     application = currentCandidateWithApp.application.copy(applicationStatus = IN_PROGRESS))
   val errorContent = "You've now completed this part of the application and for security reasons you can't go back and change your answers."
 
-  def controllerUnderTest(appStatus: Progress) = new QuestionnaireController(applicationClient, mockCacheClient) with TestableSecureActions {
+  def controllerUnderTest(appStatus: Progress) = new QuestionnaireController(applicationClient) with TestableSecureActions {
     override val env = mockSecurityEnvironment
     override lazy val silhouette = SilhouetteComponent.silhouette
     override val candidateWithApp: CachedDataWithApp = candWithApp

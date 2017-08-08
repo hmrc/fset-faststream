@@ -17,7 +17,6 @@
 package security
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import config.CSRCache
 import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.exchange._
@@ -33,14 +32,10 @@ class UserCacheService(applicationClient: ApplicationClient, userManagementClien
   override def retrieve(loginInfo: LoginInfo): Future[Option[SecurityUser]] =
     Future.successful(Some(SecurityUser(userID = loginInfo.providerKey)))
 
-  override def save(user: CachedData)(implicit hc: HeaderCarrier): Future[CachedData] =
-    CSRCache.cache[CachedData](user.user.userID.toString(), user).map(_ => user)
-
   override def refreshCachedUser(userId: UniqueIdentifier)(implicit hc: HeaderCarrier, request: Request[_]): Future[CachedData] = {
     userManagementClient.findByUserId(userId).flatMap { userData =>
-      applicationClient.findApplication(userId, FrameworkId).flatMap { appData =>
-        val cd = CachedData(userData.toCached, Some(appData))
-        save(cd)
+      applicationClient.findApplication(userId, FrameworkId).map { appData =>
+        CachedData(userData.toCached, Some(appData))
       }.recover {
         case ex: ApplicationNotFound => CachedData(userData.toCached, None)
       }
