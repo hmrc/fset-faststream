@@ -36,17 +36,19 @@ object FsbTestGroup {
 
 }
 
-case class FsbResult(applicationId: String, evaluation: FsbEvaluation)
+case class FsbSchemeResult(applicationId: String, results: List[SchemeEvaluationResult])
 
-object FsbResult {
-  implicit val jsonFormat = Json.format[FsbResult]
+object FsbSchemeResult {
+  implicit val jsonFormat = Json.format[FsbSchemeResult]
 
-  implicit object FsbResultReader extends BSONDocumentReader[FsbResult] {
-    def read(document: BSONDocument): FsbResult = {
+  implicit object FsbResultReader extends BSONDocumentReader[Option[FsbSchemeResult]] {
+    def read(document: BSONDocument): Option[FsbSchemeResult] = {
       val applicationId = document.getAs[String]("applicationId").get
       val testGroups = document.getAs[BSONDocument]("testGroups").get
-      val fsbTestGroup = testGroups.getAs[FsbTestGroup]("FSB").get
-      FsbResult(applicationId, fsbTestGroup.evaluation)
+      val fsbResult = testGroups.getAs[FsbTestGroup]("FSB").map {fsbTestGroup =>
+        FsbSchemeResult(applicationId, fsbTestGroup.evaluation.result)
+      }
+      fsbResult
     }
   }
 

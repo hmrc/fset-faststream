@@ -25,4 +25,7 @@ case class SchemeEvaluationResult(schemeId: SchemeId, result: String)
 object SchemeEvaluationResult {
   implicit val format = Json.format[SchemeEvaluationResult]
   implicit val bsonHandler = Macros.handler[SchemeEvaluationResult]
+
+  def apply(schemeId: String, result: String) = new SchemeEvaluationResult(SchemeId(schemeId), result)
+
 }

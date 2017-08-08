@@ -16,7 +16,8 @@
 
 package repositories.application
 
-import model.persisted.{ FsbResult, FsbTestGroup, SchemeEvaluationResult }
+import model.SchemeId
+import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
 import repositories._
@@ -31,7 +32,7 @@ trait FsbTestGroupRepository {
 
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
 
-  def findByApplicationIds(applicationIds: List[String]): Future[List[FsbResult]]
+  def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
 }
 
 class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
@@ -67,12 +68,31 @@ class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
     }
   }
 
-  override def findByApplicationIds(applicationIds: List[String]): Future[List[FsbResult]] = {
+  override def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
     val applicationIdFilter = applicationIds.foldLeft(BSONArray())((bsonArray, applicationId) => bsonArray ++ applicationId)
     val query = BSONDocument(APPLICATION_ID -> BSONDocument("$in" -> applicationIdFilter))
     val projection = BSONDocument(FSB_TEST_GROUPS -> 1, APPLICATION_ID -> 1)
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]() map { documents =>
-      documents.foldLeft(List[FsbResult]())((list, document) => list :+ BSON.readDocument[FsbResult](document))
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { documents =>
+      documents.foldLeft(List[FsbSchemeResult]())((list, document) => {
+        BSON.readDocument[Option[FsbSchemeResult]](document) match {
+          case Some(fsbResult) => {
+            schemeId match {
+              case Some(scheme) => filterBySchemeId(list, fsbResult, scheme)
+              case None => list :+ fsbResult
+            }
+          }
+          case _ => list
+        }
+      })
+    }
+  }
+
+  private def filterBySchemeId(list: List[FsbSchemeResult], fsbSchemeResult: FsbSchemeResult, schemeId: SchemeId): List[FsbSchemeResult] = {
+    val applicationId = fsbSchemeResult.applicationId
+    fsbSchemeResult.results.filter(s => schemeId == s.schemeId) match {
+      case Nil => list
+      case head :: tail => list :+ FsbSchemeResult(applicationId, head :: tail)
     }
   }
 

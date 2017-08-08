@@ -19,7 +19,7 @@ package controllers
 import model.exchange.FsbEvaluationResults
 import model.{ EvaluationResults, FsbType, SchemeId }
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.Action
+import play.api.mvc.{ Action, AnyContent }
 import services.application.FsbTestGroupService
 import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object FsbTestGroupController extends FsbTestGroupController {
-  val eventsService: EventsService = EventsService
+  val eventsService = EventsService
   val service = FsbTestGroupService
 }
 
@@ -52,10 +52,10 @@ trait FsbTestGroupController extends BaseController {
     }
   }
 
-  def find(applicationIds: List[String]) = Action.async { implicit request =>
-      service.find(applicationIds).map { results =>
-        Ok(Json.toJson(results))
-      }
+  def find(applicationIds: List[String], fsbType: Option[String]): Action[AnyContent] = Action.async { implicit request =>
+    service.findByFsbType(applicationIds, fsbType).map { results =>
+      Ok(Json.toJson(results))
+    }
   }
 
   private def fromPassMark(s: String): EvaluationResults.Result = s match {

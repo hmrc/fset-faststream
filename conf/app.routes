@@ -28,6 +28,7 @@ PUT           /application/continue-as-sdip/:userId/:userIdToArchiveWith        
 PUT           /application/overrideSubmissionDeadline/:applicationId                      controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
 GET           /application/location/:location                                             controllers.ApplicationController.findCandidatesEligibleForEventAllocation(location: String)
 POST          /applications/allocated                                                     controllers.ApplicationController.findAllocatedApplications()
+
 POST          /application/status                                                         controllers.ApplicationController.updateStatus
 GET           /applications/find/candidates                                               controllers.ApplicationController.findCandidatesByApplicationIds(applicationIds: List[String])
 
@@ -143,7 +144,8 @@ PUT           /events/:eventId/allocate                                         
 GET           /events-with-allocations-summary/:venueName/:eventType                      controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
 PUT           /events/:eventId/sessions/:sessionId/allocateCandidates                     controllers.EventsController.allocateCandidates(eventId: String, sessionId: String)
 
-POST          /assessment/fsb-events/:eventId/sessions/:sessionId/results                 controllers.FsbTestGroupController.save(eventId: String, sessionId: String)
+POST          /assessments/fsb-events/:eventId/sessions/:sessionId/results                controllers.FsbTestGroupController.save(eventId: String, sessionId: String)
+GET           /assessments/fsb-events/results                                             controllers.FsbTestGroupController.find(applicationIds: List[String], fsbType: Option[String])
 
 # Day aggregate events
 GET           /day-aggregate-events                                                       controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
