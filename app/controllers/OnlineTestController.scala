@@ -75,7 +75,7 @@ trait OnlineTestController extends BaseController {
   def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
     phase1TestService.getTestGroup(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
-      case None => Logger.warn(s"No phase 1 tests found for applicationId '$applicationId'")
+      case None => Logger.debug(s"No phase 1 tests found for applicationId '$applicationId'")
         NotFound
     }
   }
@@ -83,7 +83,7 @@ trait OnlineTestController extends BaseController {
   def getPhase2OnlineTest(applicationId: String) = Action.async { implicit request =>
     phase2TestService.getTestGroup(applicationId) map {
       case Some(phase2TestGroupWithNames) => Ok(Json.toJson(phase2TestGroupWithNames))
-      case None => Logger.warn(s"No phase 2 tests found for applicationId '$applicationId'")
+      case None => Logger.debug(s"No phase 2 tests found for applicationId '$applicationId'")
         NotFound
     }
   }
@@ -91,7 +91,7 @@ trait OnlineTestController extends BaseController {
   def getPhase3OnlineTest(applicationId: String) = Action.async { implicit request =>
     phase3TestService.getTestGroupWithActiveTest(applicationId) map {
       case Some(phase3TestGroup) => Ok(Json.toJson(phase3TestGroup))
-      case None => Logger.warn(s"No phase 3 tests found for applicationId '$applicationId'")
+      case None => Logger.debug(s"No phase 3 tests found for applicationId '$applicationId'")
         NotFound
     }
   }
