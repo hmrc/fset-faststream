@@ -43,7 +43,7 @@ object Session {
   }
 
   def apply(exchangeSession: ExchangeSession): Session = {
-    Session(id = UUIDFactory.generateUUID(),
+    Session(id = exchangeSession.id,
       description = exchangeSession.description,
       capacity = exchangeSession.capacity,
       minViableAttendees = exchangeSession.minViableAttendees,
