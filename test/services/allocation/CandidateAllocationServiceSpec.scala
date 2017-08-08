@@ -89,15 +89,9 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       private val c2 = CandidateEligibleForEvent("app2", "", "", true, DateTime.now())
       private val loc = "London"
 
-      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc))).thenReturnAsync(
-        CandidatesEligibleForEventResponse(List(c1, c2), 2)
-      )
+      val res = CandidatesEligibleForEventResponse(List(c1, c2), 2)
+      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc))).thenReturnAsync(res)
 
-      when(mockCandidateAllocationRepository.findNoShowAllocations(Seq("app1", "app2"))).thenReturnAsync(
-        Seq(model.persisted.CandidateAllocation("app2", "", "", AllocationStatuses.REMOVED, "" , Some("No-show")))
-      )
-
-      val res = CandidatesEligibleForEventResponse(List(c1), 1)
       service.findCandidatesEligibleForEventAllocation(loc).futureValue mustBe res
     }
   }
