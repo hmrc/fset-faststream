@@ -135,6 +135,11 @@ object AssessorAssessmentScoresController extends AssessmentScoresController {
   val AssessmentScoresAllExercisesSaved = "AssessorAssessmentScoresAllExercisesSaved"
   val AssessmentScoresOneExerciseSaved = "AssessorAssessmentScoresOneExerciseSaved"
   val UserIdForAudit = "reviewerId"
+
+  override def submitFinalFeedback() = Action.async(parse.json) {
+    implicit request =>
+      throw new UnsupportedOperationException("This method is only applicable for a reviewer")
+  }
 }
 
 object ReviewerAssessmentScoresController extends AssessmentScoresController {
