@@ -152,7 +152,7 @@ object ProgressExamples {
     ),
     siftProgress = SiftProgress(
       siftEntered = true,
-      allSchemesSiftCompleted = true
+      siftCompleted = true
     ),
     exported = false,
     updateExported = false,
