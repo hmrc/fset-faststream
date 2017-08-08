@@ -21,12 +21,12 @@ import connectors.ExchangeObjects
 import model.Commands.Candidate
 import model.EvaluationResults.Green
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
-import model.command.WithdrawApplication
+import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.PassmarkEvaluation
-import model.{ ApplicationRoute, ApplicationStatus, SchemeId }
+import model.persisted.{ ContactDetails, PassmarkEvaluation }
+import model.{ ApplicationRoute, SchemeId }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -37,7 +37,7 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.stc.{ StcEventService, EventSink }
+import services.stc.{ EventSink, StcEventService }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -68,28 +68,51 @@ trait ApplicationService extends EventSink {
 
   val Candidate_Role = "Candidate"
 
-  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def withdraw(applicationId: String, withdrawRequest: WithdrawRequest)
+    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    appRepository.find(applicationId).flatMap{
+    appRepository.find(applicationId).map {
       case Some(candidate) =>
-        cdRepository.find(candidate.userId).flatMap{ cd =>
-          eventSink {
-            appRepository.withdraw(applicationId, withdrawRequest).map { _ =>
-              val commonEventList =
-                  DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
-                  AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
-                  Nil
-              withdrawRequest.withdrawer match {
-                case Candidate_Role => commonEventList
-                case _ => EmailEvents.ApplicationWithdrawn(cd.email,
-                  candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
-              }
-            }
+        cdRepository.find(candidate.userId).map { cd =>
+          val function = withdrawRequest match {
+            case withdrawApp: WithdrawApplication => withdrawFromApplication(applicationId, withdrawApp) _
+            case withdrawScheme: WithdrawScheme => withdrawFromScheme(applicationId, withdrawScheme) _
           }
+
+          eventSink { function(candidate, cd) }
         }
       case None => throw ApplicationNotFound(applicationId)
-    }.map(_ => ())
+    }
+  }
+
+  private def withdrawFromApplication(applicationId: String, withdrawRequest: WithdrawApplication)
+    (candidate: Candidate, cd: ContactDetails) = {
+      appRepository.withdraw(applicationId, withdrawRequest).map { _ =>
+        val commonEventList =
+            DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
+            AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
+            Nil
+        withdrawRequest.withdrawer match {
+          case Candidate_Role => commonEventList
+          case _ => EmailEvents.ApplicationWithdrawn(cd.email,
+            candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
+        }
+      }
+  }
+
+  private def withdrawFromScheme(applicationId: String, withdrawRequest: WithdrawScheme)
+    (candidate: Candidate, cd: ContactDetails) = {
+      appRepository.withdrawScheme(applicationId, withdrawRequest).map { _ =>
+        val commonEventList =
+            DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
+            AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
+            Nil
+        withdrawRequest.withdrawer match {
+          case Candidate_Role => commonEventList
+          case _ => EmailEvents.ApplicationWithdrawn(cd.email,
+            candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
+        }
+      }
   }
 
   def considerForSdip(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {

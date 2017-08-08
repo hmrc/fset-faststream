@@ -117,7 +117,7 @@ trait CandidateAllocationService extends EventSink {
           case Nil =>
             candidateAllocationRepo.save(persisted.CandidateAllocation.fromCommand(newAllocations)).flatMap {
               _ => Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime)))
-            }.map(_ => ())
+            }.map { _ => () }
           case _ =>
             val existingIds = existingAllocation.allocations.map(_.id)
             updateExistingAllocations(existingAllocation, newAllocations).flatMap { _ =>

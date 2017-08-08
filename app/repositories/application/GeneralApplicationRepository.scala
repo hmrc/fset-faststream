@@ -80,6 +80,8 @@ trait GeneralApplicationRepository {
 
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
 
+  def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme): Future[Unit]
+
   def preview(applicationId: String): Future[Unit]
 
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
@@ -336,6 +338,10 @@ class GeneralApplicationMongoRepository(
     val validator = singleUpdateValidator(applicationId, actionDesc = "withdrawing")
 
     collection.update(query, applicationBSON) map validator
+  }
+
+  def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme): Future[Unit] = {
+    Future(())
   }
 
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {
@@ -672,11 +678,11 @@ class GeneralApplicationMongoRepository(
   }
 
   private def reportQueryWithProjections[A](
-                                             query: BSONDocument,
-                                             prj: BSONDocument,
-                                             upTo: Int = Int.MaxValue,
-                                             stopOnError: Boolean = true
-                                           )(implicit reader: Format[A]): Future[List[A]] =
+    query: BSONDocument,
+    prj: BSONDocument,
+    upTo: Int = Int.MaxValue,
+    stopOnError: Boolean = true
+  )(implicit reader: Format[A]): Future[List[A]] =
     collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
 
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))

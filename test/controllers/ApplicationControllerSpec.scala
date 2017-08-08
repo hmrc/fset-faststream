@@ -179,7 +179,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     val mockAssessmentCentreService = mock[AssessmentCentreService]
     val mockFileUploadRepository = mock[FileUploadMongoRepository]
 
-    when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))(any[HeaderCarrier], any[RequestHeader]))
+    when(mockApplicationService.withdrawApplication(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))(any[HeaderCarrier], any[RequestHeader]))
       .thenReturn(Future.successful(()))
 
     object TestApplicationController extends ApplicationController {

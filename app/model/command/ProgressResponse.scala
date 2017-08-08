@@ -19,15 +19,18 @@ package model.command
 import play.api.libs.json.Json
 
 case class AssessmentCentre(
-                             failedToAttend: Boolean = false,
-                             scoresEntered: Boolean = false,
-                             scoresAccepted: Boolean = false,
-                             awaitingReevaluation: Boolean = false,
-                             passed: Boolean = false,
-                             passedNotified: Boolean = false,
-                             failed: Boolean = false,
-                             failedNotified: Boolean = false
-                           )
+  awaitingAllocation: Boolean = false,
+  allocationUnconfirmed: Boolean = false,
+  allocationConfirmed: Boolean = false,
+  failedToAttend: Boolean = false,
+  scoresEntered: Boolean = false,
+  scoresAccepted: Boolean = false,
+  awaitingReevaluation: Boolean = false,
+  passed: Boolean = false,
+  passedNotified: Boolean = false,
+  failed: Boolean = false,
+  failedNotified: Boolean = false
+)
 
 case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   phase1TestsFirstRemainder: Boolean = false,
