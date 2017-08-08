@@ -19,7 +19,7 @@ package services.assessmentscores
 import factories.DateTimeFactory
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
 import model.{ ProgressStatuses, UniqueIdentifier }
-import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
+import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, AssessmentScoresCandidateSummary }
 import model.persisted.eventschedules.Event
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -157,7 +157,7 @@ trait AssessmentScoresService {
       personalDetails <- personalDetailsFut
       assessmentScores <- assessmentScoresFut
     } yield {
-      AssessmentScoresFindResponse(RecordCandidateScores(
+      AssessmentScoresFindResponse(AssessmentScoresCandidateSummary(
         applicationId,
         personalDetails.firstName,
         personalDetails.lastName,

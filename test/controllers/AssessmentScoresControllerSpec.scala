@@ -102,7 +102,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
   "findAssessmentScoresWithCandidateSummaryByApplicationId" should {
     "return OK with corresponding assessment scores" in new TestFixture {
       val expectedResponse = AssessmentScoresFindResponse(
-        RecordCandidateScores(appId, "firstName", "lastName", "venue",
+        AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
           DateTimeFactory.nowLocalDate, UniqueIdentifier.randomUniqueIdentifier),
         Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise))
       when(mockService.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)).thenReturn(
@@ -125,7 +125,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
   "findAssessmentScoresWithCandidateSummaryByEventId" should {
     "return OK with corresponding assessment scores" in new TestFixture {
       val expectedResponse = List(AssessmentScoresFindResponse(
-        RecordCandidateScores(appId, "firstName", "lastName", "venue",
+        AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
           DateTimeFactory.nowLocalDate, sessionId),
         Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
       when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(

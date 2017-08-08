@@ -21,7 +21,7 @@ import model.Exceptions.EventNotFoundException
 import model.ProgressStatuses.ProgressStatus
 import model.{ AllocationStatuses, ProgressStatuses, UniqueIdentifier }
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
-import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
+import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, AssessmentScoresCandidateSummary }
 import model.command.PersonalDetailsExamples
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import model.persisted.{ CandidateAllocation, EventExamples }
@@ -253,7 +253,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
           eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
         val result = service.findAssessmentScoresWithCandidateSummaryByApplicationId(appId).futureValue
 
-        val expectedCandidate = RecordCandidateScores(
+        val expectedCandidate = AssessmentScoresCandidateSummary(
           appId,
           PersonalDetailsExamples.completed.firstName,
           PersonalDetailsExamples.completed.lastName,
@@ -273,7 +273,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
           eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
         val result = service.findAssessmentScoresWithCandidateSummaryByApplicationId(appId).futureValue
 
-        val expectedCandidate = RecordCandidateScores(
+        val expectedCandidate = AssessmentScoresCandidateSummary(
           appId,
           PersonalDetailsExamples.completed.firstName,
           PersonalDetailsExamples.completed.lastName,
@@ -308,7 +308,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
           eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
         val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
 
-        val expectedCandidate = RecordCandidateScores(
+        val expectedCandidate = AssessmentScoresCandidateSummary(
           appId,
           PersonalDetailsExamples.completed.firstName,
           PersonalDetailsExamples.completed.lastName,
@@ -329,7 +329,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
           eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
         val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
 
-        val expectedCandidate = RecordCandidateScores(
+        val expectedCandidate = AssessmentScoresCandidateSummary(
           appId,
           PersonalDetailsExamples.completed.firstName,
           PersonalDetailsExamples.completed.lastName,

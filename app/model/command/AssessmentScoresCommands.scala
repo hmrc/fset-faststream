@@ -24,15 +24,14 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object AssessmentScoresCommands {
 
-  // TODO MIGUEL: Rename it to AssessmentScoresCandidateSummary in BE and FE
-  case class RecordCandidateScores(applicationId: UniqueIdentifier,
-                                   firstName: String,
-                                   lastName: String,
-                                   venueName: String,
-                                   assessmentDate: LocalDate,
-                                   sessionId: UniqueIdentifier)
-  object RecordCandidateScores {
-    implicit val RecordCandidateScoresFormats: Format[RecordCandidateScores] = Json.format[RecordCandidateScores]
+  case class AssessmentScoresCandidateSummary(applicationId: UniqueIdentifier,
+                                              firstName: String,
+                                              lastName: String,
+                                              venueName: String,
+                                              assessmentDate: LocalDate,
+                                              sessionId: UniqueIdentifier)
+  object AssessmentScoresCandidateSummary {
+    implicit val jsonFormat: Format[AssessmentScoresCandidateSummary] = Json.format[AssessmentScoresCandidateSummary]
   }
 
   object AssessmentExerciseType extends Enumeration {
@@ -70,7 +69,7 @@ object AssessmentScoresCommands {
     implicit val jsonFormat: Format[AssessmentScoresFinalFeedbackSubmitRequest] = Json.format[AssessmentScoresFinalFeedbackSubmitRequest]
   }
 
-  case class AssessmentScoresFindResponse(candidate: RecordCandidateScores, scoresAndFeedback: Option[AssessmentScoresAllExercises])
+  case class AssessmentScoresFindResponse(candidate: AssessmentScoresCandidateSummary, scoresAndFeedback: Option[AssessmentScoresAllExercises])
   object AssessmentScoresFindResponse {
     implicit val jsonFormat: Format[AssessmentScoresFindResponse] = Json.format[AssessmentScoresFindResponse]
   }
