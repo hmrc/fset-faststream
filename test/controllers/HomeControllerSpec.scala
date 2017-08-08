@@ -24,7 +24,7 @@ import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExample
 import connectors.exchange.referencedata.{ Scheme, SchemeId }
 import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange.sift.SiftAnswersStatus
-import connectors.exchange.{ AssistanceDetailsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
+import connectors.exchange.{ AssistanceDetailsExamples, EventsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
 import forms.WithdrawApplicationFormExamples
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationRoute._
@@ -50,7 +50,8 @@ import java.nio.file.Path
 import java.util.UUID
 
 import connectors.events.{ Event, Location, Session, Venue }
-import models.events.EventType
+import connectors.exchange.candidateevents.CandidateAllocationWithEvent
+import models.events.{ AllocationStatuses, EventType }
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.Logger
 import play.api.i18n.Messages.Message
@@ -496,35 +497,11 @@ class HomeControllerSpec extends BaseControllerSpec {
     val msWordContentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
     def mockPostOnlineTestsDashboardCalls(hasAnalysisExerciseAlready: Boolean = false) = {
-      when(mockApplicationClient.eventWithSessionsForApplicationOnly(
-        any[UniqueIdentifier], eqTo(EventType.FSAC))(any[HeaderCarrier]())).thenReturnAsync {
-        List(
-          Event(
-            UniqueIdentifier(UUID.randomUUID()),
-            EventType.FSAC,
-            Location("London"),
-            Venue("London FSAC", "London Test FSAC"),
-            LocalDate.now,
-            10,
-            10,
-            10,
-            LocalTime.now,
-            LocalTime.now.plusHours(24),
-            Map(),
-            List(
-              Session(
-                UniqueIdentifier(UUID.randomUUID()),
-                "TestSession",
-                10,
-                10,
-                10,
-                LocalTime.now,
-                LocalTime.now.plusHours(12)
-              )
-            )
-          )
-        )
-      }
+
+      val alloc = CandidateAllocationWithEvent("", "", AllocationStatuses.CONFIRMED, EventsExamples.Event1)
+
+      when(mockApplicationClient.candidateAllocationEventWithSession(
+        any[UniqueIdentifier], eqTo(EventType.FSAC))(any[HeaderCarrier]())).thenReturnAsync(List(alloc))
 
       when(mockApplicationClient.hasAnalysisExercise(any[UniqueIdentifier]())(any[HeaderCarrier])).thenReturnAsync(hasAnalysisExerciseAlready)
     }

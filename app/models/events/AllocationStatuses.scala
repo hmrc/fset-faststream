@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package binders
+package models.events
 
-import models.UniqueIdentifier
-import play.api.mvc.PathBindable
+import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 
-import scala.util.{ Failure, Success, Try }
+object AllocationStatuses extends Enumeration {
+  type AllocationStatus = Value
 
-object CustomBinders {
+  val UNCONFIRMED, CONFIRMED, DECLINED, REMOVED = Value
 
-  implicit def bindableAccount = new PathBindable[UniqueIdentifier] {
-    def bind(key: String, value: String) =
-      Try { UniqueIdentifier(value) } match {
-        case Success(v) => Right(v)
-        case Failure(e: IllegalArgumentException) => Left("Badly formatted UniqueIdentifier '" + value + "'")
-        case Failure(e) => throw e
-      }
-    def unbind(key: String, value: UniqueIdentifier) = value.toString()
+  implicit val applicationStatusFormat = new Format[AllocationStatus] {
+    def reads(json: JsValue) = JsSuccess(AllocationStatuses.withName(json.as[String].toUpperCase()))
+    def writes(myEnum: AllocationStatus) = JsString(myEnum.toString)
   }
 }
