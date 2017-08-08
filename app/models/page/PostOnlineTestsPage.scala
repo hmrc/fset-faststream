@@ -16,15 +16,13 @@
 
 package models.page
 
-import connectors.events.{ Event, Session }
-import connectors.exchange.SchemeEvaluationResult
-import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
+import connectors.events.Event
 import connectors.exchange.sift.SiftAnswersStatus
 import helpers.{ CachedUserWithSchemeData, Timezones }
 import models.page.PostOnlineTestsStage.PostOnlineTestsStage
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled, ProgressStepVisibility }
-import models.{ CachedData, CachedDataWithApp, SchemeStatus }
+import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
+import models.CachedData
 import org.joda.time.{ DateTime, LocalTime }
 
 

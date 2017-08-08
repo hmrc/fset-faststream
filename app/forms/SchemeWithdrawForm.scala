@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package models.page
+package forms
 
-import connectors.exchange.referencedata.Scheme
-import forms.SchemeWithdrawForm
 import play.api.data.Form
+import play.api.data.Forms._
+import Mappings.nonEmptyTrimmedText
 
-case class SchemeWithdrawPage(
-  schemes: Seq[(String, String)],
-  form: Form[SchemeWithdrawForm.Data]
-)
 
-object SchemeWithdrawPage {
-  def apply(schemes: Seq[Scheme]): SchemeWithdrawPage = {
-    SchemeWithdrawPage(schemes.map(s => (s.name, s.id.value)), SchemeWithdrawForm.form)
-  }
+object SchemeWithdrawForm {
+
+  case class Data(
+    scheme: String,
+    reason: String
+  )
+
+  val form = Form(mapping(
+    "scheme" -> nonEmptyTrimmedText("withdraw.scheme.required"),
+    "reason" -> text
+  )(Data.apply)(Data.unapply))
+
 }

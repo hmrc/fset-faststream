@@ -73,6 +73,13 @@ trait ApplicationClient {
     }
   }
 
+  def withdrawScheme(applicationId: UniqueIdentifier, withdrawal: WithdrawScheme)(implicit hc: HeaderCarrier) = {
+    http.PUT(s"$apiBaseUrl/application/$applicationId/scheme/withdraw", Json.toJson(withdrawal)).map (_ => ())
+      .recover {
+        case _: Exception => throw new CannotWithdraw()
+      }
+  }
+
   def addReferral(userId: UniqueIdentifier, referral: String)(implicit hc: HeaderCarrier) = {
     http.PUT(s"$apiBaseUrl/media/create", AddReferral(userId, referral)).map {
       case x: HttpResponse if x.status == CREATED => ()

@@ -79,7 +79,7 @@ case _ => {
     <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.toCachedData)){disabled}" id="mainProgressPage">
         <div class="text">
             <section>
-                <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.noSuccessfulSchemes} of your preferred schemes.</p>
+                <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.userDataWithSchemes.noSuccessfulSchemes} of your preferred schemes.</p>
                 <p>Check your scheme preferences, as the order may have changed.</p>
                 @if(SchemeWithdrawRole.isAuthorized(page.toCachedData)) {
                     <div class="panel-indent" id="importantToProgress">
@@ -87,11 +87,11 @@ case _ => {
                         <p><span>
                             To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
                             If
-                            you've changed your mind, you can <a href="#">withdraw from individual schemes</a>.
+                            you've changed your mind, you can <a href="@routes.WithdrawController.presentWithdrawScheme">withdraw from individual schemes</a>.
                         </p>
                     </div>
                 }
-                @for((schemeResult, index) <- page.successfulSchemes.zipWithIndex) {
+                @for((schemeResult, index) <- page.userDataWithSchemes.successfulSchemes.zipWithIndex) {
                     <section>
                         <h3 class="bold-small">@getOrder(index + 1) preference</h3>
                         <p>@{schemeResult.scheme.name}</p>

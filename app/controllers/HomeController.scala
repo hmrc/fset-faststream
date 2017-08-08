@@ -112,27 +112,6 @@ abstract class HomeController(
       }
   }
 
-  def presentWithdrawApplication: Action[AnyContent] = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
-    implicit user =>
-      Future.successful(Ok(views.html.application.withdraw(WithdrawApplicationForm.form)))
-  }
-
-  def withdrawApplication: Action[AnyContent] = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
-    implicit user =>
-
-      WithdrawApplicationForm.form.bindFromRequest.fold(
-        invalidForm => Future.successful(Ok(views.html.application.withdraw(invalidForm))),
-        data => {
-          applicationClient.withdrawApplication(user.application.applicationId, WithdrawApplication(data.reason.get, data.otherReason,
-            Withdrawer)).map { _ =>
-              Redirect(routes.HomeController.present()).flashing(success("application.withdrawn", feedbackUrl))
-          }.recover {
-            case _: CannotWithdraw => Redirect(routes.HomeController.present()).flashing(danger("error.cannot.withdraw"))
-          }
-        }
-      )
-  }
-
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
     request: Request[_], hc: HeaderCarrier) = {
     for {
