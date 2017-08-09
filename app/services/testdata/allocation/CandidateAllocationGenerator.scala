@@ -18,22 +18,25 @@ package services.testdata.allocation
 
 import model.exchange.testdata.CreateCandidateAllocationResponse
 import model.testdata.CreateCandidateAllocationData
-import repositories.CandidateAllocationRepository
-
+import play.api.mvc.RequestHeader
+import services.allocation.CandidateAllocationService
+import uk.gov.hmrc.play.http.HeaderCarrier
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object CandidateAllocationGenerator extends CandidateAllocationGenerator {
-  override val candidateAllocationRepository: CandidateAllocationRepository = repositories.candidateAllocationRepository
+  override val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
 }
 
 trait CandidateAllocationGenerator {
-  import scala.concurrent.ExecutionContext.Implicits.global
 
-  val candidateAllocationRepository: CandidateAllocationRepository
+  val candidateAllocationService: CandidateAllocationService
 
-  def generate(generationId: Int, createData: CreateCandidateAllocationData): Future[CreateCandidateAllocationResponse] = {
-    val allocation = createData.toCandidateAllocation
-    candidateAllocationRepository.save(List(allocation)).map { _ => CreateCandidateAllocationResponse(generationId, createData) }
+  def generate(
+    generationId: Int,
+    createData: CreateCandidateAllocationData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateAllocationResponse] = {
+    candidateAllocationService.allocateCandidates(createData.toCandidateAllocations).map { _ =>
+      CreateCandidateAllocationResponse(generationId, createData) }
   }
 
 }
