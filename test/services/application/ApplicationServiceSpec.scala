@@ -211,14 +211,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
-          any(classOf[Function1[WithdrawScheme, Seq[SchemeEvaluationResult]]])
+          any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
       )).thenReturnAsync()
       val withdraw = WithdrawScheme(SchemeId("Commercial"), "reason", "Candidate")
 
       underTest.withdraw("appId", withdraw).futureValue
 
       verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
-        any(classOf[Function1[WithdrawScheme, Seq[SchemeEvaluationResult]]])
+        any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
       )
     }
   }
