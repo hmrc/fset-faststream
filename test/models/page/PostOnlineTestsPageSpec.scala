@@ -67,7 +67,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
     "application is in correct stage" in {
       val app = userDataWithApp.application.copy(
         progress = userDataWithApp.application.progress.copy(
-        assessmentCentre = userDataWithApp.application.progress.assessmentCentre.copy(allocatedUnconfirmed = true)
+        assessmentCentre = userDataWithApp.application.progress.assessmentCentre.copy(allocationUnconfirmed = true)
       ))
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, app, Schemes.AllSchemes, Seq.empty)
 

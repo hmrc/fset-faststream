@@ -43,10 +43,10 @@ case class PostOnlineTestsPage(
   def stage: PostOnlineTestsStage =
     userDataWithSchemes.application.progress.assessmentCentre match {
       case a if a.failedToAttend => FAILED_TO_ATTEND
-      case a if a.allocatedConfirmed & assessmentCentreStarted => UPLOAD_EXERCISES
-      case z if z.allocatedConfirmed => CONFIRMED_FOR_EVENT
-      case a if a.allocatedUnconfirmed => ALLOCATED_TO_EVENT
       case _ if hasAnalysisExercise => EVENT_ATTENDED
+      case a if a.allocationConfirmed & assessmentCentreStarted => UPLOAD_EXERCISES
+      case z if z.allocationConfirmed => CONFIRMED_FOR_EVENT
+      case a if a.allocationUnconfirmed => ALLOCATED_TO_EVENT
       case _ => OTHER
   }
   // scalastyle:on
