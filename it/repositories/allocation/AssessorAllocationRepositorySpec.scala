@@ -33,6 +33,14 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
       }
     }
 
+    "correctly retrieve single document" in {
+      repository.save(allocations).futureValue
+      allocations.foreach { allocation =>
+        val findResult = repository.find(allocation.id, allocation.eventId).futureValue
+        findResult mustBe Some(allocation)
+      }
+    }
+
     "get all the allocations for an event" in {
       repository.save(allocations).futureValue
       val result = repository.allocationsForEvent("eventId1").futureValue

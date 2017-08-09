@@ -37,7 +37,7 @@ object AssessmentCentreService extends AssessmentCentreService {
   val applicationRepo = repositories.applicationRepository
   val assessmentCentreRepo = repositories.assessmentCentreRepository
   val passmarkService = AssessmentCentrePassMarkSettingsService
-  val assessmentScoresRepo = repositories.assessmentScoresRepository
+  val assessmentScoresRepo = repositories.assessorAssessmentScoresRepository
   val currentSchemeStatusRepo = repositories.currentSchemeStatusRepository
   val evaluationEngine = AssessmentCentreEvaluationEngine
 

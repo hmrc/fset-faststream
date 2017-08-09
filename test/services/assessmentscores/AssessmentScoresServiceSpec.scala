@@ -21,8 +21,9 @@ import model.Exceptions.EventNotFoundException
 import model.ProgressStatuses.ProgressStatus
 import model.{ AllocationStatuses, ProgressStatuses, UniqueIdentifier }
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
-import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, RecordCandidateScores }
+import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, AssessmentScoresCandidateSummary }
 import model.command.PersonalDetailsExamples
+import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import model.persisted.{ CandidateAllocation, EventExamples }
 import org.joda.time.DateTimeZone
 import org.mockito.Mockito.when
@@ -37,87 +38,140 @@ import repositories.application.GeneralApplicationRepository
 
 import scala.concurrent.Future
 
-class AssessmentScoresServiceSpec extends BaseServiceSpec {
+class AssessorAssessmentScoresServiceSpec extends AssessmentScoresServiceSpec {
+  type S = AssessorAssessmentScoresService
+
+  override def buildService(applicationRepo: GeneralApplicationRepository, assessmentScoresRepo: AssessmentScoresRepository,
+                            candidateAllocationRepo: CandidateAllocationMongoRepository, eventsRepo: EventsRepository,
+                            personalDetailsRepo: PersonalDetailsRepository, dateTimeFact: DateTimeFactory): S = {
+    new AssessorAssessmentScoresService {
+      override val applicationRepository = applicationRepo
+      override val assessmentScoresRepository = assessmentScoresRepo
+      override val candidateAllocationRepository = candidateAllocationRepo
+      override val eventsRepository = eventsRepo
+      override val personalDetailsRepository = personalDetailsRepo
+      override val dateTimeFactory = dateTimeFact
+    }
+  }
+
+  override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED
+}
+
+class ReviewerAssessmentScoresServiceSpec extends AssessmentScoresServiceSpec {
+  type S = ReviewerAssessmentScoresService
+
+  override def buildService(applicationRepo: GeneralApplicationRepository, assessmentScoresRepo: AssessmentScoresRepository,
+                            candidateAllocationRepo: CandidateAllocationMongoRepository, eventsRepo: EventsRepository,
+                            personalDetailsRepo: PersonalDetailsRepository, dateTimeFact: DateTimeFactory): S = {
+    new ReviewerAssessmentScoresService {
+      override val applicationRepository = applicationRepo
+      override val assessmentScoresRepository = assessmentScoresRepo
+      override val candidateAllocationRepository = candidateAllocationRepo
+      override val eventsRepository = eventsRepo
+      override val personalDetailsRepository = personalDetailsRepo
+      override val dateTimeFactory = dateTimeFact
+    }
+  }
+
+  override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
+
+}
+
+trait AssessmentScoresServiceSpec extends BaseServiceSpec {
+  type S <: AssessmentScoresService
+
+  def buildService(applicationRepo: GeneralApplicationRepository, assessmentScoresRepo: AssessmentScoresRepository,
+                   candidateAllocationRepo: CandidateAllocationMongoRepository, eventsRepo: EventsRepository,
+                   personalDetailsRepo: PersonalDetailsRepository, dateTimeFact: DateTimeFactory): S
+
+  val statusToUpdateTheApplicationTo: ProgressStatuses.ProgressStatus
 
   "save" should {
     "save assessment scores with updated submitted date and update status" in new SaveTestFixture {
       val UpdatedExample = AssessmentScoresAllExercisesExamples.AllExercises.copy(
         analysisExercise = AssessmentScoresAllExercisesExamples.AllExercises.analysisExercise.map(_.copy(submittedDate = Some(now))),
         groupExercise = AssessmentScoresAllExercisesExamples.AllExercises.groupExercise.map(_.copy(submittedDate = Some(now))),
-        leadershipExercise = AssessmentScoresAllExercisesExamples.AllExercises.leadershipExercise.map(_.copy(submittedDate = Some(now)))
+        leadershipExercise = AssessmentScoresAllExercisesExamples.AllExercises.leadershipExercise.map(_.copy(submittedDate = Some(now))),
+        finalFeedback = AssessmentScoresAllExercisesExamples.AllExercises.finalFeedback.map(_.copy(submittedDate = now))
       )
       val AppId = UpdatedExample.applicationId
 
       when(assessmentScoresRepositoryMock.save(eqTo(UpdatedExample))).thenReturn(Future.successful(()))
       when(applicationRepositoyMock.addProgressStatusAndUpdateAppStatus(
-        AppId.toString(), ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED)).thenReturn(Future.successful(()))
+        AppId.toString(), statusToUpdateTheApplicationTo)).thenReturn(Future.successful(()))
 
+      val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+        eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
       val result = service.save(AssessmentScoresAllExercisesExamples.AllExercises).futureValue
 
       verify(assessmentScoresRepositoryMock).save(eqTo(UpdatedExample))
       verify(applicationRepositoyMock).addProgressStatusAndUpdateAppStatus(
-        AppId.toString(), ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED)
+        AppId.toString(), statusToUpdateTheApplicationTo)
     }
   }
 
   "saveExercise" should {
     "update analysis exercise scores " +
       "when assessment scores exist and we specify we want to update analysis exercise scores" in new SaveExerciseTestFixture {
-      val UpdatedExample = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise.copy(
+      val UpdatedExample = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.copy(
         analysisExercise = Some(AssessmentScoresExerciseExamples.Example4.copy(submittedDate = Some(now))))
       when(assessmentScoresRepositoryMock.save(eqTo(UpdatedExample))).thenReturn(Future.successful(()))
-
+      val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+        eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
       service.saveExercise(appId, AssessmentExerciseType.analysisExercise, AssessmentScoresExerciseExamples.Example4).futureValue
 
       verify(assessmentScoresRepositoryMock).save(eqTo(UpdatedExample))
-      verify(applicationRepositoyMock, times(0)).addProgressStatusAndUpdateAppStatus(any[String],any[ProgressStatus])
+      verify(applicationRepositoyMock, times(0)).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
     }
 
     "update group exercise scores " +
       "when assessment scores exist and we specify we want to update group exercise scores" in new SaveExerciseTestFixture {
-      val UpdatedExample = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise.copy(
+      val UpdatedExample = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.copy(
         groupExercise = Some(AssessmentScoresExerciseExamples.Example4.copy(submittedDate = Some(now))))
       when(assessmentScoresRepositoryMock.save(eqTo(UpdatedExample))).thenReturn(Future.successful(()))
-
+      val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+        eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
       service.saveExercise(appId, AssessmentExerciseType.groupExercise, AssessmentScoresExerciseExamples.Example4).futureValue
 
       verify(assessmentScoresRepositoryMock).save(eqTo(UpdatedExample))
-      verify(applicationRepositoyMock, times(0)).addProgressStatusAndUpdateAppStatus(any[String],any[ProgressStatus])
+      verify(applicationRepositoyMock, times(0)).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
     }
 
     "update leadership exercise scores " +
       "when assessment scores exist and we specify we want to update leadership exercise scores" in new SaveExerciseTestFixture {
-      val AppId = AssessmentScoresAllExercisesExamples.OnlyAnalysisExercise.applicationId
+      val AppId = AssessmentScoresAllExercisesExamples.AssessorOnlyAnalysisExercise.applicationId
       when(assessmentScoresRepositoryMock.find(eqTo(AppId))).thenReturn(
-        Future.successful(Some(AssessmentScoresAllExercisesExamples.OnlyAnalysisExercise)))
-      val UpdatedExample = AssessmentScoresAllExercisesExamples.OnlyAnalysisExercise.copy(
+        Future.successful(Some(AssessmentScoresAllExercisesExamples.AssessorOnlyAnalysisExercise)))
+      val UpdatedExample = AssessmentScoresAllExercisesExamples.AssessorOnlyAnalysisExercise.copy(
         leadershipExercise = Some(AssessmentScoresExerciseExamples.Example4.copy(submittedDate = Some(now))))
       when(assessmentScoresRepositoryMock.save(eqTo(UpdatedExample))).thenReturn(Future.successful(()))
-
+      val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+        eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
       service.saveExercise(AppId, AssessmentExerciseType.leadershipExercise, AssessmentScoresExerciseExamples.Example4).futureValue
 
       verify(assessmentScoresRepositoryMock).save(eqTo(UpdatedExample))
-      verify(applicationRepositoyMock, times(0)).addProgressStatusAndUpdateAppStatus(any[String],any[ProgressStatus])
+      verify(applicationRepositoyMock, times(0)).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
     }
 
     "update analysis exercise scores and set application status and progress status to ASSESSMENT_CENTRE_SCORES_ENTERED " +
       "when assessment scores for group and analysis exercise exist and we specify we want to update analysis exercise scores" in
       new SaveExerciseTestFixture {
-        val AppId = AssessmentScoresAllExercisesExamples.AllButAnalysisExercise.applicationId
+        val AppId = AssessmentScoresAllExercisesExamples.AssessorAllButAnalysisExercise.applicationId
         when(assessmentScoresRepositoryMock.find(eqTo(AppId))).thenReturn(
-          Future.successful(Some(AssessmentScoresAllExercisesExamples.AllButAnalysisExercise)))
+          Future.successful(Some(AssessmentScoresAllExercisesExamples.AssessorAllButAnalysisExercise)))
 
-        val UpdatedExample = AssessmentScoresAllExercisesExamples.AllButAnalysisExercise.copy(
-        analysisExercise = Some(AssessmentScoresExerciseExamples.Example4.copy(submittedDate = Some(now))))
-      when(assessmentScoresRepositoryMock.save(eqTo(UpdatedExample))).thenReturn(Future.successful(()))
-      when(applicationRepositoyMock.addProgressStatusAndUpdateAppStatus(
-        AppId.toString(), ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED)).thenReturn(Future.successful(()))
+        val UpdatedExample = AssessmentScoresAllExercisesExamples.AssessorAllButAnalysisExercise.copy(
+          analysisExercise = Some(AssessmentScoresExerciseExamples.Example4.copy(submittedDate = Some(now))))
+        when(assessmentScoresRepositoryMock.save(eqTo(UpdatedExample))).thenReturn(Future.successful(()))
+        when(applicationRepositoyMock.addProgressStatusAndUpdateAppStatus(
+          AppId.toString(), statusToUpdateTheApplicationTo)).thenReturn(Future.successful(()))
+        val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+          eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
+        service.saveExercise(AppId, AssessmentExerciseType.analysisExercise, AssessmentScoresExerciseExamples.Example4).futureValue
 
-      service.saveExercise(AppId, AssessmentExerciseType.analysisExercise, AssessmentScoresExerciseExamples.Example4).futureValue
-
-      verify(assessmentScoresRepositoryMock).save(eqTo(UpdatedExample))
-      verify(applicationRepositoyMock).addProgressStatusAndUpdateAppStatus(AppId.toString(), ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED)
-    }
+        verify(assessmentScoresRepositoryMock).save(eqTo(UpdatedExample))
+        verify(applicationRepositoyMock).addProgressStatusAndUpdateAppStatus(AppId.toString(), statusToUpdateTheApplicationTo)
+      }
 
 
     "create assessment scores with analysis exercise scores " +
@@ -126,7 +180,8 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
       val expectedAssessmentScores = AssessmentScoresAllExercises(appId,
         Some(AssessmentScoresExerciseExamples.Example4.copy(submittedDate = Some(now))), None, None)
       when(assessmentScoresRepositoryMock.save(eqTo(expectedAssessmentScores))).thenReturn(Future.successful(()))
-
+      val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+        eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
       service.saveExercise(appId, AssessmentExerciseType.analysisExercise,
         AssessmentScoresExerciseExamples.Example4).futureValue
 
@@ -135,44 +190,101 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
     }
   }
 
+  "saveFinalFeedback" should {
+    "update final feedback " +
+      "when assessment scores exists but not all have been set" in new SaveExerciseTestFixture {
+      val AppId = AssessmentScoresAllExercisesExamples.AssessorOnlyAnalysisExercise.applicationId
+      when(assessmentScoresRepositoryMock.find(eqTo(AppId))).thenReturn(
+        Future.successful(Some(AssessmentScoresAllExercisesExamples.AssessorOnlyAnalysisExercise)))
+      val UpdatedExample = AssessmentScoresAllExercisesExamples.AssessorOnlyAnalysisExercise.copy(
+        finalFeedback = Some(AssessmentScoresFinalFeedbackExamples.Example2.copy(submittedDate = now)))
+      when(assessmentScoresRepositoryMock.save(eqTo(UpdatedExample))).thenReturn(Future.successful(()))
+      val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+        eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
+      service.saveFinalFeedback(AppId, AssessmentScoresFinalFeedbackExamples.Example2).futureValue
+
+      verify(assessmentScoresRepositoryMock).save(eqTo(UpdatedExample))
+      verify(applicationRepositoyMock, times(0)).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
+    }
+
+    "update final feedback and set application status and progress status to ASSESSMENT_CENTRE_SCORES_ACCEPTED " +
+      "when all assessment exercises scores exist" in
+      new SaveExerciseTestFixture {
+        val AppId = AssessmentScoresAllExercisesExamples.AllExercisesButFinalFeedback.applicationId
+        when(assessmentScoresRepositoryMock.find(eqTo(AppId))).thenReturn(
+          Future.successful(Some(AssessmentScoresAllExercisesExamples.AllExercisesButFinalFeedback)))
+
+        val UpdatedExample = AssessmentScoresAllExercisesExamples.AllExercisesButFinalFeedback.copy(
+          finalFeedback = Some(AssessmentScoresFinalFeedbackExamples.Example1.copy(submittedDate = now)))
+        when(assessmentScoresRepositoryMock.save(eqTo(UpdatedExample))).thenReturn(Future.successful(()))
+        when(applicationRepositoyMock.addProgressStatusAndUpdateAppStatus(
+          AppId.toString(), statusToUpdateTheApplicationTo)).thenReturn(Future.successful(()))
+        val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+          eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
+        service.saveFinalFeedback(AppId, AssessmentScoresFinalFeedbackExamples.Example1).futureValue
+
+        verify(assessmentScoresRepositoryMock).save(eqTo(UpdatedExample))
+        verify(applicationRepositoyMock).addProgressStatusAndUpdateAppStatus(AppId.toString(), statusToUpdateTheApplicationTo)
+      }
+
+
+    "create assessment scores with final feedback " +
+      "when assessment scores does not exist" in new SaveExerciseTestFixture {
+      when(assessmentScoresRepositoryMock.find(eqTo(appId))).thenReturn(Future.successful(None))
+      val expectedAssessmentScores = AssessmentScoresAllExercises(appId, None, None, None,
+        Some(AssessmentScoresFinalFeedbackExamples.Example1.copy(submittedDate = now)))
+      when(assessmentScoresRepositoryMock.save(eqTo(expectedAssessmentScores))).thenReturn(Future.successful(()))
+      val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+        eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
+      service.saveFinalFeedback(appId, AssessmentScoresFinalFeedbackExamples.Example1).futureValue
+
+      verify(assessmentScoresRepositoryMock).save(eqTo(expectedAssessmentScores))
+
+    }
+  }
+
+
   "findAssessmentScoresWithCandidateSummaryByApplicationId" should {
     "return Assessment Scores response with empty assessment scores if there is not any" in
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
 
-      when(assessmentScoresRepositoryMock.find(appId)).thenReturn(Future.successful(None))
+        when(assessmentScoresRepositoryMock.find(appId)).thenReturn(Future.successful(None))
+        val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+          eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
+        val result = service.findAssessmentScoresWithCandidateSummaryByApplicationId(appId).futureValue
 
-      val result = service.findAssessmentScoresWithCandidateSummaryByApplicationId(appId).futureValue
-
-      val expectedCandidate = RecordCandidateScores(
-        appId,
-        PersonalDetailsExamples.completed.firstName,
-        PersonalDetailsExamples.completed.lastName,
-        EventExamples.e1WithSession.venue.description,
-        today,
-        UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
-      )
-      val expectedResult = AssessmentScoresFindResponse(expectedCandidate, None)
-      result mustBe expectedResult
-    }
+        val expectedCandidate = AssessmentScoresCandidateSummary(
+          appId,
+          PersonalDetailsExamples.completed.firstName,
+          PersonalDetailsExamples.completed.lastName,
+          EventExamples.e1WithSession.venue.description,
+          today,
+          UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
+        )
+        val expectedResult = AssessmentScoresFindResponse(expectedCandidate, None)
+        result mustBe expectedResult
+      }
 
     "return Assessment Scores response with assessment scores if there are assessment scores" in
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
-      when(assessmentScoresRepositoryMock.find(appId)).thenReturn(
-        Future.successful(Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
+        when(assessmentScoresRepositoryMock.find(appId)).thenReturn(
+          Future.successful(Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
+        val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+          eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
+        val result = service.findAssessmentScoresWithCandidateSummaryByApplicationId(appId).futureValue
 
-      val result = service.findAssessmentScoresWithCandidateSummaryByApplicationId(appId).futureValue
-
-      val expectedCandidate = RecordCandidateScores(
-        appId,
-        PersonalDetailsExamples.completed.firstName,
-        PersonalDetailsExamples.completed.lastName,
-        EventExamples.e1WithSession.venue.description,
-        today,
-        UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
-      )
-      val expectedResult = AssessmentScoresFindResponse(expectedCandidate, Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise))
-      result mustBe expectedResult
-    }
+        val expectedCandidate = AssessmentScoresCandidateSummary(
+          appId,
+          PersonalDetailsExamples.completed.firstName,
+          PersonalDetailsExamples.completed.lastName,
+          EventExamples.e1WithSession.venue.description,
+          today,
+          UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
+        )
+        val expectedResult = AssessmentScoresFindResponse(expectedCandidate,
+          Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise))
+        result mustBe expectedResult
+      }
   }
 
   "findAssessmentScoresWithCandidateSummaryByEventId" should {
@@ -181,6 +293,8 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
         when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.failed(new EventNotFoundException(s"No event found with id $eventId")))
 
         val ex = intercept[Exception] {
+          val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+            eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
           service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
         }
         ex.getCause mustBe (EventNotFoundException(s"No event found with id $eventId"))
@@ -190,10 +304,11 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
         when(assessmentScoresRepositoryMock.find(appId)).thenReturn(Future.successful(None))
         when(candidateAllocationRepositoryMock.activeAllocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
-
+        val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+          eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
         val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
 
-        val expectedCandidate = RecordCandidateScores(
+        val expectedCandidate = AssessmentScoresCandidateSummary(
           appId,
           PersonalDetailsExamples.completed.firstName,
           PersonalDetailsExamples.completed.lastName,
@@ -208,12 +323,13 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
     "return Assessment Scores response with assessment scores if there are assessment scores" in
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
         when(assessmentScoresRepositoryMock.find(appId)).thenReturn(
-          Future.successful(Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
+          Future.successful(Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
         when(candidateAllocationRepositoryMock.activeAllocationsForEvent(eventId)).thenReturn(Future.successful(candidateAllocations))
-
+        val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
+          eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
         val result = service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
 
-        val expectedCandidate = RecordCandidateScores(
+        val expectedCandidate = AssessmentScoresCandidateSummary(
           appId,
           PersonalDetailsExamples.completed.firstName,
           PersonalDetailsExamples.completed.lastName,
@@ -222,7 +338,7 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
           UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
         )
         val expectedResult = List(AssessmentScoresFindResponse(expectedCandidate,
-          Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
+          Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
         result mustBe expectedResult
       }
   }
@@ -236,17 +352,7 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
 
     val dataTimeFactoryMock = mock[DateTimeFactory]
 
-    val service = new AssessmentScoresService {
-      override val applicationRepository: GeneralApplicationRepository = applicationRepositoyMock
-      override val assessmentScoresRepository = assessmentScoresRepositoryMock
-      override val candidateAllocationRepository = candidateAllocationRepositoryMock
-      override val eventsRepository = eventsRepositoryMock
-      override val personalDetailsRepository = personalDetailsRepositoryMock
-
-      override val dateTimeFactory = dataTimeFactoryMock
-    }
-
-    val appId = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise.applicationId
+    val appId = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.applicationId
     val now = DateTimeFactory.nowLocalTimeZone.withZone(DateTimeZone.UTC)
     when(dataTimeFactoryMock.nowLocalTimeZone).thenReturn(now)
     val today = DateTimeFactory.nowLocalDate
@@ -257,7 +363,7 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
 
   trait SaveExerciseTestFixture extends BaseTestFixture {
     when(assessmentScoresRepositoryMock.find(eqTo(appId))).thenReturn(
-      Future.successful(Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
+      Future.successful(Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
   }
 
   trait FindAssessmentScoresWithCandidateSummaryTestFixture extends BaseTestFixture {
@@ -274,4 +380,5 @@ class AssessmentScoresServiceSpec extends BaseServiceSpec {
     when(personalDetailsRepositoryMock.find(appId.toString())).thenReturn(Future.successful(PersonalDetailsExamples.completed))
     when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSession))
   }
+
 }
