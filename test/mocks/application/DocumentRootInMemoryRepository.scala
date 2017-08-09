@@ -157,4 +157,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = ???
 
   override def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = ???
+
+  override def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]) = ???
 }

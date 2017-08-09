@@ -80,7 +80,8 @@ trait GeneralApplicationRepository {
 
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
 
-  def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme): Future[Unit]
+  def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme,
+    schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]): Future[Unit]
 
   def preview(applicationId: String): Future[Unit]
 
@@ -149,7 +150,7 @@ class GeneralApplicationMongoRepository(
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
-    with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers {
+    with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -340,8 +341,19 @@ class GeneralApplicationMongoRepository(
     collection.update(query, applicationBSON) map validator
   }
 
-  def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme): Future[Unit] = {
-    Future(())
+  override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme,
+    schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]
+  ): Future[Unit] = {
+
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"withdraw.schemes.${withdrawScheme.schemeId}" -> withdrawScheme.reason
+    ).add(currentSchemeStatusBSON(schemeStatus(withdrawScheme))))
+
+    val predicate = BSONDocument(
+      "applicationId" -> applicationId
+    )
+
+    collection.update(predicate, update).map(_ => ())
   }
 
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {

@@ -25,11 +25,12 @@ import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.{ ContactDetails, PassmarkEvaluation }
-import model.{ ApplicationRoute, SchemeId }
+import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
+import model.{ ApplicationRoute, EvaluationResults, SchemeId }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
+import reactivemongo.bson.BSONDocument
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -56,7 +57,7 @@ object ApplicationService extends ApplicationService {
   val evaluateP3ResultService = EvaluatePhase3ResultService
 }
 
-trait ApplicationService extends EventSink {
+trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val appRepository: GeneralApplicationRepository
   val pdRepository: PersonalDetailsRepository
@@ -69,20 +70,15 @@ trait ApplicationService extends EventSink {
   val Candidate_Role = "Candidate"
 
   def withdraw(applicationId: String, withdrawRequest: WithdrawRequest)
-    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader) = eventSink {
+    (for {
+      candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
+      contactDetails <- cdRepository.find(candidate.userId)
+    } yield withdrawRequest match {
+      case withdrawApp: WithdrawApplication => withdrawFromApplication(applicationId, withdrawApp)(candidate, contactDetails)
+      case withdrawScheme: WithdrawScheme => withdrawFromScheme(applicationId, withdrawScheme)
+    }) flatMap  identity
 
-    appRepository.find(applicationId).map {
-      case Some(candidate) =>
-        cdRepository.find(candidate.userId).map { cd =>
-          val function = withdrawRequest match {
-            case withdrawApp: WithdrawApplication => withdrawFromApplication(applicationId, withdrawApp) _
-            case withdrawScheme: WithdrawScheme => withdrawFromScheme(applicationId, withdrawScheme) _
-          }
-
-          eventSink { function(candidate, cd) }
-        }
-      case None => throw ApplicationNotFound(applicationId)
-    }
   }
 
   private def withdrawFromApplication(applicationId: String, withdrawRequest: WithdrawApplication)
@@ -100,19 +96,20 @@ trait ApplicationService extends EventSink {
       }
   }
 
-  private def withdrawFromScheme(applicationId: String, withdrawRequest: WithdrawScheme)
-    (candidate: Candidate, cd: ContactDetails) = {
-      appRepository.withdrawScheme(applicationId, withdrawRequest).map { _ =>
-        val commonEventList =
-            DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
-            AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
-            Nil
-        withdrawRequest.withdrawer match {
-          case Candidate_Role => commonEventList
-          case _ => EmailEvents.ApplicationWithdrawn(cd.email,
-            candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
-        }
+  private def withdrawFromScheme(applicationId: String, withdrawRequest: WithdrawScheme) = {
+
+      def buildLatestSchemeStatus(current: Seq[SchemeEvaluationResult], withdrawal: WithdrawScheme)  = {
+        calculateCurrentSchemeStatus(current, SchemeEvaluationResult(withdrawRequest.schemeId, EvaluationResults.Withdrawn.toString) :: Nil)
       }
+
+    for {
+      currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+      _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, buildLatestSchemeStatus(currentSchemeStatus, _))
+    } yield {
+      DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
+        AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
+      Nil
+    }
   }
 
   def considerForSdip(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
