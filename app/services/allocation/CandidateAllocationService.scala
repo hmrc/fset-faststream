@@ -114,7 +114,9 @@ trait CandidateAllocationService extends EventSink {
     res.map(SerialUpdateResult.fromEither)
   }
 
-  def allocateCandidates(newAllocations: command.CandidateAllocations)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def allocateCandidates(
+    newAllocations: command.CandidateAllocations
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[command.CandidateAllocations] = {
 
     eventsService.getEvent(newAllocations.eventId).flatMap { event =>
       val eventDate = event.date.toString(dateFormat)
@@ -129,16 +131,18 @@ trait CandidateAllocationService extends EventSink {
               updateStatusInvited(toPersist).flatMap { _ =>
                 Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime)))
               }
-            }.map(_ => ())
+            }.map { _ =>
+              command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
+            }
           case _ =>
             val existingIds = existingAllocation.allocations.map(_.id)
-            updateExistingAllocations(existingAllocation, newAllocations).flatMap { _ =>
+            updateExistingAllocations(existingAllocation, newAllocations).flatMap { res =>
               Future.sequence(
                 newAllocations.allocations
                   .filter(alloc => !existingIds.contains(alloc.id))
                   .map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime))
-              )
-            }.map(_ => ())
+              ).map { _ => res}
+            }
         }
       }
     }
@@ -189,7 +193,7 @@ trait CandidateAllocationService extends EventSink {
   }
 
   private def updateExistingAllocations(existingAllocations: exchange.CandidateAllocations,
-    newAllocations: command.CandidateAllocations): Future[Unit] = {
+    newAllocations: command.CandidateAllocations): Future[command.CandidateAllocations] = {
 
     if (existingAllocations.version.forall(_ == newAllocations.version)) {
       // no prior update since reading so do update
@@ -201,7 +205,9 @@ trait CandidateAllocationService extends EventSink {
       val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
       candidateAllocationRepo.delete(toDelete).flatMap { _ =>
         candidateAllocationRepo.save(toPersist).flatMap { _ =>
-          updateStatusInvited(toPersist).map(_ => ())
+          updateStatusInvited(toPersist).map {_ =>
+            command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
+          }
         }
       }
     } else {

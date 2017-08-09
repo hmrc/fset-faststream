@@ -35,8 +35,8 @@ trait CandidateAllocationGenerator {
   def generate(
     generationId: Int,
     createData: CreateCandidateAllocationData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateAllocationResponse] = {
-    candidateAllocationService.allocateCandidates(createData.toCandidateAllocations).map { _ =>
-      CreateCandidateAllocationResponse(generationId, createData) }
+    candidateAllocationService.allocateCandidates(createData.toCandidateAllocations).map { d =>
+      CreateCandidateAllocationResponse(generationId, createData.copy(version = d.version)) }
   }
 
 }
