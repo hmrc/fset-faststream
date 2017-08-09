@@ -20,8 +20,8 @@ import play.api.libs.json.Json
 
 case class AssessmentCentre(
   awaitingAllocation: Boolean = false,
-  allocatedUnconfirmed: Boolean = false,
   allocatedConfirmed: Boolean = false,
+  allocatedUnconfirmed: Boolean = false,
   failedToAttend: Boolean = false,
   scoresEntered: Boolean = false,
   scoresAccepted: Boolean = false,
