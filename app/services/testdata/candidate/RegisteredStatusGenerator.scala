@@ -84,7 +84,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
 
     val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)
     userFuture.flatMap {
-      case user if assessorRoles.contains(roles) =>
+      case user if assessorRoles.intersect(roles).nonEmpty =>
         assessorGenerator.createAssessor(user.userId,
           AssessorData(
             List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString, SkillType.SIFTER.toString),
