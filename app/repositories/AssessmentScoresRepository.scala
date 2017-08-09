@@ -45,7 +45,7 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     val applicationId = allExercisesScores.applicationId.toString()
     val query = BSONDocument("applicationId" -> applicationId)
     val updateBSON = BSONDocument("$set" -> AssessmentScoresAllExercises.bsonHandler.write(allExercisesScores))
-    val validator = singleUpsertValidator(applicationId, actionDesc = "saving asessment scores")
+    val validator = singleUpsertValidator(applicationId, actionDesc = "saving assessment scores")
     collection.update(query, updateBSON, upsert = true) map validator
   }
 
@@ -56,8 +56,8 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
 
   def findAll: Future[List[AssessmentScoresAllExercises]] = {
     val query = BSONDocument.empty
-    collection.find(query).cursor[BSONDocument](ReadPreference.nearest).
-      collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+    collection.find(query).cursor[BSONDocument](ReadPreference.nearest)
+      .collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 }
 

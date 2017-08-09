@@ -22,23 +22,18 @@ import model._
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.command.ApplicationForFsac
 import model.exchange.passmarksettings._
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.joda.time.DateTime
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.{ OneAppPerSuite, PlaySpec }
 import play.api.libs.json.Format
-import play.api.mvc.Results
 import repositories.AssessmentScoresRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
+import repositories.assessmentcentre.AssessmentCentreRepository
+import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
 import services.passmarksettings.PassMarkSettingsService
-import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
-import testkit.{ ExtendedTimeout, FutureHelper, ScalaMockUnitSpec }
 import testkit.ScalaMockImplicits._
+import testkit.ScalaMockUnitSpec
 
 import scala.concurrent.Future
 
@@ -101,23 +96,9 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(*)
         .returning(Future.successful(Some(AssessmentScoresAllExercises(applicationId))))
 
-      (mockCurrentSchemeStatusRepo.getTestGroup _)
+      (mockAppRepo.getCurrentSchemeStatus _)
         .expects(*)
-        .returning(Future.successful(
-          Some(Phase3TestGroup(
-            expirationDate = DateTime.now,
-            tests = List.empty[LaunchpadTest],
-            evaluation = Some(
-              PassmarkEvaluation(passmarkVersion = "version1",
-                previousPhasePassMarkVersion = None,
-                result = List(
-                  SchemeEvaluationResult(schemeId = SchemeId("Commercial"), result = Green.toString)
-                ),
-                resultVersion = "version1",
-                previousPhaseResultVersion = None)
-            )
-          ))
-      ))
+        .returning(Future.successful(List(SchemeEvaluationResult(schemeId = SchemeId("Commercial"), result = Green.toString))))
 
       val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
 
@@ -184,7 +165,6 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
     val mockAssessmentCentrePassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
     val mockAssessmentScoresRepo = mock[AssessmentScoresRepository]
-    val mockCurrentSchemeStatusRepo = mock[CurrentSchemeStatusRepository]
     val mockEvaluationEngine = mock[AssessmentCentreEvaluationEngine]
 
     val service = new AssessmentCentreService {
@@ -192,7 +172,6 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       val assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
       val passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings] = mockAssessmentCentrePassMarkSettingsService
       val assessmentScoresRepo: AssessmentScoresRepository = mockAssessmentScoresRepo
-      val currentSchemeStatusRepo: CurrentSchemeStatusRepository = mockCurrentSchemeStatusRepo
       val evaluationEngine: AssessmentCentreEvaluationEngine = mockEvaluationEngine
     }
 

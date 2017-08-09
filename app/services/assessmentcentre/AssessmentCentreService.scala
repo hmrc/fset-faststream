@@ -18,14 +18,15 @@ package services.assessmentcentre
 
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
+import model._
 import model.command.ApplicationForFsac
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
+import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
-import model.persisted.phase3tests.Phase3TestGroup
-import model._
 import play.api.Logger
 import repositories.AssessmentScoresRepository
-import repositories.assessmentcentre.{ AssessmentCentreRepository, CurrentSchemeStatusRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
 import services.passmarksettings.{ AssessmentCentrePassMarkSettingsService, PassMarkSettingsService }
@@ -37,8 +38,7 @@ object AssessmentCentreService extends AssessmentCentreService {
   val applicationRepo = repositories.applicationRepository
   val assessmentCentreRepo = repositories.assessmentCentreRepository
   val passmarkService = AssessmentCentrePassMarkSettingsService
-  val assessmentScoresRepo = repositories.assessorAssessmentScoresRepository
-  val currentSchemeStatusRepo = repositories.currentSchemeStatusRepository
+  val assessmentScoresRepo = repositories.reviewerAssessmentScoresRepository
   val evaluationEngine = AssessmentCentreEvaluationEngine
 
   case class CandidateAlreadyHasAnAnalysisExerciseException(message: String) extends Exception(message)
@@ -46,11 +46,10 @@ object AssessmentCentreService extends AssessmentCentreService {
 }
 
 trait AssessmentCentreService {
-
+  def applicationRepo: GeneralApplicationRepository
   def assessmentCentreRepo: AssessmentCentreRepository
   def passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings]
   def assessmentScoresRepo: AssessmentScoresRepository
-  def currentSchemeStatusRepo: CurrentSchemeStatusRepository
   def evaluationEngine: AssessmentCentreEvaluationEngine
 
   def nextApplicationsForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
@@ -89,25 +88,20 @@ trait AssessmentCentreService {
   // Find existing evaluation data: 1. assessment centre pass marks, 2. the schemes to evaluate and 3. the scores awarded by the reviewer
   def tryToFindEvaluationData(appId: UniqueIdentifier,
     passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
-    // TODO: we will eventually need to read this data from the current scheme status
-    def fetchSchemesToEvaluate(phase3TestResultsOpt: Option[Phase3TestGroup]) = {
-      val schemes = phase3TestResultsOpt.flatMap { testResults =>
-        testResults.evaluation.map(_.result)
-      }.fold(throw new Exception(s"Error - no scheme evaluation results found when attempting evaluation for applicationId $appId")){s => s}
-
-      schemes.filter( schemeEvaluationResult => schemeEvaluationResult.result == model.EvaluationResults.Green.toString)
+    def filterSchemesToEvaluate(schemeList: Seq[SchemeEvaluationResult]) = {
+      schemeList.filter( schemeEvaluationResult => schemeEvaluationResult.result == model.EvaluationResults.Green.toString)
         .map(_.schemeId)
     }
 
     for {
-      // get the assessor entered scores for the candidate (TODO: will have to change this to fetch the reviewer scores)
+      // get the reviewer entered scores for the candidate
       assessmentCentreScoresOpt <- assessmentScoresRepo.find(appId)
-      // get the phase 3 evaluation results (TODO: will have to change this to fetch from the current evaluation section)
-      phase3TestResultsOpt <- currentSchemeStatusRepo.getTestGroup(appId)
+      // get the list of schemes with their current results from the current scheme status
+      currentSchemeStatusList <- applicationRepo.getCurrentSchemeStatus(appId.toString())
     } yield {
       assessmentCentreScoresOpt.map { scores =>
         Logger.debug(s"AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
-        val passedSchemes = fetchSchemesToEvaluate(phase3TestResultsOpt)
+        val passedSchemes = filterSchemesToEvaluate(currentSchemeStatusList)
 
         Logger.debug(s"AssessmentCentreService - tryToFindEvaluationData - phase3 test schemes GREEN ONLY = $passedSchemes")
         AssessmentPassMarksSchemesAndScores(passmark, passedSchemes, scores)
