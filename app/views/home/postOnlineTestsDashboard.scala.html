@@ -36,6 +36,21 @@
     }
 }
 
+@withdrawnSchemes = {
+    @if(page.userDataWithSchemes.withdrawnSchemes.nonEmpty) {
+    <details id="withdrawnSchemes">
+        <summary>Withdrawn schemes</summary>
+        <div class="detail-content">
+            @for(schemeResult <- page.userDataWithSchemes.withdrawnSchemes) {
+            <div class="panel-indent">
+                <p>@schemeResult.name</p>
+            </div>
+            }
+        </div>
+    </details>
+    }
+}
+
 @main_template(title = "Home", additionalJavascriptFilenames = List("siftProgress.js")) {
 
     @commonSectionPostOnlineTests(page.toCachedData)
@@ -69,6 +84,7 @@ case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
                 </ul>
             </div>
             @unsuccessfulSchemes
+            @withdrawnSchemes
         </section>
 
     </section>
@@ -100,6 +116,7 @@ case _ => {
             </section>
 
             @unsuccessfulSchemes
+            @withdrawnSchemes
 
         </div>
         <h2 class="heading-large">Next steps</h2>
