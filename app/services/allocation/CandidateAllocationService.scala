@@ -218,10 +218,7 @@ trait CandidateAllocationService extends EventSink {
     private def sendCandidateEmail(candidateAllocation: CandidateAllocation,
       eventDate: String,
       eventTime: String,
-      deadlineDateTime: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-
-    =
-    {
+      deadlineDateTime: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
       applicationRepo.find(candidateAllocation.id).flatMap {
         case Some(candidate) =>
           eventSink {
@@ -241,10 +238,7 @@ trait CandidateAllocationService extends EventSink {
       }
     }
 
-    private def notifyCandidateUnallocated(eventId: String, allocation: CandidateAllocation)(implicit hc: HeaderCarrier)
-
-    =
-    {
+    private def notifyCandidateUnallocated(eventId: String, allocation: CandidateAllocation)(implicit hc: HeaderCarrier) = {
       getFullDetails(eventId, allocation).flatMap { case (event, personalDetails, contactDetails) =>
         emailClient.sendCandidateUnAllocatedFromEvent(
           contactDetails.email,
@@ -254,12 +248,10 @@ trait CandidateAllocationService extends EventSink {
       }
     }
 
-    private def getFullDetails(eventId: String,
+    private def getFullDetails(
+      eventId: String,
       allocation: command.CandidateAllocation)
-      (implicit hc: HeaderCarrier): Future[(Event, PersonalDetails, ContactDetails)]
-
-    =
-    {
+      (implicit hc: HeaderCarrier): Future[(Event, PersonalDetails, ContactDetails)] = {
       for {
         eventDetails <- eventsService.getEvent(eventId)
         candidates <- applicationRepo.find(allocation.id :: Nil)
