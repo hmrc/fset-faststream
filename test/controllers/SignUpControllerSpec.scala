@@ -19,7 +19,7 @@ package controllers
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.{ ApplicationClient, UserManagementClient }
 import forms.SignupFormGenerator
 import models.ApplicationRoute._
@@ -147,7 +147,6 @@ class SignUpControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockUserManagementClient = mock[UserManagementClient]
-    val mockCacheClient = mock[CSRCache]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
     val mockUserService = mock[UserCacheService]
 
@@ -161,7 +160,7 @@ class SignUpControllerSpec extends BaseControllerSpec {
     val defaultAppRouteConfigMap = Map(Faststream -> defaultAppRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
 
     class TestableSignUpController(val testAppRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState])
-      extends SignUpController(mockApplicationClient, mockCacheClient, mockUserManagementClient) with TestableSecureActions {
+      extends SignUpController(mockApplicationClient, mockUserManagementClient) with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
       override lazy val silhouette = SilhouetteComponent.silhouette

@@ -19,7 +19,7 @@ package controllers
 import com.mohiva.play.silhouette.api.services.AuthenticatorResult
 import com.mohiva.play.silhouette.api.{ Authenticator, EventBus }
 import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticator, SessionAuthenticatorService }
-import config.{ CSRCache, SecurityEnvironmentImpl }
+import config.SecurityEnvironmentImpl
 import connectors.ApplicationClient
 import models.CachedDataExample
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -197,7 +197,6 @@ class SignInControllerSpec extends BaseControllerSpec {
     )
 
     val mockApplicationClient = mock[ApplicationClient]
-    val mockCacheClient = mock[CSRCache]
     val mockSignInService = mock[SignInService]
 
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
@@ -210,7 +209,7 @@ class SignInControllerSpec extends BaseControllerSpec {
 
     val mockAuthenticator = mock[SessionAuthenticator]
 
-    class TestableSignInController extends SignInController(mockApplicationClient, mockCacheClient) with TestableSignInService {
+    class TestableSignInController extends SignInController(mockApplicationClient) with TestableSignInService {
       override val signInService = mockSignInService
       override val env = mockSecurityEnvironment
       override lazy val silhouette = SilhouetteComponent.silhouette

@@ -18,7 +18,6 @@ package controllers
 
 import _root_.forms.{ DiversityQuestionnaireForm, EducationQuestionnaireForm, ParentalOccupationQuestionnaireForm }
 import com.mohiva.play.silhouette.api.Silhouette
-import config.CSRCache
 import connectors.ApplicationClient
 import connectors.exchange.Questionnaire
 import helpers.NotificationType
@@ -35,12 +34,12 @@ import scala.language.reflectiveCalls
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object QuestionnaireController extends QuestionnaireController(ApplicationClient, CSRCache) {
+object QuestionnaireController extends QuestionnaireController(ApplicationClient) {
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
-abstract class QuestionnaireController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) {
+abstract class QuestionnaireController(applicationClient: ApplicationClient)
+  extends BaseController {
 
   val QuestionnaireCompletedBanner: (NotificationType, String) = danger("questionnaire.completed")
 
@@ -173,9 +172,7 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient, cac
     implicit
     user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]
   ) = {
-    applicationClient.updateQuestionnaire(user.application.applicationId, sectionId, data).flatMap { _ =>
-      updateProgress()(_ => onSuccess)
-    }
+    applicationClient.updateQuestionnaire(user.application.applicationId, sectionId, data).map { _ => onSuccess }
   }
 
   private def universityMessageKey(implicit app: CachedDataWithApp) = app.application.applicationRoute match {

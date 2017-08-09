@@ -18,12 +18,10 @@ package security
 
 import java.util.UUID
 
-import config.{ CSRCache, SecurityEnvironmentImpl }
-import controllers.UnitSpec
+import config.SecurityEnvironmentImpl
 import models._
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import play.api.libs.json.{ JsString, Reads }
 import play.api.mvc.Request
 import play.api.mvc.Results._
 import play.api.Play.current
@@ -31,7 +29,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import security.Roles.NoRole
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -76,7 +73,6 @@ class SecureActionsSpec extends UnitWithAppSpec {
 
     implicit val hc = new HeaderCarrier()
 
-    val mockCacheClient = mock[CSRCache]
     val mockUserCacheService = mock[UserCacheService]
 
     lazy val alwaysRefreshCacheParseController = makeSecureActions {
@@ -88,8 +84,6 @@ class SecureActionsSpec extends UnitWithAppSpec {
     def makeSecureActions(mockSetup: => Unit): SecureActions = {
       mockSetup
       new SecureActions {
-        val cacheClient = mockCacheClient
-
         implicit def hc(implicit request: Request[_]): HeaderCarrier = new HeaderCarrier()
 
         override val env: SecurityEnvironmentImpl = new SecurityEnvironmentImpl {

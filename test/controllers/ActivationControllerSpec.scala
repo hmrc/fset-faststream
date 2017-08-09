@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{ CSRCache, SecurityEnvironmentImpl }
+import config.SecurityEnvironmentImpl
 import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.UserManagementClient.{ TokenEmailPairInvalidException, TokenExpiredException }
 import models.CachedData
@@ -31,7 +31,6 @@ import scala.concurrent.Future
 
 class ActivationControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]
-  val mockCacheClient = mock[CSRCache]
   val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
   val mockUserManagementClient = mock[UserManagementClient]
   val mockSignInService = mock[SignInService]
@@ -39,7 +38,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
   import models.SecurityUserExamples._
 
   class TestableActivationController extends ActivationController(mockApplicationClient,
-    mockCacheClient, mockUserManagementClient) with TestableSignInService
+    mockUserManagementClient) with TestableSignInService
     with TestableSecureActions {
     val signInService = mockSignInService
     override val env = mockSecurityEnvironment

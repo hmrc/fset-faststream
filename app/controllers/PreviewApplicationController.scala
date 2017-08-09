@@ -16,7 +16,6 @@
 
 package controllers
 
-import config.CSRCache
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
@@ -30,20 +29,21 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, CSRCache, SchemeClient) {
+object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, SchemeClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
-  extends BaseController(applicationClient, cacheClient) {
+abstract class PreviewApplicationController(applicationClient: ApplicationClient, schemeClient: SchemeClient)
+  extends BaseController {
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
       val personalDetailsFut = applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
       val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
-      val partnerGraduateProgrammesFut = isFastStreamAndNotCivilServant(user) match {
-        case true => applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
-        case false => Future.successful(None)
+      val partnerGraduateProgrammesFut = if (isFastStreamAndNotCivilServant(user)) {
+        applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
+      } else {
+        Future.successful(None)
       }
       val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
 
@@ -63,10 +63,8 @@ abstract class PreviewApplicationController(applicationClient: ApplicationClient
 
   def submit = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
-      applicationClient.updatePreview(user.application.applicationId).flatMap { _ =>
-        updateProgress() { usr =>
+      applicationClient.updatePreview(user.application.applicationId).map { _ =>
           Redirect(routes.SubmitApplicationController.present())
-        }
       }
   }
 
