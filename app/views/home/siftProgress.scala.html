@@ -2,53 +2,49 @@
 @import models.page.DashboardPage.activateByStep
 @import models.page.PostOnlineTestsStage
 @import models.ApplicationData.ApplicationStatus
-@import security.RoleUtils.isSiftEntered
+@import security.RoleUtils._
 
 @(page: models.page.PostOnlineTestsPage)(implicit request: Request[_])
 
 @renderSchemeForm = {
-    @if(isSiftEntered(page.toCachedData)) {
-        <div class="inner-block-padr" id="schemeForms">
-            <h2 class='heading-medium'>Extra information</h2>
-            <p>At least one of your scheme preferences require you to answer
-                some additional questions.</p>
-            <p>You should complete this within 7 days from the date of your
-                email. Failure to do this will hold up your application.</p>
-            <ul class="list-text list-withicons" data-extrainfolist>
-                @if(!page.haveAdditionalQuestionsBeenSubmitted) {
-                    <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions()">Nationality and higher education</a></li>
-                    @for(curSiftableScheme <- page.userDataWithSchemes.schemesForSiftForms) {
-                    <li><i class="fa fa-minus the-icon"></i>
-                        <a href="@routes.SiftQuestionsController.presentSchemeForm(curSiftableScheme.id)">@{
-                            curSiftableScheme.name
-                            }</a>
-                        <span class="font-xsmall">(this section will require you to answer questions in detail, 300 words or more)</span></li>
-                    }
-                    <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()">Preview before you submit</a></li>
-                } else {
-                    <div data-extrainfopanel=""><p>You've submitted all the required information.</p></div>
-                    <ul class="list-text list-withicons" data-extrainfolist=""><li><i class="fa fa-check the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()">View your submitted answers</a></li></ul>
+    <div class="inner-block-padr" id="schemeForms">
+        <h2 class='heading-medium'>Extra information</h2>
+        <p>At least one of your scheme preferences require you to answer
+            some additional questions.</p>
+        <p>You should complete this within 7 days from the date of your
+            email. Failure to do this will hold up your application.</p>
+        <ul class="list-text list-withicons" data-extrainfolist>
+            @if(!page.haveAdditionalQuestionsBeenSubmitted) {
+                <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions()">Nationality and higher education</a></li>
+                @for(curSiftableScheme <- page.userDataWithSchemes.schemesForSiftForms) {
+                <li><i class="fa fa-minus the-icon"></i>
+                    <a href="@routes.SiftQuestionsController.presentSchemeForm(curSiftableScheme.id)">@{
+                        curSiftableScheme.name
+                        }</a>
+                    <span class="font-xsmall">(this section will require you to answer questions in detail, 300 words or more)</span></li>
                 }
-            </ul>
-        </div>
-    }
+                <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()">Preview before you submit</a></li>
+            } else {
+                <div data-extrainfopanel=""><p>You've submitted all the required information.</p></div>
+                <ul class="list-text list-withicons" data-extrainfolist=""><li><i class="fa fa-check the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()">View your submitted answers</a></li></ul>
+            }
+        </ul>
+    </div>
 }
 
 @renderNumericTest = {
-    @if(isSiftEntered(page.toCachedData)) {
-        <div class="inner-block-padr" id="numericTest">
-            <h2 class="heading-medium">Take a numerical test</h2>
-            <p>At least one of your scheme preferences require you to take a
-                numerical test.</p>
-            <p>You'll be sent an email with a link to start your test. Keep
-                an eye on your email inbox, including your junk mail.</p>
-            <p>You should complete this within 7 days from the date of your
-                email. Failure to do this will hold up your application.</p>
-        </div>
-    }
+    <div class="inner-block-padr" id="numericTest">
+        <h2 class="heading-medium">Take a numerical test</h2>
+        <p>At least one of your scheme preferences require you to take a
+            numerical test.</p>
+        <p>You'll be sent an email with a link to start your test. Keep
+            an eye on your email inbox, including your junk mail.</p>
+        <p>You should complete this within 7 days from the date of your
+            email. Failure to do this will hold up your application.</p>
+    </div>
 }
 
-@renderPassedSectionOne = {
+@renderCompletedSectionOne = {
     <div class="inner-block-padr" id="schemeForms">
         <h2 class='heading-medium'>Extra information</h2>
         <p>You've completed this section</p>
@@ -117,7 +113,7 @@
                         @renderSchemeForm
                         @renderNumericTest
                     } else {
-                        @renderPassedSectionOne
+                        @renderCompletedSectionOne
                     }
                 </li>
                 <li class="second-step">
@@ -130,7 +126,7 @@
                     @if(isSiftEntered(page.toCachedData)) {
                         @renderSchemeForm
                     } else {
-                        @renderPassedSectionOne
+                        @renderCompletedSectionOne
                     }
                 </li>
                 <li class="second-step">
@@ -140,10 +136,10 @@
 
             case (false, true, true) => {
                 <li class="first-step">
-                    @if(isSiftEntered(page.toCachedData)) {
+                    @if(isSiftReady(page.toCachedData)) {
                         @renderNumericTest
                     } else {
-                        @renderPassedSectionOne
+                        @renderCompletedSectionOne
                     }
                 </li>
                 <li class="second-step">

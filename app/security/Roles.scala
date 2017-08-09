@@ -322,9 +322,11 @@ object RoleUtils {
 
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
 
-  def isSiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftEntered) && !isSiftComplete
+  def isSiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftEntered)
 
-  def isSiftComplete(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.allSchemesSiftCompleted)
+  def isSiftReady(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftReady)
+
+  def isSiftComplete(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftCompleted)
 
   def isAwaitingAllocation(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.awaitingAllocation)
 
