@@ -24,7 +24,8 @@ import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import play.api.Logger
-import repositories.AssessmentScoresRepository
+import reactivemongo.bson.BSONDocument
+import repositories.{ CurrentSchemeStatusHelper, AssessmentScoresRepository }
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
@@ -45,7 +46,7 @@ object AssessmentCentreService extends AssessmentCentreService {
   case class CandidateHasNoAnalysisExerciseException(message: String) extends Exception(message)
 }
 
-trait AssessmentCentreService {
+trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   def applicationRepo: GeneralApplicationRepository
   def assessmentCentreRepo: AssessmentCentreRepository
   def passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings]
@@ -88,8 +89,9 @@ trait AssessmentCentreService {
   // Find existing evaluation data: 1. assessment centre pass marks, 2. the schemes to evaluate and 3. the scores awarded by the reviewer
   def tryToFindEvaluationData(appId: UniqueIdentifier,
     passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
+
     def filterSchemesToEvaluate(schemeList: Seq[SchemeEvaluationResult]) = {
-      schemeList.filter( schemeEvaluationResult => schemeEvaluationResult.result == model.EvaluationResults.Green.toString)
+      schemeList.filterNot( schemeEvaluationResult => schemeEvaluationResult.result == model.EvaluationResults.Red.toString)
         .map(_.schemeId)
     }
 
@@ -101,10 +103,10 @@ trait AssessmentCentreService {
     } yield {
       assessmentCentreScoresOpt.map { scores =>
         Logger.debug(s"AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
-        val passedSchemes = filterSchemesToEvaluate(currentSchemeStatusList)
+        val schemesToEvaluate = filterSchemesToEvaluate(currentSchemeStatusList)
 
-        Logger.debug(s"AssessmentCentreService - tryToFindEvaluationData - phase3 test schemes GREEN ONLY = $passedSchemes")
-        AssessmentPassMarksSchemesAndScores(passmark, passedSchemes, scores)
+        Logger.debug(s"AssessmentCentreService - tryToFindEvaluationData - current scheme status excluding RED = $schemesToEvaluate")
+        AssessmentPassMarksSchemesAndScores(passmark, schemesToEvaluate, scores)
       }
     }
   }
@@ -120,8 +122,23 @@ trait AssessmentCentreService {
     Logger.debug(s"now writing to DB...")
     val evaluation = AssessmentPassMarkEvaluation(assessmentPassMarksSchemesAndScores.scores.applicationId,
       assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
-    assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation).map { _ =>
+    for {
+      currentSchemeStatus <- calculateCurrentSchemeStatus(assessmentPassMarksSchemesAndScores.scores.applicationId,
+        evaluationResult.schemesEvaluation)
+      _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation, currentSchemeStatus)
+    } yield {
       Logger.debug(s"written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+    }
+  }
+
+  def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,
+    evaluationResults: Seq[SchemeEvaluationResult]): Future[Seq[SchemeEvaluationResult]] = {
+    for {
+      currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId.toString())
+    } yield {
+      val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, evaluationResults)
+      Logger.debug(s"After evaluation newSchemeStatus = $newSchemeStatus for applicationId: $applicationId")
+      newSchemeStatus
     }
   }
 
