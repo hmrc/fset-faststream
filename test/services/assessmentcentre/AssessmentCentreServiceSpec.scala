@@ -17,7 +17,7 @@
 package services.assessmentcentre
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult, Green }
+import model.EvaluationResults._
 import model._
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.command.ApplicationForFsac
@@ -129,15 +129,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
   }
 
   "evaluate assessment scores" should {
-    "save passed evaluation result" in new TestFixture {
-      val competencyAverageResult = CompetencyAverageResult(
-        analysisAndDecisionMakingAverage = 4.0,
-        buildingProductiveRelationshipsAverage = 4.0,
-        leadingAndCommunicatingAverage = 4.0,
-        strategicApproachToObjectivesAverage = 4.0,
-        overallScore = 16.0
-      )
-
+    "save evaluation result to green with current status amber updated to green" in new TestFixture {
       val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
       val evaluationResult = AssessmentEvaluationResult(
         passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult)
@@ -146,16 +138,49 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(*, *)
         .returning(evaluationResult)
 
-      val currentSchemeStatus = schemeEvaluationResult
+      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Amber.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
       (mockAppRepo.getCurrentSchemeStatus _)
         .expects(applicationId.toString())
         .returning(Future.successful(currentSchemeStatus))
 
+      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
 
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
-        .expects(expectedEvaluation, currentSchemeStatus)
+        .expects(expectedEvaluation, newSchemeStatus)
+        .returning(Future.successful(()))
+
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId("Commercial")),
+        scores = AssessmentScoresAllExercises(applicationId = applicationId))
+      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, None)
+      service.evaluateAssessmentCandidate(assessmentData, config).futureValue
+    }
+
+    "save evaluation result to green with current status green remains the same" in new TestFixture {
+      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+      val evaluationResult = AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult)
+
+      (mockEvaluationEngine.evaluate _)
+        .expects(*, *)
+        .returning(evaluationResult)
+
+      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
+      (mockAppRepo.getCurrentSchemeStatus _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(currentSchemeStatus))
+
+      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
+      val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
+
+      (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
+        .expects(expectedEvaluation, newSchemeStatus)
         .returning(Future.successful(()))
 
       val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId("Commercial")),
@@ -208,6 +233,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       AssessmentCentrePassMark(SchemeId("DigitalAndTechnology"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
       AssessmentCentrePassMark(SchemeId("DiplomaticService"), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0)))),
       "1", DateTime.now(), "user")
+
+    val competencyAverageResult = CompetencyAverageResult(
+      analysisAndDecisionMakingAverage = 4.0,
+      buildingProductiveRelationshipsAverage = 4.0,
+      leadingAndCommunicatingAverage = 4.0,
+      strategicApproachToObjectivesAverage = 4.0,
+      overallScore = 16.0
+    )
   }
 
   trait ReturnPassMarksFixture extends TestFixture {
