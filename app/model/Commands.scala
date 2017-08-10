@@ -43,27 +43,6 @@ object Commands {
                                        hasAdjustments: Option[String], guaranteedInterview: Option[String], firstName: Option[String], lastName: Option[String],
                                        preferredName: Option[String], dateOfBirth: Option[String], cubiksUserId: Option[Int])
 
-  case class CandidateAwaitingAllocation(
-                                          userId: String,
-                                          firstName: String,
-                                          lastName: String,
-                                          preferredName: String,
-                                          preferredLocation1: String,
-                                          adjustments: Option[String],
-                                          dateOfBirth: LocalDate
-                                        )
-
-  case class AssessmentCentreAllocationReport(
-                                               firstName: String,
-                                               lastName: String,
-                                               preferredName: String,
-                                               emailAddress: String,
-                                               phoneNumber: String,
-                                               preferredLocation1: String,
-                                               adjustments: Option[String],
-                                               dateOfBirth: LocalDate
-                                             )
-
   case class PhoneAndEmail(phone: Option[String], email: Option[String])
 
   type IsNonSubmitted = Boolean
@@ -223,9 +202,6 @@ object Commands {
     implicit val onlineTestFormat: OFormat[OnlineTest] = Json.format[OnlineTest]
     implicit val onlineTestStatusFormat: OFormat[OnlineTestStatus] = Json.format[OnlineTestStatus]
     implicit val userIdWrapperFormat: OFormat[UserIdWrapper] = Json.format[UserIdWrapper]
-
-    implicit val assessmentCentreAllocationReportFormat: OFormat[AssessmentCentreAllocationReport] = Json.format[AssessmentCentreAllocationReport]
-    implicit val candidateAwaitingAllocationFormat: OFormat[CandidateAwaitingAllocation] = Json.format[CandidateAwaitingAllocation]
 
     implicit val phoneAndEmailFormat: OFormat[PhoneAndEmail] = Json.format[PhoneAndEmail]
     implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
