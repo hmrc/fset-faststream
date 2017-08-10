@@ -45,8 +45,6 @@ object ReportingController extends ReportingController {
 
 trait ReportingController extends BaseController {
 
-  import Implicits._
-
   val reportingRepository: ReportingRepository
   val contactDetailsRepository: contactdetails.ContactDetailsRepository
   val questionnaireRepository: QuestionnaireRepository

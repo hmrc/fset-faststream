@@ -25,7 +25,7 @@ import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
 import model.persisted.PassmarkEvaluation
-import model.{ ApplicationRoute, ApplicationStatus, Candidate, SchemeId }
+import model.{ ApplicationRoute, Candidate, SchemeId }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader

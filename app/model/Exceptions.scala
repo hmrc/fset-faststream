@@ -16,6 +16,8 @@
 
 package model
 
+import play.api.libs.json.{ Json, OFormat }
+
 // scalastyle:off number.of.methods
 object Exceptions {
   sealed class ConnectorException(message: String) extends Exception(message)
@@ -70,7 +72,15 @@ object Exceptions {
 
   case class TooManyEntries(msg: String) extends Exception(msg)
 
+  object TooManyEntries {
+    implicit val tooManyEntriesFormat: OFormat[TooManyEntries] = Json.format[TooManyEntries]
+  }
+
   case class NoResultsReturned(reason: String) extends Exception(reason)
+
+  object NoResultsReturned {
+    implicit val noResultsReturnedFormat: OFormat[NoResultsReturned] = Json.format[NoResultsReturned]
+  }
 
   case class NoSuchVenueException(reason: String) extends Exception(reason)
 

@@ -37,26 +37,4 @@ object Commands {
   type PhoneNumber = String
   type IsNonSubmitted = Boolean
 
-  object Implicits {
-    implicit val addressFormat: OFormat[Address] = Json.format[Address]
-
-    implicit val personalDetailsAddedFormat: OFormat[PersonalDetailsAdded] = Json.format[PersonalDetailsAdded]
-
-    implicit val tooManyEntriesFormat: OFormat[TooManyEntries] = Json.format[TooManyEntries]
-    implicit val noResultsReturnedFormat: OFormat[NoResultsReturned] = Json.format[NoResultsReturned]
-
-
-    implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate]
-    implicit val preferencesWithContactDetailsFormat: OFormat[PreferencesWithContactDetails] = Json.format[PreferencesWithContactDetails]
-
-
-
-    implicit val onlineTestDetailsFormat: OFormat[OnlineTestDetails] = Json.format[OnlineTestDetails]
-    implicit val onlineTestFormat: OFormat[OnlineTest] = Json.format[OnlineTest]
-    implicit val onlineTestStatusFormat: OFormat[OnlineTestStatus] = Json.format[OnlineTestStatus]
-    implicit val userIdWrapperFormat: OFormat[UserIdWrapper] = Json.format[UserIdWrapper]
-
-    implicit val phoneAndEmailFormat: OFormat[PhoneAndEmail] = Json.format[PhoneAndEmail]
-    implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
-  }
 }

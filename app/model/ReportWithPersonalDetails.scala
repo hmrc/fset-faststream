@@ -16,9 +16,15 @@
 
 package model
 
-  case class ReportWithPersonalDetails(applicationId: String, userId: String, progress: Option[String], firstLocation: Option[String],
-                                       firstLocationFirstScheme: Option[String], firstLocationSecondScheme: Option[String], secondLocation: Option[String],
-                                       secondLocationFirstScheme: Option[String], secondLocationSecondScheme: Option[String], alevels: Option[String],
-                                       stemlevels: Option[String], alternativeLocation: Option[String], alternativeScheme: Option[String], hasDisability: Option[String],
-                                       hasAdjustments: Option[String], guaranteedInterview: Option[String], firstName: Option[String], lastName: Option[String],
-                                       preferredName: Option[String], dateOfBirth: Option[String], cubiksUserId: Option[Int])
+import play.api.libs.json.{ Json, OFormat }
+
+case class ReportWithPersonalDetails(applicationId: String, userId: String, progress: Option[String], firstLocation: Option[String],
+  firstLocationFirstScheme: Option[String], firstLocationSecondScheme: Option[String], secondLocation: Option[String],
+  secondLocationFirstScheme: Option[String], secondLocationSecondScheme: Option[String], alevels: Option[String],
+  stemlevels: Option[String], alternativeLocation: Option[String], alternativeScheme: Option[String], hasDisability: Option[String],
+  hasAdjustments: Option[String], guaranteedInterview: Option[String], firstName: Option[String], lastName: Option[String],
+  preferredName: Option[String], dateOfBirth: Option[String], cubiksUserId: Option[Int])
+
+object ReportWithPersonalDetails {
+  implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
+}

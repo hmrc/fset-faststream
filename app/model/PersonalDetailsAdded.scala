@@ -16,4 +16,10 @@
 
 package model
 
+import play.api.libs.json.{ Json, OFormat }
+
 case class PersonalDetailsAdded(applicationId: String, userId: String)
+
+object PersonalDetailsAdded {
+  implicit val personalDetailsAddedFormat: OFormat[PersonalDetailsAdded] = Json.format[PersonalDetailsAdded]
+}

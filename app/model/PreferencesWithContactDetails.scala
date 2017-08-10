@@ -16,7 +16,13 @@
 
 package model
 
-  case class PreferencesWithContactDetails(firstName: Option[String], lastName: Option[String], preferredName: Option[String],
-                                           email: Option[String], telephone: Option[String], location1: Option[String], location1Scheme1: Option[String],
-                                           location1Scheme2: Option[String], location2: Option[String], location2Scheme1: Option[String],
-                                           location2Scheme2: Option[String], progress: Option[String], timeApplicationCreated: Option[String])
+import play.api.libs.json.{ Json, OFormat }
+
+case class PreferencesWithContactDetails(firstName: Option[String], lastName: Option[String], preferredName: Option[String],
+  email: Option[String], telephone: Option[String], location1: Option[String],
+  location1Scheme1: Option[String], location1Scheme2: Option[String], location2: Option[String], location2Scheme1: Option[String],
+  location2Scheme2: Option[String], progress: Option[String], timeApplicationCreated: Option[String])
+
+object PreferencesWithContactDetails {
+  implicit val preferencesWithContactDetailsFormat: OFormat[PreferencesWithContactDetails] = Json.format[PreferencesWithContactDetails]
+}

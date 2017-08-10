@@ -17,7 +17,6 @@
 package model.report
 
 import play.api.libs.json.Json
-import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
 import model.{ PhoneAndEmail, ReportWithPersonalDetails }
 
