@@ -37,26 +37,6 @@ object Commands {
   type PhoneNumber = String
   type IsNonSubmitted = Boolean
 
-  case class OnlineTestPassmarkEvaluationSchemes(
-                                                  location1Scheme1: Option[String] = None,
-                                                  location1Scheme2: Option[String] = None,
-                                                  location2Scheme1: Option[String] = None,
-                                                  location2Scheme2: Option[String] = None,
-                                                  alternativeScheme: Option[String] = None
-                                                )
-
-  case class ApplicationPreferences(userId: String, applicationId: String, location1: Option[String],
-                                    location1Scheme1: Option[String], location1Scheme2: Option[String],
-                                    location2: Option[String], location2Scheme1: Option[String],
-                                    location2Scheme2: Option[String], alternativeLocation: Option[String],
-                                    alternativeScheme: Option[String],
-                                    needsAssistance: Option[String],
-                                    guaranteedInterview: Option[String],
-                                    needsAdjustment: Option[String],
-                                    aLevel: Option[String],
-                                    stemLevel: Option[String],
-                                    onlineTestPassmarkEvaluations: OnlineTestPassmarkEvaluationSchemes)
-
   case class PersonalInfo(firstName: Option[String], lastName: Option[String], preferredName: Option[String],
                           aLevel: Option[String], stemLevel: Option[String])
 
@@ -180,8 +160,6 @@ object Commands {
 
     implicit val phoneAndEmailFormat: OFormat[PhoneAndEmail] = Json.format[PhoneAndEmail]
     implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
-    implicit val passMarkEvaluationSchemes: OFormat[OnlineTestPassmarkEvaluationSchemes] = Json.format[OnlineTestPassmarkEvaluationSchemes]
-    implicit val applicationPreferencesFormat: OFormat[ApplicationPreferences] = Json.format[ApplicationPreferences]
     implicit val personalInfoFormat: OFormat[PersonalInfo] = Json.format[PersonalInfo]
     implicit val schemeEvaluationFormat: OFormat[SchemeEvaluation] = Json.format[SchemeEvaluation]
     implicit val candidateScoresSummaryFormat: OFormat[CandidateScoresSummary] = Json.format[CandidateScoresSummary]
