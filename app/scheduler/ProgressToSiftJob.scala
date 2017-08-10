@@ -25,7 +25,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object ProgressToSiftJob extends ProgressToSiftJob {
   val siftService = ApplicationSiftService
-  val config = SiftConfig
+  val config = ProgressToSiftJobConfig
 }
 
 trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
@@ -43,7 +43,7 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
   }
 }
 
-object SiftConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+object ProgressToSiftJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
   configPrefix = "scheduling.progress-to-sift-job",
   name = "ProgressToSiftJob"
 )
