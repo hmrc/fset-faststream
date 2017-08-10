@@ -32,6 +32,20 @@ case class AssessmentCentre(
   failedNotified: Boolean = false
 )
 
+case class Fsb(
+  awaitingAllocation: Boolean = false,
+  allocationConfirmed: Boolean = false,
+  allocationUnconfirmed: Boolean = false,
+  failedToAttend: Boolean = false,
+  scoresEntered: Boolean = false,
+  scoresAccepted: Boolean = false,
+  awaitingReevaluation: Boolean = false,
+  passed: Boolean = false,
+  passedNotified: Boolean = false,
+  failed: Boolean = false,
+  failedNotified: Boolean = false
+)
+
 case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   phase1TestsFirstRemainder: Boolean = false,
   phase1TestsSecondRemainder: Boolean = false,
@@ -105,12 +119,14 @@ case class ProgressResponse(
   exported: Boolean = false,
   updateExported: Boolean = false,
   applicationArchived: Boolean = false,
-  assessmentCentre: AssessmentCentre = AssessmentCentre()
+  assessmentCentre: AssessmentCentre = AssessmentCentre(),
+  fsb: Fsb = Fsb()
 )
 
 
 object ProgressResponse {
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
+  implicit val fsbFormat = Json.format[Fsb]
   implicit val phase1ProgressResponseFormat = Json.format[Phase1ProgressResponse]
   implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
   implicit val phase3ProgressResponseFormat = Json.format[Phase3ProgressResponse]

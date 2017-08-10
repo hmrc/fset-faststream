@@ -16,6 +16,7 @@
 
 package model.persisted.eventschedules
 
+import model.ApplicationStatus
 import play.api.libs.json._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
@@ -23,7 +24,6 @@ object EventType extends Enumeration {
   type EventType = Value
 
   val ALL_EVENTS, FSAC, FSB, TELEPHONE_INTERVIEW, SKYPE_INTERVIEW = Value
-
 
   implicit val EventTypeFormat = new Format[EventType] {
     override def reads(json: JsValue): JsResult[EventType] = JsSuccess(EventType.withName(json.as[String].toUpperCase))
@@ -36,4 +36,12 @@ object EventType extends Enumeration {
 
     override def read(bson: BSONString): EventType = EventType.withName(bson.value.toUpperCase)
   }
+
+  implicit class RichEventType(eventType: EventType) {
+    def applicationStatus: ApplicationStatus.Value = eventType match {
+      case EventType.FSAC => ApplicationStatus.ASSESSMENT_CENTRE
+      case _ => ApplicationStatus.FSB
+    }
+  }
+
 }

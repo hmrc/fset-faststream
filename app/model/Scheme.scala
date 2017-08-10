@@ -68,14 +68,19 @@ case class Scheme(
   civilServantEligible: Boolean,
   degree: Option[Degree],
   siftRequirement: Option[SiftRequirement.Value],
-  siftEvaluationRequired: Boolean
+  siftEvaluationRequired: Boolean,
+  fsbType: Option[FsbType],
+  telephoneInterviewType: Option[TelephoneInterviewType]
 )
 
 object Scheme {
   implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
+  // scalastyle:off parameter.number
   def apply(id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
-    requiresSift: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean
+    requiresSift: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean,
+    fsbType: Option[FsbType], telephoneInterviewType: Option[TelephoneInterviewType]
   ): Scheme =
-    Scheme(SchemeId(id), code, name, civilServantEligible, degree, requiresSift, siftEvaluationRequired)
+    Scheme(SchemeId(id), code, name, civilServantEligible, degree, requiresSift, siftEvaluationRequired, fsbType, telephoneInterviewType)
+  // scalastyle:on
 }

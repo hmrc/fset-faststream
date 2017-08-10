@@ -22,7 +22,7 @@ import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.Logger
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
-import repositories.eventsRepository
+import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository, eventsRepository }
 import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
 
 import scala.concurrent.Future
@@ -30,6 +30,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object EventsService extends EventsService {
   val eventsRepo: EventsMongoRepository = eventsRepository
+  val schemeRepo = SchemeYamlRepository
   val eventsConfigRepo = EventsConfigRepository
   val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
   val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
@@ -38,6 +39,7 @@ object EventsService extends EventsService {
 trait EventsService {
 
   def eventsRepo: EventsRepository
+  def schemeRepo: SchemeRepositoryImpl
   def assessorAllocationService: AssessorAllocationService
   def candidateAllocationService: CandidateAllocationService
   def eventsConfigRepo: EventsConfigRepository
@@ -92,7 +94,7 @@ trait EventsService {
     }
   }
 
-  def getFsbTypes: Future[List[FsbType]] = eventsConfigRepo.fsbTypes
+  def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes
 
-  def getTelephoneInterviewTypes: Future[List[TelephoneInterviewType]] = eventsConfigRepo.telephoneInterviewTypes
+  def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemeRepo.getTelephoneInterviewTypes
 }
