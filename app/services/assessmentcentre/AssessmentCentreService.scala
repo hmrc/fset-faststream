@@ -24,7 +24,6 @@ import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import play.api.Logger
-import reactivemongo.bson.BSONDocument
 import repositories.{ CurrentSchemeStatusHelper, AssessmentScoresRepository }
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository

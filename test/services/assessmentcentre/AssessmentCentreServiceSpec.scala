@@ -146,11 +146,16 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(*, *)
         .returning(evaluationResult)
 
-      val expected = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
+      val currentSchemeStatus = schemeEvaluationResult
+      (mockAppRepo.getCurrentSchemeStatus _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(currentSchemeStatus))
+
+      val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
 
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
-        .expects(expected, *) //TODO: fix this
+        .expects(expectedEvaluation, currentSchemeStatus)
         .returning(Future.successful(()))
 
       val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId("Commercial")),
