@@ -18,7 +18,6 @@ package controllers
 
 import connectors.AuthProviderClient
 import model.Commands._
-import model.PreferencesWithContactDetails
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsWithId
 import model.report._

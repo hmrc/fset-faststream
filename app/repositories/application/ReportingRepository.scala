@@ -48,7 +48,7 @@ trait ReportingRepository {
   def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReport]]
 
   def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]]
-  
+
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]]
 
   def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]]
@@ -432,15 +432,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val isNotWithdrawn = !progress.withdrawn
     isNotWithdrawn && isNotSubmitted
   }
-
-  private def getDocumentId(document: BSONDocument): BSONObjectID =
-    document.get("_id").get match {
-      case id: BSONObjectID => id
-      case id: BSONString => BSONObjectID(id.value)
-    }
-
-  private def isoTimeToPrettyDateTime(utcMillis: Long): String =
-    timeZoneService.localize(utcMillis).toString("yyyy-MM-dd HH:mm:ss")
 
   private def reportQueryWithProjections[A](
                                              query: BSONDocument,
