@@ -52,14 +52,15 @@ object AssessmentScoresCommands {
     }
   }
 
-  case class AssessmentScoresSubmitRequest(
+  case class AssessmentScoresSubmitExerciseRequest(
     applicationId: UniqueIdentifier,
     exercise: String,
     scoresAndFeedback: AssessmentScoresExercise
   )
-  object AssessmentScoresSubmitRequest {
-    implicit val jsonFormat: Format[AssessmentScoresSubmitRequest] = Json.format[AssessmentScoresSubmitRequest]
+  object AssessmentScoresSubmitExerciseRequest {
+    implicit val jsonFormat: Format[AssessmentScoresSubmitExerciseRequest] = Json.format[AssessmentScoresSubmitExerciseRequest]
   }
+  type AssessmentScoresSaveExerciseRequest = AssessmentScoresSubmitExerciseRequest
 
   case class AssessmentScoresFinalFeedbackSubmitRequest(
                                             applicationId: UniqueIdentifier,

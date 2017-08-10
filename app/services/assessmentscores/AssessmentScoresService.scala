@@ -57,10 +57,22 @@ trait AssessmentScoresService {
   }
 
   def saveExercise(applicationId: UniqueIdentifier,
-                   assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
-                   newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
+    assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
+    newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
+    saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(savedDate = Some(dateTimeFactory.nowLocalTimeZone)))
+  }
+
+  def submitExercise(applicationId: UniqueIdentifier,
+    assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
+    newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
+    saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone)))
+  }
+
+  private def saveOrSubmitExercise(applicationId: UniqueIdentifier,
+    assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
+    newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     def updateAllExercisesWithExercise(oldAllExercisesScores: AssessmentScoresAllExercises,
-                                       newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
+      newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
       assessmentExerciseType match {
         case AssessmentExerciseType.analysisExercise =>
           oldAllExercisesScores.copy(analysisExercise = Some(newExerciseScoresWithSubmittedDate))
@@ -74,8 +86,7 @@ trait AssessmentScoresService {
     (for {
       oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
       oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
-      newExerciseScoresWithSubmittedDate = newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))
-      newAllExercisesScores = updateAllExercisesWithExercise(oldAllExercisesScores, newExerciseScoresWithSubmittedDate)
+      newAllExercisesScores = updateAllExercisesWithExercise(oldAllExercisesScores, newExerciseScores)
       _ <- assessmentScoresRepository.save(newAllExercisesScores)
       _ <- updateStatusIfNeeded(newAllExercisesScores)
     } yield {
@@ -83,20 +94,39 @@ trait AssessmentScoresService {
     })
   }
 
-  def saveFinalFeedback(applicationId: UniqueIdentifier,
-                        newFinalFeedback: AssessmentScoresFinalFeedback): Future[Unit] = {
-    def updateAllExercisesWithFinalFeedback(oldAllExercisesScores: AssessmentScoresAllExercises,
-                                            newFinalFeedbackWithSubmittedDate: AssessmentScoresFinalFeedback) = {
-      oldAllExercisesScores.copy(finalFeedback = Some(newFinalFeedbackWithSubmittedDate))
+  // We only submit final feedback for Reviewers/ QAC
+  // newFinalFeedback.analysisExercise/groupExercise/leadershipExercise should be defined.
+  def submitFinalFeedback(applicationId: UniqueIdentifier, newFinalFeedback: AssessmentScoresFinalFeedback): Future[Unit] = {
+    def findScoresAndVerify(applicationId: UniqueIdentifier) = {
+      assessmentScoresRepository.find(applicationId).map { scoresOpt =>
+        require(scoresOpt.map { scores =>
+          scores.analysisExercise.isDefined && scores.groupExercise.isDefined && scores.leadershipExercise.isDefined
+        }.getOrElse(false))
+        scoresOpt
+      }
+    }
+
+    def buildNewAllExercisesScoresWithSubmittedDate(oldAllExercisesScoresMaybe: Option[AssessmentScoresAllExercises]) = {
+      val newSubmittedDate = dateTimeFactory.nowLocalTimeZone
+      val newFinalFeedbackWithSubmittedDate = newFinalFeedback.copy(submittedDate = newSubmittedDate)
+
+      val oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
+      val oldAnalysisExerciseWithSubmittedDate = oldAllExercisesScores.analysisExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
+      val oldGroupExerciseWithSubmittedDate = oldAllExercisesScores.groupExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
+      val oldLeadershipExerciseWithSubmittedDate = oldAllExercisesScores.leadershipExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
+
+      oldAllExercisesScores.copy(
+        analysisExercise = oldAnalysisExerciseWithSubmittedDate,
+        groupExercise = oldGroupExerciseWithSubmittedDate,
+        leadershipExercise = oldLeadershipExerciseWithSubmittedDate,
+        finalFeedback = Some(newFinalFeedbackWithSubmittedDate))
     }
 
     (for {
-      oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
-      oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
-      newFinalFeedbackWithSubmittedDate = newFinalFeedback.copy(submittedDate = dateTimeFactory.nowLocalTimeZone)
-      newAllExercisesScores = updateAllExercisesWithFinalFeedback(oldAllExercisesScores, newFinalFeedbackWithSubmittedDate)
-      _ <- assessmentScoresRepository.save(newAllExercisesScores)
-      _ <- updateStatusIfNeeded(newAllExercisesScores)
+      oldAllExercisesScoresMaybe <- findScoresAndVerify(applicationId)
+      newAllExercisesScoresWithSubmittedDate = buildNewAllExercisesScoresWithSubmittedDate(oldAllExercisesScoresMaybe)
+      _ <- assessmentScoresRepository.save(newAllExercisesScoresWithSubmittedDate)
+      _ <- updateStatusIfNeeded(newAllExercisesScoresWithSubmittedDate)
     } yield {
       ()
     })
@@ -148,8 +178,8 @@ trait AssessmentScoresService {
   }
 
   private def findOneAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier,
-                                                                         event: Event,
-                                                                         sessionId: UniqueIdentifier) = {
+    event: Event,
+    sessionId: UniqueIdentifier) = {
     val personalDetailsFut = personalDetailsRepository.find(applicationId.toString())
     val assessmentScoresFut = assessmentScoresRepository.find(applicationId)
 
