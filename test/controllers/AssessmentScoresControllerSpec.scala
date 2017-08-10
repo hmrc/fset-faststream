@@ -106,7 +106,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "save final feedback, send AssessmentScoresOneExerciseSubmitted and AssessmentScoresAllExercisesSubmitted" +
       " audit events and return OK" in new TestFixture {
       val finalFeedback = AssessmentScoresFinalFeedbackExamples.Example1.copy(
-             submittedDate = AssessmentScoresFinalFeedbackExamples.Example1.submittedDate.withZone(DateTimeZone.forOffsetHours(1)))
+             acceptedDate = AssessmentScoresFinalFeedbackExamples.Example1.acceptedDate.withZone(DateTimeZone.forOffsetHours(1)))
       val request = fakeRequest(AssessmentScoresFinalFeedbackSubmitRequest(appId, finalFeedback))
 
       when(mockService.submitFinalFeedback(eqTo(appId),

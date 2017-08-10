@@ -92,7 +92,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
         analysisExercise = AssessmentScoresAllExercisesExamples.AllExercises.analysisExercise.map(_.copy(submittedDate = Some(now))),
         groupExercise = AssessmentScoresAllExercisesExamples.AllExercises.groupExercise.map(_.copy(submittedDate = Some(now))),
         leadershipExercise = AssessmentScoresAllExercisesExamples.AllExercises.leadershipExercise.map(_.copy(submittedDate = Some(now))),
-        finalFeedback = AssessmentScoresAllExercisesExamples.AllExercises.finalFeedback.map(_.copy(submittedDate = now))
+        finalFeedback = AssessmentScoresAllExercisesExamples.AllExercises.finalFeedback.map(_.copy(acceptedDate = now))
       )
       val AppId = UpdatedExample.applicationId
 
@@ -211,7 +211,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
       when(assessmentScoresRepositoryMock.find(eqTo(AppId))).thenReturn(
         Future.successful(Some(AssessmentScoresAllExercisesExamples.AssessorOnlyAnalysisExercise)))
       val UpdatedExample = AssessmentScoresAllExercisesExamples.AssessorOnlyAnalysisExercise.copy(
-        finalFeedback = Some(AssessmentScoresFinalFeedbackExamples.Example2.copy(submittedDate = now)))
+        finalFeedback = Some(AssessmentScoresFinalFeedbackExamples.Example2.copy(acceptedDate = now)))
       when(assessmentScoresRepositoryMock.save(eqTo(UpdatedExample))).thenReturn(Future.successful(()))
       val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
         eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
@@ -231,7 +231,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
           Future.successful(Some(AssessmentScoresAllExercisesExamples.AllExercisesButFinalFeedback)))
 
         val UpdatedExample = AssessmentScoresAllExercisesExamples.AllExercisesButFinalFeedback.copy(
-          finalFeedback = Some(AssessmentScoresFinalFeedbackExamples.Example1.copy(submittedDate = now)),
+          finalFeedback = Some(AssessmentScoresFinalFeedbackExamples.Example1.copy(acceptedDate = now)),
           analysisExercise = AssessmentScoresAllExercisesExamples.AllExercisesButFinalFeedback.analysisExercise.map(
             _.copy(submittedDate = Some(now))),
           groupExercise = AssessmentScoresAllExercisesExamples.AllExercisesButFinalFeedback.groupExercise.map(

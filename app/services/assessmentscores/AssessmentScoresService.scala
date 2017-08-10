@@ -46,7 +46,7 @@ trait AssessmentScoresService {
       analysisExercise = scores.analysisExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
       groupExercise = scores.groupExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
       leadershipExercise = scores.leadershipExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
-      finalFeedback = scores.finalFeedback.map(_.copy(submittedDate = dateTimeFactory.nowLocalTimeZone))
+      finalFeedback = scores.finalFeedback.map(_.copy(acceptedDate = dateTimeFactory.nowLocalTimeZone))
     )
     for {
       _ <- assessmentScoresRepository.save(scoresWithSubmittedDate)
@@ -108,7 +108,7 @@ trait AssessmentScoresService {
 
     def buildNewAllExercisesScoresWithSubmittedDate(oldAllExercisesScoresMaybe: Option[AssessmentScoresAllExercises]) = {
       val newSubmittedDate = dateTimeFactory.nowLocalTimeZone
-      val newFinalFeedbackWithSubmittedDate = newFinalFeedback.copy(submittedDate = newSubmittedDate)
+      val newFinalFeedbackWithSubmittedDate = newFinalFeedback.copy(acceptedDate = newSubmittedDate)
 
       val oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
       val oldAnalysisExerciseWithSubmittedDate = oldAllExercisesScores.analysisExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
