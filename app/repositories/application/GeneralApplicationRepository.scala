@@ -570,34 +570,6 @@ class GeneralApplicationMongoRepository(
     bsonCollection.findAndModify(query, updateOp).map(_ => ())
   }
 
-  private def applicationPreferencesWithTestResults(query: BSONDocument): Future[List[ApplicationPreferencesWithTestResults]] = {
-    val projection = BSONDocument(
-      "userId" -> "1",
-      "framework-preferences.alternatives.location" -> "1",
-      "framework-preferences.alternatives.framework" -> "1",
-      "framework-preferences.firstLocation.location" -> "1",
-      "framework-preferences.secondLocation.location" -> "1",
-      "framework-preferences.firstLocation.firstFramework" -> "1",
-      "framework-preferences.secondLocation.firstFramework" -> "1",
-      "framework-preferences.firstLocation.secondFramework" -> "1",
-      "framework-preferences.secondLocation.secondFramework" -> "1",
-      "assessment-centre-passmark-evaluation" -> "2",
-      "applicationId" -> "1",
-      "personal-details.firstName" -> "1",
-      "personal-details.lastName" -> "1",
-      "personal-details.preferredName" -> "1",
-      "personal-details.aLevel" -> "1",
-      "personal-details.stemLevel" -> "1"
-    )
-
-    reportQueryWithProjections[BSONDocument](query, projection).map { list =>
-      list.map { document =>
-        toApplicationPreferencesWithTestResults.read(document)
-      }
-    }
-  }
-
-
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
     val isNotSubmitted = !progress.submitted
     val isNotWithdrawn = !progress.withdrawn
