@@ -51,24 +51,6 @@ object Commands {
                                      totalScore: Option[Double]
                                    )
 
-  case class SchemeEvaluation(
-                               commercial: Option[String] = None,
-                               digitalAndTechnology: Option[String] = None,
-                               business: Option[String] = None,
-                               projectDelivery: Option[String] = None,
-                               finance: Option[String] = None
-                             )
-
-  case class ApplicationPreferencesWithTestResults(userId: String, applicationId: String, location1: Option[String],
-                                                   location1Scheme1: Option[String], location1Scheme2: Option[String],
-                                                   location2: Option[String], location2Scheme1: Option[String],
-                                                   location2Scheme2: Option[String], alternativeLocation: Option[String],
-                                                   alternativeScheme: Option[String],
-                                                   personalDetails: PersonalInfo,
-                                                   scores: CandidateScoresSummary,
-                                                   passmarks: SchemeEvaluation)
-
-
   case class ApplicationResponse(applicationId: String, applicationStatus: String,  applicationRoute: ApplicationRoute,
                                  userId: String, progressResponse: ProgressResponse,
                                  civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
@@ -161,8 +143,6 @@ object Commands {
     implicit val phoneAndEmailFormat: OFormat[PhoneAndEmail] = Json.format[PhoneAndEmail]
     implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
     implicit val personalInfoFormat: OFormat[PersonalInfo] = Json.format[PersonalInfo]
-    implicit val schemeEvaluationFormat: OFormat[SchemeEvaluation] = Json.format[SchemeEvaluation]
     implicit val candidateScoresSummaryFormat: OFormat[CandidateScoresSummary] = Json.format[CandidateScoresSummary]
-    implicit val applicationPreferencesWithTestResultsFormat: OFormat[ApplicationPreferencesWithTestResults] = Json.format[ApplicationPreferencesWithTestResults]
   }
 }
