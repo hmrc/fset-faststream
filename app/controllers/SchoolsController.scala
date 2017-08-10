@@ -16,8 +16,7 @@
 
 package controllers
 
-import config.CSRCache
-import connectors.{ ApplicationClient, SchoolsClient }
+import connectors.SchoolsClient
 import connectors.SchoolsClient.SchoolsNotFound
 import models.view.SchoolView
 import models.view.SchoolView._
@@ -29,12 +28,12 @@ import security.SilhouetteComponent
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
-object SchoolsController extends SchoolsController(SchoolsClient, CSRCache, ApplicationClient) {
+object SchoolsController extends SchoolsController(SchoolsClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SchoolsController(schoolsClient: SchoolsClient, cacheClient: CSRCache, applicationClient: ApplicationClient)
-  extends BaseController(applicationClient, cacheClient) {
+abstract class SchoolsController(schoolsClient: SchoolsClient)
+  extends BaseController {
   def getSchools(term: String) = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
       if (term.trim.nonEmpty) {

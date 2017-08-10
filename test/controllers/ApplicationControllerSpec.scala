@@ -16,17 +16,16 @@
 
 package controllers
 
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import security.SilhouetteComponent
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 
 class ApplicationControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]
-  val mockCacheClient = mock[CSRCache]
   val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
-  class TestableApplicationController extends ApplicationController(mockApplicationClient, mockCacheClient) with TestableSecureActions {
+  class TestableApplicationController extends ApplicationController(mockApplicationClient) with TestableSecureActions {
     val http: CSRHttp = CSRHttp
     override val env = mockSecurityEnvironment
     override lazy val silhouette = SilhouetteComponent.silhouette

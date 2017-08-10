@@ -140,7 +140,6 @@ class UserCacheServiceSpec extends UnitSpec {
     def makeUserCacheService(mockSetup: => Unit): UserCacheService = {
       mockSetup
       new UserCacheService(mockApplicationClient, mockUserManagementClient) {
-        override def save(user: CachedData)(implicit hc: HeaderCarrier): Future[CachedData] = Future.successful(user)
       }
     }
   }

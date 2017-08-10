@@ -17,7 +17,6 @@
 package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
-import config.CSRCache
 import connectors.ApplicationClient
 import connectors.addresslookup.AddressLookupClient
 import play.api.Logger
@@ -28,9 +27,8 @@ import security.{ SecurityEnvironment, SilhouetteComponent }
 import uk.gov.hmrc.play.http.BadRequestException
 
 abstract class AddressLookupController(addressLookupClient: AddressLookupClient,
-  applicationClient: ApplicationClient,
-  cacheClient: CSRCache
-) extends BaseController(applicationClient, cacheClient) {
+  applicationClient: ApplicationClient
+) extends BaseController {
 
   def addressLookupByPostcode(postcode: String): Action[AnyContent] = CSRSecureAction(EditPersonalDetailsAndContinueRole) {
     implicit request => implicit cachedData =>
@@ -53,8 +51,7 @@ abstract class AddressLookupController(addressLookupClient: AddressLookupClient,
 
 object AddressLookupController extends AddressLookupController(
   AddressLookupClient,
-  ApplicationClient,
-  CSRCache
+  ApplicationClient
 )  {
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }

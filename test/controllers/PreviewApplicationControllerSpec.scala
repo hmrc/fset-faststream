@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.{ AssistanceDetailsExamples, PartnerGraduateProgrammesExamples, GeneralDetailsExamples, SchemePreferencesExamples }
@@ -123,7 +123,6 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
 
       val Application = currentCandidateWithApp.application.copy(progress = ProgressResponseExamples.InPreview)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
-      when(mockUserService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
 
       val result = controller.submit()(Request)
 
@@ -134,7 +133,6 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
-    val mockCacheClient = mock[CSRCache]
     val mockSchemeClient = mock[SchemeClient]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
     val mockUserService = mock[UserCacheService]
@@ -148,8 +146,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(PartnerGraduateProgrammesExamples.InterestedNotAll))
 
-    class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient, mockCacheClient,
-      mockSchemeClient)
+    class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient, mockSchemeClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment

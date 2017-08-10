@@ -65,8 +65,8 @@ case class Phase3TestProgress(
 
 case class SiftProgress(
   siftEntered: Boolean = false,
-  siftFormsSubmitted: Boolean = false,
-  allSchemesSiftCompleted: Boolean = false
+  siftReady: Boolean = false,
+  siftCompleted: Boolean = false
 )
 
 case class Progress(
@@ -152,8 +152,8 @@ object Progress {
       ),
       siftProgress = SiftProgress(
         siftEntered = progressResponse.siftProgressResponse.siftEntered,
-        siftFormsSubmitted = progressResponse.siftProgressResponse.siftReady,
-        allSchemesSiftCompleted = progressResponse.siftProgressResponse.siftCompleted
+        siftReady = progressResponse.siftProgressResponse.siftReady,
+        siftCompleted = progressResponse.siftProgressResponse.siftCompleted
       ),
       exported = progressResponse.exported,
       updateExported = progressResponse.updateExported,
