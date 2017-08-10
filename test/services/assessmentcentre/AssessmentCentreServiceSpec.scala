@@ -159,6 +159,36 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       service.evaluateAssessmentCandidate(assessmentData, config).futureValue
     }
 
+    "save evaluation result to red with current status green updated to red" in new TestFixture {
+      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+      val evaluationResult = AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult)
+
+      (mockEvaluationEngine.evaluate _)
+        .expects(*, *)
+        .returning(evaluationResult)
+
+      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
+      (mockAppRepo.getCurrentSchemeStatus _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(currentSchemeStatus))
+
+      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
+      val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
+
+      (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
+        .expects(expectedEvaluation, newSchemeStatus)
+        .returning(Future.successful(()))
+
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId("Commercial")),
+        scores = AssessmentScoresAllExercises(applicationId = applicationId))
+      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, None)
+      service.evaluateAssessmentCandidate(assessmentData, config).futureValue
+    }
+
     "save evaluation result to green with current status green remains the same" in new TestFixture {
       val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
       val evaluationResult = AssessmentEvaluationResult(
