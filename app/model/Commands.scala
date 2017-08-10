@@ -37,27 +37,6 @@ object Commands {
   type PhoneNumber = String
   type IsNonSubmitted = Boolean
 
-  case class PersonalInfo(firstName: Option[String], lastName: Option[String], preferredName: Option[String],
-                          aLevel: Option[String], stemLevel: Option[String])
-
-  case class CandidateScoresSummary(
-                                     avgLeadingAndCommunicating: Option[Double],
-                                     avgCollaboratingAndPartnering: Option[Double],
-                                     avgDeliveringAtPace: Option[Double],
-                                     avgMakingEffectiveDecisions: Option[Double],
-                                     avgChangingAndImproving: Option[Double],
-                                     avgBuildingCapabilityForAll: Option[Double],
-                                     avgMotivationFit: Option[Double],
-                                     totalScore: Option[Double]
-                                   )
-
-  case class ApplicationResponse(applicationId: String, applicationStatus: String,  applicationRoute: ApplicationRoute,
-                                 userId: String, progressResponse: ProgressResponse,
-                                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
-                                 overriddenSubmissionDeadline: Option[DateTime])
-
-  case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: DateTime)
-
   //  questionnaire
   case class Answer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
 
@@ -114,8 +93,7 @@ object Commands {
 
   object Implicits {
     implicit val addressFormat: OFormat[Address] = Json.format[Address]
-    implicit val applicationAddedFormat: OFormat[ApplicationResponse] = Json.format[ApplicationResponse]
-    implicit val passMarkSettingsCreateResponseFormat: OFormat[PassMarkSettingsCreateResponse] = Json.format[PassMarkSettingsCreateResponse]
+
     implicit val personalDetailsAddedFormat: OFormat[PersonalDetailsAdded] = Json.format[PersonalDetailsAdded]
 
     implicit val answerFormat: OFormat[Answer] = Json.format[Answer]
@@ -142,7 +120,5 @@ object Commands {
 
     implicit val phoneAndEmailFormat: OFormat[PhoneAndEmail] = Json.format[PhoneAndEmail]
     implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
-    implicit val personalInfoFormat: OFormat[PersonalInfo] = Json.format[PersonalInfo]
-    implicit val candidateScoresSummaryFormat: OFormat[CandidateScoresSummary] = Json.format[CandidateScoresSummary]
   }
 }

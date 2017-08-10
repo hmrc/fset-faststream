@@ -225,40 +225,5 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     )).futureValue
   }
 
-  def createApplicationWithSummaryScoresAndSchemeEvaluations(appId: String,
-                                                             frameworkId: String,
-                                                             appStatus: String,
-                                                             passmarkVersion: String,
-                                                             scores: CandidateScoresSummary,
-                                                             scheme: SchemeEvaluation): Unit = {
 
-    applicationRepo.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "frameworkId" -> frameworkId,
-      "applicationStatus" -> appStatus,
-      "progress-status" -> BSONDocument(
-        "assessment_centre_passed" -> true
-      ),
-      "assessment-centre-passmark-evaluation" -> BSONDocument(
-        "passmarkVersion" -> passmarkVersion,
-        "competency-average" -> BSONDocument(
-          "leadingAndCommunicatingAverage" -> scores.avgLeadingAndCommunicating.get,
-          "collaboratingAndPartneringAverage" -> scores.avgCollaboratingAndPartnering.get,
-          "deliveringAtPaceAverage" -> scores.avgDeliveringAtPace.get,
-          "makingEffectiveDecisionsAverage" -> scores.avgMakingEffectiveDecisions,
-          "changingAndImprovingAverage" -> scores.avgChangingAndImproving,
-          "buildingCapabilityForAllAverage" -> scores.avgBuildingCapabilityForAll,
-          "motivationFitAverage" -> scores.avgMotivationFit,
-          "overallScore" -> scores.totalScore
-        ),
-        "schemes-evaluation" -> BSONDocument(
-          "Commercial" -> scheme.commercial.get,
-          "Digital and technology" -> scheme.digitalAndTechnology.get,
-          "Business" -> scheme.business.get,
-          "Project delivery" -> scheme.projectDelivery.get,
-          "Finance" -> scheme.finance.get
-        )
-      )
-    )).futureValue
-  }
 }
