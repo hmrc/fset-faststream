@@ -35,22 +35,7 @@ object Commands {
 
   type PostCode = String
   type PhoneNumber = String
-
-  case class ReportWithPersonalDetails(applicationId: String, userId: String, progress: Option[String], firstLocation: Option[String],
-                                       firstLocationFirstScheme: Option[String], firstLocationSecondScheme: Option[String], secondLocation: Option[String],
-                                       secondLocationFirstScheme: Option[String], secondLocationSecondScheme: Option[String], alevels: Option[String],
-                                       stemlevels: Option[String], alternativeLocation: Option[String], alternativeScheme: Option[String], hasDisability: Option[String],
-                                       hasAdjustments: Option[String], guaranteedInterview: Option[String], firstName: Option[String], lastName: Option[String],
-                                       preferredName: Option[String], dateOfBirth: Option[String], cubiksUserId: Option[Int])
-
-  case class PhoneAndEmail(phone: Option[String], email: Option[String])
-
   type IsNonSubmitted = Boolean
-
-  case class PreferencesWithContactDetails(firstName: Option[String], lastName: Option[String], preferredName: Option[String],
-                                           email: Option[String], telephone: Option[String], location1: Option[String], location1Scheme1: Option[String],
-                                           location1Scheme2: Option[String], location2: Option[String], location2Scheme1: Option[String],
-                                           location2Scheme2: Option[String], progress: Option[String], timeApplicationCreated: Option[String])
 
   case class OnlineTestPassmarkEvaluationSchemes(
                                                   location1Scheme1: Option[String] = None,
@@ -103,16 +88,6 @@ object Commands {
                                                    scores: CandidateScoresSummary,
                                                    passmarks: SchemeEvaluation)
 
-  case class AssessmentResultsReport(
-                                      appPreferences: ApplicationPreferences,
-                                      questionnaire: QuestionnaireReportItem,
-                                      assessmentResults: AssessmentScoresAllExercises
-                                    )
-
-  case class AssessmentCentreCandidatesReport(
-                                               application: ApplicationPreferencesWithTestResults,
-                                               phoneAndEmail: PhoneAndEmail
-                                             )
 
   case class ApplicationResponse(applicationId: String, applicationStatus: String,  applicationRoute: ApplicationRoute,
                                  userId: String, progressResponse: ProgressResponse,
@@ -207,11 +182,9 @@ object Commands {
     implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
     implicit val passMarkEvaluationSchemes: OFormat[OnlineTestPassmarkEvaluationSchemes] = Json.format[OnlineTestPassmarkEvaluationSchemes]
     implicit val applicationPreferencesFormat: OFormat[ApplicationPreferences] = Json.format[ApplicationPreferences]
-    implicit val assessmentResultsReportFormat: OFormat[AssessmentResultsReport] = Json.format[AssessmentResultsReport]
     implicit val personalInfoFormat: OFormat[PersonalInfo] = Json.format[PersonalInfo]
     implicit val schemeEvaluationFormat: OFormat[SchemeEvaluation] = Json.format[SchemeEvaluation]
     implicit val candidateScoresSummaryFormat: OFormat[CandidateScoresSummary] = Json.format[CandidateScoresSummary]
     implicit val applicationPreferencesWithTestResultsFormat: OFormat[ApplicationPreferencesWithTestResults] = Json.format[ApplicationPreferencesWithTestResults]
-    implicit val assessmentCentreCandidatesReportFormat: OFormat[AssessmentCentreCandidatesReport] = Json.format[AssessmentCentreCandidatesReport]
   }
 }
