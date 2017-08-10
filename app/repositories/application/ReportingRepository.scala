@@ -49,8 +49,6 @@ trait ReportingRepository {
 
   def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]]
 
-  def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]]
-
   def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]]
 
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]]
@@ -73,12 +71,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
     candidateProgressReport(BSONDocument("$and" -> BSONArray(
-      BSONDocument("frameworkId" -> frameworkId),
-      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN"))
-    )))
-
-  override def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]] =
-    overallReportWithPersonalDetails(BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN"))
     )))
@@ -220,36 +212,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     )
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
-  }
-
-
-  // scalstyle:on method.length
-  private def overallReportWithPersonalDetails(query: BSONDocument): Future[List[ReportWithPersonalDetails]] = {
-    val projection = BSONDocument(
-      "userId" -> "1",
-      "framework-preferences.alternatives.location" -> "1",
-      "framework-preferences.alternatives.framework" -> "1",
-      "framework-preferences.firstLocation.location" -> "1",
-      "framework-preferences.secondLocation.location" -> "1",
-      "framework-preferences.firstLocation.firstFramework" -> "1",
-      "framework-preferences.secondLocation.firstFramework" -> "1",
-      "framework-preferences.firstLocation.secondFramework" -> "1",
-      "framework-preferences.secondLocation.secondFramework" -> "1",
-      "personal-details.aLevel" -> "1",
-      "personal-details.dateOfBirth" -> "1",
-      "personal-details.firstName" -> "1",
-      "personal-details.lastName" -> "1",
-      "personal-details.preferredName" -> "1",
-      "personal-details.stemLevel" -> "1",
-      "online-tests.cubiksUserId" -> "1",
-      "assistance-details.needsAssistance" -> "1",
-      "assistance-details.needsAdjustment" -> "1",
-      "assistance-details.guaranteedInterview" -> "1",
-      "applicationId" -> "1",
-      "progress-status" -> "2"
-    )
-
-    reportQueryWithProjectionsBSON[ReportWithPersonalDetails](query, projection)
   }
 
   //scalastyle:off method.length
