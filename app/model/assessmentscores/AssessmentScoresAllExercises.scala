@@ -20,12 +20,14 @@ import model.UniqueIdentifier
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
+// finalFeedback should be None in case of Reviewer Assessment scores
 case class AssessmentScoresAllExercises(
                                          applicationId: UniqueIdentifier,
                                          analysisExercise: Option[AssessmentScoresExercise] = None,
                                          groupExercise: Option[AssessmentScoresExercise] = None,
-                                         leadershipExercise: Option[AssessmentScoresExercise] = None
-                                            ) {
+                                         leadershipExercise: Option[AssessmentScoresExercise] = None,
+                                         finalFeedback: Option[AssessmentScoresFinalFeedback] = None
+                                       ) {
 
   def strategicApproachToObjectivesAvg: Double = {
     average(List(analysisExercise, leadershipExercise).flatMap(_.flatMap(_.strategicApproachToObjectivesAverage)), 2)

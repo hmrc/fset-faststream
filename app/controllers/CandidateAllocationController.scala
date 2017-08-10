@@ -95,4 +95,11 @@ trait CandidateAllocationController extends BaseController {
     }
   }
 
+  def removeCandidateRemovalReason(applicationId: String) = Action.async { implicit request =>
+    candidateAllocationService.removeCandidateRemovalReason(applicationId).map { _ =>
+      NoContent
+    }
+  }
+
+
 }

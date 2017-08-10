@@ -16,7 +16,7 @@
 
 package model.command
 
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
+import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
 import model.UniqueIdentifier
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json._
@@ -24,14 +24,14 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object AssessmentScoresCommands {
 
-  case class RecordCandidateScores(applicationId: UniqueIdentifier,
-                                   firstName: String,
-                                   lastName: String,
-                                   venueName: String,
-                                   assessmentDate: LocalDate,
-                                   sessionId: UniqueIdentifier)
-  object RecordCandidateScores {
-    implicit val RecordCandidateScoresFormats: Format[RecordCandidateScores] = Json.format[RecordCandidateScores]
+  case class AssessmentScoresCandidateSummary(applicationId: UniqueIdentifier,
+                                              firstName: String,
+                                              lastName: String,
+                                              venueName: String,
+                                              assessmentDate: LocalDate,
+                                              sessionId: UniqueIdentifier)
+  object AssessmentScoresCandidateSummary {
+    implicit val jsonFormat: Format[AssessmentScoresCandidateSummary] = Json.format[AssessmentScoresCandidateSummary]
   }
 
   object AssessmentExerciseType extends Enumeration {
@@ -61,7 +61,15 @@ object AssessmentScoresCommands {
     implicit val jsonFormat: Format[AssessmentScoresSubmitRequest] = Json.format[AssessmentScoresSubmitRequest]
   }
 
-  case class AssessmentScoresFindResponse(candidate: RecordCandidateScores, scoresAndFeedback: Option[AssessmentScoresAllExercises])
+  case class AssessmentScoresFinalFeedbackSubmitRequest(
+                                            applicationId: UniqueIdentifier,
+                                            finalFeedback: AssessmentScoresFinalFeedback
+                                          )
+  object AssessmentScoresFinalFeedbackSubmitRequest {
+    implicit val jsonFormat: Format[AssessmentScoresFinalFeedbackSubmitRequest] = Json.format[AssessmentScoresFinalFeedbackSubmitRequest]
+  }
+
+  case class AssessmentScoresFindResponse(candidate: AssessmentScoresCandidateSummary, scoresAndFeedback: Option[AssessmentScoresAllExercises])
   object AssessmentScoresFindResponse {
     implicit val jsonFormat: Format[AssessmentScoresFindResponse] = Json.format[AssessmentScoresFindResponse]
   }

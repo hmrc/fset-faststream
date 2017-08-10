@@ -63,8 +63,8 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       val result = repository.removeCandidateAllocation(app).futureValue
       result mustBe unit
 
-      val markedAsRemoved = repository.findNoShowAllocations(Seq(app.id)).futureValue
-      markedAsRemoved mustBe Seq(app.copy(status = AllocationStatuses.REMOVED))
+      val markedAsRemoved = repository.findAllAllocations(Seq(app.id)).futureValue
+      markedAsRemoved must contain(app.copy(status = AllocationStatuses.REMOVED))
 
       val docs1 = repository.activeAllocationsForEvent("eventId1").futureValue
       docs1.size mustBe 1

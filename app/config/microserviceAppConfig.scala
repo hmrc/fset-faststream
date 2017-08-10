@@ -125,8 +125,6 @@ case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, 
 
 case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
 
-case class ParityGatewayConfig(url: String, upstreamAuthToken: String)
-
 case class Phase3TestsConfig(timeToExpireInDays: Int,
                              invigilatedTimeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
@@ -161,7 +159,6 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val userManagementConfig = underlyingConfiguration.as[UserManagementConfig]("microservice.services.user-management")
   lazy val cubiksGatewayConfig = underlyingConfiguration.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
   lazy val launchpadGatewayConfig = underlyingConfiguration.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
-  lazy val parityGatewayConfig = underlyingConfiguration.as[ParityGatewayConfig]("microservice.services.parity-gateway")
   lazy val maxNumberOfDocuments = underlyingConfiguration.as[Int]("maxNumberOfDocuments")
 
   lazy val locationsAndVenuesConfig =
