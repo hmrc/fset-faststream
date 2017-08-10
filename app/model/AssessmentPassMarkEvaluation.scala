@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package repositories
+package model
 
-import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONString }
+import model.EvaluationResults.AssessmentEvaluationResult
 
-trait CumulativeEvaluationHelper {
-  def cumulativeResultsForLatestPhaseBSON(latestResults: List[SchemeEvaluationResult]) = {
-    BSONDocument(latestResults.map(ser => s"cumulativeEvaluation.${ser.schemeId.value}" -> BSONString(ser.result)))
-  }
-}
+case class AssessmentPassMarkEvaluation(
+  applicationId: UniqueIdentifier,
+  passmarkVersion: String,
+  evaluationResult: AssessmentEvaluationResult)

@@ -20,13 +20,35 @@ import model.UniqueIdentifier
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-
+// finalFeedback should be None in case of Reviewer Assessment scores
 case class AssessmentScoresAllExercises(
                                          applicationId: UniqueIdentifier,
                                          analysisExercise: Option[AssessmentScoresExercise] = None,
                                          groupExercise: Option[AssessmentScoresExercise] = None,
-                                         leadershipExercise: Option[AssessmentScoresExercise] = None
-                                            )
+                                         leadershipExercise: Option[AssessmentScoresExercise] = None,
+                                         finalFeedback: Option[AssessmentScoresFinalFeedback] = None
+                                       ) {
+
+  def strategicApproachToObjectivesAvg: Double = {
+    average(List(analysisExercise, leadershipExercise).flatMap(_.flatMap(_.strategicApproachToObjectivesAverage)), 2)
+  }
+
+  def buildingProductiveRelationshipsAvg: Double = {
+    average(List(groupExercise, leadershipExercise).flatMap(_.flatMap(_.buildingProductiveRelationshipsAverage)), 2)
+  }
+
+   def analysisAndDecisionMakingAvg: Double = {
+    average(List(analysisExercise, groupExercise).flatMap(_.flatMap(_.analysisAndDecisionMakingAverage)), 2)
+  }
+
+   def leadingAndCommunicatingAvg: Double = {
+    average(List(analysisExercise, groupExercise, leadershipExercise).flatMap(_.flatMap(_.leadingAndCommunicatingAverage)), 3)
+  }
+
+  private def average(list: List[Double], mandatoryNumberOfElements: Int): Double = {
+    (list.map(BigDecimal(_)).sum / mandatoryNumberOfElements).toDouble
+  }
+}
 
 object AssessmentScoresAllExercises {
   implicit val jsonFormat = Json.format[AssessmentScoresAllExercises]

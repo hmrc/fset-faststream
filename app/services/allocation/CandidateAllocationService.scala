@@ -23,8 +23,12 @@ import model.command.CandidateAllocation
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
 import model._
+import model.exchange.CandidatesEligibleForEventResponse
+import model.exchange.candidateevents.{ CandidateAllocationSummary, CandidateRemoveReason }
+import model.persisted.eventschedules.EventType.EventType
 import model.persisted.{ ContactDetails, PersonalDetails }
 import model.persisted.eventschedules.Event
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.{ CandidateAllocationMongoRepository, CandidateAllocationRepository }
 import repositories.application.GeneralApplicationRepository
@@ -71,15 +75,31 @@ trait CandidateAllocationService extends EventSink {
 
 
   def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
-    candidateAllocationRepo.allocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
+    candidateAllocationRepo.activeAllocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
+  }
+
+  def getSessionsForApplication(applicationId: String, sessionEventType: EventType): Future[List[Event]] = {
+    for {
+      allocations <- candidateAllocationRepo.allocationsForApplication(applicationId)
+      events <- eventsService.getEvents(allocations.map(_.eventId).toList, sessionEventType)
+    } yield {
+      val sessionIdsToMatch = allocations.map(_.sessionId)
+
+      events
+        .filter(event => event.sessions.exists(session => sessionIdsToMatch.contains(session.id)))
+        .map(event => event.copy(sessions = event.sessions.filter(session => sessionIdsToMatch.contains(session.id))))
+    }
   }
 
   def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation])
-                          (implicit hc: HeaderCarrier): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
+    (implicit hc: HeaderCarrier): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
     // For each allocation, reset the progress status and delete the corresponding allocation
     val res = FutureEx.traverseSerial(allocations) { allocation =>
       val fut = candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
-        applicationRepo.resetApplicationAllocationStatus(allocation.id).flatMap { _ =>
+        ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
+          case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id)
+          case _ => applicationRepo.resetApplicationAllocationStatus(allocation.id)
+        } ).flatMap { _ =>
           notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
         }
       }
@@ -114,6 +134,38 @@ trait CandidateAllocationService extends EventSink {
       }
     }
   }
+
+  def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String) = {
+    applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation))
+  }
+
+  def findAllocatedApplications(appIds: List[String]): Future[CandidatesEligibleForEventResponse] = {
+    applicationRepo.findAllocatedApplications(appIds)
+  }
+
+
+  def getCandidateAllocationsSummary(appIds: Seq[String]): Future[Seq[CandidateAllocationSummary]] = {
+    candidateAllocationRepo.findAllAllocations(appIds).flatMap { allocs =>
+      Future.sequence(allocs.map { ca =>
+        eventsService.getEvent(ca.eventId).map { event =>
+          CandidateAllocationSummary(
+            event.eventType,
+            event.date,
+            event.sessions.find(_.id == ca.sessionId).map(_.description).getOrElse(""),
+            ca.status,
+            CandidateRemoveReason.find(ca.removeReason.getOrElse(""))
+          )
+        }
+      })
+    }
+  }
+
+  def removeCandidateRemovalReason(appId: String): Future[Unit] = {
+    candidateAllocationRepo.removeCandidateRemovalReason(appId).flatMap(_ =>
+      applicationRepo.resetApplicationAllocationStatus(appId)
+    )
+  }
+
 
   private def updateExistingAllocations(existingAllocations: exchange.CandidateAllocations,
                                         newAllocations: command.CandidateAllocations): Future[Unit] = {

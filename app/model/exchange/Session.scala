@@ -28,4 +28,14 @@ case class Session(description: String,
 
 object Session {
   implicit val format: OFormat[Session] = Json.format[Session]
+
+  def apply(persistedSession: model.persisted.eventschedules.Session): Session = {
+    Session(
+      description = persistedSession.description,
+      capacity = persistedSession.capacity,
+      minViableAttendees = persistedSession.minViableAttendees,
+      attendeeSafetyMargin = persistedSession.attendeeSafetyMargin,
+      startTime = persistedSession.startTime,
+      endTime = persistedSession.endTime)
+  }
 }

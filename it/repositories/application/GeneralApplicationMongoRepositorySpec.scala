@@ -16,21 +16,20 @@
 
 package repositories.application
 
-import factories.{ DateTimeFactory, UUIDFactory }
+import factories.{ DateTimeFactory, DateTimeFactoryMock, UUIDFactory }
 import model.ApplicationStatus._
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
 import model.exchange.CandidatesEligibleForEventResponse
 import model.{ ApplicationStatus, _ }
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ ApplicationRoute, apply => _ }
 import model.Commands.Candidate
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
+import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _ }
 import model.command.ProgressResponse
 import model.persisted._
-import repositories.{ CollectionNames, CommonBSONDocuments }
+import repositories.CollectionNames
 import repositories.onlinetesting.{ Phase1TestMongoRepository, Phase2TestMongoRepository }
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
@@ -38,11 +37,11 @@ import testkit.MongoRepositorySpec
 
 import scala.concurrent.{ Await, Future }
 
-class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
+class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def repository = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
   def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
   def testDataRepo = new TestDataMongoRepository()

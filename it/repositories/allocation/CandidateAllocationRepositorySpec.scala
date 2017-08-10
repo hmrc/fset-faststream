@@ -1,6 +1,7 @@
 package repositories.allocation
 
 import model.AllocationStatuses
+import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
 import repositories.{ CandidateAllocationMongoRepository, CollectionNames }
 import testkit.MongoRepositorySpec
@@ -10,10 +11,12 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
   override val collectionName: String = CollectionNames.CANDIDATE_ALLOCATION
   def repository: CandidateAllocationMongoRepository = new CandidateAllocationMongoRepository()
   val allocations: Seq[CandidateAllocation] = Seq(
-    CandidateAllocation("candId1", "eventId1", "sessionId1", AllocationStatuses.UNCONFIRMED, "version1"),
-    CandidateAllocation("candId2", "eventId1", "sessionId1", AllocationStatuses.CONFIRMED, "version1"),
-    CandidateAllocation("candId3", "eventId2", "sessionId2",  AllocationStatuses.UNCONFIRMED, "version1")
+    CandidateAllocation("candId1", "eventId1", "sessionId1", AllocationStatuses.UNCONFIRMED, "version1", None),
+    CandidateAllocation("candId2", "eventId1", "sessionId1", AllocationStatuses.CONFIRMED, "version1", None),
+    CandidateAllocation("candId3", "eventId2", "sessionId2",  AllocationStatuses.UNCONFIRMED, "version1", None)
   )
+
+  def storeAllocations = allocations.foreach(a => repository.save(Seq(a)).futureValue)
 
   s"CandidateAllocationRepository" must {
     "create indexes for the repository" in {
@@ -24,25 +27,50 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "correctly find allocations by session" in {
-      repository.save(allocations).futureValue
-      val result = repository.allocationsForSession("eventId1", "sessionId1").futureValue
+      storeAllocations
+      val result = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
       result.size mustBe 2
       val expectedAllocations = allocations.filter(_.sessionId == "sessionId1")
       result mustBe expectedAllocations
     }
 
+    "correctly find allocations by application" in {
+      storeAllocations
+      val result = repository.allocationsForApplication("candId1").futureValue
+      result.size mustBe 1
+      val expectedAllocations = allocations.filter(_.id == "candId1")
+      result mustBe expectedAllocations
+    }
+
     "return an empty list for sessions that don`t exist" in {
-      val result = repository.allocationsForSession("eventId1", "invalid_session_id").futureValue
+      val result = repository.activeAllocationsForSession("eventId1", "invalid_session_id").futureValue
       result.isEmpty mustBe true
     }
 
     "remove candidate allocations" in {
-      repository.save(allocations).futureValue
-      val result = repository.removeCandidateAllocation(allocations.head).futureValue
+      storeAllocations
+      val app = allocations.head
+      val result = repository.removeCandidateAllocation(app).futureValue
       result mustBe unit
 
-      val docs = repository.allocationsForSession("eventId1", "sessionId1").futureValue
-      docs.size mustBe 1
+      val docs2 = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
+      docs2.size mustBe 1
+    }
+
+    "remove candidate allocations and find it in removal list" in {
+      storeAllocations
+      val app = allocations.head.copy(removeReason = Some(CandidateRemoveReason.NoShow))
+      val result = repository.removeCandidateAllocation(app).futureValue
+      result mustBe unit
+
+      val markedAsRemoved = repository.findAllAllocations(Seq(app.id)).futureValue
+      markedAsRemoved must contain(app.copy(status = AllocationStatuses.REMOVED))
+
+      val docs1 = repository.activeAllocationsForEvent("eventId1").futureValue
+      docs1.size mustBe 1
+
+      val docs2 = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
+      docs2.size mustBe 1
     }
 
     "return an exception when no documents have been deleted" in {
@@ -51,10 +79,10 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "delete documents" in {
-      repository.save(allocations).futureValue
+      storeAllocations
       val result = repository.delete(allocations.head :: Nil).futureValue
       result mustBe unit
-      val docs = repository.allocationsForSession("eventId1", "sessionId1").futureValue
+      val docs = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
       docs.size mustBe 1
       docs.head mustBe allocations.tail.head
     }

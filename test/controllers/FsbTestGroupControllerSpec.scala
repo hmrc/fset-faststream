@@ -16,21 +16,23 @@
 
 package controllers
 
-import model.Exceptions._
+import org.mockito.ArgumentMatchers.{ eq => eqTo }
+import org.mockito.Mockito._
+import play.api.test.Helpers._
 import services.application.FsbTestGroupService
 import services.events.EventsService
 import testkit.UnitWithAppSpec
-import org.mockito.Mockito._
-import play.api.test.Helpers._
 
-class FSbTestGroupControllerSpec extends UnitWithAppSpec {
+import scala.concurrent.Future
 
-  val mockFsbService = mock[FsbTestGroupService]
+class FsbTestGroupControllerSpec extends UnitWithAppSpec {
+
+  val mockFsbTestGroupService = mock[FsbTestGroupService]
   val mockEventsService = mock[EventsService]
 
   val controller = new FsbTestGroupController {
     val eventsService = mockEventsService
-    val service = mockFsbService
+    val service = mockFsbTestGroupService
   }
 
   "save fsb event evaluation result" should {
@@ -41,6 +43,7 @@ class FSbTestGroupControllerSpec extends UnitWithAppSpec {
   "find" should {
     "return fsb results for the given applicationIds" in {
       val applicationIds = List("appId1", "appId2")
+      when(mockFsbTestGroupService.findByApplicationIdsAndFsbType(applicationIds, None)).thenReturn(Future.successful(List()))
       val response =  controller.find(applicationIds, None)(fakeRequest)
 
       status(response) mustBe OK
@@ -49,6 +52,7 @@ class FSbTestGroupControllerSpec extends UnitWithAppSpec {
     "return fsb results filtered by schemes related to given fsbType" in {
       val applicationIds = List("appId1", "appId2")
       val fsbType = "FsbType"
+      when(mockFsbTestGroupService.findByApplicationIdsAndFsbType(applicationIds, Some(fsbType))).thenReturn(Future.successful(List()))
       val response = controller.find(applicationIds, Some(fsbType))(fakeRequest)
 
       status(response) mustBe OK

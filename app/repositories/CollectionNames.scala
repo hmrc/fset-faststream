@@ -19,12 +19,14 @@ package repositories
 object CollectionNames {
   val APPLICATION = "application18"
   val APPLICATION_ASSESSMENT = "application-assessment18"
-  val ASSESSMENT_SCORES = "assessment-scores18"
+  val ASSESSOR_ASSESSMENT_SCORES = "assessor-assessment-scores18"
+  val REVIEWER_ASSESSMENT_SCORES = "reviewer-assessment-scores18"
   val ASSESSMENT_CENTRE_PASS_MARK_SETTINGS = "assessment-centre-pass-mark-settings18"
   val ASSESSOR = "assessor18"
   val ASSESSOR_ALLOCATION = "assessor-allocation18"
   val CANDIDATE_ALLOCATION = "candidate-allocation18"
   val ASSESSMENT_EVENTS = "assessment-events18"
+  val FILE_UPLOAD = "file-upload18"
   val CONTACT_DETAILS = "contact-details18"
   val EVENT = "event18"
   val LOCKS = "locks18"
@@ -33,4 +35,5 @@ object CollectionNames {
   val PHASE1_PASS_MARK_SETTINGS = "phase1-pass-mark-settings18"
   val PHASE2_PASS_MARK_SETTINGS = "phase2-pass-mark-settings18"
   val PHASE3_PASS_MARK_SETTINGS = "phase3-pass-mark-settings18"
+  val SIFT_ANSWERS = "sift-answers18"
 }

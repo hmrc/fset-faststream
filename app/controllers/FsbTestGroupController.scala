@@ -53,7 +53,7 @@ trait FsbTestGroupController extends BaseController {
   }
 
   def find(applicationIds: List[String], fsbType: Option[String]): Action[AnyContent] = Action.async { implicit request =>
-    service.findByFsbType(applicationIds, fsbType).map { results =>
+    service.findByApplicationIdsAndFsbType(applicationIds, fsbType).map { results =>
       Ok(Json.toJson(results))
     }
   }

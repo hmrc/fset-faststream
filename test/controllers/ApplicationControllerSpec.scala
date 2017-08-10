@@ -31,8 +31,10 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
+import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
 import services.application.ApplicationService
+import services.assessmentcentre.AssessmentCentreService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -171,54 +173,12 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Find candidates eligible for event allocation" must {
-
-    val mockApplicationService = mock[ApplicationService]
-    val mockAuditService = mock[AuditService]
-    val mockPassmarkService = mock[EvaluatePhase3ResultService]
-    val mockAppRepository = mock[GeneralApplicationRepository]
-
-    object MyTestApplicationController extends ApplicationController {
-      override val appRepository: GeneralApplicationRepository = mockAppRepository
-      override val auditService: AuditService = mockAuditService
-      override val applicationService: ApplicationService = mockApplicationService
-      override val passmarkService: EvaluatePhase3ResultService = mockPassmarkService
-    }
-
-    "handle no candidates" in new TestFixture {
-      when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]]))
-        .thenReturn(Future.successful(CandidatesEligibleForEventResponse(List.empty, 0)))
-
-      val result = MyTestApplicationController.findCandidatesEligibleForEventAllocation("London")(
-      findCandidatesEligibleForEventAllocationRequest("london")).run
-      val jsonResponse = contentAsJson(result)
-
-      (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List.empty
-      (jsonResponse \ "totalCandidates").as[Int] mustBe 0
-
-      status(result) mustBe OK
-    }
-
-    "handle candidates" in new TestFixture {
-      val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
-        needsAdjustment = true, dateReady = DateTime.now())
-      when(mockAppRepository.findCandidatesEligibleForEventAllocation(any[List[String]]))
-        .thenReturn(Future.successful(CandidatesEligibleForEventResponse(List(candidate), 1)))
-
-      val result = MyTestApplicationController.findCandidatesEligibleForEventAllocation("London")(
-      findCandidatesEligibleForEventAllocationRequest("london")).run
-      val jsonResponse = contentAsJson(result)
-
-      (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List(candidate)
-      (jsonResponse \ "totalCandidates").as[Int] mustBe 1
-
-      status(result) mustBe OK
-    }
-  }
-
   trait TestFixture extends TestFixtureBase {
     val mockApplicationService = mock[ApplicationService]
     val mockPassmarkService = mock[EvaluatePhase3ResultService]
+    val mockAssessmentCentreService = mock[AssessmentCentreService]
+    val mockFileUploadRepository = mock[FileUploadMongoRepository]
+
     when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))(any[HeaderCarrier], any[RequestHeader]))
       .thenReturn(Future.successful(()))
 
@@ -227,6 +187,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       override val auditService: AuditService = mockAuditService
       override val applicationService: ApplicationService = mockApplicationService
       override val passmarkService: EvaluatePhase3ResultService = mockPassmarkService
+      override val assessmentCentreService: AssessmentCentreService = mockAssessmentCentreService
+      override val uploadRepository: FileUploadMongoRepository = mockFileUploadRepository
     }
 
     def applicationProgressRequest(applicationId: String) = {
@@ -260,11 +222,6 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     def getPhase3ResultsRequest(applicationId: String) = {
       FakeRequest(Helpers.GET, controllers.routes.ApplicationController.getPhase3Results(applicationId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
-    }
-
-    def findCandidatesEligibleForEventAllocationRequest(location: String) = {
-      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.findCandidatesEligibleForEventAllocation(location).url,
-        FakeHeaders(), "").withHeaders("Content-Type" -> "application/json")
     }
   }
 }

@@ -16,82 +16,142 @@
 
 package services.sift
 
-import java.util
-
+import factories.{ DateTimeFactory, DateTimeFactoryMock }
 import model.Commands.Candidate
 import model._
 import model.command.ApplicationForSift
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import org.joda.time.LocalDate
-import org.mockito.ArgumentCaptor
+import model.persisted.SchemeEvaluationResult
+import org.joda.time.{ DateTime, LocalDate }
 import repositories.sift.ApplicationSiftRepository
-import testkit.{ ExtendedTimeout, MockitoSugar, UnitWithAppSpec }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito._
+import testkit.ScalaMockUnitSpec
+import testkit.ScalaMockImplicits._
+import reactivemongo.bson.{ BSONArray, BSONDocument }
+import repositories.SchemeRepositoryImpl
 import repositories.application.GeneralApplicationRepository
+import repositories.BSONDateTimeHandler
 
-import scala.collection.JavaConversions._
 import scala.concurrent.Future
 
-class ApplicationSiftServiceSpec extends UnitWithAppSpec with ExtendedTimeout with MockitoSugar {
+class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
 
-  "An ApplicationSiftService.progressApplicationToSift" should {
-    case class TestApplicationSiftService(siftRepository: ApplicationSiftRepository, appRepo: GeneralApplicationRepository)
-      extends ApplicationSiftService {
-      override def applicationSiftRepo: ApplicationSiftRepository = siftRepository
-      override def applicationRepo: GeneralApplicationRepository = appRepo
+  trait TestFixture  {
+    val appId = "applicationId"
+    val mockAppRepo = mock[GeneralApplicationRepository]
+    val mockSiftRepo = mock[ApplicationSiftRepository]
+    val mockSchemeRepo = new SchemeRepositoryImpl {
+      override lazy val schemes: Seq[Scheme] = Seq(
+        Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
+          siftEvaluationRequired = true
+        ),
+        Scheme("International", "INT", "International", civilServantEligible = false, None, Some(SiftRequirement.FORM),
+          siftEvaluationRequired = true
+        ),
+        Scheme("Commercial", "GCS", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
+          siftEvaluationRequired = true
+        )
+      )
+
+      override def siftableSchemeIds: Seq[SchemeId] = Seq(SchemeId("International"), SchemeId("Commercial"))
     }
 
-    val mockAppRepo = mock[GeneralApplicationRepository]
-    when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(Future.successful())
+    val service = new ApplicationSiftService {
+      def applicationSiftRepo: ApplicationSiftRepository = mockSiftRepo
+      def applicationRepo: GeneralApplicationRepository = mockAppRepo
+      def schemeRepo: SchemeRepositoryImpl = mockSchemeRepo
+      def dateTimeFactory = DateTimeFactoryMock
+    }
 
 
-    "progress all applications regardless of failures" in {
-      val mockRepo = mock[ApplicationSiftRepository]
-      val mockAppRepo = mock[GeneralApplicationRepository]
+  }
 
+  trait SiftUpdateTest extends TestFixture {
+    val progressStatusUpdateBson = BSONDocument(
+      "$set" -> BSONDocument(
+        s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
+        s"progress-status-timestamp.${ProgressStatuses.SIFT_COMPLETED}" ->
+          BSONDateTimeHandler.write(DateTimeFactoryMock.nowLocalTimeZone)
+      )
+    )
+
+    def currentSchemeUpdateBson(schemeResult: SchemeEvaluationResult*) = BSONDocument(
+        "currentSchemeStatus" -> schemeResult.map { s =>
+          BSONDocument("schemeId" -> s.schemeId.value, "result" -> s.result)
+        }
+      )
+
+    val schemeSiftResult = SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString)
+    val queryBson = BSONDocument("applicationId" -> appId)
+    val updateBson = BSONDocument("test" -> "test")
+    (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
+    (mockSiftRepo.siftApplicationForSchemeBSON _).expects(appId, schemeSiftResult).returning((queryBson, updateBson))
+  }
+
+
+  "An ApplicationSiftService.progressApplicationToSift" must {
+
+    "progress all applications regardless of failures" in new TestFixture {
       val applicationsToProgressToSift = List(
-        ApplicationForSift("appId1", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some(""))),
-        ApplicationForSift("appId2", PassmarkEvaluation("", Some(""),
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some(""))),
-        ApplicationForSift("appId3", PassmarkEvaluation("", Some(""),
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)), "", Some(""))))
+        ApplicationForSift("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
+        ApplicationForSift("appId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString))),
+        ApplicationForSift("appId3",ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
+      )
 
-      when(mockRepo.nextApplicationsForSiftStage(any[Int])).thenReturn(Future.successful{ applicationsToProgressToSift })
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId2", ProgressStatuses.SIFT_ENTERED)
+        .returning(Future.failed(new Exception))
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId3", ProgressStatuses.SIFT_READY).returningAsync
 
-      when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus]))
-        .thenReturn(Future.successful())
-        .thenReturn(Future.failed(new Exception))
-        .thenReturn(Future.successful())
-
-
-      whenReady(TestApplicationSiftService(mockRepo, mockAppRepo).progressApplicationToSiftStage(applicationsToProgressToSift)) { results =>
+      whenReady(service.progressApplicationToSiftStage(applicationsToProgressToSift)) { results =>
 
         val failedApplications = Seq(applicationsToProgressToSift(1))
-        val passedApplications = Seq(applicationsToProgressToSift(0), applicationsToProgressToSift(2))
+        val passedApplications = Seq(applicationsToProgressToSift.head, applicationsToProgressToSift(2))
         results mustBe SerialUpdateResult(failedApplications, passedApplications)
-
-        val argCaptor = ArgumentCaptor.forClass(classOf[String])
-
-        verify(mockAppRepo, times(3)).addProgressStatusAndUpdateAppStatus(argCaptor.capture(), eqTo(ProgressStatuses.ALL_SCHEMES_SIFT_ENTERED))
-
-        val consecutiveArguments = argCaptor.getAllValues
-        consecutiveArguments.toSet mustBe applicationsToProgressToSift.map(_.applicationId).toSet
       }
     }
 
-    "find relevant applications for scheme sifting" in {
-      val mockRepo = mock[ApplicationSiftRepository]
-
+    "find relevant applications for scheme sifting" in new TestFixture {
       val candidates = Seq(Candidate("userId1", Some("appId1"), Some(""), Some(""), Some(""), Some(""), Some(LocalDate.now), Some(Address("")),
         Some("E1 7UA"), Some("UK"), Some(ApplicationRoute.Faststream), Some("")))
 
-      when(mockRepo.findApplicationsReadyForSchemeSift(any[SchemeId])).thenReturn(Future.successful { candidates })
+      (mockSiftRepo.findApplicationsReadyForSchemeSift _).expects(*).returningAsync(candidates)
 
-      whenReady(TestApplicationSiftService(mockRepo, mockAppRepo).findApplicationsReadyForSchemeSift(SchemeId("scheme1"))) { result =>
+      whenReady(service.findApplicationsReadyForSchemeSift(SchemeId("scheme1"))) { result =>
         result mustBe candidates
       }
+    }
+
+    "sift and update progress status for a candidate" in new SiftUpdateTest {
+      val expectedUpdateBson = Seq(
+        updateBson,
+        BSONDocument("$set" -> currentSchemeUpdateBson(schemeSiftResult)),
+        progressStatusUpdateBson
+      ).foldLeft(BSONDocument.empty)(_ ++ _)
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
+        SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString)
+      ))
+      (mockSiftRepo.update _).expects("applicationId", queryBson, expectedUpdateBson, *).returningAsync
+
+      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+    }
+
+     "sift a candidate with remaining schemes to sift" in new SiftUpdateTest {
+       val currentStatus = Seq(
+        SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+      )
+      val expectedUpdateBson = Seq(
+        updateBson,
+        BSONDocument("$set" -> currentSchemeUpdateBson(currentStatus:_*))
+      ).foldLeft(BSONDocument.empty)(_ ++ _)
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(currentStatus)
+      (mockSiftRepo.update _).expects("applicationId", queryBson, expectedUpdateBson, *).returningAsync
+
+      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }
   }
 }

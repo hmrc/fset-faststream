@@ -31,6 +31,35 @@
   description: PDFS FSB
   location: London
   venue: LONDON_FSAC
+  date: 2017-08-02
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 12:00
+  endTime: 18:00
+  skillRequirements:
+    ASSESSOR: 6
+    CHAIR: 3
+    DEPARTMENTAL_ASSESSOR: 3
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: AM
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 09:00
+      endTime: 13:00
+    - description: PM
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 13:00
+      endTime: 17:00
+- eventType: FSAC
+  description: PDFS FSB
+  location: London
+  venue: LONDON_FSAC
   date: 2017-04-03
   capacity: 36
   minViableAttendees: 12

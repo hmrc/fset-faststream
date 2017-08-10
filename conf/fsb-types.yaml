@@ -10,9 +10,9 @@
 - key: EAC
   schemeId: GovernmentEconomicsService
   schemeCode: GES
-- key: EAC-DS
+- key: EAC_DS
   schemeId: GovernmentEconomicsServiceDiplomaticService
-  schemeCode: GES-DS
+  schemeCode: GES_DS
 - key: GOV COMS
   schemeId: GovernmentCommunicationService
   schemeCode: GCFS

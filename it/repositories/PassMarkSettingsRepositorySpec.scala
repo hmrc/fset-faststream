@@ -29,7 +29,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase1PassMarkSettings
   type U = Phase1PassMark
-  implicit val formatter = Phase1PassMarkSettings.phase1PassMarkSettingsFormat
+  implicit val formatter = Phase1PassMarkSettings.jsonFormat
   val phase1PassMarkThresholds = Phase1PassMarkThresholds(PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d))
   val phase1PassMarks = List(Phase1PassMark(SchemeId("Finance"), phase1PassMarkThresholds))
   val passMarkSettings = Phase1PassMarkSettings(phase1PassMarks, version, createdDate, createdByUser)
@@ -47,7 +47,7 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase2PassMarkSettings
   type U = Phase2PassMark
-  implicit val formatter = Phase2PassMarkSettings.phase2PassMarkSettingsFormat
+  implicit val formatter = Phase2PassMarkSettings.jsonFormat
   val phase2PassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(20d, 80d))
   val phase2PassMarks = List(Phase2PassMark(SchemeId("Finance"), phase2PassMarkThresholds))
   val passMarkSettings = Phase2PassMarkSettings(phase2PassMarks, version, createdDate, createdByUser)
@@ -65,7 +65,7 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase3PassMarkSettings
   type U = Phase3PassMark
-  implicit val formatter = Phase3PassMarkSettings.phase3PassMarkSettingsFormat
+  implicit val formatter = Phase3PassMarkSettings.jsonFormat
   val phase3PassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(20d, 80d))
   val phase3PassMarks = List(Phase3PassMark(SchemeId("Finance"), phase3PassMarkThresholds))
   val passMarkSettings = Phase3PassMarkSettings(phase3PassMarks, version, createdDate, createdByUser)
@@ -76,6 +76,27 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 
   override def copyNewPassMarkSettings(o: Phase3PassMarkSettings, newPassMarks: List[Phase3PassMark], newVersion: String, newDate:
   DateTime, newUser: String): Phase3PassMarkSettings = {
+    o.copy(schemes = newPassMarks, newVersion, DateTime.now().plusDays(1), createdByUser)
+  }
+}
+
+class AssessmentCentrePassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
+  type T = AssessmentCentrePassMarkSettings
+  type U = AssessmentCentrePassMark
+  implicit val formatter = AssessmentCentrePassMarkSettings.jsonFormat
+  val assessmentCentrePassMarkThresholds = AssessmentCentrePassMarkThresholds(PassMarkThreshold(20d, 80d))
+  val assessmentCentrePassMarks = List(AssessmentCentrePassMark(SchemeId("Finance"), assessmentCentrePassMarkThresholds))
+  val passMarkSettings = AssessmentCentrePassMarkSettings(assessmentCentrePassMarks, version, createdDate, createdByUser)
+  val newPassMarkThresholds = AssessmentCentrePassMarkThresholds(PassMarkThreshold(30d, 80d))
+  val newPassMarks = List(AssessmentCentrePassMark(SchemeId("Finance"), newPassMarkThresholds))
+  def passMarkSettingsRepo = assessmentCentrePassMarkSettingsRepository
+  val collectionName = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS
+
+  override def copyNewPassMarkSettings(o: AssessmentCentrePassMarkSettings,
+                                       newPassMarks: List[AssessmentCentrePassMark],
+                                       newVersion: String,
+                                       newDate:
+  DateTime, newUser: String): AssessmentCentrePassMarkSettings = {
     o.copy(schemes = newPassMarks, newVersion, DateTime.now().plusDays(1), createdByUser)
   }
 }
@@ -97,7 +118,7 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
   val createdByUser = "user-1"
 
   "Pass-mark-settings collection" should {
-    "create indicies for the repository" in {
+    "create indexes for the repository" in {
       val indexes = indexesWithFields(passMarkSettingsRepo.asInstanceOf[ReactiveRepository[_, _]])
       indexes must contain (List("_id"))
       indexes must contain (List("createDate"))

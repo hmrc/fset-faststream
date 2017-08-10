@@ -45,7 +45,7 @@ trait FsbTestGroupService {
     fsbTestGroupRepository.save(applicationResult.applicationId, schemeEvaluationResult)
   }
 
-  def findByFsbType(applicationIds: List[String], fsbType: Option[String]): Future[List[FsbSchemeResult]] = {
+  def findByApplicationIdsAndFsbType(applicationIds: List[String], fsbType: Option[String]): Future[List[FsbSchemeResult]] = {
     val eventualMayBeSchemeId = for {
       fsbTypes <- eventsService.getFsbTypes
       fsb <- Future(fsbTypes.find(f => fsbType.contains(f.key)))
@@ -53,11 +53,11 @@ trait FsbTestGroupService {
     } yield schemeId
 
     eventualMayBeSchemeId.flatMap { mayBeSchemeId =>
-      findByScheme(applicationIds, mayBeSchemeId)
+      findByApplicationIdsAndScheme(applicationIds, mayBeSchemeId)
     }
   }
 
-  def findByScheme(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
+  def findByApplicationIdsAndScheme(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
     fsbTestGroupRepository.findByApplicationIds(applicationIds, schemeId)
   }
 

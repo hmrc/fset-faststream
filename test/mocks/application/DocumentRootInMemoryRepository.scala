@@ -19,7 +19,7 @@ package mocks.application
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.Commands._
-import model.EvaluationResults.AssessmentRuleCategoryResult
+import model.EvaluationResults.AssessmentEvaluationResult
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.OnlineTestApplication
 import model.exchange.CandidatesEligibleForEventResponse
@@ -133,7 +133,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]] = ???
 
-  def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String, evaluationResult: AssessmentRuleCategoryResult,
+  def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String, evaluationResult: AssessmentEvaluationResult,
     newApplicationStatus: ApplicationStatus): Future[Unit] = ???
 
   def addProgressStatusAndUpdateAppStatus(appId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = ???
@@ -155,4 +155,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def resetApplicationAllocationStatus(applicationId: String): Future[Unit] = ???
 
   override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = ???
+
+  override def setFailedToAttendAssessmentStatus(applicationId: String): Future[Unit] = ???
+
+  override def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = ???
 }

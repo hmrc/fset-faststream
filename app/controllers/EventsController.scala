@@ -16,18 +16,18 @@
 
 package controllers
 
-import model.Commands.Implicits._
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
+import model.persisted.eventschedules
 import model.{ command, exchange }
 import model.exchange.{ AssessorAllocations, Event => ExchangeEvent }
-import model.persisted.CandidateAllocation
-import model.persisted.eventschedules.{ Event, EventType }
 import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.{ Event, EventType }
+import model.{ command, exchange }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import repositories.application.GeneralApplicationRepository
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
-import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
+import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -37,7 +37,6 @@ object EventsController extends EventsController {
   val eventsService: EventsService = EventsService
   val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
   val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
-  val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
   val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
 }
 
@@ -46,7 +45,6 @@ trait EventsController extends BaseController {
   def locationsAndVenuesRepository: LocationsWithVenuesRepository
   def assessorAllocationService: AssessorAllocationService
   def applicationRepository: GeneralApplicationRepository
-  def candidateAllocationService: CandidateAllocationService
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
@@ -95,6 +93,13 @@ trait EventsController extends BaseController {
     }
   }
 
+  def getAssessorAllocation(eventId: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.getAllocation(eventId, userId).map {
+      case Some(allocation) => Ok(Json.toJson(allocation))
+      case None => NotFound
+    }
+  }
+
   def allocateAssessor(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.AssessorAllocations] { assessorAllocations =>
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
@@ -112,31 +117,5 @@ trait EventsController extends BaseController {
       }
     }
   }
-  def allocateCandidates(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
-      val newAllocations = command.CandidateAllocations.fromExchange(eventId, sessionId, candidateAllocations)
-      candidateAllocationService.allocateCandidates(newAllocations).map {
-        _ => Ok
-      }.recover {
-        case e: OptimisticLockException => Conflict(e.getMessage)
-      }
-    }
-  }
 
-  def getCandidateAllocations(eventId: String, sessionId: String): Action[AnyContent] = Action.async { implicit request =>
-    candidateAllocationService.getCandidateAllocations(eventId, sessionId).map { allocations =>
-      if (allocations.allocations.isEmpty) {
-        NotFound
-      } else {
-        Ok(Json.toJson(allocations))
-      }
-    }
-  }
-
-  def removeCandidateAllocations(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[exchange.CandidateAllocations] { candidateAllocs =>
-      val allocations = CandidateAllocation.fromExchange(candidateAllocs, eventId, sessionId).toList
-      candidateAllocationService.unAllocateCandidates(allocations).map( _ => Ok)
-    }
-  }
 }

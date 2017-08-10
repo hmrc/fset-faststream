@@ -25,8 +25,11 @@ import reactivemongo.bson.Macros
 
 trait Allocation {
   def id: String
+
   def eventId: String
+
   def status: AllocationStatus
+
   def version: String
 }
 
@@ -52,7 +55,8 @@ case class CandidateAllocation(
   eventId: String,
   sessionId: String,
   status: AllocationStatus,
-  version: String
+  version: String,
+  removeReason: Option[String]
 ) extends Allocation
 
 object CandidateAllocation {
@@ -67,20 +71,21 @@ object CandidateAllocation {
         eventId = allocations.eventId,
         sessionId = allocations.sessionId,
         status = allocation.status,
-        version = opLockVersion
+        version = opLockVersion,
+        removeReason = None
       )
     }
   }
 
-  def fromExchange(o: model.exchange.CandidateAllocations, eventId: String, sessionId: String) : Seq[CandidateAllocation] = {
+  def fromExchange(o: model.exchange.CandidateAllocations, eventId: String, sessionId: String): Seq[CandidateAllocation] = {
     o.allocations.map { a =>
       CandidateAllocation(
         id = a.id,
         eventId = eventId,
         sessionId = sessionId,
         status = a.status,
-        version = o.version.getOrElse(UUIDFactory.generateUUID())
-      )
+        version = o.version.getOrElse(UUIDFactory.generateUUID()),
+        removeReason = a.removeReason)
     }
   }
 }

@@ -20,9 +20,11 @@ import connectors.{ AuthProviderClient, EmailClient }
 import connectors.ExchangeObjects.Candidate
 import model.{ AllocationStatuses, CandidateExamples, persisted }
 import model.command.{ CandidateAllocation, CandidateAllocations }
+import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
 import model.persisted._
+import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
-import org.joda.time.{ LocalDate, LocalTime }
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ when, _ }
 import org.mockito.stubbing.OngoingStubbing
@@ -47,12 +49,14 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       val appId = "app1"
       val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
 
-      when(mockEventsService.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1))
-      when(mockCandidateAllocationRepository.allocationsForSession(eventId, sessionId)).thenReturn(Future.successful(Nil))
-      when(mockAppRepo.find(appId)).thenReturn(Future.successful(None))
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(Nil)
+      when(mockAppRepo.find(appId)).thenReturnAsync(None)
       service.allocateCandidates(candidateAllocations)
     }
+  }
 
+  "Unallocate candidate" must {
     "unallocate candidates" in new TestFixture {
       val eventId = "E1"
       val sessionId = "S1"
@@ -62,21 +66,54 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       val persistedAllocations: Seq[persisted.CandidateAllocation] = model.persisted.CandidateAllocation.fromCommand(candidateAllocations)
       val allocation: persisted.CandidateAllocation = persistedAllocations.head
 
-      when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation]))
-        .thenReturn(Future.successful(()))
-      when(mockAppRepo.resetApplicationAllocationStatus(any[String]))
-        .thenReturn(Future.successful(()))
+      when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation])).thenReturnAsync()
+      when(mockAppRepo.resetApplicationAllocationStatus(any[String])).thenReturnAsync()
 
-      when(mockEventsService.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1))
-      when(mockAppRepo.find(List(appId))).thenReturn(Future.successful(CandidateExamples.NewCandidates))
-      when(mockPersonalDetailsRepo.find(any[String])).thenReturn(Future.successful(PersonalDetailsExamples.JohnDoe))
-      when(mockContactDetailsRepo.find(any[String])).thenReturn(Future.successful(ContactDetailsExamples.ContactDetailsUK))
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockAppRepo.find(List(appId))).thenReturnAsync(CandidateExamples.NewCandidates)
+      when(mockPersonalDetailsRepo.find(any[String])).thenReturnAsync(PersonalDetailsExamples.JohnDoe)
+      when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(ContactDetailsExamples.ContactDetailsUK)
 
       service.unAllocateCandidates(persistedAllocations.toList).futureValue
 
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
       verify(mockAppRepo).resetApplicationAllocationStatus(any[String])
       verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
+    }
+  }
+
+  "find eligible candidates" must {
+    "return all candidates except no-shows" in new TestFixture {
+
+      private val c1 = CandidateEligibleForEvent("app1", "", "", true, DateTime.now())
+      private val c2 = CandidateEligibleForEvent("app2", "", "", true, DateTime.now())
+      private val loc = "London"
+
+      val res = CandidatesEligibleForEventResponse(List(c1, c2), 2)
+      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc))).thenReturnAsync(res)
+
+      service.findCandidatesEligibleForEventAllocation(loc).futureValue mustBe res
+    }
+  }
+
+  "get sessions for application" must {
+    "get list of events with sessions only that the application is a part of" in new TestFixture {
+      when(mockCandidateAllocationRepository.allocationsForApplication(any[String]())).thenReturnAsync(
+        Seq(
+          model.persisted.CandidateAllocation(
+            "appId1", EventExamples.e1.id, EventExamples.e1Session1Id, AllocationStatuses.UNCONFIRMED, "version1", None
+          )
+        )
+      )
+
+      when(mockEventsService.getEvents(any[List[String]](), any[EventType]())).thenReturnAsync(
+        List(EventExamples.e1WithSessions)
+      )
+
+      service.getSessionsForApplication("appId1", EventType.FSAC).futureValue mustBe List(
+        EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
+      )
+
     }
   }
 

@@ -21,6 +21,7 @@ import java.util.regex.Pattern
 
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
 import config.CubiksGatewayConfig
+import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Commands._
@@ -132,14 +133,19 @@ trait GeneralApplicationRepository {
 
   def resetApplicationAllocationStatus(applicationId: String): Future[Unit]
 
+  def setFailedToAttendAssessmentStatus(applicationId: String): Future[Unit]
+
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
 
-  }
+  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
+}
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
-class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
-                                        gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
+class GeneralApplicationMongoRepository(
+  val dateTimeFactory: DateTimeFactory,
+  gatewayConfig: CubiksGatewayConfig
+)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
@@ -180,6 +186,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       case None => throw ApplicationNotFound(applicationId)
     }
   }
+  
+  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
+    collection.find(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument("_id" -> 0, "currentSchemeStatus" -> 1)
+    ).one[BSONDocument].map(_.flatMap{ doc =>
+      doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus")
+    }.getOrElse(Nil))
+  }
 
   def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -191,6 +206,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "submissionDeadline" -> 1,
       "_id" -> 0
     )
+
+
 
     def progressStatusDateFallback(applicationStatus: ApplicationStatus, document: BSONDocument) = {
       document.getAs[BSONDocument]("progress-status-dates")
@@ -958,15 +975,27 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def resetApplicationAllocationStatus(applicationId: String): Future[Unit] = {
+    replaceAllocationStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+  }
+
+  override def setFailedToAttendAssessmentStatus(applicationId: String): Future[Unit] = {
+    replaceAllocationStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
+  }
+
+  import ProgressStatuses._
+  private val progressStatuses = List(
+    ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+    ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+    ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+    ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
+
+  private def replaceAllocationStatus(applicationId: String, newStatus: ProgressStatuses.ProgressStatus) = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val progressStatuses = List(
-      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
-      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED)
-    val statusesToRemove = progressStatuses.map(p => s"progress-status.${p.key}" -> BSONString(""))
+    val statusesToRemove = progressStatuses.filter(_ != newStatus).map(p => s"progress-status.${p.key}" -> BSONString(""))
 
     val updateQuery = BSONDocument(
       "$unset" -> BSONDocument(statusesToRemove),
-      "$set" -> BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key}" -> true)
+      "$set" -> BSONDocument(s"progress-status.${newStatus.key}" -> true)
     )
     collection.update(query, updateQuery).map(_ => ())
   }

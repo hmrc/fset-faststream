@@ -18,17 +18,15 @@ package repositories.application
 
 import model.{ ApplicationRoute, SchemeId }
 import model.ApplicationRoute._
-import model.ApplicationStatus.{ apply => _, _ }
-import model.CivilServiceExperienceType.{ apply => _ }
+import model.ApplicationStatus.ApplicationStatus
 import model.Commands.{ CandidateScoresSummary, PersonalInfo, SchemeEvaluation, _ }
 import model.EvaluationResults.Result
-import model.InternshipType.{ apply => _ }
 import model.persisted._
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.LocalDate
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
 
-trait GeneralApplicationRepoBSONReader extends CommonBSONDocuments {
+trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
 
   implicit val toApplicationForNotification: BSONDocumentReader[ApplicationForNotification] = bsonReader {
     (doc: BSONDocument) => {
