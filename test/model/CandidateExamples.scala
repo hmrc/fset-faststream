@@ -16,7 +16,7 @@
 
 package model
 
-import model.Commands.Candidate
+import model.Candidate
 
 object CandidateExamples {
   def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
