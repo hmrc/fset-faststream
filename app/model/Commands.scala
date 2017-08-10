@@ -37,81 +37,19 @@ object Commands {
   type PhoneNumber = String
   type IsNonSubmitted = Boolean
 
-  //  questionnaire
-  case class Answer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
-
-  case class Question(question: String, answer: Answer)
-
-  case class Questionnaire(questions: List[Question])
-
-  case class PreviewRequest(flag: Boolean)
-
-  case class OverrideSubmissionDeadlineRequest(submissionDeadline: DateTime)
-
-  case class SearchCandidate(firstOrPreferredName: Option[String], lastName: Option[String], dateOfBirth: Option[LocalDate], postCode: Option[PostCode])
-
-  case class Candidate(userId: String, applicationId: Option[String], email: Option[String], firstName: Option[String], lastName: Option[String],
-                       preferredName: Option[String], dateOfBirth: Option[LocalDate], address: Option[Address], postCode: Option[PostCode],
-                       country: Option[String], applicationRoute: Option[ApplicationRoute], applicationStatus: Option[String]) {
-
-    def name: String = preferredName.getOrElse(firstName.getOrElse(""))
-  }
-  object Candidate {
-    implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate]
-  }
-
-  case class ApplicationAssessment(applicationId: String, venue: String, date: LocalDate, session: String, slot: Int, confirmed: Boolean) {
-    val assessmentDateTime: DateTime = {
-      // TODO This should be configurable in the future, but hardcoding it in the fasttrack service is the lesser of the evils at the moment
-      // FSET-471 was an emergency last minute fix
-      if (venue == "Manchester" || venue == "London (Berkeley House)") {
-        if (session == "AM") {
-          date.toLocalDateTime(new LocalTime(9, 0)).toDateTime
-        } else {
-          date.toLocalDateTime(new LocalTime(13, 0)).toDateTime
-        }
-      } else {
-        if (session == "AM") {
-          date.toLocalDateTime(new LocalTime(8, 30)).toDateTime
-        } else {
-          date.toLocalDateTime(new LocalTime(12, 30)).toDateTime
-        }
-      }
-    }
-
-    // If a candidate is allocated at DD/MM/YYYY, the deadline for the candidate to confirm is 10 days.
-    // Because we don't store the time it means we need to set DD-11/MM/YYY, and remember that there is
-    // an implicit time 23:59:59 after which the allocation expires.
-    // After DD-11/MM/YYYY the allocation is expired.
-    // For Example:
-    // - The candidate is scheduled on 25/05/2016.
-    // - It means the deadline is 14/05/2016 23:59:59
-    def expireDate: LocalDate = date.minusDays(11)
-  }
-
-  object ApplicationAssessment { implicit val applicationAssessmentFormat: OFormat[ApplicationAssessment] = Json.format[ApplicationAssessment] }
-
   object Implicits {
     implicit val addressFormat: OFormat[Address] = Json.format[Address]
 
     implicit val personalDetailsAddedFormat: OFormat[PersonalDetailsAdded] = Json.format[PersonalDetailsAdded]
 
-    implicit val answerFormat: OFormat[Answer] = Json.format[Answer]
-    implicit val questionFormat: OFormat[Question] = Json.format[Question]
-    implicit val questionnaireFormat: OFormat[Questionnaire] = Json.format[Questionnaire]
-    implicit val previewFormat: OFormat[PreviewRequest] = Json.format[PreviewRequest]
-
-    implicit val submissionDeadlineFormat: OFormat[OverrideSubmissionDeadlineRequest] = Json.format[OverrideSubmissionDeadlineRequest]
-
     implicit val tooManyEntriesFormat: OFormat[TooManyEntries] = Json.format[TooManyEntries]
     implicit val noResultsReturnedFormat: OFormat[NoResultsReturned] = Json.format[NoResultsReturned]
 
-    implicit val searchCandidateFormat: OFormat[SearchCandidate] = Json.format[SearchCandidate]
+
     implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate]
     implicit val preferencesWithContactDetailsFormat: OFormat[PreferencesWithContactDetails] = Json.format[PreferencesWithContactDetails]
 
-    implicit def fromCommandToPersistedQuestion(q: Question): QuestionnaireQuestion =
-      QuestionnaireQuestion(q.question, QuestionnaireAnswer(q.answer.answer, q.answer.otherDetails, q.answer.unknown))
+
 
     implicit val onlineTestDetailsFormat: OFormat[OnlineTestDetails] = Json.format[OnlineTestDetails]
     implicit val onlineTestFormat: OFormat[OnlineTest] = Json.format[OnlineTest]

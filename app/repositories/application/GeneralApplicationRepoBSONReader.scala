@@ -19,7 +19,7 @@ package repositories.application
 import model.{ ApplicationRoute, SchemeId }
 import model.ApplicationRoute._
 import model.ApplicationStatus.ApplicationStatus
-import model.Commands.Candidate
+import model.Candidate
 import model.EvaluationResults.Result
 import model.persisted._
 import org.joda.time.LocalDate
