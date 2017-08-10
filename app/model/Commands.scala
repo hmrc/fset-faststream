@@ -33,20 +33,8 @@ import model.report.QuestionnaireReportItem
 //scalastyle:off
 object Commands {
 
-  case class CreateApplicationRequest(userId: String, applicationRoute: ApplicationRoute, frameworkId: String)
-
-  case class ApplicationCreated(applicationId: String, applicationStatus: String, userId: String)
-
-  case class PersonalDetailsAdded(applicationId: String, userId: String)
-
   type PostCode = String
   type PhoneNumber = String
-
-  case class Report(applicationId: String, progress: Option[String], firstLocation: Option[String],
-                    firstLocationFirstScheme: Option[String], firstLocationSecondScheme: Option[String], secondLocation: Option[String],
-                    secondLocationFirstScheme: Option[String], secondLocationSecondScheme: Option[String], alevels: Option[String],
-                    stemlevels: Option[String], alternativeLocation: Option[String], alternativeScheme: Option[String], hasDisability: Option[String],
-                    hasAdjustments: Option[String], guaranteedInterview: Option[String], issue: Option[String])
 
   case class ReportWithPersonalDetails(applicationId: String, userId: String, progress: Option[String], firstLocation: Option[String],
                                        firstLocationFirstScheme: Option[String], firstLocationSecondScheme: Option[String], secondLocation: Option[String],
@@ -213,7 +201,6 @@ object Commands {
     implicit val applicationAddedFormat: OFormat[ApplicationResponse] = Json.format[ApplicationResponse]
     implicit val passMarkSettingsCreateResponseFormat: OFormat[PassMarkSettingsCreateResponse] = Json.format[PassMarkSettingsCreateResponse]
     implicit val personalDetailsAddedFormat: OFormat[PersonalDetailsAdded] = Json.format[PersonalDetailsAdded]
-    implicit val createApplicationRequestFormat: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
 
     implicit val answerFormat: OFormat[Answer] = Json.format[Answer]
     implicit val questionFormat: OFormat[Question] = Json.format[Question]
@@ -227,7 +214,6 @@ object Commands {
 
     implicit val searchCandidateFormat: OFormat[SearchCandidate] = Json.format[SearchCandidate]
     implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate]
-    implicit val reportFormat: OFormat[Report] = Json.format[Report]
     implicit val preferencesWithContactDetailsFormat: OFormat[PreferencesWithContactDetails] = Json.format[PreferencesWithContactDetails]
 
     implicit def fromCommandToPersistedQuestion(q: Question): QuestionnaireQuestion =

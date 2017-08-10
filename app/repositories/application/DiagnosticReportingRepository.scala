@@ -16,8 +16,7 @@
 
 package repositories.application
 
-import model.Commands
-import model.Commands.CreateApplicationRequest
+import model.{ Commands, CreateApplicationRequest }
 import model.Exceptions.ApplicationNotFound
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{ JsObject, JsValue, Json }
@@ -37,7 +36,7 @@ trait DiagnosticReportingRepository {
 
 class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
+    CreateApplicationRequest.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
 
   private val defaultExclusions = Json.obj(
     "_id" -> 0,

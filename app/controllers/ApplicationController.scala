@@ -21,7 +21,7 @@ import java.nio.file.Files
 import akka.stream.scaladsl.Source
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
-import model.ProgressStatuses
+import model.{ CreateApplicationRequest, ProgressStatuses }
 import model.command.WithdrawApplication
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams

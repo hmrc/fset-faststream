@@ -147,7 +147,7 @@ class GeneralApplicationMongoRepository(
   gatewayConfig: CubiksGatewayConfig
 )(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Commands.Implicits.createApplicationRequestFormat,
+    CreateApplicationRequest.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers {
 
@@ -186,7 +186,7 @@ class GeneralApplicationMongoRepository(
       case None => throw ApplicationNotFound(applicationId)
     }
   }
-  
+
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
     collection.find(
       BSONDocument("applicationId" -> applicationId),

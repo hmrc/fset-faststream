@@ -19,7 +19,6 @@ package repositories.sift
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Commands.Candidate
-import model.Commands.Implicits.createApplicationRequestFormat
 import model.EvaluationResults.Green
 import model.Exceptions.ApplicationNotFound
 import model.command.ApplicationForSift
