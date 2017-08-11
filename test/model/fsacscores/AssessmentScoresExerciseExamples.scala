@@ -46,6 +46,7 @@ object AssessmentScoresExerciseExamples {
       otherScore, otherScore, otherScore, otherScore,
       updatedBy,
       Some(dateTimeNow),
+      Some(dateTimeNow),
       Some("version1")
     )
   }
