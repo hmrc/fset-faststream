@@ -79,7 +79,8 @@ class EventsMongoRepository(implicit mongo: () => DB)
 
   def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]] = {
     val query = List(
-      buildEventTypeFilter(eventType)
+      buildEventTypeFilter(eventType),
+      Option(BSONDocument("id" -> BSONDocument("$in" -> eventIds)))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query).cursor[Event]().collect[List]()
