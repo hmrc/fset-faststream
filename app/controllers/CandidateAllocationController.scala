@@ -36,10 +36,10 @@ trait CandidateAllocationController extends BaseController {
 
   def candidateAllocationService: CandidateAllocationService
 
-  def allocateCandidates(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def allocateCandidates(eventId: String, sessionId: String, append: Boolean): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
       val newAllocations = command.CandidateAllocations.fromExchange(eventId, sessionId, candidateAllocations)
-      candidateAllocationService.allocateCandidates(newAllocations).map {
+      candidateAllocationService.allocateCandidates(newAllocations, append).map {
         _ => Ok
       }.recover {
         case e: OptimisticLockException => Conflict(e.getMessage)
