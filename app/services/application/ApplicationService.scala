@@ -20,7 +20,7 @@ import common.FutureEx
 import connectors.ExchangeObjects
 import model.Commands.Candidate
 import model.EvaluationResults.Green
-import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
+import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
 import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
@@ -70,15 +70,27 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   val Candidate_Role = "Candidate"
 
   def withdraw(applicationId: String, withdrawRequest: WithdrawRequest)
-    (implicit hc: HeaderCarrier, rh: RequestHeader) = eventSink {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     (for {
+      currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
       candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
       contactDetails <- cdRepository.find(candidate.userId)
-    } yield withdrawRequest match {
-      case withdrawApp: WithdrawApplication => withdrawFromApplication(applicationId, withdrawApp)(candidate, contactDetails)
-      case withdrawScheme: WithdrawScheme => withdrawFromScheme(applicationId, withdrawScheme)
+    } yield {
+      withdrawRequest match {
+        case withdrawApp: WithdrawApplication => withdrawFromApplication(applicationId, withdrawApp)(candidate, contactDetails)
+        case withdrawScheme: WithdrawScheme =>
+          if (withdrawableSchemes(currentSchemeStatus).size == 1) {
+            throw LastSchemeWithdrawException(s"Can't withdraw $applicationId from last scheme ${withdrawScheme.schemeId.value}")
+          } else {
+            withdrawFromScheme(applicationId, withdrawScheme)
+          }
+      }
     }) flatMap  identity
 
+  }
+
+  private def withdrawableSchemes(currentSchemeStatus: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
+    currentSchemeStatus.filterNot(s => s.result == EvaluationResults.Red.toString || s.result == EvaluationResults.Withdrawn.toString)
   }
 
   private def withdrawFromApplication(applicationId: String, withdrawRequest: WithdrawApplication)

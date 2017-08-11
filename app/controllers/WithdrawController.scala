@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.ApplicationNotFound
+import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException }
 import model.command.{ WithdrawApplication, WithdrawScheme }
 import play.api.libs.json.JsValue
 import play.api.mvc.Action
@@ -44,6 +44,7 @@ abstract class WithdrawController(applicationService: ApplicationService) extend
       applicationService.withdraw(applicationId, withdrawRequest).map { _ => Ok }
         .recover {
           case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
+          case e: LastSchemeWithdrawException => BadRequest(e.m)
         }
     }
   }
