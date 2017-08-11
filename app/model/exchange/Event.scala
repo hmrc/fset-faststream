@@ -16,30 +16,32 @@
 
 package model.exchange
 
-import factories.UUIDFactory
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Location, Venue }
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.{ Json, OFormat }
 
-case class Event(eventType: EventType,
-                 description: String,
-                 location: Location,
-                 venue: Venue,
-                 date: LocalDate,
-                 capacity: Int,
-                 minViableAttendees: Int,
-                 attendeeSafetyMargin: Int,
-                 startTime: LocalTime,
-                 endTime: LocalTime,
-                 skillRequirements: Map[String, Int],
-                 sessions: List[Session])
+case class Event(
+  id: String,
+  eventType: EventType,
+  description: String,
+  location: Location,
+  venue: Venue,
+  date: LocalDate,
+  capacity: Int,
+  minViableAttendees: Int,
+  attendeeSafetyMargin: Int,
+  startTime: LocalTime,
+  endTime: LocalTime,
+  skillRequirements: Map[String, Int],
+  sessions: List[Session])
 
 object Event {
   implicit val format: OFormat[Event] = Json.format[Event]
 
   def apply(persistedEvent: model.persisted.eventschedules.Event): Event = {
     new Event(
+      id = persistedEvent.id,
       eventType = persistedEvent.eventType,
       description = persistedEvent.description,
       location = persistedEvent.location,

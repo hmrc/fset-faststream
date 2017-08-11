@@ -20,6 +20,7 @@ import connectors.{ AuthProviderClient, EmailClient }
 import connectors.ExchangeObjects.Candidate
 import model.{ AllocationStatuses, CandidateExamples, persisted }
 import model.command.{ CandidateAllocation, CandidateAllocations }
+import model.exchange.candidateevents.CandidateAllocationWithEvent
 import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
 import model.persisted._
 import model.persisted.eventschedules.EventType.EventType
@@ -111,7 +112,11 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       )
 
       service.getSessionsForApplication("appId1", EventType.FSAC).futureValue mustBe List(
-        EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
+        CandidateAllocationWithEvent("appId1", "version1", AllocationStatuses.UNCONFIRMED,
+          model.exchange.Event(
+            EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
+          )
+        )
       )
 
     }
@@ -122,7 +127,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
     val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
     val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
     val mockPersonalDetailsRepo: PersonalDetailsRepository = mock[PersonalDetailsRepository]
-    val mockContactDetailsRepo: ContactDetailsRepository= mock[ContactDetailsRepository]
+    val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
     val mockEventsService: EventsService = mock[EventsService]
     val mockEmailClient: EmailClient = mock[EmailClient]
     val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
@@ -133,9 +138,13 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       override val applicationRepo: GeneralApplicationRepository = mockAppRepo
       override val personalDetailsRepo: PersonalDetailsRepository = mockPersonalDetailsRepo
       override val contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
+
       override def emailClient: EmailClient = mockEmailClient
+
       override def authProviderClient: AuthProviderClient = mockAuthProviderClient
+
       override val eventService: StcEventService = mockStcEventService
+
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
     }
 
@@ -152,4 +161,5 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       )
     }
   }
+
 }
