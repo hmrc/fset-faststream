@@ -62,6 +62,7 @@ object EvaluationResults {
       case "Red" => Red
       case "Green" => Green
       case "Amber" => Amber
+      case "Withdrawn" => Withdrawn
     }
   }
 
