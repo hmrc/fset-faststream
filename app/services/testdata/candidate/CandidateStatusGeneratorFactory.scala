@@ -27,7 +27,7 @@ import services.testdata.candidate.onlinetests._
 import services.testdata.candidate.onlinetests.phase1._
 import services.testdata.candidate.onlinetests.phase2._
 import services.testdata.candidate.onlinetests.phase3._
-import services.testdata.candidate.sift.{ SiftEnteredStatusGenerator, SiftFormsSubmittedStatusGenerator }
+import services.testdata.candidate.sift.{ SiftCompleteStatusGenerator, SiftEnteredStatusGenerator, SiftFormsSubmittedStatusGenerator }
 
 object AdminStatusGeneratorFactory {
   def getGenerator(createData: CreateAdminData): AdminUserBaseGenerator = {
@@ -126,6 +126,7 @@ object CandidateStatusGeneratorFactory {
 
       case (SIFT, Some(ProgressStatuses.SIFT_ENTERED)) => SiftEnteredStatusGenerator
       case (SIFT, Some(ProgressStatuses.SIFT_READY)) => SiftFormsSubmittedStatusGenerator
+      case (SIFT, Some(ProgressStatuses.SIFT_COMPLETED)) => SiftCompleteStatusGenerator
 
       case (ASSESSMENT_CENTRE, Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)) => AssessmentCentreAwaitingAllocationStatusGenerator
 
