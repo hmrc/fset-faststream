@@ -45,7 +45,7 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     val applicationId = allExercisesScores.applicationId.toString()
     val query = BSONDocument("applicationId" -> applicationId)
     val updateBSON = BSONDocument("$set" -> AssessmentScoresAllExercises.bsonHandler.write(allExercisesScores))
-    val validator = singleUpsertValidator(applicationId, actionDesc = "saving asessment scores")
+    val validator = singleUpsertValidator(applicationId, actionDesc = "saving assessment scores")
     collection.update(query, updateBSON, upsert = true) map validator
   }
 
