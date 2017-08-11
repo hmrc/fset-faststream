@@ -24,7 +24,7 @@ object EvaluationResults {
     def +(that: Result): Result
   }
   case object Green extends Result {
-    def toReportReadableString: String = "Pass"
+    def toReportReadableString: String = PassFail.Pass.toString
 
     def +(that: Result): Result = that match {
       case Green => this
@@ -44,7 +44,7 @@ object EvaluationResults {
     }
   }
   case object Red extends Result {
-    def toReportReadableString: String = "Fail"
+    def toReportReadableString: String = PassFail.Fail.toString
     def +(that: Result): Result = that match {
       case Withdrawn => Withdrawn
       case _ => this
@@ -63,7 +63,17 @@ object EvaluationResults {
       case "Green" => Green
       case "Amber" => Amber
     }
+
+    def fromPassFail(s: String): EvaluationResults.Result = PassFail.withName(s) match {
+      case PassFail.Pass => EvaluationResults.Green
+      case PassFail.Fail => EvaluationResults.Red
+    }
+
   }
+
+ object PassFail extends Enumeration {
+   val Pass, Fail = Value
+ }
 
   @deprecated("This should be deleted", since = "31/07/2017")
   case class RuleCategoryResult(location1Scheme1: Result, location1Scheme2: Option[Result],

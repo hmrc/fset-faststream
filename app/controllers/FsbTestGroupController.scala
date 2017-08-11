@@ -16,6 +16,7 @@
 
 package controllers
 
+import model.Exceptions.SchemeNotFoundException
 import model.exchange.FsbEvaluationResults
 import model.{ EvaluationResults, FsbType, SchemeId }
 import play.api.libs.json.{ JsValue, Json }
@@ -39,16 +40,15 @@ trait FsbTestGroupController extends BaseController {
   def save(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[FsbEvaluationResults] { fsbEvaluationResults =>
       val greenRedResults = fsbEvaluationResults.applicationResults.map { applicationResult =>
-        applicationResult.copy(result = fromPassMark(applicationResult.result).toString)
+        applicationResult.copy(result = EvaluationResults.Result.fromPassFail(applicationResult.result).toString)
       }
-      for {
-        event <- eventsService.getEvent(eventId)
-        fsbTypes <- eventsService.getFsbTypes
-        maybeFsbType <- Future(fsbTypes.find(f => f.key == event.description))
-        fsbType: FsbType = maybeFsbType.getOrElse(throw new Exception(s"FsbType with event description ${event.description} not found"))
-        schemeId = SchemeId(fsbType.schemeId)
-        result <- service.saveResults(schemeId, greenRedResults)
-      } yield Ok
+
+      eventsService.findSchemeByEvent(eventId).flatMap {
+        case Some(scheme) => service.saveResults(scheme.id, greenRedResults)
+        case None => throw new SchemeNotFoundException(s"Event $eventId has no associated Scheme. FsbType mismatch")
+      }
+
+      Future.successful(Ok)
     }
   }
 
@@ -58,9 +58,4 @@ trait FsbTestGroupController extends BaseController {
     }
   }
 
-  private def fromPassMark(s: String): EvaluationResults.Result = s match {
-    case "Pass" => EvaluationResults.Green
-    case "Fail" => EvaluationResults.Red
-    case _ => sys.error(s"Unsupported evaluation result $s for FSB")
-  }
 }

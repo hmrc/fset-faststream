@@ -75,7 +75,7 @@ object Scheme {
   implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
   def apply(id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
-    requiresSift: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean
+            siftRequirement: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean
   ): Scheme =
-    Scheme(SchemeId(id), code, name, civilServantEligible, degree, requiresSift, siftEvaluationRequired)
+    Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, siftEvaluationRequired)
 }

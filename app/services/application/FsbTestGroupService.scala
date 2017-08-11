@@ -16,7 +16,7 @@
 
 package services.application
 
-import model.SchemeId
+import model.{ FsbType, SchemeId }
 import model.exchange.ApplicationResult
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import repositories.application.FsbTestGroupRepository
@@ -36,7 +36,9 @@ trait FsbTestGroupService {
 
   def saveResults(schemeId: SchemeId, applicationResults: List[ApplicationResult]): Future[Unit] = {
     Future.successful(
-      applicationResults.foreach(applicationResult => saveResult(schemeId, applicationResult))
+      applicationResults.foreach { applicationResult =>
+        saveResult(schemeId, applicationResult)
+      }
     )
   }
 
@@ -46,15 +48,12 @@ trait FsbTestGroupService {
   }
 
   def findByApplicationIdsAndFsbType(applicationIds: List[String], fsbType: Option[String]): Future[List[FsbSchemeResult]] = {
-    val eventualMayBeSchemeId = for {
+    for {
       fsbTypes <- eventsService.getFsbTypes
       fsb <- Future(fsbTypes.find(f => fsbType.contains(f.key)))
       schemeId <- Future(fsb.map(f => SchemeId(f.schemeId)))
-    } yield schemeId
-
-    eventualMayBeSchemeId.flatMap { mayBeSchemeId =>
-      findByApplicationIdsAndScheme(applicationIds, mayBeSchemeId)
-    }
+      fsbSchemes <- findByApplicationIdsAndScheme(applicationIds, schemeId)
+    } yield fsbSchemes
   }
 
   def findByApplicationIdsAndScheme(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {

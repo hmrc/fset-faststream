@@ -19,6 +19,7 @@ package repositories.application
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.{ Green, Red }
+import model.Exceptions.AlreadyEvaluatedForSchemeException
 import model.SchemeId
 import model.persisted._
 import reactivemongo.bson.BSONDocument
@@ -60,7 +61,7 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
       val applicationId = createApplication()
       repository.save(applicationId, SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")).futureValue
 
-      intercept[Exception] {
+      intercept[AlreadyEvaluatedForSchemeException] {
         repository.save(applicationId,  SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")).futureValue
       }
     }

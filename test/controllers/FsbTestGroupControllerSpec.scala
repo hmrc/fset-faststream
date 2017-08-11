@@ -16,6 +16,8 @@
 
 package controllers
 
+import model.exchange.{ ApplicationResult, FsbEvaluationResults }
+import model.{ Degree, Scheme, SelectedSchemesExamples }
 import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
@@ -36,7 +38,24 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
   }
 
   "save fsb event evaluation result" should {
-    "return Created when save is successful" in {
+    "return Ok when save is successful" in {
+      val scheme = Scheme(id = "Commercial", code = "CFS", name = "Commercial",
+        civilServantEligible = true,
+        Some(Degree(required = "Degree_22", specificRequirement = false)),
+        siftRequirement = None,
+        siftEvaluationRequired = true)
+
+      when(mockEventsService.findSchemeByEvent("eventId")).thenReturn(Future.successful(Some(scheme)))
+
+      val result = List(
+        ApplicationResult("applicaitonId1", "Pass"),
+        ApplicationResult("applicaitonId2", "Pass")
+      )
+      val results: FsbEvaluationResults = FsbEvaluationResults(result)
+
+      val response = controller.save("eventId", "sessionId")(fakeRequest(results))
+
+      status(response) mustBe OK
     }
   }
 
@@ -44,7 +63,7 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
     "return fsb results for the given applicationIds" in {
       val applicationIds = List("appId1", "appId2")
       when(mockFsbTestGroupService.findByApplicationIdsAndFsbType(applicationIds, None)).thenReturn(Future.successful(List()))
-      val response =  controller.find(applicationIds, None)(fakeRequest)
+      val response = controller.find(applicationIds, None)(fakeRequest)
 
       status(response) mustBe OK
     }

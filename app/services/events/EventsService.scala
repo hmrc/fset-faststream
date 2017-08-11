@@ -17,12 +17,12 @@
 package services.events
 
 import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
-import model.{ AllocationStatuses, FsbType, TelephoneInterviewType, UniqueIdentifier }
+import model._
 import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import play.api.Logger
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
-import repositories.eventsRepository
+import repositories.{ SchemeRepository, SchemeYamlRepository, eventsRepository }
 import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
 
 import scala.concurrent.Future
@@ -33,6 +33,7 @@ object EventsService extends EventsService {
   val eventsConfigRepo = EventsConfigRepository
   val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
   val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
+  val schemeRepo: SchemeRepository = SchemeYamlRepository
 }
 
 trait EventsService {
@@ -41,6 +42,7 @@ trait EventsService {
   def assessorAllocationService: AssessorAllocationService
   def candidateAllocationService: CandidateAllocationService
   def eventsConfigRepo: EventsConfigRepository
+  def schemeRepo: SchemeRepository
 
   def saveAssessmentEvents(): Future[Unit] = {
     eventsConfigRepo.events.flatMap { events =>
@@ -95,4 +97,15 @@ trait EventsService {
   def getFsbTypes: Future[List[FsbType]] = eventsConfigRepo.fsbTypes
 
   def getTelephoneInterviewTypes: Future[List[TelephoneInterviewType]] = eventsConfigRepo.telephoneInterviewTypes
+
+  def findSchemeByEvent(eventId: String): Future[Option[Scheme]] = {
+    for {
+      event <- getEvent(eventId)
+      fsbTypes <- getFsbTypes
+      maybeFsbType <- Future(fsbTypes.find(f => f.key == event.description))
+      fsbType: FsbType = maybeFsbType.getOrElse(throw new Exception(s"FsbType with event description ${event.description} not found"))
+      schemeId = SchemeId(fsbType.schemeId)
+    } yield schemeRepo.getSchemeForId(schemeId)
+  }
+
 }

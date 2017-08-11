@@ -307,7 +307,7 @@
       startTime: 9:00
       endTime: 10:30
 - eventType: FSB
-  description: FRAC
+  description: SRAC
   location: London
   venue: LONDON_FSAC
   date: 2018-03-07
@@ -317,6 +317,7 @@
   startTime: 09:00
   endTime: 12:00
   skillRequirements:
+    ASSESSOR: 1
     CHAIR: 2
     EXERCISE_MARKER: 3
   sessions:
