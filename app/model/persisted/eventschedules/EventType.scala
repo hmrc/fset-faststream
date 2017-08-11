@@ -49,10 +49,12 @@ object EventType extends Enumeration {
   }
 
   implicit class RichEventType(eventType: EventType) {
+
+    def displayValue: String = displayText(eventType)
+
     def applicationStatus: ApplicationStatus.Value = eventType match {
       case EventType.FSAC => ApplicationStatus.ASSESSMENT_CENTRE
       case _ => ApplicationStatus.FSB
     }
   }
-
 }

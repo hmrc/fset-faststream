@@ -34,7 +34,8 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
   "All progress status in the application" should {
     "be mapped to the report labels" in {
       ProgressStatuses.allStatuses
-        .filterNot(_.key.contains("ASSESSMENT")) // TODO: Legacy statuses which should be removed
+        .filterNot(_.key.contains("ASSESSMENT")) // TODO: Legacy statuses which should be removed // btw, it's not legacy anymore
+          .filterNot(_.key.startsWith("FSB")) // TODO: Should FSB go to report ?
         .foreach { progressStatus =>
         val userId = UUID.randomUUID().toString
         val appId = appRepo.create(userId, "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId

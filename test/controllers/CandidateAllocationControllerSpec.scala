@@ -18,6 +18,7 @@ package controllers
 
 import config.TestFixtureBase
 import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
+import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.any
@@ -31,14 +32,20 @@ import testkit.UnitWithAppSpec
 
 class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
 
+
+  private val location = "London"
+  private val eventType = EventType.FSAC
+  private val description = "ORAC"
+
+
   "Find candidates eligible for event allocation" must {
 
     "handle no candidates" in new TestFixture {
-      when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String]))
+      when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String], any[EventType], any[String]))
         .thenReturnAsync(CandidatesEligibleForEventResponse(List.empty, 0))
 
-      val result = controller.findCandidatesEligibleForEventAllocation("London")(
-        findCandidatesEligibleForEventAllocationRequest("london")).run
+      val result = controller.findCandidatesEligibleForEventAllocation(location, eventType, description)(
+        findCandidatesEligibleForEventAllocationRequest(location, eventType, description)).run
       val jsonResponse = contentAsJson(result)
 
       (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List.empty
@@ -50,11 +57,11 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     "handle candidates" in new TestFixture {
       val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
         needsAdjustment = true, dateReady = DateTime.now())
-      when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String]))
+      when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String], any[EventType], any[String]))
         .thenReturnAsync(CandidatesEligibleForEventResponse(List(candidate), 1))
 
-      val result = controller.findCandidatesEligibleForEventAllocation("London")(
-        findCandidatesEligibleForEventAllocationRequest("london")).run
+      val result = controller.findCandidatesEligibleForEventAllocation(location, eventType, description)(
+        findCandidatesEligibleForEventAllocationRequest(location, eventType, description)).run
       val jsonResponse = contentAsJson(result)
 
       (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List(candidate)
@@ -77,8 +84,9 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     }
   }
 
-  def findCandidatesEligibleForEventAllocationRequest(location: String) = {
-    FakeRequest(Helpers.GET, controllers.routes.CandidateAllocationController.findCandidatesEligibleForEventAllocation(location).url,
+  def findCandidatesEligibleForEventAllocationRequest(location: String, eventType: EventType, t: String) = {
+    FakeRequest(Helpers.GET,
+      controllers.routes.CandidateAllocationController.findCandidatesEligibleForEventAllocation(location, eventType, t).url,
       FakeHeaders(), "").withHeaders("Content-Type" -> "application/json")
   }
 
