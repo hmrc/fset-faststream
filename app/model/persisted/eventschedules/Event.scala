@@ -46,7 +46,7 @@ object Event {
 
   def apply(exchangeEvent: ExchangeEvent): Event = {
     new Event(
-      id = UUIDFactory.generateUUID(),
+      id = exchangeEvent.id,
       eventType = exchangeEvent.eventType,
       description = exchangeEvent.description,
       location = exchangeEvent.location,
