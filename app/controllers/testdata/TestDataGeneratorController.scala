@@ -151,7 +151,7 @@ trait TestDataGeneratorController extends BaseController {
       firstName = Some("Admin user 1"),
       lastName = Some("lastname"),
       preferredName = Some("Ad"),
-      role = Some("assessor"),
+      roles = Some(List("assessor")),
       phone = Some("123456789"),
       assessor = Some(AssessorRequest(
         skills = Some(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR")),
@@ -251,16 +251,18 @@ trait TestDataGeneratorController extends BaseController {
     Future.successful(Ok(Json.toJson(List(example1, example2))))
   }
 
-  def createAdmins(numberToGenerate: Int, emailPrefix: Option[String], role: String): Action[AnyContent] = Action.async { implicit request =>
-    try {
-      TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
-        Ok(Json.toJson(candidates))
+  def createAdmins(numberToGenerate: Int, emailPrefix: Option[String], roles: List[String]): Action[AnyContent] =
+    Action.async { implicit request =>
+
+      try {
+        TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, roles.map(AuthProviderClient.getRole)).map { candidates =>
+          Ok(Json.toJson(candidates))
+        }
+      } catch {
+        case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
+          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
       }
-    } catch {
-      case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
-        JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
-  }
 
   def createAdminsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateAdminRequest] { createRequest =>
