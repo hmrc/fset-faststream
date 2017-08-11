@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package model
+package model.exchange.candidateevents
 
-import model.assessmentscores.AssessmentScoresAllExercises
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
+import model.AllocationStatuses.AllocationStatus
 import play.api.libs.json.Json
+import model.exchange.Event
 
-case class AssessmentPassMarksSchemesAndScores(
-  passmark: AssessmentCentrePassMarkSettings,
-  schemes: Seq[SchemeId],
-  scores: AssessmentScoresAllExercises)
+case class CandidateAllocationWithEvent(
+  applicationId: String,
+  version: String,
+  status: AllocationStatus,
+  event: Event
+)
 
-object  AssessmentPassMarksSchemesAndScores {
-  implicit val assessmentPassmarkPreferencesAndScoresFormat = Json.format[AssessmentPassMarksSchemesAndScores]
+object CandidateAllocationWithEvent {
+  implicit val candidateAllocationWithEvent = Json.format[CandidateAllocationWithEvent]
 }

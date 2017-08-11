@@ -20,6 +20,7 @@ import connectors.{ AuthProviderClient, EmailClient }
 import connectors.ExchangeObjects.Candidate
 import model.{ AllocationStatuses, CandidateExamples, persisted }
 import model.command.{ CandidateAllocation, CandidateAllocations }
+import model.exchange.candidateevents.CandidateAllocationWithEvent
 import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
 import model.persisted._
 import model.persisted.eventschedules.EventType.EventType
@@ -52,7 +53,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
       when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(Nil)
       when(mockAppRepo.find(appId)).thenReturnAsync(None)
-      service.allocateCandidates(candidateAllocations)
+      service.allocateCandidates(candidateAllocations, false)
     }
   }
 
@@ -89,15 +90,9 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       private val c2 = CandidateEligibleForEvent("app2", "", "", true, DateTime.now())
       private val loc = "London"
 
-      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc))).thenReturnAsync(
-        CandidatesEligibleForEventResponse(List(c1, c2), 2)
-      )
+      val res = CandidatesEligibleForEventResponse(List(c1, c2), 2)
+      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc))).thenReturnAsync(res)
 
-      when(mockCandidateAllocationRepository.findNoShowAllocations(Seq("app1", "app2"))).thenReturnAsync(
-        Seq(model.persisted.CandidateAllocation("app2", "", "", AllocationStatuses.REMOVED, "" , Some("No-show")))
-      )
-
-      val res = CandidatesEligibleForEventResponse(List(c1), 1)
       service.findCandidatesEligibleForEventAllocation(loc).futureValue mustBe res
     }
   }
@@ -117,7 +112,11 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       )
 
       service.getSessionsForApplication("appId1", EventType.FSAC).futureValue mustBe List(
-        EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
+        CandidateAllocationWithEvent("appId1", "version1", AllocationStatuses.UNCONFIRMED,
+          model.exchange.Event(
+            EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
+          )
+        )
       )
 
     }
@@ -128,7 +127,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
     val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
     val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
     val mockPersonalDetailsRepo: PersonalDetailsRepository = mock[PersonalDetailsRepository]
-    val mockContactDetailsRepo: ContactDetailsRepository= mock[ContactDetailsRepository]
+    val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
     val mockEventsService: EventsService = mock[EventsService]
     val mockEmailClient: EmailClient = mock[EmailClient]
     val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
@@ -139,9 +138,13 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       override val applicationRepo: GeneralApplicationRepository = mockAppRepo
       override val personalDetailsRepo: PersonalDetailsRepository = mockPersonalDetailsRepo
       override val contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
+
       override def emailClient: EmailClient = mockEmailClient
+
       override def authProviderClient: AuthProviderClient = mockAuthProviderClient
+
       override val eventService: StcEventService = mockStcEventService
+
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
     }
 
@@ -158,4 +161,5 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       )
     }
   }
+
 }

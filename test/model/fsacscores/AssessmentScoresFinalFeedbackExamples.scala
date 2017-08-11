@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package model
+package model.fsacscores
 
-import model.assessmentscores.AssessmentScoresAllExercises
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
-import play.api.libs.json.Json
+import model.UniqueIdentifier
+import model.assessmentscores.AssessmentScoresFinalFeedback
+import org.joda.time.{ DateTime, DateTimeZone }
 
-case class AssessmentPassMarksSchemesAndScores(
-  passmark: AssessmentCentrePassMarkSettings,
-  schemes: Seq[SchemeId],
-  scores: AssessmentScoresAllExercises)
 
-object  AssessmentPassMarksSchemesAndScores {
-  implicit val assessmentPassmarkPreferencesAndScoresFormat = Json.format[AssessmentPassMarksSchemesAndScores]
+object AssessmentScoresFinalFeedbackExamples {
+  val Example1 = AssessmentScoresFinalFeedback("feedback1", UniqueIdentifier.randomUniqueIdentifier, DateTime.now(DateTimeZone.UTC))
+  val Example2 = AssessmentScoresFinalFeedback("feedback2", UniqueIdentifier.randomUniqueIdentifier, DateTime.now(DateTimeZone.UTC))
 }

@@ -36,10 +36,10 @@ trait CandidateAllocationController extends BaseController {
 
   def candidateAllocationService: CandidateAllocationService
 
-  def allocateCandidates(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def allocateCandidates(eventId: String, sessionId: String, append: Boolean): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
       val newAllocations = command.CandidateAllocations.fromExchange(eventId, sessionId, candidateAllocations)
-      candidateAllocationService.allocateCandidates(newAllocations).map {
+      candidateAllocationService.allocateCandidates(newAllocations, append).map {
         _ => Ok
       }.recover {
         case e: OptimisticLockException => Conflict(e.getMessage)
@@ -88,11 +88,14 @@ trait CandidateAllocationController extends BaseController {
   }
 
   def findSessionsForApplication(applicationId: String, sessionEventType: EventType): Action[AnyContent] = Action.async { implicit request =>
-    candidateAllocationService.getSessionsForApplication(applicationId, sessionEventType).map { eventSessionMap =>
-      val eventSessions: List[eventschedules.Event] = eventSessionMap.map(event => eventschedules.Event(model.exchange.Event(event)))
-
-      Ok(Json.toJson(eventSessions))
+    candidateAllocationService.getSessionsForApplication(applicationId, sessionEventType).map { data =>
+      Ok(Json.toJson(data))
     }
   }
 
+  def removeCandidateRemovalReason(applicationId: String) = Action.async { implicit request =>
+    candidateAllocationService.removeCandidateRemovalReason(applicationId).map { _ =>
+      NoContent
+    }
+  }
 }

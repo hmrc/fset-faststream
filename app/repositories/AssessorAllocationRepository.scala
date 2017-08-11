@@ -32,6 +32,7 @@ import scala.concurrent.Future
 trait AssessorAllocationRepository {
   def save(allocations: Seq[AssessorAllocation]): Future[Unit]
   def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]]
+  def find(id: String, eventId: String): Future[Option[AssessorAllocation]]
   def delete(allocations: Seq[AssessorAllocation]): Future[Unit]
   def allocationsForEvent(eventId: String): Future[Seq[AssessorAllocation]]
   def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit]
@@ -53,6 +54,12 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq]()
+  }
+
+  def find(id: String, eventId: String): Future[Option[AssessorAllocation]] = {
+    play.api.Logger.debug(s"**** finding allocation for userId = $id, eventId = $eventId")
+    val query = BSONDocument("id" -> id, "eventId" -> eventId)
+    collection.find(query, projection).one[AssessorAllocation]
   }
 
   def save(allocations: Seq[AssessorAllocation]): Future[Unit] = {

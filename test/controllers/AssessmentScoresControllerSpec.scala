@@ -18,10 +18,11 @@ package controllers
 
 import config.TestFixtureBase
 import factories.DateTimeFactory
-import model.Exceptions.{ CannotUpdateRecord, EventNotFoundException }
+import model.Exceptions.EventNotFoundException
 import model.UniqueIdentifier
-import model.assessmentscores.{ AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
+import model.assessmentscores._
 import model.command.AssessmentScoresCommands._
+import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import org.joda.time.DateTimeZone
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -36,38 +37,105 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class AssessmentScoresControllerSpec extends UnitWithAppSpec {
+class AssessorAssessmentScoresControllerSpec extends AssessmentScoresControllerSpec {
+  override val userIdForAudit = "assessorId"
+  override val assessmentScoresOneExerciseSaved = "AssessorAssessmentScoresOneExerciseSaved"
+  override val assessmentScoresAllExercisesSubmitted = "ReviewerAssessmentScoresAllExercisesSubmitted"
+  override val assessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
+}
 
-  "submit" should {
+class ReviewerAssessmentScoresControllerSpec extends AssessmentScoresControllerSpec {
+  override val userIdForAudit = "reviewerId"
+  override val assessmentScoresOneExerciseSaved = "ReviewerAssessmentScoresOneExerciseSaved"
+  override val assessmentScoresAllExercisesSubmitted = "ReviewerAssessmentScoresAllExercisesSubmitted"
+  override val assessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
+}
+
+
+trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
+
+  val userIdForAudit: String
+  val assessmentScoresOneExerciseSaved: String
+  val assessmentScoresAllExercisesSubmitted: String
+  val assessmentScoresOneExerciseSubmitted: String
+
+  "submit exercise" should {
     "save exercise, send AssessmentScoresOneExerciseSubmitted audit event and return OK" in new TestFixture {
       val exerciseScores = AssessmentScoresExerciseExamples.Example1.copy(
         submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
-      val request = fakeRequest(AssessmentScoresSubmitRequest(appId, "analysisExercise", exerciseScores))
+      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, "analysisExercise", exerciseScores))
+
+      when(mockService.submitExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise),
+        any())).thenReturn(Future.successful(()))
+      val auditDetails = Map(
+        "applicationId" -> appId.toString(),
+        "exercise" -> AssessmentExerciseType.analysisExercise.toString,
+        userIdForAudit -> exerciseScores.updatedBy.toString())
+
+      val response = controller.submitExercise()(request)
+
+      status(response) must be(OK)
+      verify(mockService).submitExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise), any())
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+    }
+  }
+
+  "save exercise" should {
+    "save exercise, send AssessmentScoresOneExerciseSaved audit event and return OK" in new TestFixture {
+      val exerciseScores = AssessmentScoresExerciseExamples.Example1.copy(
+        submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
+      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, "analysisExercise", exerciseScores))
 
       when(mockService.saveExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise),
         any())).thenReturn(Future.successful(()))
       val auditDetails = Map(
         "applicationId" -> appId.toString(),
         "exercise" -> AssessmentExerciseType.analysisExercise.toString,
-        "assessorId" -> exerciseScores.updatedBy.toString())
+        userIdForAudit -> exerciseScores.updatedBy.toString())
 
-      val response = controller.submit()(request)
+      val response = controller.saveExercise()(request)
 
       status(response) must be(OK)
       verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise), any())
-      verify(mockAuditService).logEvent(
-        eqTo(AssessmentScoresController.AssessmentScoresOneExerciseSubmitted),
-        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSaved), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+    }
+  }
 
+
+  "submit final feedback" should {
+    "save final feedback, send AssessmentScoresOneExerciseSubmitted and AssessmentScoresAllExercisesSubmitted" +
+      " audit events and return OK" in new TestFixture {
+      val finalFeedback = AssessmentScoresFinalFeedbackExamples.Example1.copy(
+             acceptedDate = AssessmentScoresFinalFeedbackExamples.Example1.acceptedDate.withZone(DateTimeZone.forOffsetHours(1)))
+      val request = fakeRequest(AssessmentScoresFinalFeedbackSubmitRequest(appId, finalFeedback))
+
+      when(mockService.submitFinalFeedback(eqTo(appId),
+        any())).thenReturn(Future.successful(()))
+      val oneExerciseAuditDetails = Map(
+        "applicationId" -> appId.toString(),
+        "exercise" -> "finalFeedback",
+        userIdForAudit -> finalFeedback.updatedBy.toString())
+      val allExercisesAuditDetails = Map(
+        "applicationId" -> appId.toString(),
+        userIdForAudit -> finalFeedback.updatedBy.toString())
+
+      val response = controller.submitFinalFeedback()(request)
+
+      status(response) must be(OK)
+      verify(mockService).submitFinalFeedback(eqTo(appId), any())
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted),
+        eqTo(oneExerciseAuditDetails))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresAllExercisesSubmitted),
+        eqTo(allExercisesAuditDetails))(any[HeaderCarrier], any[RequestHeader])
     }
   }
 
   "findAssessmentScoresWithCandidateSummaryByApplicationId" should {
     "return OK with corresponding assessment scores" in new TestFixture {
       val expectedResponse = AssessmentScoresFindResponse(
-        RecordCandidateScores(appId, "firstName", "lastName", "venue",
+        AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
           DateTimeFactory.nowLocalDate, UniqueIdentifier.randomUniqueIdentifier),
-        Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise))
+        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise))
       when(mockService.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)).thenReturn(
         Future.successful(expectedResponse))
 
@@ -88,9 +156,9 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
   "findAssessmentScoresWithCandidateSummaryByEventId" should {
     "return OK with corresponding assessment scores" in new TestFixture {
       val expectedResponse = List(AssessmentScoresFindResponse(
-        RecordCandidateScores(appId, "firstName", "lastName", "venue",
+        AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
           DateTimeFactory.nowLocalDate, sessionId),
-        Some(AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise)))
+        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
       when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(
         Future.successful(expectedResponse))
 
@@ -112,14 +180,18 @@ class AssessmentScoresControllerSpec extends UnitWithAppSpec {
     val mockService = mock[AssessmentScoresService]
     val mockAssessmentScoresRepository = mock[AssessmentScoresRepository]
 
-    val controller = new AssessmentScoresController {
+    val appId = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.applicationId
+    val sessionId = UniqueIdentifier.randomUniqueIdentifier
+    val eventId = UniqueIdentifier.randomUniqueIdentifier
+
+    def controller = new AssessmentScoresController {
       override val service = mockService
       override val repository = mockAssessmentScoresRepository
       override val auditService = mockAuditService
+      override val UserIdForAudit = userIdForAudit
+      override val AssessmentScoresOneExerciseSubmitted = assessmentScoresOneExerciseSubmitted
+      override val AssessmentScoresAllExercisesSubmitted = assessmentScoresAllExercisesSubmitted
+      override val AssessmentScoresOneExerciseSaved = assessmentScoresOneExerciseSaved
     }
-
-    val appId = AssessmentScoresAllExercisesExamples.OnlyLeadershipExercise.applicationId
-    val sessionId = UniqueIdentifier.randomUniqueIdentifier
-    val eventId = UniqueIdentifier.randomUniqueIdentifier
   }
 }
