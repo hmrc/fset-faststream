@@ -37,6 +37,7 @@ import model.testdata.CreateEventData.CreateEventData
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 import play.api.mvc.{ Action, AnyContent, RequestHeader }
+import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import services.testdata._
 import services.testdata.candidate.{ AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory }
 import services.testdata.faker.DataFaker.Random
@@ -46,9 +47,13 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object TestDataGeneratorController extends TestDataGeneratorController
+object TestDataGeneratorController extends TestDataGeneratorController {
+  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+}
 
 trait TestDataGeneratorController extends BaseController {
+
+  val locationsAndVenuesRepository: LocationsWithVenuesRepository
 
   def ping = Action { implicit request =>
     Ok("OK")
@@ -207,7 +212,7 @@ trait TestDataGeneratorController extends BaseController {
       id = Some(UUIDFactory.generateUUID()),
       location = Some("Newcastle"),
       venue = Some("NEWCASTLE_FSAC")
-      )
+    )
 
     Ok(Json.toJson(List(example1, example2)))
   }
@@ -271,27 +276,36 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
+  private def allVenues = locationsAndVenuesRepository.venues.map(_.options)
+
   def createEventsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[List[CreateEventRequest]] { createRequests =>
-      val createDatas: List[(Int) => CreateEventData] = createRequests.map { createRequest =>
-        val createData: (Int) => CreateEventData = CreateEventData.apply(createRequest)
-        createData
+      val createDatas = createRequests.map { createRequest =>
+        allVenues.map { venues =>
+          CreateEventData.apply(createRequest, venues)(_)
+        }
       }
-      createEvents(createDatas, numberToGenerate)
+      Future.sequence(createDatas).flatMap { cd =>
+        createEvents(cd, numberToGenerate)
+      }
     }
   }
 
   def createEventPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateEventRequest] { createRequest =>
-      createEvent(CreateEventData.apply(createRequest), numberToGenerate)
+      allVenues.map { venues =>
+        CreateEventData.apply(createRequest, venues)(_)
+      }.flatMap { d =>
+        createEvent(d, numberToGenerate)
+      }
     }
   }
 
 
   def createAssessorAllocationsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[List[CreateAssessorAllocationRequest]] { createRequests =>
-      val createDatas: List[(Int) => CreateAssessorAllocationData] = createRequests.map { createRequest =>
-        val createData: (Int) => CreateAssessorAllocationData = CreateAssessorAllocationData.apply(createRequest)
+      val createDatas: List[( Int ) => CreateAssessorAllocationData] = createRequests.map { createRequest =>
+        val createData: ( Int ) => CreateAssessorAllocationData = CreateAssessorAllocationData.apply(createRequest)
         createData
       }
       createAssessorAllocations(createDatas, numberToGenerate)
@@ -307,8 +321,8 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createCandidates(config: (Int) => CreateCandidateData, numberToGenerate: Int)
-                              (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createCandidates(config: ( Int ) => CreateCandidateData, numberToGenerate: Int)
+    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createCandidates(
         numberToGenerate, CandidateStatusGeneratorFactory.getGenerator,
@@ -324,8 +338,8 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createAdmins(createData: (Int) => CreateAdminData, numberToGenerate: Int)
-                          (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createAdmins(createData: ( Int ) => CreateAdminData, numberToGenerate: Int)
+    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createAdmins(
         numberToGenerate,
@@ -340,8 +354,8 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createEvent(createData: (Int) => CreateEventData, numberToGenerate: Int)
-                         (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createEvent(createData: ( Int ) => CreateEventData, numberToGenerate: Int)
+    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createEvent(
         numberToGenerate,
@@ -355,8 +369,8 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createEvents(createDatas: List[(Int) => CreateEventData], numberToGenerate: Int)
-                          (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createEvents(createDatas: List[( Int ) => CreateEventData], numberToGenerate: Int)
+    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createEvents(
         numberToGenerate,
@@ -370,8 +384,8 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createAssessorAllocations(createDatas: List[(Int) => CreateAssessorAllocationData], numberToGenerate: Int)
-                          (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createAssessorAllocations(createDatas: List[( Int ) => CreateAssessorAllocationData], numberToGenerate: Int)
+    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createAssessorAllocations(
         numberToGenerate,
@@ -385,17 +399,17 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createCandidateAllocations(data: List[(Int) => CreateCandidateAllocationData], numberToGenerate: Int)
-                                        (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  private def createCandidateAllocations(data: List[( Int ) => CreateCandidateAllocationData], numberToGenerate: Int)
+    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createCandidateAllocations(numberToGenerate, data).map{ candidateAllocations =>
+      TestDataGeneratorService.createCandidateAllocations(numberToGenerate, data).map { candidateAllocations =>
         Ok(Json.toJson(candidateAllocations))
       }
     } catch {
       case ex: Throwable =>
         Future.successful(
           InternalServerError(JsObject(List("message" -> JsString(s"Exception while creating the candidate allocations: ${ex.getMessage}"))))
-      )
+        )
     }
   }
 }

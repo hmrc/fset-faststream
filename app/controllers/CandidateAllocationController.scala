@@ -88,10 +88,8 @@ trait CandidateAllocationController extends BaseController {
   }
 
   def findSessionsForApplication(applicationId: String, sessionEventType: EventType): Action[AnyContent] = Action.async { implicit request =>
-    candidateAllocationService.getSessionsForApplication(applicationId, sessionEventType).map { eventSessionMap =>
-      val eventSessions: List[eventschedules.Event] = eventSessionMap.map(event => eventschedules.Event(model.exchange.Event(event)))
-
-      Ok(Json.toJson(eventSessions))
+    candidateAllocationService.getSessionsForApplication(applicationId, sessionEventType).map { data =>
+      Ok(Json.toJson(data))
     }
   }
 
@@ -100,6 +98,4 @@ trait CandidateAllocationController extends BaseController {
       NoContent
     }
   }
-
-
 }
