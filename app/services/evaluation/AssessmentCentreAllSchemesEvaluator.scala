@@ -26,7 +26,7 @@ trait AssessmentCentreAllSchemesEvaluator {
   def evaluateSchemes(applicationId: String,
     passmark: AssessmentCentrePassMarkSettings,
     overallScore: Double,
-    schemes: List[SchemeId]): List[SchemeEvaluationResult] = {
+    schemes: Seq[SchemeId]): Seq[SchemeEvaluationResult] = {
     schemes.map { scheme =>
       val assessmentCentrePassMark = passmark.schemes.find { _.schemeId == scheme }
         .getOrElse(throw new IllegalStateException(s"Did not find assessment centre pass mark for scheme = $scheme, " +

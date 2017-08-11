@@ -59,7 +59,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(EvaluateAssessmentScoreJobConfig, EvaluateAssessmentScoreJob),
     maybeInitScheduler(FixerJobConfig, FixerJob),
     maybeInitScheduler(ProgressSdipForFaststreamCandidateJobConfig, ProgressSdipForFaststreamCandidateJob),
-    maybeInitScheduler(SiftConfig, ProgressToSiftJob),
+    maybeInitScheduler(ProgressToSiftJobConfig, ProgressToSiftJob),
     maybeInitScheduler(ProgressToAssessmentCentreJobConfig, ProgressToAssessmentCentreJob)
   ).flatten
 }

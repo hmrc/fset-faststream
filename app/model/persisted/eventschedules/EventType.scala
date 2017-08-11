@@ -25,6 +25,17 @@ object EventType extends Enumeration {
 
   val ALL_EVENTS, FSAC, FSB, TELEPHONE_INTERVIEW, SKYPE_INTERVIEW = Value
 
+  val options = Map(
+    TELEPHONE_INTERVIEW -> "Telephone Interview",
+    FSAC -> "Fast Stream Assessment Centre",
+    FSB -> "FSB",
+    SKYPE_INTERVIEW -> "Skype Interview"
+  )
+
+  val allOption = Map(ALL_EVENTS -> "All Events")
+
+  val displayText = allOption ++ options
+
   implicit val EventTypeFormat = new Format[EventType] {
     override def reads(json: JsValue): JsResult[EventType] = JsSuccess(EventType.withName(json.as[String].toUpperCase))
 

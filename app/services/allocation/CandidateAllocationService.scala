@@ -119,9 +119,6 @@ trait CandidateAllocationService extends EventSink {
   )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[command.CandidateAllocations] = {
 
     eventsService.getEvent(newAllocations.eventId).flatMap { event =>
-      val eventDate = event.date.toString(dateFormat)
-      val eventTime = event.startTime.toString(timeFormat)
-      val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
 
       getCandidateAllocations(newAllocations.eventId, newAllocations.sessionId).flatMap { existingAllocation =>
         existingAllocation.allocations match {
@@ -129,7 +126,7 @@ trait CandidateAllocationService extends EventSink {
             val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
             candidateAllocationRepo.save(toPersist).flatMap { _ =>
               updateStatusInvited(toPersist, event.eventType).flatMap { _ =>
-                Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime)))
+                Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, event, UniqueIdentifier(newAllocations.sessionId))))
               }
             }.map { _ =>
               command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
@@ -140,7 +137,7 @@ trait CandidateAllocationService extends EventSink {
               Future.sequence(
                 newAllocations.allocations
                   .filter(alloc => !existingIds.contains(alloc.id))
-                  .map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime))
+                  .map(sendCandidateEmail(_, event, UniqueIdentifier(newAllocations.sessionId)))
               ).map { _ => res}
             }
         }
@@ -229,10 +226,15 @@ trait CandidateAllocationService extends EventSink {
       }
     }
 
-    private def sendCandidateEmail(candidateAllocation: CandidateAllocation,
-      eventDate: String,
-      eventTime: String,
-      deadlineDateTime: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    private def sendCandidateEmail(
+      candidateAllocation: CandidateAllocation,
+      event: Event,
+      sessionId: UniqueIdentifier)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+      val eventDate = event.date.toString(dateFormat)
+      val localTime = event.sessions.find(_.id == sessionId).map(_.startTime).getOrElse(event.startTime)
+      val eventTime = localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
+      val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
       applicationRepo.find(candidateAllocation.id).flatMap {
         case Some(candidate) =>
           eventSink {
@@ -240,7 +242,8 @@ trait CandidateAllocationService extends EventSink {
               candidates.map { candidate =>
                 candidateAllocation.status match {
                   case AllocationStatuses.UNCONFIRMED =>
-                    CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime, deadlineDateTime)
+                    CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime,
+                      event.eventType.displayValue, event.venue.description, deadlineDateTime)
                   case AllocationStatuses.CONFIRMED =>
                     CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime)
                 }
