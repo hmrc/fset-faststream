@@ -56,8 +56,8 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
 
   def findAll: Future[List[AssessmentScoresAllExercises]] = {
     val query = BSONDocument.empty
-    collection.find(query).cursor[BSONDocument](ReadPreference.nearest).
-      collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+    collection.find(query).cursor[BSONDocument](ReadPreference.nearest)
+      .collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 }
 

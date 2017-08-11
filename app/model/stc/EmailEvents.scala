@@ -35,6 +35,6 @@ object EmailEvents {
 
   case class CandidateAllocationConfirmed(to: String, name: String, eventDate: String, eventTime: String) extends EmailEvent
   case class CandidateAllocationConfirmationRequest(to: String, name: String, eventDate: String, eventTime: String,
-                                                    deadlineDate: String) extends EmailEvent
+    eventType: String, eventVenue: String, deadlineDate: String) extends EmailEvent
 
 }
