@@ -29,23 +29,24 @@ trait UserManagementClient {
 
   private val role = "candidate" // We have only one role for this application
   private lazy val ServiceName = FrontendAppConfig.authConfig.serviceName
+  private val urlPrefix = "faststream"
 
   val http: CSRHttp
 
   import config.FrontendAppConfig.userManagementConfig._
 
   def register(email: String, password: String, firstName: String, lastName: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/add",
-      AddUserRequest(email.toLowerCase, password, firstName, lastName, role, ServiceName)).map { (resp: HttpResponse) =>
+    http.POST(s"${url.host}/$urlPrefix/add",
+      AddUserRequest(email.toLowerCase, password, firstName, lastName, List(role), ServiceName)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
       case Upstream4xxResponse(_, 409, _, _) => throw new EmailTakenException()
     }
 
   def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/authenticate", SignInRequest(email.toLowerCase, password, ServiceName)).map { (resp: HttpResponse) =>
+    http.POST(s"${url.host}/$urlPrefix/authenticate", SignInRequest(email.toLowerCase, password, ServiceName)).map { (resp: HttpResponse) =>
       val response = resp.json.as[UserResponse]
-      if (response.role != role) throw new InvalidRoleException() else {
+      if (response.roles.head != role) throw new InvalidRoleException() else {
         response
       }
     }.recover {
@@ -66,13 +67,14 @@ trait UserManagementClient {
       }
 
   def sendResetPwdCode(email: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    http.POST(s"${url.host}/send-reset-password-code", SendPasswordCodeRequest(email.toLowerCase, ServiceName)).map(_ => (): Unit)
+    http.POST(s"${url.host}/$urlPrefix/send-reset-password-code", SendPasswordCodeRequest(email.toLowerCase, ServiceName)).map(_ => (): Unit)
       .recover {
         case e: NotFoundException => throw new InvalidEmailException()
       }
 
   def resetPasswd(email: String, token: String, newPassword: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    http.POST(s"${url.host}/reset-password", ResetPasswordRequest(email.toLowerCase, token, newPassword, ServiceName)).map(_ => (): Unit)
+    http.POST(s"${url.host}/$urlPrefix/reset-password",
+      ResetPasswordRequest(email.toLowerCase, token, newPassword, ServiceName)).map(_ => (): Unit)
       .recover {
         case Upstream4xxResponse(_, 410, _, _) => throw new TokenExpiredException()
         case e: NotFoundException => throw new TokenEmailPairInvalidException()
@@ -83,7 +85,7 @@ trait UserManagementClient {
     http.PUT(s"${url.host}/details/$userId", UpdateDetails(firstName, lastName, preferredName, ServiceName)).map(_ => ())
 
   def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.PUT(s"${url.host}/failedAttempt", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
+    http.PUT(s"${url.host}/$urlPrefix/failedAttempt", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
       case e: NotFoundException => throw new InvalidCredentialsException()
@@ -93,14 +95,14 @@ trait UserManagementClient {
     }
 
   def find(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/find", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
+    http.POST(s"${url.host}/$urlPrefix/find", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
       case e: NotFoundException => throw new InvalidCredentialsException()
     }
 
   def findByUserId(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/service/$ServiceName/findUserById", FindByUserIdRequest(userId)).map { (resp: HttpResponse) =>
+    http.POST(s"${url.host}/$urlPrefix/service/$ServiceName/findUserById", FindByUserIdRequest(userId)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
       case e: NotFoundException => throw new InvalidCredentialsException(s"UserId = $userId")
