@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 
 case class AssessmentPassMarksSchemesAndScores(
   passmark: AssessmentCentrePassMarkSettings,
-  schemes: List[SchemeId],
+  schemes: Seq[SchemeId],
   scores: AssessmentScoresAllExercises)
 
 object  AssessmentPassMarksSchemesAndScores {
