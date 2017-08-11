@@ -13,6 +13,7 @@ error.otherReason.maxLength = Information must not exceed 300 characters
 withdraw.scheme.required = You must select a scheme to withdraw from.
 withdraw.scheme.invalid = {0} is not a valid scheme for withdrawal.
 withdraw.scheme.success = You've successfully withdrawn from the {0} scheme.
+withdraw.scheme.final = You only have one scheme remaining. To withdraw you must withdraw your application.
 
 # Signin form
 signIn.giveFeedback = You''ve successfully signed out.<p><a href="{0}" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>

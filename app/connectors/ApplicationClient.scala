@@ -35,10 +35,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 // scalastyle:off number.of.methods
-trait AppProgressClient {
-
-}
-
 trait ApplicationClient {
 
   val http: CSRHttp
