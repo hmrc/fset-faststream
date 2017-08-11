@@ -33,6 +33,7 @@ import security.Roles._
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import play.api.i18n.Messages
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 object WithdrawController extends WithdrawController(
@@ -87,7 +88,7 @@ abstract class WithdrawController(
         },
         data => refDataClient.allSchemes().flatMap (_.find(_.id.value == data.scheme).map { schemeToWithdraw =>
           applicationClient.withdrawScheme(user.application.applicationId, WithdrawScheme(schemeToWithdraw.id, data.reason)).map { _ =>
-            Redirect(routes.HomeController.present()).flashing(success("withdraw.scheme.success", schemeToWithdraw.name))
+            Redirect(routes.HomeController.present()).flashing(success("withdraw.scheme.success"))
           }
         }.getOrElse(Future(Redirect(routes.WithdrawController.presentWithdrawScheme())
           .flashing(danger("withdraw.scheme.invalid", data.scheme)))
