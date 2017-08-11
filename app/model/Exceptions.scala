@@ -115,6 +115,8 @@ object Exceptions {
   case class SiftAnswersIncomplete(m: String) extends Exception(m)
 
   case class SiftAnswersSubmitted(m: String) extends Exception(m)
+
+  case class AlreadyEvaluatedForSchemeException(message: String) extends Exception(message)
 }
 
 // scalastyle:on number.of.methods

@@ -17,14 +17,13 @@
 package repositories.application
 
 import config.MicroserviceAppConfig.cubiksGatewayConfig
-import factories.UUIDFactory
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.{ Green, Red }
 import model.SchemeId
 import model.persisted._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.CollectionNames
-import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
 class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
@@ -32,7 +31,7 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
   import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
-  lazy val repository = new FsbTestGroupMongoRepository()
+  def repository = new FsbTestGroupMongoRepository()
 
   "save" should {
     "create new FSB entry in testGroup if it doesn't exist" in {
@@ -46,28 +45,26 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
 
     "add to result array if result array already exist" in {
       val applicationId = createApplication()
-      val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")
-      repository.save(applicationId, schemeEvaluationResult).futureValue
+      val schemeEvaluationResult1 = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")
+      repository.save(applicationId, schemeEvaluationResult1).futureValue
 
       val schemeEvaluationResult2 = SchemeEvaluationResult("GovernmentSocialResearchService", "Green")
       repository.save(applicationId, schemeEvaluationResult2).futureValue
 
       val Some(result) = repository.findByApplicationId(applicationId).futureValue
-      val fsbTestGroup = FsbTestGroup(List(
-        SchemeEvaluationResult("GovernmentOperationalResearchService", "Red"),
-        SchemeEvaluationResult("GovernmentSocialResearchService", "Green")))
-      result mustBe fsbTestGroup
+      val expectedFsbTestGroup = FsbTestGroup(List(schemeEvaluationResult1, schemeEvaluationResult2))
+      result mustBe expectedFsbTestGroup
     }
 
     "not overwrite existing value" in {
       val applicationId = createApplication()
-      val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
-      repository.save(applicationId, schemeEvaluationResult).futureValue
+      repository.save(applicationId, SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")).futureValue
 
       intercept[Exception] {
-        repository.save(applicationId, schemeEvaluationResult.copy(result = "Red")).futureValue
+        repository.save(applicationId,  SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")).futureValue
       }
     }
+
   }
 
   "findByApplicationId" should {
@@ -117,12 +114,13 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
       val applicationId1 = createApplication()
       val applicationId2 = createApplication()
 
-      repository.save(applicationId1, SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString))
-      repository.save(applicationId1, SchemeEvaluationResult("GovernmentSocialResearchService", Green.toString))
-      repository.save(applicationId2, SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString))
+      repository.save(applicationId1, SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString)).futureValue
+      repository.save(applicationId1, SchemeEvaluationResult("GovernmentSocialResearchService", Green.toString)).futureValue
+      repository.save(applicationId2, SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)).futureValue
 
-      val result = repository.findByApplicationIds(List(applicationId1, applicationId2),
-        Some(SchemeId("GovernmentOperationalResearchService"))).futureValue
+      val result = repository.findByApplicationIds(
+        List(applicationId1, applicationId2), Some(SchemeId("GovernmentOperationalResearchService"))).futureValue
+
       val expectedResult = List(
         FsbSchemeResult(applicationId1, List(SchemeEvaluationResult("GovernmentOperationalResearchService", "Red"))),
         FsbSchemeResult(applicationId2, List(SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")))
@@ -133,7 +131,7 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
 
   }
 
-  private def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  private def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
 
   private def createApplication(): String = {
     val applicationId = generateUUID()

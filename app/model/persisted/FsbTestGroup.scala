@@ -17,7 +17,7 @@
 package model.persisted
 
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, Macros }
+import reactivemongo.bson.Macros
 
 case class FsbEvaluation(result: List[SchemeEvaluationResult])
 
@@ -33,23 +33,5 @@ object FsbTestGroup {
   implicit val bsonHandler = Macros.handler[FsbTestGroup]
 
   def apply(results: List[SchemeEvaluationResult]): FsbTestGroup = new FsbTestGroup(FsbEvaluation(results))
-
-}
-
-case class FsbSchemeResult(applicationId: String, results: List[SchemeEvaluationResult])
-
-object FsbSchemeResult {
-  implicit val jsonFormat = Json.format[FsbSchemeResult]
-
-  implicit object FsbResultReader extends BSONDocumentReader[Option[FsbSchemeResult]] {
-    def read(document: BSONDocument): Option[FsbSchemeResult] = {
-      val applicationId = document.getAs[String]("applicationId").get
-      val testGroups = document.getAs[BSONDocument]("testGroups").get
-      val fsbResult = testGroups.getAs[FsbTestGroup]("FSB").map {fsbTestGroup =>
-        FsbSchemeResult(applicationId, fsbTestGroup.evaluation.result)
-      }
-      fsbResult
-    }
-  }
 
 }

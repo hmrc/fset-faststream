@@ -17,6 +17,7 @@
 package repositories.application
 
 import model.SchemeId
+import model.Exceptions.AlreadyEvaluatedForSchemeException
 import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
@@ -50,7 +51,10 @@ class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
       )
     ))
     val modifier = BSONDocument("$addToSet" -> BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result))
-    val validator = singleUpsertValidator(applicationId, actionDesc = "saving fsb assessment result")
+    val message = s"Fsb evaluation already done for application $applicationId for scheme ${result.schemeId}"
+    val validator = singleUpdateValidator(applicationId,
+                                          actionDesc = s"saving fsb assessment result $result",
+                                          AlreadyEvaluatedForSchemeException(message))
     collection.update(selector, modifier) map validator
   }
 
@@ -76,10 +80,10 @@ class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
     collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { documents =>
       documents.foldLeft(List[FsbSchemeResult]())((list, document) => {
         BSON.readDocument[Option[FsbSchemeResult]](document) match {
-          case Some(fsbResult) => {
+          case Some(fsbSchemeResult) => {
             schemeId match {
-              case Some(scheme) => filterBySchemeId(list, fsbResult, scheme)
-              case None => list :+ fsbResult
+              case Some(scheme) => filterBySchemeId(list, fsbSchemeResult, scheme)
+              case None => list :+ fsbSchemeResult
             }
           }
           case _ => list
@@ -90,10 +94,11 @@ class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
 
   private def filterBySchemeId(list: List[FsbSchemeResult], fsbSchemeResult: FsbSchemeResult, schemeId: SchemeId): List[FsbSchemeResult] = {
     val applicationId = fsbSchemeResult.applicationId
-    fsbSchemeResult.results.filter(s => schemeId == s.schemeId) match {
+    val filteredResult = fsbSchemeResult.results.filter(s => schemeId == s.schemeId) match {
       case Nil => list
       case head :: tail => list :+ FsbSchemeResult(applicationId, head :: tail)
     }
+    filteredResult
   }
 
 }
