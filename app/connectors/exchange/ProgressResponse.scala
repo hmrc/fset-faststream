@@ -19,15 +19,18 @@ package connectors.exchange
 import play.api.libs.json.Json
 
 case class AssessmentCentre(
-                             failedToAttend: Boolean = false,
-                             scoresEntered: Boolean = false,
-                             scoresAccepted: Boolean = false,
-                             awaitingReevaluation: Boolean = false,
-                             passed: Boolean = false,
-                             passedNotified: Boolean = false,
-                             failed: Boolean = false,
-                             failedNotified: Boolean = false
-                           )
+  awaitingAllocation: Boolean = false,
+  allocationConfirmed: Boolean = false,
+  allocationUnconfirmed: Boolean = false,
+  failedToAttend: Boolean = false,
+  scoresEntered: Boolean = false,
+  scoresAccepted: Boolean = false,
+  awaitingReevaluation: Boolean = false,
+  passed: Boolean = false,
+  passedNotified: Boolean = false,
+  failed: Boolean = false,
+  failedNotified: Boolean = false
+)
 
 case class Phase1ProgressResponse(
   phase1TestsInvited: Boolean = false,
@@ -44,7 +47,7 @@ case class Phase1ProgressResponse(
   sdipFSFailedNotified: Boolean = false,
   sdipFSSuccessful: Boolean = false,
   sdipFSSuccessfulNotified: Boolean = false
- )
+)
 
 case class Phase2ProgressResponse(
   phase2TestsInvited: Boolean = false,
@@ -57,7 +60,7 @@ case class Phase2ProgressResponse(
   phase2TestsResultsReceived: Boolean = false,
   phase2TestsPassed: Boolean = false,
   phase2TestsFailed: Boolean = false
- )
+)
 
 case class Phase3ProgressResponse(
   phase3TestsInvited: Boolean = false,

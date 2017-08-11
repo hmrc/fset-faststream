@@ -19,13 +19,15 @@ package models.page
 import java.util.UUID
 
 import connectors.ReferenceDataExamples._
-import connectors.exchange.SchemeEvaluationResult
+import connectors.exchange.{ EventsExamples, SchemeEvaluationResult }
+import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.SchemeId
 import connectors.exchange.sift.SiftAnswersStatus
 import controllers.UnitSpec
 import helpers.{ CachedUserWithSchemeData, CurrentSchemeStatus }
 import models.ApplicationData.ApplicationStatus
 import models._
+import models.events.AllocationStatuses
 
 class PostOnlineTestsPageSpec extends UnitSpec {
 
@@ -57,9 +59,28 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         = Some("online tests")) :: CurrentSchemeStatus(Schemes.DaT, SchemeStatus.Red, failedAtStage = Some("online tests")) :: Nil
 
       page.userDataWithSchemes.withdrawnSchemes mustBe Nil
-      page.hasAssessmentCentreRequirement mustBe true
       page.userDataWithSchemes.hasNumericRequirement mustBe false
       page.userDataWithSchemes.hasFormRequirement mustBe false
+      page.stage mustBe PostOnlineTestsStage.OTHER
+    }
+
+    "application is in correct stage" in {
+      val app = userDataWithApp.application.copy(
+        progress = userDataWithApp.application.progress.copy(
+        assessmentCentre = userDataWithApp.application.progress.assessmentCentre.copy(allocationUnconfirmed = true)
+      ))
+      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, app, Schemes.AllSchemes, Seq.empty)
+
+      val allocation = CandidateAllocationWithEvent(
+        cachedUserMetadata.application.applicationId.toString,
+        "",
+        AllocationStatuses.UNCONFIRMED,
+        EventsExamples.Event1
+      )
+      val page = PostOnlineTestsPage.apply(cachedUserMetadata, Some(allocation), None, hasAnalysisExercise = false)
+
+      page.stage mustBe PostOnlineTestsStage.ALLOCATED_TO_EVENT
+
     }
 
   }
