@@ -207,8 +207,6 @@ class GeneralApplicationMongoRepository(
       "_id" -> 0
     )
 
-
-
     def progressStatusDateFallback(applicationStatus: ApplicationStatus, document: BSONDocument) = {
       document.getAs[BSONDocument]("progress-status-dates")
         .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))

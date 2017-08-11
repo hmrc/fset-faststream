@@ -20,18 +20,17 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model._
 import model.command.{ ApplicationForFsac, ApplicationForSift }
+import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import repositories._
 import repositories.application.GeneralApplicationRepoBSONReader
-import repositories.competencyAverageResultHandler
-import repositories.{ CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.language.implicitConversions
 
 trait AssessmentCentreRepository {
@@ -40,7 +39,8 @@ trait AssessmentCentreRepository {
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[UniqueIdentifier]]
-  def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation): Future[Unit]
+  def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
+    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
 }
 
 class AssessmentCentreMongoRepository (
@@ -94,13 +94,13 @@ class AssessmentCentreMongoRepository (
         BSONArray(
           BSONDocument(
             "$and" -> BSONArray(
-              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED}" -> true),
+              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false))
             )
           ),
           BSONDocument(
             "$and" -> BSONArray(
-              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED}" -> true),
+              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
             )
@@ -112,7 +112,8 @@ class AssessmentCentreMongoRepository (
     )
   }
 
-  override def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation): Future[Unit] = {
+  override def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
+    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> evaluation.applicationId),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN))
@@ -124,7 +125,7 @@ class AssessmentCentreMongoRepository (
           .add(booleanToBSON("passedMinimumCompetencyLevel", evaluation.evaluationResult.passedMinimumCompetencyLevel))
           .add(BSONDocument("competency-average" -> evaluation.evaluationResult.competencyAverageResult))
           .add(BSONDocument("schemes-evaluation" -> evaluation.evaluationResult.schemesEvaluation))
-      ))
+      ).add(currentSchemeStatusBSON(currentSchemeStatus)))
 
     collection.update(query, passMarkEvaluation, upsert = false) map { _ => () }
   }

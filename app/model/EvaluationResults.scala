@@ -84,5 +84,5 @@ object EvaluationResults {
   case class AssessmentEvaluationResult(
     passedMinimumCompetencyLevel: Option[Boolean],
     competencyAverageResult: CompetencyAverageResult,
-    schemesEvaluation: List[SchemeEvaluationResult])
+    schemesEvaluation: Seq[SchemeEvaluationResult])
 }

@@ -19,18 +19,21 @@ package model.exchange
 import org.joda.time.LocalTime
 import play.api.libs.json.{ Json, OFormat }
 
-case class Session(description: String,
-              capacity: Int,
-              minViableAttendees: Int,
-              attendeeSafetyMargin: Int,
-              startTime: LocalTime,
-              endTime: LocalTime)
+case class Session(
+  id: String,
+  description: String,
+  capacity: Int,
+  minViableAttendees: Int,
+  attendeeSafetyMargin: Int,
+  startTime: LocalTime,
+  endTime: LocalTime)
 
 object Session {
   implicit val format: OFormat[Session] = Json.format[Session]
 
   def apply(persistedSession: model.persisted.eventschedules.Session): Session = {
     Session(
+      id = persistedSession.id,
       description = persistedSession.description,
       capacity = persistedSession.capacity,
       minViableAttendees = persistedSession.minViableAttendees,

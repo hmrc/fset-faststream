@@ -75,12 +75,12 @@ object ExchangeObjects {
   case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: DateTime, expirationDate: Option[LocalDate])
   object AllocationDetails { implicit val allocationDetailsFormat: OFormat[AllocationDetails] = Json.format[AllocationDetails] }
 
-  case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, role: String, service: String)
+  case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, roles: List[String], service: String)
   object AddUserRequest { implicit val addUserRequestFormat: OFormat[AddUserRequest] = Json.format[AddUserRequest] }
 
   case class UserResponse(firstName: String, lastName: String, preferredName: Option[String],
                           isActive: Boolean, userId: String, email: String, disabled: Boolean, lockStatus: String,
-                          role: String, service: String, phoneNumber: Option[String], detailsConfirmed: Option[Boolean])
+                          roles: List[String], service: String, phoneNumber: Option[String], detailsConfirmed: Option[Boolean])
   object UserResponse { implicit val userResponseFormat: OFormat[UserResponse] = Json.format[UserResponse] }
 
   case class ActivateEmailRequest(email: String, token: String, service: String)

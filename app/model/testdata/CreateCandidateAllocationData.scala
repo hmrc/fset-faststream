@@ -17,8 +17,8 @@
 package model.testdata
 
 import model.AllocationStatuses.AllocationStatus
+import model.command.{ CandidateAllocation, CandidateAllocations }
 import model.command.testdata.CreateCandidateAllocationRequest
-import model.persisted.CandidateAllocation
 import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker.Random
 
@@ -27,8 +27,8 @@ case class CreateCandidateAllocationData(id: String,
                                          sessionId: String,
                                          status: AllocationStatus,
                                          version: String) extends CreateTestData {
-  def toCandidateAllocation: CandidateAllocation = {
-    CandidateAllocation(id, eventId, sessionId, status, version, None)
+  def toCandidateAllocations: CandidateAllocations = {
+    CandidateAllocations(version, eventId, sessionId, Seq(CandidateAllocation(id, status)))
   }
 }
 
