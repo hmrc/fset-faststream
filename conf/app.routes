@@ -144,7 +144,7 @@ POST        /candidate-allocations/find-allocated                               
 GET         /candidate-allocations/events/:eventId/sessions/:sessionId                      controllers.CandidateAllocationController.getCandidateAllocations(eventId: String, sessionId: String)
 POST        /candidate-allocations/remove/events/:eventId/sessions/:sessionId               controllers.CandidateAllocationController.removeCandidateAllocations(eventId: String, sessionId: String)
 GET         /candidate-allocations/summary/:applicationId                                   controllers.CandidateAllocationController.candidateAllocationsSummary(applicationId: String)
-PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId             controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String)
+PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId             controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String, append: Boolean ?= false)
 DELETE      /candidate-allocations/reset-removals/:applicationId/eventType/:eventType       controllers.CandidateAllocationController.removeCandidateRemovalReason(applicationId: String, eventType: model.persisted.eventschedules.EventType.EventType)
 
 GET         /candidate-allocations/sessions/findByApplicationId                             controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
@@ -159,6 +159,7 @@ GET         /day-aggregate-events                                        control
 GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 
 # assessor assessment scores
+POST        /assessment-scores/assessor/save-exercise                                         controllers.AssessorAssessmentScoresController.saveExercise()
 POST        /assessment-scores/assessor/submit-exercise                                       controllers.AssessorAssessmentScoresController.submitExercise()
 POST        /assessment-scores/assessor/save                                                  controllers.AssessorAssessmentScoresController.save()
 GET         /assessment-scores/assessor/with-candidate-summary/application/:applicationId     controllers.AssessorAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
@@ -167,6 +168,7 @@ GET         /assessment-scores/assessor/:applicationId                          
 GET         /assessment-scores/assessor                                                       controllers.AssessorAssessmentScoresController.findAll
 
 # reviewer assessment scores
+POST        /assessment-scores/reviewer/save-exercise                                         controllers.ReviewerAssessmentScoresController.saveExercise()
 POST        /assessment-scores/reviewer/submit-exercise                                       controllers.ReviewerAssessmentScoresController.submitExercise()
 POST        /assessment-scores/reviewer/submit-final-feedback                                 controllers.ReviewerAssessmentScoresController.submitFinalFeedback()
 POST        /assessment-scores/reviewer/save                                                  controllers.ReviewerAssessmentScoresController.save()

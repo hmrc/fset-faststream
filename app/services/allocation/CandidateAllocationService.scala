@@ -115,7 +115,7 @@ trait CandidateAllocationService extends EventSink {
   }
 
   def allocateCandidates(
-    newAllocations: command.CandidateAllocations
+    newAllocations: command.CandidateAllocations, append: Boolean
   )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[command.CandidateAllocations] = {
 
     eventsService.getEvent(newAllocations.eventId).flatMap { event =>
@@ -133,7 +133,7 @@ trait CandidateAllocationService extends EventSink {
             }
           case _ =>
             val existingIds = existingAllocation.allocations.map(_.id)
-            updateExistingAllocations(existingAllocation, newAllocations, event.eventType).flatMap { res =>
+            updateExistingAllocations(existingAllocation, newAllocations, event.eventType, append).flatMap { res =>
               Future.sequence(
                 newAllocations.allocations
                   .filter(alloc => !existingIds.contains(alloc.id))
@@ -203,28 +203,31 @@ trait CandidateAllocationService extends EventSink {
   private def updateExistingAllocations(
     existingAllocations: exchange.CandidateAllocations,
     newAllocations: command.CandidateAllocations,
-    eventType: EventType
+    eventType: EventType,
+    append: Boolean
   ): Future[command.CandidateAllocations] = {
 
     if (existingAllocations.version.forall(_ == newAllocations.version)) {
-      // no prior update since reading so do update
-      // check what's been updated here so we can send email notifications
-
-      // Convert the existing exchange allocations to persisted objects so we can delete what is currently in the db
       val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId, newAllocations.sessionId)
-
-      val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
+      val newAllocsAll = if (append) {
+        val oldToStay = existingAllocations.allocations
+          .filter(a => !newAllocations.allocations.exists(_.id == a.id)).map(CandidateAllocation.fromExchange)
+        newAllocations.copy(allocations = newAllocations.allocations ++ oldToStay)
+      } else {
+        newAllocations
+      }
+      val toPersist = persisted.CandidateAllocation.fromCommand(newAllocsAll)
       candidateAllocationRepo.delete(toDelete).flatMap { _ =>
         candidateAllocationRepo.save(toPersist).flatMap { _ =>
-          updateStatusInvited(toPersist, eventType).map {_ =>
+          updateStatusInvited(toPersist, eventType).map { _ =>
             command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
           }
         }
       }
     } else {
-        throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
-      }
+      throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
     }
+  }
 
     private def sendCandidateEmail(
       candidateAllocation: CandidateAllocation,

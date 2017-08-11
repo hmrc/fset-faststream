@@ -53,7 +53,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
       when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(Nil)
       when(mockAppRepo.find(appId)).thenReturnAsync(None)
-      service.allocateCandidates(candidateAllocations)
+      service.allocateCandidates(candidateAllocations, false)
     }
   }
 
