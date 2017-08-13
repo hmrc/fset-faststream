@@ -278,6 +278,9 @@ assessmentCentre.analysisExercise.upload.tooBig=Your analysis exercise must be l
 assessmentCentre.analysisExercise.upload.wrongContentType=Your analysis exercise must be in the .doc or .docx format
 assessmentCentre.analysisExercise.upload.success=You''ve successfully submitted your analysis exercise.
 
+assessmentCentre.event.confirm.success=You''ve successfully confirmed
+assessmentCentre.event.confirm.optimistic.lock=This page is outdated. Please refresh and try again.
+
 passportCountry.chooseOne=You must select a country from the list
 passportCountry.unsupported.value=You must select a valid country from the list
 secondPassportCountry.chooseOne=You must select a country from the list

@@ -17,65 +17,58 @@
 package models.page
 
 import connectors.events.Event
+import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.sift.SiftAnswersStatus
-import helpers.{ CachedUserWithSchemeData, Timezones }
-import models.page.PostOnlineTestsStage.PostOnlineTestsStage
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
+import helpers.{ CachedUserWithSchemeData, Timezones }
 import models.CachedData
+import models.page.DashboardPage.Flags
+import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
 import org.joda.time.{ DateTime, LocalTime }
-
-
 
 
 object PostOnlineTestsStage extends Enumeration {
   type PostOnlineTestsStage = Value
-  val FAILED_TO_ATTEND, CONFIRMED_FOR_EVENT, EVENT_BOOKED, EVENT_ATTENDED, OTHER = Value
+  val FAILED_TO_ATTEND, CONFIRMED_FOR_EVENT, UPLOAD_EXERCISES, ALLOCATED_TO_EVENT, EVENT_ATTENDED, OTHER = Value
 }
 
 case class PostOnlineTestsPage(
   userDataWithSchemes: CachedUserWithSchemeData,
-  assessmentCentreEvent: Option[Event],
+  assessmentCentreAllocation: Option[CandidateAllocationWithEvent],
   additionalQuestionsStatus: Option[SiftAnswersStatus],
   hasAnalysisExercise: Boolean
 ) {
+  import PostOnlineTestsStage._
 
-  def stage: PostOnlineTestsStage = {
-    import PostOnlineTestsStage._
-    val failedToAttend = userDataWithSchemes.application.progress.assessmentCentre.failedToAttend
-
-
-    (failedToAttend, assessmentCentreStarted, allocatedToAssessmentCentre, hasAnalysisExercise) match {
-      case (true, _, _, _) => FAILED_TO_ATTEND
-      case (_, true, true, false) => CONFIRMED_FOR_EVENT
-      case (_, false, true, false) => EVENT_BOOKED
-      case (_, true, true, true) => EVENT_ATTENDED
+  // scalastyle:off cyclomatic.complexity
+  def stage: PostOnlineTestsStage =
+    userDataWithSchemes.application.progress.assessmentCentre match {
+      case a if a.failedToAttend => FAILED_TO_ATTEND
+      case _ if hasAnalysisExercise => EVENT_ATTENDED
+      case a if a.allocationConfirmed & assessmentCentreStarted => UPLOAD_EXERCISES
+      case z if z.allocationConfirmed => CONFIRMED_FOR_EVENT
+      case a if a.allocationUnconfirmed => ALLOCATED_TO_EVENT
       case _ => OTHER
-    }
   }
+  // scalastyle:on
 
   def toCachedData: CachedData = CachedData(userDataWithSchemes.user, Some(userDataWithSchemes.application))
-
-  def hasAssessmentCentreRequirement: Boolean = true
 
   def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 
   private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {
-    val minutes = localTime.toString("mm")
-    if (minutes == "00") {
-      localTime.toString("ha")
-    } else {
-      localTime.toString("h:mma")
-    }
+    localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
   }
 
-  val assessmentCentreStartDateAndTime: String = assessmentCentreEvent.map { ac =>
+  val assessmentCentreStartDateAndTime: String = assessmentCentreAllocation.map(_.event).map { ac =>
     ac.date.toString("EEEE d MMMM YYYY") + " at " + dateTimeToStringWithOptionalMinutes(ac.sessions.head.startTime)
   }.getOrElse("No assessment centre")
 
-  val assessmentCentreNameAndLocation: String = assessmentCentreEvent.map { ac => ac.venue.description }.getOrElse("No assessment centre")
+  val assessmentCentreNameAndLocation: String = {
+    assessmentCentreAllocation.map(_.event).map { ac => ac.venue.description }.getOrElse("No assessment centre")
+  }
 
-  val assessmentCentreStarted = assessmentCentreEvent.exists { event =>
+  val assessmentCentreStarted: Boolean = assessmentCentreAllocation.map(_.event).exists { event =>
     val eventDate = event.date
     val sessionTime = event.sessions.head.startTime
     val sessionDateTime = new DateTime(
@@ -87,11 +80,10 @@ case class PostOnlineTestsPage(
     timeNow.isAfter(sessionDateTime)
   }
 
-  val allocatedToAssessmentCentre = assessmentCentreEvent.isDefined
-
-  val fourthStepVisibility = if (userDataWithSchemes.application.progress.assessmentCentre.failedToAttend) {
-    ProgressInactiveDisabled
-  } else {
-    ProgressActive
+  val fourthStepVisibility: Flags.ProgressStepVisibility = {
+    userDataWithSchemes.application.progress.assessmentCentre match {
+      case a if a.failedToAttend | a.failed => ProgressInactiveDisabled
+      case _ => ProgressActive
+    }
   }
 }

@@ -20,8 +20,11 @@ import java.nio.file.{ Files, Path }
 
 import com.mohiva.play.silhouette.api.Silhouette
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
+import connectors.ApplicationClient._
+import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange._
+import connectors.exchange.candidateevents.CandidateAllocations
 import forms.WithdrawApplicationForm
 import helpers.NotificationType._
 import helpers.CachedUserWithSchemeData
@@ -112,13 +115,24 @@ abstract class HomeController(
       }
   }
 
+  def confirmAssessmentCentreAllocation(allocationVersion: String, eventId: UniqueIdentifier, sessionId: UniqueIdentifier): Action[AnyContent] =
+    CSRSecureAction(ActiveUserRole) { implicit request =>
+    implicit cachedData =>
+      val alloc = CandidateAllocations.createConfirmed(Some(allocationVersion), cachedData.application.get.applicationId.toString)
+      applicationClient.allocateCandidateToEvent(eventId, sessionId, alloc).map { _ =>
+        Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.event.confirm.success"))
+      }.recover { case _: OptimisticLockException =>
+        Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.event.confirm.optimistic.lock"))
+      }
+  }
+
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
     request: Request[_], hc: HeaderCarrier) = {
     for {
       allSchemes <- refDataClient.allSchemes()
       schemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
       siftAnswersStatus <- siftClient.getSiftAnswersStatus(application.applicationId)
-      assessmentCentreEvents <- applicationClient.eventWithSessionsForApplicationOnly(application.applicationId, EventType.FSAC)
+      assessmentCentreEvents <- applicationClient.candidateAllocationEventWithSession(application.applicationId, EventType.FSAC)
       assessmentCentreEvent = assessmentCentreEvents.headOption // Candidate can only be assigned to one assessment centre event and session
       hasWrittenAnalysisExercise <- applicationClient.hasAnalysisExercise(application.applicationId)
     } yield {

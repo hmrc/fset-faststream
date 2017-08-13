@@ -20,11 +20,11 @@ import java.net.URLEncoder
 
 import config.CSRHttp
 import connectors.UserManagementClient.TokenEmailPairInvalidException
-import connectors.events.{ Event }
-import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.GeneralDetails._
+import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
+import connectors.exchange.candidateevents.{ CandidateAllocationWithEvent, CandidateAllocations }
 import models.events.EventType.EventType
 import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
@@ -245,11 +245,25 @@ trait ApplicationClient {
     http.POST(s"$apiBaseUrl/allocation-status/confirm/$appId", "").map(_ => ())
   }
 
-  def eventWithSessionsForApplicationOnly(appId: UniqueIdentifier, eventType: EventType)(implicit hc: HeaderCarrier): Future[List[Event]] = {
+  def candidateAllocationEventWithSession(
+    appId: UniqueIdentifier,
+    eventType: EventType
+  )(implicit hc: HeaderCarrier): Future[List[CandidateAllocationWithEvent]] = {
     http.GET(
-      s"$apiBaseUrl/sessions/findByApplicationId", Seq("applicationId" -> appId.toString, "sessionEventType" -> eventType.toString)
-    ).map { response =>
-      response.json.as[List[Event]]
+      s"$apiBaseUrl/candidate-allocations/sessions/findByApplicationId",
+      Seq("applicationId" -> appId.toString, "sessionEventType" -> eventType.toString)
+    ).map( _.json.as[List[CandidateAllocationWithEvent]])
+  }
+
+  def allocateCandidateToEvent(
+    eventId: UniqueIdentifier,
+    sessionId: UniqueIdentifier,
+    candidateAllocations: CandidateAllocations
+  )(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"$apiBaseUrl/candidate-allocations/allocate/events/$eventId/sessions/$sessionId?append=true",
+      Json.toJson(candidateAllocations)).map(_ => ()).recover {
+      case Upstream4xxResponse(_, CONFLICT, _, _) =>
+        throw new OptimisticLockException(s"Candidate allocation for event $eventId has changed.")
     }
   }
 
@@ -347,4 +361,6 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class TestForTokenExpiredException extends Exception
 
   sealed class CandidateAlreadyHasAnAnalysisExerciseException extends Exception
+
+  sealed class OptimisticLockException(m: String) extends Exception(m)
 }
