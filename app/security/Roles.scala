@@ -135,7 +135,9 @@ object Roles {
   }
 
   object SchemeWithdrawRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader): Boolean = isSiftEntered(user) || isAwaitingAllocation(user)
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader): Boolean ={
+      statusIn(user)(SIFT) || (statusIn(user)(ASSESSMENT_CENTRE) && isAwaitingAllocation(user))
+    }
   }
 
   object OnlineTestInvitedRole extends CsrAuthorization {
