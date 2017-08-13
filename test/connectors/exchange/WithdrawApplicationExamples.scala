@@ -17,8 +17,8 @@
 package connectors.exchange
 
 object WithdrawApplicationExamples {
-  val Valid = WithdrawApplication("found another job", None, "Candidate")
-  val OtherReasonValid = WithdrawApplication("found another job", Some("Other (provide details)"), "Candidate")
-  val OtherReasonInvalidNoReason = WithdrawApplication("", None, "Candidate")
-  val OtherReasonInvalidNoOtherReasonMoreInfo = WithdrawApplication("Other (provide details)", None, "Candidate")
+  val Valid = WithdrawApplication("found another job", None)
+  val OtherReasonValid = WithdrawApplication("found another job", Some("Other (provide details)"))
+  val OtherReasonInvalidNoReason = WithdrawApplication("", None)
+  val OtherReasonInvalidNoOtherReasonMoreInfo = WithdrawApplication("Other (provide details)", None)
 }
