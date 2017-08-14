@@ -19,10 +19,13 @@ package model
 import model.persisted.SchemeEvaluationResult
 
 object EvaluationResults {
+
   sealed trait Result {
     def toReportReadableString: String
+
     def +(that: Result): Result
   }
+
   case object Green extends Result {
     def toReportReadableString: String = PassFail.Pass.toString
 
@@ -33,6 +36,7 @@ object EvaluationResults {
       case Withdrawn => Withdrawn
     }
   }
+
   case object Amber extends Result {
     def toReportReadableString: String = "Amber"
 
@@ -43,8 +47,10 @@ object EvaluationResults {
       case Withdrawn => Withdrawn
     }
   }
+
   case object Red extends Result {
     def toReportReadableString: String = PassFail.Fail.toString
+
     def +(that: Result): Result = that match {
       case Withdrawn => Withdrawn
       case _ => this
@@ -54,6 +60,7 @@ object EvaluationResults {
   //Not an evaluation status but no where else really good to put this.
   case object Withdrawn extends Result {
     def toReportReadableString: String = "Withdrawn"
+
     def +(that: Result): Result = this
   }
 
@@ -62,6 +69,7 @@ object EvaluationResults {
       case "Red" => Red
       case "Green" => Green
       case "Amber" => Amber
+      case "Withdrawn" => Withdrawn
     }
 
     def fromPassFail(s: String): EvaluationResults.Result = PassFail.withName(s) match {
@@ -71,9 +79,9 @@ object EvaluationResults {
 
   }
 
- object PassFail extends Enumeration {
-   val Pass, Fail = Value
- }
+  object PassFail extends Enumeration {
+    val Pass, Fail = Value
+  }
 
   @deprecated("This should be deleted", since = "31/07/2017")
   case class RuleCategoryResult(location1Scheme1: Result, location1Scheme2: Option[Result],
@@ -98,5 +106,6 @@ object EvaluationResults {
   case class AssessmentEvaluationResult(
     passedMinimumCompetencyLevel: Option[Boolean],
     competencyAverageResult: CompetencyAverageResult,
-    schemesEvaluation: List[SchemeEvaluationResult])
+    schemesEvaluation: Seq[SchemeEvaluationResult])
 }
+

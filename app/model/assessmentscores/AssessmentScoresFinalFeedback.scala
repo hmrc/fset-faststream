@@ -25,7 +25,7 @@ import repositories._
 case class AssessmentScoresFinalFeedback(
                                           feedback: String,
                                           updatedBy: UniqueIdentifier,
-                                          submittedDate: DateTime) {
+                                          acceptedDate: DateTime) {
 }
 
 object AssessmentScoresFinalFeedback {

@@ -59,11 +59,13 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
 
     "not overwrite existing value" in {
       val applicationId = createApplication()
-      repository.save(applicationId, SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")).futureValue
+      val scheme: String = "GovernmentSocialResearchService"
+      repository.save(applicationId, SchemeEvaluationResult(scheme, "Green")).futureValue
 
-      intercept[AlreadyEvaluatedForSchemeException] {
-        repository.save(applicationId,  SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")).futureValue
+      val exception = intercept[Exception] {
+        repository.save(applicationId,  SchemeEvaluationResult(scheme, "Red")).futureValue
       }
+      exception.getMessage must include(s"Fsb evaluation already done for application $applicationId for scheme $scheme")
     }
 
   }

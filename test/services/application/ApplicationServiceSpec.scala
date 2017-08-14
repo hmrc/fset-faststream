@@ -16,13 +16,14 @@
 
 package services
 
-import model.Commands.{ ApplicationResponse, Candidate }
-import model.Exceptions.PassMarkEvaluationNotFound
-import model.command.ProgressResponse
+import model.Commands.PhoneNumber
+import model.Exceptions.{ LastSchemeWithdrawException, PassMarkEvaluationNotFound }
+import model.command.{ ProgressResponse, WithdrawApplication, WithdrawScheme }
+import model.{ ApplicationResponse, Candidate }
 import model.stc.AuditEvents
 import org.joda.time.DateTime
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, SchemeId, SelectedSchemes }
+import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
+import model.{ Address, ApplicationRoute, SchemeId, SelectedSchemes }
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -35,6 +36,7 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.application.ApplicationService
 import testkit.{ ExtendedTimeout, UnitSpec }
+import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
@@ -191,6 +193,59 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
+  "withdraw" must {
+    "withdraw an application" in new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), "Green")
+      ))
+      when(appRepositoryMock.withdraw(any[String], any[WithdrawApplication])).thenReturnAsync()
+      val withdraw = WithdrawApplication("reason", None, "Candidate")
+
+      underTest.withdraw("appId", withdraw).futureValue
+
+      verify(appRepositoryMock).withdraw("appId", withdraw)
+
+    }
+
+    "withdraw from a scheme" in new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), "Green"),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), "Green")
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
+      )).thenReturnAsync()
+      val withdraw = WithdrawScheme(SchemeId("Commercial"), "reason", "Candidate")
+
+      underTest.withdraw("appId", withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
+        any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
+      )
+    }
+
+    "throw an exception when withdrawing from the last scheme" in new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), "Green")
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
+      )).thenReturnAsync()
+
+      val withdraw = WithdrawScheme(SchemeId("Commercial"), "reason", "Candidate")
+
+      whenReady(underTest.withdraw("appId", withdraw).failed) { r =>
+        r mustBe a[LastSchemeWithdrawException]
+      }
+    }
+  }
+
   trait TestFixture {
 
     val appRepositoryMock: GeneralApplicationRepository = mock[GeneralApplicationRepository]
@@ -221,6 +276,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val candidate1 = Candidate(userId = "user123", applicationId = Some("appId234"), email = Some("test1@localhost"),
       None, None, None, None, None, None, None, None, None)
+
+    val cd1 = ContactDetails(outsideUk = false, Address("line1"), None, None, "email@email.com", "123":PhoneNumber)
 
     val candidate2 = Candidate(userId = "user456", applicationId = Some("appId4567"), email = Some("test2@localhost"),
       None, None, None, None, None, None, None, None, None)

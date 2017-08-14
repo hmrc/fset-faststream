@@ -159,15 +159,15 @@ trait CommonBSONDocuments extends BaseBSONReader {
             siftCompleted = getProgress(ProgressStatuses.SIFT_COMPLETED.key)
           ),
           assessmentCentre = AssessmentCentre(
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key)
+            awaitingAllocation = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key),
+            allocationUnconfirmed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED.key),
+            allocationConfirmed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED.key),
+            failedToAttend = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND.key),
+            scoresEntered = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED.key),
+            scoresAccepted = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.key),
+            awaitingReevaluation = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
+            passed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
+            passedNotified = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key)
           )
         )
       }).getOrElse(ProgressResponse(applicationId))

@@ -21,8 +21,6 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 import scala.language.implicitConversions
 
-
-@deprecated("We should get rid of this enum and change code accordingly to use AssessorSkill (renamed to SkillType)", since = "10/07/2017")
 object SkillType extends Enumeration {
   type SkillType = Value
 

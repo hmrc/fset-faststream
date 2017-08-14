@@ -16,8 +16,7 @@
 
 package controllers
 
-import model.ApplicationRoute
-import model.Commands._
+import model.{ ApplicationRoute, Candidate, SearchCandidate }
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
@@ -39,8 +38,6 @@ object SearchForApplicantsController extends SearchForApplicantsController {
 }
 
 trait SearchForApplicantsController extends BaseController {
-
-  import Implicits._
 
   val appRepository: GeneralApplicationRepository
   val psRepository: PersonalDetailsRepository

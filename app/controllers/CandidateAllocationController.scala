@@ -36,10 +36,21 @@ trait CandidateAllocationController extends BaseController {
 
   def candidateAllocationService: CandidateAllocationService
 
-  def allocateCandidates(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def confirmAllocation(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
       val newAllocations = command.CandidateAllocations.fromExchange(eventId, sessionId, candidateAllocations)
-      candidateAllocationService.allocateCandidates(newAllocations).map {
+      candidateAllocationService.confirmCandidateAllocation(newAllocations).map {
+        _ => Ok
+      }.recover {
+        case e: OptimisticLockException => Conflict(e.getMessage)
+      }
+    }
+  }
+
+  def allocateCandidates(eventId: String, sessionId: String, append: Boolean): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
+      val newAllocations = command.CandidateAllocations.fromExchange(eventId, sessionId, candidateAllocations)
+      candidateAllocationService.allocateCandidates(newAllocations, append).map {
         _ => Ok
       }.recover {
         case e: OptimisticLockException => Conflict(e.getMessage)
@@ -60,7 +71,10 @@ trait CandidateAllocationController extends BaseController {
   def removeCandidateAllocations(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocs =>
       val allocations = CandidateAllocation.fromExchange(candidateAllocs, eventId, sessionId).toList
-      candidateAllocationService.unAllocateCandidates(allocations).map( _ => Ok)
+      candidateAllocationService.unAllocateCandidates(allocations).map(_ => Ok)
+        .recover {
+          case e: OptimisticLockException => Conflict(e.getMessage)
+        }
     }
   }
 

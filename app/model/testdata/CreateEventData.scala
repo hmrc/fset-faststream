@@ -18,25 +18,25 @@ package model.testdata
 
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.persisted.eventschedules._
-import org.joda.time.{LocalDate, LocalTime}
-import play.api.libs.json.{Json, OFormat}
+import org.joda.time.{ LocalDate, LocalTime }
+import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker.Random
 
 object CreateEventData {
 
   case class CreateEventData(id: String,
-                             eventType: EventType.EventType,
-                             description: String,
-                             location: Location,
-                             venue: Venue,
-                             date: LocalDate,
-                             capacity: Int,
-                             minViableAttendees: Int,
-                             attendeeSafetyMargin: Int,
-                             startTime: LocalTime,
-                             endTime: LocalTime,
-                             skillRequirements: Map[String, Int],
-                             sessions: List[Session]) extends CreateTestData {
+    eventType: EventType.EventType,
+    description: String,
+    location: Location,
+    venue: Venue,
+    date: LocalDate,
+    capacity: Int,
+    minViableAttendees: Int,
+    attendeeSafetyMargin: Int,
+    startTime: LocalTime,
+    endTime: LocalTime,
+    skillRequirements: Map[String, Int],
+    sessions: List[Session]) extends CreateTestData {
     def toEvent: Event = {
       Event(id, eventType, description, location, venue, date, capacity, minViableAttendees,
         attendeeSafetyMargin, startTime, endTime, skillRequirements, sessions)
@@ -46,13 +46,13 @@ object CreateEventData {
   object CreateEventData {
     implicit val format: OFormat[CreateEventData] = Json.format[CreateEventData]
 
-    def apply(createRequest: CreateEventRequest)(generatorId: Int): CreateEventData = {
+    def apply(createRequest: CreateEventRequest, venues: List[Venue])(generatorId: Int): CreateEventData = {
 
       val id = createRequest.id.getOrElse(Random.Event.id)
       val eventType = createRequest.eventType.getOrElse(Random.Event.eventType)
       val description = createRequest.description.getOrElse(Random.Event.description)
       val location = createRequest.location.map(l => Location(l)).getOrElse(Random.Event.location)
-      val venue = createRequest.venue.map(v => Venue(v, s"$v")).getOrElse(Random.Event.venue(location))
+      val venue = createRequest.venue.flatMap(v => venues.find(_.name == v)).getOrElse(Random.randOne(venues))
       val date = createRequest.date.getOrElse(Random.Event.date)
       val capacity = createRequest.capacity.getOrElse(Random.Event.capacity)
       val minViableAttendees = createRequest.minViableAttendees.getOrElse(Random.Event.minViableAttendees)

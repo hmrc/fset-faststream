@@ -42,7 +42,7 @@ case class AssessmentScoresExercise(
                                           leadingAndCommunicatingAverage: Option[Double] = None,
                                           buildingProductiveRelationshipsAverage: Option[Double] = None,
                                           updatedBy: UniqueIdentifier,
-                                          //  savedDate: Option[DateTime] = None,
+                                          savedDate: Option[DateTime] = None,
                                           submittedDate: Option[DateTime] = None,
                                           version: Option[String] = None
                                         ) {

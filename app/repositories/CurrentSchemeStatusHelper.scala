@@ -19,25 +19,32 @@ package repositories
 import model.EvaluationResults._
 import model.SchemeId
 import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.{ BSONDocument, BSONString }
+import reactivemongo.bson.BSONDocument
+
+import scala.annotation.tailrec
 
 trait CurrentSchemeStatusHelper {
 
   def calculateCurrentSchemeStatus(existingEvaluations: Seq[SchemeEvaluationResult],
     newEvaluations: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
 
-    val updated = newEvaluations.map { newEvaluation =>
-      existingEvaluations.find(_.schemeId == newEvaluation.schemeId).map { existingEvaluation =>
-        SchemeEvaluationResult(
-          existingEvaluation.schemeId,
-          (Result(existingEvaluation.result) + Result(newEvaluation.result)).toString
-        )
-      }.getOrElse(newEvaluation)
+    @tailrec
+    def accumulateStatus(existingStatuses: Seq[SchemeEvaluationResult], newStatuses: Seq[SchemeEvaluationResult],
+      accum : Seq[SchemeEvaluationResult]
+    ):Seq[SchemeEvaluationResult] = existingStatuses match {
+      case Nil => if (accum.isEmpty) newStatuses else accum ++ newStatuses
+      case head :: tail =>
+        val (updated, reducedNewStatuses) = newStatuses.find(_.schemeId == head.schemeId).map { newStatus =>
+          (
+            SchemeEvaluationResult(head.schemeId, (Result(head.result) + Result(newStatus.result)).toString),
+            newStatuses.filterNot(_.schemeId == newStatus.schemeId)
+          )
+        }.getOrElse(head, newStatuses)
+
+        accumulateStatus(tail, reducedNewStatuses, accum :+ updated)
     }
 
-    val nonUpdated = existingEvaluations.filterNot( existingEvaluation => newEvaluations.exists(_.schemeId == existingEvaluation.schemeId))
-
-    updated ++ nonUpdated
+    accumulateStatus(existingEvaluations, newEvaluations, Nil)
   }
 
   def currentSchemeStatusBSON(latestResults: Seq[SchemeEvaluationResult]): BSONDocument = {

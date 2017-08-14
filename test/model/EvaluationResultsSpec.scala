@@ -25,6 +25,13 @@ class EvaluationResultsSpec extends UnitSpec with TableDrivenPropertyChecks {
 
   "Evaluation results" must {
 
+    "be returned for a string value" in {
+      EvaluationResults.Result.apply("Green") mustBe Green
+      EvaluationResults.Result.apply("Amber") mustBe Amber
+      EvaluationResults.Result.apply("Red") mustBe Red
+      EvaluationResults.Result.apply("Withdrawn") mustBe Withdrawn
+    }
+
     val All = Seq(Green, Amber, Red, Withdrawn)
 
     "add withdrawn" in {

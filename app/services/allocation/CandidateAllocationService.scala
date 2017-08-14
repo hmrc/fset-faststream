@@ -76,8 +76,6 @@ trait CandidateAllocationService extends EventSink {
 
 
   private val dateFormat = "dd MMMM YYYY"
-  private val timeFormat = "HH:mma"
-
 
   def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
     candidateAllocationRepo.activeAllocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
@@ -98,30 +96,44 @@ trait CandidateAllocationService extends EventSink {
   }
 
   def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation])
-    (implicit hc: HeaderCarrier): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
-    // For each allocation, reset the progress status and delete the corresponding allocation
-    val res = FutureEx.traverseSerial(allocations) { allocation =>
-      val fut = candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
-        ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
-          case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id)
-          case _ => applicationRepo.resetApplicationAllocationStatus(allocation.id)
-        } ).flatMap { _ =>
-          notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
-        }
+    (implicit hc: HeaderCarrier): Future[Unit] = {
+    val checkedAllocs = allocations.map { allocation =>
+      candidateAllocationRepo.isAllocationExists(allocation.id, allocation.eventId, allocation.sessionId, Some(allocation.version))
+        .map { ex =>
+        if (!ex) throw OptimisticLockException(s"Allocation for application ${allocation.id} already removed")
+        allocation
       }
-      FutureEx.futureToEither(allocation, fut)
     }
-    res.map(SerialUpdateResult.fromEither)
+    Future.sequence(checkedAllocs).flatMap { allocations =>
+      Future.sequence(allocations.map { allocation =>
+        candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
+          ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
+            case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id)
+            case _ => applicationRepo.resetApplicationAllocationStatus(allocation.id)
+          }).flatMap { _ =>
+            notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
+          }
+        }
+      })
+    }.map(_ => ())
+  }
+
+  def confirmCandidateAllocation(
+    newAllocations: command.CandidateAllocations
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[command.CandidateAllocations] = {
+    val allocation = newAllocations.allocations.head
+    candidateAllocationRepo.isAllocationExists(allocation.id, newAllocations.eventId, newAllocations.sessionId, Some(newAllocations.version))
+      .flatMap { ex =>
+        if (!ex) throw OptimisticLockException(s"There are no relevant allocation for candidate ${allocation.id}")
+        allocateCandidates(newAllocations, append = true)
+    }
   }
 
   def allocateCandidates(
-    newAllocations: command.CandidateAllocations
+    newAllocations: command.CandidateAllocations, append: Boolean
   )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[command.CandidateAllocations] = {
 
     eventsService.getEvent(newAllocations.eventId).flatMap { event =>
-      val eventDate = event.date.toString(dateFormat)
-      val eventTime = event.startTime.toString(timeFormat)
-      val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
 
       getCandidateAllocations(newAllocations.eventId, newAllocations.sessionId).flatMap { existingAllocation =>
         existingAllocation.allocations match {
@@ -129,18 +141,18 @@ trait CandidateAllocationService extends EventSink {
             val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
             candidateAllocationRepo.save(toPersist).flatMap { _ =>
               updateStatusInvited(toPersist).flatMap { _ =>
-                Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime)))
+                Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, event, UniqueIdentifier(newAllocations.sessionId))))
               }
             }.map { _ =>
               command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
             }
           case _ =>
             val existingIds = existingAllocation.allocations.map(_.id)
-            updateExistingAllocations(existingAllocation, newAllocations).flatMap { res =>
+            updateExistingAllocations(existingAllocation, newAllocations, append).flatMap { res =>
               Future.sequence(
                 newAllocations.allocations
                   .filter(alloc => !existingIds.contains(alloc.id))
-                  .map(sendCandidateEmail(_, eventDate, eventTime, deadlineDateTime))
+                  .map(sendCandidateEmail(_, event, UniqueIdentifier(newAllocations.sessionId)))
               ).map { _ => res}
             }
         }
@@ -192,33 +204,43 @@ trait CandidateAllocationService extends EventSink {
     })
   }
 
-  private def updateExistingAllocations(existingAllocations: exchange.CandidateAllocations,
-    newAllocations: command.CandidateAllocations): Future[command.CandidateAllocations] = {
+  private def updateExistingAllocations(
+    existingAllocations: exchange.CandidateAllocations,
+    newAllocations: command.CandidateAllocations,
+    append: Boolean
+  ): Future[command.CandidateAllocations] = {
 
     if (existingAllocations.version.forall(_ == newAllocations.version)) {
-      // no prior update since reading so do update
-      // check what's been updated here so we can send email notifications
-
-      // Convert the existing exchange allocations to persisted objects so we can delete what is currently in the db
       val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId, newAllocations.sessionId)
-
-      val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
+      val newAllocsAll = if (append) {
+        val oldToStay = existingAllocations.allocations
+          .filter(a => !newAllocations.allocations.exists(_.id == a.id)).map(CandidateAllocation.fromExchange)
+        newAllocations.copy(allocations = newAllocations.allocations ++ oldToStay)
+      } else {
+        newAllocations
+      }
+      val toPersist = persisted.CandidateAllocation.fromCommand(newAllocsAll)
       candidateAllocationRepo.delete(toDelete).flatMap { _ =>
         candidateAllocationRepo.save(toPersist).flatMap { _ =>
-          updateStatusInvited(toPersist).map {_ =>
+          updateStatusInvited(toPersist).map { _ =>
             command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
           }
         }
       }
     } else {
-        throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
-      }
+      throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
     }
+  }
 
-    private def sendCandidateEmail(candidateAllocation: CandidateAllocation,
-      eventDate: String,
-      eventTime: String,
-      deadlineDateTime: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    private def sendCandidateEmail(
+      candidateAllocation: CandidateAllocation,
+      event: Event,
+      sessionId: UniqueIdentifier)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+      val eventDate = event.date.toString(dateFormat)
+      val localTime = event.sessions.find(_.id == sessionId).map(_.startTime).getOrElse(event.startTime)
+      val eventTime = localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
+      val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
       applicationRepo.find(candidateAllocation.id).flatMap {
         case Some(candidate) =>
           eventSink {
@@ -226,7 +248,8 @@ trait CandidateAllocationService extends EventSink {
               candidates.map { candidate =>
                 candidateAllocation.status match {
                   case AllocationStatuses.UNCONFIRMED =>
-                    CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime, deadlineDateTime)
+                    CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime,
+                      event.eventType.displayValue, event.venue.description, deadlineDateTime)
                   case AllocationStatuses.CONFIRMED =>
                     CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime)
                 }

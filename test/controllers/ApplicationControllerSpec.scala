@@ -125,21 +125,6 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Withdraw application" must {
-    "withdraw the application" in new TestFixture {
-      val result = TestApplicationController.withdrawApplication("1111-1111")(withdrawApplicationRequest("1111-1111")(
-        s"""
-           |{
-           |  "reason":"Something",
-           |  "otherReason":"Else",
-           |  "withdrawer":"Candidate"
-           |}
-        """.stripMargin
-      ))
-      status(result) mustBe OK
-    }
-  }
-
   "Preview application" must {
     "mark the application as previewed" in new TestFixture {
       val result = TestApplicationController.preview(ApplicationId)(previewApplicationRequest(ApplicationId)(
@@ -179,9 +164,6 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     val mockAssessmentCentreService = mock[AssessmentCentreService]
     val mockFileUploadRepository = mock[FileUploadMongoRepository]
 
-    when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))(any[HeaderCarrier], any[RequestHeader]))
-      .thenReturn(Future.successful(()))
-
     object TestApplicationController extends ApplicationController {
       override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
       override val auditService: AuditService = mockAuditService
@@ -204,12 +186,6 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     def createApplicationRequest(jsonString: String) = {
       val json = Json.parse(jsonString)
       FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.createApplication().url, FakeHeaders(), json)
-        .withHeaders("Content-Type" -> "application/json")
-    }
-
-    def withdrawApplicationRequest(applicationId: String)(jsonString: String) = {
-      val json = Json.parse(jsonString)
-      FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.withdrawApplication(applicationId).url, FakeHeaders(), json)
         .withHeaders("Content-Type" -> "application/json")
     }
 

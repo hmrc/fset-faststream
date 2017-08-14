@@ -18,7 +18,7 @@ package services.sift
 
 import common.FutureEx
 import factories.DateTimeFactory
-import model._
+import model.{ ProgressStatuses, SchemeId, SerialUpdateResult, SiftRequirement }
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
@@ -67,7 +67,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     updates.map(SerialUpdateResult.fromEither)
   }
 
-  def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Commands.Candidate]] = {
+  def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[model.Candidate]] = {
     applicationSiftRepo.findApplicationsReadyForSchemeSift(schemeId)
   }
 
