@@ -79,10 +79,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
 
       when(mockEmailClient.sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
 
-      import scala.concurrent.ExecutionContext.Implicits.global
-      service.unAllocateCandidates(persistedAllocations.toList).recover{
-        case e: Exception => e.printStackTrace()
-      }.futureValue
+      service.unAllocateCandidates(persistedAllocations.toList).futureValue
 
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
       verify(mockAppRepo).resetApplicationAllocationStatus(any[String], any[EventType])
