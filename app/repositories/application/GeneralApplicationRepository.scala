@@ -901,15 +901,24 @@ class GeneralApplicationMongoRepository(
   }
 
   import ProgressStatuses._
-  private val progressStatuses = List(
-    ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
-    ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
-    ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
-    ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
+  private val progressStatuses = Map(
+    ASSESSMENT_CENTRE -> List(
+      ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+      ASSESSMENT_CENTRE_FAILED_TO_ATTEND),
+    FSB -> List(
+      FSB_ALLOCATION_CONFIRMED,
+      FSB_ALLOCATION_UNCONFIRMED,
+      FSB_AWAITING_ALLOCATION,
+      FSB_FAILED_TO_ATTEND
+    )
+  )
 
   private def replaceAllocationStatus(applicationId: String, newStatus: ProgressStatuses.ProgressStatus) = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val statusesToRemove = progressStatuses.filter(_ != newStatus).map(p => s"progress-status.${p.key}" -> BSONString(""))
+    val statusesToRemove = progressStatuses(newStatus.applicationStatus)
+      .filter(_ != newStatus).map(p => s"progress-status.${p.key}" -> BSONString(""))
 
     val updateQuery = BSONDocument(
       "$unset" -> BSONDocument(statusesToRemove),

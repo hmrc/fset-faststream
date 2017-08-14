@@ -84,11 +84,12 @@ trait CandidateAllocationService extends EventSink {
       allocations <- candidateAllocationRepo.allocationsForApplication(applicationId)
       events <- eventsService.getEvents(allocations.map(_.eventId).toList, sessionEventType)
     } yield {
-      allocations.map { allocation =>
-        val allocEvent = events.filter(event => event.sessions.exists(session => allocation.sessionId == session.id))
+      allocations.flatMap { allocation =>
+        events.filter(event => event.sessions.exists(session => allocation.sessionId == session.id))
           .map(event => event.copy(sessions = event.sessions.filter(session => allocation.sessionId == session.id)))
-          .headOption.getOrElse(sys.error(s"Event was not found for allocation application: $applicationId"))
-        CandidateAllocationWithEvent(applicationId, allocation.version, allocation.status, model.exchange.Event(allocEvent))
+          .map { allocEvent =>
+          CandidateAllocationWithEvent(applicationId, allocation.version, allocation.status, model.exchange.Event(allocEvent))
+        }
       }
     }
   }
