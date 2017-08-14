@@ -41,12 +41,17 @@ trait FsbAwaitingAllocationStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+      // this should be properly implemented as soon as story FSET-1711 done.
+      _ <- applicationRepository.removeProgressStatuses(
+        candidateInPreviousStatus.applicationId.get,
+        List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+      )
       _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(
         candidateInPreviousStatus.applicationId.get,
         ProgressStatuses.FSB_AWAITING_ALLOCATION
-      ) // TODO: this should be properly implemented as soon as story FSET-1711 done.
+      )
     } yield {
-      candidateInPreviousStatus.copy()
+      candidateInPreviousStatus
     }
   }
 }
