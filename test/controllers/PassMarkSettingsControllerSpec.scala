@@ -17,7 +17,7 @@
 package controllers
 
 import factories.UUIDFactory
-import model.Commands.PassMarkSettingsCreateResponse
+import model.PassMarkSettingsCreateResponse
 import model.SchemeId
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime

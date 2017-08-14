@@ -19,7 +19,6 @@ package repositories
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import factories.DateTimeFactoryMock
 import model.ApplicationStatus._
-import model.Commands._
 import model.{ ApplicationRoute, EvaluationResults, ProgressStatuses }
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
@@ -198,66 +197,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       "applicationStatus" -> appStatus,
       "assessment-centre-passmark-evaluation" -> BSONDocument(
         "passmarkVersion" -> passmarkVersion
-      )
-    )).futureValue
-  }
-
-  def createApplicationWithFrameworkEvaluations(appId: String,
-                                                frameworkId: String,
-                                                appStatus: String,
-                                                passmarkVersion: String,
-                                                frameworkSchemes: OnlineTestPassmarkEvaluationSchemes): Unit = {
-    applicationRepo.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "frameworkId" -> frameworkId,
-      "applicationStatus" -> appStatus,
-      "progress-status" -> BSONDocument(
-        appStatus.toLowerCase -> true
-      ),
-      "passmarkEvaluation" -> BSONDocument(
-        "passmarkVersion" -> passmarkVersion,
-        "location1Scheme1" -> frameworkSchemes.location1Scheme1.get,
-        "location1Scheme2" -> frameworkSchemes.location1Scheme2.get,
-        "location2Scheme1" -> frameworkSchemes.location2Scheme1.get,
-        "location2Scheme2" -> frameworkSchemes.location2Scheme2.get,
-        "alternativeScheme" -> frameworkSchemes.alternativeScheme.get
-      )
-    )).futureValue
-  }
-
-  def createApplicationWithSummaryScoresAndSchemeEvaluations(appId: String,
-                                                             frameworkId: String,
-                                                             appStatus: String,
-                                                             passmarkVersion: String,
-                                                             scores: CandidateScoresSummary,
-                                                             scheme: SchemeEvaluation): Unit = {
-
-    applicationRepo.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "frameworkId" -> frameworkId,
-      "applicationStatus" -> appStatus,
-      "progress-status" -> BSONDocument(
-        "assessment_centre_passed" -> true
-      ),
-      "assessment-centre-passmark-evaluation" -> BSONDocument(
-        "passmarkVersion" -> passmarkVersion,
-        "competency-average" -> BSONDocument(
-          "leadingAndCommunicatingAverage" -> scores.avgLeadingAndCommunicating.get,
-          "collaboratingAndPartneringAverage" -> scores.avgCollaboratingAndPartnering.get,
-          "deliveringAtPaceAverage" -> scores.avgDeliveringAtPace.get,
-          "makingEffectiveDecisionsAverage" -> scores.avgMakingEffectiveDecisions,
-          "changingAndImprovingAverage" -> scores.avgChangingAndImproving,
-          "buildingCapabilityForAllAverage" -> scores.avgBuildingCapabilityForAll,
-          "motivationFitAverage" -> scores.avgMotivationFit,
-          "overallScore" -> scores.totalScore
-        ),
-        "schemes-evaluation" -> BSONDocument(
-          "Commercial" -> scheme.commercial.get,
-          "Digital and technology" -> scheme.digitalAndTechnology.get,
-          "Business" -> scheme.business.get,
-          "Project delivery" -> scheme.projectDelivery.get,
-          "Finance" -> scheme.finance.get
-        )
       )
     )).futureValue
   }

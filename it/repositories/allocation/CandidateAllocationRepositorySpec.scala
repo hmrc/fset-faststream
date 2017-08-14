@@ -57,6 +57,16 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       docs2.size mustBe 1
     }
 
+    "is allocation exists" in {
+      storeAllocations
+      val app = allocations.head
+      val res = repository.isAllocationExists(app.id, app.eventId, app.sessionId, Some(app.version)).futureValue
+      res mustBe true
+      repository.removeCandidateAllocation(app).futureValue
+      val res2 = repository.isAllocationExists(app.id, app.eventId, app.sessionId, Some(app.version)).futureValue
+      res2 mustBe false
+    }
+
     "remove candidate allocations and find it in removal list" in {
       storeAllocations
       val app = allocations.head.copy(removeReason = Some(CandidateRemoveReason.NoShow))

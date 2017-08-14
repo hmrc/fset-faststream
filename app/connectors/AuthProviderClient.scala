@@ -56,11 +56,12 @@ trait AuthProviderClient {
   )
 
   private lazy val ServiceName = MicroserviceAppConfig.authConfig.serviceName
+  private val urlPrefix = "faststream"
 
   import config.MicroserviceAppConfig.userManagementConfig._
 
   def candidatesReport(implicit hc: HeaderCarrier): Future[List[Candidate]] =
-    WSHttp.GET(s"$url/service/$ServiceName/findByRole/${CandidateRole.name}").map { response =>
+    WSHttp.GET(s"$url/$urlPrefix/service/$ServiceName/findByRole/${CandidateRole.name}").map { response =>
       if (response.status == OK) {
         response.json.as[List[Candidate]]
       } else {
@@ -69,8 +70,9 @@ trait AuthProviderClient {
     }
 
   def addUser(email: String, password: String, firstName: String,
-              lastName: String, role: UserRole)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    WSHttp.POST(s"$url/add", AddUserRequest(email.toLowerCase, password, firstName, lastName, role.name, ServiceName)).map { response =>
+              lastName: String, roles: List[UserRole])(implicit hc: HeaderCarrier): Future[UserResponse] =
+    WSHttp.POST(s"$url/$urlPrefix/add",
+      AddUserRequest(email.toLowerCase, password, firstName, lastName, roles.map(_.name), ServiceName)).map { response =>
       response.json.as[UserResponse]
     }.recover {
       case Upstream4xxResponse(_, CONFLICT, _, _) => throw EmailTakenException()
@@ -102,7 +104,7 @@ trait AuthProviderClient {
       }
 
   def findByFirstName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    WSHttp.POST(s"$url/service/$ServiceName/findByFirstName", FindByFirstNameRequest(roles, name)).map { response =>
+    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findByFirstName", FindByFirstNameRequest(roles, name)).map { response =>
       response.json.as[List[Candidate]]
     }.recover {
       case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
@@ -113,7 +115,7 @@ trait AuthProviderClient {
   }
 
   def findByLastName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    WSHttp.POST(s"$url/service/$ServiceName/findByLastName", FindByLastNameRequest(roles, name)).map { response =>
+    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findByLastName", FindByLastNameRequest(roles, name)).map { response =>
       response.json.as[List[Candidate]]
     }.recover {
       case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
@@ -125,7 +127,7 @@ trait AuthProviderClient {
 
   def findByFirstNameAndLastName(firstName: String, lastName: String, roles: List[String])
                                 (implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    WSHttp.POST(s"$url/service/$ServiceName/findByFirstNameLastName",
+    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findByFirstNameLastName",
       FindByFirstNameLastNameRequest(roles, firstName, lastName)
     ).map { response =>
       response.json.as[List[Candidate]]
@@ -138,7 +140,7 @@ trait AuthProviderClient {
   }
 
   def findByUserIds(userIds: Seq[String])(implicit hs: HeaderCarrier): Future[Seq[Candidate]] = {
-    WSHttp.POST(s"$url/service/$ServiceName/findUsersByIds", Map("userIds" -> userIds)).map { (response) =>
+    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findUsersByIds", Map("userIds" -> userIds)).map { (response) =>
       response.json.as[List[Candidate]]
     }
   }

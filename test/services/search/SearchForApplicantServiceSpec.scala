@@ -17,8 +17,7 @@
 package services.search
 
 import connectors.AuthProviderClient
-import model.Address
-import model.Commands.{ Candidate, SearchCandidate }
+import model.{ Address, Candidate, SearchCandidate }
 import model.persisted.ContactDetailsWithId
 import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers._

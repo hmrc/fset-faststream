@@ -33,6 +33,7 @@ import scala.concurrent.Future
 trait CandidateAllocationRepository {
   def save(allocations: Seq[CandidateAllocation]): Future[Unit]
   def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]]
+  def isAllocationExists(applicationId: String, eventId: String, sessionId: String, version: Option[String]): Future[Boolean]
   def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]
   def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]]
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit]
@@ -77,6 +78,22 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
     ), projection)
       .cursor[CandidateAllocation]().collect[Seq]()
+  }
+
+
+  def isAllocationExists(applicationId: String, eventId: String, sessionId: String, version: Option[String]): Future[Boolean] = {
+    val query = List(
+        Some(BSONDocument(
+          "id" -> applicationId,
+          "eventId" -> eventId,
+          "sessionId" -> sessionId,
+          "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
+        )),
+        version.map(v => BSONDocument("version" -> v))
+      ).flatten.fold(BSONDocument.empty)(_ ++ _)
+
+    collection.find(query, projection)
+      .cursor[CandidateAllocation]().collect[Seq]().map(_.nonEmpty)
   }
 
   def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]] = {
