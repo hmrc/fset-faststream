@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package connectors.exchange
+package models.page
 
-object WithdrawApplicationExamples {
-  val Valid = WithdrawApplication("found another job", None)
-  val OtherReasonValid = WithdrawApplication("found another job", Some("Other (provide details)"))
-  val OtherReasonInvalidNoReason = WithdrawApplication("", None)
-  val OtherReasonInvalidNoOtherReasonMoreInfo = WithdrawApplication("Other (provide details)", None)
+import connectors.exchange.referencedata.Scheme
+import forms.SchemeWithdrawForm
+import play.api.data.Form
+
+case class SchemeWithdrawPage(
+  schemes: Seq[(String, String)],
+  form: Form[SchemeWithdrawForm.Data]
+)
+
+object SchemeWithdrawPage {
+  def apply(schemes: Seq[Scheme]): SchemeWithdrawPage = {
+    SchemeWithdrawPage(schemes.map(s => (s.name, s.id.value)), SchemeWithdrawForm.form)
+  }
 }

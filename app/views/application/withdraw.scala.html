@@ -16,7 +16,7 @@
             </div>
         </div>
 
-        @helper.form(action = routes.HomeController.withdrawApplication(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.WithdrawController.withdrawApplication(), 'novalidate -> "novalidate") {
             <fieldset>
                 @helper.CSRF.formField
                 <h2 class="form-label">Do you still want to withdraw?</h2>

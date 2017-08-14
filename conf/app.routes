@@ -32,8 +32,10 @@ POST        /password/reset                                         controllers.
 GET         /dashboard                                              controllers.HomeController.present(displaySdipEligibilityInfo: Boolean ?= false)
 GET         /application/create                                     controllers.HomeController.create
 GET         /application/resume                                     controllers.HomeController.resume
-GET         /application/withdraw                                   controllers.HomeController.presentWithdrawApplication
-POST        /application/withdraw                                   controllers.HomeController.withdrawApplication
+GET         /application/withdraw                                   controllers.WithdrawController.presentWithdrawApplication
+POST        /application/withdraw                                   controllers.WithdrawController.withdrawApplication
+GET         /application/withdraw/scheme                            controllers.WithdrawController.presentWithdrawScheme
+POST        /application/withdraw/scheme                            controllers.WithdrawController.withdrawScheme
 GET         /application/sdip-next-steps                            controllers.HomeController.showSdipNextSteps
 POST        /dashboard/submitWrittenExercise                        controllers.HomeController.submitAnalysisExercise
 POST        /application/confirm-assessment-centre-allocation       controllers.HomeController.confirmAssessmentCentreAllocation(allocationVersion: String, eventId: UniqueIdentifier,sessionId: UniqueIdentifier)
