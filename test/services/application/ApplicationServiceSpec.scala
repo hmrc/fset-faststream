@@ -16,9 +16,10 @@
 
 package services
 
-import model.Commands.{ ApplicationResponse, Candidate, PhoneNumber }
+import model.Commands.PhoneNumber
 import model.Exceptions.{ LastSchemeWithdrawException, PassMarkEvaluationNotFound }
 import model.command.{ ProgressResponse, WithdrawApplication, WithdrawScheme }
+import model.{ ApplicationResponse, Candidate }
 import model.stc.AuditEvents
 import org.joda.time.DateTime
 import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }

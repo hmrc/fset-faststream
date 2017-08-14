@@ -16,11 +16,10 @@
 
 package model
 
-import model.Candidate
+import play.api.libs.json.{ Json, OFormat }
 
-object CandidateExamples {
-  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+case class PersonalDetailsAdded(applicationId: String, userId: String)
 
-
-  val NewCandidates = List(minCandidate("John"), minCandidate("Galt"))
+object PersonalDetailsAdded {
+  implicit val personalDetailsAddedFormat: OFormat[PersonalDetailsAdded] = Json.format[PersonalDetailsAdded]
 }

@@ -16,7 +16,7 @@
 
 package services.adjustmentsmanagement
 
-import model.Commands.Candidate
+import model.Candidate
 import model.Exceptions.ApplicationNotFound
 import model.stc.StcEventTypes.StcEvents
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }

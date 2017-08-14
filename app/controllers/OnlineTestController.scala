@@ -23,13 +23,13 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ InvigilatedTestUrl, ResetOnlineTest, VerifyAccessCode }
 import org.joda.time.DateTime
 import play.api.Logger
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc._
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
-import services.onlinetesting.Exceptions.{ ResetLimitExceededException, CannotResetPhase2Tests }
+import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -42,12 +42,24 @@ case class OnlineTestDetails(
   cubiksEmailAddress: String, isOnlineTestEnabled: Boolean
 )
 
+object OnlineTestDetails {
+  implicit val onlineTestDetailsFormat: OFormat[OnlineTestDetails] = Json.format[OnlineTestDetails]
+}
+
 case class OnlineTest(
   inviteDate: DateTime, expireDate: DateTime, onlineTestLink: String,
   cubiksEmailAddress: String, isOnlineTestEnabled: Boolean, pdfReportAvailable: Boolean
 )
 
+object OnlineTest {
+  implicit val onlineTestFormat: OFormat[OnlineTest] = Json.format[OnlineTest]
+}
+
 case class OnlineTestStatus(status: String)
+
+object OnlineTestStatus {
+  implicit val onlineTestStatusFormat: OFormat[OnlineTestStatus] = Json.format[OnlineTestStatus]
+}
 
 case class OnlineTestExtension(extraDays: Int, actionTriggeredBy: String)
 
@@ -56,6 +68,10 @@ object OnlineTestExtension {
 }
 
 case class UserIdWrapper(userId: String)
+
+object UserIdWrapper {
+  implicit val userIdWrapperFormat: OFormat[UserIdWrapper] = Json.format[UserIdWrapper]
+}
 
 object OnlineTestController extends OnlineTestController {
   override val appRepository: GeneralApplicationRepository = applicationRepository
@@ -69,8 +85,6 @@ trait OnlineTestController extends BaseController {
   val phase1TestService: Phase1TestService
   val phase2TestService: Phase2TestService
   val phase3TestService: Phase3TestService
-
-  import Commands.Implicits._
 
   def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
     phase1TestService.getTestGroup(applicationId) map {

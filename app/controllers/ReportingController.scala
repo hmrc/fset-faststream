@@ -44,8 +44,6 @@ object ReportingController extends ReportingController {
 
 trait ReportingController extends BaseController {
 
-  import Implicits._
-
   val reportingRepository: ReportingRepository
   val contactDetailsRepository: contactdetails.ContactDetailsRepository
   val questionnaireRepository: QuestionnaireRepository
@@ -212,93 +210,4 @@ trait ReportingController extends BaseController {
       Ok(Json.toJson(list))
     }
   }
-
-  // This method is not used at this moment
-  def nonSubmittedAppsReport(frameworkId: String): Action[AnyContent] =
-    preferencesAndContactReports(nonSubmittedOnly = true)(frameworkId)
-
-  // This method is not used at this moment
-  def createPreferencesAndContactReports(frameworkId: String): Action[AnyContent] =
-    preferencesAndContactReports(nonSubmittedOnly = false)(frameworkId)
-
-  // This method is not used at this moment
-  def applicationAndUserIdsReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
-    reportingRepository.allApplicationAndUserIds(frameworkId).map { list =>
-      Ok(Json.toJson(list))
-    }
-  }
-
-  // This method is not used at this moment
-  //scalastyle:off method.length
-  private def preferencesAndContactReports(nonSubmittedOnly: Boolean)(frameworkId: String) = Action.async { implicit request =>
-    def mergeApplications(
-                           users: Map[String, PreferencesWithContactDetails],
-                           contactDetails: List[ContactDetailsWithId],
-                           applications: List[(String, IsNonSubmitted, PreferencesWithContactDetails)]
-                         ) = {
-      def getStatus(progress: Option[ProgressResponse]): String = progress match {
-        case Some(p) => ProgressStatusesReportLabels.progressStatusNameInReports(p)
-        case None => ProgressStatusesReportLabels.RegisteredProgress
-      }
-
-      val contactDetailsMap = contactDetails.groupBy(_.userId).mapValues(_.headOption)
-      val applicationsMap = applications
-        .groupBy { case (userId, _, _) => userId }
-        .mapValues(_.headOption.map { case (_, _, app) => app })
-
-      users.map {
-        case (userId, user) =>
-          val cd = contactDetailsMap.getOrElse(userId, None)
-          val app = applicationsMap.getOrElse(userId, None)
-          val noAppProgress: Option[String] = Some(getStatus(None))
-
-          (userId, PreferencesWithContactDetails(
-            user.firstName,
-            user.lastName,
-            user.preferredName,
-            user.email,
-            cd.flatMap(_.phone),
-            app.flatMap(_.location1),
-            app.flatMap(_.location1Scheme1),
-            app.flatMap(_.location1Scheme2),
-            app.flatMap(_.location2),
-            app.flatMap(_.location2Scheme1),
-            app.flatMap(_.location2Scheme2),
-            app.fold(noAppProgress)(_.progress),
-            app.flatMap(_.timeApplicationCreated)
-          ))
-      }
-    }
-    def getApplicationsNotToIncludeInReport(
-                                             createdApplications: List[(String, IsNonSubmitted, PreferencesWithContactDetails)],
-                                             nonSubmittedOnly: Boolean
-                                           ) = {
-      if (nonSubmittedOnly) {
-        createdApplications.collect { case (userId, false, _) => userId }.toSet
-      } else {
-        Set.empty[String]
-      }
-    }
-
-    def getAppsFromAuthProvider(candidateExclusionSet: Set[String])(implicit request: Request[AnyContent]) = {
-      for {
-        allCandidates <- authProviderClient.candidatesReport
-      } yield {
-        allCandidates.filterNot(c => candidateExclusionSet.contains(c.userId)).map(c =>
-          c.userId -> PreferencesWithContactDetails(Some(c.firstName), Some(c.lastName), c.preferredName, Some(c.email),
-            None, None, None, None, None, None, None, None, None)).toMap
-      }
-    }
-
-    for {
-      applications <- reportingRepository.applicationsReport(frameworkId)
-      applicationsToExclude = getApplicationsNotToIncludeInReport(applications, nonSubmittedOnly)
-      users <- getAppsFromAuthProvider(applicationsToExclude)
-      contactDetails <- contactDetailsRepository.findAll
-      reports = mergeApplications(users, contactDetails, applications)
-    } yield {
-      Ok(Json.toJson(reports.values))
-    }
-  }
-  //scalastyle:on method.length
 }

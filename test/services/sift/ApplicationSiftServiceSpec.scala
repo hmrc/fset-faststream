@@ -17,7 +17,6 @@
 package services.sift
 
 import factories.{ DateTimeFactory, DateTimeFactoryMock }
-import model.Commands.Candidate
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult

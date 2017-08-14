@@ -16,7 +16,6 @@
 
 package model.exchange.testdata
 
-import model.Commands.ApplicationAssessment
 import model.command.GeneralDetails
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
 import model.persisted.{ AssistanceDetails, _ }
@@ -40,7 +39,6 @@ object CreateCandidateResponse {
     phase2TestGroup: Option[TestGroupResponse] = None,
     phase3TestGroup: Option[TestGroupResponse] = None,
     siftForms: Option[Seq[SiftForm]] = None,
-    applicationAssessment: Option[ApplicationAssessment] = None,
     schemePreferences: Option[SelectedSchemes] = None,
     accessCode: Option[String] = None,
     adjustmentInformation: Option[Adjustments] = None,

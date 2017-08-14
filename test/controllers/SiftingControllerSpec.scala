@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Commands.Candidate
+import model.Candidate
 import model.exchange.ApplicationSifting
 import model.persisted.SchemeEvaluationResult
 import model.{ CandidateExamples, SchemeId }

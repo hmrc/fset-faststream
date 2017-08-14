@@ -18,7 +18,6 @@ package services.application
 
 import common.FutureEx
 import connectors.ExchangeObjects
-import model.Commands.Candidate
 import model.EvaluationResults.Green
 import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
 import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
@@ -26,11 +25,10 @@ import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
 import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, EvaluationResults, SchemeId }
+import model._
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import reactivemongo.bson.BSONDocument
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository

@@ -16,11 +16,9 @@
 
 package model.report
 
-import model.Commands.{PhoneAndEmail, ReportWithPersonalDetails}
-import model.OnlineTestCommands.TestResult
 import play.api.libs.json.Json
-import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
+import model.{ PhoneAndEmail, ReportWithPersonalDetails }
 
 case class OnlineTestPassMarkReportItem(
                            application: ApplicationForOnlineTestPassMarkReportItem,

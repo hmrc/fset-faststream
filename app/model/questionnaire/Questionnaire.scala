@@ -14,27 +14,13 @@
  * limitations under the License.
  */
 
-package model
+package model.questionnaire
 
-import controllers._
-import model.ApplicationRoute.ApplicationRoute
-import model.Exceptions.{ NoResultsReturned, TooManyEntries }
-import model.OnlineTestCommands.Implicits._
-import model.OnlineTestCommands.TestResult
-import model.assessmentscores.AssessmentScoresAllExercises
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import play.api.libs.json._
-
-import scala.language.implicitConversions
-import model.command.ProgressResponse
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import model.report.QuestionnaireReportItem
+import play.api.libs.json.{ Json, OFormat }
 
-//scalastyle:off
-object Commands {
+case class Questionnaire(questions: List[Question])
 
-  type PostCode = String
-  type PhoneNumber = String
-  type IsNonSubmitted = Boolean
-
+object Questionnaire {
+  implicit val questionnaireFormat: OFormat[Questionnaire] = Json.format[Questionnaire]
 }
