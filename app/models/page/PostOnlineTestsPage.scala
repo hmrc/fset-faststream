@@ -16,6 +16,7 @@
 
 package models.page
 
+import connectors.events.Event
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus

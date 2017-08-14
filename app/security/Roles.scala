@@ -134,6 +134,12 @@ object Roles {
       statusIn(user)(WITHDRAWN)
   }
 
+  object SchemeWithdrawRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader): Boolean ={
+      statusIn(user)(SIFT) || (statusIn(user)(ASSESSMENT_CENTRE) && isAwaitingAllocation(user))
+    }
+  }
+
   object OnlineTestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
       activeUserWithActiveApp(user) && (statusIn(user)(PHASE1_TESTS) && isPhase1TestsInvited(user))
@@ -323,6 +329,8 @@ object RoleUtils {
   def isSiftReady(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftReady)
 
   def isSiftComplete(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftCompleted)
+
+  def isAwaitingAllocation(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.awaitingAllocation)
 
   def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.failedToAttend)
 

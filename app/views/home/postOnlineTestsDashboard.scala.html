@@ -36,6 +36,21 @@
     }
 }
 
+@withdrawnSchemes = {
+    @if(page.userDataWithSchemes.withdrawnSchemes.nonEmpty) {
+    <details id="withdrawnSchemes">
+        <summary>Withdrawn schemes</summary>
+        <div class="detail-content">
+            @for(schemeResult <- page.userDataWithSchemes.withdrawnSchemes) {
+            <div class="panel-indent">
+                <p>@schemeResult.name</p>
+            </div>
+            }
+        </div>
+    </details>
+    }
+}
+
 @main_template(title = "Home", additionalJavascriptFilenames = List("siftProgress.js")) {
 
     @commonSectionPostOnlineTests(page.toCachedData)
@@ -69,6 +84,7 @@ case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
                 </ul>
             </div>
             @unsuccessfulSchemes
+            @withdrawnSchemes
         </section>
 
     </section>
@@ -80,12 +96,17 @@ case _ => {
         <div class="text">
             <section>
                 <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.userDataWithSchemes.noSuccessfulSchemes} of your preferred schemes.</p>
-                <div class="panel-indent" id="importantToProgress">
-                    <p><i class="fa fa-exclamation-triangle"></i>Important</p>
-                    <p><span>To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>If
-                        you've changed your mind, you can <a href="#">withdraw from individual schemes</a>.
-                    </p>
-                </div>
+                <p>Check your scheme preferences, as the order may have changed.</p>
+                @if(SchemeWithdrawRole.isAuthorized(page.toCachedData)) {
+                    <div class="panel-indent" id="importantToProgress">
+                        <p><i class="fa fa-exclamation-triangle"></i>Important</p>
+                        <p><span>
+                            To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
+                            If
+                            you've changed your mind, you can <a href="@routes.WithdrawController.presentWithdrawScheme">withdraw from individual schemes</a>.
+                        </p>
+                    </div>
+                }
                 @for((schemeResult, index) <- page.userDataWithSchemes.successfulSchemes.zipWithIndex) {
                     <section>
                         <h3 class="bold-small">@getOrder(index + 1) preference</h3>
@@ -95,6 +116,7 @@ case _ => {
             </section>
 
             @unsuccessfulSchemes
+            @withdrawnSchemes
 
         </div>
         <h2 class="heading-large">Next steps</h2>

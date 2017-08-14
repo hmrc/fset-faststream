@@ -35,10 +35,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 // scalastyle:off number.of.methods
-trait AppProgressClient {
-
-}
-
 trait ApplicationClient {
 
   val http: CSRHttp
@@ -71,6 +67,13 @@ trait ApplicationClient {
     }.recover {
       case _: NotFoundException => throw new CannotWithdraw()
     }
+  }
+
+  def withdrawScheme(applicationId: UniqueIdentifier, withdrawal: WithdrawScheme)(implicit hc: HeaderCarrier) = {
+    http.PUT(s"$apiBaseUrl/application/$applicationId/scheme/withdraw", Json.toJson(withdrawal)).map (_ => ())
+      .recover {
+        case _: Exception => throw new CannotWithdraw()
+      }
   }
 
   def addReferral(userId: UniqueIdentifier, referral: String)(implicit hc: HeaderCarrier) = {

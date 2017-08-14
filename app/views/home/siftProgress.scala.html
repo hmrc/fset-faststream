@@ -134,7 +134,7 @@
         @(page.userDataWithSchemes.hasFormRequirement, page.userDataWithSchemes.hasNumericRequirement) match {
             case (true, true) => {
                 <li class="first-step">
-                    @if(isSiftEntered(page.toCachedData)) {
+                    @if(isSiftEntered(page.toCachedData) && !isSiftComplete(page.toCachedData)) {
                         @renderSchemeForm
                         @renderNumericTest
                     } else {
@@ -148,7 +148,7 @@
 
             case (true, false) => {
                 <li class="first-step">
-                    @if(isSiftEntered(page.toCachedData)) {
+                    @if(isSiftEntered(page.toCachedData) && !isSiftComplete(page.toCachedData)) {
                         @renderSchemeForm
                     } else {
                         @renderCompletedSectionOne
@@ -161,7 +161,7 @@
 
             case (false, true) => {
                 <li class="first-step">
-                    @if(isSiftReady(page.toCachedData)) {
+                    @if(isSiftReady(page.toCachedData) && !isSiftComplete(page.toCachedData)) {
                         @renderNumericTest
                     } else {
                         @renderCompletedSectionOne

@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 
-package connectors.exchange
+package forms
 
-object WithdrawApplicationExamples {
-  val Valid = WithdrawApplication("found another job", None)
-  val OtherReasonValid = WithdrawApplication("found another job", Some("Other (provide details)"))
-  val OtherReasonInvalidNoReason = WithdrawApplication("", None)
-  val OtherReasonInvalidNoOtherReasonMoreInfo = WithdrawApplication("Other (provide details)", None)
+import play.api.data.Form
+import play.api.data.Forms._
+import Mappings.nonEmptyTrimmedText
+
+
+object SchemeWithdrawForm {
+
+  case class Data(
+    scheme: String,
+    reason: String
+  )
+
+  val form = Form(mapping(
+    "scheme" -> nonEmptyTrimmedText("withdraw.scheme.required"),
+    "reason" -> text
+  )(Data.apply)(Data.unapply))
+
 }

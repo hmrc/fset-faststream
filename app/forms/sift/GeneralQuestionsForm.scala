@@ -100,7 +100,6 @@ object GeneralQuestionsForm {
 
   def undergradDegreeInfoFormFormatter(yesNo: String) = new Formatter[Option[UndergradDegreeInfoForm.Data]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[UndergradDegreeInfoForm.Data]] = {
-      play.api.Logger.error(s"\n\n DATA \n $data")
       val requiredField: Option[String] = if (data.isEmpty) None else data.get(yesNo)
 
       requiredField match {
