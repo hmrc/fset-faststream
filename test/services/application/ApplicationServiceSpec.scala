@@ -17,7 +17,7 @@
 package services
 
 import model.Commands.{ ApplicationResponse, Candidate, PhoneNumber }
-import model.Exceptions.PassMarkEvaluationNotFound
+import model.Exceptions.{ LastSchemeWithdrawException, PassMarkEvaluationNotFound }
 import model.command.{ ProgressResponse, WithdrawApplication, WithdrawScheme }
 import model.stc.AuditEvents
 import org.joda.time.DateTime
@@ -196,8 +196,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     "withdraw an application" in new TestFixture {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), "Green")
+      ))
       when(appRepositoryMock.withdraw(any[String], any[WithdrawApplication])).thenReturnAsync()
       val withdraw = WithdrawApplication("reason", None, "Candidate")
+
       underTest.withdraw("appId", withdraw).futureValue
 
       verify(appRepositoryMock).withdraw("appId", withdraw)
@@ -207,7 +211,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     "withdraw from a scheme" in new TestFixture {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId("Commercial"), "Green")
+        SchemeEvaluationResult(SchemeId("Commercial"), "Green"),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), "Green")
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -220,6 +225,23 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
         any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
       )
+    }
+
+    "throw an exception when withdrawing from the last scheme" in new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), "Green")
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
+      )).thenReturnAsync()
+
+      val withdraw = WithdrawScheme(SchemeId("Commercial"), "reason", "Candidate")
+
+      whenReady(underTest.withdraw("appId", withdraw).failed) { r =>
+        r mustBe a[LastSchemeWithdrawException]
+      }
     }
   }
 
