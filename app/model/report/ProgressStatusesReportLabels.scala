@@ -110,8 +110,10 @@ trait ProgressStatusesReportLabels {
       statusMap.foldLeft(default) { (highest, current) =>
         val (highestWeighting, _) = highest
         current match {
-          case (true, weighting, name) if weighting > highestWeighting => weighting -> name
-          case _ => highest
+          case (true, weighting, name) if weighting > highestWeighting =>
+            weighting -> name
+          case (_, weighting, name) =>
+            highest
         }
       }
     }
@@ -185,7 +187,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val AssessmentCentreFailedToAttend = "assessment_centre_failed_to_attend"
   val AssessmentCentreScoresEntered = "assessment_centre_scores_entered"
   val AssessmentCentreScoresAccepted = "assessment_centre_scores_accepted"
-  val AssessmentCentreAwaitingReevaluation = "ssessment_centre_awaiting_re_evaluation"
+  val AssessmentCentreAwaitingReevaluation = "assessment_centre_awaiting_re_evaluation"
 
   val FsbAwaitingAllocation = "fsb_awaiting_allocation"
   val FsbAllocationUnconfirmed = "fsb_allocation_unconfirmed"
@@ -193,7 +195,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val FsbFailedToAttend = "fsb_failed_to_attend"
   val FsbScoresEntered = "fsb_scores_entered"
   val FsbPassed = "fsb_passed"
-  val FsbFailed= "fsb_failed"
+  val FsbFailed = "fsb_failed"
 
   val SiftEntered = "sift_entered"
   val SiftReady = "ready_for_sifting"
@@ -203,6 +205,6 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
 
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
-  val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toLowerCase()
-  val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toLowerCase()
+  val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toString.toLowerCase()
+  val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toString.toLowerCase()
 }
