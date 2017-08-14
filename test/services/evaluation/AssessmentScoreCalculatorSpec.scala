@@ -34,10 +34,12 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
         analysisExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           analysisAndDecisionMakingAverage = Some(3.231)
         )),
         groupExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           analysisAndDecisionMakingAverage = Some(2.345)
         )),
@@ -63,10 +65,12 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
         analysisExercise = None,
         groupExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           buildingProductiveRelationshipsAverage = Some(2.345)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           buildingProductiveRelationshipsAverage = Some(3.231)
         ))
@@ -90,14 +94,17 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
         analysisExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           buildingProductiveRelationshipsAverage = Some(2.345)
         )),
         groupExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           buildingProductiveRelationshipsAverage = Some(2.366)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           buildingProductiveRelationshipsAverage = Some(3.231)
         ))
@@ -121,10 +128,12 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
         analysisExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           strategicApproachToObjectivesAverage = Some(2.345)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           strategicApproachToObjectivesAverage = Some(3.231)
         ))
@@ -146,6 +155,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
         analysisExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           strategicApproachToObjectivesAverage = Some(5.544),
           analysisAndDecisionMakingAverage = Some(5.544),
@@ -153,6 +163,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
           buildingProductiveRelationshipsAverage = Some(5.544)
         )),
         groupExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           strategicApproachToObjectivesAverage = Some(5.544),
           analysisAndDecisionMakingAverage = Some(5.544),
@@ -160,6 +171,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
           buildingProductiveRelationshipsAverage = Some(5.544)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
+          attended = true,
           updatedBy = updatedBy,
           strategicApproachToObjectivesAverage = Some(5.544),
           analysisAndDecisionMakingAverage = Some(5.544),
