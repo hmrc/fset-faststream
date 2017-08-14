@@ -38,8 +38,6 @@ case class Fsb(
   allocationUnconfirmed: Boolean = false,
   failedToAttend: Boolean = false,
   scoresEntered: Boolean = false,
-  scoresAccepted: Boolean = false,
-  awaitingReevaluation: Boolean = false,
   passed: Boolean = false,
   passedNotified: Boolean = false,
   failed: Boolean = false,

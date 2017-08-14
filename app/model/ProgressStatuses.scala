@@ -126,10 +126,7 @@ object ProgressStatuses {
   case object FSB_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FSB)
-  // TODO: next statuses might makes no sense
   case object FSB_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.FSB)
-  case object FSB_SCORES_ACCEPTED extends ProgressStatus(ApplicationStatus.FSB)
-  case object FSB_AWAITING_RE_EVALUATION extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_PASSED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_FAILED extends ProgressStatus(ApplicationStatus.FSB)
 
