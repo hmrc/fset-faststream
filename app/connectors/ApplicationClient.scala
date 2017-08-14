@@ -252,12 +252,12 @@ trait ApplicationClient {
     ).map( _.json.as[List[CandidateAllocationWithEvent]])
   }
 
-  def allocateCandidateToEvent(
+  def confirmCandidateAllocation(
     eventId: UniqueIdentifier,
     sessionId: UniqueIdentifier,
     candidateAllocations: CandidateAllocations
   )(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(s"$apiBaseUrl/candidate-allocations/allocate/events/$eventId/sessions/$sessionId?append=true",
+    http.PUT(s"$apiBaseUrl/candidate-allocations/confirm-allocation/events/$eventId/sessions/$sessionId",
       Json.toJson(candidateAllocations)).map(_ => ()).recover {
       case Upstream4xxResponse(_, CONFLICT, _, _) =>
         throw new OptimisticLockException(s"Candidate allocation for event $eventId has changed.")

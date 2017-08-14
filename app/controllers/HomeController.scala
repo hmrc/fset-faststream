@@ -125,7 +125,7 @@ abstract class HomeController(
     CSRSecureAction(ActiveUserRole) { implicit request =>
     implicit cachedData =>
       val alloc = CandidateAllocations.createConfirmed(Some(allocationVersion), cachedData.application.get.applicationId.toString)
-      applicationClient.allocateCandidateToEvent(eventId, sessionId, alloc).map { _ =>
+      applicationClient.confirmCandidateAllocation(eventId, sessionId, alloc).map { _ =>
         Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.event.confirm.success"))
       }.recover { case _: OptimisticLockException =>
         Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.event.confirm.optimistic.lock"))
