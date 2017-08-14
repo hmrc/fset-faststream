@@ -26,7 +26,7 @@ import play.api.libs.json.{ Json, OFormat }
 object CreateAdminRequest {
 
   case class CreateAdminRequest(emailPrefix: Option[String], firstName: Option[String], lastName: Option[String],
-                                preferredName: Option[String], role: Option[String], phone: Option[String],
+                                preferredName: Option[String], roles: Option[List[String]], phone: Option[String],
                                 assessor: Option[AssessorRequest]) extends CreateTestDataRequest {
   }
 

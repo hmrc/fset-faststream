@@ -17,7 +17,6 @@
 package controllers
 
 import factories.UUIDFactory
-import model.Commands.Implicits._
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
 import play.api.libs.json.{ Format, Json }

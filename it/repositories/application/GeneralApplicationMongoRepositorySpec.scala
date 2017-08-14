@@ -19,12 +19,11 @@ package repositories.application
 import factories.{ DateTimeFactory, DateTimeFactoryMock, UUIDFactory }
 import model.ApplicationStatus._
 import model.exchange.CandidatesEligibleForEventResponse
-import model.{ ApplicationStatus, _ }
+import model.{ ApplicationStatus, Candidate, _ }
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ ApplicationRoute, apply => _ }
-import model.Commands.Candidate
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _ }
 import model.command.ProgressResponse

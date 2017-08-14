@@ -16,7 +16,7 @@
 
 package services.passmarksettings
 
-import model.Commands.PassMarkSettingsCreateResponse
+import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings._
 import play.api.libs.json.Format
 import repositories._

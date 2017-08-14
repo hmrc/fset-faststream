@@ -45,9 +45,9 @@ trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
 
   def createUser(generationId: Int, data: CreateAdminData)
                 (implicit hc: HeaderCarrier): Future[CreateAdminResponse] = {
+    val roles = data.roles.map(AuthProviderClient.getRole)
     for {
-      user <- authProviderClient.addUser(data.email, "Service01", data.firstName, data.lastName,
-        AuthProviderClient.getRole(data.role))
+      user <- authProviderClient.addUser(data.email, "Service01", data.firstName, data.lastName, roles)
       token <- authProviderClient.getToken(data.email)
       _ <- authProviderClient.activate(data.email, token)
     } yield {

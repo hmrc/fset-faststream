@@ -18,7 +18,6 @@ package services.application
 
 import common.FutureEx
 import connectors.ExchangeObjects
-import model.Commands.Candidate
 import model.EvaluationResults.Green
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
 import model.command.WithdrawApplication
@@ -26,7 +25,7 @@ import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
 import model.persisted.PassmarkEvaluation
-import model.{ ApplicationRoute, ApplicationStatus, SchemeId }
+import model.{ ApplicationRoute, Candidate, SchemeId }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader

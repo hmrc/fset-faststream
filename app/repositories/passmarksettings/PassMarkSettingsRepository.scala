@@ -16,7 +16,7 @@
 
 package repositories.passmarksettings
 
-import model.Commands._
+import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings._
 import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.DB

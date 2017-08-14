@@ -16,7 +16,7 @@
 
 package services
 
-import model.Commands.{ ApplicationResponse, Candidate }
+import model.{ ApplicationResponse, Candidate }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.command.ProgressResponse
 import model.stc.AuditEvents
