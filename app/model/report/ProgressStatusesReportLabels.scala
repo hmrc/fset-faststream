@@ -21,6 +21,7 @@ import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASS
 import model.command.ProgressResponse
 
 trait ProgressStatusesReportLabels {
+
   import ProgressStatusesReportLabels._
 
   // scalastyle:off
@@ -75,9 +76,16 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 385, Phase3TestsPassedNotified),
     (progress.phase3ProgressResponse.phase3TestsFailed, 390, Phase3TestsFailed),
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
-    (progress.siftProgressResponse.siftEntered, 396, SiftEntered),
-    (progress.siftProgressResponse.siftReady, 397, SiftReady),
-    (progress.siftProgressResponse.siftCompleted, 398, SiftCompleted),
+    (progress.siftProgressResponse.siftEntered, 400, SiftEntered),
+    (progress.siftProgressResponse.siftReady, 403, SiftReady),
+    (progress.siftProgressResponse.siftCompleted, 406, SiftCompleted),
+    (progress.assessmentCentre.awaitingAllocation, 420, AssessmentCentreAwaitingAllocation),
+    (progress.assessmentCentre.allocationUnconfirmed, 423, AssessmentCentreAllocationUnconfirmed),
+    (progress.assessmentCentre.allocationConfirmed, 426, AssessmentCentreAllocationConfirmed),
+    (progress.assessmentCentre.scoresEntered, 429, AssessmentCentreScoresEntered),
+    (progress.assessmentCentre.scoresAccepted, 432, AssessmentCentreScoresAccepted),
+    (progress.assessmentCentre.failedToAttend, 435, AssessmentCentreFailedToAttend),
+    (progress.assessmentCentre.awaitingReevaluation, 438, AssessmentCentreAwaitingReevaluation),
     (progress.assessmentCentre.failed, 440, AssessmentCentreFailedProgress),
     (progress.assessmentCentre.passed, 460, AssessmentCentrePassedProgress),
     (progress.withdrawn, 999, WithdrawnProgress),
@@ -159,6 +167,13 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailed = "phase3_tests_failed"
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsPassedNotified = "phase3_tests_passed_notified"
+  val AssessmentCentreAwaitingAllocation = "assessment_centre_awaiting_allocation"
+  val AssessmentCentreAllocationConfirmed = "assessment_centre_allocation_confirmed"
+  val AssessmentCentreAllocationUnconfirmed = "assessment_centre_allocation_unconfirmed"
+  val AssessmentCentreFailedToAttend = "assessment_centre_failed_to_attend"
+  val AssessmentCentreScoresEntered = "assessment_centre_scores_entered"
+  val AssessmentCentreScoresAccepted = "assessment_centre_scores_accepted"
+  val AssessmentCentreAwaitingReevaluation = "ssessment_centre_awaiting_re_evaluation"
   val SiftEntered = "sift_entered"
   val SiftReady = "ready_for_sifting"
   val SiftCompleted = "sift_completed"
