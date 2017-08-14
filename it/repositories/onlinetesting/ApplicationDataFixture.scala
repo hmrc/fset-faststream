@@ -144,23 +144,6 @@ trait ApplicationDataFixture {
       "userId" -> userId,
       "applicationRoute" -> applicationRoute,
       "frameworkId" -> frameworkId,
-      "framework-preferences" -> BSONDocument(
-        "firstLocation" -> BSONDocument(
-          "region" -> "Region1",
-          "location" -> "Location1",
-          "firstFramework" -> "Commercial",
-          "secondFramework" -> "Digital and technology"
-        ),
-        "secondLocation" -> BSONDocument(
-          "location" -> "Location2",
-          "firstFramework" -> "Business",
-          "secondFramework" -> "Finance"
-        ),
-        "alternatives" -> BSONDocument(
-          "location" -> true,
-          "framework" -> true
-        )
-      ),
       "personal-details" -> BSONDocument(
         "firstName" -> s"${testCandidate("firstName")}",
         "lastName" -> s"${testCandidate("lastName")}",

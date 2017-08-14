@@ -28,20 +28,21 @@ import services.testdata.faker.DataFaker.Random
 object CreateAdminData {
 
   case class CreateAdminData(email: String, firstName: String, lastName: String,
-                             preferredName: String, role: String, phone: Option[String],
+                             preferredName: String, roles: List[String], phone: Option[String],
                              assessor: Option[AssessorData]) extends CreateTestData
 
   object CreateAdminData {
     def apply(createRequest: CreateAdminRequest)(generatorId: Int): CreateAdminData = {
 
-      val role = createRequest.role.getOrElse("admin")
-      val username = s"test_${role}_${createRequest.emailPrefix.getOrElse(Random.number(Some(10000)))}a$generatorId"
-      val firstName = createRequest.firstName.getOrElse(s"$role$generatorId")
-      val lastName = createRequest.lastName.getOrElse(s"$role$generatorId")
-      val preferredName = createRequest.preferredName.getOrElse(s"$role$generatorId")
+      val roles = createRequest.roles.getOrElse(List("admin"))
+      val rolesStr = roles.mkString("_")
+      val username = s"test_${rolesStr}_${createRequest.emailPrefix.getOrElse(Random.number(Some(10000)))}a$generatorId"
+      val firstName = createRequest.firstName.getOrElse(s"$rolesStr$generatorId")
+      val lastName = createRequest.lastName.getOrElse(s"$rolesStr$generatorId")
+      val preferredName = createRequest.preferredName.getOrElse(s"$rolesStr$generatorId")
       val phone = createRequest.phone
 
-      val assessorData = if (role == "assessor") {
+      val assessorData = if (roles contains "assessor") {
         val skills = createRequest.assessor.flatMap(_.skills).getOrElse(DataFaker.Random.skills)
         val sifterSchemes = createRequest.assessor.flatMap(_.sifterSchemes).getOrElse(DataFaker.Random.sifterSchemes)
         val civilServant = createRequest.assessor.flatMap(_.civilServant).getOrElse(DataFaker.Random.bool)
@@ -56,7 +57,7 @@ object CreateAdminData {
       } else {
         None
       }
-      CreateAdminData(s"$username@mailinator.com", firstName, lastName, preferredName, role, phone, assessorData)
+      CreateAdminData(s"$username@mailinator.com", firstName, lastName, preferredName, roles, phone, assessorData)
     }
 
   }

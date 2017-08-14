@@ -3,7 +3,7 @@ package repositories.onlinetesting
 import java.util.UUID
 
 import connectors.launchpadgateway.exchangeobjects.in.{ SetupProcessCallbackRequest, ViewPracticeQuestionCallbackRequest }
-import model.Commands.ApplicationResponse
+import model.ApplicationResponse
 import model.ProgressStatuses.{ PHASE3_TESTS_PASSED_WITH_AMBER, _ }
 
 import model.ProgressStatuses._

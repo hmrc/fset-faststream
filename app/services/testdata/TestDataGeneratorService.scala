@@ -62,29 +62,34 @@ trait TestDataGeneratorService extends MongoDbConnection {
     for {
       _ <- RegisteredStatusGenerator.createUser(
         1,
-        "test_service_manager_1@mailinator.com", "CSR Test", "Tech Admin", Some("TestServiceManager"), AuthProviderClient.TechnicalAdminRole
+        "test_service_manager_1@mailinator.com", "CSR Test", "Tech Admin", Some("TestServiceManager"),
+        List(AuthProviderClient.TechnicalAdminRole)
       )
       _ <- RegisteredStatusGenerator.createUser(
         1,
-        "test_techadmin@mailinator.com", "CSR Test", "Tech Admin", Some("TestServiceManager"), AuthProviderClient.TechnicalAdminRole
+        "test_techadmin@mailinator.com", "CSR Test", "Tech Admin", Some("TestServiceManager"),
+        List(AuthProviderClient.TechnicalAdminRole)
       )
       _ <- RegisteredStatusGenerator.createUser(
         1,
-        "test_service_admin@mailinator.com", "CSR Test", "Service Admin", Some("TestServiceManager"), AuthProviderClient.ServiceAdminRole
+        "test_service_admin@mailinator.com", "CSR Test", "Service Admin", Some("TestServiceManager"),
+        List(AuthProviderClient.ServiceAdminRole)
       )
       _ <- RegisteredStatusGenerator.createUser(
         1,
-        "test_assessor@mailinator.com", "CSR Test", "Assessor", Some("TestServiceManager"), AuthProviderClient.AssessorRole
+        "test_assessor@mailinator.com", "CSR Test", "Assessor", Some("TestServiceManager"),
+        List(AuthProviderClient.AssessorRole)
       )
       _ <- RegisteredStatusGenerator.createUser(
         1,
-        "test_qac@mailinator.com", "CSR Test", "QAC", Some("TestServiceManager"), AuthProviderClient.QacRole
+        "test_qac@mailinator.com", "CSR Test", "QAC", Some("TestServiceManager"),
+        List(AuthProviderClient.QacRole)
       )
     } yield { () }
   }
 
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String],
-                       role: UserRole)(implicit hc: HeaderCarrier): Future[List[CreateCandidateResponse]] = {
+                       roles: List[UserRole])(implicit hc: HeaderCarrier): Future[List[CreateCandidateResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
 
@@ -95,7 +100,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
           "CSR Test",
           "Service Manager",
           Some("TestServiceManager"),
-          role
+          roles
         )
         Await.result(fut, 10 seconds)
       }.toList

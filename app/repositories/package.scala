@@ -91,13 +91,12 @@ package object repositories {
   lazy val fileUploadRepository = new FileUploadMongoRepository()
   lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
   lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
+  lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository(DateTimeFactory)
+  lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository(DateTimeFactory)
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
-  lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
-  lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository(DateTimeFactory)
-  lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository(DateTimeFactory)
 
   /** Create indexes */
   Await.result(Future.sequence(List(
@@ -118,10 +117,6 @@ package object repositories {
     phase3PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
     assessmentCentrePassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
-
-    applicationAssessmentRepository.collection.indexesManager.create(Index(Seq(("venue", Ascending), ("date", Ascending),
-      ("session", Ascending), ("slot", Ascending)), unique = true)),
-    applicationAssessmentRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
     assessorAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
     reviewerAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),

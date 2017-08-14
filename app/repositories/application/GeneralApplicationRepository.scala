@@ -80,6 +80,9 @@ trait GeneralApplicationRepository {
 
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
 
+  def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme,
+    schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]): Future[Unit]
+
   def preview(applicationId: String): Future[Unit]
 
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
@@ -147,9 +150,9 @@ class GeneralApplicationMongoRepository(
   gatewayConfig: CubiksGatewayConfig
 )(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Commands.Implicits.createApplicationRequestFormat,
+    CreateApplicationRequest.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
-    with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers {
+    with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -186,7 +189,7 @@ class GeneralApplicationMongoRepository(
       case None => throw ApplicationNotFound(applicationId)
     }
   }
-  
+
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
     collection.find(
       BSONDocument("applicationId" -> applicationId),
@@ -338,6 +341,21 @@ class GeneralApplicationMongoRepository(
     collection.update(query, applicationBSON) map validator
   }
 
+  override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme,
+    schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]
+  ): Future[Unit] = {
+
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"withdraw.schemes.${withdrawScheme.schemeId}" -> withdrawScheme.reason
+    ).add(currentSchemeStatusBSON(schemeStatus(withdrawScheme))))
+
+    val predicate = BSONDocument(
+      "applicationId" -> applicationId
+    )
+
+    collection.update(predicate, update).map(_ => ())
+  }
+
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val progressStatusBSON = BSONDocument("$set" -> BSONDocument(
@@ -400,75 +418,6 @@ class GeneralApplicationMongoRepository(
 
     implicit val reader = bsonReader(TestResultSdipFsNotification.fromBson)
     selectOneRandom[TestResultSdipFsNotification](query)
-  }
-
-  // scalastyle:off method.length
-  private def applicationPreferences(query: BSONDocument): Future[List[ApplicationPreferences]] = {
-    val projection = BSONDocument(
-      "userId" -> "1",
-      "framework-preferences.alternatives.location" -> "1",
-      "framework-preferences.alternatives.framework" -> "1",
-      "framework-preferences.firstLocation.location" -> "1",
-      "framework-preferences.secondLocation.location" -> "1",
-      "framework-preferences.firstLocation.firstFramework" -> "1",
-      "framework-preferences.secondLocation.firstFramework" -> "1",
-      "framework-preferences.firstLocation.secondFramework" -> "1",
-      "framework-preferences.secondLocation.secondFramework" -> "1",
-      "assistance-details.needsAssistance" -> "1",
-      "assistance-details.needsAdjustment" -> "1",
-      "assistance-details.guaranteedInterview" -> "1",
-      "personal-details.aLevel" -> "1",
-      "personal-details.stemLevel" -> "1",
-      "passmarkEvaluation" -> "2",
-      "applicationId" -> "1"
-    )
-
-    reportQueryWithProjections[BSONDocument](query, projection).map { list =>
-      list.map { document =>
-        val userId = document.getAs[String]("userId").getOrElse("")
-
-        val fr = document.getAs[BSONDocument]("framework-preferences")
-
-        val fr1 = fr.flatMap(_.getAs[BSONDocument]("firstLocation"))
-        val fr1FirstLocation = fr1.flatMap(_.getAs[String]("location"))
-        val fr1FirstFramework = fr1.flatMap(_.getAs[String]("firstFramework"))
-        val fr1SecondFramework = fr1.flatMap(_.getAs[String]("secondFramework"))
-
-        val fr2 = fr.flatMap(_.getAs[BSONDocument]("secondLocation"))
-        val fr2FirstLocation = fr2.flatMap(_.getAs[String]("location"))
-        val fr2FirstFramework = fr2.flatMap(_.getAs[String]("firstFramework"))
-        val fr2SecondFramework = fr2.flatMap(_.getAs[String]("secondFramework"))
-
-        val frAlternatives = fr.flatMap(_.getAs[BSONDocument]("alternatives"))
-        val location = frAlternatives.flatMap(_.getAs[Boolean]("location").map(booleanTranslator))
-        val framework = frAlternatives.flatMap(_.getAs[Boolean]("framework").map(booleanTranslator))
-
-        val ad = document.getAs[BSONDocument]("assistance-details")
-        val needsAssistance = ad.flatMap(_.getAs[String]("needsAssistance"))
-        val needsAdjustment = ad.flatMap(_.getAs[String]("needsAdjustment"))
-        val guaranteedInterview = ad.flatMap(_.getAs[String]("guaranteedInterview"))
-
-        val pd = document.getAs[BSONDocument]("personal-details")
-        val aLevel = pd.flatMap(_.getAs[Boolean]("aLevel").map(booleanTranslator))
-        val stemLevel = pd.flatMap(_.getAs[Boolean]("stemLevel").map(booleanTranslator))
-
-        val applicationId = document.getAs[String]("applicationId").getOrElse("")
-
-        val pe = document.getAs[BSONDocument]("passmarkEvaluation")
-
-        val otLocation1Scheme1PassmarkEvaluation = pe.flatMap(_.getAs[String]("location1Scheme1").map(Result(_).toReportReadableString))
-        val otLocation1Scheme2PassmarkEvaluation = pe.flatMap(_.getAs[String]("location1Scheme2").map(Result(_).toReportReadableString))
-        val otLocation2Scheme1PassmarkEvaluation = pe.flatMap(_.getAs[String]("location2Scheme1").map(Result(_).toReportReadableString))
-        val otLocation2Scheme2PassmarkEvaluation = pe.flatMap(_.getAs[String]("location2Scheme2").map(Result(_).toReportReadableString))
-        val otAlternativeSchemePassmarkEvaluation = pe.flatMap(_.getAs[String]("alternativeScheme").map(Result(_).toReportReadableString))
-
-        ApplicationPreferences(userId, applicationId, fr1FirstLocation, fr1FirstFramework, fr1SecondFramework,
-          fr2FirstLocation, fr2FirstFramework, fr2SecondFramework, location, framework, needsAssistance,
-          guaranteedInterview, needsAdjustment, aLevel, stemLevel,
-          OnlineTestPassmarkEvaluationSchemes(otLocation1Scheme1PassmarkEvaluation, otLocation1Scheme2PassmarkEvaluation,
-            otLocation2Scheme1PassmarkEvaluation, otLocation2Scheme2PassmarkEvaluation, otAlternativeSchemePassmarkEvaluation))
-      }
-    }
   }
 
   override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = {
@@ -637,34 +586,6 @@ class GeneralApplicationMongoRepository(
     bsonCollection.findAndModify(query, updateOp).map(_ => ())
   }
 
-  private def applicationPreferencesWithTestResults(query: BSONDocument): Future[List[ApplicationPreferencesWithTestResults]] = {
-    val projection = BSONDocument(
-      "userId" -> "1",
-      "framework-preferences.alternatives.location" -> "1",
-      "framework-preferences.alternatives.framework" -> "1",
-      "framework-preferences.firstLocation.location" -> "1",
-      "framework-preferences.secondLocation.location" -> "1",
-      "framework-preferences.firstLocation.firstFramework" -> "1",
-      "framework-preferences.secondLocation.firstFramework" -> "1",
-      "framework-preferences.firstLocation.secondFramework" -> "1",
-      "framework-preferences.secondLocation.secondFramework" -> "1",
-      "assessment-centre-passmark-evaluation" -> "2",
-      "applicationId" -> "1",
-      "personal-details.firstName" -> "1",
-      "personal-details.lastName" -> "1",
-      "personal-details.preferredName" -> "1",
-      "personal-details.aLevel" -> "1",
-      "personal-details.stemLevel" -> "1"
-    )
-
-    reportQueryWithProjections[BSONDocument](query, projection).map { list =>
-      list.map { document =>
-        toApplicationPreferencesWithTestResults.read(document)
-      }
-    }
-  }
-
-
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
     val isNotSubmitted = !progress.submitted
     val isNotWithdrawn = !progress.withdrawn
@@ -672,11 +593,11 @@ class GeneralApplicationMongoRepository(
   }
 
   private def reportQueryWithProjections[A](
-                                             query: BSONDocument,
-                                             prj: BSONDocument,
-                                             upTo: Int = Int.MaxValue,
-                                             stopOnError: Boolean = true
-                                           )(implicit reader: Format[A]): Future[List[A]] =
+    query: BSONDocument,
+    prj: BSONDocument,
+    upTo: Int = Int.MaxValue,
+    stopOnError: Boolean = true
+  )(implicit reader: Format[A]): Future[List[A]] =
     collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
 
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))

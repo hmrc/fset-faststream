@@ -22,7 +22,8 @@ GET         /application/status/:applicationId                           control
 GET         /application/find/user/:userId/framework/:frameworkId        controllers.ApplicationController.findApplication(userId: String, frameworkId: String)
 PUT         /application/preview/:applicationId                          controllers.ApplicationController.preview(applicationId: String)
 PUT         /application/submit/:userId/:applicationId                   controllers.SubmitApplicationController.submitApplication(userId: String, applicationId: String)
-PUT         /application/withdraw/:applicationId                         controllers.ApplicationController.withdrawApplication(applicationId: String)
+PUT         /application/withdraw/:applicationId                         controllers.WithdrawController.withdrawApplication(applicationId: String)
+PUT         /application/:applicationId/scheme/withdraw                  controllers.WithdrawController.withdrawScheme(applicationId: String)
 PUT         /application/consider-for-sdip/:applicationId                controllers.ApplicationController.considerForSdip(applicationId: String)
 PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
 PUT         /application/overrideSubmissionDeadline/:applicationId       controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
@@ -144,10 +145,11 @@ POST        /candidate-allocations/find-allocated                               
 GET         /candidate-allocations/events/:eventId/sessions/:sessionId             controllers.CandidateAllocationController.getCandidateAllocations(eventId: String, sessionId: String)
 POST        /candidate-allocations/remove/events/:eventId/sessions/:sessionId      controllers.CandidateAllocationController.removeCandidateAllocations(eventId: String, sessionId: String)
 GET         /candidate-allocations/summary/:applicationId                          controllers.CandidateAllocationController.candidateAllocationsSummary(applicationId: String)
-PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String)
+PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String, append: Boolean ?= false)
 DELETE      /candidate-allocations/reset-removals/:applicationId                   controllers.CandidateAllocationController.removeCandidateRemovalReason(applicationId: String)
 
-GET         /candidate-allocations/sessions/findByApplicationId                    controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
+PUT         /candidate-allocations/confirm-allocation/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.confirmAllocation(eventId: String, sessionId: String)
+GET         /candidate-allocations/sessions/findByApplicationId                              controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
 
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)

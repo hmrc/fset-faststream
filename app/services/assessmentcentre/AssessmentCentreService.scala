@@ -57,7 +57,7 @@ trait AssessmentCentreService {
   }
 
   def progressApplicationsToAssessmentCentre(applications: Seq[ApplicationForFsac]): Future[SerialUpdateResult[ApplicationForFsac]] = {
-      val updates = FutureEx.traverseSerial(applications) { application =>
+    val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
         assessmentCentreRepo.progressToAssessmentCentre(application,
           ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
