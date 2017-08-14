@@ -67,6 +67,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       val persistedAllocations: Seq[persisted.CandidateAllocation] = model.persisted.CandidateAllocation.fromCommand(candidateAllocations)
       val allocation: persisted.CandidateAllocation = persistedAllocations.head
 
+      when(mockCandidateAllocationRepository.isAllocationExists(any[String], any[String], any[String], any[Option[String]]))
+        .thenReturnAsync(true)
       when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation])).thenReturnAsync()
       when(mockAppRepo.resetApplicationAllocationStatus(any[String])).thenReturnAsync()
 
