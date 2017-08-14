@@ -16,11 +16,13 @@
 
 package model
 
-import model.Candidate
+import model.Commands.PostCode
+import org.joda.time.LocalDate
+import play.api.libs.json.{ Json, OFormat }
 
-object CandidateExamples {
-  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+case class SearchCandidate(firstOrPreferredName: Option[String], lastName: Option[String],
+  dateOfBirth: Option[LocalDate], postCode: Option[PostCode])
 
-
-  val NewCandidates = List(minCandidate("John"), minCandidate("Galt"))
+object SearchCandidate {
+  implicit val searchCandidateFormat: OFormat[SearchCandidate] = Json.format[SearchCandidate]
 }

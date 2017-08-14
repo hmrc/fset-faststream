@@ -16,25 +16,18 @@
 
 package model
 
-import controllers._
 import model.ApplicationRoute.ApplicationRoute
-import model.Exceptions.{ NoResultsReturned, TooManyEntries }
-import model.OnlineTestCommands.Implicits._
-import model.OnlineTestCommands.TestResult
-import model.assessmentscores.AssessmentScoresAllExercises
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import play.api.libs.json._
+import model.Commands.PostCode
+import org.joda.time.LocalDate
+import play.api.libs.json.{ Json, OFormat }
 
-import scala.language.implicitConversions
-import model.command.ProgressResponse
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import model.report.QuestionnaireReportItem
+case class Candidate(userId: String, applicationId: Option[String], email: Option[String], firstName: Option[String], lastName: Option[String],
+  preferredName: Option[String], dateOfBirth: Option[LocalDate], address: Option[Address], postCode: Option[PostCode],
+  country: Option[String], applicationRoute: Option[ApplicationRoute], applicationStatus: Option[String]) {
 
-//scalastyle:off
-object Commands {
+  def name: String = preferredName.getOrElse(firstName.getOrElse(""))
+}
 
-  type PostCode = String
-  type PhoneNumber = String
-  type IsNonSubmitted = Boolean
-
+object Candidate {
+  implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate]
 }

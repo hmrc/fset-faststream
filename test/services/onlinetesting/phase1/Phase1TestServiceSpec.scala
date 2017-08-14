@@ -127,7 +127,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
     List(phase1Test)
   )
 
-  val candidate = Commands.Candidate(userId = "user123", firstName = Some("Cid"),
+  val candidate = model.Candidate(userId = "user123", firstName = Some("Cid"),
     lastName = Some("Highwind"), preferredName = None, applicationId = Some("appId123"),
     email = Some("test@test.com"), dateOfBirth = None, address = None, postCode = None, country = None,
     applicationRoute = None, applicationStatus = None

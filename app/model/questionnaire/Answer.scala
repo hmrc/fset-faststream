@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package model
+package model.questionnaire
 
-import model.Candidate
+import play.api.libs.json.{ Json, OFormat }
 
-object CandidateExamples {
-  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+case class Answer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
 
-
-  val NewCandidates = List(minCandidate("John"), minCandidate("Galt"))
+object Answer {
+  implicit val answerFormat: OFormat[Answer] = Json.format[Answer]
 }

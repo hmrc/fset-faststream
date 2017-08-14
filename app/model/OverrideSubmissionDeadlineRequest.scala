@@ -16,11 +16,11 @@
 
 package model
 
-import model.Candidate
+import org.joda.time.DateTime
+import play.api.libs.json.{ Json, OFormat }
 
-object CandidateExamples {
-  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+case class OverrideSubmissionDeadlineRequest(submissionDeadline: DateTime)
 
-
-  val NewCandidates = List(minCandidate("John"), minCandidate("Galt"))
+object OverrideSubmissionDeadlineRequest {
+  implicit val submissionDeadlineFormat: OFormat[OverrideSubmissionDeadlineRequest] = Json.format[OverrideSubmissionDeadlineRequest]
 }
