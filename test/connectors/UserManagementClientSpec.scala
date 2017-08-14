@@ -56,7 +56,7 @@ class UserManagementClientSpec extends UnitWithAppSpec with ConnectorSpec {
       response.email mustBe "test@email.com"
       response.firstName mustBe "peter"
       response.lastName mustBe "griffin"
-      response.role mustBe "candidate"
+      response.roles mustBe List("candidate")
       response.isActive mustBe true
     }
 

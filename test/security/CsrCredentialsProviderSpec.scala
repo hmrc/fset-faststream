@@ -98,7 +98,7 @@ class CsrCredentialsProviderSpec extends UnitSpec {
     val LastName = "lastName"
     val PreferredName = "preferredName"
     val Email = "email@mailinator.com"
-    val Role = "role"
+    val Role = List("role")
     val ServiceName = "faststream"
     val Id = "login"
     val Password = "password"
