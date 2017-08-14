@@ -76,8 +76,6 @@ trait CandidateAllocationService extends EventSink {
 
 
   private val dateFormat = "dd MMMM YYYY"
-  private val timeFormat = "HH:mma"
-
 
   def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
     candidateAllocationRepo.activeAllocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
