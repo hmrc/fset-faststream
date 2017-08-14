@@ -64,6 +64,7 @@ object DataStoreEvents {
   case class ApplicationExportUpdated(appId: String) extends DataStoreEventWithAppId
   case class ApplicationExpiryReminder(appId: String) extends DataStoreEventWithAppId
   case class ApplicationWithdrawn(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
+  case class SchemeWithdrawn(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
 
   case class OnlineExerciseStarted(appId: String) extends DataStoreEventWithAppId
   case class OnlineExercisesCompleted(appId: String) extends DataStoreEventWithAppId

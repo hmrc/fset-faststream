@@ -87,15 +87,6 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def withdrawApplication(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[WithdrawApplication] { withdrawRequest =>
-      applicationService.withdraw(applicationId, withdrawRequest).map { _ =>
-        Ok
-      }.recover {
-        case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
-      }
-    }
-  }
 
   def preview(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[PreviewRequest] { _ =>
