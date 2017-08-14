@@ -16,10 +16,8 @@
 
 package model.assessmentscores
 
-import factories.DateTimeFactory
 import model.UniqueIdentifier
 import org.joda.time.{ DateTime, DateTimeZone }
-
 
 object AssessmentScoresExerciseExamples {
   val Example1 = getExample(1)
@@ -37,6 +35,7 @@ object AssessmentScoresExerciseExamples {
     val otherScore = Some(baseValue + 0.4)
 
     AssessmentScoresExercise(
+      attended = true,
       Some(StrategicApproachToObjectivesScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
       Some(AnalysisAndDecisionMakingScores(analysisScore, analysisScore, analysisScore, analysisScore, analysisScore)),
       Some(LeadingAndCommunicatingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),

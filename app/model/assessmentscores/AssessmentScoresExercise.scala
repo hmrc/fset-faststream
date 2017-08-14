@@ -23,8 +23,8 @@ import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 import repositories._
 
 case class AssessmentScoresExercise(
-                                          //  attended: Boolean,
-                                          //  assessmentIncomplete: Boolean,
+                                          attended: Boolean,
+                                          //assessmentIncomplete: Boolean,
 
                                           strategicApproachToObjectivesScores: Option[StrategicApproachToObjectivesScores] = None,
                                           analysisAndDecisionMakingScores: Option[AnalysisAndDecisionMakingScores] = None,
