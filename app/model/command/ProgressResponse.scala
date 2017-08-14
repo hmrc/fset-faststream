@@ -31,13 +31,13 @@ case class AssessmentCentre(
 )
 
 case class Fsb(
-  awaitingAllocation: Boolean = false,
-  allocationConfirmed: Boolean = false,
-  allocationUnconfirmed: Boolean = false,
-  failedToAttend: Boolean = false,
-  scoresEntered: Boolean = false,
-  passed: Boolean = false,
-  failed: Boolean = false
+                awaitingAllocation: Boolean = false,
+                allocationConfirmed: Boolean = false,
+                allocationUnconfirmed: Boolean = false,
+                failedToAttend: Boolean = false,
+                resultEntered: Boolean = false,
+                passed: Boolean = false,
+                failed: Boolean = false
 )
 
 case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,

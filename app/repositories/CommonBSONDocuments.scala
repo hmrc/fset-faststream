@@ -174,7 +174,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             getProgress(ProgressStatuses.FSB_ALLOCATION_CONFIRMED.key),
             getProgress(ProgressStatuses.FSB_ALLOCATION_UNCONFIRMED.key),
             getProgress(ProgressStatuses.FSB_FAILED_TO_ATTEND.key),
-            getProgress(ProgressStatuses.FSB_SCORES_ENTERED.key),
+            getProgress(ProgressStatuses.FSB_RESULT_ENTERED.key),
             getProgress(ProgressStatuses.FSB_PASSED.key),
             getProgress(ProgressStatuses.FSB_FAILED.key)
           )

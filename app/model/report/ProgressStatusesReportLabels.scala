@@ -92,7 +92,7 @@ trait ProgressStatusesReportLabels {
     (progress.fsb.allocationUnconfirmed, 485, FsbAllocationUnconfirmed),
     (progress.fsb.allocationConfirmed, 490, FsbAllocationConfirmed),
     (progress.fsb.failedToAttend, 495, FsbFailedToAttend),
-    (progress.fsb.scoresEntered, 500, FsbScoresEntered),
+    (progress.fsb.resultEntered, 500, FsbResultEntered),
     (progress.fsb.passed, 505, FsbPassed),
     (progress.fsb.failed, 510, FsbFailed),
     (progress.withdrawn, 999, WithdrawnProgress),
@@ -193,7 +193,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val FsbAllocationUnconfirmed = "fsb_allocation_unconfirmed"
   val FsbAllocationConfirmed = "fsb_allocation_confirmed"
   val FsbFailedToAttend = "fsb_failed_to_attend"
-  val FsbScoresEntered = "fsb_scores_entered"
+  val FsbResultEntered = "fsb_result_entered"
   val FsbPassed = "fsb_passed"
   val FsbFailed = "fsb_failed"
 
