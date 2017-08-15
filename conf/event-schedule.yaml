@@ -307,7 +307,7 @@
       startTime: 9:00
       endTime: 10:30
 - eventType: FSB
-  description: FRAC
+  description: ORAC
   location: London
   venue: LONDON_FSAC
   date: 2018-03-07
