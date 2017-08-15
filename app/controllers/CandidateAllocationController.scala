@@ -79,12 +79,12 @@ trait CandidateAllocationController extends BaseController {
   }
 
   def findCandidatesEligibleForEventAllocation(
-    assessmentCenterLocation: String,
+    assessmentCentreLocation: String,
     eventType: EventType,
     eventDescription: String): Action[AnyContent] = Action.async {
     implicit request =>
       candidateAllocationService.findCandidatesEligibleForEventAllocation(
-        assessmentCenterLocation, eventType, eventDescription
+        assessmentCentreLocation, eventType, eventDescription
       ) map { apps =>
         Ok(Json.toJson(apps))
       }

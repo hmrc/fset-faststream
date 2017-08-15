@@ -160,7 +160,7 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
-  def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String, eventType: EventType, eventDescription: String) = {
+  def findCandidatesEligibleForEventAllocation(assessmentCentreLocation: String, eventType: EventType, eventDescription: String) = {
     val schemeId = eventType match {
       case EventType.FSAC => None
       case EventType.FSB => Some(schemeRepository.getSchemeForFsb(eventDescription).id)
@@ -168,7 +168,7 @@ trait CandidateAllocationService extends EventSink {
       case EventType.TELEPHONE_INTERVIEW => Some(schemeRepository.getSchemeForTelephoneInterview(eventDescription).id)
     }
 
-    applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCenterLocation), eventType, schemeId)
+    applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCentreLocation), eventType, schemeId)
   }
 
   def findAllocatedApplications(appIds: List[String]): Future[CandidatesEligibleForEventResponse] = {
