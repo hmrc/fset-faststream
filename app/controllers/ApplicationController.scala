@@ -19,9 +19,8 @@ package controllers
 import java.nio.file.Files
 
 import akka.stream.scaladsl.Source
-import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
-import model.ProgressStatuses
+import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
 import model.command.WithdrawApplication
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
@@ -49,8 +48,6 @@ object ApplicationController extends ApplicationController {
 }
 
 trait ApplicationController extends BaseController {
-  import Implicits._
-
   val appRepository: GeneralApplicationRepository
   val auditService: AuditService
   val applicationService: ApplicationService
@@ -90,15 +87,6 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def withdrawApplication(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[WithdrawApplication] { withdrawRequest =>
-      applicationService.withdraw(applicationId, withdrawRequest).map { _ =>
-        Ok
-      }.recover {
-        case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
-      }
-    }
-  }
 
   def preview(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[PreviewRequest] { _ =>

@@ -23,14 +23,14 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.MustMatchers
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import play.api.mvc.RequestHeader
 import services.stc.handler._
 import testkit.UnitSpec
+import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Future
 
 class StcEventServiceSpec extends UnitSpec with StcEventServiceFixture {
 
@@ -59,10 +59,10 @@ trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
 
   val authProviderClientMock = mock[AuthProviderClient]
 
-  when(dataStoreEventHandlerMock.handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
-  when(auditEventHandlerMock.handle(any[AuditEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
-  when(emailEventHandlerMock.handle(any[EmailEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
-  when(authProviderClientMock.generateAccessCode(any[HeaderCarrier])).thenReturn(Future.successful(SimpleTokenResponse("accessCode")))
+  when(dataStoreEventHandlerMock.handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturnAsync()
+  when(auditEventHandlerMock.handle(any[AuditEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturnAsync()
+  when(emailEventHandlerMock.handle(any[EmailEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturnAsync()
+  when(authProviderClientMock.generateAccessCode(any[HeaderCarrier])).thenReturnAsync(SimpleTokenResponse("accessCode"))
 
   def verifyDataStoreEvents(n: Int): Unit =
     verify(dataStoreEventHandlerMock, times(n)).handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader])

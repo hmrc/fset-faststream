@@ -17,8 +17,8 @@
 package services.search
 
 import connectors.AuthProviderClient
-import model.Commands.{ Candidate, SearchCandidate }
 import model.Exceptions.ContactDetailsNotFound
+import model.{ Candidate, SearchCandidate }
 import model.persisted.ContactDetailsWithId
 import org.joda.time.LocalDate
 import repositories._

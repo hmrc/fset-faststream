@@ -19,7 +19,7 @@ package repositories.application
 import model.{ ApplicationRoute, SchemeId }
 import model.ApplicationRoute._
 import model.ApplicationStatus.ApplicationStatus
-import model.Commands.{ CandidateScoresSummary, PersonalInfo, SchemeEvaluation, _ }
+import model.Candidate
 import model.EvaluationResults.Result
 import model.persisted._
 import org.joda.time.LocalDate
@@ -56,65 +56,6 @@ trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
 
       Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None,
         Some(applicationRoute), applicationStatus)
-    }
-  }
-
-
-  implicit val toApplicationPreferencesWithTestResults: BSONDocumentReader[ApplicationPreferencesWithTestResults] = bsonReader {
-    (doc: BSONDocument) => {
-      val userId = doc.getAs[String]("userId").getOrElse("")
-
-      val fr = doc.getAs[BSONDocument]("framework-preferences")
-
-      val fr1 = fr.flatMap(_.getAs[BSONDocument]("firstLocation"))
-      val fr1FirstLocation = fr1.flatMap(_.getAs[String]("location"))
-      val fr1FirstFramework = fr1.flatMap(_.getAs[String]("firstFramework"))
-      val fr1SecondFramework = fr1.flatMap(_.getAs[String]("secondFramework"))
-
-      val fr2 = fr.flatMap(_.getAs[BSONDocument]("secondLocation"))
-      val fr2FirstLocation = fr2.flatMap(_.getAs[String]("location"))
-      val fr2FirstFramework = fr2.flatMap(_.getAs[String]("firstFramework"))
-      val fr2SecondFramework = fr2.flatMap(_.getAs[String]("secondFramework"))
-
-      val frAlternatives = fr.flatMap(_.getAs[BSONDocument]("alternatives"))
-      val location = frAlternatives.flatMap(_.getAs[IsNonSubmitted]("location").map(booleanTranslator))
-      val framework = frAlternatives.flatMap(_.getAs[IsNonSubmitted]("framework").map(booleanTranslator))
-
-      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
-
-      val pe = doc.getAs[BSONDocument]("assessment-centre-passmark-evaluation")
-
-      val ca = pe.flatMap(_.getAs[BSONDocument]("competency-average"))
-      val leadingAndCommunicatingAverage = ca.flatMap(_.getAs[Double]("leadingAndCommunicatingAverage"))
-      val collaboratingAndPartneringAverage = ca.flatMap(_.getAs[Double]("collaboratingAndPartneringAverage"))
-      val deliveringAtPaceAverage = ca.flatMap(_.getAs[Double]("deliveringAtPaceAverage"))
-      val makingEffectiveDecisionsAverage = ca.flatMap(_.getAs[Double]("makingEffectiveDecisionsAverage"))
-      val changingAndImprovingAverage = ca.flatMap(_.getAs[Double]("changingAndImprovingAverage"))
-      val buildingCapabilityForAllAverage = ca.flatMap(_.getAs[Double]("buildingCapabilityForAllAverage"))
-      val motivationFitAverage = ca.flatMap(_.getAs[Double]("motivationFitAverage"))
-      val overallScore = ca.flatMap(_.getAs[Double]("overallScore"))
-
-      val se = pe.flatMap(_.getAs[BSONDocument]("schemes-evaluation"))
-      val commercial = se.flatMap(_.getAs[String](SchemeId("Commercial").value).map(Result(_).toReportReadableString))
-      val digitalAndTechnology = se.flatMap(_.getAs[String](SchemeId("DigitalAndTechnology").value).map(Result(_).toReportReadableString))
-      val business = se.flatMap(_.getAs[String](SchemeId("Business").value).map(Result(_).toReportReadableString))
-      val projectDelivery = se.flatMap(_.getAs[String](SchemeId("ProjectDelivery").value).map(Result(_).toReportReadableString))
-      val finance = se.flatMap(_.getAs[String](SchemeId("Finance").value).map(Result(_).toReportReadableString))
-
-      val pd = doc.getAs[BSONDocument]("personal-details")
-      val firstName = pd.flatMap(_.getAs[String]("firstName"))
-      val lastName = pd.flatMap(_.getAs[String]("lastName"))
-      val preferredName = pd.flatMap(_.getAs[String]("preferredName"))
-      val aLevel = pd.flatMap(_.getAs[IsNonSubmitted]("aLevel").map(booleanTranslator))
-      val stemLevel = pd.flatMap(_.getAs[IsNonSubmitted]("stemLevel").map(booleanTranslator))
-
-      ApplicationPreferencesWithTestResults(userId, applicationId, fr1FirstLocation, fr1FirstFramework,
-        fr1SecondFramework, fr2FirstLocation, fr2FirstFramework, fr2SecondFramework, location, framework,
-        PersonalInfo(firstName, lastName, preferredName, aLevel, stemLevel),
-        CandidateScoresSummary(leadingAndCommunicatingAverage, collaboratingAndPartneringAverage,
-          deliveringAtPaceAverage, makingEffectiveDecisionsAverage, changingAndImprovingAverage,
-          buildingCapabilityForAllAverage, motivationFitAverage, overallScore),
-        SchemeEvaluation(commercial, digitalAndTechnology, business, projectDelivery, finance))
     }
   }
 }

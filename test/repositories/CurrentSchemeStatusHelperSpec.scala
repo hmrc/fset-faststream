@@ -39,9 +39,13 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
       val currentStatus = SchemeEvaluationResult(SchemeId("Commercial"), Green.toString) ::
         SchemeEvaluationResult(SchemeId("International"), Green.toString) :: Nil
 
-      val newStatus = SchemeEvaluationResult(SchemeId("Commercial"), Red.toString) :: Nil
+      val newStatus = SchemeEvaluationResult(SchemeId("Commercial"), Red.toString) ::
+       SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString) :: Nil
 
-      helper.calculateCurrentSchemeStatus(currentStatus, newStatus) mustBe newStatus :+ currentStatus.last
+      helper.calculateCurrentSchemeStatus(currentStatus, newStatus) mustBe
+       SchemeEvaluationResult(SchemeId("Commercial"), Red.toString) ::
+       SchemeEvaluationResult(SchemeId("International"), Green.toString) ::
+       SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString) :: Nil
     }
 
   }

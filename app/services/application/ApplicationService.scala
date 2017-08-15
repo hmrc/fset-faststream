@@ -18,15 +18,14 @@ package services.application
 
 import common.FutureEx
 import connectors.ExchangeObjects
-import model.Commands.Candidate
 import model.EvaluationResults.Green
-import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
-import model.command.WithdrawApplication
+import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
+import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.PassmarkEvaluation
-import model.{ ApplicationRoute, ApplicationStatus, SchemeId }
+import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
+import model._
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -37,7 +36,7 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.stc.{ StcEventService, EventSink }
+import services.stc.{ EventSink, StcEventService }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -56,7 +55,7 @@ object ApplicationService extends ApplicationService {
   val evaluateP3ResultService = EvaluatePhase3ResultService
 }
 
-trait ApplicationService extends EventSink {
+trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val appRepository: GeneralApplicationRepository
   val pdRepository: PersonalDetailsRepository
@@ -68,28 +67,59 @@ trait ApplicationService extends EventSink {
 
   val Candidate_Role = "Candidate"
 
-  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-
-    appRepository.find(applicationId).flatMap{
-      case Some(candidate) =>
-        cdRepository.find(candidate.userId).flatMap{ cd =>
-          eventSink {
-            appRepository.withdraw(applicationId, withdrawRequest).map { _ =>
-              val commonEventList =
-                  DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
-                  AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
-                  Nil
-              withdrawRequest.withdrawer match {
-                case Candidate_Role => commonEventList
-                case _ => EmailEvents.ApplicationWithdrawn(cd.email,
-                  candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
-              }
-            }
+  def withdraw(applicationId: String, withdrawRequest: WithdrawRequest)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    (for {
+      currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+      candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
+      contactDetails <- cdRepository.find(candidate.userId)
+    } yield {
+      withdrawRequest match {
+        case withdrawApp: WithdrawApplication => withdrawFromApplication(applicationId, withdrawApp)(candidate, contactDetails)
+        case withdrawScheme: WithdrawScheme =>
+          if (withdrawableSchemes(currentSchemeStatus).size == 1) {
+            throw LastSchemeWithdrawException(s"Can't withdraw $applicationId from last scheme ${withdrawScheme.schemeId.value}")
+          } else {
+            withdrawFromScheme(applicationId, withdrawScheme)
           }
+      }
+    }) flatMap  identity
+
+  }
+
+  private def withdrawableSchemes(currentSchemeStatus: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
+    currentSchemeStatus.filterNot(s => s.result == EvaluationResults.Red.toString || s.result == EvaluationResults.Withdrawn.toString)
+  }
+
+  private def withdrawFromApplication(applicationId: String, withdrawRequest: WithdrawApplication)
+    (candidate: Candidate, cd: ContactDetails) = {
+      appRepository.withdraw(applicationId, withdrawRequest).map { _ =>
+        val commonEventList =
+            DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
+            AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
+            Nil
+        withdrawRequest.withdrawer match {
+          case Candidate_Role => commonEventList
+          case _ => EmailEvents.ApplicationWithdrawn(cd.email,
+            candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
         }
-      case None => throw ApplicationNotFound(applicationId)
-    }.map(_ => ())
+      }
+  }
+
+  private def withdrawFromScheme(applicationId: String, withdrawRequest: WithdrawScheme) = {
+
+      def buildLatestSchemeStatus(current: Seq[SchemeEvaluationResult], withdrawal: WithdrawScheme)  = {
+        calculateCurrentSchemeStatus(current, SchemeEvaluationResult(withdrawRequest.schemeId, EvaluationResults.Withdrawn.toString) :: Nil)
+      }
+
+    for {
+      currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+      _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, buildLatestSchemeStatus(currentSchemeStatus, _))
+    } yield {
+      DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
+        AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
+      Nil
+    }
   }
 
   def considerForSdip(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {

@@ -49,10 +49,6 @@ trait ReportingRepository {
 
   def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]]
 
-  def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]]
-
-  def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]]
-
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]]
 
   def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]]
@@ -68,17 +64,11 @@ trait ReportingRepository {
 
 class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with ReportingRepository with RandomSelection with
+    CreateApplicationRequest.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with ReportingRepository with RandomSelection with
     CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
     candidateProgressReport(BSONDocument("$and" -> BSONArray(
-      BSONDocument("frameworkId" -> frameworkId),
-      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN"))
-    )))
-
-  override def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]] =
-    overallReportWithPersonalDetails(BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN"))
     )))
@@ -222,36 +212,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
   }
 
-
-  // scalstyle:on method.length
-  private def overallReportWithPersonalDetails(query: BSONDocument): Future[List[ReportWithPersonalDetails]] = {
-    val projection = BSONDocument(
-      "userId" -> "1",
-      "framework-preferences.alternatives.location" -> "1",
-      "framework-preferences.alternatives.framework" -> "1",
-      "framework-preferences.firstLocation.location" -> "1",
-      "framework-preferences.secondLocation.location" -> "1",
-      "framework-preferences.firstLocation.firstFramework" -> "1",
-      "framework-preferences.secondLocation.firstFramework" -> "1",
-      "framework-preferences.firstLocation.secondFramework" -> "1",
-      "framework-preferences.secondLocation.secondFramework" -> "1",
-      "personal-details.aLevel" -> "1",
-      "personal-details.dateOfBirth" -> "1",
-      "personal-details.firstName" -> "1",
-      "personal-details.lastName" -> "1",
-      "personal-details.preferredName" -> "1",
-      "personal-details.stemLevel" -> "1",
-      "online-tests.cubiksUserId" -> "1",
-      "assistance-details.needsAssistance" -> "1",
-      "assistance-details.needsAdjustment" -> "1",
-      "assistance-details.guaranteedInterview" -> "1",
-      "applicationId" -> "1",
-      "progress-status" -> "2"
-    )
-
-    reportQueryWithProjectionsBSON[ReportWithPersonalDetails](query, projection)
-  }
-
   //scalastyle:off method.length
   override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]] = {
     val query = BSONDocument("$and" ->
@@ -347,49 +307,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     }
   }
   //scalastyle:on method.length
-
-  override def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]] = {
-    val query = BSONDocument("frameworkId" -> frameworkId)
-
-    val projection = BSONDocument(
-      "applicationId" -> "1",
-      "personal-details.preferredName" -> "1",
-      "userId" -> "1",
-      "framework-preferences" -> "1",
-      "progress-status" -> "2"
-    )
-
-    val seed = Future.successful(List.empty[(String, Boolean, PreferencesWithContactDetails)])
-    reportQueryWithProjections[BSONDocument](query, projection).flatMap { lst =>
-      lst.foldLeft(seed) { (applicationsFuture, document) =>
-        applicationsFuture.map { applications =>
-          val timeCreated = isoTimeToPrettyDateTime(getDocumentId(document).time)
-          val applicationId = document.getAs[String]("applicationId").get
-          val personalDetails = document.getAs[BSONDocument]("personal-details")
-          val preferredName = extract("preferredName")(personalDetails)
-          val userId = document.getAs[String]("userId").get
-          val frameworkPreferences = document.getAs[Preferences]("framework-preferences")
-
-          val location1 = frameworkPreferences.map(_.firstLocation.location)
-          val location1Scheme1 = frameworkPreferences.map(_.firstLocation.firstFramework)
-          val location1Scheme2 = frameworkPreferences.flatMap(_.firstLocation.secondFramework)
-
-          val location2 = frameworkPreferences.flatMap(_.secondLocation.map(_.location))
-          val location2Scheme1 = frameworkPreferences.flatMap(_.secondLocation.map(_.firstFramework))
-          val location2Scheme2 = frameworkPreferences.flatMap(_.secondLocation.flatMap(_.secondFramework))
-
-          val p = toProgressResponse(applicationId).read(document)
-
-          val preferences = PreferencesWithContactDetails(None, None, preferredName, None, None,
-            location1, location1Scheme1, location1Scheme2,
-            location2, location2Scheme1, location2Scheme2,
-            Some(ProgressStatusesReportLabels.progressStatusNameInReports(p)), Some(timeCreated))
-
-          (userId, isNonSubmittedStatus(p), preferences) +: applications
-        }
-      }
-    }
-  }
 
   override def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]] = {
     val query = BSONDocument("frameworkId" -> frameworkId)
@@ -515,15 +432,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val isNotWithdrawn = !progress.withdrawn
     isNotWithdrawn && isNotSubmitted
   }
-
-  private def getDocumentId(document: BSONDocument): BSONObjectID =
-    document.get("_id").get match {
-      case id: BSONObjectID => id
-      case id: BSONString => BSONObjectID(id.value)
-    }
-
-  private def isoTimeToPrettyDateTime(utcMillis: Long): String =
-    timeZoneService.localize(utcMillis).toString("yyyy-MM-dd HH:mm:ss")
 
   private def reportQueryWithProjections[A](
                                              query: BSONDocument,

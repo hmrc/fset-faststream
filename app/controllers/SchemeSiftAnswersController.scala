@@ -39,9 +39,8 @@ trait SchemeSiftAnswersController extends BaseController {
   val siftAnswersService: SiftAnswersService
   val auditService: AuditService
 
-  import model.Commands.Implicits._
-
-  def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Action[JsValue] =
+    Action.async(parse.json) { implicit request =>
     withJsonBody[SchemeSpecificAnswer] { answer =>
       (for {
         _ <- siftAnswersService.addSchemeSpecificAnswer(applicationId, schemeId, answer)

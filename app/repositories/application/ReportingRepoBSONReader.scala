@@ -35,50 +35,6 @@ import repositories.{ BaseBSONReader, CommonBSONDocuments }
 
 trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
-  implicit val toReportWithPersonalDetails: BSONDocumentReader[ReportWithPersonalDetails] = bsonReader {
-    (doc: BSONDocument) => {
-      val fr = doc.getAs[BSONDocument]("framework-preferences")
-      val fr1 = fr.flatMap(_.getAs[BSONDocument]("firstLocation"))
-      val fr2 = fr.flatMap(_.getAs[BSONDocument]("secondLocation"))
-
-      def frLocation(root: Option[BSONDocument]) = extract("location")(root)
-      def frScheme1(root: Option[BSONDocument]) = extract("firstFramework")(root)
-      def frScheme2(root: Option[BSONDocument]) = extract("secondFramework")(root)
-
-      val personalDetails = doc.getAs[BSONDocument]("personal-details")
-      val aLevel = personalDetails.flatMap(_.getAs[Boolean]("aLevel").map(booleanTranslator))
-      val stemLevel = personalDetails.flatMap(_.getAs[Boolean]("stemLevel").map(booleanTranslator))
-      val firstName = personalDetails.flatMap(_.getAs[String]("firstName"))
-      val lastName = personalDetails.flatMap(_.getAs[String]("lastName"))
-      val preferredName = personalDetails.flatMap(_.getAs[String]("preferredName"))
-      val dateOfBirth = personalDetails.flatMap(_.getAs[String]("dateOfBirth"))
-
-      val fpAlternatives = fr.flatMap(_.getAs[BSONDocument]("alternatives"))
-      val location = fpAlternatives.flatMap(_.getAs[Boolean]("location").map(booleanTranslator))
-      val framework = fpAlternatives.flatMap(_.getAs[Boolean]("framework").map(booleanTranslator))
-
-      val ad = doc.getAs[BSONDocument]("assistance-details")
-      val needsAssistance = ad.flatMap(_.getAs[String]("needsAssistance"))
-      val needsAdjustment = ad.flatMap(_.getAs[String]("needsAdjustment"))
-      val guaranteedInterview = ad.flatMap(_.getAs[String]("guaranteedInterview"))
-
-      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
-      val userId = doc.getAs[String]("userId").getOrElse("")
-      val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
-
-      val onlineTests = doc.getAs[BSONDocument]("online-tests")
-      val cubiksUserId = onlineTests.flatMap(_.getAs[Int]("cubiksUserId"))
-
-      ReportWithPersonalDetails(
-        applicationId, userId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
-        frLocation(fr1), frScheme1(fr1), frScheme2(fr1),
-        frLocation(fr2), frScheme1(fr2), frScheme2(fr2), aLevel,
-        stemLevel, location, framework, needsAssistance, needsAdjustment, guaranteedInterview, firstName, lastName,
-        preferredName, dateOfBirth, cubiksUserId
-      )
-    }
-  }
-
   implicit val toCandidateProgressReportItem: BSONDocumentReader[CandidateProgressReportItem] = bsonReader {
     (doc: BSONDocument) => {
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")

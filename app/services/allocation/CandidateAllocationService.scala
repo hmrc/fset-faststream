@@ -76,8 +76,6 @@ trait CandidateAllocationService extends EventSink {
 
 
   private val dateFormat = "dd MMMM YYYY"
-  private val timeFormat = "HH:mma"
-
 
   def getCandidateAllocations(eventId: String, sessionId: String): Future[exchange.CandidateAllocations] = {
     candidateAllocationRepo.activeAllocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
@@ -98,20 +96,37 @@ trait CandidateAllocationService extends EventSink {
   }
 
   def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation])
-    (implicit hc: HeaderCarrier): Future[SerialUpdateResult[persisted.CandidateAllocation]] = {
-    // For each allocation, reset the progress status and delete the corresponding allocation
-    val res = FutureEx.traverseSerial(allocations) { allocation =>
-      val fut = candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
-        ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
-          case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id)
-          case _ => applicationRepo.resetApplicationAllocationStatus(allocation.id)
-        } ).flatMap { _ =>
-          notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
-        }
+    (implicit hc: HeaderCarrier): Future[Unit] = {
+    val checkedAllocs = allocations.map { allocation =>
+      candidateAllocationRepo.isAllocationExists(allocation.id, allocation.eventId, allocation.sessionId, Some(allocation.version))
+        .map { ex =>
+        if (!ex) throw OptimisticLockException(s"Allocation for application ${allocation.id} already removed")
+        allocation
       }
-      FutureEx.futureToEither(allocation, fut)
     }
-    res.map(SerialUpdateResult.fromEither)
+    Future.sequence(checkedAllocs).flatMap { allocations =>
+      Future.sequence(allocations.map { allocation =>
+        candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
+          ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
+            case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id)
+            case _ => applicationRepo.resetApplicationAllocationStatus(allocation.id)
+          }).flatMap { _ =>
+            notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
+          }
+        }
+      })
+    }.map(_ => ())
+  }
+
+  def confirmCandidateAllocation(
+    newAllocations: command.CandidateAllocations
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[command.CandidateAllocations] = {
+    val allocation = newAllocations.allocations.head
+    candidateAllocationRepo.isAllocationExists(allocation.id, newAllocations.eventId, newAllocations.sessionId, Some(newAllocations.version))
+      .flatMap { ex =>
+        if (!ex) throw OptimisticLockException(s"There are no relevant allocation for candidate ${allocation.id}")
+        allocateCandidates(newAllocations, append = true)
+    }
   }
 
   def allocateCandidates(
