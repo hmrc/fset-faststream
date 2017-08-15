@@ -166,7 +166,8 @@ trait CommonBSONDocuments extends BaseBSONReader {
             scoresEntered = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED.key),
             scoresAccepted = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.key),
             awaitingReevaluation = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
-            passed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key)
+            passed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
+            failed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key)
           ),
           fsb = Fsb(
             getProgress(ProgressStatuses.FSB_AWAITING_ALLOCATION.key),
