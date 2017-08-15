@@ -36,6 +36,7 @@ trait AssessorRepository {
   def countSubmittedAvailability: Future[Int]
   def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]]
   def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]]
+  def findUnavailableAssessors(skills: Seq[SkillType], location: Location, date: LocalDate): Future[Seq[Assessor]]
 }
 
 class AssessorMongoRepository(implicit mongo: () => DB)
@@ -86,5 +87,17 @@ class AssessorMongoRepository(implicit mongo: () => DB)
   def countSubmittedAvailability: Future[Int] = {
     val query = Json.obj(Seq("status" -> Json.toJsFieldJsValueWrapper(AssessorStatus.AVAILABILITIES_SUBMITTED.toString)): _*)
     collection.count(Some(query))
+  }
+
+  def findUnavailableAssessors(skills: Seq[SkillType], location: Location, date: LocalDate): Future[Seq[Assessor]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("skills" -> BSONDocument("$in" -> skills)),
+      BSONDocument("availability" ->
+        BSONDocument("$not" ->
+          BSONDocument("$elemMatch" -> BSONDocument("location" -> location.name, "date" -> date))
+        )
+      )
+    ))
+    collection.find(query).cursor[Assessor]().collect[Seq]()
   }
 }
