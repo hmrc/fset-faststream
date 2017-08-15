@@ -16,12 +16,32 @@
 
 package model.command
 
+import model.SchemeId
 import play.api.libs.json.{ Format, Json }
 
 import scala.language.implicitConversions
 
-case class WithdrawApplication(reason: String, otherReason: Option[String], withdrawer: String)
+trait WithdrawRequest {
+  def reason: String
+  def withdrawer: String
+}
+
+case class WithdrawApplication(
+  reason: String,
+  otherReason: Option[String],
+  withdrawer: String
+) extends WithdrawRequest
 
 object WithdrawApplication {
   implicit val withdrawApplicationFormats: Format[WithdrawApplication] = Json.format[WithdrawApplication]
+}
+
+case class WithdrawScheme(
+  schemeId: SchemeId,
+  reason: String,
+  withdrawer: String
+) extends WithdrawRequest
+
+object WithdrawScheme {
+  implicit val withdrawSchemeFormat = Json.format[WithdrawScheme]
 }

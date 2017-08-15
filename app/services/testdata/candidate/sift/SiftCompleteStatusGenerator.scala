@@ -14,44 +14,44 @@
  * limitations under the License.
  */
 
-package services.testdata.candidate.fsb
+package services.testdata.candidate.sift
 
-import model.ProgressStatuses
+import model.EvaluationResults
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
+import model.persisted.SchemeEvaluationResult
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import services.testdata.candidate.assessmentcentre.AssessmentCentreAwaitingAllocationStatusGenerator
-import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
+import services.sift.ApplicationSiftService
+import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-object FsbAwaitingAllocationStatusGenerator extends FsbAwaitingAllocationStatusGenerator {
-  override val previousStatusGenerator: BaseGenerator = AssessmentCentreAwaitingAllocationStatusGenerator
-  override val applicationRepository = repositories.applicationRepository
+object SiftCompleteStatusGenerator extends SiftCompleteStatusGenerator {
+  val previousStatusGenerator = SiftFormsSubmittedStatusGenerator
+  val siftService = ApplicationSiftService
+  val appRepo = repositories.applicationRepository
 }
 
-trait FsbAwaitingAllocationStatusGenerator extends ConstructiveGenerator {
-  val applicationRepository: GeneralApplicationRepository
+trait SiftCompleteStatusGenerator extends ConstructiveGenerator {
+  def siftService: ApplicationSiftService
+  def appRepo: GeneralApplicationRepository
+
+  private def siftSchemes(currentSchemeStats: Seq[SchemeEvaluationResult], appId: String) = Future.traverse(currentSchemeStats) { s =>
+    siftService.siftApplicationForScheme(appId, s.copy(result = EvaluationResults.Green.toString))
+  }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
-
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      // this should be properly implemented as soon as story FSET-1711 done.
-      _ <- applicationRepository.removeProgressStatuses(
-        candidateInPreviousStatus.applicationId.get,
-        List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
-      )
-      _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(
-        candidateInPreviousStatus.applicationId.get,
-        ProgressStatuses.FSB_AWAITING_ALLOCATION
-      )
+      currentSchemeStatus <- appRepo.getCurrentSchemeStatus(candidateInPreviousStatus.applicationId.get)
+      _ <- siftSchemes(currentSchemeStatus, candidateInPreviousStatus.applicationId.get)
     } yield {
       candidateInPreviousStatus
     }
+
   }
 }

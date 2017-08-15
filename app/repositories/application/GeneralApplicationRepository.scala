@@ -82,6 +82,9 @@ trait GeneralApplicationRepository {
 
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
 
+  def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme,
+    schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]): Future[Unit]
+
   def preview(applicationId: String): Future[Unit]
 
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
@@ -152,7 +155,7 @@ class GeneralApplicationMongoRepository(
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     CreateApplicationRequest.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
-    with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers {
+    with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -339,6 +342,21 @@ class GeneralApplicationMongoRepository(
     val validator = singleUpdateValidator(applicationId, actionDesc = "withdrawing")
 
     collection.update(query, applicationBSON) map validator
+  }
+
+  override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme,
+    schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]
+  ): Future[Unit] = {
+
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"withdraw.schemes.${withdrawScheme.schemeId}" -> withdrawScheme.reason
+    ).add(currentSchemeStatusBSON(schemeStatus(withdrawScheme))))
+
+    val predicate = BSONDocument(
+      "applicationId" -> applicationId
+    )
+
+    collection.update(predicate, update).map(_ => ())
   }
 
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {
@@ -578,11 +596,11 @@ class GeneralApplicationMongoRepository(
   }
 
   private def reportQueryWithProjections[A](
-                                             query: BSONDocument,
-                                             prj: BSONDocument,
-                                             upTo: Int = Int.MaxValue,
-                                             stopOnError: Boolean = true
-                                           )(implicit reader: Format[A]): Future[List[A]] =
+    query: BSONDocument,
+    prj: BSONDocument,
+    upTo: Int = Int.MaxValue,
+    stopOnError: Boolean = true
+  )(implicit reader: Format[A]): Future[List[A]] =
     collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
 
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
@@ -901,15 +919,24 @@ class GeneralApplicationMongoRepository(
   }
 
   import ProgressStatuses._
-  private val progressStatuses = List(
-    ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
-    ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
-    ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
-    ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
+  private val progressStatuses = Map(
+    ASSESSMENT_CENTRE -> List(
+      ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+      ASSESSMENT_CENTRE_FAILED_TO_ATTEND),
+    FSB -> List(
+      FSB_ALLOCATION_CONFIRMED,
+      FSB_ALLOCATION_UNCONFIRMED,
+      FSB_AWAITING_ALLOCATION,
+      FSB_FAILED_TO_ATTEND
+    )
+  )
 
   private def replaceAllocationStatus(applicationId: String, newStatus: ProgressStatuses.ProgressStatus) = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val statusesToRemove = progressStatuses.filter(_ != newStatus).map(p => s"progress-status.${p.key}" -> BSONString(""))
+    val statusesToRemove = progressStatuses(newStatus.applicationStatus)
+      .filter(_ != newStatus).map(p => s"progress-status.${p.key}" -> BSONString(""))
 
     val updateQuery = BSONDocument(
       "$unset" -> BSONDocument(statusesToRemove),
