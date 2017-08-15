@@ -16,21 +16,24 @@
 
 package services.application
 
+import model.ProgressStatuses.ProgressStatus
 import model.{ FsbType, SchemeId }
 import model.exchange.ApplicationResult
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
-import repositories.application.FsbTestGroupRepository
+import repositories.application.{ FsbTestGroupRepository, GeneralApplicationMongoRepository }
 import services.events.EventsService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object FsbTestGroupService extends FsbTestGroupService {
+  override val applicationRepository = repositories.applicationRepository
   override val fsbTestGroupRepository = repositories.fsbTestGroupRepository
   override val eventsService = EventsService
 }
 
 trait FsbTestGroupService {
+  val applicationRepository: GeneralApplicationMongoRepository
   val fsbTestGroupRepository: FsbTestGroupRepository
   val eventsService: EventsService
 
@@ -44,7 +47,10 @@ trait FsbTestGroupService {
 
   def saveResult(schemeId: SchemeId, applicationResult: ApplicationResult): Future[Unit] = {
     val schemeEvaluationResult = SchemeEvaluationResult(schemeId, applicationResult.result)
-    fsbTestGroupRepository.save(applicationResult.applicationId, schemeEvaluationResult)
+    for {
+      _ <- fsbTestGroupRepository.save(applicationResult.applicationId, schemeEvaluationResult)
+      _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(applicationResult.applicationId, FSB_RESULTS_ENTERED)
+    } yield ()
   }
 
   def findByApplicationIdsAndFsbType(applicationIds: List[String], fsbType: Option[String]): Future[List[FsbSchemeResult]] = {
