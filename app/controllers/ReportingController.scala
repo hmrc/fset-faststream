@@ -88,7 +88,7 @@ trait ReportingController extends BaseController {
   }
 
   private def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],
-                                   contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
+    contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
     applications.map { application =>
       val contactDetails = contactDetailsMap.getOrElse(application.userId,
         throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
@@ -120,7 +120,7 @@ trait ReportingController extends BaseController {
   def candidateProgressReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val candidatesFut: Future[List[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
 
-    for{
+    for {
       candidates <- candidatesFut
     } yield Ok(Json.toJson(candidates))
   }
@@ -198,8 +198,8 @@ trait ReportingController extends BaseController {
   def onlineTestPassMarkReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports =
       for {
-        applications <- reportingRepository.onlineTestPassMarkReport(frameworkId)
-        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport
+        applications <- reportingRepository.onlineTestPassMarkReport()
+        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.userId))
       } yield {
         for {
           a <- applications
@@ -210,4 +210,20 @@ trait ReportingController extends BaseController {
       Ok(Json.toJson(list))
     }
   }
+
+  def numericTestExtractReport(): Action[AnyContent] = Action.async { implicit request =>
+    val reports =
+      for {
+        applications <- reportingRepository.numericTestExtractReport()
+        contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(_.groupBy(_.userId).mapValues(_.head))
+        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.userId))
+      } yield for {
+        a <- applications
+        c <- contactDetails.get(a.userId)
+        q <- questionnaires.get(a.applicationId)
+      } yield NumericTestExtractReportItem(a, q)
+
+    reports.map(list => Ok(Json.toJson(list)))
+  }
+
 }

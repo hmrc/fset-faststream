@@ -221,6 +221,40 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
+  implicit val toApplicationForNumericTestExtractReport: BSONDocumentReader[ApplicationForNumericTestExtractReport] = bsonReader {
+    (doc: BSONDocument) => {
+      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
+      val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
+      val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
+      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
+
+      val personalDetails = doc.getAs[PersonalDetails]("personal-details").get
+
+      val adDoc = doc.getAs[BSONDocument]("assistance-details")
+      val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
+      val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
+      val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
+      val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
+
+      val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
+
+      ApplicationForNumericTestExtractReport(
+        applicationId,
+        personalDetails.firstName,
+        personalDetails.lastName,
+        personalDetails.preferredName,
+
+        ProgressStatusesReportLabels.progressStatusNameInReports(progress),
+        applicationRoute,
+        schemes.getOrElse(Nil),
+        disability,
+        gis,
+        onlineAdjustments,
+        assessmentCentreAdjustments,
+        toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId))
+    }
+  }
+
   private[application] def toCivilServiceExperienceDetailsReportItem(optDoc: Option[BSONDocument]):
   Option[CivilServiceExperienceDetailsForDiversityReport] = {
     optDoc.map { doc =>

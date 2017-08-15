@@ -20,12 +20,17 @@ import model.ApplicationRoute._
 import model.SchemeId
 import play.api.libs.json.Json
 import model.report.TestResultsForOnlineTestPassMarkReportItem
+import reactivemongo.bson.Macros
 
-case class ApplicationForOnlineTestPassMarkReport(
+case class ApplicationForNumericTestExtractReport(
                                                    userId: String,
                                                    applicationId: String,
+                                                   firstName: String,
+                                                   lastName: String,
+                                                   preferredName: String,
+                                                   email: String,
+                                                   telephone: String,
                                                    progress: String,
-                                                   applicationRoute: ApplicationRoute,
                                                    schemes: List[SchemeId],
                                                    disability: Option[String],
                                                    gis: Option[Boolean],
@@ -34,6 +39,7 @@ case class ApplicationForOnlineTestPassMarkReport(
                                                    testResults: TestResultsForOnlineTestPassMarkReportItem
                                                      )
 
-object ApplicationForOnlineTestPassMarkReport {
-  implicit val applicationForOnlineTestReportFormat = Json.format[ApplicationForOnlineTestPassMarkReport]
+object ApplicationForNumericTestExtractReport {
+  implicit val applicationForNumericTestExtractReportFormat = Json.format[ApplicationForNumericTestExtractReport]
+  implicit val applicationForNumericTestExtractReportHandler = Macros.handler[ApplicationForNumericTestExtractReport]
 }

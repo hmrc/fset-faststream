@@ -71,14 +71,8 @@ GET         /report/online-test-pass-mark/:frameworkId                   control
 GET         /report/candidate-deferral/:frameworkId                      controllers.ReportingController.candidateDeferralReport(frameworkId: String)
 GET         /report/internship/:frameworkId                              controllers.ReportingController.internshipReport(frameworkId: String)
 GET         /report/analytical-schemes/:frameworkId                      controllers.ReportingController.analyticalSchemesReport(frameworkId: String)
+GET         /report/numeric-test-extract                                 controllers.ReportingController.numericTestExtractReport()
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
-#GET         /report/assessment-centre-allocation/:frameworkId            controllers.ReportingController.createAssessmentCentreAllocationReport(frameworkId: String)
-#GET         /report/pass-mark-personal-data/:frameworkId                 controllers.ReportingController.createPassMarkWithPersonalDataReport(frameworkId: S#tring)
-#GET         /report/non-submitted-applications/:frameworkId              controllers.ReportingController.createNonSubmittedAppsReports(frameworkId: String)
-#GET         /report/preferences-and-contact/:frameworkId                 controllers.ReportingController.createPreferencesAndContactReports(frameworkId: String)
-#GET         /report/application-user-ids/:frameworkId                    controllers.ReportingController.applicationAndUserIdsReport(frameworkId: String)
-#GET         /report/assessment-results/:frameworkId                      controllers.ReportingController.createAssessmentResultsReport(frameworkId: String)
-#GET         /report/successful-candidates/:frameworkId                   controllers.ReportingController.createSuccessfulCandidatesReport(frameworkId: String)
 
 GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
 GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
