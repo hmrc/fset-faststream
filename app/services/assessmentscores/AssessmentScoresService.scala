@@ -83,15 +83,15 @@ trait AssessmentScoresService {
       }
     }
 
-    (for {
+    for {
       oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
       oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
       newAllExercisesScores = updateAllExercisesWithExercise(oldAllExercisesScores, newExerciseScores)
-      _ <- assessmentScoresRepository.save(newAllExercisesScores)
+      _ <- assessmentScoresRepository.saveExercise(applicationId, assessmentExerciseType, newExerciseScores)
       _ <- updateStatusIfNeeded(newAllExercisesScores)
     } yield {
       ()
-    })
+    }
   }
 
   // We only submit final feedback for Reviewers/ QAC
@@ -122,14 +122,14 @@ trait AssessmentScoresService {
         finalFeedback = Some(newFinalFeedbackWithSubmittedDate))
     }
 
-    (for {
+    for {
       oldAllExercisesScoresMaybe <- findScoresAndVerify(applicationId)
       newAllExercisesScoresWithSubmittedDate = buildNewAllExercisesScoresWithSubmittedDate(oldAllExercisesScoresMaybe)
       _ <- assessmentScoresRepository.save(newAllExercisesScoresWithSubmittedDate)
       _ <- updateStatusIfNeeded(newAllExercisesScoresWithSubmittedDate)
     } yield {
       ()
-    })
+    }
   }
 
   protected def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean

@@ -16,9 +16,10 @@
 
 package repositories
 
-import factories.DateTimeFactory
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.UniqueIdentifier
 import model.assessmentscores._
+import model.command.AssessmentScoresCommands.AssessmentExerciseType
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -30,6 +31,10 @@ import scala.concurrent.Future
 trait AssessmentScoresRepository {
   def save(scoresAndFeedback: AssessmentScoresAllExercises): Future[Unit]
 
+  def saveExercise(applicationId: UniqueIdentifier,
+    exercise: AssessmentExerciseType.AssessmentExerciseType,
+    exercisesScores: AssessmentScoresExercise): Future[Unit]
+
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]]
 
   def findAll: Future[List[AssessmentScoresAllExercises]]
@@ -39,6 +44,28 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
   extends ReactiveRepository[AssessmentScoresAllExercises, BSONObjectID](collectionName, mongo,
     AssessmentScoresAllExercises.jsonFormat, ReactiveMongoFormats.objectIdFormats)
     with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
+
+  def saveExercise(applicationId: UniqueIdentifier,
+    exercise: AssessmentExerciseType.AssessmentExerciseType,
+    exercisesScores: AssessmentScoresExercise): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId.toString())
+
+    //val newVersion: Option[String] = Some(UUIDFactory.generateUUID())
+
+    val applicationScoresBSON = exercisesScores.version match {
+      case Some(_) => BSONDocument(
+        s"${exercise.toString}" -> exercisesScores //.copy(version = newVersion)
+      )
+      case _ => BSONDocument(
+        "applicationId" -> applicationId,
+        s"${exercise.toString}" -> AssessmentScoresExercise.bsonHandler.write(exercisesScores) //exercisesScores.copy(version = newVersion))
+      )
+    }
+
+    val updateBSON = BSONDocument("$set" -> applicationScoresBSON)
+    val validator = singleUpsertValidator(applicationId.toString(), actionDesc = s"saving assessment score for $exercise exercise")
+    collection.update(query, updateBSON, upsert = true) map validator
+  }
 
   // This save method does not remove exercise subdocument when allExercisesScores's field are None
   def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
