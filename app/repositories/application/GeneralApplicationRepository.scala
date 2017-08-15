@@ -865,7 +865,6 @@ class GeneralApplicationMongoRepository(
     val confirmedAllocation = status.allocationConfirmed.key
     val unconfirmedAllocation = status.allocationUnconfirmed.key
 
-    // TODO: do we need location based check for FSB ? What about Virtual.
     val fsacConditions = BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
 
     val fsbConditions = schemeId.map { s =>
