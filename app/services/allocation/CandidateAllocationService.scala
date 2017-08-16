@@ -16,7 +16,6 @@
 
 package services.allocation
 
-import common.FutureEx
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.OptimisticLockException
 import model.ProgressStatuses.EventProgressStatuses
@@ -24,8 +23,8 @@ import model._
 import model.command.CandidateAllocation
 import model.exchange.CandidatesEligibleForEventResponse
 import model.exchange.candidateevents.{ CandidateAllocationSummary, CandidateAllocationWithEvent, CandidateRemoveReason }
-import model.persisted.eventschedules.{ Event, EventType }
 import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.{ Event, EventType }
 import model.persisted.{ ContactDetails, PersonalDetails }
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
@@ -33,7 +32,7 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import repositories.{ CandidateAllocationMongoRepository, CandidateAllocationRepository, SchemeRepositoryImpl, SchemeYamlRepository }
+import repositories.{ CandidateAllocationMongoRepository, CandidateAllocationRepository, SchemeRepository, SchemeYamlRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
@@ -67,7 +66,7 @@ trait CandidateAllocationService extends EventSink {
   def applicationRepo: GeneralApplicationRepository
   def contactDetailsRepo: ContactDetailsRepository
   def personalDetailsRepo: PersonalDetailsRepository
-  def schemeRepository: SchemeRepositoryImpl
+  def schemeRepository: SchemeRepository
   def eventsService: EventsService
   def emailClient: EmailClient
   def authProviderClient: AuthProviderClient

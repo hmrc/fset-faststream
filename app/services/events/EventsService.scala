@@ -22,7 +22,7 @@ import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, Venue }
 import play.api.Logger
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository, eventsRepository }
+import repositories.{ SchemeRepository, SchemeYamlRepository, eventsRepository }
 import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,20 +34,18 @@ object EventsService extends EventsService {
   val eventsConfigRepo = EventsConfigRepository
   val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
   val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
-  val schemeRepo: SchemeRepository = SchemeYamlRepository
 }
 
 trait EventsService {
 
   def eventsRepo: EventsRepository
-  def schemeRepo: SchemeRepositoryImpl
+  def schemeRepo: SchemeRepository
   def assessorAllocationService: AssessorAllocationService
 
   def candidateAllocationService: CandidateAllocationService
 
   def eventsConfigRepo: EventsConfigRepository
 
-  def schemeRepo: SchemeRepository
 
   def saveAssessmentEvents(): Future[Unit] = {
     eventsConfigRepo.events.flatMap { events =>
@@ -101,16 +99,10 @@ trait EventsService {
 
   def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes
 
-  def getTelephoneInterviewTypes: Future[Seq[TelephoneInterviewType]] = schemeRepo.getTelephoneInterviewTypes
+  def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemeRepo.getTelephoneInterviewTypes
 
-  def findSchemeByEvent(eventId: String): Future[Option[Scheme]] = {
-    for {
-      event <- getEvent(eventId)
-      fsbTypes <- getFsbTypes
-    } yield {
-      fsbTypes.collectFirst { case fsbType: FsbType if fsbType.key == event.description => SchemeId(fsbType.schemeId) }
-        .flatMap(schemeId => schemeRepo.getSchemeForId(schemeId))
-    }
+  def findSchemeByEvent(eventId: String): Future[Scheme] = {
+    getEvent(eventId).map { event => schemeRepo.getSchemeForFsb(event.description) }
   }
 
 }

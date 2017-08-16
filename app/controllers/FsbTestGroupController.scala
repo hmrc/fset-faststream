@@ -42,9 +42,8 @@ trait FsbTestGroupController extends BaseController {
         applicationResult.copy(result = EvaluationResults.Result.fromPassFail(applicationResult.result).toString)
       }
 
-      eventsService.findSchemeByEvent(eventId).flatMap {
-        case Some(scheme) => fsbService.saveResults(scheme.id, greenRedResults)
-        case None => throw SchemeNotFoundException(s"Event $eventId has no associated Scheme - FsbType mismatch")
+      eventsService.findSchemeByEvent(eventId).flatMap { scheme =>
+        fsbService.saveResults(scheme.id, greenRedResults)
       }.map { result =>
         Ok
       }.recover {
