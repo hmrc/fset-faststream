@@ -23,6 +23,7 @@ import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import services.testdata.admin.{ AdminCreatedStatusGenerator, AdminUserBaseGenerator, AssessorCreatedStatusGenerator }
 import services.testdata.candidate.assessmentcentre.AssessmentCentreAwaitingAllocationStatusGenerator
+import services.testdata.candidate.fsb.FsbAwaitingAllocationStatusGenerator
 import services.testdata.candidate.onlinetests._
 import services.testdata.candidate.onlinetests.phase1._
 import services.testdata.candidate.onlinetests.phase2._
@@ -129,6 +130,7 @@ object CandidateStatusGeneratorFactory {
       case (SIFT, Some(ProgressStatuses.SIFT_COMPLETED)) => SiftCompleteStatusGenerator
 
       case (ASSESSMENT_CENTRE, Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)) => AssessmentCentreAwaitingAllocationStatusGenerator
+      case (FSB, Some(ProgressStatuses.FSB_AWAITING_ALLOCATION)) => FsbAwaitingAllocationStatusGenerator
 
       case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")

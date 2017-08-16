@@ -50,9 +50,9 @@ object CreateEventData {
 
       val id = createRequest.id.getOrElse(Random.Event.id)
       val eventType = createRequest.eventType.getOrElse(Random.Event.eventType)
-      val description = createRequest.description.getOrElse(Random.Event.description)
-      val location = createRequest.location.map(l => Location(l)).getOrElse(Random.Event.location)
-      val venue = createRequest.venue.flatMap(v => venues.find(_.name == v)).getOrElse(Random.randOne(venues))
+      val description = createRequest.description.getOrElse(Random.Event.description(eventType))
+      val location = createRequest.location.map(l => Location(l)).getOrElse(Random.Event.location(eventType))
+      val venue = createRequest.venue.flatMap(v => venues.find(_.name == v)).getOrElse(Random.Event.venue(location))
       val date = createRequest.date.getOrElse(Random.Event.date)
       val capacity = createRequest.capacity.getOrElse(Random.Event.capacity)
       val minViableAttendees = createRequest.minViableAttendees.getOrElse(Random.Event.minViableAttendees)

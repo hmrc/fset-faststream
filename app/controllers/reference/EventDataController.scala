@@ -22,9 +22,6 @@ import play.api.mvc.{ Action, AnyContent }
 import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-
 object EventDataController extends EventDataController {
   val eventsService: EventsService = EventsService
 }
@@ -33,15 +30,15 @@ trait EventDataController extends BaseController {
 
   def eventsService: EventsService
 
-  def getFsbTypes: Action[AnyContent] = Action.async { implicit request =>
-    eventsService.getFsbTypes.map(res => Ok(Json.toJson(res)))
+  def getFsbTypes: Action[AnyContent] = Action { implicit request =>
+    Ok(Json.toJson(eventsService.getFsbTypes))
   }
 
-  def getTelephoneInterviewTypes: Action[AnyContent] = Action.async { implicit request =>
-    eventsService.getTelephoneInterviewTypes.map(res => Ok(Json.toJson(res)))
+  def getTelephoneInterviewTypes: Action[AnyContent] = Action { implicit request =>
+    Ok(Json.toJson(eventsService.getTelephoneInterviewTypes))
   }
 
-  def candidateRemoveReasons: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(Json.toJson(CandidateRemoveReason.Values)))
+  def candidateRemoveReasons: Action[AnyContent] = Action { implicit request =>
+    Ok(Json.toJson(CandidateRemoveReason.Values))
   }
 }

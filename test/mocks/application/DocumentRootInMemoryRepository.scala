@@ -26,6 +26,7 @@ import model.exchange.CandidatesEligibleForEventResponse
 import model.{ NotificationTestTypeSdipFs, _ }
 import model.command._
 import model.persisted._
+import model.persisted.eventschedules.EventType.EventType
 import model.report._
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
@@ -150,15 +151,16 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = ???
 
-  override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = ???
-
-  override def resetApplicationAllocationStatus(applicationId: String): Future[Unit] = ???
-
   override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = ???
 
-  override def setFailedToAttendAssessmentStatus(applicationId: String): Future[Unit] = ???
-
   override def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = ???
+
+  override def findCandidatesEligibleForEventAllocation(
+    locations: List[String], eventType: EventType, schemeId: Option[SchemeId]): Future[CandidatesEligibleForEventResponse] = ???
+
+  override def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit] = ???
+
+  override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = ???
 
   override def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]) = ???
 }

@@ -21,20 +21,25 @@ import model.SchemeId
 import model.exchange.ApplicationResult
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import repositories.application.{ FsbTestGroupRepository, GeneralApplicationMongoRepository }
+import repositories.{ SchemeRepository, SchemeYamlRepository }
+import repositories.application.FsbTestGroupRepository
 import services.events.EventsService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 object FsbTestGroupService extends FsbTestGroupService {
   override val applicationRepository = repositories.applicationRepository
   override val fsbTestGroupRepository = repositories.fsbTestGroupRepository
   override val eventsService = EventsService
+  override val schemeRepository = SchemeYamlRepository
 }
 
 trait FsbTestGroupService {
   val applicationRepository: GeneralApplicationMongoRepository
   val fsbTestGroupRepository: FsbTestGroupRepository
+  val schemeRepository: SchemeRepository
   val eventsService: EventsService
 
   def saveResults(schemeId: SchemeId, applicationResults: List[ApplicationResult]): Future[List[Unit]] = {
@@ -52,10 +57,10 @@ trait FsbTestGroupService {
   }
 
   def findByApplicationIdsAndFsbType(applicationIds: List[String], mayBeFsbType: Option[String]): Future[List[FsbSchemeResult]] = {
-    eventsService.getFsbTypes.flatMap { fsbTypes =>
-      val mayBeSchemeId = fsbTypes.collectFirst { case fsbType if mayBeFsbType.contains(fsbType.key) => SchemeId(fsbType.schemeId) }
-      findByApplicationIdsAndScheme(applicationIds, mayBeSchemeId)
-    }
+    val maybeSchemeId = mayBeFsbType.flatMap { fsb =>
+      Try(schemeRepository.getSchemeForFsb(fsb)).toOption
+    }.map(_.id)
+    findByApplicationIdsAndScheme(applicationIds, maybeSchemeId)
   }
 
   def findByApplicationIdsAndScheme(applicationIds: List[String], mayBeSchemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
