@@ -65,7 +65,7 @@ case class Scheme(
 object Scheme {
   implicit val schemeFormat = Json.format[Scheme]
 
-  // TODO: Fix all parameters
-  def apply(id: String, code: String, name: String, siftRequirement: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean): Scheme =
-    Scheme(SchemeId(id), code, name, false, None, siftRequirement, siftEvaluationRequired)
+  def apply(id: String, code: String, name: String, civilServantEligible: Boolean,
+    degree: Option[Degree], siftRequirement: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean): Scheme =
+    Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, siftEvaluationRequired)
 }

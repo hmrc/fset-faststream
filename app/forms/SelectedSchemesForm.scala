@@ -31,9 +31,9 @@ import play.api.Play.current
 
 class SelectedSchemesForm(allSchemes: Seq[Scheme]) {
 
-  protected val page = SelectedSchemesPage(allSchemes)
+  private val page = SelectedSchemesPage(allSchemes)
 
-  protected val maxSchemes = 4
+  private val maxSchemes = 4
 
   def form = {
     Form(

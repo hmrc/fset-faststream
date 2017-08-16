@@ -115,7 +115,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val phase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
-        Scheme("DiplomaticService", "GDS", "Diplomatic Service", None, siftEvaluationRequired = true)
+        ReferenceDataExamples.Schemes.Dip
       ))
       when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
           .thenReturnAsync(None)
@@ -147,7 +147,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val withdrawnPhase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.WithdrawnPhase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
-        Scheme("DiplomaticService", "GDS", "Diplomatic Service", None, siftEvaluationRequired = true)
+        ReferenceDataExamples.Schemes.Generalist
       ))
       when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
           .thenReturnAsync(None)
