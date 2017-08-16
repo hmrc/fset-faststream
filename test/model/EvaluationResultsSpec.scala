@@ -91,4 +91,14 @@ class EvaluationResultsSpec extends UnitSpec with TableDrivenPropertyChecks {
     }
   }
 
+  "EvaluationResults.Result.fromPassFail" must {
+    "return Green for Pass" in {
+     EvaluationResults.Result.fromPassFail("Pass") mustBe Green
+    }
+
+    "return Red for Fail" in {
+      EvaluationResults.Result.fromPassFail("Fail") mustBe Red
+    }
+  }
+
 }

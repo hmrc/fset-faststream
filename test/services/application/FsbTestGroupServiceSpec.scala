@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package model
+package services.application
 
-import play.api.libs.json.{ Json, OFormat }
+class FsbTestGroupServiceSpec {
 
-case class FsbType(key: String, schemeId: String, schemeCode: String)
-
-object FsbType {
-  implicit val format: OFormat[FsbType] = Json.format[FsbType]
 }

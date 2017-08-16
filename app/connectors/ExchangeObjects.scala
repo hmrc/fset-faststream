@@ -59,9 +59,6 @@ object ExchangeObjects {
                              timeAdjustments: List[TimeAdjustments] = Nil)
   object InviteApplicant { implicit val inviteApplicantFormat: OFormat[InviteApplicant] = Json.format[InviteApplicant] }
 
-  case class ReportNorm(assessmentId: Int, normId: Int)
-  object ReportNorm { implicit val reportNormFormat: OFormat[ReportNorm] = Json.format[ReportNorm] }
-
   // Cubiks Gateway Response
   case class Registration(userId: Int)
   object Registration { implicit val registrationFormat: OFormat[Registration] = Json.format[Registration] }
