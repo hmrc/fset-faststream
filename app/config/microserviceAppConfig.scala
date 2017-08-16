@@ -82,8 +82,6 @@ object WaitingScheduledJobConfig {
 case class CubiksGatewayConfig(url: String,
   phase1Tests: Phase1TestsConfig,
   phase2Tests: Phase2TestsConfig,
-  competenceAssessment: CubiksGatewayStandardAssessment,
-  situationalAssessment: CubiksGatewayStandardAssessment,
   reportConfig: ReportConfig,
   candidateAppUrl: String,
   emailDomain: String
