@@ -16,13 +16,12 @@
 
 package model.persisted.eventschedules
 
-import factories.UUIDFactory
 import model.persisted.eventschedules.EventType.EventType
-import org.joda.time.{ LocalDate, LocalTime }
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import model.exchange.{ Event => ExchangeEvent }
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
+import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler, BSONMapHandler }
 
 case class Event(
   id: String,
@@ -36,6 +35,7 @@ case class Event(
   attendeeSafetyMargin: Int,
   startTime: LocalTime,
   endTime: LocalTime,
+  createdAt: DateTime,
   skillRequirements: Map[String, Int],
   sessions: List[Session]
 )
@@ -57,6 +57,7 @@ object Event {
       attendeeSafetyMargin = exchangeEvent.attendeeSafetyMargin,
       startTime = exchangeEvent.startTime,
       endTime = exchangeEvent.endTime,
+      createdAt = DateTime.now(),
       skillRequirements = exchangeEvent.skillRequirements,
       sessions = exchangeEvent.sessions.map(Session.apply)
     )

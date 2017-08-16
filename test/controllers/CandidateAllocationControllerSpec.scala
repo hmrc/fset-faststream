@@ -77,7 +77,7 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     val MockLocation = Location("London")
 
     val MockEvent = new Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
-      LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, Map.empty, List.empty)
+      LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, DateTime.now, Map.empty, List.empty)
 
     val controller = new CandidateAllocationController {
       val candidateAllocationService: CandidateAllocationService = mockCandidateAllocationService
