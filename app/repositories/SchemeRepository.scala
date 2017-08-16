@@ -17,6 +17,7 @@
 package repositories
 
 import config.MicroserviceAppConfig
+import model.Exceptions.SchemeNotFoundException
 import model._
 import net.jcazevedo.moultingyaml._
 import play.api.Play
@@ -46,7 +47,7 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
   ))
 }
 
-trait SchemeRepositoryImpl {
+trait SchemeRepository {
 
   import play.api.Play.current
 
@@ -60,20 +61,22 @@ trait SchemeRepositoryImpl {
     rawConfig.parseYaml.convertTo[List[Scheme]]
   }
 
-  private lazy val schemesByFsb: Map[FsbType, Scheme] = schemes.flatMap(s => s.fsbType.map(ft => ft -> s)).toMap
+  private lazy val schemesByFsb: Map[String, Scheme] = schemes.flatMap(s => s.fsbType.map(ft => ft.key -> s)).toMap
   private lazy val schemesByTelephoneInterview: Map[String, Scheme] = {
     schemes.flatMap(s => s.telephoneInterviewType.map(t => t.key -> s)).toMap
   }
 
   def getSchemeForFsb(fsb: String) = {
-    schemesByFsb.getOrElse(FsbType(fsb), sys.error(s"Can not find scheme for FSB: $fsb"))
+    schemesByFsb.getOrElse(fsb, throw SchemeNotFoundException(s"Can not find scheme for FSB: $fsb"))
   }
 
   def getSchemeForTelephoneInterview(tel: String) = {
-    schemesByTelephoneInterview.getOrElse(tel, sys.error(s"Can not find scheme for TelephoneInterview: $tel"))
+    schemesByTelephoneInterview.getOrElse(tel, throw SchemeNotFoundException(s"Can not find scheme for TelephoneInterview: $tel"))
   }
 
-  def getSchemesForId(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => schemes.find(_.id == id) }
+  def getSchemesForIds(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => getSchemeForId(id) }
+
+  def getSchemeForId(id: SchemeId): Option[Scheme] = schemes.find(_.id == id)
 
   def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id}
 
@@ -82,4 +85,4 @@ trait SchemeRepositoryImpl {
   def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemes.flatMap(_.telephoneInterviewType)
 }
 
-object SchemeYamlRepository extends SchemeRepositoryImpl
+object SchemeYamlRepository extends SchemeRepository

@@ -16,17 +16,17 @@
 
 package services.events
 
+import model._
 import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
-import model.{ AllocationStatuses, FsbType, TelephoneInterviewType, UniqueIdentifier }
-import model.persisted.eventschedules.{ Event, Venue }
 import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.{ Event, Venue }
 import play.api.Logger
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository, eventsRepository }
+import repositories.{ SchemeRepository, SchemeYamlRepository, eventsRepository }
 import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object EventsService extends EventsService {
   val eventsRepo: EventsMongoRepository = eventsRepository
@@ -39,10 +39,13 @@ object EventsService extends EventsService {
 trait EventsService {
 
   def eventsRepo: EventsRepository
-  def schemeRepo: SchemeRepositoryImpl
+  def schemeRepo: SchemeRepository
   def assessorAllocationService: AssessorAllocationService
+
   def candidateAllocationService: CandidateAllocationService
+
   def eventsConfigRepo: EventsConfigRepository
+
 
   def saveAssessmentEvents(): Future[Unit] = {
     eventsConfigRepo.events.flatMap { events =>
@@ -97,4 +100,9 @@ trait EventsService {
   def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes
 
   def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemeRepo.getTelephoneInterviewTypes
+
+  def findSchemeByEvent(eventId: String): Future[Scheme] = {
+    getEvent(eventId).map { event => schemeRepo.getSchemeForFsb(event.description) }
+  }
+
 }

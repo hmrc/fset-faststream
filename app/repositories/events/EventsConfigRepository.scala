@@ -56,14 +56,6 @@ case class SessionConfig(
   endTime: LocalTime
 )
 
-object FsbTypeConfigProtocol extends DefaultYamlProtocol {
-  implicit val format = yamlFormat1((key: String) => FsbType(key))
-}
-
-object TelephoneInterviewTypeConfigProtocol extends DefaultYamlProtocol {
-  implicit val format = yamlFormat2((key: String, description: String) => TelephoneInterviewType(key, description))
-}
-
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
     def write(jodaDate: LocalDate) = YamlDate(jodaDate.toDateTimeAtStartOfDay)

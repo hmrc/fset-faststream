@@ -16,16 +16,22 @@
 
 package model.persisted
 
-import model.SchemeId
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class SchemeEvaluationResult(schemeId: SchemeId, result: String)
+case class FsbEvaluation(result: List[SchemeEvaluationResult])
 
-object SchemeEvaluationResult {
-  implicit val format = Json.format[SchemeEvaluationResult]
-  implicit val bsonHandler = Macros.handler[SchemeEvaluationResult]
+object FsbEvaluation {
+  implicit val jsonFormat = Json.format[FsbEvaluation]
+  implicit val bsonHandler = Macros.handler[FsbEvaluation]
+}
 
-  def apply(schemeId: String, result: String) = new SchemeEvaluationResult(SchemeId(schemeId), result)
+case class FsbTestGroup(evaluation: FsbEvaluation)
+
+object FsbTestGroup {
+  implicit val jsonFormat = Json.format[FsbTestGroup]
+  implicit val bsonHandler = Macros.handler[FsbTestGroup]
+
+  def apply(results: List[SchemeEvaluationResult]): FsbTestGroup = new FsbTestGroup(FsbEvaluation(results))
 
 }

@@ -29,7 +29,7 @@ import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ when, _ }
 import org.mockito.stubbing.OngoingStubbing
-import repositories.{ CandidateAllocationMongoRepository, SchemeRepositoryImpl, SchemeYamlRepository }
+import repositories.{ CandidateAllocationMongoRepository, SchemeRepository, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
 import services.BaseServiceSpec
 import services.events.EventsService
@@ -154,7 +154,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
 
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
 
-      override def schemeRepository: SchemeRepositoryImpl = SchemeYamlRepository
+      override def schemeRepository: SchemeRepository = SchemeYamlRepository
     }
 
     protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
