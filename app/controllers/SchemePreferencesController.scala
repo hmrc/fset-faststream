@@ -16,9 +16,10 @@
 
 package controllers
 
-import _root_.forms.SelectedSchemesForm._
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ReferenceDataClient, SchemeClient }
+import forms.SelectedSchemesForm
+import models.page.SelectedSchemesPage
 import security.Roles.SchemesRole
 import security.SilhouetteComponent
 
@@ -26,48 +27,57 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object SchemePreferencesController extends SchemePreferencesController(SchemeClient) {
+object SchemePreferencesController extends SchemePreferencesController(SchemeClient, ReferenceDataClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SchemePreferencesController(schemeClient: SchemeClient)
-  extends BaseController {
+abstract class SchemePreferencesController(
+  schemeClient: SchemeClient,
+  referenceDataClient: ReferenceDataClient
+) extends BaseController {
+
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
-      val schemes = ReferenceDataClient.allSchemes()
-      val civilServant = user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
-      schemeClient.getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
-        Ok(views.html.application.schemePreferences.schemeSelection(civilServant, form.fill(selectedSchemes)))
-      }.recover {
-        case e: SchemePreferencesNotFound =>
-          Ok(views.html.application.schemePreferences.schemeSelection(civilServant, form))
+      referenceDataClient.allSchemes().flatMap { schemes =>
+        val page = SelectedSchemesPage(schemes)
+        val formObj = new SelectedSchemesForm(schemes)
+        val civilServant = user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
+        schemeClient.getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
+          Ok(views.html.application.schemePreferences.schemeSelection(page, civilServant, formObj.form.fill(selectedSchemes)))
+        }.recover {
+          case e: SchemePreferencesNotFound =>
+            Ok(views.html.application.schemePreferences.schemeSelection(page, civilServant, formObj.form))
+        }
       }
   }
 
   def submit = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit cachedData =>
-      val isCivilServant = cachedData.application.civilServiceExperienceDetails.exists(_.isCivilServant)
-      form.bindFromRequest.fold(
-        invalidForm => {
-          Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(isCivilServant, invalidForm)))
-        },
-        selectedSchemes => {
-          for {
-            _ <- schemeClient.updateSchemePreferences(selectedSchemes)(cachedData.application.applicationId)
-            redirect <- env.userService.refreshCachedUser(cachedData.user.userID).map { _ =>
+      referenceDataClient.allSchemes().flatMap { schemes =>
+        val isCivilServant = cachedData.application.civilServiceExperienceDetails.exists(_.isCivilServant)
+        new SelectedSchemesForm(schemes).form.bindFromRequest.fold(
+          invalidForm => {
+            val page = SelectedSchemesPage(schemes)
+            Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(page, isCivilServant, invalidForm)))
+          },
+          selectedSchemes => {
+            for {
+              _ <- schemeClient.updateSchemePreferences(selectedSchemes)(cachedData.application.applicationId)
+              redirect <- env.userService.refreshCachedUser(cachedData.user.userID).map { _ =>
                 Redirect {
-                  if(isCivilServant) {
+                  if (isCivilServant) {
                     routes.AssistanceDetailsController.present()
                   } else {
                     routes.PartnerGraduateProgrammesController.present()
                   }
                 }
+              }
+            } yield {
+              redirect
             }
-          } yield {
-            redirect
           }
-        }
-    )
+        )
+      }
   }
 }
