@@ -327,3 +327,9 @@
       attendeeSafetyMargin: 2
       startTime: 9:00
       endTime: 10:30
+    - description: Second
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 11:00
+      endTime: 11:30

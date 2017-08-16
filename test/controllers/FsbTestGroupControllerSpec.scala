@@ -18,7 +18,7 @@ package controllers
 
 import model.exchange.{ ApplicationResult, FsbEvaluationResults }
 import model.{ Degree, Scheme, SelectedSchemesExamples }
-import org.mockito.ArgumentMatchers.{ eq => eqTo }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import services.application.FsbTestGroupService
@@ -29,12 +29,12 @@ import scala.concurrent.Future
 
 class FsbTestGroupControllerSpec extends UnitWithAppSpec {
 
-  val mockFsbTestGroupService = mock[FsbTestGroupService]
   val mockEventsService = mock[EventsService]
+  val mockFsbTestGroupService = mock[FsbTestGroupService]
 
   val controller = new FsbTestGroupController {
     val eventsService = mockEventsService
-    val service = mockFsbTestGroupService
+    val fsbService = mockFsbTestGroupService
   }
 
   "save fsb event evaluation result" should {
@@ -45,15 +45,16 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
         siftRequirement = None,
         siftEvaluationRequired = true)
 
-      when(mockEventsService.findSchemeByEvent("eventId")).thenReturn(Future.successful(Some(scheme)))
-
-      val result = List(
-        ApplicationResult("applicaitonId1", "Pass"),
-        ApplicationResult("applicaitonId2", "Pass")
+      val applicationResults = List(
+        ApplicationResult("applicationId1", "Pass"),
+        ApplicationResult("applicationId2", "Pass")
       )
-      val results: FsbEvaluationResults = FsbEvaluationResults(result)
+      val fsbEvaluationResults = FsbEvaluationResults(applicationResults)
 
-      val response = controller.save("eventId", "sessionId")(fakeRequest(results))
+      when(mockEventsService.findSchemeByEvent("eventId")).thenReturn(Future.successful(Some(scheme)))
+      when(mockFsbTestGroupService.saveResults(eqTo(scheme.id), any[List[ApplicationResult]])).thenReturn(Future.successful(List()))
+
+      val response = controller.save("eventId", "sessionId")(fakeRequest(fsbEvaluationResults))
 
       status(response) mustBe OK
     }

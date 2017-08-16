@@ -138,7 +138,7 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
 
   private def createApplication(): String = {
     val applicationId = generateUUID()
-    applicationRepository.collection.insert(BSONDocument("applicationId" -> applicationId, "userId" -> generateUUID()))
+    applicationRepository.collection.insert(BSONDocument("applicationId" -> applicationId, "userId" -> generateUUID())).futureValue
     applicationId
   }
 

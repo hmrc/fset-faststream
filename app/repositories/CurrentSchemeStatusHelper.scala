@@ -63,7 +63,7 @@ trait CurrentSchemeStatusHelper {
 
   private def currentSchemeStatus(status: Result, schemeIds: SchemeId*): BSONDocument = {
     schemeIds.foldLeft(BSONDocument.empty) { case (doc, id) =>
-      doc ++ BSONDocument(s"currentSchemeStatus" -> BSONDocument("$exists" -> SchemeEvaluationResult(id, status.toString)))
+      doc ++ BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" -> SchemeEvaluationResult(id, status.toString)))
     }
   }
 }

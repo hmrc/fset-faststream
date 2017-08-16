@@ -16,9 +16,9 @@
 
 package controllers
 
-import model.Exceptions.SchemeNotFoundException
+import model.EvaluationResults
+import model.Exceptions.{ AlreadyEvaluatedForSchemeException, SchemeNotFoundException }
 import model.exchange.FsbEvaluationResults
-import model.{ EvaluationResults, FsbType, SchemeId }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import services.application.FsbTestGroupService
@@ -26,15 +26,14 @@ import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object FsbTestGroupController extends FsbTestGroupController {
   val eventsService = EventsService
-  val service = FsbTestGroupService
+  val fsbService = FsbTestGroupService
 }
 
 trait FsbTestGroupController extends BaseController {
-  val service: FsbTestGroupService
+  val fsbService: FsbTestGroupService
   val eventsService: EventsService
 
   def save(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
@@ -44,16 +43,19 @@ trait FsbTestGroupController extends BaseController {
       }
 
       eventsService.findSchemeByEvent(eventId).flatMap {
-        case Some(scheme) => service.saveResults(scheme.id, greenRedResults)
-        case None => throw new SchemeNotFoundException(s"Event $eventId has no associated Scheme. FsbType mismatch")
+        case Some(scheme) => fsbService.saveResults(scheme.id, greenRedResults)
+        case None => throw SchemeNotFoundException(s"Event $eventId has no associated Scheme - FsbType mismatch")
+      }.map { result =>
+        Ok
+      }.recover {
+        case ex: AlreadyEvaluatedForSchemeException => BadRequest(ex.message)
+        case ex: SchemeNotFoundException => UnprocessableEntity(ex.message)
       }
-
-      Future.successful(Ok)
     }
   }
 
   def find(applicationIds: List[String], fsbType: Option[String]): Action[AnyContent] = Action.async { implicit request =>
-    service.findByApplicationIdsAndFsbType(applicationIds, fsbType).map { results =>
+    fsbService.findByApplicationIdsAndFsbType(applicationIds, fsbType).map { results =>
       Ok(Json.toJson(results))
     }
   }
