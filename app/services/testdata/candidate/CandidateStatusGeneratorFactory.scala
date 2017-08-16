@@ -90,6 +90,7 @@ object CandidateStatusGeneratorFactory {
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)) => Phase1TestsResultsReceivedStatusGenerator
       // The next two cases are deprecated: PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED
       case (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED)) => Phase1TestsPassedStatusGenerator
+      case (PHASE1_TESTS_PASSED_NOTIFIED, Some(ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED)) => Phase1TestsPassedNotifiedStatusGenerator
       case (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED)) => Phase1TestsFailedStatusGenerator
       case (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED)) => Phase1TestsFailedNotifiedStatusGenerator
 
