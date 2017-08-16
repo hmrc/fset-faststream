@@ -78,16 +78,6 @@ trait CubiksGatewayClient {
       }
     }
 
-  def getReport(application: OnlineTestApplicationForReportRetrieving): Future[OnlineTestReportAvailability] = {
-    http.POST(s"$url/csr-cubiks-gateway/report", application).map { response =>
-      if (response.status == OK) {
-        response.json.as[OnlineTestReportAvailability]
-      } else {
-        throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
-      }
-    }
-  }
-
   def downloadXmlReport(reportId: Int): Future[TestResult] = {
     http.GET(s"$url/csr-cubiks-gateway/faststream/report-xml/$reportId").map { response =>
       if (response.status == OK) {
