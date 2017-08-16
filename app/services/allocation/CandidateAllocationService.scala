@@ -262,7 +262,8 @@ trait CandidateAllocationService extends EventSink {
                     CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime,
                       event.eventType.displayValue, event.venue.description, deadlineDateTime)
                   case AllocationStatuses.CONFIRMED =>
-                    CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime)
+                    CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime,
+                      event.eventType.displayValue, event.venue.description)
                 }
               }
             } recover { case ex => throw new RuntimeException(s"Was not able to retrieve user details for candidate ${candidate.userId}", ex) }
