@@ -28,10 +28,12 @@ import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.PREVIEW
+import model.ProgressStatuses.{ EventProgressStatuses, PREVIEW }
 import model.command._
 import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
 import model.persisted._
+import model.persisted.eventschedules.EventType
+import model.persisted.eventschedules.EventType.EventType
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
@@ -132,11 +134,12 @@ trait GeneralApplicationRepository {
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
               frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
 
-  def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse]
+  def findCandidatesEligibleForEventAllocation(
+    locations: List[String], eventType: EventType, schemeId: Option[SchemeId]): Future[CandidatesEligibleForEventResponse]
 
-  def resetApplicationAllocationStatus(applicationId: String): Future[Unit]
+  def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit]
 
-  def setFailedToAttendAssessmentStatus(applicationId: String): Future[Unit]
+  def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit]
 
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
 
@@ -836,7 +839,6 @@ class GeneralApplicationMongoRepository(
       "progress-status-timestamp" -> true
     )
 
-    // TODO: should be something common with findCandidatesEligibleForEventAllocation
     val ascending = JsNumber(1)
     val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
 
@@ -850,14 +852,28 @@ class GeneralApplicationMongoRepository(
     }
   }
 
-  override def findCandidatesEligibleForEventAllocation(locations: List[String]): Future[CandidatesEligibleForEventResponse] = {
-    val awaitingAllocation = ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key
-    val confirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED.key
-    val unconfirmedAllocation = ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED.key
+
+  override def findCandidatesEligibleForEventAllocation(
+    locations: List[String],
+    eventType: EventType,
+    schemeId: Option[SchemeId]
+  ): Future[CandidatesEligibleForEventResponse] = {
+    val appStatus = eventType.applicationStatus
+
+    val status = EventProgressStatuses.get(appStatus)
+    val awaitingAllocation = status.awaitingAllocation.key
+    val confirmedAllocation = status.allocationConfirmed.key
+    val unconfirmedAllocation = status.allocationUnconfirmed.key
+
+    val fsacConditions = BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
+
+    val fsbConditions = schemeId.map { s =>
+     BSONDocument("scheme-preferences.schemes.0" -> s.value)
+    }
 
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE),
-      BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations)),
+      BSONDocument("applicationStatus" -> appStatus),
+      if (eventType == EventType.FSAC) fsacConditions else fsbConditions,
       BSONDocument(s"progress-status.$awaitingAllocation" -> true),
       BSONDocument(s"progress-status.$confirmedAllocation" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.$unconfirmedAllocation" -> BSONDocument("$exists" -> false))
@@ -893,24 +909,33 @@ class GeneralApplicationMongoRepository(
     }
   }
 
-  override def resetApplicationAllocationStatus(applicationId: String): Future[Unit] = {
-    replaceAllocationStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+  override def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit] = {
+    replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).awaitingAllocation)
   }
 
-  override def setFailedToAttendAssessmentStatus(applicationId: String): Future[Unit] = {
-    replaceAllocationStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
+  override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = {
+    replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
   }
 
   import ProgressStatuses._
-  private val progressStatuses = List(
-    ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
-    ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
-    ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
-    ASSESSMENT_CENTRE_FAILED_TO_ATTEND)
+  private val progressStatuses = Map(
+    ASSESSMENT_CENTRE -> List(
+      ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+      ASSESSMENT_CENTRE_FAILED_TO_ATTEND),
+    FSB -> List(
+      FSB_ALLOCATION_CONFIRMED,
+      FSB_ALLOCATION_UNCONFIRMED,
+      FSB_AWAITING_ALLOCATION,
+      FSB_FAILED_TO_ATTEND
+    )
+  )
 
   private def replaceAllocationStatus(applicationId: String, newStatus: ProgressStatuses.ProgressStatus) = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val statusesToRemove = progressStatuses.filter(_ != newStatus).map(p => s"progress-status.${p.key}" -> BSONString(""))
+    val statusesToRemove = progressStatuses(newStatus.applicationStatus)
+      .filter(_ != newStatus).map(p => s"progress-status.${p.key}" -> BSONString(""))
 
     val updateQuery = BSONDocument(
       "$unset" -> BSONDocument(statusesToRemove),

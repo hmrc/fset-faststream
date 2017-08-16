@@ -17,15 +17,14 @@
 package controllers
 
 import model.exchange.{ ApplicationResult, FsbEvaluationResults }
-import model.{ Degree, Scheme, SelectedSchemesExamples }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _}
+import model.{ Degree, Scheme }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import services.application.FsbTestGroupService
 import services.events.EventsService
+import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
-
-import scala.concurrent.Future
 
 class FsbTestGroupControllerSpec extends UnitWithAppSpec {
 
@@ -43,7 +42,7 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
         civilServantEligible = true,
         Some(Degree(required = "Degree_22", specificRequirement = false)),
         siftRequirement = None,
-        siftEvaluationRequired = true)
+        siftEvaluationRequired = true, None, None)
 
       val applicationResults = List(
         ApplicationResult("applicationId1", "Pass"),
@@ -51,8 +50,8 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
       )
       val fsbEvaluationResults = FsbEvaluationResults(applicationResults)
 
-      when(mockEventsService.findSchemeByEvent("eventId")).thenReturn(Future.successful(Some(scheme)))
-      when(mockFsbTestGroupService.saveResults(eqTo(scheme.id), any[List[ApplicationResult]])).thenReturn(Future.successful(List()))
+      when(mockEventsService.findSchemeByEvent("eventId")).thenReturnAsync(scheme)
+      when(mockFsbTestGroupService.saveResults(eqTo(scheme.id), any[List[ApplicationResult]])).thenReturnAsync(List.empty)
 
       val response = controller.save("eventId", "sessionId")(fakeRequest(fsbEvaluationResults))
 
@@ -63,7 +62,7 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
   "find" should {
     "return fsb results for the given applicationIds" in {
       val applicationIds = List("appId1", "appId2")
-      when(mockFsbTestGroupService.findByApplicationIdsAndFsbType(applicationIds, None)).thenReturn(Future.successful(List()))
+      when(mockFsbTestGroupService.findByApplicationIdsAndFsbType(applicationIds, None)).thenReturnAsync(List())
       val response = controller.find(applicationIds, None)(fakeRequest)
 
       status(response) mustBe OK
@@ -72,7 +71,7 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
     "return fsb results filtered by schemes related to given fsbType" in {
       val applicationIds = List("appId1", "appId2")
       val fsbType = "FsbType"
-      when(mockFsbTestGroupService.findByApplicationIdsAndFsbType(applicationIds, Some(fsbType))).thenReturn(Future.successful(List()))
+      when(mockFsbTestGroupService.findByApplicationIdsAndFsbType(applicationIds, Some(fsbType))).thenReturnAsync(List())
       val response = controller.find(applicationIds, Some(fsbType))(fakeRequest)
 
       status(response) mustBe OK

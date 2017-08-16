@@ -16,6 +16,7 @@
     specificRequirement: false
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: DAT FSB
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
@@ -25,6 +26,7 @@
     specificRequirement: true
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: FCO
 - id: Finance
   code: FIFS
   name: Finance
@@ -51,6 +53,7 @@
     specificRequirement: false
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: GCFS FSB
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
@@ -60,6 +63,7 @@
     specificRequirement: true
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: EAC
 - id: GovernmentEconomicsServiceDiplomaticService
   code: GES-DS
   name: Government Economics Service - Diplomatic Service
@@ -69,6 +73,7 @@
     specificRequirement: true
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: EAC_DS
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -78,6 +83,7 @@
     specificRequirement: true
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: ORAC
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
@@ -87,6 +93,7 @@
     specificRequirement: true
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: SRAC
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
@@ -96,6 +103,7 @@
     specificRequirement: true
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: SAC
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
@@ -105,6 +113,7 @@
     specificRequirement: false
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: HOP FSB
 - id: HumanResources
   code: HRFS
   name: Human Resources
@@ -140,15 +149,18 @@
     specificRequirement: true
   siftRequirement: FORM
   siftEvaluationRequired: true
+  fsbType: SEFS FSB
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
   civilServantEligible: true
   siftRequirement: FORM
   siftEvaluationRequired: false
+  telephoneInterviewType: EDIP
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
   civilServantEligible: true
   siftRequirement: FORM
   siftEvaluationRequired: true
+  telephoneInterviewType: SDIP

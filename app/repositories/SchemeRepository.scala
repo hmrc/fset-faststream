@@ -17,7 +17,8 @@
 package repositories
 
 import config.MicroserviceAppConfig
-import model.{ Degree, Scheme, SchemeId, SiftRequirement }
+import model.Exceptions.SchemeNotFoundException
+import model._
 import net.jcazevedo.moultingyaml._
 import play.api.Play
 import resource._
@@ -37,10 +38,13 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
 
   implicit val degreeFormat = yamlFormat2((a: String, b: Boolean) => Degree(a, b))
 
-  implicit val schemeFormat = yamlFormat7((
+  implicit val schemeFormat = yamlFormat9((
     id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
-    siftRequirement: Option[SiftRequirement.Value], evaluationRequired: Boolean
-  ) => Scheme(SchemeId(id),code,name, civilServantEligible, degree, siftRequirement, evaluationRequired))
+    siftRequirement: Option[SiftRequirement.Value], evaluationRequired: Boolean,
+    fsbType: Option[String], telephoneInterviewType: Option[String]
+  ) => Scheme(SchemeId(id),code,name, civilServantEligible, degree, siftRequirement, evaluationRequired,
+    fsbType.map(t => FsbType(t)), telephoneInterviewType.map(k => TelephoneInterviewType(k, name))
+  ))
 }
 
 trait SchemeRepository {
@@ -54,8 +58,20 @@ trait SchemeRepository {
 
   lazy val schemes: Seq[Scheme] = {
     import SchemeConfigProtocol._
-
     rawConfig.parseYaml.convertTo[List[Scheme]]
+  }
+
+  private lazy val schemesByFsb: Map[String, Scheme] = schemes.flatMap(s => s.fsbType.map(ft => ft.key -> s)).toMap
+  private lazy val schemesByTelephoneInterview: Map[String, Scheme] = {
+    schemes.flatMap(s => s.telephoneInterviewType.map(t => t.key -> s)).toMap
+  }
+
+  def getSchemeForFsb(fsb: String) = {
+    schemesByFsb.getOrElse(fsb, throw SchemeNotFoundException(s"Can not find scheme for FSB: $fsb"))
+  }
+
+  def getSchemeForTelephoneInterview(tel: String) = {
+    schemesByTelephoneInterview.getOrElse(tel, throw SchemeNotFoundException(s"Can not find scheme for TelephoneInterview: $tel"))
   }
 
   def getSchemesForIds(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => getSchemeForId(id) }
@@ -63,6 +79,10 @@ trait SchemeRepository {
   def getSchemeForId(id: SchemeId): Option[Scheme] = schemes.find(_.id == id)
 
   def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id}
+
+  def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
+
+  def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemes.flatMap(_.telephoneInterviewType)
 }
 
 object SchemeYamlRepository extends SchemeRepository

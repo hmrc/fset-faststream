@@ -16,6 +16,7 @@
 
 package model.persisted.eventschedules
 
+import model.ApplicationStatus
 import play.api.libs.json._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
@@ -31,10 +32,6 @@ object EventType extends Enumeration {
     SKYPE_INTERVIEW -> "Skype Interview"
   )
 
-  implicit class RichEventType(e: EventType) {
-    def displayValue: String = displayText(e)
-  }
-
   val allOption = Map(ALL_EVENTS -> "All Events")
 
   val displayText = allOption ++ options
@@ -49,5 +46,15 @@ object EventType extends Enumeration {
     override def write(eventType: EventType): BSONString = BSON.write(eventType.toString)
 
     override def read(bson: BSONString): EventType = EventType.withName(bson.value.toUpperCase)
+  }
+
+  implicit class RichEventType(eventType: EventType) {
+
+    def displayValue: String = displayText(eventType)
+
+    def applicationStatus: ApplicationStatus.Value = eventType match {
+      case EventType.FSAC => ApplicationStatus.ASSESSMENT_CENTRE
+      case _ => ApplicationStatus.FSB
+    }
   }
 }

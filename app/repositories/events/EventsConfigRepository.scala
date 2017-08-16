@@ -33,36 +33,28 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
 case class EventConfig(
-                  eventType: String,
-                  description: String,
-                  location: String,
-                  venue: String,
-                  date: LocalDate,
-                  capacity: Int,
-                  minViableAttendees: Int,
-                  attendeeSafetyMargin: Int,
-                  startTime: LocalTime,
-                  endTime: LocalTime,
-                  skillRequirements: Map[String, Int],
-                  sessions: List[SessionConfig]
-                )
+  eventType: String,
+  description: String,
+  location: String,
+  venue: String,
+  date: LocalDate,
+  capacity: Int,
+  minViableAttendees: Int,
+  attendeeSafetyMargin: Int,
+  startTime: LocalTime,
+  endTime: LocalTime,
+  skillRequirements: Map[String, Int],
+  sessions: List[SessionConfig]
+)
 
 case class SessionConfig(
-                    description: String,
-                    capacity: Int,
-                    minViableAttendees: Int,
-                    attendeeSafetyMargin: Int,
-                    startTime: LocalTime,
-                    endTime: LocalTime
-                  )
-
-object FsbTypeConfigProtocol extends DefaultYamlProtocol {
-  implicit val format = yamlFormat3((key: String, schemeId: String, schemeCode: String) => FsbType(key, schemeId, schemeCode))
-}
-
-object TelephoneInterviewTypeConfigProtocol extends DefaultYamlProtocol {
-  implicit val format = yamlFormat2((key: String, description: String) => TelephoneInterviewType(key, description))
-}
+  description: String,
+  capacity: Int,
+  minViableAttendees: Int,
+  attendeeSafetyMargin: Int,
+  startTime: LocalTime,
+  endTime: LocalTime
+)
 
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
@@ -102,10 +94,6 @@ trait EventsConfigRepository {
 
   protected def eventScheduleConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.scheduleFilePath)
 
-  protected def fsbTypesConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.subtypes.fsbFilePath)
-
-  protected def telephoneInterviewTypesConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.subtypes.telephoneInterviewFilePath)
-
   lazy val events: Future[List[Event]] = {
     import EventConfigProtocol._
 
@@ -141,16 +129,6 @@ trait EventsConfigRepository {
           s"Error in events config: ${MicroserviceAppConfig.eventsConfig.scheduleFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
       }
     }
-  }
-
-  lazy val fsbTypes: Future[List[FsbType]] = Future {
-    import FsbTypeConfigProtocol._
-    fsbTypesConfig.parseYaml.convertTo[List[FsbType]]
-  }
-
-  lazy val telephoneInterviewTypes: Future[List[TelephoneInterviewType]] = Future {
-    import TelephoneInterviewTypeConfigProtocol._
-    telephoneInterviewTypesConfig.parseYaml.convertTo[List[TelephoneInterviewType]]
   }
 }
 
