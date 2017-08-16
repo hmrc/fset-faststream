@@ -66,7 +66,8 @@ abstract class SchemePreferencesController(
               _ <- schemeClient.updateSchemePreferences(selectedSchemes)(cachedData.application.applicationId)
               redirect <- env.userService.refreshCachedUser(cachedData.user.userID).map { _ =>
                 Redirect {
-                  if (isCivilServant) {
+                  if(isCivilServant) {
+                  routes.AssistanceDetailsController.present()
                     routes.AssistanceDetailsController.present()
                   } else {
                     routes.PartnerGraduateProgrammesController.present()

@@ -16,7 +16,7 @@
 
 package controllers
 
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
@@ -40,23 +40,16 @@ abstract class PreviewApplicationController(applicationClient: ApplicationClient
     implicit user =>
       val personalDetailsFut = applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
       val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
-      val partnerGraduateProgrammesFut = if (isFastStreamAndNotCivilServant(user)) {
-        applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
-      } else {
-        Future.successful(None)
-      }
       val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
 
       (for {
         gd <- personalDetailsFut
         sp <- schemePreferencesFut
-        pgp <- partnerGraduateProgrammesFut
         ad <- assistanceDetailsFut
       } yield {
-        Ok(views.html.application.preview(gd, sp, pgp, ad, user.application))
+        Ok(views.html.application.preview(gd, sp, ad, user.application))
       }).recover {
-        case _: PersonalDetailsNotFound | _: SchemePreferencesNotFound | _: PartnerGraduateProgrammesNotFound
-             | _: AssistanceDetailsNotFound =>
+        case _: PersonalDetailsNotFound | _: SchemePreferencesNotFound | _: AssistanceDetailsNotFound =>
           Redirect(routes.HomeController.present()).flashing(warning("info.cannot.preview.yet"))
       }
   }

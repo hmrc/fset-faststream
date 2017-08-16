@@ -54,7 +54,7 @@ object ApplicationData {
     // format: OFF
     val REGISTERED = Value
     val CREATED, IN_PROGRESS = Value
-    val IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES, IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES, IN_PROGRESS_ASSISTANCE_DETAILS,
+    val IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES, IN_PROGRESS_ASSISTANCE_DETAILS,
     IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
     val SUBMITTED = Value
     val PHASE1_TESTS, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED = Value
@@ -110,9 +110,6 @@ object ProgressStatuses {
 
   case object PERSONAL_DETAILS extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "personal-details"}
-
-  case object PARTNER_GRADUATE_PROGRAMMES extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
-    override def key = "partner-graduate-programmes"}
 
   case object SCHEME_PREFERENCES extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "scheme-preferences"}

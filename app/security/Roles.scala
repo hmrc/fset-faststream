@@ -83,11 +83,6 @@ object Roles {
       activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasPersonalDetails(user)
   }
 
-  object PartnerGraduateProgrammesRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && (hasSchemes(user) && !isCivilServant(user))
-  }
-
   object ContinueAsSdipRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
       isFaststreamOnly(user) && (user.application.isEmpty || statusIn(user)(WITHDRAWN) || !isSubmitted(user) || isPhase1TestsExpired(user))
@@ -97,8 +92,7 @@ object Roles {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
       activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) &&
         (
-          hasPartnerGraduateProgrammes(user) ||
-            (hasSchemes(user) && isCivilServant(user)) ||
+            hasSchemes(user) ||
             (hasPersonalDetails(user) && (isEdip(user) || isSdip(user)))
           )
   }
@@ -212,7 +206,6 @@ object Roles {
     ApplicationStartRole -> routes.HomeController.present(),
     EditPersonalDetailsAndContinueRole -> routes.PersonalDetailsController.presentAndContinue(),
     SchemesRole -> routes.SchemePreferencesController.present(),
-    PartnerGraduateProgrammesRole -> routes.PartnerGraduateProgrammesController.present(),
     AssistanceDetailsRole -> routes.AssistanceDetailsController.present(),
     QuestionnaireInProgressRole -> routes.QuestionnaireController.presentStartOrContinue(),
     PreviewApplicationRole -> routes.PreviewApplicationController.present(),
@@ -238,8 +231,6 @@ object RoleUtils {
   def hasPersonalDetails(implicit user: CachedData) = progress.personalDetails
 
   def hasSchemes(implicit user: CachedData) = user.application.isDefined && progress.schemePreferences
-
-  def hasPartnerGraduateProgrammes(implicit user: CachedData) = progress.partnerGraduateProgrammes
 
   def hasAssistanceDetails(implicit user: CachedData) = user.application.isDefined && progress.assistanceDetails
 
