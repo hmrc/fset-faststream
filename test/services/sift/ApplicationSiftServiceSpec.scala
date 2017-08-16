@@ -25,7 +25,7 @@ import repositories.sift.ApplicationSiftRepository
 import testkit.ScalaMockUnitSpec
 import testkit.ScalaMockImplicits._
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-import repositories.SchemeRepositoryImpl
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.BSONDateTimeHandler
 
@@ -37,7 +37,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
     val appId = "applicationId"
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockSiftRepo = mock[ApplicationSiftRepository]
-    val mockSchemeRepo = new SchemeRepositoryImpl {
+    val mockSchemeRepo = new SchemeRepository {
       override lazy val schemes: Seq[Scheme] = Seq(
         Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
           siftEvaluationRequired = true
@@ -56,7 +56,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
     val service = new ApplicationSiftService {
       def applicationSiftRepo: ApplicationSiftRepository = mockSiftRepo
       def applicationRepo: GeneralApplicationRepository = mockAppRepo
-      def schemeRepo: SchemeRepositoryImpl = mockSchemeRepo
+      def schemeRepo: SchemeRepository = mockSchemeRepo
       def dateTimeFactory = DateTimeFactoryMock
     }
 

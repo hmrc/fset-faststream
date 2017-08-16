@@ -18,7 +18,7 @@ package controllers.reference
 
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
+import repositories.{ SchemeRepository, SchemeYamlRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,7 +28,7 @@ object SchemesController extends SchemesController{
 }
 
 trait SchemesController extends BaseController {
-  def repo: SchemeRepositoryImpl
+  def repo: SchemeRepository
 
   def allSchemes: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(repo.schemes))
