@@ -43,15 +43,9 @@ trait SiftingController extends BaseController {
   def siftCandidateApplication: Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[ApplicationSifting] { sift =>
       siftService.siftApplicationForScheme(sift.applicationId,
-        SchemeEvaluationResult(sift.schemeId, fromPassMark(sift.result).toString)
+        SchemeEvaluationResult(sift.schemeId, EvaluationResults.Result.fromPassFail(sift.result).toString)
       ).map(_ => Ok)
     }
-  }
-
-  private def fromPassMark(s: String): EvaluationResults.Result = s match {
-    case "Pass" => EvaluationResults.Green
-    case "Fail" => EvaluationResults.Red
-    case _ => sys.error(s"Unsupported evaluation result $s for sifting")
   }
 
 }

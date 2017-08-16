@@ -22,7 +22,7 @@ import model.{ ProgressStatuses, SchemeId, SerialUpdateResult, SiftRequirement }
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
-import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepositoryImpl, SchemeYamlRepository }
+import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 
@@ -40,14 +40,14 @@ object ApplicationSiftService extends ApplicationSiftService {
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
   def applicationSiftRepo: ApplicationSiftRepository
   def applicationRepo: GeneralApplicationRepository
-  def schemeRepo: SchemeRepositoryImpl
+  def schemeRepo: SchemeRepository
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
   }
 
   private def requiresForms(schemeIds: Seq[SchemeId]) = {
-    schemeRepo.getSchemesForId(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
+    schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
   }
 
   private def progressStatusForSiftStage(app: ApplicationForSift) = if (requiresForms(app.currentSchemeStatus.map(_.schemeId))) {

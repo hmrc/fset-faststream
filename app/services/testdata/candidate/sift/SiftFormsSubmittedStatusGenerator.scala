@@ -23,7 +23,7 @@ import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse
 import model.exchange.sift.SchemeSpecificAnswer
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
+import repositories.{ SchemeRepository, SchemeYamlRepository }
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker
@@ -40,7 +40,7 @@ object SiftFormsSubmittedStatusGenerator extends SiftFormsSubmittedStatusGenerat
 
 trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
   val siftService: SiftAnswersService
-  val schemeRepo: SchemeRepositoryImpl
+  val schemeRepo: SchemeRepository
 
   def generateGeneralAnswers = GeneralQuestionsAnswers(
     multiplePassports = false,
