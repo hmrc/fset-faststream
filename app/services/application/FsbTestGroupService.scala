@@ -16,7 +16,7 @@
 
 package services.application
 
-import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses.FSB_RESULT_ENTERED
 import model.SchemeId
 import model.exchange.ApplicationResult
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
@@ -52,7 +52,7 @@ trait FsbTestGroupService {
     val schemeEvaluationResult = SchemeEvaluationResult(schemeId, applicationResult.result)
     for {
       _ <- fsbTestGroupRepository.save(applicationResult.applicationId, schemeEvaluationResult)
-      _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(applicationResult.applicationId, FSB_RESULTS_ENTERED)
+      _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(applicationResult.applicationId, FSB_RESULT_ENTERED)
     } yield ()
   }
 
