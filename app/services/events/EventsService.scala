@@ -16,17 +16,17 @@
 
 package services.events
 
-import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model._
-import model.persisted.eventschedules.{ Event, Venue }
+import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.{ Event, Venue }
 import play.api.Logger
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
 import repositories.{ SchemeRepository, SchemeYamlRepository, eventsRepository }
 import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object EventsService extends EventsService {
   val eventsRepo: EventsMongoRepository = eventsRepository
@@ -39,9 +39,13 @@ object EventsService extends EventsService {
 trait EventsService {
 
   def eventsRepo: EventsRepository
+
   def assessorAllocationService: AssessorAllocationService
+
   def candidateAllocationService: CandidateAllocationService
+
   def eventsConfigRepo: EventsConfigRepository
+
   def schemeRepo: SchemeRepository
 
   def saveAssessmentEvents(): Future[Unit] = {
@@ -102,10 +106,10 @@ trait EventsService {
     for {
       event <- getEvent(eventId)
       fsbTypes <- getFsbTypes
-      maybeFsbType <- Future(fsbTypes.find(f => f.key == event.description))
-      fsbType: FsbType = maybeFsbType.getOrElse(throw new Exception(s"FsbType with event description ${event.description} not found"))
-      schemeId = SchemeId(fsbType.schemeId)
-    } yield schemeRepo.getSchemeForId(schemeId)
+    } yield {
+      fsbTypes.collectFirst { case fsbType: FsbType if fsbType.key == event.description => SchemeId(fsbType.schemeId) }
+        .flatMap(schemeId => schemeRepo.getSchemeForId(schemeId))
+    }
   }
 
 }

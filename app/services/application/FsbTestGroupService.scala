@@ -16,7 +16,7 @@
 
 package services.application
 
-import model.{ FsbType, SchemeId }
+import model.SchemeId
 import model.exchange.ApplicationResult
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import repositories.application.FsbTestGroupRepository
@@ -34,11 +34,9 @@ trait FsbTestGroupService {
   val fsbTestGroupRepository: FsbTestGroupRepository
   val eventsService: EventsService
 
-  def saveResults(schemeId: SchemeId, applicationResults: List[ApplicationResult]): Future[Unit] = {
-    Future.successful(
-      applicationResults.foreach { applicationResult =>
-        saveResult(schemeId, applicationResult)
-      }
+  def saveResults(schemeId: SchemeId, applicationResults: List[ApplicationResult]): Future[List[Unit]] = {
+    Future.sequence(
+      applicationResults.map(applicationResult => saveResult(schemeId, applicationResult))
     )
   }
 
@@ -47,17 +45,15 @@ trait FsbTestGroupService {
     fsbTestGroupRepository.save(applicationResult.applicationId, schemeEvaluationResult)
   }
 
-  def findByApplicationIdsAndFsbType(applicationIds: List[String], fsbType: Option[String]): Future[List[FsbSchemeResult]] = {
-    for {
-      fsbTypes <- eventsService.getFsbTypes
-      fsb <- Future(fsbTypes.find(f => fsbType.contains(f.key)))
-      schemeId <- Future(fsb.map(f => SchemeId(f.schemeId)))
-      fsbSchemes <- findByApplicationIdsAndScheme(applicationIds, schemeId)
-    } yield fsbSchemes
+  def findByApplicationIdsAndFsbType(applicationIds: List[String], mayBeFsbType: Option[String]): Future[List[FsbSchemeResult]] = {
+    eventsService.getFsbTypes.flatMap { fsbTypes =>
+      val mayBeSchemeId = fsbTypes.collectFirst { case fsbType if mayBeFsbType.contains(fsbType.key) => SchemeId(fsbType.schemeId) }
+      findByApplicationIdsAndScheme(applicationIds, mayBeSchemeId)
+    }
   }
 
-  def findByApplicationIdsAndScheme(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
-    fsbTestGroupRepository.findByApplicationIds(applicationIds, schemeId)
+  def findByApplicationIdsAndScheme(applicationIds: List[String], mayBeSchemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
+    fsbTestGroupRepository.findByApplicationIds(applicationIds, mayBeSchemeId)
   }
 
 }
