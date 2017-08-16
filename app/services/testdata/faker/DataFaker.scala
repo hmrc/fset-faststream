@@ -23,7 +23,7 @@ import model._
 import model.exchange.AssessorAvailability
 import model.persisted.eventschedules.{ EventType, Session, _ }
 import org.joda.time.{ LocalDate, LocalTime }
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
+import repositories.{ SchemeRepository, SchemeYamlRepository }
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 
 import scala.concurrent.Await
@@ -34,7 +34,7 @@ import scala.language.postfixOps
 object DataFaker extends DataFaker(SchemeYamlRepository)
 
 //scalastyle:off number.of.methods
-abstract class DataFaker(schemeRepo: SchemeRepositoryImpl) {
+abstract class DataFaker(schemeRepo: SchemeRepository) {
 
   object ExchangeObjects {
 

@@ -19,7 +19,7 @@ package services.sift
 import model.ProgressStatuses.ProgressStatus
 import model.{ EvaluationResults, ProgressStatuses, SchemeId, SiftRequirement }
 import repositories.application.GeneralApplicationRepository
-import repositories.{ SchemeRepositoryImpl, SchemeYamlRepository }
+import repositories.{ SchemeRepository, SchemeYamlRepository }
 import repositories.sift.SiftAnswersRepository
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 
@@ -37,7 +37,7 @@ trait SiftAnswersService {
   def appRepo: GeneralApplicationRepository
   def siftAnswersRepo: SiftAnswersRepository
   def phase3ResultsService: EvaluatePhase3ResultService
-  def schemeRepository: SchemeRepositoryImpl
+  def schemeRepository: SchemeRepository
 
   def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: model.exchange.sift.SchemeSpecificAnswer): Future[Unit] = {
     siftAnswersRepo.addSchemeSpecificAnswer(applicationId, schemeId, model.persisted.sift.SchemeSpecificAnswer(answer))

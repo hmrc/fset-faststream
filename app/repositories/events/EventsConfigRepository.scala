@@ -57,7 +57,7 @@ case class SessionConfig(
 )
 
 object FsbTypeConfigProtocol extends DefaultYamlProtocol {
-  implicit val format = yamlFormat1((key: String) => FsbType(key))
+  implicit val format = yamlFormat3((key: String, schemeId: String, schemeCode: String) => FsbType(key, schemeId, schemeCode))
 }
 
 object TelephoneInterviewTypeConfigProtocol extends DefaultYamlProtocol {

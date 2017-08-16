@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package model
+package model.persisted
 
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-case class FsbType(key: String, schemeId: String, schemeCode: String)
+case class FsbEvaluation(result: List[SchemeEvaluationResult])
 
-object FsbType {
-  implicit val format: OFormat[FsbType] = Json.format[FsbType]
+object FsbEvaluation {
+  implicit val jsonFormat = Json.format[FsbEvaluation]
+  implicit val bsonHandler = Macros.handler[FsbEvaluation]
+}
+
+case class FsbTestGroup(evaluation: FsbEvaluation)
+
+object FsbTestGroup {
+  implicit val jsonFormat = Json.format[FsbTestGroup]
+  implicit val bsonHandler = Macros.handler[FsbTestGroup]
+
+  def apply(results: List[SchemeEvaluationResult]): FsbTestGroup = new FsbTestGroup(FsbEvaluation(results))
+
 }

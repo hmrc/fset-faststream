@@ -46,7 +46,7 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
   ))
 }
 
-trait SchemeRepositoryImpl {
+trait SchemeRepository {
 
   import play.api.Play.current
 
@@ -73,7 +73,9 @@ trait SchemeRepositoryImpl {
     schemesByTelephoneInterview.getOrElse(tel, sys.error(s"Can not find scheme for TelephoneInterview: $tel"))
   }
 
-  def getSchemesForId(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => schemes.find(_.id == id) }
+  def getSchemesForIds(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => getSchemeForId(id) }
+
+  def getSchemeForId(id: SchemeId): Option[Scheme] = schemes.find(_.id == id)
 
   def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id}
 
@@ -82,4 +84,4 @@ trait SchemeRepositoryImpl {
   def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemes.flatMap(_.telephoneInterviewType)
 }
 
-object SchemeYamlRepository extends SchemeRepositoryImpl
+object SchemeYamlRepository extends SchemeRepository

@@ -78,9 +78,9 @@ object Scheme {
 
   // scalastyle:off parameter.number
   def apply(id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
-    requiresSift: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean,
+            siftRequirement: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean,
     fsbType: Option[FsbType], telephoneInterviewType: Option[TelephoneInterviewType]
   ): Scheme =
-    Scheme(SchemeId(id), code, name, civilServantEligible, degree, requiresSift, siftEvaluationRequired, fsbType, telephoneInterviewType)
+    Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, siftEvaluationRequired, fsbType, telephoneInterviewType)
   // scalastyle:on
 }
