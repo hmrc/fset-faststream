@@ -20,7 +20,7 @@ import config.SecurityEnvironmentImpl
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.CivilServiceExperienceDetailsExamples._
 import connectors.exchange.{ ApplicationResponse, SchemePreferencesExamples }
-import connectors.SchemeClient
+import connectors.{ ReferenceDataClient, ReferenceDataExamples, SchemeClient }
 import forms.SelectedSchemesForm._
 import models.ApplicationData.ApplicationStatus
 import models._
@@ -30,6 +30,7 @@ import play.api.test.Helpers._
 import security.{ SilhouetteComponent, UserCacheService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
+import testkit.MockitoImplicits._
 
 import scala.concurrent.Future
 
@@ -37,9 +38,10 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
   val schemeClient  = mock[SchemeClient]
+  val referenceDataClient = mock[ReferenceDataClient]
   val userService = mock[UserCacheService]
 
-  def controllerUnderTest = new SchemePreferencesController(schemeClient) with TestableSecureActions {
+  def controllerUnderTest = new SchemePreferencesController(schemeClient, referenceDataClient) with TestableSecureActions {
     override val env = mockSecurityEnvironment
     override lazy val silhouette = SilhouetteComponent.silhouette
     when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any())).thenReturn(Future.successful(CachedData(
@@ -51,6 +53,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   "present" should {
     "load scheme selections page for the new candidate" in {
+      when(referenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
       when(schemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new SchemePreferencesNotFound))
       val result = controllerUnderTest.present(fakeRequest)
@@ -65,6 +68,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
     }
 
     "populate selected schemes for the candidate" in {
+      when(referenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
       when(schemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(SchemePreferencesExamples.DefaultSelectedSchemes))
       val result = controllerUnderTest.present(fakeRequest)
@@ -87,10 +91,11 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
         ApplicationRoute.Faststream, currentUserId, ProgressResponseExamples.InProgress, Some(CivilServantExperience), None)
       val schemePreferences = SchemePreferences(List("Finance", "International"), orderAgreed = true, eligible = true)
 
-      when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(()))
+      when(referenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync()
 
       val result = controllerUnderTest.submit(request)
+      print(contentAsString(result))
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.PartnerGraduateProgrammesController.present().url))
     }

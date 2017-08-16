@@ -1,34 +1,36 @@
 @import helpers.CSRSkinnyFieldConstructor._
-@import _root_.forms.SelectedSchemesForm.Scheme
+@import _root_.connectors.exchange.referencedata.Scheme
 
 @(isCandidateCivilServant: Boolean, field: play.api.data.Field, options: Seq[Scheme], args: (Symbol, Any)*)(implicit messages: Messages)
 
 @createId(id: String, scheme: Scheme) = @{
-    id + "_" + scheme.id.replace(" ", "_").replace("/", "_").replace("'", "_")
+    id + "_" + scheme.id.value.replace(" ", "_").replace("/", "_").replace("'", "_")
 }
 
 @helper.input(field, args.map { x => if(x._1 == '_label) '_name -> x._2 else x }: _*) { (id, name, value, htmlArgs) =>
         <div class="inner-block-padr" id="@id">
             <ul class="schemes-list">
             @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
-                @options.map { case scheme@Scheme(schemeId, qualification, specific, hasEligibilityForCivilServants) =>
+                @options.map { case scheme =>
                 <li class="scheme-container">
                     <span class="selected-preference invisible" aria-live="polite">N/A</span>
                     <label class="block-label block-label-slim" for="@createId(id, scheme)">
                         <input type="checkbox" id="@createId(id, scheme)" name="@{name + "[]"
-                        }" value="@schemeId" @if(values.contains(schemeId)) {
+                        }" value="@{scheme.id.value}" @if(values.contains(scheme.id.value)) {
                             checked="checked"
                         } @toHtmlArgs(htmlArgs) data-schemename/>
-                        @Messages("scheme."+schemeId+".description")
+                        @Messages("scheme."+scheme.id.value+".description")
                     </label>
                     <span class="alwayshidden" data-scheme-req
-                          @if(specific){data-spec-scheme} @if(isCandidateCivilServant && hasEligibilityForCivilServants){data-civil-servant-scheme}>
-                        @Messages("qualification."+qualification+".description")
-                        @if(specific){
+                      @scheme.degree.map { degree =>
+                          @if(degree.specificRequirement){data-spec-scheme} @if(isCandidateCivilServant && scheme.civilServantEligible){data-civil-servant-scheme}>
+                        @Messages("qualification."+degree.required+".description")
+                        @if(degree.specificRequirement){
                             <a class="font-xsmall inl-block"
-                               href='https://www.faststream.gov.uk/@Messages("scheme."+schemeId+".link")'
+                               href='https://www.faststream.gov.uk/@Messages("scheme."+scheme.id.value+".link")'
                                rel="external" target="_blank">(Specific requirements)</a>
                         }
+                    }
                     </span>
                 </li>
 

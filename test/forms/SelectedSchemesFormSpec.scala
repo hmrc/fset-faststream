@@ -16,11 +16,12 @@
 
 package forms
 
-import controllers.UnitSpec
-import forms.SelectedSchemesForm.{ form => selectedSchemesForm }
+import connectors.ReferenceDataExamples
 import testkit.UnitWithAppSpec
 
 class SelectedSchemesFormSpec extends UnitWithAppSpec {
+
+  def selectedSchemesForm = new SelectedSchemesForm(ReferenceDataExamples.Schemes.AllSchemes).form
 
   "Selected Schemes form" should {
     "be valid when required values are supplied" in {

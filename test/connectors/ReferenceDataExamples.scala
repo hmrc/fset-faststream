@@ -42,9 +42,10 @@ object ReferenceDataExamples {
     val SciEng = Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering", Some(SiftRequirement.FORM), siftEvaluationRequired = true)
     val Edip = Scheme("Edip", "EDIP", "Early Diversity Internship Programme", Some(SiftRequirement.FORM), siftEvaluationRequired = true)
     val Sdip = Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", Some(SiftRequirement.FORM), siftEvaluationRequired = false)
+    val International = Scheme("International", "INT", "International", Some(SiftRequirement.FORM), siftEvaluationRequired = false)
 
     val AllSchemes = Commercial :: DaT :: Dip :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
-      GovSocialResearch :: GovStats :: HoP :: HR :: ProjectDelivery :: SciEng :: Edip :: Sdip :: Nil
+      GovSocialResearch :: GovStats :: HoP :: HR :: ProjectDelivery :: SciEng :: Edip :: Sdip :: International :: Nil
   }
 
 }

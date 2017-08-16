@@ -17,6 +17,9 @@
 package forms
 
 import connectors.exchange.SelectedSchemes
+import connectors.exchange.referencedata.Scheme
+import forms.SelectedSchemesForm.SchemePreferences
+import models.page.SelectedSchemesPage
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
@@ -26,52 +29,39 @@ import scala.language.implicitConversions
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object SelectedSchemesForm {
+class SelectedSchemesForm(allSchemes: Seq[Scheme]) {
+
+  protected val page = SelectedSchemesPage(allSchemes)
 
   protected val maxSchemes = 4
 
-  val NoDegree = "None"
-  val Degree_21 = "Degree_21"
-  val Degree_22 = "Degree_22"
-  val Degree_21_PostGrad = "Degree_21_PostGrad"
-  val Degree_DipServEconomics = "Degree_DipServEconomics"
-  val Degree_Economics = "Degree_Economics"
-  val Degree_Numerate = "Degree_Numerate"
-  val Degree_GORS = "Degree_GORS"
-  val Degree_SocialScience = "Degree_SocialScience"
-  val Degree_CharteredEngineer = "Degree_CharteredEngineer"
+  def form = {
+    Form(
+      mapping(
+        "schemes" -> of(schemeFormatter("schemes")),
+        "orderAgreed" -> checked(Messages("orderAgreed.required")),
+        "eligible" -> checked(Messages("eligible.required"))
+      )(SchemePreferences.apply)(SchemePreferences.unapply))
+  }
 
-  @deprecated("Update to use the scheme list from the refdata client", "July 2017")
-  val VisibleSchemes = Seq(
-    Scheme("Commercial", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("DigitalAndTechnology", Degree_21_PostGrad, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("DiplomaticService", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
-    Scheme("International", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
-    Scheme("Finance", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("Generalist", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("GovernmentCommunicationService", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("GovernmentEconomicsService", Degree_Economics, specificRequirement = true, eligibilityForCivilServant = false),
-    Scheme("GovernmentEconomicsServiceDiplomaticService", Degree_DipServEconomics, specificRequirement = true,
-      eligibilityForCivilServant = false),
-    Scheme("GovernmentOperationalResearchService", Degree_GORS, specificRequirement = true, eligibilityForCivilServant = false),
-    Scheme("GovernmentSocialResearchService", Degree_SocialScience, specificRequirement = true, eligibilityForCivilServant = false),
-    Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement = true, eligibilityForCivilServant = true),
-    Scheme("HousesOfParliament", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("HumanResources", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("ProjectDelivery", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("ScienceAndEngineering", Degree_CharteredEngineer, specificRequirement = true, eligibilityForCivilServant = true)
-  )
+  def schemeFormatter(formKey: String) = new Formatter[List[String]] {
+    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
+      page.getSchemesByPriority(data) match {
+        case selectedSchemes if selectedSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes if selectedSchemes.size > maxSchemes => Left(List(FormError(formKey, Messages("schemes.tooMany"))))
+        case selectedSchemes if selectedSchemes.size > allSchemes.size => Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes if page.getInvalidSchemes(selectedSchemes).nonEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes => Right(selectedSchemes)
+      }
+    }
 
-  @deprecated("Update to use the scheme list from the refdata client", "July 2017")
-  val HiddenSchemes = Seq(
-    Scheme("Edip", NoDegree, specificRequirement = false, eligibilityForCivilServant = false)
-  )
+    def unbind(key: String, value: List[String]): Map[String, String] = {
+      value.map(key => key -> Messages("scheme." + key + ".description")).toMap
+    }
+  }
+}
 
-  val AllSchemes = VisibleSchemes ++ HiddenSchemes
-
-  val AllSchemesMap = AllSchemes groupBy(_.id) mapValues (_.head)
-
-  case class Scheme(id: String, qualification: String, specificRequirement: Boolean, eligibilityForCivilServant: Boolean)
+object SelectedSchemesForm {
 
   case class SchemePreferences(schemes: List[String], orderAgreed: Boolean, eligible: Boolean)
 
@@ -87,51 +77,4 @@ object SelectedSchemesForm {
     schemePreferences.eligible
   )
 
-  def form = {
-    Form(
-      mapping(
-        "schemes" -> of(schemeFormatter("schemes")),
-        "orderAgreed" -> checked(Messages("orderAgreed.required")),
-        "eligible" -> checked(Messages("eligible.required"))
-      )(SchemePreferences.apply)(SchemePreferences.unapply))
-  }
-
-  def schemeFormatter(formKey: String) = new Formatter[List[String]] {
-    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
-      getSchemesByPriority(data) match {
-        case selectedSchemes if selectedSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selectedSchemes if selectedSchemes.size > maxSchemes => Left(List(FormError(formKey, Messages("schemes.tooMany"))))
-        case selectedSchemes if selectedSchemes.size > AllSchemes.size => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selectedSchemes if getInvalidSchemes(selectedSchemes).nonEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selectedSchemes => Right(selectedSchemes)
-      }
-    }
-
-    def unbind(key: String, value: List[String]): Map[String, String] = {
-      value.map(key => key -> Messages("scheme." + key + ".description")).toMap
-    }
-  }
-
-  def getValidSchemesByPriority(formData: Map[String, String]) = {
-    val selectedSchemes = getSchemesByPriority(formData)
-    val invalidSchemes = getInvalidSchemes(selectedSchemes)
-    selectedSchemes.filterNot(schemeId => invalidSchemes.contains(schemeId))
-  }
-
-  private val getInvalidSchemes = (selectedSchemes: List[String]) => selectedSchemes.diff(AllSchemes.map(_.id))
-
-  private def getSchemesByPriority(formData: Map[String, String]) = {
-    val validSchemeParams = (name: String, value: String) => name.startsWith("scheme_") && value.nonEmpty
-    val priority: String => Int = _.split("_").last.toInt
-    formData.filter(pair => validSchemeParams(pair._1, pair._2))
-      .collect { case (name, value) => priority(name) -> value }
-      .toList
-      .sortBy {
-        _._1
-      }
-      .map {
-        _._2
-      }
-      .distinct
-  }
 }
