@@ -714,13 +714,24 @@ abstract class DataFaker(schemeRepo: SchemeRepository) {
     }
 
     object Event {
+
+
+
       def id: String = UUIDFactory.generateUUID()
 
-      def eventType: EventType.Value = randOne(List(EventType.FSAC, EventType.TELEPHONE_INTERVIEW, EventType.SKYPE_INTERVIEW))
+      import EventType._
+      def eventType: EventType.Value = randOne(List(FSAC, FSB, TELEPHONE_INTERVIEW, SKYPE_INTERVIEW))
 
-      def description: String = randOne(List("GSFS FSB", "ORAC", "PDFS FSB"))
+      def description(eventType: EventType): String = eventType match {
+        case EventType.FSB => randOne(ExternalSources.allFsbTypes.toList).key
+        case EventType.TELEPHONE_INTERVIEW => randOne(ExternalSources.allTelephoneInterviewTypes.toList).key
+        case _ => ""
+      }
 
-      def location: Location = randOne(List(Location("London"), Location("Newcastle")))
+      def location(eventType: EventType): Location = eventType match {
+        case SKYPE_INTERVIEW | TELEPHONE_INTERVIEW => Location("Virtual")
+        case _ => randOne(List(Location("London"), Location("Newcastle")))
+      }
 
       def venue(l: Location): Venue = randOne(ExternalSources.venuesByLocation(l.name))
 
@@ -766,6 +777,12 @@ abstract class DataFaker(schemeRepo: SchemeRepository) {
   }
 
   object ExternalSources {
+
+    private val schemeRepository = SchemeYamlRepository
+
+    def allFsbTypes = schemeRepository.getFsbTypes
+
+    def allTelephoneInterviewTypes = schemeRepository.getTelephoneInterviewTypes
 
     private val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
 

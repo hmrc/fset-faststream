@@ -30,23 +30,22 @@ import scala.concurrent.Future
 
 object EventsService extends EventsService {
   val eventsRepo: EventsMongoRepository = eventsRepository
+  val schemeRepo = SchemeYamlRepository
   val eventsConfigRepo = EventsConfigRepository
   val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
   val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
-  val schemeRepo: SchemeRepository = SchemeYamlRepository
 }
 
 trait EventsService {
 
   def eventsRepo: EventsRepository
-
+  def schemeRepo: SchemeRepository
   def assessorAllocationService: AssessorAllocationService
 
   def candidateAllocationService: CandidateAllocationService
 
   def eventsConfigRepo: EventsConfigRepository
 
-  def schemeRepo: SchemeRepository
 
   def saveAssessmentEvents(): Future[Unit] = {
     eventsConfigRepo.events.flatMap { events =>
@@ -98,18 +97,12 @@ trait EventsService {
     }
   }
 
-  def getFsbTypes: Future[List[FsbType]] = eventsConfigRepo.fsbTypes
+  def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes
 
-  def getTelephoneInterviewTypes: Future[List[TelephoneInterviewType]] = eventsConfigRepo.telephoneInterviewTypes
+  def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemeRepo.getTelephoneInterviewTypes
 
-  def findSchemeByEvent(eventId: String): Future[Option[Scheme]] = {
-    for {
-      event <- getEvent(eventId)
-      fsbTypes <- getFsbTypes
-    } yield {
-      fsbTypes.collectFirst { case fsbType: FsbType if fsbType.key == event.description => SchemeId(fsbType.schemeId) }
-        .flatMap(schemeId => schemeRepo.getSchemeForId(schemeId))
-    }
+  def findSchemeByEvent(eventId: String): Future[Scheme] = {
+    getEvent(eventId).map { event => schemeRepo.getSchemeForFsb(event.description) }
   }
 
 }
