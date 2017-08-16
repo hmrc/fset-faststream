@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package model
+package model.exchange
 
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class FsbType(key: String, schemeId: String, schemeCode: String)
+case class ApplicationResult(applicationId: String, result: String)
 
-object FsbType {
-  implicit val format: OFormat[FsbType] = Json.format[FsbType]
+object ApplicationResult {
+  implicit val format = Json.format[ApplicationResult]
+  implicit val bsonHandler = Macros.handler[ApplicationResult]
+}
+
+case class FsbEvaluationResults(applicationResults: List[ApplicationResult])
+
+object FsbEvaluationResults {
+  implicit val format = Json.format[FsbEvaluationResults]
+  implicit val bsonHandler = Macros.handler[FsbEvaluationResults]
 }

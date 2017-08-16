@@ -18,7 +18,6 @@ package repositories
 
 object CollectionNames {
   val APPLICATION = "application18"
-  val APPLICATION_ASSESSMENT = "application-assessment18"
   val ASSESSOR_ASSESSMENT_SCORES = "assessor-assessment-scores18"
   val REVIEWER_ASSESSMENT_SCORES = "reviewer-assessment-scores18"
   val ASSESSMENT_CENTRE_PASS_MARK_SETTINGS = "assessment-centre-pass-mark-settings18"

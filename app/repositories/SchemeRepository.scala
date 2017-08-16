@@ -43,7 +43,7 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
   ) => Scheme(SchemeId(id),code,name, civilServantEligible, degree, siftRequirement, evaluationRequired))
 }
 
-trait SchemeRepositoryImpl {
+trait SchemeRepository {
 
   import play.api.Play.current
 
@@ -58,9 +58,11 @@ trait SchemeRepositoryImpl {
     rawConfig.parseYaml.convertTo[List[Scheme]]
   }
 
-  def getSchemesForId(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => schemes.find(_.id == id) }
+  def getSchemesForIds(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => getSchemeForId(id) }
+
+  def getSchemeForId(id: SchemeId): Option[Scheme] = schemes.find(_.id == id)
 
   def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id}
 }
 
-object SchemeYamlRepository extends SchemeRepositoryImpl
+object SchemeYamlRepository extends SchemeRepository

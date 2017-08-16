@@ -49,7 +49,7 @@ trait CurrentSchemeStatusHelper {
 
   def currentSchemeStatusBSON(latestResults: Seq[SchemeEvaluationResult]): BSONDocument = {
     BSONDocument("currentSchemeStatus" -> latestResults.map { r =>
-      SchemeEvaluationResult.schemeEvaluationResultHandler.write(r)
+      SchemeEvaluationResult.bsonHandler.write(r)
     })
   }
 
