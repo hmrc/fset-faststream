@@ -253,6 +253,10 @@ trait EmailClient extends WSHttp {
       Map("name" -> name, "eventDate" -> eventDate)
     )
   }
+
+  def notifyAssessorsOfNewEvents(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_assessors_of_new_events", Map("name" -> name))
+  }
 }
 
 object EmailDateFormatter {

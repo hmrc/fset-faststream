@@ -16,13 +16,16 @@
 
 package services.assessor
 
+import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.AssessorNotFoundException
 import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
 import model.persisted.assessor.Assessor
 import model.persisted.assessor.AssessorExamples._
+import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.eventschedules.Venue
 import model.persisted.{ EventExamples, ReferenceData }
 import model.{ AllocationStatuses, Exceptions }
+import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
@@ -166,6 +169,11 @@ class AssessorServiceSpec extends BaseServiceSpec {
       result.failures mustBe updates.last :: Nil
       result.successes mustBe updates.head :: Nil
     }
+
+    "notify assessors of new events" in new TestFixture {
+      // TODO: Verify that the email client gets called with the right arguments
+//      when(service.findUnavailableAssessors(any[Set[SkillType]], any[Location], any[LocalDate]))
+    }
   }
 
   trait TestFixture {
@@ -173,6 +181,8 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val mockAllocationRepo = mock[AssessorAllocationRepository]
     val mockEventRepo = mock[EventsRepository]
+    val mockAuthProviderClient = mock[AuthProviderClient]
+    val mockemailClient = mock[CSREmailClient]
     val virtualVenue = Venue("virtual", "virtual venue")
     val venues = ReferenceData(List(Venue("london fsac", "bush house"), virtualVenue), virtualVenue, virtualVenue)
 
@@ -184,6 +194,8 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val allocationRepo: AssessorAllocationRepository = mockAllocationRepo
       val eventsRepo: EventsRepository = mockEventRepo
       val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
+      val authProviderClient: AuthProviderClient = mockAuthProviderClient
+      val emailClient: EmailClient = mockemailClient
     }
   }
 

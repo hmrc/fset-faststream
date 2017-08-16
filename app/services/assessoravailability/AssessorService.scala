@@ -17,6 +17,7 @@
 package services.assessoravailability
 
 import common.FutureEx
+import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
 import model.command.AllocationWithEvent
@@ -28,6 +29,7 @@ import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
 import org.joda.time.LocalDate
 import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import repositories.{ AssessorAllocationMongoRepository, AssessorAllocationRepository, AssessorMongoRepository, AssessorRepository }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -37,6 +39,8 @@ object AssessorService extends AssessorService {
   val allocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
   val eventsRepo: EventsMongoRepository = repositories.eventsRepository
   val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+  val authProviderClient: AuthProviderClient = AuthProviderClient
+  val emailClient: EmailClient = CSREmailClient
 }
 
 trait AssessorService {
@@ -44,6 +48,8 @@ trait AssessorService {
   val allocationRepo: AssessorAllocationRepository
   val eventsRepo: EventsRepository
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
+  def authProviderClient: AuthProviderClient
+  def emailClient: EmailClient
 
   private def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
 
@@ -174,6 +180,17 @@ trait AssessorService {
 
   def findUnavailableAssessors(skills: Seq[SkillType], location: Location, date: LocalDate): Future[Seq[Assessor]] = {
     assessorRepository.findUnavailableAssessors(skills, location, date)
+  }
+
+  def notifyAssessorsOfNewEvents()(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
+    //TODO: Fetch newly created events
+//    findUnavailableAssessors(skills, location, date).flatMap { assessors =>
+//      authProviderClient.findByUserIds(assessors.map(_.userId)).map { contactDetails =>
+//        val x = contactDetails.map( contact => emailClient.notifyAssessorsOfNewEvents(contact.email, contact.firstName))
+//        Future.sequence(x)
+//      }
+//    }.flatMap(identity)
+    Future.successful(Seq())
   }
 
   private def exchangeToPersistedAvailability(
