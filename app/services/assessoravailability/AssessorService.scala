@@ -29,6 +29,7 @@ import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
 import org.joda.time.LocalDate
 import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import repositories.{ AssessorAllocationMongoRepository, AssessorAllocationRepository, AssessorMongoRepository, AssessorRepository }
+import services.events.EventsService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -37,7 +38,7 @@ import scala.concurrent.Future
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
   val allocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
-  val eventsRepo: EventsMongoRepository = repositories.eventsRepository
+  val eventsService: EventsService = EventsService
   val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
   val authProviderClient: AuthProviderClient = AuthProviderClient
   val emailClient: EmailClient = CSREmailClient
@@ -46,7 +47,7 @@ object AssessorService extends AssessorService {
 trait AssessorService {
   val assessorRepository: AssessorRepository
   val allocationRepo: AssessorAllocationRepository
-  val eventsRepo: EventsRepository
+  val eventsService: EventsService
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
   def authProviderClient: AuthProviderClient
   def emailClient: EmailClient
@@ -141,7 +142,7 @@ trait AssessorService {
   def findAllocations(assessorId: String, status: Option[AllocationStatus] = None): Future[Seq[AllocationWithEvent]] = {
     allocationRepo.find(assessorId, status).flatMap { allocations =>
       FutureEx.traverseSerial(allocations) { allocation =>
-        eventsRepo.getEvent(allocation.eventId).map { event =>
+        eventsService.getEvent(allocation.eventId).map { event =>
           AllocationWithEvent(
             allocation.id,
             event.id,

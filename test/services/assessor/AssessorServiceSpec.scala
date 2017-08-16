@@ -21,17 +21,16 @@ import model.Exceptions.AssessorNotFoundException
 import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
 import model.persisted.assessor.Assessor
 import model.persisted.assessor.AssessorExamples._
-import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.eventschedules.Venue
 import model.persisted.{ EventExamples, ReferenceData }
 import model.{ AllocationStatuses, Exceptions }
-import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
+import repositories.events.LocationsWithVenuesRepository
 import repositories.{ AssessorAllocationRepository, AssessorRepository }
 import services.BaseServiceSpec
 import services.assessoravailability.AssessorService
+import services.events.EventsService
 import testkit.MockitoImplicits._
 
 import scala.concurrent.duration._
@@ -180,7 +179,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val mockAssessorRepository = mock[AssessorRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val mockAllocationRepo = mock[AssessorAllocationRepository]
-    val mockEventRepo = mock[EventsRepository]
+    val mockEventService = mock[EventsService]
     val mockAuthProviderClient = mock[AuthProviderClient]
     val mockemailClient = mock[CSREmailClient]
     val virtualVenue = Venue("virtual", "virtual venue")
@@ -192,7 +191,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val service = new AssessorService {
       val assessorRepository: AssessorRepository = mockAssessorRepository
       val allocationRepo: AssessorAllocationRepository = mockAllocationRepo
-      val eventsRepo: EventsRepository = mockEventRepo
+      val eventsService: EventsService = mockEventService
       val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
       val authProviderClient: AuthProviderClient = mockAuthProviderClient
       val emailClient: EmailClient = mockemailClient
