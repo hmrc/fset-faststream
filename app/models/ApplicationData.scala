@@ -64,7 +64,7 @@ object ApplicationData {
     val ARCHIVED = Value
 
     val SIFT = Value
-    val ASSESSMENT_CENTRE = Value
+    val ASSESSMENT_CENTRE, FSB = Value
     // format: ON
 
     implicit val applicationStatusFormat = new Format[ApplicationStatus] {
@@ -178,6 +178,14 @@ object ProgressStatuses {
   case object ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_PASSED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+
+  case object FSB_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_PASSED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_FAILED extends ProgressStatus(ApplicationStatus.FSB)
 
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
