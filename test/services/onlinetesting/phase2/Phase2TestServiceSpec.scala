@@ -806,8 +806,6 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         List("sjq", "bq"),
         List("sjq")
       ),
-      competenceAssessment = CubiksGatewayStandardAssessment(31),
-      situationalAssessment = CubiksGatewayStandardAssessment(41),
       phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, expiryTimeInDaysForInvigilatedETray = 90, availableSchedules),
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",
