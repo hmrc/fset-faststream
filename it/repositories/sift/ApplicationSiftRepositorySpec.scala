@@ -1,6 +1,6 @@
 package repositories.sift
 
-import model.EvaluationResults.{ Green, Red }
+import model.EvaluationResults.{ Green, Red, Withdrawn }
 import model.Phase3TestProfileExamples.phase3TestWithResult
 import model.ProgressStatuses.{ PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_NOTIFIED }
 import model._
@@ -8,13 +8,14 @@ import model.command.ApplicationForSift
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.scalatest.CancelAfterFailure
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.prop.TableDrivenPropertyChecks
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2EvaluationMongoRepositorySpec.phase2TestWithResult
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.{ MockitoSugar, MongoRepositorySpec }
 
 class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFutures with CommonRepository
-  with MockitoSugar {
+  with MockitoSugar with TableDrivenPropertyChecks {
 
   val collectionName: String = CollectionNames.APPLICATION
 
@@ -76,13 +77,17 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   }
 
   "findApplicationsReadyForSifting" should {
+
     "return candidates that are ready for sifting" in {
-      createSiftEligibleCandidates(UserId, "appId11")
+      createSiftEligibleCandidates(UserId, "appId1", resultToSave = List(SchemeEvaluationResult(Commercial, Green.toString)))
+      createSiftEligibleCandidates(UserId, "appId2", resultToSave = List(SchemeEvaluationResult(Commercial, Withdrawn.toString)))
+      createSiftEligibleCandidates(UserId, "appId3", resultToSave = List(SchemeEvaluationResult(Commercial, Red.toString)))
+      createSiftEligibleCandidates(UserId, "appId4", resultToSave = List(SchemeEvaluationResult(Generalist, Green.toString)))
 
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
       val candidate = candidates.head
-      candidate.applicationId mustBe Some("appId11")
+      candidate.applicationId mustBe Some("appId1")
     }
 
   }
@@ -117,13 +122,13 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     }
   }
 
-  private def createSiftEligibleCandidates(userId: String, appId: String) = {
-    val resultToSave = List(
+  private def createSiftEligibleCandidates(userId: String, appId: String, resultToSave: List[SchemeEvaluationResult] = List(
       SchemeEvaluationResult(Commercial, Green.toString),
       SchemeEvaluationResult(Sdip, Green.toString),
       SchemeEvaluationResult(European, Green.toString),
       SchemeEvaluationResult(Generalist, Red.toString)
     )
+  ) = {
 
     val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
     insertApplication(appId,

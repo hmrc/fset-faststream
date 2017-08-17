@@ -43,9 +43,10 @@ trait EmailEventHandler extends StcEventHandler[EmailEvent] {
       case _: EmailEvents.ApplicationConvertedToSdip =>
         emailClient.sendApplicationExtendedToSdip(event.to, event.name)
       case e: EmailEvents.CandidateAllocationConfirmed =>
-        emailClient.sendCandidateInvitationConfirmedToFSAC(e.to, e.name, e.eventDate, e.eventTime)
+        emailClient.sendCandidateInvitationConfirmedToEvent(e.to, e.name, e.eventDate, e.eventTime,
+          e.eventType, e.eventVenue)
       case e: EmailEvents.CandidateAllocationConfirmationRequest =>
-        emailClient.sendCandidateConfirmationRequestToFSAC(e.to, e.name, e.eventDate, e.eventTime,
+        emailClient.sendCandidateConfirmationRequestToEvent(e.to, e.name, e.eventDate, e.eventTime,
           e.eventType, e.eventVenue, e.deadlineDate)
 
     }
