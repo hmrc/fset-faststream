@@ -133,15 +133,23 @@
 }
 
 @renderExtraInfo = {
-    @if(isSiftEntered(page.userDataWithSchemes.toCachedData) && !isSiftComplete(page.userDataWithSchemes.toCachedData)) {
-        @if(page.userDataWithSchemes.hasFormRequirement) {
-            @renderSchemeForm
-        }
-        @if(page.userDataWithSchemes.hasNumericRequirement) {
+    @if(page.userDataWithSchemes.isNumericOnly) {
+        @if(!isSiftComplete(page.userDataWithSchemes.toCachedData)) {
             @renderNumericTest
+        } else {
+            @renderCompletedSectionOne
         }
     } else {
-        @renderCompletedSectionOne
+        @if(isSiftEntered(page.userDataWithSchemes.toCachedData) && !isSiftComplete(page.userDataWithSchemes.toCachedData)) {
+            @if(page.userDataWithSchemes.hasFormRequirement) {
+                @renderSchemeForm
+            }
+            @if(page.userDataWithSchemes.hasNumericRequirement) {
+                @renderNumericTest
+            }
+        } else {
+            @renderCompletedSectionOne
+        }
     }
  }
 

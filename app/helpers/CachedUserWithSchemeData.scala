@@ -63,6 +63,7 @@ class CachedUserWithSchemeData(
 
   lazy val hasFormRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
   lazy val hasNumericRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
+  lazy val isNumericOnly = !hasFormRequirement && hasNumericRequirement
   lazy val requiresAssessmentCentre = !(RoleUtils.isSdip(toCachedData) || RoleUtils.isEdip(toCachedData))
 
   def toCachedData: CachedData = CachedData(this.user, Some(this.application))
