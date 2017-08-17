@@ -66,4 +66,16 @@ trait CurrentSchemeStatusHelper {
       doc ++ BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" -> SchemeEvaluationResult(id, status.toString)))
     }
   }
+
+  def firstResidualPreference(schemeId: SchemeId): BSONDocument = {
+    BSONDocument("$where" ->
+      s"""
+        |this.currentSchemeStatus.filter(
+        |   function(e){
+        |     return e.result=="$Green"
+        |   }
+        |)[0].schemeId=="$schemeId"
+      """.stripMargin)
+  }
+
 }
