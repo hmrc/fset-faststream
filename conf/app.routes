@@ -138,23 +138,25 @@ POST        /events/save                                                 control
 POST        /events/create                                               controllers.EventsController.createEvent()
 GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
 GET         /events/:eventId/users/:userId/allocation                    controllers.EventsController.getAssessorAllocation(eventId: String, userId: String)
-
-# candidate allocations
-GET         /candidate-allocations/find-applications/location/:location            controllers.CandidateAllocationController.findCandidatesEligibleForEventAllocation(location: String)
-POST        /candidate-allocations/find-allocated                                  controllers.CandidateAllocationController.findAllocatedApplications()
-GET         /candidate-allocations/events/:eventId/sessions/:sessionId             controllers.CandidateAllocationController.getCandidateAllocations(eventId: String, sessionId: String)
-POST        /candidate-allocations/remove/events/:eventId/sessions/:sessionId      controllers.CandidateAllocationController.removeCandidateAllocations(eventId: String, sessionId: String)
-GET         /candidate-allocations/summary/:applicationId                          controllers.CandidateAllocationController.candidateAllocationsSummary(applicationId: String)
-PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String, append: Boolean ?= false)
-DELETE      /candidate-allocations/reset-removals/:applicationId                   controllers.CandidateAllocationController.removeCandidateRemovalReason(applicationId: String)
-
-PUT         /candidate-allocations/confirm-allocation/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.confirmAllocation(eventId: String, sessionId: String)
-GET         /candidate-allocations/sessions/findByApplicationId                              controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
-
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
 GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
+
+# candidate allocations
+GET         /candidate-allocations/find-applications/event/:eventType/location/:location    controllers.CandidateAllocationController.findCandidatesEligibleForEventAllocation(location: String, eventType: model.persisted.eventschedules.EventType.EventType, eventDescription: String)
+POST        /candidate-allocations/find-allocated                                           controllers.CandidateAllocationController.findAllocatedApplications()
+GET         /candidate-allocations/events/:eventId/sessions/:sessionId                      controllers.CandidateAllocationController.getCandidateAllocations(eventId: String, sessionId: String)
+POST        /candidate-allocations/remove/events/:eventId/sessions/:sessionId               controllers.CandidateAllocationController.removeCandidateAllocations(eventId: String, sessionId: String)
+GET         /candidate-allocations/summary/:applicationId                                   controllers.CandidateAllocationController.candidateAllocationsSummary(applicationId: String)
+PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId             controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String, append: Boolean ?= false)
+DELETE      /candidate-allocations/reset-removals/:applicationId/eventType/:eventType       controllers.CandidateAllocationController.removeCandidateRemovalReason(applicationId: String, eventType: model.persisted.eventschedules.EventType.EventType)
+
+PUT         /candidate-allocations/confirm-allocation/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.confirmAllocation(eventId: String, sessionId: String)
+GET         /candidate-allocations/sessions/findByApplicationId                              controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
+
+POST          /assessments/fsb-events/:eventId/sessions/:sessionId/results                controllers.FsbTestGroupController.save(eventId: String, sessionId: String)
+GET           /assessments/fsb-events/results                                             controllers.FsbTestGroupController.find(applicationIds: List[String], fsbType: Option[String])
 
 # Day aggregate events
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
@@ -199,4 +201,3 @@ GET         /reference/candidate-remove-reasons                          control
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
 GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations
 GET         /reference/locations-with-venues                             controllers.reference.LocationAndVenueController.locationsWithVenues
-

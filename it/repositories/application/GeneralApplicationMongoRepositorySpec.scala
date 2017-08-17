@@ -28,6 +28,7 @@ import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _ }
 import model.command.ProgressResponse
 import model.persisted._
+import model.persisted.eventschedules.EventType
 import repositories.CollectionNames
 import repositories.onlinetesting.{ Phase1TestMongoRepository, Phase2TestMongoRepository }
 import scheduler.fixer.FixBatch
@@ -633,31 +634,30 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  private def findCandidatesCall = repository.findCandidatesEligibleForEventAllocation(List("London"), EventType.FSAC, None).futureValue
   "Find candidates eligible for event allocation" should {
     "return an empty list when there are no applications" in {
       createUnAllocatedApplications(0).futureValue
-      val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
+      val result = findCandidatesCall
       result mustBe a[CandidatesEligibleForEventResponse]
       result.candidates mustBe empty
     }
 
     "return an empty list when there are no eligible candidates" in {
       testDataRepo.createApplications(10).futureValue
-      val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
-      result.candidates mustBe empty
+      findCandidatesCall.candidates mustBe empty
     }
 
     "return a ten item list when there are eligible candidates" in {
       createUnAllocatedApplications(10).futureValue
-      val result = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue
-      result.candidates must have size 10
+      findCandidatesCall.candidates must have size 10
     }
   }
 
   "reset application status" should {
     "set progress status to awaiting allocation" in {
       createUnAllocatedApplications(10).futureValue
-      val unallocatedCandidates = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue.candidates
+      val unallocatedCandidates = findCandidatesCall.candidates
       unallocatedCandidates.size mustBe 10
 
       val (candidatesToAllocate, _) = unallocatedCandidates.splitAt(4)
@@ -668,16 +668,15 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           candidate.applicationId,
           ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED).futureValue
       }
-      val eligibleCandidates = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue.candidates
-      eligibleCandidates.size mustBe 6
+      findCandidatesCall.candidates.size mustBe 6
 
       // reset the allocated candidates
       val result = candidatesToAllocate.map(_.applicationId).foreach {
-        appId => repository.resetApplicationAllocationStatus(appId).futureValue
+        appId => repository.resetApplicationAllocationStatus(appId, EventType.FSAC).futureValue
       }
       result mustBe unit
 
-      val eligibleCandidatesAfterReset = repository.findCandidatesEligibleForEventAllocation(List("London")).futureValue.candidates
+      val eligibleCandidatesAfterReset = findCandidatesCall.candidates
       eligibleCandidatesAfterReset.size mustBe 10
     }
   }

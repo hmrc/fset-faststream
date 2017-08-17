@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.exchange
 
-import model.SchemeId
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class SchemeEvaluationResult(schemeId: SchemeId, result: String)
+case class ApplicationResult(applicationId: String, result: String)
 
-object SchemeEvaluationResult {
-  implicit val format = Json.format[SchemeEvaluationResult]
-  implicit val bsonHandler = Macros.handler[SchemeEvaluationResult]
+object ApplicationResult {
+  implicit val format = Json.format[ApplicationResult]
+  implicit val bsonHandler = Macros.handler[ApplicationResult]
+}
 
-  def apply(schemeId: String, result: String) = new SchemeEvaluationResult(SchemeId(schemeId), result)
+case class FsbEvaluationResults(applicationResults: List[ApplicationResult])
 
+object FsbEvaluationResults {
+  implicit val format = Json.format[FsbEvaluationResults]
+  implicit val bsonHandler = Macros.handler[FsbEvaluationResults]
 }
