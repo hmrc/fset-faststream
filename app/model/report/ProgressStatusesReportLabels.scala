@@ -88,6 +88,13 @@ trait ProgressStatusesReportLabels {
     (progress.assessmentCentre.awaitingReevaluation, 438, AssessmentCentreAwaitingReevaluation),
     (progress.assessmentCentre.failed, 440, AssessmentCentreFailedProgress),
     (progress.assessmentCentre.passed, 460, AssessmentCentrePassedProgress),
+    (progress.fsb.awaitingAllocation, 480, FsbAwaitingAllocation),
+    (progress.fsb.allocationUnconfirmed, 485, FsbAllocationUnconfirmed),
+    (progress.fsb.allocationConfirmed, 490, FsbAllocationConfirmed),
+    (progress.fsb.failedToAttend, 495, FsbFailedToAttend),
+    (progress.fsb.resultEntered, 500, FsbResultEntered),
+    (progress.fsb.passed, 505, FsbPassed),
+    (progress.fsb.failed, 510, FsbFailed),
     (progress.withdrawn, 999, WithdrawnProgress),
     (progress.applicationArchived, 1000, ApplicationArchived)
   )
@@ -103,8 +110,10 @@ trait ProgressStatusesReportLabels {
       statusMap.foldLeft(default) { (highest, current) =>
         val (highestWeighting, _) = highest
         current match {
-          case (true, weighting, name) if weighting > highestWeighting => weighting -> name
-          case _ => highest
+          case (true, weighting, name) if weighting > highestWeighting =>
+            weighting -> name
+          case (_, weighting, name) =>
+            highest
         }
       }
     }
@@ -128,11 +137,13 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val OccupationQuestionsCompletedProgress = "occupation_questions_completed"
   val SubmittedProgress = "submitted"
   val WithdrawnProgress = "withdrawn"
-  val Phase1TestsInvited = "phase1_tests_invited"
+
   val SdipFaststreamPassed = "phase1_tests_sdip_faststream_passed"
   val SdipFaststreamPassedNotified = "phase1_tests_sdip_passed_notified"
   val SdipFaststreamFailed = "phase1_tests_sdip_failed"
   val SdipFaststreamFailedNotified = "phase1_tests_sdip_failed_notified"
+
+  val Phase1TestsInvited = "phase1_tests_invited"
   val Phase1TestsFirstReminder = "phase1_tests_first_reminder"
   val Phase1TestsSecondReminder = "phase1_tests_second_reminder"
   val Phase1TestsStarted = "phase1_tests_started"
@@ -144,6 +155,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase1TestsFailed = "phase1_tests_failed"
   val Phase1TestsFailedNotified = "phase1_tests_failed_notified"
   val Phase1TestsPassedNotified = "phase1_tests_passed_notified"
+
   val Phase2TestsInvited = "phase2_tests_invited"
   val Phase2TestsFirstReminder = "phase2_tests_first_reminder"
   val Phase2TestsSecondReminder = "phase2_tests_second_reminder"
@@ -155,6 +167,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase2TestsPassed = "phase2_tests_passed"
   val Phase2TestsFailed = "phase2_tests_failed"
   val Phase2TestsFailedNotified = "phase2_tests_failed_notified"
+
   val Phase3TestsInvited = "phase3_tests_invited"
   val Phase3TestsFirstReminder = "phase3_tests_first_reminder"
   val Phase3TestsSecondReminder = "phase3_tests_second_reminder"
@@ -167,13 +180,23 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailed = "phase3_tests_failed"
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsPassedNotified = "phase3_tests_passed_notified"
+
   val AssessmentCentreAwaitingAllocation = "assessment_centre_awaiting_allocation"
   val AssessmentCentreAllocationConfirmed = "assessment_centre_allocation_confirmed"
   val AssessmentCentreAllocationUnconfirmed = "assessment_centre_allocation_unconfirmed"
   val AssessmentCentreFailedToAttend = "assessment_centre_failed_to_attend"
   val AssessmentCentreScoresEntered = "assessment_centre_scores_entered"
   val AssessmentCentreScoresAccepted = "assessment_centre_scores_accepted"
-  val AssessmentCentreAwaitingReevaluation = "ssessment_centre_awaiting_re_evaluation"
+  val AssessmentCentreAwaitingReevaluation = "assessment_centre_awaiting_re_evaluation"
+
+  val FsbAwaitingAllocation = "fsb_awaiting_allocation"
+  val FsbAllocationUnconfirmed = "fsb_allocation_unconfirmed"
+  val FsbAllocationConfirmed = "fsb_allocation_confirmed"
+  val FsbFailedToAttend = "fsb_failed_to_attend"
+  val FsbResultEntered = "fsb_result_entered"
+  val FsbPassed = "fsb_passed"
+  val FsbFailed = "fsb_failed"
+
   val SiftEntered = "sift_entered"
   val SiftReady = "ready_for_sifting"
   val SiftCompleted = "sift_completed"
@@ -182,6 +205,6 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
 
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
-  val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toLowerCase()
-  val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toLowerCase()
+  val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toString.toLowerCase()
+  val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toString.toLowerCase()
 }
