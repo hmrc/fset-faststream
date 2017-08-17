@@ -16,8 +16,55 @@
 
 package services.sift
 
-import testkit.UnitWithAppSpec
+import model.EvaluationResults.{ Green, Withdrawn }
+import model.persisted.SchemeEvaluationResult
+import model.{ Scheme, SchemeId, SiftRequirement }
+import repositories.SchemeRepository
+import repositories.application.GeneralApplicationRepository
+import repositories.sift.SiftAnswersRepository
+import testkit.ScalaMockUnitSpec
+import testkit.ScalaMockImplicits._
 
-class SiftAnswersServiceSpec extends UnitWithAppSpec {
+class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
+
+  val DaT = Scheme(SchemeId("DigitalAndTechnology"), "DaT", "Digital and Technology", civilServantEligible = false,
+    degree = None, siftEvaluationRequired = true,
+    siftRequirement = Some(SiftRequirement.FORM), fsbType = None, telephoneInterviewType = None)
+  val HoP = Scheme(SchemeId("HousesOfParliament"), "HoP", "Houses of Parliament", civilServantEligible = false,
+    degree = None, siftEvaluationRequired = true,
+    siftRequirement = Some(SiftRequirement.FORM), fsbType = None, telephoneInterviewType = None)
+
+
+  trait TestFixture {
+    val AppId = "appId1"
+    val mockAppRepo = mock[GeneralApplicationRepository]
+    val mockSiftAnswersRepo = mock[SiftAnswersRepository]
+    val mockSchemeRepo = new SchemeRepository {
+      override lazy val schemes = DaT :: HoP :: Nil
+    }
+    val service = new SiftAnswersService {
+      def appRepo = mockAppRepo
+      def siftAnswersRepo = mockSiftAnswersRepo
+      def schemeRepository = mockSchemeRepo
+    }
+  }
+
+  "Submitting sift answers" must {
+    "update sift status and progress status" in new TestFixture {
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(DaT.id, Green.toString),
+        SchemeEvaluationResult(HoP.id, Withdrawn.toString)
+      )
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
+      (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, *).returningAsync
+
+      whenReady(service.submitAnswers(AppId)) { result =>
+        result mustBe unit
+      }
+    }
+
+  }
 
 }

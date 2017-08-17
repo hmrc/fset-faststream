@@ -209,7 +209,7 @@ trait EmailClient extends WSHttp {
   def sendApplicationExtendedToSdip(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_app_converted_to_sdip_confirmation", Map("name" -> name))
 
-  def sendCandidateConfirmationRequestToFSAC(to: String, name: String,
+  def sendCandidateConfirmationRequestToEvent(to: String, name: String,
     eventDate: String, eventTime: String,
     eventType: String, eventVenue: String,
     deadlineDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -218,10 +218,12 @@ trait EmailClient extends WSHttp {
         "eventType" -> eventType, "eventVenue" -> eventVenue, "deadlineDate" -> deadlineDate))
   }
 
-  def sendCandidateInvitationConfirmedToFSAC(to: String, name: String,
-                                             eventDate: String, eventTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendCandidateInvitationConfirmedToEvent(to: String, name: String,
+    eventDate: String, eventTime: String,
+    eventType: String, eventVenue: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     sendEmail(to, "fset_faststream_candidate_assessment_scheduled",
-      Map("name" -> name, "eventDate" -> eventDate, "eventStartTime" -> eventTime))
+      Map("name" -> name, "eventDate" -> eventDate, "eventStartTime" -> eventTime,
+        "eventType" -> eventType, "eventVenue" -> eventVenue))
   }
 
   def sendAssessorAllocatedToEvent(to: String, name: String, eventDate: String, eventRole: String, eventName: String,
