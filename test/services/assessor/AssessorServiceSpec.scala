@@ -16,14 +16,17 @@
 
 package services.assessor
 
+import connectors.ExchangeObjects.Candidate
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.AssessorNotFoundException
 import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
-import model.persisted.assessor.Assessor
+import model.persisted.EventExamples._
+import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
 import model.persisted.assessor.AssessorExamples._
-import model.persisted.eventschedules.Venue
+import model.persisted.eventschedules._
 import model.persisted.{ EventExamples, ReferenceData }
 import model.{ AllocationStatuses, Exceptions }
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.events.LocationsWithVenuesRepository
@@ -32,9 +35,11 @@ import services.BaseServiceSpec
 import services.assessoravailability.AssessorService
 import services.events.EventsService
 import testkit.MockitoImplicits._
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
 class AssessorServiceSpec extends BaseServiceSpec {
@@ -169,9 +174,43 @@ class AssessorServiceSpec extends BaseServiceSpec {
       result.successes mustBe updates.head :: Nil
     }
 
-    "notify assessors of new events" in new TestFixture {
+    "return assessor to events mapping since a specified date" in new TestFixture with AssessorsEventsSummaryData {
+      when(mockEventService.getEventsCreatedAfter(any[DateTime])).thenReturn(Future(events))
+      when(service.findUnavailableAssessors(
+        eqTo(Seq(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1, a2)))
+      when(service.findUnavailableAssessors(
+        eqTo(Seq(SkillType.CHAIR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
+      when(service.findUnavailableAssessors(
+        eqTo(Seq(SkillType.ASSESSOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
+      when(service.findUnavailableAssessors(
+        eqTo(Seq(SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a2)))
+
+      val result = service.assessorToEventsMappingSince(DateTime.now).futureValue
+      val resultKeys = result.keys.toList
+      resultKeys.size mustBe assessorToEventsMapping.keys.toList.size
+      resultKeys.foreach(assessorToEventsMapping.keys.toList.contains)
+      result.foreach{ case (assessor, assessorEvents) =>
+        assessorEvents mustBe assessorToEventsMapping(assessor)
+      }
+    }
+
+    "notify assessors of new events" ignore new TestFixture with AssessorsEventsSummaryData {
       // TODO: Verify that the email client gets called with the right arguments
-//      when(service.findUnavailableAssessors(any[Set[SkillType]], any[Location], any[LocalDate]))
+      when(mockEventService.getEventsCreatedAfter(any[DateTime])).thenReturn(Future(events))
+      when(service.findUnavailableAssessors(
+        eqTo(Seq(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1, a2)))
+      when(service.findUnavailableAssessors(
+        eqTo(Seq(SkillType.CHAIR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
+      when(service.findUnavailableAssessors(
+        eqTo(Seq(SkillType.ASSESSOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
+      when(service.findUnavailableAssessors(
+        eqTo(Seq(SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a2)))
+
+//      when(service.assessorToEventsMappingSince(any[DateTime])).thenReturn(Future(assessorToEventsMapping))
+      when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturn(Future(findByUserIdsResponse))
+
+      val result = service.notifyAssessorsOfNewEvents()(any[HeaderCarrier]).futureValue
+      verify(mockemailClient, times(2)).notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])
     }
   }
 
@@ -196,6 +235,51 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val authProviderClient: AuthProviderClient = mockAuthProviderClient
       val emailClient: EmailClient = mockemailClient
     }
+  }
+
+  trait AssessorsEventsSummaryData {
+
+    val e1 = Event(id = "eventId1", eventType = EventType.FSAC, description = "GCFS FSB", location = LocationLondon,
+      venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
+      createdAt = DateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1,
+        SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
+
+    val e2 = Event(id = "eventId2", eventType = EventType.TELEPHONE_INTERVIEW, description = "ORAC", location = LocationLondon,
+      venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
+      createdAt = DateTime.now, skillRequirements = Map(SkillType.CHAIR.toString -> 1), sessions = List())
+
+    val e3 = Event(id = "eventId3", eventType = EventType.SKYPE_INTERVIEW, description = "GCFS FSB",
+      location = LocationNewcastle, venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
+      createdAt = DateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1), sessions = List())
+
+    val e4 = Event(id = "eventId4", eventType = EventType.FSAC, description = "DFS FSB", location = LocationNewcastle,
+      venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
+      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
+      createdAt = DateTime.now, skillRequirements = Map(SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
+
+    val events = Seq(e1, e2, e3, e4)
+    val a1Skills = List(SkillType.ASSESSOR, SkillType.CHAIR)
+    val a2Skills = List(SkillType.QUALITY_ASSURANCE_COORDINATOR)
+
+    val availabilities = Set(AssessorAvailability(Location("london"), new LocalDate(2017, 8, 11)))
+    val a1 = Assessor("userId1", None, a1Skills.map(_.toString), Nil, civilServant = true, Set.empty, AssessorStatus.CREATED)
+    val a2 = Assessor("userId2", None, a2Skills.map(_.toString), Nil, civilServant = true, Set.empty, AssessorStatus.CREATED)
+    val a3 = Assessor("userId3", None, a1Skills.map(_.toString), Nil, civilServant = true, availabilities, AssessorStatus.CREATED)
+    val assessors: Seq[Assessor] = Seq (a1, a2)
+
+    val findByUserIdsResponse = Seq(
+      Candidate("Joe", "Bloggs", None, "joe.bloggs@test.com", "userId1"),
+      Candidate("John", "Bloggs", None, "john.bloggs@test.com", "userId2"),
+      Candidate("Bill", "Bloggs", None, "bill.bloggs@test.com", "userId3")
+    )
+
+    val assessorToEventsMapping: Map[Assessor, Seq[Event]] = Map[Assessor, Seq[Event]](
+      a1 -> Seq(e1, e2, e3),
+      a2 -> Seq(e1, e4)
+    )
   }
 
 }

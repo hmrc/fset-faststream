@@ -23,11 +23,11 @@ import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
 import model.command.AllocationWithEvent
 import model.exchange.{ AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest }
 import model.persisted.assessor.{ Assessor, AssessorStatus }
-import model.persisted.eventschedules.Location
+import model.persisted.eventschedules.{ Event, Location, SkillType }
 import model.persisted.eventschedules.SkillType.SkillType
 import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
-import org.joda.time.LocalDate
-import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
+import org.joda.time.{ DateTime, LocalDate }
+import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import repositories.{ AssessorAllocationMongoRepository, AssessorAllocationRepository, AssessorMongoRepository, AssessorRepository }
 import services.events.EventsService
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -183,15 +183,65 @@ trait AssessorService {
     assessorRepository.findUnavailableAssessors(skills, location, date)
   }
 
+  def assessorToEventsMappingSince(eventsSince: DateTime): Future[Map[Assessor, Seq[Event]]] = {
+    val newlyCreatedEvents = eventsService.getEventsCreatedAfter(eventsSince)
+    val assessorToEventsTableFut: Future[Seq[(Assessor, Event)]] = newlyCreatedEvents.flatMap { events =>
+      val mapping = events.map { event =>
+        val skills = event.skillRequirements.keySet.map(SkillType.withName).toSeq
+        findUnavailableAssessors(skills, event.location, event.date).map { assessors =>
+          assessors.map( _ -> event)
+        }
+      }
+      Future.sequence(mapping).map(_.flatten)
+    }
+    val assessorEventsMapping = assessorToEventsTableFut.map(_.groupBy(_._1).map {
+      case (assessor, assessorEventSeq) => assessor -> assessorEventSeq.map(_._2)
+    })
+    assessorEventsMapping
+  }
+
   def notifyAssessorsOfNewEvents()(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
-    //TODO: Fetch newly created events
-//    findUnavailableAssessors(skills, location, date).flatMap { assessors =>
-//      authProviderClient.findByUserIds(assessors.map(_.userId)).map { contactDetails =>
-//        val x = contactDetails.map( contact => emailClient.notifyAssessorsOfNewEvents(contact.email, contact.firstName))
-//        Future.sequence(x)
-//      }
-//    }.flatMap(identity)
-    Future.successful(Seq())
+    val lastNotificationDate = DateTime.now // TODO: Change this or perhaps take in as an argument
+
+    val assessorEventsMapping: Future[Map[Assessor, Seq[Event]]] = assessorToEventsMappingSince(lastNotificationDate)
+    assessorEventsMapping.flatMap { assessorToEvent =>
+      val assessorsIds = assessorToEvent.keySet.map(_.userId).toSeq
+      val assessorsContactDetailsFut = authProviderClient.findByUserIds(assessorsIds)
+      assessorsContactDetailsFut.flatMap { assessorsContactDetails =>
+        Future.sequence(
+          assessorToEvent.flatMap { case (assessor, assessorEvents) =>
+            assessorsContactDetails.find(_.userId == assessor.userId).map { contact =>
+              val (htmlBody, txtBody) = buildEmailContent(assessorEvents)
+              emailClient.notifyAssessorsOfNewEvents(contact.email, contact.firstName, htmlBody, txtBody)
+            }
+          }
+        )
+      }
+    }.map(_.toSeq)
+  }
+
+  private def buildEmailContent(events: Seq[Event]): (String, String) = {
+    def buildEmailTxt: String = {
+      val eventsStr = events.map { event =>
+        s"${event.date.toString("EEEE, dd MM YYYY")} (${event.eventType} - ${event.location.name})"
+      }.mkString("\n")
+      eventsStr
+    }
+
+    def buildEmailHtml: String = {
+      val eventsHtml = events.map { event =>
+        s"<li>${event.date.toString("EEEE, dd MM YYYY")} (${event.eventType} - ${event.location.name}) </li>"
+      }.mkString("")
+      val body =
+        s"""
+           |<ul>
+           |$eventsHtml
+           |</ul>
+      """.stripMargin
+      body
+    }
+
+    (buildEmailHtml, buildEmailTxt)
   }
 
   private def exchangeToPersistedAvailability(

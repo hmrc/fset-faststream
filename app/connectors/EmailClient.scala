@@ -254,8 +254,9 @@ trait EmailClient extends WSHttp {
     )
   }
 
-  def notifyAssessorsOfNewEvents(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
-    sendEmail(to, "fset_faststream_notify_assessors_of_new_events", Map("name" -> name))
+  def notifyAssessorsOfNewEvents(to: String, name: String, htmlBody: String, txtBody: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_assessors_of_new_events",
+      Map("name" -> name, "htmlBody" -> htmlBody, "txtBody" -> txtBody))
   }
 }
 
