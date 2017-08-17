@@ -16,7 +16,7 @@
 
 package repositories.application
 
-import factories.{ DateTimeFactory, DateTimeFactoryMock, UUIDFactory }
+import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.ApplicationStatus._
 import model.exchange.CandidatesEligibleForEventResponse
 import model.{ ApplicationStatus, Candidate, _ }
@@ -41,9 +41,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
-  def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
-  def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
+  def repository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock)
+  def phase2TestRepo = new Phase2TestMongoRepository(ITDateTimeFactoryMock)
   def testDataRepo = new TestDataMongoRepository()
 
   "General Application repository" should {

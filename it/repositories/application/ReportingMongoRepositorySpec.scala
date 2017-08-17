@@ -17,7 +17,7 @@
 package repositories.application
 
 import _root_.services.testdata.TestDataGeneratorService
-import factories.{ DateTimeFactoryMock, UUIDFactory }
+import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model._
 import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
@@ -42,9 +42,9 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new ReportingMongoRepository(GBTimeZoneService, DateTimeFactoryMock)
+  def repository = new ReportingMongoRepository(GBTimeZoneService, ITDateTimeFactoryMock)
 
-  def applicationRepo = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
 
   def testDataRepo = new TestDataMongoRepository()
 

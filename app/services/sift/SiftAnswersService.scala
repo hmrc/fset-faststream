@@ -21,7 +21,6 @@ import model.{ EvaluationResults, ProgressStatuses, SchemeId, SiftRequirement }
 import repositories.application.GeneralApplicationRepository
 import repositories.{ SchemeRepository, SchemeYamlRepository }
 import repositories.sift.SiftAnswersRepository
-import services.onlinetesting.phase3.EvaluatePhase3ResultService
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,14 +28,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object SiftAnswersService extends SiftAnswersService {
   val appRepo = repositories.applicationRepository
   val siftAnswersRepo: SiftAnswersRepository = repositories.siftAnswersRepository
-  val phase3ResultsService = EvaluatePhase3ResultService
   val schemeRepository = SchemeYamlRepository
 }
 
 trait SiftAnswersService {
   def appRepo: GeneralApplicationRepository
   def siftAnswersRepo: SiftAnswersRepository
-  def phase3ResultsService: EvaluatePhase3ResultService
   def schemeRepository: SchemeRepository
 
   def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: model.exchange.sift.SchemeSpecificAnswer): Future[Unit] = {
@@ -75,10 +72,11 @@ trait SiftAnswersService {
 
   def submitAnswers(applicationId: String): Future[Unit] = {
     for {
-      phase3Results <- phase3ResultsService.getPassmarkEvaluation(applicationId)
-      schemesPassedPhase3 = phase3Results.result.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
-      schemesPassedRequiringSift = schemeRepository.schemes.filter(
-        s => schemesPassedPhase3.contains(s.id) && s.siftRequirement == Some(SiftRequirement.FORM)).map(_.id).toSet
+      currentSchemeStatus <- appRepo.getCurrentSchemeStatus(applicationId)
+      schemesPassed = currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
+      schemesPassedRequiringSift = schemeRepository.schemes.filter( s =>
+        schemesPassed.contains(s.id) && s.siftRequirement == Some(SiftRequirement.FORM)
+      ).map(_.id).toSet
       _ <- siftAnswersRepo.submitAnswers(applicationId, schemesPassedRequiringSift)
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
     } yield {}
