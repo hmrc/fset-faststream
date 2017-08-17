@@ -57,8 +57,6 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       List("sjq", "bq"),
       List("sjq")
     ),
-    competenceAssessment = CubiksGatewayStandardAssessment(31),
-    situationalAssessment = CubiksGatewayStandardAssessment(41),
     phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, expiryTimeInDaysForInvigilatedETray = 90,
       Map("daro" -> Phase2ScheduleExamples.DaroSchedule)),
     reportConfig = ReportConfig(1, 2, "en-GB"),
