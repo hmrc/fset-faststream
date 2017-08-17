@@ -65,17 +65,17 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
         submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
       val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, "analysisExercise", exerciseScores))
 
-      when(mockService.submitExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise),
+      when(mockService.submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.analysisExercise),
         any())).thenReturn(Future.successful(()))
       val auditDetails = Map(
         "applicationId" -> appId.toString(),
-        "exercise" -> AssessmentExerciseType.analysisExercise.toString,
+        "exercise" -> AssessmentScoresSectionType.analysisExercise.toString,
         userIdForAudit -> exerciseScores.updatedBy.toString())
 
       val response = controller.submitExercise()(request)
 
       status(response) must be(OK)
-      verify(mockService).submitExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise), any())
+      verify(mockService).submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.analysisExercise), any())
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
     }
   }
@@ -86,17 +86,17 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
         submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
       val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, "analysisExercise", exerciseScores))
 
-      when(mockService.saveExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise),
+      when(mockService.saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.analysisExercise),
         any())).thenReturn(Future.successful(()))
       val auditDetails = Map(
         "applicationId" -> appId.toString(),
-        "exercise" -> AssessmentExerciseType.analysisExercise.toString,
+        "exercise" -> AssessmentScoresSectionType.analysisExercise.toString,
         userIdForAudit -> exerciseScores.updatedBy.toString())
 
       val response = controller.saveExercise()(request)
 
       status(response) must be(OK)
-      verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise), any())
+      verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.analysisExercise), any())
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSaved), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
     }
   }

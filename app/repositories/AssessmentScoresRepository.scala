@@ -19,7 +19,7 @@ package repositories
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.UniqueIdentifier
 import model.assessmentscores._
-import model.command.AssessmentScoresCommands.AssessmentExerciseType
+import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -31,9 +31,14 @@ import scala.concurrent.Future
 trait AssessmentScoresRepository {
   def save(scoresAndFeedback: AssessmentScoresAllExercises): Future[Unit]
 
-  def saveExercise(applicationId: UniqueIdentifier,
-    exercise: AssessmentExerciseType.AssessmentExerciseType,
+  def saveExercise(
+    applicationId: UniqueIdentifier,
+    section: AssessmentScoresSectionType.AssessmentScoresSectionType,
     exercisesScores: AssessmentScoresExercise): Future[Unit]
+
+  def saveFinalFeedback(
+    applicationId: UniqueIdentifier,
+    finalFeedback: AssessmentScoresFinalFeedback): Future[Unit]
 
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]]
 
@@ -45,28 +50,64 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     AssessmentScoresAllExercises.jsonFormat, ReactiveMongoFormats.objectIdFormats)
     with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
-  def saveExercise(applicationId: UniqueIdentifier,
-    exercise: AssessmentExerciseType.AssessmentExerciseType,
+  def saveExercise(
+    applicationId: UniqueIdentifier,
+    section: AssessmentScoresSectionType.AssessmentScoresSectionType,
     exercisesScores: AssessmentScoresExercise): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId.toString())
 
-    //val newVersion: Option[String] = Some(UUIDFactory.generateUUID())
+    val newVersion = Some(UUIDFactory.generateUUID())
+    val bsonSection = AssessmentScoresExercise.bsonHandler.write(exercisesScores.copy(version = newVersion))
+    saveExerciseOrFinalFeedback(applicationId, section, bsonSection, exercisesScores.version)
+  }
 
-    val applicationScoresBSON = exercisesScores.version match {
-      case Some(_) => BSONDocument(
-        s"${exercise.toString}" -> exercisesScores //.copy(version = newVersion)
-      )
-      case _ => BSONDocument(
-        "applicationId" -> applicationId,
-        s"${exercise.toString}" -> AssessmentScoresExercise.bsonHandler.write(exercisesScores) //exercisesScores.copy(version = newVersion))
+  def saveFinalFeedback(
+    applicationId: UniqueIdentifier,
+    finalFeedback: AssessmentScoresFinalFeedback): Future[Unit] = {
+
+    val newVersion = Some(UUIDFactory.generateUUID())
+    val bsonSection = AssessmentScoresFinalFeedback.bsonHandler.write(finalFeedback.copy(version = newVersion))
+    saveExerciseOrFinalFeedback(applicationId, AssessmentScoresSectionType.finalFeedback, bsonSection, finalFeedback.version)
+  }
+
+
+  def saveExerciseOrFinalFeedback(
+    applicationId: UniqueIdentifier,
+    section: AssessmentScoresSectionType.AssessmentScoresSectionType,
+    bsonSection: BSONDocument,
+    oldVersion: Option[String]): Future[Unit] = {
+
+    def buildQueryForSaveWithOptimisticLocking(applicationId: UniqueIdentifier,
+      exercise: AssessmentScoresSectionType.AssessmentScoresSectionType, version: Option[String]) = {
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationId" -> applicationId),
+        BSONDocument("$or" -> BSONArray(
+          BSONDocument(s"${exercise.toString}.version" -> BSONDocument("$exists" -> BSONBoolean(false))),
+          BSONDocument(s"${exercise.toString}.version" -> version))
+        ))
       )
     }
 
-    val updateBSON = BSONDocument("$set" -> applicationScoresBSON)
-    val validator = singleUpsertValidator(applicationId.toString(), actionDesc = s"saving assessment score for $exercise exercise")
-    collection.update(query, updateBSON, upsert = true) map validator
-  }
+    def buildUpdateForSaveWithOptimisticLocking(applicationId: UniqueIdentifier,
+      exercise: AssessmentScoresSectionType.AssessmentScoresSectionType, exerciseScoresBSON: BSONDocument, version: Option[String]) = {
+      val applicationScoresBSON = version match {
+        case Some(_) => BSONDocument(
+          s"${exercise.toString}" -> exerciseScoresBSON
+        )
+        case _ => BSONDocument(
+          "applicationId" -> applicationId.toString(),
+          s"${exercise.toString}" -> exerciseScoresBSON
+        )
+      }
+      BSONDocument("$set" -> applicationScoresBSON)
+    }
 
+    val query = buildQueryForSaveWithOptimisticLocking(applicationId, section, oldVersion)
+    val bsonExercise = bsonSection
+    val update = buildUpdateForSaveWithOptimisticLocking(applicationId, section, bsonExercise, oldVersion)
+    val validator = singleUpsertValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
+    collection.update(query, update, upsert = oldVersion.isEmpty) map validator
+  }
+  
   // This save method does not remove exercise subdocument when allExercisesScores's field are None
   def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
     val applicationId = allExercisesScores.applicationId.toString()

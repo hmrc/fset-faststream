@@ -44,7 +44,7 @@ trait AssessmentScoresController extends BaseController {
   def submitExercise() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[AssessmentScoresSubmitExerciseRequest] { submitRequest =>
-        val assessmentExerciseType = AssessmentExerciseType.withName(submitRequest.exercise)
+        val assessmentExerciseType = AssessmentScoresSectionType.withName(submitRequest.exercise)
         service.submitExercise(
           submitRequest.applicationId,
           assessmentExerciseType,
@@ -62,7 +62,7 @@ trait AssessmentScoresController extends BaseController {
   def saveExercise() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[AssessmentScoresSaveExerciseRequest] { submitRequest =>
-        val assessmentExerciseType = AssessmentExerciseType.withName(submitRequest.exercise)
+        val assessmentExerciseType = AssessmentScoresSectionType.withName(submitRequest.exercise)
         service.saveExercise(
           submitRequest.applicationId,
           assessmentExerciseType,

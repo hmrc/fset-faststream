@@ -19,7 +19,7 @@ package services.assessmentscores
 import factories.DateTimeFactory
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
 import model.{ ProgressStatuses, UniqueIdentifier }
-import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, AssessmentScoresCandidateSummary }
+import model.command.AssessmentScoresCommands.{ AssessmentScoresSectionType, AssessmentScoresFindResponse, AssessmentScoresCandidateSummary }
 import model.persisted.eventschedules.Event
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -57,28 +57,28 @@ trait AssessmentScoresService {
   }
 
   def saveExercise(applicationId: UniqueIdentifier,
-    assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
+    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
     newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(savedDate = Some(dateTimeFactory.nowLocalTimeZone)))
   }
 
   def submitExercise(applicationId: UniqueIdentifier,
-    assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
+    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
     newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone)))
   }
 
   private def saveOrSubmitExercise(applicationId: UniqueIdentifier,
-    assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
+    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
     newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     def updateAllExercisesWithExercise(oldAllExercisesScores: AssessmentScoresAllExercises,
       newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
       assessmentExerciseType match {
-        case AssessmentExerciseType.analysisExercise =>
+        case AssessmentScoresSectionType.analysisExercise =>
           oldAllExercisesScores.copy(analysisExercise = Some(newExerciseScoresWithSubmittedDate))
-        case AssessmentExerciseType.groupExercise =>
+        case AssessmentScoresSectionType.groupExercise =>
           oldAllExercisesScores.copy(groupExercise = Some(newExerciseScoresWithSubmittedDate))
-        case AssessmentExerciseType.leadershipExercise =>
+        case AssessmentScoresSectionType.leadershipExercise =>
           oldAllExercisesScores.copy(leadershipExercise = Some(newExerciseScoresWithSubmittedDate))
       }
     }
