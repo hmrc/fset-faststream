@@ -74,7 +74,7 @@ abstract class HomeController(
         for {
         page <- cachedData.application.map { implicit application =>
           cachedData match {
-            case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
+            case _ if isSiftEntered && (isEdip(cachedData) || isSdip(cachedData)) => displayPostOnlineTestsPage
             case _ if isPhase3TestsPassed => displayPostOnlineTestsPage
             case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
           }

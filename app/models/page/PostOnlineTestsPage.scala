@@ -25,6 +25,8 @@ import models.CachedData
 import models.page.DashboardPage.Flags
 import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
 import org.joda.time.{ DateTime, LocalTime }
+import play.twirl.api.Html
+import security.{ RoleUtils, Roles }
 
 
 object PostOnlineTestsStage extends Enumeration {
@@ -51,8 +53,6 @@ case class PostOnlineTestsPage(
       case _ => OTHER
   }
   // scalastyle:on
-
-  def toCachedData: CachedData = CachedData(userDataWithSchemes.user, Some(userDataWithSchemes.application))
 
   def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 

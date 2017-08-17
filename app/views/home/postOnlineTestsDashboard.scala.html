@@ -53,9 +53,9 @@
 
 @main_template(title = "Home", additionalJavascriptFilenames = List("siftProgress.js")) {
 
-    @commonSectionPostOnlineTests(page.toCachedData)
+    @commonSectionPostOnlineTests(page.userDataWithSchemes.toCachedData)
 
-    @sdipFaststreamBanner(page.toCachedData)
+    @sdipFaststreamBanner(page.userDataWithSchemes.toCachedData)
 
 @(page.stage) match {
 
@@ -92,37 +92,43 @@ case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
 
 case _ => {
 
-    <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.toCachedData)){disabled}" id="mainProgressPage">
+    <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.userDataWithSchemes.toCachedData)){disabled}" id="mainProgressPage">
         <div class="text">
-            <section>
-                <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.userDataWithSchemes.noSuccessfulSchemes} of your preferred schemes.</p>
-                <p>Check your scheme preferences, as the order may have changed.</p>
-                @if(SchemeWithdrawRole.isAuthorized(page.toCachedData)) {
-                    <div class="panel-indent" id="importantToProgress">
-                        <p><i class="fa fa-exclamation-triangle"></i>Important</p>
-                        <p><span>
-                            To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
-                            If
-                            you've changed your mind, you can <a href="@routes.WithdrawController.presentWithdrawScheme">withdraw from individual schemes</a>.
-                        </p>
-                    </div>
-                }
-                @for((schemeResult, index) <- page.userDataWithSchemes.successfulSchemes.zipWithIndex) {
-                    <section>
-                        <h3 class="bold-small">@getOrder(index + 1) preference</h3>
-                        <p>@{schemeResult.scheme.name}</p>
-                    </section>
-                }
-            </section>
+            @if(isSdip(page.userDataWithSchemes.toCachedData) || isEdip(page.userDataWithSchemes.toCachedData)) {
+                <section>
+                    <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage.</p>
+                </section>
 
-            @unsuccessfulSchemes
-            @withdrawnSchemes
+            } else {
+                <section>
+                    <p><i class="fa fa-check"></i>Congratulations, you're through to the next stage for @{page.userDataWithSchemes.noSuccessfulSchemes} of your preferred schemes.</p>
+                    <p>Check your scheme preferences, as the order may have changed.</p>
+                    @if(SchemeWithdrawRole.isAuthorized(page.userDataWithSchemes.toCachedData)) {
+                        <div class="panel-indent" id="importantToProgress">
+                            <p><i class="fa fa-exclamation-triangle"></i>Important</p>
+                            <p><span>
+                                To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
+                                If
+                                you've changed your mind, you can <a href="@routes.WithdrawController.presentWithdrawScheme">withdraw from individual schemes</a>.
+                            </p>
+                        </div>
+                    }
+                    @for((schemeResult, index) <- page.userDataWithSchemes.successfulSchemes.zipWithIndex) {
+                        <section>
+                            <h3 class="bold-small">@getOrder(index + 1) preference</h3>
+                            <p>@{schemeResult.scheme.name}</p>
+                        </section>
+                    }
+                </section>
 
+                @unsuccessfulSchemes
+                @withdrawnSchemes
+            }
         </div>
         <h2 class="heading-large">Next steps</h2>
         @siftProgress(page)
     </section>
-    @withdrawSection(page.toCachedData)
+    @withdrawSection(page.userDataWithSchemes.toCachedData)
 }
 
 }

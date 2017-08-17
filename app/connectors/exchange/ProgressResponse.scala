@@ -27,9 +27,7 @@ case class AssessmentCentre(
   scoresAccepted: Boolean = false,
   awaitingReevaluation: Boolean = false,
   passed: Boolean = false,
-  passedNotified: Boolean = false,
-  failed: Boolean = false,
-  failedNotified: Boolean = false
+  failed: Boolean = false
 )
 
 case class Phase1ProgressResponse(
