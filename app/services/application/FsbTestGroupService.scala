@@ -22,7 +22,6 @@ import model.exchange.ApplicationResult
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import repositories.application.{ FsbTestGroupRepository, GeneralApplicationMongoRepository }
 import repositories.{ SchemeRepository, SchemeYamlRepository }
-import repositories.application.FsbTestGroupRepository
 import services.events.EventsService
 
 import scala.concurrent.ExecutionContext.Implicits.global
