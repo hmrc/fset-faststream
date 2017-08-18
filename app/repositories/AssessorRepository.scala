@@ -32,6 +32,7 @@ import scala.concurrent.Future
 trait AssessorRepository {
 
   def find(userId: String): Future[Option[Assessor]]
+  def findAll: Future[List[Assessor]]
   def save(settings: Assessor): Future[Unit]
   def countSubmittedAvailability: Future[Int]
   def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]]
@@ -49,6 +50,12 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     )
 
     collection.find(query).one[Assessor]
+  }
+
+  def findAll: Future[List[Assessor]] = {
+    val query = BSONDocument()
+
+    collection.find(query).cursor[Assessor]().collect[List]()
   }
 
   def save(assessor: Assessor): Future[Unit] = {

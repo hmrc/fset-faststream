@@ -32,6 +32,7 @@ import scala.concurrent.Future
 
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
+  def findAll: Future[List[Event]]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
@@ -46,6 +47,12 @@ class EventsMongoRepository(implicit mongo: () => DB)
   def save(events: List[Event]): Future[Unit] = {
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
       .map(_ => ())
+  }
+
+  def findAll: Future[List[Event]] = {
+    val query = BSONDocument()
+
+    collection.find(query).cursor[Event]().collect[List]()
   }
 
   def getEvent(id: String): Future[Event] = {

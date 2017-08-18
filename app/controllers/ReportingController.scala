@@ -20,12 +20,14 @@ import connectors.AuthProviderClient
 import model.Commands._
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsWithId
+import model.persisted.eventschedules.Event
 import model.report._
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.{ ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
+import repositories.events.EventsMongoRepository
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -34,6 +36,9 @@ import scala.concurrent.Future
 
 object ReportingController extends ReportingController {
   val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
+  val assessorRepository: AssessorRepository = repositories.assessorRepository
+  val eventsRepository: EventsMongoRepository = repositories.eventsRepository
+  val assessorAllocationRepository: AssessorAllocationRepository = repositories.assessorAllocationRepository
   val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
   val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
@@ -45,6 +50,9 @@ object ReportingController extends ReportingController {
 trait ReportingController extends BaseController {
 
   val reportingRepository: ReportingRepository
+  val assessorRepository: AssessorRepository
+  val eventsRepository: EventsMongoRepository
+  val assessorAllocationRepository: AssessorAllocationRepository
   val contactDetailsRepository: contactdetails.ContactDetailsRepository
   val questionnaireRepository: QuestionnaireRepository
   val assessmentScoresRepository: AssessmentScoresRepository
@@ -84,6 +92,57 @@ trait ReportingController extends BaseController {
     }
     reportFut.map { report =>
       Ok(Json.toJson(report))
+    }
+  }
+
+  private def makeRow(values: Option[String]*) =
+    values.map { s =>
+      val ret = s.getOrElse(" ").replace("\r", " ").replace("\n", " ").replace("\"", "'")
+      "\"" + ret + "\""
+    }.mkString(",")
+
+  def assessorAllocationReport: Action[AnyContent] = Action.async { implicit request =>
+
+    import common.Joda._
+
+    val sortedEventsFut = eventsRepository.findAll.map(_.sortBy(_.date))
+
+    val reportRows = for {
+      allAssessors <- assessorRepository.findAll
+      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessors.map(_.userId)).map(_.groupBy(_.userId).mapValues(_.head))
+      sortedEvents <- sortedEventsFut
+      assessorAllocations <- assessorAllocationRepository.findAll.map(_.groupBy(_.id))
+    } yield for {
+      theAssessor <- allAssessors
+      theAssessorAuthProviderInfo = allAssessorsPersonalInfo(theAssessor.userId)
+      theAssessorAllocations = assessorAllocations.getOrElse(theAssessor.userId, Nil)
+    } yield {
+
+      val roleByDate = sortedEvents.map { event =>
+        theAssessorAllocations.find(_.eventId == event.id).map(_.allocatedAs.toString)
+      }
+
+      val assessorInfo = List(Some(s"${theAssessorAuthProviderInfo.firstName} ${theAssessorAuthProviderInfo.lastName}"),
+        Some(theAssessorAuthProviderInfo.roles.mkString(", ")), Some(theAssessor.skills.mkString(", ")),
+        Some(theAssessor.sifterSchemes.map(_.toString).mkString(", ")),
+        Some(theAssessorAuthProviderInfo.email), theAssessorAuthProviderInfo.phone,
+        Some(if (theAssessor.civilServant) { "Internal" } else { "External" }))
+
+      makeRow(
+        assessorInfo ++
+        roleByDate: _*
+      )
+    }
+
+    sortedEventsFut.flatMap { events =>
+      val orderedDates = events.map(event => s"${event.date} (${event.eventType.toString})").mkString(",")
+      val headers = List(
+        s"Name,Role,Skills,Sift schemes,Email,Phone,Internal/External,$orderedDates"
+      )
+
+      reportRows.map { rows =>
+        Ok(Json.toJson(headers ++ rows))
+      }
     }
   }
 
