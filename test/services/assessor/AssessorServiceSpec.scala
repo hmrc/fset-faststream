@@ -174,17 +174,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       result.successes mustBe updates.head :: Nil
     }
 
-    "return assessor to events mapping since a specified date" in new TestFixture with AssessorsEventsSummaryData {
-      when(mockEventService.getEventsCreatedAfter(any[DateTime])).thenReturn(Future(events))
-      when(mockAssessorRepository.findUnavailableAssessors(
-        eqTo(Seq(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1, a2)))
-      when(mockAssessorRepository.findUnavailableAssessors(
-        eqTo(Seq(SkillType.CHAIR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
-      when(mockAssessorRepository.findUnavailableAssessors(
-        eqTo(Seq(SkillType.ASSESSOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
-      when(mockAssessorRepository.findUnavailableAssessors(
-        eqTo(Seq(SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a2)))
-
+    "return assessor to events mapping since a specified date" in new AssessorsEventsSummaryFixture {
       val result = service.assessorToEventsMappingSince(DateTime.now).futureValue
       val resultKeys = result.keys.toList
       resultKeys.size mustBe assessorToEventsMapping.keys.toList.size
@@ -194,21 +184,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       }
     }
 
-    "notify assessors of new events" ignore new TestFixture with AssessorsEventsSummaryData {
-      // TODO: Verify that the email client gets called with the right arguments
-      when(mockEventService.getEventsCreatedAfter(any[DateTime])).thenReturn(Future(events))
-      when(service.findUnavailableAssessors(
-        eqTo(Seq(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1, a2)))
-      when(service.findUnavailableAssessors(
-        eqTo(Seq(SkillType.CHAIR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
-      when(service.findUnavailableAssessors(
-        eqTo(Seq(SkillType.ASSESSOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
-      when(service.findUnavailableAssessors(
-        eqTo(Seq(SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a2)))
-
-//      when(service.assessorToEventsMappingSince(any[DateTime])).thenReturn(Future(assessorToEventsMapping))
-      when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturn(Future(findByUserIdsResponse))
-
+    "notify assessors of new events" in new AssessorsEventsSummaryFixture {
       val result = service.notifyAssessorsOfNewEvents()(any[HeaderCarrier]).futureValue
       verify(mockemailClient, times(2)).notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])
     }
@@ -237,7 +213,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
   }
 
-  trait AssessorsEventsSummaryData {
+  trait AssessorsEventsSummaryFixture extends TestFixture {
 
     val e1 = Event(id = "eventId1", eventType = EventType.FSAC, description = "GCFS FSB", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
@@ -280,6 +256,18 @@ class AssessorServiceSpec extends BaseServiceSpec {
       a1 -> Seq(e1, e2, e3),
       a2 -> Seq(e1, e4)
     )
-  }
 
+    when(mockEventService.getEventsCreatedAfter(any[DateTime])).thenReturn(Future(events))
+    when(mockAssessorRepository.findUnavailableAssessors(
+      eqTo(Seq(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturnAsync(Seq(a1, a2))
+    when(mockAssessorRepository.findUnavailableAssessors(
+      eqTo(Seq(SkillType.CHAIR)), any[Location], any[LocalDate])).thenReturnAsync(Seq(a1))
+    when(mockAssessorRepository.findUnavailableAssessors(
+      eqTo(Seq(SkillType.ASSESSOR)), any[Location], any[LocalDate])).thenReturnAsync(Seq(a1))
+    when(mockAssessorRepository.findUnavailableAssessors(
+      eqTo(Seq(SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturnAsync(Seq(a2))
+    when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturnAsync(findByUserIdsResponse)
+    when(mockemailClient.notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
+
+  }
 }
