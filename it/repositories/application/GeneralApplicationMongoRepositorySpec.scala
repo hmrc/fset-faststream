@@ -658,6 +658,15 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       findFsacCandidatesCall.candidates must have size 10
     }
 
+    "return an empty item when all schemes are red" in {
+      createUnAllocatedFSBApplications(1,
+        List(
+          SchemeEvaluationResult("HumanResources", "Red"),
+          SchemeEvaluationResult("DigitalAndTechnology", "Red")
+        )).futureValue
+      findFsbCandidatesCall(SchemeId("DigitalAndTechnology")).candidates mustBe empty
+    }
+
     "return an empty item when there are no FSB eligible candidates for first residual preference" in {
       createUnAllocatedFSBApplications(1,
         List(
