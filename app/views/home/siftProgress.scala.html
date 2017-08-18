@@ -5,7 +5,9 @@
 @import security.RoleUtils._
 @import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 
+@import security.RoleUtils
 @(page: models.page.PostOnlineTestsPage)(implicit request: Request[_])
+@{implicit val cachedData = page.userDataWithSchemes.toCachedData}
 
 @renderSchemeForm = {
     <div class="inner-block-padr" id="schemeForms">
@@ -31,6 +33,7 @@
             }
         </ul>
     </div>
+
 }
 
 @renderNumericTest = {
@@ -83,7 +86,7 @@
 
         <div id="assessmentBlurb">
         @(page.fsacStage) match {
-            case (PostOnlineTestsStage.UPLOAD_EXERCISES) => {
+            case PostOnlineTestsStage.UPLOAD_EXERCISES => {
                 @renderEventDetails(page.fsacAllocation)
                 <section>
                     <p>You need to upload your written analysis exercise.</p>
@@ -101,13 +104,13 @@
                 </section>
                 @renderFindMoreAboutAssessmentDay
             }
-            case (PostOnlineTestsStage.CONFIRMED_FOR_EVENT) => {
+            case PostOnlineTestsStage.CONFIRMED_FOR_EVENT => {
                 <p>Your assessment centre is booked.</p>
                 @renderEventDetails(page.fsacAllocation)
                 @renderCannotAttend
                 @renderFindMoreAboutAssessmentDay
             }
-            case (PostOnlineTestsStage.ALLOCATED_TO_EVENT) => {
+            case PostOnlineTestsStage.ALLOCATED_TO_EVENT => {
                 <p>Confirm you can attend this assessment centre</p>
                 @renderEventDetails(page.fsacAllocation)
 
@@ -123,7 +126,7 @@
                 @renderCannotAttend
                 @renderFindMoreAboutAssessmentDay
             }
-            case (PostOnlineTestsStage.EVENT_ATTENDED) => {
+            case PostOnlineTestsStage.EVENT_ATTENDED => {
                 <p>Thanks for attending the assessment centre.</p>
                 <p>We'll contact you as soon as we've got your result. Keep an eye on your email inbox, including your junk mail.</p>
             }
@@ -137,56 +140,42 @@
 <br />
 }
 
+@renderExtraInfo = {
+    @if(page.userDataWithSchemes.isNumericOnly) {
+        @if(!isSiftComplete(page.userDataWithSchemes.toCachedData)) {
+            @renderNumericTest
+        } else {
+            @renderCompletedSectionOne
+        }
+    } else {
+        @if(isSiftEntered(page.userDataWithSchemes.toCachedData) && !isSiftComplete(page.userDataWithSchemes.toCachedData)) {
+            @if(page.userDataWithSchemes.hasFormRequirement) {
+                @renderSchemeForm
+            }
+            @if(page.userDataWithSchemes.hasNumericRequirement) {
+                @renderNumericTest
+            }
+        } else {
+            @renderCompletedSectionOne
+        }
+    }
+ }
+
  <section class="text">
     <ol class="step-by-step-coloured" id="nextStepsList">
-        @(page.userDataWithSchemes.hasFormRequirement, page.userDataWithSchemes.hasNumericRequirement) match {
-            case (true, true) => {
-                <li class="first-step">
-                    @if(isSiftEntered(page.toCachedData) && !isSiftComplete(page.toCachedData)) {
-                        @renderSchemeForm
-                        @renderNumericTest
-                    } else {
-                        @renderCompletedSectionOne
-                    }
-                </li>
+        @if(page.userDataWithSchemes.hasFormRequirement || page.userDataWithSchemes.hasNumericRequirement) {
+            <li class="first-step">
+                @renderExtraInfo
+            </li>
+            @if(page.userDataWithSchemes.requiresAssessmentCentre) {
                 <li class="second-step">
                     @renderAssessmentCentre
                 </li>
             }
-
-            case (true, false) => {
-                <li class="first-step">
-                    @if(isSiftEntered(page.toCachedData) && !isSiftComplete(page.toCachedData)) {
-                        @renderSchemeForm
-                    } else {
-                        @renderCompletedSectionOne
-                    }
-                </li>
-                <li class="second-step">
-                    @renderAssessmentCentre
-                </li>
-            }
-
-            case (false, true) => {
-                <li class="first-step">
-                    @if(isSiftReady(page.toCachedData) && !isSiftComplete(page.toCachedData)) {
-                        @renderNumericTest
-                    } else {
-                        @renderCompletedSectionOne
-                    }
-                </li>
-                <li class="second-step">
-                    @renderAssessmentCentre
-                </li>
-            }
-
-            case (false, false) => {
-                 <li class="first-step">
-                    @renderAssessmentCentre
-                </li>
-            }
-
-            case _ => {}
+        } else {
+            <li class="first-step">
+            @renderAssessmentCentre
+            </li>
         }
         <li class="fourth-step @activateByStep(page.fourthStepVisibility)">
             <div class="inner-block-padr">

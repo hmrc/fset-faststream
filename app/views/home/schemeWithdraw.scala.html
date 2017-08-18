@@ -27,9 +27,10 @@
                         'rows -> 5
                     )
                 </div>
+                <button id="submit" type="submit" name="action" value="@routes.WithdrawController.withdrawScheme()" class="button">Withdraw from scheme</button>
             </div>
 
-            <button id="submit" type="submit" name="action" value="@routes.WithdrawController.withdrawScheme()" class="button">Withdraw from scheme</button>
         }
     }
+    <a class="account-link" id="dashboardLink" href="@routes.HomeController.present()">Return to home page</a>
 }

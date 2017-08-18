@@ -26,6 +26,8 @@ import models.events.EventType
 import models.page.DashboardPage.Flags
 import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
 import org.joda.time.{ DateTime, LocalTime }
+import play.twirl.api.Html
+import security.{ RoleUtils, Roles }
 
 
 object PostOnlineTestsStage extends Enumeration {
@@ -60,8 +62,6 @@ case class PostOnlineTestsPage(
     case e if e.allocationUnconfirmed => ALLOCATED_TO_EVENT
     case _ => OTHER
   }
-
-  def toCachedData: CachedData = CachedData(userDataWithSchemes.user, Some(userDataWithSchemes.application))
 
   def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 
