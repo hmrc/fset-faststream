@@ -35,7 +35,7 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
 
     "findAll documents" in {
       repository.save(allocations).futureValue
-      repository.findAll.futureValue must contain theSameElementsAs allocations
+      repository.findAll().futureValue must contain theSameElementsAs allocations
     }
 
     "correctly retrieve single document" in {

@@ -49,7 +49,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
         repository.save(assessor).futureValue
       }
 
-      val result = repository.findAll.futureValue
+      val result = repository.findAll().futureValue
 
       result must contain (AssessorWithAvailabilities)
       result must contain (secondAssessor)
