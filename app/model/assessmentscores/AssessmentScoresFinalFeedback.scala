@@ -24,11 +24,10 @@ import repositories._
 
 case class AssessmentScoresFinalFeedback(
   feedback: String,
-  override val updatedBy: UniqueIdentifier,
+  updatedBy: UniqueIdentifier,
   acceptedDate: DateTime,
-  override val version: Option[String] = None
-) extends AssessmentScoresSection {
-}
+  version: Option[String] = None
+) extends AssessmentScoresSection
 
 object AssessmentScoresFinalFeedback {
   implicit val jsonFormat = Json.format[AssessmentScoresFinalFeedback]

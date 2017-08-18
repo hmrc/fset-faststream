@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.EventNotFoundException
+import model.Exceptions.{ EventNotFoundException, NotFoundException }
 import model.assessmentscores._
 import model.UniqueIdentifier
 import model.command.AssessmentScoresCommands._
@@ -48,14 +48,16 @@ trait AssessmentScoresController extends BaseController {
         service.submitExercise(
           submitRequest.applicationId,
           assessmentExerciseType,
-          submitRequest.scoresAndFeedback
+          submitRequest.scoresExercise
         ).map { _ =>
           val auditDetails = Map(
             "applicationId" -> submitRequest.applicationId.toString(),
             "exercise" -> assessmentExerciseType.toString,
-            UserIdForAudit -> submitRequest.scoresAndFeedback.updatedBy.toString())
+            UserIdForAudit -> submitRequest.scoresExercise.updatedBy.toString())
           auditService.logEvent(AssessmentScoresOneExerciseSubmitted, auditDetails)
-        }.map (_ => Ok)
+        }.map (_ => Ok).recover {
+          case e: NotFoundException => Conflict(e.getMessage)
+        }
       }
   }
 
@@ -66,14 +68,16 @@ trait AssessmentScoresController extends BaseController {
         service.saveExercise(
           submitRequest.applicationId,
           assessmentExerciseType,
-          submitRequest.scoresAndFeedback
+          submitRequest.scoresExercise
         ).map { _ =>
           val auditDetails = Map(
             "applicationId" -> submitRequest.applicationId.toString(),
             "exercise" -> assessmentExerciseType.toString,
-            UserIdForAudit -> submitRequest.scoresAndFeedback.updatedBy.toString())
+            UserIdForAudit -> submitRequest.scoresExercise.updatedBy.toString())
           auditService.logEvent(AssessmentScoresOneExerciseSaved, auditDetails)
-        }.map (_ => Ok)
+        }.map (_ => Ok).recover {
+          case e: NotFoundException => Conflict(e.getMessage)
+        }
       }
   }
 
@@ -94,7 +98,9 @@ trait AssessmentScoresController extends BaseController {
             UserIdForAudit -> submitRequest.finalFeedback.updatedBy.toString())
           auditService.logEvent(AssessmentScoresAllExercisesSubmitted, allExercisesAuditDetails)
 
-        }.map (_ => Ok)
+        }.map (_ => Ok).recover {
+          case e: NotFoundException => Conflict(e.getMessage)
+        }
       }
   }
 
@@ -107,7 +113,9 @@ trait AssessmentScoresController extends BaseController {
             "assessorId" -> scores.analysisExercise.map(_.updatedBy.toString).getOrElse("Unknown")
           )
           auditService.logEvent(AssessmentScoresAllExercisesSubmitted, auditDetails)
-        }.map(_ => Ok)
+        }.map(_ => Ok).recover {
+          case e: NotFoundException => Conflict(e.getMessage)
+        }
       }
   }
 

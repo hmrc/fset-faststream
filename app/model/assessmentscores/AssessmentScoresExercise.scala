@@ -41,10 +41,10 @@ case class AssessmentScoresExercise(
   analysisAndDecisionMakingAverage: Option[Double] = None,
   leadingAndCommunicatingAverage: Option[Double] = None,
   buildingProductiveRelationshipsAverage: Option[Double] = None,
-  override val updatedBy: UniqueIdentifier,
+  updatedBy: UniqueIdentifier,
   savedDate: Option[DateTime] = None,
   submittedDate: Option[DateTime] = None,
-  override val version: Option[String] = None
+  version: Option[String] = None
 ) extends AssessmentScoresSection {
   def isSubmitted = submittedDate.isDefined
 }

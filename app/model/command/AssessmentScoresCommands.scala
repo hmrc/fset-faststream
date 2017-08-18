@@ -55,7 +55,7 @@ object AssessmentScoresCommands {
   case class AssessmentScoresSubmitExerciseRequest(
     applicationId: UniqueIdentifier,
     exercise: String,
-    scoresAndFeedback: AssessmentScoresExercise
+    scoresExercise: AssessmentScoresExercise
   )
   object AssessmentScoresSubmitExerciseRequest {
     implicit val jsonFormat: Format[AssessmentScoresSubmitExerciseRequest] = Json.format[AssessmentScoresSubmitExerciseRequest]
@@ -70,7 +70,7 @@ object AssessmentScoresCommands {
     implicit val jsonFormat: Format[AssessmentScoresFinalFeedbackSubmitRequest] = Json.format[AssessmentScoresFinalFeedbackSubmitRequest]
   }
 
-  case class AssessmentScoresFindResponse(candidate: AssessmentScoresCandidateSummary, scoresAndFeedback: Option[AssessmentScoresAllExercises])
+  case class AssessmentScoresFindResponse(candidate: AssessmentScoresCandidateSummary, scoresAllExercises: Option[AssessmentScoresAllExercises])
   object AssessmentScoresFindResponse {
     implicit val jsonFormat: Format[AssessmentScoresFindResponse] = Json.format[AssessmentScoresFindResponse]
   }

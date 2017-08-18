@@ -20,8 +20,4 @@ import model.UniqueIdentifier
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-trait AssessmentScoresSection {
-  val updatedBy: UniqueIdentifier
-
-  val version: Option[String]
-}
+trait AssessmentScoresSection
