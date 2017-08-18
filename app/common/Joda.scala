@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package factories
+package common
 
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.LocalDate
 
-object ITDateTimeFactoryMock extends  DateTimeFactory {
-  val nowLocalTimeZone: DateTime = DateTime.now()
-  val nowLocalDate: LocalDate = LocalDate.now()
+object Joda {
+  implicit def dateTimeOrdering: Ordering[LocalDate] = Ordering.fromLessThan(_ isBefore _)
 }

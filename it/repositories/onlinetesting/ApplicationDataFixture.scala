@@ -1,6 +1,6 @@
 package repositories.onlinetesting
 
-import factories.{ DateTimeFactory, DateTimeFactoryMock }
+import factories.ITDateTimeFactoryMock
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{ Phase1TestProfile, Phase2TestGroup }
@@ -19,13 +19,13 @@ import repositories.CollectionNames
 trait ApplicationDataFixture {
   this: MongoRepositorySpec =>
 
-  def helperRepo = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
 
-  def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
+  def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock)
 
-  def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
+  def phase2TestRepo = new Phase2TestMongoRepository(ITDateTimeFactoryMock)
 
-  def phase3TestRepo = new Phase3TestMongoRepository(DateTimeFactory)
+  def phase3TestRepo = new Phase3TestMongoRepository(ITDateTimeFactoryMock)
 
   import ImplicitBSONHandlers._
 

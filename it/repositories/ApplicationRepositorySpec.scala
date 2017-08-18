@@ -17,9 +17,9 @@
 package repositories
 
 import config.MicroserviceAppConfig.cubiksGatewayConfig
-import factories.DateTimeFactoryMock
+import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.{ ApplicationRoute, EvaluationResults, ProgressStatuses }
+import model.{ ApplicationRoute, ProgressStatuses }
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
@@ -40,7 +40,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val collectionName = CollectionNames.APPLICATION
 
-  def applicationRepo = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
 
   def assistanceRepo = new AssistanceDetailsMongoRepository()
 

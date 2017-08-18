@@ -859,18 +859,12 @@ class GeneralApplicationMongoRepository(
     schemeId: Option[SchemeId]
   ): Future[CandidatesEligibleForEventResponse] = {
     val appStatus = eventType.applicationStatus
-
     val status = EventProgressStatuses.get(appStatus)
     val awaitingAllocation = status.awaitingAllocation.key
     val confirmedAllocation = status.allocationConfirmed.key
     val unconfirmedAllocation = status.allocationUnconfirmed.key
-
     val fsacConditions = BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
-
-    val fsbConditions = schemeId.map { s =>
-     BSONDocument("scheme-preferences.schemes.0" -> s.value)
-    }
-
+    val fsbConditions = schemeId.map { s => isFirstResidualPreference(s) }
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> appStatus),
       if (eventType == EventType.FSAC) fsacConditions else fsbConditions,
@@ -878,10 +872,8 @@ class GeneralApplicationMongoRepository(
       BSONDocument(s"progress-status.$confirmedAllocation" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.$unconfirmedAllocation" -> BSONDocument("$exists" -> false))
     ))
-
     collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
       val count = c.count
-
       if (count == 0) {
         Future.successful(CandidatesEligibleForEventResponse(List.empty, 0))
       } else {
@@ -892,11 +884,9 @@ class GeneralApplicationMongoRepository(
           "assistance-details.needsSupportAtVenue" -> true,
           "progress-status-timestamp" -> true
         )
-
         val ascending = JsNumber(1)
         // Eligible candidates should be sorted based on when they passed PHASE 3
         val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
-
         collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List]()
           .map { docList =>
             docList.map { doc =>

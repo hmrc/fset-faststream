@@ -18,6 +18,7 @@ package services.sift
 
 import common.FutureEx
 import factories.DateTimeFactory
+import model.EvaluationResults.Green
 import model.{ ProgressStatuses, SchemeId, SerialUpdateResult, SiftRequirement }
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
@@ -87,7 +88,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     } yield {
       val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
       val action = s"Sifting application for ${result.schemeId.value}"
-      val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => currentSchemeStatus.map(_.schemeId).contains(s))
+      val candidatesGreenSchemes = currentSchemeStatus.collect { case s if s.result == Green.toString => s.schemeId }
+      val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
       val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
       val mergedUpdate = Seq(
