@@ -38,8 +38,8 @@ object EventExamples {
 
   val e2 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSB, description = "ORAC",
     location = LocationLondon, venue = VenueLondon, date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
-    attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(),
-    sessions = List())
+    attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = DateTime.now,
+    skillRequirements = Map(), sessions = List())
 
   val e1Session1Id = UniqueIdentifier.randomUniqueIdentifier.toString()
   val session2Id = UniqueIdentifier.randomUniqueIdentifier.toString()

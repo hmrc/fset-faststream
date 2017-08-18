@@ -29,6 +29,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "find all events" in {
+      repository.save(EventExamples.EventsNew).futureValue
       val result = repository.findAll().futureValue
       result.size mustBe 5
       result must contain theSameElementsAs EventExamples.EventsNew

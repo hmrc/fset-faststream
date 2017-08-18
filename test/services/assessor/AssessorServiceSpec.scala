@@ -249,9 +249,9 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val assessors: Seq[Assessor] = Seq (a1, a2)
 
     val findByUserIdsResponse = Seq(
-      Candidate("Joe", "Bloggs", None, "joe.bloggs@test.com", "userId1"),
-      Candidate("John", "Bloggs", None, "john.bloggs@test.com", "userId2"),
-      Candidate("Bill", "Bloggs", None, "bill.bloggs@test.com", "userId3")
+      Candidate("Joe", "Bloggs", None, "joe.bloggs@test.com", None, "userId1", List("assessor")),
+      Candidate("John", "Bloggs", None, "john.bloggs@test.com", None, "userId2", List("assessor")),
+      Candidate("Bill", "Bloggs", None, "bill.bloggs@test.com", None, "userId3", List("assessor"))
     )
 
     val assessorToEventsMapping: Map[Assessor, Seq[Event]] = Map[Assessor, Seq[Event]](
