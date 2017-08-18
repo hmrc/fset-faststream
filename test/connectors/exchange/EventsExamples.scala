@@ -28,6 +28,7 @@ object EventsExamples {
   val Event1 = Event(
     UniqueIdentifier(UUID.randomUUID()),
     EventType.FSAC,
+    "",
     Location("London"),
     Venue("London FSAC", "London Test FSAC"),
     LocalDate.now,

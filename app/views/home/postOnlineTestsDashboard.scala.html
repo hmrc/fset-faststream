@@ -57,9 +57,7 @@
 
     @sdipFaststreamBanner(page.toCachedData)
 
-@(page.stage) match {
-
-case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
+@if(page.fsacStage == PostOnlineTestsStage.FAILED_TO_ATTEND || page.fsbStage == PostOnlineTestsStage.FAILED_TO_ATTEND) {
     <section class="section-border">
         <section class="text" data-successtop>
             <div id="unsuccessfulNoAttend">
@@ -88,10 +86,7 @@ case (PostOnlineTestsStage.FAILED_TO_ATTEND) => {
         </section>
 
     </section>
-}
-
-case _ => {
-
+} else {
     <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.toCachedData)){disabled}" id="mainProgressPage">
         <div class="text">
             <section>
@@ -125,5 +120,4 @@ case _ => {
     @withdrawSection(page.toCachedData)
 }
 
-}
 }

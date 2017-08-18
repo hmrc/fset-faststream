@@ -245,13 +245,10 @@ trait ApplicationClient {
     http.POST(s"$apiBaseUrl/allocation-status/confirm/$appId", "").map(_ => ())
   }
 
-  def candidateAllocationEventWithSession(
-    appId: UniqueIdentifier,
-    eventType: EventType
-  )(implicit hc: HeaderCarrier): Future[List[CandidateAllocationWithEvent]] = {
+  def candidateAllocationEventWithSession(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[List[CandidateAllocationWithEvent]] = {
     http.GET(
       s"$apiBaseUrl/candidate-allocations/sessions/findByApplicationId",
-      Seq("applicationId" -> appId.toString, "sessionEventType" -> eventType.toString)
+      Seq("applicationId" -> appId.toString)
     ).map( _.json.as[List[CandidateAllocationWithEvent]])
   }
 
