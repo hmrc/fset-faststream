@@ -162,5 +162,10 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = ???
 
-  override def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]) = ???
+  override def withdrawScheme(
+    applicationId: String,
+    schemeWithdraw: WithdrawScheme,
+    schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]) = ???
+
+  override def remove(applicationStatus: Option[String]): Future[Int] = ???
 }
