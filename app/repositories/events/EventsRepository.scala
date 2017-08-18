@@ -21,18 +21,18 @@ import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
-import reactivemongo.api.DB
+import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
-  def findAll: Future[List[Event]]
+  def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Event]]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
@@ -47,12 +47,6 @@ class EventsMongoRepository(implicit mongo: () => DB)
   def save(events: List[Event]): Future[Unit] = {
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
       .map(_ => ())
-  }
-
-  def findAll: Future[List[Event]] = {
-    val query = BSONDocument()
-
-    collection.find(query).cursor[Event]().collect[List]()
   }
 
   def getEvent(id: String): Future[Event] = {

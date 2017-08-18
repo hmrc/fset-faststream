@@ -40,7 +40,7 @@ import testkit.UnitWithAppSpec
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
 class ReportingControllerSpec extends UnitWithAppSpec {
@@ -283,15 +283,16 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "assessor allocation report" must {
     "return the allocation report when all data is present" in new TestFixture {
       val underTest = new TestableReportingController
-      when(mockEventsRepository.findAll).thenReturnAsync(
+      when(mockEventsRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
         List(
           EventExamples.e1,
           EventExamples.e2
         )
       )
-      when(mockAssessorRepository.findAll).thenReturnAsync(
+      when(mockAssessorRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
         List(
-          Assessor("userId1", None, List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR"), Nil, civilServant = false, Set.empty, AssessorStatus.CREATED)
+          Assessor("userId1", None, List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR"), Nil,
+            civilServant = false, Set.empty, AssessorStatus.CREATED)
         )
       )
       when(mockAuthProviderClient.findByUserIds(any[Seq[String]]())(any[HeaderCarrier])).thenReturnAsync(
@@ -301,7 +302,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           )
         )
       )
-      when(mockAssessorAllocationRepository.findAll).thenReturnAsync(
+      when(mockAssessorAllocationRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
         List(
           AssessorAllocation(
             "userId1", EventExamples.e1.id, AllocationStatuses.CONFIRMED, SkillType.ASSESSOR, "version1"

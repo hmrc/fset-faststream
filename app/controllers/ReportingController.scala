@@ -30,6 +30,7 @@ import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.{ EventsMongoRepository, EventsRepository }
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import scala.collection.breakOut
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -105,13 +106,13 @@ trait ReportingController extends BaseController {
 
     import common.Joda._
 
-    val sortedEventsFut = eventsRepository.findAll.map(_.sortBy(_.date))
+    val sortedEventsFut = eventsRepository.findAll().map(_.sortBy(_.date))
 
     val reportRows = for {
-      allAssessors <- assessorRepository.findAll
-      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessors.map(_.userId)).map(_.groupBy(_.userId).mapValues(_.head))
+      allAssessors <- assessorRepository.findAll()
+      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessors.map(_.userId)).map(_.map(x => x.userId -> x)(breakOut).toMap)
       sortedEvents <- sortedEventsFut
-      assessorAllocations <- assessorAllocationRepository.findAll.map(_.groupBy(_.id))
+      assessorAllocations <- assessorAllocationRepository.findAll().map(_.groupBy(_.id))
     } yield for {
       theAssessor <- allAssessors
       theAssessorAuthProviderInfo = allAssessorsPersonalInfo(theAssessor.userId)
