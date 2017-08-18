@@ -70,7 +70,6 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     saveExerciseOrFinalFeedback(applicationId, AssessmentScoresSectionType.finalFeedback, bsonSection, finalFeedback.version)
   }
 
-//scalastyle:off
   def saveExerciseOrFinalFeedback(
     applicationId: UniqueIdentifier,
     section: AssessmentScoresSectionType.AssessmentScoresSectionType,
@@ -113,16 +112,13 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     }
 
     val query = buildQueryForSaveWithOptimisticLocking(applicationId, section, oldVersion)
-    val bsonExercise = bsonSection
-    val update = buildUpdateForSaveWithOptimisticLocking(applicationId, section, bsonExercise, oldVersion)
+    val update = buildUpdateForSaveWithOptimisticLocking(applicationId, section, bsonSection, oldVersion)
     val validator = singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
     collection.update(query, update, upsert = oldVersion.isEmpty).map(validator).recover {
       case ex: Exception if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
         throw new NotFoundException(s"You are trying to update a version of a [$section] " +
           s"for application id [$applicationId] that has been updated already")
     }
-
-
   }
 
   // This save method does not remove exercise subdocument when allExercisesScores's field are None
