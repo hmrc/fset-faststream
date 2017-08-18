@@ -72,7 +72,8 @@ private object AppDependencies {
       "org.scalatestplus.play" %% "scalatestplus-play" % scalatestplus % scope,
       "org.pegdown" % "pegdown" % pegdown % scope,
       "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
-      "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % scope
+      "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % scope,
+      "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
     )
   }
 
