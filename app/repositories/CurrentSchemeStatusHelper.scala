@@ -70,11 +70,12 @@ trait CurrentSchemeStatusHelper {
   def firstResidualPreference(schemeId: SchemeId): BSONDocument = {
     BSONDocument("$where" ->
       s"""
-        |this.currentSchemeStatus.filter(
+        |var greens = this.currentSchemeStatus.filter(
         |   function(e){
         |     return e.result=="$Green"
         |   }
-        |)[0].schemeId=="$schemeId"
+        |);
+        |greens.length > 0 && greens[0].schemeId=="$schemeId";
       """.stripMargin)
   }
 
