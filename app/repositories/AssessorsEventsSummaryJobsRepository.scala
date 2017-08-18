@@ -28,7 +28,7 @@ import scala.concurrent.Future
 
 trait AssessorsEventsSummaryJobsRepository {
   def save(info: AssessorNewEventsJobInfo): Future[Unit]
-  def lastRun(): Future[AssessorNewEventsJobInfo]
+  def lastRun: Future[AssessorNewEventsJobInfo]
 }
 
 class AssessorsEventsSummaryJobsMongoRepository(implicit mongo: () => DB)
@@ -39,7 +39,7 @@ class AssessorsEventsSummaryJobsMongoRepository(implicit mongo: () => DB)
     collection.update(BSONDocument.empty, info, upsert = true).map(_ => ())
   }
 
-  def lastRun(): Future[AssessorNewEventsJobInfo] = {
+  def lastRun: Future[AssessorNewEventsJobInfo] = {
     collection.find(BSONDocument.empty).one[AssessorNewEventsJobInfo] map {
       case Some(info) => info
       case None => throw LastRunInfoNotFound("Unable to find the last run info")
