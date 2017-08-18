@@ -130,7 +130,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
       def withDefaultFields(event: Event) = {
           event.copy(id = "e1", createdAt = EventExamples.eventCreatedAt, sessions = event.sessions.map { session =>
               session.copy(id = "s1")
-            }
+            }, wasBulkUploaded = true
           )
       }
 

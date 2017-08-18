@@ -39,7 +39,7 @@ trait EventsRepository {
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
   def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]]
-  def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
+  def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -78,8 +78,8 @@ class EventsMongoRepository(implicit mongo: () => DB)
     collection.find(query).cursor[Event]().collect[List]()
   }
 
-  def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
-    val query = BSONDocument("createdAt" -> BSONDocument("$gte" -> dateTime.getMillis))
+  def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
+    val query = BSONDocument("createdAt" -> BSONDocument("$gte" -> dateTime.getMillis), "wasBulkUploaded" -> false)
     collection.find(query).cursor[Event]().collect[Seq]()
   }
 

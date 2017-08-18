@@ -37,7 +37,8 @@ case class Event(
   endTime: LocalTime,
   createdAt: DateTime,
   skillRequirements: Map[String, Int],
-  sessions: List[Session]
+  sessions: List[Session],
+  wasBulkUploaded: Boolean = false
 )
 
 object Event {

@@ -123,7 +123,8 @@ trait EventsConfigRepository {
           configItem.endTime,
           DateTime.now,
           configItem.skillRequirements,
-          configItem.sessions.map(s => Session(s))
+          configItem.sessions.map(s => Session(s)),
+          wasBulkUploaded = true
       )
       eventItemFuture.recover {
         case ex => throw new Exception(

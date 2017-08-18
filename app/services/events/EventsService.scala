@@ -99,7 +99,7 @@ trait EventsService {
   }
 
   def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
-    eventsRepo.getEventsCreatedAfter(dateTime)
+    eventsRepo.getEventsManuallyCreatedAfter(dateTime)
   }
 
   def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes

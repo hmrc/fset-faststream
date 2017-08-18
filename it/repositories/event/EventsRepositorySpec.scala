@@ -122,10 +122,14 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
       // this helps us create events at random hours rather using just one
       def randomHour = 1 + new Random().nextInt( (hoursInPast - 1) + 1 )
+
+      val bulkInsertedEvent = EventExamples.e1WithSession.copy(createdAt = createdAt.plusHours(randomHour), wasBulkUploaded = true)
+      repository.save(List(bulkInsertedEvent)).futureValue mustBe unit
+
       val newEvents = EventExamples.EventsNew.map(_.copy(createdAt = createdAt.plusHours(randomHour)))
       repository.save(newEvents).futureValue mustBe unit
 
-      val result = repository.getEventsCreatedAfter(createdAt.plusMinutes(1)).futureValue
+      val result = repository.getEventsManuallyCreatedAfter(createdAt.plusMinutes(1)).futureValue
       result mustBe newEvents
     }
   }

@@ -178,7 +178,9 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val result = service.assessorToEventsMappingSince(DateTime.now).futureValue
       val resultKeys = result.keys.toList
       resultKeys.size mustBe assessorToEventsMapping.keys.toList.size
-      resultKeys.foreach(assessorToEventsMapping.keys.toList.contains)
+      resultKeys.foreach { key =>
+        assessorToEventsMapping.keys.toList.contains(key) mustBe true
+      }
       result.foreach{ case (assessor, assessorEvents) =>
         assessorEvents mustBe assessorToEventsMapping(assessor)
       }
