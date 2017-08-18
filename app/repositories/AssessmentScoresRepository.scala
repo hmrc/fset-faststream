@@ -23,7 +23,6 @@ import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
-import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -58,16 +57,6 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     exercisesScores: AssessmentScoresExercise): Future[Unit] = {
 
     val newVersion = Some(UUIDFactory.generateUUID())
-    //scalastyle:off
-    println("------------------------------------------------------------")
-    println(s"--------Repository.saveExercise: ")
-    println(s"-----------PARAM: appId=$applicationId")
-    println(s"-----------PARAM: section=${section.toString}")
-    println(s"-----------PARAM oldVersion=${exercisesScores.version}")
-    println(s"-----------WILL SAVE: newVersion=$newVersion")
-    println("------------------------------------------------------------")
-    //scalastyle:on
-
     val bsonSection = AssessmentScoresExercise.bsonHandler.write(exercisesScores.copy(version = newVersion))
     saveExerciseOrFinalFeedback(applicationId, section, bsonSection, exercisesScores.version)
   }
@@ -77,18 +66,6 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     finalFeedback: AssessmentScoresFinalFeedback): Future[Unit] = {
 
     val newVersion = Some(UUIDFactory.generateUUID())
-
-    //scalastyle:off
-    println("------------------------------------------------------------")
-    println(s"--------Repository.saveFinalFeedback: ")
-    println(s"-----------PARAM: appId=$applicationId")
-    println(s"-----------PARAM: section=finalfeedback")
-    println(s"-----------PARAM oldVersion=${finalFeedback.version}")
-    println(s"-----------WILL SAVE: newVersion=$newVersion")
-    println("------------------------------------------------------------")
-    //scalastyle:on
-
-
     val bsonSection = AssessmentScoresFinalFeedback.bsonHandler.write(finalFeedback.copy(version = newVersion))
     saveExerciseOrFinalFeedback(applicationId, AssessmentScoresSectionType.finalFeedback, bsonSection, finalFeedback.version)
   }
@@ -100,32 +77,8 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     bsonSection: BSONDocument,
     oldVersion: Option[String]): Future[Unit] = {
 
-    //scalastyle:off
-    println("-----------------------------------------")
-    println("-----  saveExerciseOrFinalFeedback ------")
-    println("-----------------------------------------")
-    println(s"--- section=${section.toString}")
-    println(s"--- oldVersion=${oldVersion}")
-    println(s"----oldVersion.isEmpty=${oldVersion.isEmpty}")
-    println("-----------------------------------------")
-    //scalastyle:on
-
-
     def buildQueryForSaveWithOptimisticLocking(applicationId: UniqueIdentifier,
       section: AssessmentScoresSectionType.AssessmentScoresSectionType, version: Option[String]) = {
-      //scalastyle:off
-      println("-----------------------------------------")
-
-      println("buildQueryForSaveWithOptimisticLocking")
-      println(s"version=$version")
-      println(s"section.toString=${section.toString}")
-      println(s"section=${section}")
-      println("-----------------------------------------")
-      //scalastyle:on
-
-
-      //val versionString = version.map(_.toString)
-      //val versionBSON = versionString.map(v => BSONDocument(s"${section}.version" -> v)).getOrElse(BSONDocument.empty)
 
       def getVersionBSON(versionOpt: Option[String]): BSONDocument = {
         versionOpt match {
@@ -139,8 +92,6 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
         }
       }
 
-      //println(s"versionBSON=${versionBSON}")
-      //println("-----------------------------------------")
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationId" -> applicationId),
         getVersionBSON(version)
@@ -167,10 +118,6 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     val validator = singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
     collection.update(query, update, upsert = oldVersion.isEmpty).map(validator).recover {
       case ex: Exception if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
-        //scalastyle:off
-        println(s"-----------------ex.getMessage=[${ex.getMessage}]")
-        //scalastyle:on
-        //if ex.getMessage().startsWith("E11000 duplicate key error collection") && oldVersion.isEmpty =>
         throw new NotFoundException(s"You are trying to update a version of a [$section] " +
           s"for application id [$applicationId] that has been updated already")
     }
@@ -189,21 +136,7 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
 
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     val query = BSONDocument("applicationId" -> applicationId.toString())
-    val result = collection.find(query).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
-    result.map(rr => {
-      //scalastyle:off
-      println("---------------------------------------")
-      println("----- repository.find -----------------")
-      println(s"-------PARAM: applicationId=$applicationId---")
-      //      println(s"-------rr=$rr")
-//      println(s"-----rr.analysisExercise.version=${rr.map(_.analysisExercise.map(_.version))}")
-      println(s"-------RETURN: rr.groupExercise.version=${rr.map(_.groupExercise.map(_.version))}")
-//      println(s"-----rr.leadershipExercise.version=${rr.map(_.leadershipExercise.map(_.version))}")
-      println(s"-------RETURN: rr.finalFeedback.version=${rr.map(_.finalFeedback.map(_.version))}")
-      println("--------------------------------")
-      //scalastyle:on)
-      rr
-    })
+    collection.find(query).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 
   def findAll: Future[List[AssessmentScoresAllExercises]] = {
