@@ -16,7 +16,7 @@
 
 package repositories.application
 
-import factories.{ DateTimeFactory, DateTimeFactoryMock, UUIDFactory }
+import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.ApplicationStatus._
 import model.exchange.CandidatesEligibleForEventResponse
 import model.{ ApplicationStatus, Candidate, _ }
@@ -41,9 +41,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
-  def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
-  def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
+  def repository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock)
+  def phase2TestRepo = new Phase2TestMongoRepository(ITDateTimeFactoryMock)
   def testDataRepo = new TestDataMongoRepository()
 
   "General Application repository" should {
@@ -634,30 +634,63 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-  private def findCandidatesCall = repository.findCandidatesEligibleForEventAllocation(List("London"), EventType.FSAC, None).futureValue
+  private def findFsacCandidatesCall = repository.findCandidatesEligibleForEventAllocation(List("London"), EventType.FSAC, None).futureValue
+
+  private def findFsbCandidatesCall(scheme: SchemeId) = {
+    repository.findCandidatesEligibleForEventAllocation(List("London"), EventType.FSB, Some(scheme)).futureValue
+  }
+
   "Find candidates eligible for event allocation" should {
-    "return an empty list when there are no applications" in {
-      createUnAllocatedApplications(0).futureValue
-      val result = findCandidatesCall
+    "return an empty list when there are no FSAC applications" in {
+      createUnAllocatedFSACApplications(0).futureValue
+      val result = findFsacCandidatesCall
       result mustBe a[CandidatesEligibleForEventResponse]
       result.candidates mustBe empty
     }
 
-    "return an empty list when there are no eligible candidates" in {
+    "return an empty list when there are no FSAC eligible candidates" in {
       testDataRepo.createApplications(10).futureValue
-      findCandidatesCall.candidates mustBe empty
+      findFsacCandidatesCall.candidates mustBe empty
     }
 
-    "return a ten item list when there are eligible candidates" in {
-      createUnAllocatedApplications(10).futureValue
-      findCandidatesCall.candidates must have size 10
+    "return a ten item list when there are FSAC eligible candidates" in {
+      createUnAllocatedFSACApplications(10).futureValue
+      findFsacCandidatesCall.candidates must have size 10
+    }
+
+    "return an empty item when all schemes are red" in {
+      createUnAllocatedFSBApplications(1,
+        List(
+          SchemeEvaluationResult("HumanResources", "Red"),
+          SchemeEvaluationResult("DigitalAndTechnology", "Red")
+        )).futureValue
+      findFsbCandidatesCall(SchemeId("DigitalAndTechnology")).candidates mustBe empty
+    }
+
+    "return an empty item when there are no FSB eligible candidates for first residual preference" in {
+      createUnAllocatedFSBApplications(1,
+        List(
+          SchemeEvaluationResult("HumanResources", "Green"),
+          SchemeEvaluationResult("DigitalAndTechnology", "Green")
+        )).futureValue
+      findFsbCandidatesCall(SchemeId("DigitalAndTechnology")).candidates mustBe empty
+    }
+
+    "return an item when there are FSB eligible candidates" in {
+      createUnAllocatedFSBApplications(1,
+        List(
+          SchemeEvaluationResult("HumanResources", "Red"),
+          SchemeEvaluationResult("DigitalAndTechnology", "Green")
+        )).futureValue
+
+      findFsbCandidatesCall(SchemeId("DigitalAndTechnology")).candidates must have size 1
     }
   }
 
   "reset application status" should {
     "set progress status to awaiting allocation" in {
-      createUnAllocatedApplications(10).futureValue
-      val unallocatedCandidates = findCandidatesCall.candidates
+      createUnAllocatedFSACApplications(10).futureValue
+      val unallocatedCandidates = findFsacCandidatesCall.candidates
       unallocatedCandidates.size mustBe 10
 
       val (candidatesToAllocate, _) = unallocatedCandidates.splitAt(4)
@@ -668,7 +701,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           candidate.applicationId,
           ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED).futureValue
       }
-      findCandidatesCall.candidates.size mustBe 6
+      findFsacCandidatesCall.candidates.size mustBe 6
 
       // reset the allocated candidates
       val result = candidatesToAllocate.map(_.applicationId).foreach {
@@ -676,34 +709,44 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       }
       result mustBe unit
 
-      val eligibleCandidatesAfterReset = findCandidatesCall.candidates
+      val eligibleCandidatesAfterReset = findFsacCandidatesCall.candidates
       eligibleCandidatesAfterReset.size mustBe 10
     }
   }
 
-  private def createUnAllocatedApplications(num: Int): Future[Unit] = {
+  private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
-    createApplications(num, additionalProgressStatuses)
+    createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)
   }
 
-  private def createAllocatedApplications(num: Int): Future[Unit] = {
+  private def createAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED -> true)
-    createApplications(num, additionalProgressStatuses)
+    createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)
   }
 
-  private def createApplications(num: Int, additionalProgressStatuses: List[(ProgressStatus, Boolean)]): Future[Unit] = {
+  private def createUnAllocatedFSBApplications(num: Int, schemes: List[SchemeEvaluationResult]): Future[Unit] = {
+    val additionalProgressStatuses = List(ProgressStatuses.FSB_AWAITING_ALLOCATION -> true)
+    createApplications(num, ApplicationStatus.FSB, additionalProgressStatuses, schemes)
+  }
+
+  private def createApplications(
+    num: Int,
+    appStatus1: ApplicationStatus,
+    additionalProgressStatuses: List[(ProgressStatus, Boolean)],
+    schemes: List[SchemeEvaluationResult] = List.empty): Future[Unit] = {
     val additionalDoc = BSONDocument(
       "fsac-indicator" -> BSONDocument(
         "area" -> "London",
         "assessmentCentre" -> "London",
         "version" -> "1"
-      )
+      ),
+      "currentSchemeStatus" -> schemes
     )
 
     Future.sequence(
       (0 until num).map { i =>
         testDataRepo.createApplicationWithAllFields(
-          UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = ApplicationStatus.ASSESSMENT_CENTRE,
+          UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = appStatus1,
           firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d"),
           additionalDoc = additionalDoc, additionalProgressStatuses = additionalProgressStatuses
         )

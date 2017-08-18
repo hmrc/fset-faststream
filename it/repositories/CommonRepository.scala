@@ -87,6 +87,20 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     )
   }
 
+  def insertApplicationWithPhase1TestNotifiedResults(appId: String, results: List[SchemeEvaluationResult],
+    videoInterviewScore: Option[Double] = None,
+    appRoute: ApplicationRoute = ApplicationRoute.Sdip
+  ): Future[Unit] = {
+    val phase1PassMarkEvaluation = PassmarkEvaluation("", Some(""), results, "", Some(""))
+
+    val cubiksTests = phase3TestWithResults(videoInterviewScore).activeTests
+    insertApplication(appId, ApplicationStatus.PHASE1_TESTS, None, None, Some(cubiksTests), applicationRoute = Some(appRoute))
+
+    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
+
+    updateApplicationStatus(appId, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+  }
+
   def insertApplicationWithPhase2TestResults(appId: String, etray: Double,
     phase1PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
