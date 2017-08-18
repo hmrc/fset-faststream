@@ -200,9 +200,7 @@ trait AssessorService {
     assessorEventsMapping
   }
 
-  def notifyAssessorsOfNewEvents()(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
-    val lastNotificationDate = DateTime.now // TODO: Change this or perhaps take in as an argument
-
+  def notifyAssessorsOfNewEvents(lastNotificationDate: DateTime)(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
     val assessorEventsMapping: Future[Map[Assessor, Seq[Event]]] = assessorToEventsMappingSince(lastNotificationDate)
     assessorEventsMapping.flatMap { assessorToEvent =>
       val assessorsIds = assessorToEvent.keySet.map(_.userId).toSeq

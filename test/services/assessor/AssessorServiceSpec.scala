@@ -185,7 +185,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
 
     "notify assessors of new events" in new AssessorsEventsSummaryFixture {
-      val result = service.notifyAssessorsOfNewEvents()(any[HeaderCarrier]).futureValue
+      val result = service.notifyAssessorsOfNewEvents(DateTime.now)(any[HeaderCarrier]).futureValue
       verify(mockemailClient, times(2)).notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])
     }
   }
