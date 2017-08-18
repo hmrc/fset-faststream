@@ -33,7 +33,7 @@ trait AssessorsEventsSummaryJobsService {
     repository.save(info)
   }
 
-  def lastRun: Future[AssessorNewEventsJobInfo] = {
+  def lastRun: Future[Option[AssessorNewEventsJobInfo]] = {
     repository.lastRun
   }
 }

@@ -19,7 +19,7 @@ class AssessorsEventsSummaryJobsRepositorySpec extends MongoRepositorySpec {
         repository.save(AssessorNewEventsJobInfo(dateTime)).futureValue mustBe unit
       }
 
-      repository.lastRun.futureValue mustBe AssessorNewEventsJobInfo(futureTime)
+      repository.lastRun.futureValue mustBe Option(AssessorNewEventsJobInfo(futureTime))
     }
   }
 }

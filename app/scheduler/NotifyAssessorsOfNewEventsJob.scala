@@ -35,18 +35,25 @@ object NotifyAssessorsOfNewEventsJob extends NotifyAssessorsOfNewEventsJob {
 trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   def assessorService: AssessorService
   def assessorsEventsSummaryJobsService: AssessorsEventsSummaryJobsService
+  val TIMESPAN = 24
 
-  def shouldRun(lastRun: DateTime, now: DateTime): Boolean = {
-    val duration = new Duration(lastRun, now)
-    duration.getStandardHours >= 24
+  def shouldRun(lastRun: DateTime, now: DateTime, isFirstJob: Boolean): Boolean = {
+    if(isFirstJob) {
+      true
+    } else {
+      val duration = new Duration(lastRun, now)
+      duration.getStandardHours >= TIMESPAN
+    }
   }
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = new HeaderCarrier()
     for {
-      lastRunInfo <- assessorsEventsSummaryJobsService.lastRun
+      lastRunInfoOpt <- assessorsEventsSummaryJobsService.lastRun
       newLastRun = AssessorNewEventsJobInfo(DateTime.now)
-      _ <- assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun) if shouldRun(lastRunInfo.lastRun, newLastRun.lastRun)
+      lastRunInfo = lastRunInfoOpt.getOrElse(newLastRun)
+      isFirstJob = lastRunInfoOpt.isEmpty
+      _ <- assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun) if shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
       _ <- assessorsEventsSummaryJobsService.save(newLastRun)
     } yield {}
   }
