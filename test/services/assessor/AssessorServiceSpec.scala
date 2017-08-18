@@ -176,13 +176,13 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
     "return assessor to events mapping since a specified date" in new TestFixture with AssessorsEventsSummaryData {
       when(mockEventService.getEventsCreatedAfter(any[DateTime])).thenReturn(Future(events))
-      when(service.findUnavailableAssessors(
+      when(mockAssessorRepository.findUnavailableAssessors(
         eqTo(Seq(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1, a2)))
-      when(service.findUnavailableAssessors(
+      when(mockAssessorRepository.findUnavailableAssessors(
         eqTo(Seq(SkillType.CHAIR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
-      when(service.findUnavailableAssessors(
+      when(mockAssessorRepository.findUnavailableAssessors(
         eqTo(Seq(SkillType.ASSESSOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a1)))
-      when(service.findUnavailableAssessors(
+      when(mockAssessorRepository.findUnavailableAssessors(
         eqTo(Seq(SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturn(Future(Seq(a2)))
 
       val result = service.assessorToEventsMappingSince(DateTime.now).futureValue
