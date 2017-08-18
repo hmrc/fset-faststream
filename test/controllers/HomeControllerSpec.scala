@@ -18,15 +18,12 @@ package controllers
 
 import java.time.LocalDateTime
 
-import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples, SiftClient }
-import connectors.exchange.referencedata.{ Scheme, SchemeId }
-import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
+import connectors.exchange.referencedata.SchemeId
+import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound }
 import connectors.exchange.sift.SiftAnswersStatus
-import connectors.exchange.{ AssistanceDetailsExamples, EventsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
-import forms.WithdrawApplicationFormExamples
-import models.ApplicationData.ApplicationStatus
+import connectors.exchange.{ AssistanceDetailsExamples, EventsExamples, SchemeEvaluationResult }
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
 import models._
@@ -36,10 +33,9 @@ import play.api.libs.Files
 import testkit.MockitoImplicits._
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.MultipartFormData.FilePart
-import play.api.mvc.{ AnyContent, Flash, MultipartFormData, Request }
+import play.api.mvc.{ AnyContent, MultipartFormData, Request }
 import play.api.test.Helpers._
-import play.test.Helpers
-import security.{ SilhouetteComponent, UserCacheService, UserService }
+import security.{ SilhouetteComponent, UserCacheService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -47,14 +43,9 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import java.io.File
 import java.nio.file.Path
-import java.util.UUID
 
-import connectors.events.{ Event, Location, Session, Venue }
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import models.events.{ AllocationStatuses, EventType }
-import org.joda.time.{ LocalDate, LocalTime }
-import play.api.Logger
-import play.api.i18n.Messages.Message
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 class HomeControllerSpec extends BaseControllerSpec {
@@ -167,7 +158,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
 
-      content must include("Congratulations, you&#x27;ve been succcessful for the Early Diversity Internship Programme (EDIP).")
+      content must include("Congratulations, you're through to the next stage")
       content mustNot include("Your application has been withdrawn.")
     }
 
@@ -176,7 +167,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
 
-      content must include("Congratulations, you&#x27;ve been succcessful for the Summer Diversity Internship Programme (SDIP).")
+      content must include("Congratulations, you're through to the next stage")
       content mustNot include("Your application has been withdrawn.")
     }
 
@@ -186,7 +177,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
 
       content must include("Your application has been withdrawn.")
-      content must include("Congratulations, you&#x27;ve been succcessful for the Early Diversity Internship Programme (EDIP).")
+      content must include("Congratulations, you're through to the next stage")
     }
 
     "display sdip final results page for withdrawn application" in new EdipAndSdipTestFixture {
@@ -195,7 +186,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
 
       content must include("Your application has been withdrawn.")
-      content must include("Congratulations, you&#x27;ve been succcessful for the Summer Diversity Internship Programme (SDIP).")
+      content must include("Congratulations, you're through to the next stage")
     }
 
     "display fast pass rejected message" in new TestFixture {
