@@ -165,7 +165,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
     protected def mockAuthProviderFindByUserIds(userId: String*): Unit = userId.foreach { uid =>
       when(mockAuthProviderClient.findByUserIds(eqTo(Seq(uid)))(any[HeaderCarrier]())).thenReturnAsync(
         Seq(
-          Candidate("Bob " + uid, "Smith", None, "bob@mailinator.com", uid)
+          Candidate("Bob " + uid, "Smith", None, "bob@mailinator.com", None, uid, List("candidate"))
         )
       )
     }

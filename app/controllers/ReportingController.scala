@@ -27,7 +27,7 @@ import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.{ ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
-import repositories.events.EventsMongoRepository
+import repositories.events.{ EventsMongoRepository, EventsRepository }
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -37,7 +37,7 @@ import scala.concurrent.Future
 object ReportingController extends ReportingController {
   val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
   val assessorRepository: AssessorRepository = repositories.assessorRepository
-  val eventsRepository: EventsMongoRepository = repositories.eventsRepository
+  val eventsRepository: EventsRepository = repositories.eventsRepository
   val assessorAllocationRepository: AssessorAllocationRepository = repositories.assessorAllocationRepository
   val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
@@ -51,7 +51,7 @@ trait ReportingController extends BaseController {
 
   val reportingRepository: ReportingRepository
   val assessorRepository: AssessorRepository
-  val eventsRepository: EventsMongoRepository
+  val eventsRepository: EventsRepository
   val assessorAllocationRepository: AssessorAllocationRepository
   val contactDetailsRepository: contactdetails.ContactDetailsRepository
   val questionnaireRepository: QuestionnaireRepository
@@ -119,7 +119,9 @@ trait ReportingController extends BaseController {
     } yield {
 
       val roleByDate = sortedEvents.map { event =>
-        theAssessorAllocations.find(_.eventId == event.id).map(_.allocatedAs.toString)
+        theAssessorAllocations.find(_.eventId == event.id).map(allocation =>
+          s"${allocation.allocatedAs.toString} (${allocation.status.toString})"
+        )
       }
 
       val assessorInfo = List(Some(s"${theAssessorAuthProviderInfo.firstName} ${theAssessorAuthProviderInfo.lastName}"),
