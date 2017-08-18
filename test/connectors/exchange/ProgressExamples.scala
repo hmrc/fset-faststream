@@ -101,8 +101,7 @@ object ProgressExamples {
       scoresEntered = true,
       scoresAccepted = true,
       awaitingReevaluation = true,
-      passed = true,
-      passedNotified = true
+      passed = true
     )
   )
 
@@ -157,7 +156,7 @@ object ProgressExamples {
     exported = false,
     updateExported = false,
     assessmentCentre = AssessmentCentre(scoresEntered = true, scoresAccepted = true, awaitingReevaluation = true,
-      passed = true, passedNotified = true)
+      passed = true)
   )
 
 
