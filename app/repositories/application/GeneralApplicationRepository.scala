@@ -864,7 +864,7 @@ class GeneralApplicationMongoRepository(
     val confirmedAllocation = status.allocationConfirmed.key
     val unconfirmedAllocation = status.allocationUnconfirmed.key
     val fsacConditions = BSONDocument("fsac-indicator.assessmentCentre" -> BSONDocument("$in" -> locations))
-    val fsbConditions = schemeId.map { s => firstResidualPreference(s) }
+    val fsbConditions = schemeId.map { s => isFirstResidualPreference(s) }
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> appStatus),
       if (eventType == EventType.FSAC) fsacConditions else fsbConditions,

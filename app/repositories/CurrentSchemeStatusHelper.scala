@@ -67,7 +67,7 @@ trait CurrentSchemeStatusHelper {
     }
   }
 
-  def firstResidualPreference(schemeId: SchemeId): BSONDocument = {
+  def isFirstResidualPreference(schemeId: SchemeId): BSONDocument = {
     BSONDocument("$where" ->
       s"""
         |var greens = this.currentSchemeStatus.filter(
