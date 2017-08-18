@@ -14,6 +14,7 @@
 
 GET     /candidate-application/test-data-generator/ping                             controllers.testdata.TestDataGeneratorController.ping
 GET     /candidate-application/test-data-generator/clear-database                   controllers.testdata.TestDataGeneratorController.clearDatabase(generateDefaultUsers: Boolean ?= true)
+POST    /candidate-application/test-data-generator/clear-candidates                 controllers.testdata.TestDataGeneratorController.clearCandidates
 GET     /candidate-application/test-data-generator/create-admin-users               controllers.testdata.TestDataGeneratorController.createAdmins(numberToGenerate: Int, emailPrefix: Option[String] ?= None, roles: List[String] ?= List("tech-admin"))
 POST    /candidate-application/test-data-generator/create-candidates                controllers.testdata.TestDataGeneratorController.createCandidatesPOST(numberToGenerate: Int)
 POST    /candidate-application/test-data-generator/create-admin                     controllers.testdata.TestDataGeneratorController.createAdminsPOST(numberToGenerate: Int)

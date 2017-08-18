@@ -144,6 +144,9 @@ trait GeneralApplicationRepository {
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
 
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
+
+  def remove(applicationStatus: Option[String]): Future[Int]
+
 }
 
 // scalastyle:off number.of.methods
@@ -905,6 +908,12 @@ class GeneralApplicationMongoRepository(
 
   override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = {
     replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
+  }
+
+  override def remove(applicationStatus: Option[String]): Future[Int] = {
+    val query = applicationStatus.map(as => BSONDocument("applicationStatus" -> as)).getOrElse(BSONDocument())
+
+    collection.remove(query).map(_.n)
   }
 
   import ProgressStatuses._
