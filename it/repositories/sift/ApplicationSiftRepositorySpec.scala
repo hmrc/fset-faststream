@@ -7,10 +7,8 @@ import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
 import model.command.ApplicationForSift
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import org.scalacheck.Gen
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.TableDrivenPropertyChecks
-import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2EvaluationMongoRepositorySpec.phase2TestWithResult
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.{ MockitoSugar, MongoRepositorySpec }
@@ -97,7 +95,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   "findApplicationsReadyForSifting" must {
     "return fast stream candidates that are ready for sifting" in {
-      createSiftEligibleCandidates(UserId, "appId11")
+      createSiftEligibleCandidates(UserId, "appId1")
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
       val candidate = candidates.head
@@ -108,7 +106,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   "siftCandidate" must {
 
-    lazy val candidates = Table(
+    def candidates = Table(
       ("appId", "unit", "scheme"),
       ("appId1", createSiftEligibleCandidates(UserId, "appId1"), Commercial),
       ("appId2", createSdipSiftCandidates("appId2"), Sdip),
@@ -119,14 +117,15 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       forAll (candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
         repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green")).futureValue
         val candidatesForSift = repository.findApplicationsReadyForSchemeSift(scheme).futureValue
-        candidatesForSift.size mustBe 2
+        play.api.Logger.error(s"\n\n$candidatesForSift - $scheme")
+        candidatesForSift.size mustBe 0
       }
     }
 
     "eligible for other schema after sifting on one" in {
       createSiftEligibleCandidates(UserId, "appId14")
       repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(European, "Red")).futureValue
-      val candidates = repository.findApplicationsReadyForSchemeSift(Sdip).futureValue
+      val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
     }
 
@@ -140,7 +139,6 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   private def createSiftEligibleCandidates(userId: String, appId: String, resultToSave: List[SchemeEvaluationResult] = List(
       SchemeEvaluationResult(Commercial, Green.toString),
-      SchemeEvaluationResult(Sdip, Green.toString),
       SchemeEvaluationResult(European, Green.toString),
       SchemeEvaluationResult(Generalist, Red.toString)
     )
