@@ -50,20 +50,22 @@ object ApplicationService extends ApplicationService {
   val pdRepository = personalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val mediaRepo = mediaRepository
-  val schemeRepository = schemePreferencesRepository
+  val schemePrefsRepository = schemePreferencesRepository
   val evaluateP1ResultService = EvaluatePhase1ResultService
   val evaluateP3ResultService = EvaluatePhase3ResultService
+  val schemesRepo = SchemeYamlRepository
 }
 
 trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-  val appRepository: GeneralApplicationRepository
-  val pdRepository: PersonalDetailsRepository
-  val cdRepository: ContactDetailsRepository
-  val schemeRepository: SchemePreferencesRepository
-  val mediaRepo: MediaRepository
-  val evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings]
-  val evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
+  def appRepository: GeneralApplicationRepository
+  def pdRepository: PersonalDetailsRepository
+  def cdRepository: ContactDetailsRepository
+  def schemePrefsRepository: SchemePreferencesRepository
+  def mediaRepo: MediaRepository
+  def evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings]
+  def evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
+  def schemesRepo: SchemeRepository
 
   val Candidate_Role = "Candidate"
 
@@ -108,13 +110,25 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   private def withdrawFromScheme(applicationId: String, withdrawRequest: WithdrawScheme) = {
 
-      def buildLatestSchemeStatus(current: Seq[SchemeEvaluationResult], withdrawal: WithdrawScheme)  = {
-        calculateCurrentSchemeStatus(current, SchemeEvaluationResult(withdrawRequest.schemeId, EvaluationResults.Withdrawn.toString) :: Nil)
-      }
+    def buildLatestSchemeStatus(current: Seq[SchemeEvaluationResult], withdrawal: WithdrawScheme)  = {
+      calculateCurrentSchemeStatus(current, SchemeEvaluationResult(withdrawRequest.schemeId, EvaluationResults.Withdrawn.toString) :: Nil)
+    }
+
+    def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult]) = {
+      val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
+
+      if (greenSchemes == schemesRepo.nonSiftableSchemeIds.toSet) {
+        appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map { _ =>
+          AuditEvents.AutoProgressedToFSAC(Map("applicationId" -> applicationId, "reason" -> "last siftable scheme withdrawn"))
+        }
+      } else { Future.successful(Nil) }
+    }
 
     for {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
-      _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, buildLatestSchemeStatus(currentSchemeStatus, _))
+      latestSchemeStatus = buildLatestSchemeStatus(currentSchemeStatus, withdrawRequest)
+      _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, latestSchemeStatus)
+      _ <- maybeProgressToFSAC(latestSchemeStatus)
     } yield {
       DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
         AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
@@ -127,7 +141,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
       contactDetails <- cdRepository.find(candidate.userId)
       _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream)
-      _ <- schemeRepository.add(applicationId, SchemeId("Sdip"))
+      _ <- schemePrefsRepository.add(applicationId, SchemeId("Sdip"))
     } yield {
       List(EmailEvents.ApplicationConvertedToSdip(contactDetails.email, candidate.name))
     }
@@ -179,7 +193,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
       appRepository.findByUserId(userId, frameworkId).flatMap { appResponse =>
         (appResponse.progressResponse.fastPassAccepted, appResponse.applicationRoute) match {
-          case (true, _) => schemeRepository.find(appResponse.applicationId).map(_.schemes)
+          case (true, _) => schemePrefsRepository.find(appResponse.applicationId).map(_.schemes)
 
           case (_, ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
             evaluateP1ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)

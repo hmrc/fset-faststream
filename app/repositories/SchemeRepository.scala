@@ -80,6 +80,8 @@ trait SchemeRepository {
 
   def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id}
 
+  def nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id}
+
   def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
 
   def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemes.flatMap(_.telephoneInterviewType)

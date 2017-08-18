@@ -82,8 +82,7 @@ trait GeneralApplicationRepository {
 
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
 
-  def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme,
-    schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]): Future[Unit]
+  def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
 
   def preview(applicationId: String): Future[Unit]
 
@@ -344,13 +343,11 @@ class GeneralApplicationMongoRepository(
     collection.update(query, applicationBSON) map validator
   }
 
-  override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme,
-    schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]
-  ): Future[Unit] = {
+  override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
 
     val update = BSONDocument("$set" -> BSONDocument(
       s"withdraw.schemes.${withdrawScheme.schemeId}" -> withdrawScheme.reason
-    ).add(currentSchemeStatusBSON(schemeStatus(withdrawScheme))))
+    ).add(currentSchemeStatusBSON(schemeStatus)))
 
     val predicate = BSONDocument(
       "applicationId" -> applicationId
