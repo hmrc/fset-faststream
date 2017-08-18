@@ -35,6 +35,12 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       result.size mustBe 2
     }
 
+    "find all events" in {
+      val result = repository.findAll().futureValue
+      result.size mustBe 5
+      result must contain theSameElementsAs EventExamples.EventsNew
+    }
+
     "filter FSAC in LONDON_FSAC events" in {
       val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 2
