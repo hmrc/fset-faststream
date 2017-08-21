@@ -28,7 +28,7 @@ case class ApplicationForNumericTestExtractReport(
                                                    applicationRoute: ApplicationRoute,
                                                    firstName: String,
                                                    lastName: String,
-                                                   preferredName: Option[String],
+                                                   preferredName: String,
                                                    progress: String,
                                                    schemes: List[SchemeId],
                                                    disability: Option[String],
