@@ -16,10 +16,10 @@
 
 package controllers.testdata
 
-import play.api.mvc.Action
+import play.api.mvc.{ Action, AnyContent }
 import scheduler.assessment.EvaluateAssessmentScoreJob
 import scheduler.onlinetesting.{ EvaluatePhase1ResultJob, EvaluatePhase2ResultJob, EvaluatePhase3ResultJob }
-import scheduler.{ ProgressToAssessmentCentreJob, ProgressToSiftJob }
+import scheduler.{ NotifyAssessorsOfNewEventsJob, ProgressToAssessmentCentreJob, ProgressToSiftJob }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,39 +28,45 @@ object TestJobsController extends TestJobsController
 
 class TestJobsController extends BaseController {
 
-  def evaluatePhase1OnlineTestsCandidate = Action.async { implicit request =>
+  def evaluatePhase1OnlineTestsCandidate: Action[AnyContent] = Action.async { implicit request =>
     EvaluatePhase1ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 1 result job started")
     }
   }
 
-  def evaluatePhase2EtrayCandidate = Action.async { implicit request =>
+  def evaluatePhase2EtrayCandidate: Action[AnyContent] = Action.async { implicit request =>
     EvaluatePhase2ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 2 result job started")
     }
   }
 
-  def evaluatePhase3VideoInterviewCandidate = Action.async { implicit request =>
+  def evaluatePhase3VideoInterviewCandidate: Action[AnyContent] = Action.async { implicit request =>
     EvaluatePhase3ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 3 result job started")
     }
   }
 
-  def progressCandidatesToSift = Action.async { implicit request =>
+  def progressCandidatesToSift: Action[AnyContent] = Action.async { implicit request =>
     ProgressToSiftJob.tryExecute().map { _ =>
       Ok("Progress to sift result job started")
     }
   }
 
-  def progressCandidatesToAssessmentCentre = Action.async { implicit request =>
+  def progressCandidatesToAssessmentCentre: Action[AnyContent] = Action.async { implicit request =>
     ProgressToAssessmentCentreJob.tryExecute().map { _ =>
       Ok("Progress to assessment centre result job started")
     }
   }
 
-  def evaluateAssessmentScoresCandidate = Action.async { implicit request =>
+  def evaluateAssessmentScoresCandidate: Action[AnyContent] = Action.async { implicit request =>
     EvaluateAssessmentScoreJob.tryExecute().map { _ =>
       Ok("Evaluate assessment score job started")
+    }
+  }
+
+  def notifyAssessorsOfNewEvents: Action[AnyContent] = Action.async { implicit request =>
+    NotifyAssessorsOfNewEventsJob.tryExecute().map { _ =>
+      Ok("Notify assessors of newly created events started")
     }
   }
 }

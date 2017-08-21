@@ -32,9 +32,10 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
   import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
-  def repository = new FsbTestGroupMongoRepository()
+  lazy val repository = repositories.fsbTestGroupRepository
+  lazy val applicationRepo = repositories.applicationRepository
 
-  "save" should {
+  "save" must {
     "create new FSB entry in testGroup if it doesn't exist" in {
       val applicationId = createApplication()
       val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
@@ -42,6 +43,16 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
       val Some(result) = repository.findByApplicationId(applicationId).futureValue
       val fsbTestGroup = FsbTestGroup(List(schemeEvaluationResult))
       result mustBe fsbTestGroup
+    }
+
+    "update currentSchemeStatus" in {
+      val applicationId = createApplication()
+      val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
+      repository.save(applicationId, schemeEvaluationResult).futureValue
+
+      val currentSchemeStatus: Seq[SchemeEvaluationResult] = applicationRepo.getCurrentSchemeStatus(applicationId).futureValue
+      currentSchemeStatus must have size 1
+      currentSchemeStatus.head mustBe schemeEvaluationResult
     }
 
     "add to result array if result array already exist" in {
@@ -70,7 +81,7 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
 
   }
 
-  "findByApplicationId" should {
+  "findByApplicationId" must {
     "return the FsbTestGroup for the given applicationId" in {
       val applicationId = createApplication()
       val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
@@ -91,7 +102,7 @@ class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFacto
     }
   }
 
-  "findByApplicationIds" should {
+  "findByApplicationIds" must {
     "return the FsbSchemeResult for the given applicationIds" in {
       val applicationId1 = createApplication()
       val applicationId2 = createApplication()

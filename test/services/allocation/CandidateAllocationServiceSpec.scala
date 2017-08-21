@@ -114,11 +114,11 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
         )
       )
 
-      when(mockEventsService.getEvents(any[List[String]](), any[EventType]())).thenReturnAsync(
+      when(mockEventsService.getEvents(any[List[String]]())).thenReturnAsync(
         List(EventExamples.e1WithSessions)
       )
 
-      service.getSessionsForApplication("appId1", EventType.FSAC).futureValue mustBe List(
+      service.getSessionsForApplication("appId1").futureValue mustBe List(
         CandidateAllocationWithEvent("appId1", "version1", AllocationStatuses.UNCONFIRMED,
           model.exchange.Event(
             EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
@@ -159,13 +159,13 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
 
     protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
       "eventId", EventType.FSAC, "Description", Location("London"), Venue("Venue 1", "venue description"),
-      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, Map(), Nil
+      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, DateTime.now, Map(), Nil
     ))
 
     protected def mockAuthProviderFindByUserIds(userId: String*): Unit = userId.foreach { uid =>
       when(mockAuthProviderClient.findByUserIds(eqTo(Seq(uid)))(any[HeaderCarrier]())).thenReturnAsync(
         Seq(
-          Candidate("Bob " + uid, "Smith", None, "bob@mailinator.com", uid)
+          Candidate("Bob " + uid, "Smith", None, "bob@mailinator.com", None, uid, List("candidate"))
         )
       )
     }

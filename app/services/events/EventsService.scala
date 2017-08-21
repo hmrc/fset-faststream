@@ -20,6 +20,7 @@ import model._
 import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, Venue }
+import org.joda.time.DateTime
 import play.api.Logger
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
 import repositories.{ SchemeRepository, SchemeYamlRepository, eventsRepository }
@@ -54,21 +55,15 @@ trait EventsService {
     }
   }
 
-  def save(event: Event): Future[Unit] = {
-    eventsRepo.save(event :: Nil)
-  }
+  def save(event: Event): Future[Unit] = eventsRepo.save(event :: Nil)
 
-  def getEvent(id: String): Future[Event] = {
-    eventsRepo.getEvent(id)
-  }
+  def getEvent(id: String): Future[Event] = eventsRepo.getEvent(id)
 
   def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue))
   }
 
-  def getEvents(ids: List[String], eventType: EventType): Future[List[Event]] = {
-    eventsRepo.getEventsById(ids, Some(eventType))
-  }
+  def getEvents(ids: List[String]): Future[List[Event]] = eventsRepo.getEventsById(ids)
 
   def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
     getEvents(eventType, venue).flatMap { events =>
@@ -95,6 +90,10 @@ trait EventsService {
       }
       Future.sequence(res)
     }
+  }
+
+  def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
+    eventsRepo.getEventsManuallyCreatedAfter(dateTime)
   }
 
   def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes

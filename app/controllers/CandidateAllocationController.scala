@@ -106,8 +106,8 @@ trait CandidateAllocationController extends BaseController {
     }
   }
 
-  def findSessionsForApplication(applicationId: String, sessionEventType: EventType): Action[AnyContent] = Action.async { implicit request =>
-    candidateAllocationService.getSessionsForApplication(applicationId, sessionEventType).map { data =>
+  def findSessionsForApplication(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    candidateAllocationService.getSessionsForApplication(applicationId).map { data =>
       Ok(Json.toJson(data))
     }
   }
