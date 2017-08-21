@@ -53,7 +53,7 @@ object ApplicationData {
     type ApplicationStatus = Value
     // format: OFF
     val REGISTERED = Value
-    val WITHDRAWN, CREATED, IN_PROGRESS = Value
+    val CREATED, IN_PROGRESS = Value
     val IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES, IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES, IN_PROGRESS_ASSISTANCE_DETAILS,
     IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
     val SUBMITTED = Value
@@ -65,6 +65,8 @@ object ApplicationData {
 
     val SIFT = Value
     val ASSESSMENT_CENTRE, FSB = Value
+
+    val WITHDRAWN = Value
     // format: ON
 
     implicit val applicationStatusFormat = new Format[ApplicationStatus] {

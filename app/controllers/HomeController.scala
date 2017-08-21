@@ -67,35 +67,20 @@ abstract class HomeController(
 
   private lazy val maxAnalysisExerciseFileSizeInBytes = 4096 * 1024
 
-  // scalastyle:off cyclomatic.complexity
   def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>
       implicit cachedData =>
         for {
         page <- cachedData.application.map { implicit application =>
           cachedData match {
-            case _ if isSiftEntered && (isEdip(cachedData) || isSdip(cachedData)) => displayPostOnlineTestsPage
-            case _ if isPhase3TestsPassed => displayPostOnlineTestsPage
-            case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
+            case _ if !(isSiftEntered || isSiftReady || isAwaitingAllocation) =>
+              dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
+            case _ => displayPostOnlineTestsPage
           }
         }.getOrElse {
           dashboardWithoutApplication
         }
       } yield page
-  }
-  // scalastyle:on cyclomatic.complexity
-
-  def showSdipNextSteps: Action[AnyContent] = CSRSecureAction(ActiveUserRole) { implicit request =>
-    implicit cachedData =>
-      implicit val displaySdipEligibilityInfo = false
-      cachedData.application.map { implicit application =>
-        cachedData match {
-          case _ if isPhase1TestsPassed && isSdipFaststream => displayEdipOrSdipResultsPage
-          case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
-        }
-      }.getOrElse {
-        dashboardWithoutApplication
-      }
   }
 
   def resume: Action[AnyContent] = CSRSecureAppAction(ActiveUserRole) { implicit request =>
@@ -179,10 +164,6 @@ abstract class HomeController(
         Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error")))
       }
   }
-
-  private def displayEdipOrSdipResultsPage(implicit cachedData: CachedData,
-    request: Request[_], hc: HeaderCarrier) =
-    Future.successful(Ok(views.html.home.edipAndSdipFinalResults(cachedData)))
 
   private def dashboardWithOnlineTests(implicit application: ApplicationData,
     displaySdipEligibilityInfo: Boolean,
