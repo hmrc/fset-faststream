@@ -24,6 +24,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait ApplicationRemovalRepository {
   def remove(applicationStatus: Option[String]): Future[List[String]]

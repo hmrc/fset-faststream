@@ -166,6 +166,4 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
     applicationId: String,
     schemeWithdraw: WithdrawScheme,
     schemeStatus: (WithdrawScheme) => Seq[SchemeEvaluationResult]) = ???
-
-  override def remove(applicationStatus: Option[String]): Future[List[String]] = ???
 }
