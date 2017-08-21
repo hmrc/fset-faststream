@@ -35,14 +35,14 @@ object NotifyAssessorsOfNewEventsJob extends NotifyAssessorsOfNewEventsJob {
 trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   def assessorService: AssessorService
   def assessorsEventsSummaryJobsService: AssessorsEventsSummaryJobsService
-  val TIMESPAN = 24
+  val TimeSpan = 24
 
   def shouldRun(lastRun: DateTime, now: DateTime, isFirstJob: Boolean): Boolean = {
     if(isFirstJob) {
       true
     } else {
       val duration = new Duration(lastRun, now)
-      duration.getStandardHours >= TIMESPAN
+      duration.getStandardHours >= TimeSpan
     }
   }
 
