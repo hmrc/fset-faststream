@@ -159,7 +159,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
 
     protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
       "eventId", EventType.FSAC, "Description", Location("London"), Venue("Venue 1", "venue description"),
-      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, Map(), Nil
+      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, DateTime.now, Map(), Nil
     ))
 
     protected def mockAuthProviderFindByUserIds(userId: String*): Unit = userId.foreach { uid =>

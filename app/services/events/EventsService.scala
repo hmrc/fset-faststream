@@ -20,6 +20,7 @@ import model._
 import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, Venue }
+import org.joda.time.DateTime
 import play.api.Logger
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
 import repositories.{ SchemeRepository, SchemeYamlRepository, eventsRepository }
@@ -95,6 +96,10 @@ trait EventsService {
       }
       Future.sequence(res)
     }
+  }
+
+  def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
+    eventsRepo.getEventsManuallyCreatedAfter(dateTime)
   }
 
   def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes

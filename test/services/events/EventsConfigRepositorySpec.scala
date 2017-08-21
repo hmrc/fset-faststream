@@ -127,16 +127,16 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
 
       implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
-      def withDefaultIds(event: Event) = {
-          event.copy(id = "e1", sessions = event.sessions.map { session =>
+      def withDefaultFields(event: Event) = {
+          event.copy(id = "e1", createdAt = EventExamples.eventCreatedAt, sessions = event.sessions.map { session =>
               session.copy(id = "s1")
-            }
+            }, wasBulkUploaded = true
           )
       }
 
       whenReady(repo.events) { result =>
         result.zip(EventExamples.YamlEvents).foreach { case (actual, expected) =>
-          withDefaultIds(actual) shouldBe withDefaultIds(expected)
+          withDefaultFields(actual) shouldBe withDefaultFields(expected)
         }
       }
     }
