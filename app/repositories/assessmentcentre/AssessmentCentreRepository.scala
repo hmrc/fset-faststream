@@ -159,6 +159,8 @@ class AssessmentCentreMongoRepository (
     }
   }
 
+  def getEvaluationResults
+
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val update = BSONDocument("$set" -> BSONDocument(s"testGroups.$fsacKey.tests" -> tests))

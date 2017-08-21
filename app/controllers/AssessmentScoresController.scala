@@ -115,10 +115,9 @@ trait AssessmentScoresController extends BaseController {
     service.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
-      case ex: EventNotFoundException => {
+      case ex: EventNotFoundException =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $ex")
         NotFound
-      }
       case other: Throwable =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $other")
         InternalServerError(other.getMessage)
@@ -129,10 +128,9 @@ trait AssessmentScoresController extends BaseController {
     service.findAssessmentScoresWithCandidateSummaryByEventId(eventId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
-      case ex: EventNotFoundException => {
+      case ex: EventNotFoundException =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $ex")
         NotFound
-      }
       case other: Throwable =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $other")
         InternalServerError(other.getMessage)
@@ -175,4 +173,15 @@ object ReviewerAssessmentScoresController extends AssessmentScoresController {
   val AssessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
   val AssessmentScoresAllExercisesSubmitted = "ReviewerAssessmentScoresAllExercisesSubmitted"
   val UserIdForAudit = "assessorId"
+
+  def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+    service.findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId).map {
+      case Some(scores) => Ok(Json.toJson(scores))
+      case None => NotFound
+    }.recover {
+      case other: Throwable =>
+        Logger.error(s"Exception when calling findAssessmentScoresByApplicationId: $other")
+        InternalServerError(other.getMessage)
+    }
+  }
 }
