@@ -18,12 +18,12 @@ package repositories
 
 object CollectionNames {
   val APPLICATION = "application18"
-  val APPLICATION_ASSESSMENT = "application-assessment18"
   val ASSESSOR_ASSESSMENT_SCORES = "assessor-assessment-scores18"
   val REVIEWER_ASSESSMENT_SCORES = "reviewer-assessment-scores18"
   val ASSESSMENT_CENTRE_PASS_MARK_SETTINGS = "assessment-centre-pass-mark-settings18"
   val ASSESSOR = "assessor18"
   val ASSESSOR_ALLOCATION = "assessor-allocation18"
+  val ASSESSOR_EVENTS_SUMMARY_JOBS = "assessor-events-summary-jobs"
   val CANDIDATE_ALLOCATION = "candidate-allocation18"
   val ASSESSMENT_EVENTS = "assessment-events18"
   val FILE_UPLOAD = "file-upload18"

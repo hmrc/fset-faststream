@@ -23,7 +23,7 @@ object FsbTypeExamples {
     FsbType("SAC"),
     FsbType("SRAC"),
     FsbType("ORAC"),
-    FsbType("EAC"),
+    FsbType("EAC_DC"),
     FsbType("GOV COMS"),
     FsbType("DAT"),
     FsbType("SEFS"),

@@ -26,15 +26,11 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
     PHASE2_TESTS_FIRST_REMINDER -> "phase2_tests_first_reminder",
     PHASE2_TESTS_SECOND_REMINDER -> "phase2_tests_second_reminder",
     PHASE1_TESTS_FAILED_NOTIFIED -> "phase1_tests_failed_notified",
-    SIFT_READY -> "ready_for_sifting",
-    ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> "registered",
-    ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED -> "registered",
-    ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED -> "registered")
+    SIFT_READY -> "ready_for_sifting")
 
   "All progress status in the application" should {
     "be mapped to the report labels" in {
       ProgressStatuses.allStatuses
-        .filterNot(_.key.contains("ASSESSMENT")) // TODO: Legacy statuses which should be removed
         .foreach { progressStatus =>
         val userId = UUID.randomUUID().toString
         val appId = appRepo.create(userId, "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId

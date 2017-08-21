@@ -32,9 +32,7 @@ case class FrameworksConfig(yamlFilePath: String)
 
 case class SchemeConfig(yamlFilePath: String)
 
-case class EventsSubTypesConfig(fsbFilePath: String, telephoneInterviewFilePath: String)
-
-case class EventsConfig(scheduleFilePath: String, subtypes: EventsSubTypesConfig)
+case class EventsConfig(scheduleFilePath: String)
 
 case class EventSubtypeConfig(yamlFilePath: String)
 
@@ -84,8 +82,6 @@ object WaitingScheduledJobConfig {
 case class CubiksGatewayConfig(url: String,
   phase1Tests: Phase1TestsConfig,
   phase2Tests: Phase2TestsConfig,
-  competenceAssessment: CubiksGatewayStandardAssessment,
-  situationalAssessment: CubiksGatewayStandardAssessment,
   reportConfig: ReportConfig,
   candidateAppUrl: String,
   emailDomain: String
@@ -96,7 +92,7 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
                              standard: List[String],
                              gis: List[String])
 
-case class Phase2Schedule(scheduleId: Int, assessmentId: Int, normId: Int)
+case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
                              expiryTimeInDaysForInvigilatedETray: Int,
@@ -116,10 +112,9 @@ case class Phase2TestsConfig(expiryTimeInDays: Int,
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
-  val normId: Int
 }
 
-case class CubiksGatewayStandardAssessment(assessmentId: Int, normId: Int) extends CubiksGatewayAssessment
+case class CubiksGatewayStandardAssessment(assessmentId: Int) extends CubiksGatewayAssessment
 
 case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, suppressValidation: Boolean = false)
 

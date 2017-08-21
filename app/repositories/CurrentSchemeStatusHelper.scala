@@ -49,7 +49,7 @@ trait CurrentSchemeStatusHelper {
 
   def currentSchemeStatusBSON(latestResults: Seq[SchemeEvaluationResult]): BSONDocument = {
     BSONDocument("currentSchemeStatus" -> latestResults.map { r =>
-      SchemeEvaluationResult.schemeEvaluationResultHandler.write(r)
+      SchemeEvaluationResult.bsonHandler.write(r)
     })
   }
 
@@ -63,7 +63,20 @@ trait CurrentSchemeStatusHelper {
 
   private def currentSchemeStatus(status: Result, schemeIds: SchemeId*): BSONDocument = {
     schemeIds.foldLeft(BSONDocument.empty) { case (doc, id) =>
-      doc ++ BSONDocument(s"currentSchemeStatus" -> BSONDocument("$exists" -> SchemeEvaluationResult(id, status.toString)))
+      doc ++ BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" -> SchemeEvaluationResult(id, status.toString)))
     }
   }
+
+  def isFirstResidualPreference(schemeId: SchemeId): BSONDocument = {
+    BSONDocument("$where" ->
+      s"""
+        |var greens = this.currentSchemeStatus.filter(
+        |   function(e){
+        |     return e.result=="$Green"
+        |   }
+        |);
+        |greens.length > 0 && greens[0].schemeId=="$schemeId";
+      """.stripMargin)
+  }
+
 }

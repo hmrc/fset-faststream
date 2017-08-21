@@ -18,11 +18,12 @@ package services.sift
 
 import common.FutureEx
 import factories.DateTimeFactory
+import model.EvaluationResults.Green
 import model.{ ProgressStatuses, SchemeId, SerialUpdateResult, SiftRequirement }
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
-import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepositoryImpl, SchemeYamlRepository }
+import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 
@@ -40,14 +41,14 @@ object ApplicationSiftService extends ApplicationSiftService {
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
   def applicationSiftRepo: ApplicationSiftRepository
   def applicationRepo: GeneralApplicationRepository
-  def schemeRepo: SchemeRepositoryImpl
+  def schemeRepo: SchemeRepository
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
   }
 
   private def requiresForms(schemeIds: Seq[SchemeId]) = {
-    schemeRepo.getSchemesForId(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
+    schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
   }
 
   private def progressStatusForSiftStage(app: ApplicationForSift) = if (requiresForms(app.currentSchemeStatus.map(_.schemeId))) {
@@ -87,7 +88,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     } yield {
       val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
       val action = s"Sifting application for ${result.schemeId.value}"
-      val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => currentSchemeStatus.map(_.schemeId).contains(s))
+      val candidatesGreenSchemes = currentSchemeStatus.collect { case s if s.result == Green.toString => s.schemeId }
+      val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
       val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
       val mergedUpdate = Seq(

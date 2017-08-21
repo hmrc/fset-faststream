@@ -21,21 +21,25 @@ import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
-import reactivemongo.api.DB
+import org.joda.time.DateTime
+import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import repositories.BSONDateTimeHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
+  def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Event]]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
   def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]]
+  def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -72,6 +76,11 @@ class EventsMongoRepository(implicit mongo: () => DB)
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query).cursor[Event]().collect[List]()
+  }
+
+  def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
+    val query = BSONDocument("createdAt" -> BSONDocument("$gte" -> dateTime.getMillis), "wasBulkUploaded" -> false)
+    collection.find(query).cursor[Event]().collect[Seq]()
   }
 
   private def buildEventTypeFilter(eventType: Option[EventType]) =

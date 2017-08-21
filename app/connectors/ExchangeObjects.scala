@@ -18,6 +18,7 @@ package connectors
 
 import java.util.UUID
 
+import connectors.AuthProviderClient.UserRole
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, Json, OFormat }
 
@@ -39,7 +40,8 @@ object ExchangeObjects {
     implicit val format: Format[SendFsetMailRequest] = Json.format[SendFsetMailRequest]
   }
 
-  case class Candidate(firstName: String, lastName: String, preferredName: Option[String], email: String, userId: String) {
+  case class Candidate(firstName: String, lastName: String, preferredName: Option[String], email: String,
+    phone: Option[String], userId: String, roles: List[String]) {
     def name: String = preferredName.getOrElse(firstName)
   }
   object Candidate { implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate] }
@@ -58,9 +60,6 @@ object ExchangeObjects {
   case class InviteApplicant(scheduleID: Int, userId: Int, scheduleCompletionURL: String, resultsURL: Option[String] = None,
                              timeAdjustments: List[TimeAdjustments] = Nil)
   object InviteApplicant { implicit val inviteApplicantFormat: OFormat[InviteApplicant] = Json.format[InviteApplicant] }
-
-  case class ReportNorm(assessmentId: Int, normId: Int)
-  object ReportNorm { implicit val reportNormFormat: OFormat[ReportNorm] = Json.format[ReportNorm] }
 
   // Cubiks Gateway Response
   case class Registration(userId: Int)

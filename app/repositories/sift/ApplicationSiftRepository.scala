@@ -17,16 +17,16 @@
 package repositories.sift
 
 import factories.DateTimeFactory
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model._
-import model.EvaluationResults.Green
 import model.Exceptions.ApplicationNotFound
 import model.command.ApplicationForSift
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.SchemeEvaluationResult
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
-import repositories.{ CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
+import repositories.{ CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -66,13 +66,6 @@ class ApplicationSiftMongoRepository(
   val prevPhase = ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
   val prevTestGroup = "PHASE3"
 
-  val eligibleForSiftQuery = BSONDocument("$and" -> BSONArray(
-    BSONDocument("applicationStatus" -> prevPhase),
-    BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
-      BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
-      "result" -> EvaluationResults.Green.toString)
-  ))))
-
   def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
     def applicationForSiftBsonReads(document: BSONDocument): ApplicationForSift = {
       val applicationId = document.getAs[String]("applicationId").get
@@ -80,6 +73,25 @@ class ApplicationSiftMongoRepository(
       val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
       ApplicationForSift(applicationId, appStatus, currentSchemeStatus)
     }
+
+    val fsQuery = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> ApplicationRoute.Faststream),
+      BSONDocument("applicationStatus" -> prevPhase),
+      BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
+        BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
+        "result" -> EvaluationResults.Green.toString)
+    ))))
+
+    val xdipQuery = (route: ApplicationRoute) => BSONDocument(
+      "applicationRoute" -> route,
+      "applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED
+    )
+
+    val eligibleForSiftQuery = BSONDocument("$or" -> BSONArray(
+      fsQuery,
+      xdipQuery(ApplicationRoute.Edip),
+      xdipQuery(ApplicationRoute.Sdip)
+    ))
 
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
       _.map { document => applicationForSiftBsonReads(document) }
@@ -96,7 +108,6 @@ class ApplicationSiftMongoRepository(
       BSONDocument(s"applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> true),
       currentSchemeStatusGreen(schemeId),
-      BSONDocument(s"withdraw" -> BSONDocument("$exists" -> false)),
       notSiftedOnScheme
     ))
     bsonCollection.find(query).cursor[Candidate]().collect[List]()

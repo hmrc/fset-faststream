@@ -7,7 +7,7 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import config.MicroserviceAppConfig._
-import factories.DateTimeFactoryMock
+import factories.ITDateTimeFactoryMock
 import model.SchemeId
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
@@ -18,7 +18,7 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   val collectionName: String = CollectionNames.APPLICATION
 
   def repository = new SchemePreferencesMongoRepository
-  def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactoryMock, cubiksGatewayConfig)
+  def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
 
   "save and find" should {
     "save and return scheme preferences" in {

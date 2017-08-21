@@ -29,7 +29,7 @@ import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ when, _ }
 import org.mockito.stubbing.OngoingStubbing
-import repositories.CandidateAllocationMongoRepository
+import repositories.{ CandidateAllocationMongoRepository, SchemeRepository, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
 import services.BaseServiceSpec
 import services.events.EventsService
@@ -70,7 +70,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockCandidateAllocationRepository.isAllocationExists(any[String], any[String], any[String], any[Option[String]]))
         .thenReturnAsync(true)
       when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation])).thenReturnAsync()
-      when(mockAppRepo.resetApplicationAllocationStatus(any[String])).thenReturnAsync()
+      when(mockAppRepo.resetApplicationAllocationStatus(any[String], any[EventType])).thenReturnAsync()
 
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
       when(mockAppRepo.find(List(appId))).thenReturnAsync(CandidateExamples.NewCandidates)
@@ -79,13 +79,10 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
 
       when(mockEmailClient.sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
 
-      import scala.concurrent.ExecutionContext.Implicits.global
-      service.unAllocateCandidates(persistedAllocations.toList).recover{
-        case e: Exception => e.printStackTrace()
-      }.futureValue
+      service.unAllocateCandidates(persistedAllocations.toList).futureValue
 
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
-      verify(mockAppRepo).resetApplicationAllocationStatus(any[String])
+      verify(mockAppRepo).resetApplicationAllocationStatus(any[String], any[EventType])
       verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
     }
   }
@@ -96,11 +93,14 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       private val c1 = CandidateEligibleForEvent("app1", "", "", true, DateTime.now())
       private val c2 = CandidateEligibleForEvent("app2", "", "", true, DateTime.now())
       private val loc = "London"
+      private val eventType = EventType.FSAC
+      private val desc = "ORAC"
+      private val scheme = None
 
       val res = CandidatesEligibleForEventResponse(List(c1, c2), 2)
-      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc))).thenReturnAsync(res)
+      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc), eventType, scheme)).thenReturnAsync(res)
 
-      service.findCandidatesEligibleForEventAllocation(loc).futureValue mustBe res
+      service.findCandidatesEligibleForEventAllocation(loc, eventType, desc).futureValue mustBe res
     }
   }
 
@@ -114,11 +114,11 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
         )
       )
 
-      when(mockEventsService.getEvents(any[List[String]](), any[EventType]())).thenReturnAsync(
+      when(mockEventsService.getEvents(any[List[String]]())).thenReturnAsync(
         List(EventExamples.e1WithSessions)
       )
 
-      service.getSessionsForApplication("appId1", EventType.FSAC).futureValue mustBe List(
+      service.getSessionsForApplication("appId1").futureValue mustBe List(
         CandidateAllocationWithEvent("appId1", "version1", AllocationStatuses.UNCONFIRMED,
           model.exchange.Event(
             EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
@@ -153,17 +153,19 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       override val eventService: StcEventService = mockStcEventService
 
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
+
+      override def schemeRepository: SchemeRepository = SchemeYamlRepository
     }
 
     protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
       "eventId", EventType.FSAC, "Description", Location("London"), Venue("Venue 1", "venue description"),
-      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, Map(), Nil
+      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, DateTime.now, Map(), Nil
     ))
 
     protected def mockAuthProviderFindByUserIds(userId: String*): Unit = userId.foreach { uid =>
       when(mockAuthProviderClient.findByUserIds(eqTo(Seq(uid)))(any[HeaderCarrier]())).thenReturnAsync(
         Seq(
-          Candidate("Bob " + uid, "Smith", None, "bob@mailinator.com", uid)
+          Candidate("Bob " + uid, "Smith", None, "bob@mailinator.com", None, uid, List("candidate"))
         )
       )
     }

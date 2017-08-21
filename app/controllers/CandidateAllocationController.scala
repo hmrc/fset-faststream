@@ -78,9 +78,14 @@ trait CandidateAllocationController extends BaseController {
     }
   }
 
-  def findCandidatesEligibleForEventAllocation(assessmentCenterLocation: String): Action[AnyContent] = Action.async {
+  def findCandidatesEligibleForEventAllocation(
+    assessmentCentreLocation: String,
+    eventType: EventType,
+    eventDescription: String): Action[AnyContent] = Action.async {
     implicit request =>
-      candidateAllocationService.findCandidatesEligibleForEventAllocation(assessmentCenterLocation) map { apps =>
+      candidateAllocationService.findCandidatesEligibleForEventAllocation(
+        assessmentCentreLocation, eventType, eventDescription
+      ) map { apps =>
         Ok(Json.toJson(apps))
       }
   }
@@ -101,14 +106,14 @@ trait CandidateAllocationController extends BaseController {
     }
   }
 
-  def findSessionsForApplication(applicationId: String, sessionEventType: EventType): Action[AnyContent] = Action.async { implicit request =>
-    candidateAllocationService.getSessionsForApplication(applicationId, sessionEventType).map { data =>
+  def findSessionsForApplication(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    candidateAllocationService.getSessionsForApplication(applicationId).map { data =>
       Ok(Json.toJson(data))
     }
   }
 
-  def removeCandidateRemovalReason(applicationId: String) = Action.async { implicit request =>
-    candidateAllocationService.removeCandidateRemovalReason(applicationId).map { _ =>
+  def removeCandidateRemovalReason(applicationId: String, eventType: EventType) = Action.async { implicit request =>
+    candidateAllocationService.removeCandidateRemovalReason(applicationId, eventType).map { _ =>
       NoContent
     }
   }

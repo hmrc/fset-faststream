@@ -19,20 +19,22 @@ package repositories
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.TooManyEventIdsException
 import model.persisted.AssessorAllocation
+import model.persisted.eventschedules.Event
 import play.api.libs.json.{ JsObject, OFormat }
-import reactivemongo.api.DB
+import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.api.commands.MultiBulkWriteResult
 import reactivemongo.bson._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait AssessorAllocationRepository {
   def save(allocations: Seq[AssessorAllocation]): Future[Unit]
   def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]]
   def find(id: String, eventId: String): Future[Option[AssessorAllocation]]
+  def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[AssessorAllocation]]
   def delete(allocations: Seq[AssessorAllocation]): Future[Unit]
   def allocationsForEvent(eventId: String): Future[Seq[AssessorAllocation]]
   def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit]

@@ -17,16 +17,20 @@
 package services.assessoravailability
 
 import common.FutureEx
+import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
 import model.command.AllocationWithEvent
 import model.exchange.{ AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest }
-import model.persisted.assessor.AssessorStatus
+import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.persisted.eventschedules.{ Event, Location, SkillType }
 import model.persisted.eventschedules.SkillType.SkillType
 import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
-import org.joda.time.LocalDate
-import repositories.events.{ EventsMongoRepository, EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
+import org.joda.time.{ DateTime, LocalDate }
+import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import repositories.{ AssessorAllocationMongoRepository, AssessorAllocationRepository, AssessorMongoRepository, AssessorRepository }
+import services.events.EventsService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -34,15 +38,19 @@ import scala.concurrent.Future
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
   val allocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
-  val eventsRepo: EventsMongoRepository = repositories.eventsRepository
+  val eventsService: EventsService = EventsService
   val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+  val authProviderClient: AuthProviderClient = AuthProviderClient
+  val emailClient: EmailClient = CSREmailClient
 }
 
 trait AssessorService {
   val assessorRepository: AssessorRepository
   val allocationRepo: AssessorAllocationRepository
-  val eventsRepo: EventsRepository
+  val eventsService: EventsService
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
+  def authProviderClient: AuthProviderClient
+  def emailClient: EmailClient
 
   private def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
 
@@ -134,7 +142,7 @@ trait AssessorService {
   def findAllocations(assessorId: String, status: Option[AllocationStatus] = None): Future[Seq[AllocationWithEvent]] = {
     allocationRepo.find(assessorId, status).flatMap { allocations =>
       FutureEx.traverseSerial(allocations) { allocation =>
-        eventsRepo.getEvent(allocation.eventId).map { event =>
+        eventsService.getEvent(allocation.eventId).map { event =>
           AllocationWithEvent(
             allocation.id,
             event.id,
@@ -171,6 +179,68 @@ trait AssessorService {
     rawResult.map(SerialUpdateResult.fromEither)
   }
 
+  def findUnavailableAssessors(skills: Seq[SkillType], location: Location, date: LocalDate): Future[Seq[Assessor]] = {
+    assessorRepository.findUnavailableAssessors(skills, location, date)
+  }
+
+  def assessorToEventsMappingSince(eventsSince: DateTime): Future[Map[Assessor, Seq[Event]]] = {
+    val newlyCreatedEvents = eventsService.getEventsCreatedAfter(eventsSince)
+    val assessorToEventsTableFut: Future[Seq[(Assessor, Event)]] = newlyCreatedEvents.flatMap { events =>
+      val mapping = events.map { event =>
+        val skills = event.skillRequirements.keySet.map(SkillType.withName).toSeq
+        findUnavailableAssessors(skills, event.location, event.date).map { assessors =>
+          assessors.map( _ -> event)
+        }
+      }
+      Future.sequence(mapping).map(_.flatten)
+    }
+    val assessorEventsMapping = assessorToEventsTableFut.map(_.groupBy(_._1).map {
+      case (assessor, assessorEventSeq) => assessor -> assessorEventSeq.map(_._2)
+    })
+    assessorEventsMapping
+  }
+
+  def notifyAssessorsOfNewEvents(lastNotificationDate: DateTime)(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
+    val assessorEventsMapping: Future[Map[Assessor, Seq[Event]]] = assessorToEventsMappingSince(lastNotificationDate)
+    assessorEventsMapping.flatMap { assessorToEvent =>
+      val assessorsIds = assessorToEvent.keySet.map(_.userId).toSeq
+      val assessorsContactDetailsFut = authProviderClient.findByUserIds(assessorsIds)
+      assessorsContactDetailsFut.flatMap { assessorsContactDetails =>
+        Future.sequence(
+          assessorToEvent.flatMap { case (assessor, assessorEvents) =>
+            assessorsContactDetails.find(_.userId == assessor.userId).map { contact =>
+              val (htmlBody, txtBody) = buildEmailContent(assessorEvents)
+              emailClient.notifyAssessorsOfNewEvents(contact.email, contact.firstName, htmlBody, txtBody)
+            }
+          }
+        )
+      }
+    }.map(_.toSeq)
+  }
+
+  private def buildEmailContent(events: Seq[Event]): (String, String) = {
+    def buildEmailTxt: String = {
+      val eventsStr = events.map { event =>
+        s"${event.date.toString("EEEE, dd MM YYYY")} (${event.eventType} - ${event.location.name})"
+      }.mkString("\n")
+      eventsStr
+    }
+
+    def buildEmailHtml: String = {
+      val eventsHtml = events.map { event =>
+        s"<li>${event.date.toString("EEEE, dd MM YYYY")} (${event.eventType} - ${event.location.name}) </li>"
+      }.mkString("")
+      val body =
+        s"""
+           |<ul>
+           |$eventsHtml
+           |</ul>
+      """.stripMargin
+      body
+    }
+
+    (buildEmailHtml, buildEmailTxt)
+  }
 
   private def exchangeToPersistedAvailability(
     a: Set[exchange.AssessorAvailability]

@@ -18,9 +18,9 @@ package model.persisted
 
 import controllers.DayAggregateEvent
 import factories.UUIDFactory
-import model.{ FsbType, TelephoneInterviewType, UniqueIdentifier }
+import model.UniqueIdentifier
 import model.persisted.eventschedules._
-import org.joda.time.{ LocalDate, LocalTime }
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 
 object EventExamples {
   val VenueAll = Venue("ALL_VENUES", "All venues")
@@ -33,8 +33,13 @@ object EventExamples {
 
   val e1 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSAC, description = "PDFS FSB",
     location = LocationLondon, venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-    attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(),
-    sessions = List())
+    attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
+    createdAt = DateTime.now, skillRequirements = Map(), sessions = List())
+
+  val e2 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSB, description = "ORAC",
+    location = LocationLondon, venue = VenueLondon, date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+    attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = DateTime.now,
+    skillRequirements = Map(), sessions = List())
 
   val e1Session1Id = UniqueIdentifier.randomUniqueIdentifier.toString()
   val session2Id = UniqueIdentifier.randomUniqueIdentifier.toString()
@@ -52,22 +57,22 @@ object EventExamples {
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "GCFS FSB", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      skillRequirements = Map(), sessions = List()),
+      createdAt = DateTime.now, skillRequirements = Map(), sessions = List()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.TELEPHONE_INTERVIEW, description = "ORAC", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      skillRequirements = Map(), sessions = List()),
+      createdAt = DateTime.now, skillRequirements = Map(), sessions = List()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.SKYPE_INTERVIEW, description = "GCFS FSB", location = LocationNewcastle,
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
-      skillRequirements = Map(SkillType.ASSESSOR.toString -> 1), sessions = List()),
+      createdAt = DateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1), sessions = List()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "DFS FSB", location = LocationNewcastle,
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
-      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), skillRequirements = Map(
-        SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
+      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
+      createdAt = DateTime.now, skillRequirements = Map(SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
 
   )
 
@@ -76,29 +81,26 @@ object EventExamples {
     DayAggregateEvent(LocalDate.now, LocationNewcastle)
   )
 
+  val eventCreatedAt = DateTime.parse("2017-08-01T00:00:01Z")
   val YamlEvents = List(
     Event("1", EventType.withName("FSAC"), "PDFS FSB", Location("London"), Venue("london fsac", "bush house"),
-      LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("11:00:00.000"), LocalTime.parse("12:00:00.000"),
+      LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("11:00:00.000"), LocalTime.parse("12:00:00.000"), eventCreatedAt,
       Map("DEPARTMENTAL_ASSESSOR" -> 3, "EXERCISE_MARKER" -> 3, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
       List(Session("", "AM", 36, 12, 4, LocalTime.parse("11:00:00.000"), LocalTime.parse("12:00:00.000")))
     ),
     Event("2", EventType.withName("FSAC"), "PDFS FSB", Location("London"), Venue("london fsac", "bush house"),
-      LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("09:00:00.000"), LocalTime.parse("12:00:00.000"),
+      LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("09:00:00.000"), LocalTime.parse("12:00:00.000"), eventCreatedAt,
       Map("DEPARTMENTAL_ASSESSOR" -> 3, "EXERCISE_MARKER" -> 2, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
       List(
-        Session("1", "First", 36,
-          12, 4, LocalTime.parse("09:00:00.000"), LocalTime.parse("10:30:00.000")),
-        Session("2", "Second", 36,
-          12, 4, LocalTime.parse("10:30:00.000"), LocalTime.parse("12:00:00.000")))
+        Session("1", "First", 36, 12, 4, LocalTime.parse("09:00:00.000"), LocalTime.parse("10:30:00.000")),
+        Session("2", "Second", 36, 12, 4, LocalTime.parse("10:30:00.000"), LocalTime.parse("12:00:00.000")))
     ),
     Event("3", EventType.withName("FSAC"), "PDFS FSB", Location("London"), Venue("london fsac", "bush house"),
-      LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("09:00:00.000"), LocalTime.parse("12:00:00.000"),
+      LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("09:00:00.000"), LocalTime.parse("12:00:00.000"), eventCreatedAt,
       Map("DEPARTMENTAL_ASSESSOR" -> 2, "EXERCISE_MARKER" -> 3, "ASSESSOR" -> 6, "QUALITY_ASSURANCE_COORDINATOR" -> 1, "CHAIR" -> 3),
       List(
-        Session("1", "First", 36,
-          12, 4, LocalTime.parse("09:00:00.000"), LocalTime.parse("10:30:00.000")),
-        Session("2", "Second", 36,
-          12, 4, LocalTime.parse("10:30:00.000"), LocalTime.parse("12:00:00.000")))
+        Session("1", "First", 36, 12, 4, LocalTime.parse("09:00:00.000"), LocalTime.parse("10:30:00.000")),
+        Session("2", "Second", 36, 12, 4, LocalTime.parse("10:30:00.000"), LocalTime.parse("12:00:00.000")))
     )
   )
 }

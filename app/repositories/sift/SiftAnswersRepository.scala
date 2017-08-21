@@ -16,7 +16,7 @@
 
 package repositories.sift
 
-import model.Exceptions.{ SchemeSpecificAnswerNotFound, SiftAnswersIncomplete, SiftAnswersSubmitted }
+import model.Exceptions.{ SiftAnswersIncomplete, SiftAnswersSubmitted }
 import model.SchemeId
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import model.persisted.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }

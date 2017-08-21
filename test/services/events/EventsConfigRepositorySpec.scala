@@ -127,62 +127,18 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
 
       implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
-      def withDefaultIds(event: Event) = {
-          event.copy(id = "e1", sessions = event.sessions.map { session =>
+      def withDefaultFields(event: Event) = {
+          event.copy(id = "e1", createdAt = EventExamples.eventCreatedAt, sessions = event.sessions.map { session =>
               session.copy(id = "s1")
-            }
+            }, wasBulkUploaded = true
           )
       }
 
       whenReady(repo.events) { result =>
         result.zip(EventExamples.YamlEvents).foreach { case (actual, expected) =>
-          withDefaultIds(actual) shouldBe withDefaultIds(expected)
+          withDefaultFields(actual) shouldBe withDefaultFields(expected)
         }
       }
-    }
-
-    "parse FSB types" in {
-      val input =
-        """
-          |- key: SAC
-          |- key: SRAC
-          |- key: ORAC
-          |- key: EAC
-          |- key: GOV COMS
-          |- key: DAT
-          |- key: SEFS
-          |- key: FCO
-          |- key: P&D
-          |- key: FIFS
-          |- key: COMMERCIAL
-          |- key: HOP
-        """.stripMargin
-
-      val repo = new EventsConfigRepository {
-        override protected def fsbTypesConfig: String = input
-        override def locationsWithVenuesRepo: LocationsWithVenuesRepository = ??? // mock not required for this test
-      }
-
-      val fsbTypes = repo.fsbTypes.futureValue
-      fsbTypes shouldBe FsbTypeExamples.YamlFsbTypes
-    }
-
-    "parse Telephone Interview types" in {
-      val input =
-        """
-          |- key: EDIP
-          |  description: Early Diversity Internship Program
-          |- key: SDIP
-          |  description: Summer Diversity Internship Program
-        """.stripMargin
-
-      val repo = new EventsConfigRepository {
-        override protected def telephoneInterviewTypesConfig: String = input
-        override def locationsWithVenuesRepo: LocationsWithVenuesRepository = ??? // mock not required for this test
-      }
-
-      val fsbTypes = repo.telephoneInterviewTypes.futureValue
-      fsbTypes shouldBe TelephoneInterviewTypeExamples.YamlTelephoneInterviewTypes
     }
   }
 }

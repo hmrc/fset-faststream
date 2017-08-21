@@ -18,7 +18,7 @@ package model.testdata
 
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.persisted.eventschedules._
-import org.joda.time.{ LocalDate, LocalTime }
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker.Random
 
@@ -39,7 +39,7 @@ object CreateEventData {
     sessions: List[Session]) extends CreateTestData {
     def toEvent: Event = {
       Event(id, eventType, description, location, venue, date, capacity, minViableAttendees,
-        attendeeSafetyMargin, startTime, endTime, skillRequirements, sessions)
+        attendeeSafetyMargin, startTime, endTime, DateTime.now, skillRequirements, sessions)
     }
   }
 
@@ -50,9 +50,9 @@ object CreateEventData {
 
       val id = createRequest.id.getOrElse(Random.Event.id)
       val eventType = createRequest.eventType.getOrElse(Random.Event.eventType)
-      val description = createRequest.description.getOrElse(Random.Event.description)
-      val location = createRequest.location.map(l => Location(l)).getOrElse(Random.Event.location)
-      val venue = createRequest.venue.flatMap(v => venues.find(_.name == v)).getOrElse(Random.randOne(venues))
+      val description = createRequest.description.getOrElse(Random.Event.description(eventType))
+      val location = createRequest.location.map(l => Location(l)).getOrElse(Random.Event.location(eventType))
+      val venue = createRequest.venue.flatMap(v => venues.find(_.name == v)).getOrElse(Random.Event.venue(location))
       val date = createRequest.date.getOrElse(Random.Event.date)
       val capacity = createRequest.capacity.getOrElse(Random.Event.capacity)
       val minViableAttendees = createRequest.minViableAttendees.getOrElse(Random.Event.minViableAttendees)

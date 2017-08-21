@@ -23,6 +23,7 @@ import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import services.testdata.admin.{ AdminCreatedStatusGenerator, AdminUserBaseGenerator, AssessorCreatedStatusGenerator }
 import services.testdata.candidate.assessmentcentre.AssessmentCentreAwaitingAllocationStatusGenerator
+import services.testdata.candidate.fsb.FsbAwaitingAllocationStatusGenerator
 import services.testdata.candidate.onlinetests._
 import services.testdata.candidate.onlinetests.phase1._
 import services.testdata.candidate.onlinetests.phase2._
@@ -90,6 +91,7 @@ object CandidateStatusGeneratorFactory {
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)) => Phase1TestsResultsReceivedStatusGenerator
       // The next two cases are deprecated: PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED
       case (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED)) => Phase1TestsPassedStatusGenerator
+      case (PHASE1_TESTS_PASSED_NOTIFIED, Some(ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED)) => Phase1TestsPassedNotifiedStatusGenerator
       case (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED)) => Phase1TestsFailedStatusGenerator
       case (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED)) => Phase1TestsFailedNotifiedStatusGenerator
 
@@ -129,6 +131,7 @@ object CandidateStatusGeneratorFactory {
       case (SIFT, Some(ProgressStatuses.SIFT_COMPLETED)) => SiftCompleteStatusGenerator
 
       case (ASSESSMENT_CENTRE, Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)) => AssessmentCentreAwaitingAllocationStatusGenerator
+      case (FSB, Some(ProgressStatuses.FSB_AWAITING_ALLOCATION)) => FsbAwaitingAllocationStatusGenerator
 
       case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")

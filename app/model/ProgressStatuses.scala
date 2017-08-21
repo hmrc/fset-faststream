@@ -17,6 +17,7 @@
 package model
 
 import model.ApplicationStatus._
+import model.persisted.eventschedules.EventType.EventType
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
@@ -121,6 +122,13 @@ object ProgressStatuses {
   case object ASSESSMENT_CENTRE_PASSED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
 
+  case object FSB_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_RESULT_ENTERED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_PASSED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_FAILED extends ProgressStatus(ApplicationStatus.FSB)
 
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)
@@ -178,5 +186,33 @@ object ProgressStatuses {
   def progressesByApplicationStatus(applicationStatuses: ApplicationStatus*): Seq[ProgressStatus] = {
     allStatuses.filter(st => applicationStatuses.contains(st.applicationStatus))
   }
+
+
+  object EventProgressStatuses {
+
+    case class EventProgressStatus(
+      awaitingAllocation: ProgressStatuses.ProgressStatus,
+      allocationUnconfirmed: ProgressStatuses.ProgressStatus,
+      allocationConfirmed: ProgressStatuses.ProgressStatus,
+      failedToAttend: ProgressStatuses.ProgressStatus
+    )
+
+    private val fsb = EventProgressStatus(
+      FSB_AWAITING_ALLOCATION, FSB_ALLOCATION_UNCONFIRMED, FSB_ALLOCATION_CONFIRMED, FSB_FAILED_TO_ATTEND
+    )
+    private val assessmentCentre = EventProgressStatus(
+      ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+      ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ASSESSMENT_CENTRE_FAILED_TO_ATTEND
+    )
+
+    def get(applicationStatus: ApplicationStatus) = applicationStatus match {
+      case FSB => fsb
+      case ASSESSMENT_CENTRE => assessmentCentre
+    }
+
+  }
+
 }
 // scalastyle:on
