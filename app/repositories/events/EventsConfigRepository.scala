@@ -23,7 +23,7 @@ import model.{ FsbType, TelephoneInterviewType }
 import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
-import org.joda.time.{ LocalDate, LocalTime }
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
 import resource._
@@ -121,8 +121,10 @@ trait EventsConfigRepository {
           configItem.attendeeSafetyMargin,
           configItem.startTime,
           configItem.endTime,
+          DateTime.now,
           configItem.skillRequirements,
-          configItem.sessions.map(s => Session(s))
+          configItem.sessions.map(s => Session(s)),
+          wasBulkUploaded = true
       )
       eventItemFuture.recover {
         case ex => throw new Exception(

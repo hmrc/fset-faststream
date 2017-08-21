@@ -94,6 +94,7 @@ package object repositories {
   lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
   lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository(DateTimeFactory)
   lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository(DateTimeFactory)
+  lazy val assessorsEventsSummaryJobsRepository = new AssessorsEventsSummaryJobsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()

@@ -16,8 +16,8 @@
 
 package repositories.application
 
-import model.SchemeId
 import model.Exceptions.AlreadyEvaluatedForSchemeException
+import model.SchemeId
 import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
@@ -38,7 +38,7 @@ trait FsbTestGroupRepository {
 
 class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
   ReactiveRepository[FsbTestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo, FsbTestGroup.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats) with FsbTestGroupRepository with ReactiveRepositoryHelpers {
+    ReactiveMongoFormats.objectIdFormats) with FsbTestGroupRepository with CurrentSchemeStatusHelper with ReactiveRepositoryHelpers {
 
   private val APPLICATION_ID = "applicationId"
   private val FSB_TEST_GROUPS = "testGroups.FSB"
@@ -50,11 +50,15 @@ class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
         s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
       )
     ))
-    val modifier = BSONDocument("$addToSet" -> BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result))
+
+    val modifier = BSONDocument(
+      "$addToSet" -> BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result),
+      "$set" -> currentSchemeStatusBSON(Seq(result))
+    )
     val message = s"Fsb evaluation already done for application $applicationId for scheme ${result.schemeId}"
-    val validator = singleUpdateValidator(applicationId,
-                                          actionDesc = s"saving fsb assessment result $result",
-                                          AlreadyEvaluatedForSchemeException(message))
+    val validator = singleUpdateValidator(
+      applicationId, actionDesc = s"saving fsb assessment result $result", AlreadyEvaluatedForSchemeException(message)
+    )
     collection.update(selector, modifier) map validator
   }
 

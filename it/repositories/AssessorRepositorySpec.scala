@@ -1,8 +1,9 @@
 package repositories
 
+import factories.UUIDFactory
 import model.SchemeId
 import model.persisted.EventExamples
-import model.persisted.eventschedules.Location
+import model.persisted.eventschedules.{ Location, SkillType }
 import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
 import org.joda.time.LocalDate
 import testkit.MongoRepositorySpec
@@ -83,6 +84,39 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       val result = repository.countSubmittedAvailability.futureValue
 
       result mustBe 2
+    }
+
+    "find assessors without availabilities given date and location" in {
+      val london = Location("London")
+      val newcastle = Location("Newcastle")
+      val skills = List(SkillType.EXERCISE_MARKER)
+
+      val availabilities = Set(
+        AssessorAvailability(london, new LocalDate(2017, 8, 10)),
+        AssessorAvailability(london, new LocalDate(2017, 8, 11)),
+        AssessorAvailability(newcastle, new LocalDate(2017, 9, 10)),
+        AssessorAvailability(newcastle, new LocalDate(2017, 10, 11))
+      )
+
+      def assessor = Assessor(UUIDFactory.generateUUID(), None, skills.map(_.toString), Nil, civilServant = true,
+        Set.empty, AssessorStatus.CREATED)
+
+      val assessorsWithAvailabilities = Seq(
+        assessor.copy(skills = List(SkillType.ASSESSOR.toString)),
+        assessor.copy(skills = List(SkillType.ASSESSOR.toString, SkillType.CHAIR.toString)),
+        assessor.copy(status = AssessorStatus.AVAILABILITIES_SUBMITTED, availability = availabilities),
+        assessor.copy(skills = Nil),
+        assessor.copy(skills = List(SkillType.DEPARTMENTAL_ASSESSOR.toString, SkillType.EXERCISE_MARKER.toString))
+      )
+
+      assessorsWithAvailabilities.foreach { assessor =>
+        repository.save(assessor).futureValue mustBe unit
+      }
+
+      val eventDate = new LocalDate(2017, 8, 10)
+      val eventSkills = List(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)
+      val result = repository.findUnavailableAssessors(eventSkills, london, eventDate).futureValue
+      result.size mustBe 2
     }
   }
 }
