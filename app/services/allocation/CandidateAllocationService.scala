@@ -78,10 +78,10 @@ trait CandidateAllocationService extends EventSink {
     candidateAllocationRepo.activeAllocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
-  def getSessionsForApplication(applicationId: String, sessionEventType: EventType): Future[Seq[CandidateAllocationWithEvent]] = {
+  def getSessionsForApplication(applicationId: String): Future[Seq[CandidateAllocationWithEvent]] = {
     for {
       allocations <- candidateAllocationRepo.allocationsForApplication(applicationId)
-      events <- eventsService.getEvents(allocations.map(_.eventId).toList, sessionEventType)
+      events <- eventsService.getEvents(allocations.map(_.eventId).toList)
     } yield {
       allocations.flatMap { allocation =>
         events.filter(event => event.sessions.exists(session => allocation.sessionId == session.id))

@@ -22,7 +22,9 @@ import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
 import mocks._
 import model._
-import model.persisted.ContactDetailsWithId
+import model.persisted.{ AssessorAllocation, ContactDetailsWithId, EventExamples }
+import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.persisted.eventschedules.{ Event, SkillType }
 import model.report.{ CandidateProgressReportItem, _ }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
@@ -33,16 +35,22 @@ import repositories.application.ReportingRepository
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.csv.FSACIndicatorCSVRepository
+import repositories.events.EventsRepository
 import testkit.UnitWithAppSpec
+import testkit.MockitoImplicits._
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
 class ReportingControllerSpec extends UnitWithAppSpec {
 
   val mockContactDetailsRepository: ContactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
   val reportingRepositoryMock: ReportingRepository = mock[ReportingRepository]
-  val authProviderClientMock: AuthProviderClient = mock[AuthProviderClient]
+  val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
+  val mockAssessorAllocationRepository = mock[AssessorAllocationRepository]
+  val mockEventsRepository = mock[EventsRepository]
+  val mockAssessorRepository = mock[AssessorRepository]
 
   class TestableReportingController extends ReportingController {
     override val reportingRepository: ReportingRepository = reportingRepositoryMock
@@ -51,7 +59,10 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     override val assessmentScoresRepository: AssessmentScoresRepository = AssessmentScoresRepositoryInMemoryRepository
     override val mediaRepository: MediaRepository = MediaInMemoryRepository
     override val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
-    override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
+    override val authProviderClient: AuthProviderClient = mockAuthProviderClient
+    override val eventsRepository = mockEventsRepository
+    override val assessorRepository = mockAssessorRepository
+    override val assessorAllocationRepository = mockAssessorAllocationRepository
   }
 
   "Reporting controller create adjustment report" must {
@@ -268,6 +279,54 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     }
   }
 
+
+  "assessor allocation report" must {
+    "return the allocation report when all data is present" in new TestFixture {
+      val underTest = new TestableReportingController
+      when(mockEventsRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
+        List(
+          EventExamples.e1,
+          EventExamples.e2
+        )
+      )
+      when(mockAssessorRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
+        List(
+          Assessor("userId1", None, List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR"), Nil,
+            civilServant = false, Set.empty, AssessorStatus.CREATED)
+        )
+      )
+      when(mockAuthProviderClient.findByUserIds(any[Seq[String]]())(any[HeaderCarrier])).thenReturnAsync(
+        Seq(
+          Candidate(
+            "Bob", "Smith", None, "bob@bob.com", None, "userId1", List("assessor")
+          )
+        )
+      )
+      when(mockAssessorAllocationRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
+        List(
+          AssessorAllocation(
+            "userId1", EventExamples.e1.id, AllocationStatuses.CONFIRMED, SkillType.ASSESSOR, "version1"
+          )
+        )
+      )
+
+      val response = underTest.assessorAllocationReport(FakeRequest())
+
+      val result = contentAsJson(response).as[List[String]]
+
+      result must have length 2
+
+      val expectedHeaders = s"Name,Role,Skills,Sift schemes,Email,Phone," +
+        s"Internal/External,${EventExamples.e1.date.toString} (FSAC),${EventExamples.e2.date.toString} (FSB)"
+
+      result.head mustBe expectedHeaders
+
+      result(1) mustBe
+        """"Bob Smith","assessor","ASSESSOR, QUALITY_ASSURANCE_COORDINATOR","",
+          |"bob@bob.com"," ","External","ASSESSOR (CONFIRMED)"," """".stripMargin.replaceAll("\n", "")
+    }
+  }
+
   trait TestFixture extends TestFixtureBase {
     val frameworkId = "FastStream-2016"
 
@@ -380,10 +439,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    val authProviderClientMock = mock[AuthProviderClient]
-    when(authProviderClientMock.candidatesReport(any())).thenReturn(Future.successful(
-      Candidate("firstName1", "lastName1", Some("preferredName1"), "email1@test.com", "user1") ::
-        Candidate("firstName2", "lastName2", None, "email2@test.com", "user2") ::
+    when(mockAuthProviderClient.candidatesReport(any())).thenReturn(Future.successful(
+      Candidate("firstName1", "lastName1", Some("preferredName1"), "email1@test.com", None, "user1", List("candidate")) ::
+        Candidate("firstName2", "lastName2", None, "email2@test.com", None, "user2", List("candidate")) ::
         Nil
     ))
 

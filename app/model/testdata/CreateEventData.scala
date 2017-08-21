@@ -18,7 +18,7 @@ package model.testdata
 
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.persisted.eventschedules._
-import org.joda.time.{ LocalDate, LocalTime }
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json.{ Json, OFormat }
 import services.testdata.faker.DataFaker.Random
 
@@ -39,7 +39,7 @@ object CreateEventData {
     sessions: List[Session]) extends CreateTestData {
     def toEvent: Event = {
       Event(id, eventType, description, location, venue, date, capacity, minViableAttendees,
-        attendeeSafetyMargin, startTime, endTime, skillRequirements, sessions)
+        attendeeSafetyMargin, startTime, endTime, DateTime.now, skillRequirements, sessions)
     }
   }
 
