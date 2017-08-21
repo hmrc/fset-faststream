@@ -171,7 +171,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
             userId,
             personalDetails.firstName,
             personalDetails.lastName,
-            personalDetails.preferredName,
+            personalDetails.preferredName.getOrElse(""),
             programmes
           )
         }

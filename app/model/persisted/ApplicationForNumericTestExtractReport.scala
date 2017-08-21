@@ -25,11 +25,10 @@ import reactivemongo.bson.Macros
 case class ApplicationForNumericTestExtractReport(
                                                    userId: String,
                                                    applicationId: String,
+                                                   applicationRoute: ApplicationRoute,
                                                    firstName: String,
                                                    lastName: String,
-                                                   preferredName: String,
-                                                   email: String,
-                                                   telephone: String,
+                                                   preferredName: Option[String],
                                                    progress: String,
                                                    schemes: List[SchemeId],
                                                    disability: Option[String],
@@ -41,5 +40,4 @@ case class ApplicationForNumericTestExtractReport(
 
 object ApplicationForNumericTestExtractReport {
   implicit val applicationForNumericTestExtractReportFormat = Json.format[ApplicationForNumericTestExtractReport]
-  implicit val applicationForNumericTestExtractReportHandler = Macros.handler[ApplicationForNumericTestExtractReport]
 }

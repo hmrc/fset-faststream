@@ -195,6 +195,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   implicit val toApplicationForOnlineTestPassMarkReport: BSONDocumentReader[ApplicationForOnlineTestPassMarkReport] = bsonReader {
     (doc: BSONDocument) => {
+      val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
@@ -209,6 +210,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
       ApplicationForOnlineTestPassMarkReport(
+        userId,
         applicationId,
         ProgressStatusesReportLabels.progressStatusNameInReports(progress),
         applicationRoute,
@@ -223,6 +225,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   implicit val toApplicationForNumericTestExtractReport: BSONDocumentReader[ApplicationForNumericTestExtractReport] = bsonReader {
     (doc: BSONDocument) => {
+      val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
@@ -239,13 +242,13 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
       ApplicationForNumericTestExtractReport(
+        userId,
         applicationId,
+        applicationRoute,
         personalDetails.firstName,
         personalDetails.lastName,
         personalDetails.preferredName,
-
         ProgressStatusesReportLabels.progressStatusNameInReports(progress),
-        applicationRoute,
         schemes.getOrElse(Nil),
         disability,
         gis,

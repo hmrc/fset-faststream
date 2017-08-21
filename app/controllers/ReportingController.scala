@@ -28,6 +28,7 @@ import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import collection.breakOut
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -215,13 +216,13 @@ trait ReportingController extends BaseController {
     val reports =
       for {
         applications <- reportingRepository.numericTestExtractReport()
-        contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(_.groupBy(_.userId).mapValues(_.head))
+        contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(_.map(x => x.userId -> x)(breakOut).toMap)
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.userId))
       } yield for {
         a <- applications
         c <- contactDetails.get(a.userId)
         q <- questionnaires.get(a.applicationId)
-      } yield NumericTestExtractReportItem(a, q)
+      } yield NumericTestExtractReportItem(a, c, q)
 
     reports.map(list => Ok(Json.toJson(list)))
   }
