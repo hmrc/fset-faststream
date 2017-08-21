@@ -74,8 +74,8 @@ class ApplicationSiftMongoRepository(
       ApplicationForSift(applicationId, appStatus, currentSchemeStatus)
     }
 
-    val fsQuery = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationRoute" -> ApplicationRoute.Faststream),
+    val fsQuery = (route: ApplicationRoute) => BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> route),
       BSONDocument("applicationStatus" -> prevPhase),
       BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
         BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
@@ -88,7 +88,8 @@ class ApplicationSiftMongoRepository(
     )
 
     val eligibleForSiftQuery = BSONDocument("$or" -> BSONArray(
-      fsQuery,
+      fsQuery(ApplicationRoute.Faststream),
+      fsQuery(ApplicationRoute.SdipFaststream),
       xdipQuery(ApplicationRoute.Edip),
       xdipQuery(ApplicationRoute.Sdip)
     ))
