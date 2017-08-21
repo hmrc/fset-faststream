@@ -433,8 +433,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val alloc = CandidateAllocationWithEvent("", "", AllocationStatuses.CONFIRMED, EventsExamples.Event1)
 
-      when(mockApplicationClient.candidateAllocationEventWithSession(
-        any[UniqueIdentifier], eqTo(EventType.FSAC))(any[HeaderCarrier]())).thenReturnAsync(List(alloc))
+      when(mockApplicationClient.candidateAllocationEventWithSession(any[UniqueIdentifier])(any[HeaderCarrier]())).thenReturnAsync(List(alloc))
 
       when(mockApplicationClient.hasAnalysisExercise(any[UniqueIdentifier]())(any[HeaderCarrier])).thenReturnAsync(hasAnalysisExerciseAlready)
     }

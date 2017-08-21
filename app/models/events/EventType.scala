@@ -23,9 +23,24 @@ object EventType extends Enumeration {
 
   val ALL_EVENTS, FSAC, FSB, TELEPHONE_INTERVIEW, SKYPE_INTERVIEW = Value
 
-  implicit val eventTypeFormat = new Format[EventType] {
+  val options = Map(
+    TELEPHONE_INTERVIEW -> "Telephone Interview",
+    FSAC -> "Fast Stream Assessment Centre",
+    FSB -> "Final Selection Board",
+    SKYPE_INTERVIEW -> "Skype Interview"
+  )
+
+  val allOption = Map(ALL_EVENTS -> "All Events")
+
+  val displayText = allOption ++ options
+
+  implicit val EventTypeFormat = new Format[EventType] {
     override def reads(json: JsValue): JsResult[EventType] = JsSuccess(EventType.withName(json.as[String].toUpperCase))
 
     override def writes(eventType: EventType): JsValue = JsString(eventType.toString)
+  }
+
+  implicit class RichEventType(eventType: EventType) {
+    def displayValue: String = displayText(eventType)
   }
 }

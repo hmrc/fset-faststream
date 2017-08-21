@@ -16,12 +16,13 @@
 
 package models.page
 
-import connectors.events.Event
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
+import connectors.exchange.referencedata.Scheme
 import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
 import helpers.{ CachedUserWithSchemeData, Timezones }
 import models.CachedData
+import models.events.EventType
 import models.page.DashboardPage.Flags
 import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
 import org.joda.time.{ DateTime, LocalTime }
@@ -36,14 +37,15 @@ object PostOnlineTestsStage extends Enumeration {
 
 case class PostOnlineTestsPage(
   userDataWithSchemes: CachedUserWithSchemeData,
-  assessmentCentreAllocation: Option[CandidateAllocationWithEvent],
+  allocationsWithEvent: Seq[CandidateAllocationWithEvent],
   additionalQuestionsStatus: Option[SiftAnswersStatus],
-  hasAnalysisExercise: Boolean
+  hasAnalysisExercise: Boolean,
+  schemes: List[Scheme]
 ) {
   import PostOnlineTestsStage._
 
   // scalastyle:off cyclomatic.complexity
-  def stage: PostOnlineTestsStage =
+  def fsacStage: PostOnlineTestsStage =
     userDataWithSchemes.application.progress.assessmentCentre match {
       case a if a.failedToAttend => FAILED_TO_ATTEND
       case _ if hasAnalysisExercise => EVENT_ATTENDED
@@ -54,21 +56,42 @@ case class PostOnlineTestsPage(
   }
   // scalastyle:on
 
+  def fsbStage: PostOnlineTestsStage = userDataWithSchemes.application.progress.fsb match {
+    case e if e.failedToAttend => FAILED_TO_ATTEND
+    case e if e.allocationConfirmed => CONFIRMED_FOR_EVENT
+    case e if e.allocationUnconfirmed => ALLOCATED_TO_EVENT
+    case _ => OTHER
+  }
+
   def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 
   private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {
     localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
   }
 
-  val assessmentCentreStartDateAndTime: String = assessmentCentreAllocation.map(_.event).map { ac =>
-    ac.date.toString("EEEE d MMMM YYYY") + " at " + dateTimeToStringWithOptionalMinutes(ac.sessions.head.startTime)
+  def eventStartDateAndTime(al: Option[CandidateAllocationWithEvent]): String = al.map {e =>
+    e.event.date.toString("EEEE d MMMM YYYY") + " at " + dateTimeToStringWithOptionalMinutes(e.event.sessions.head.startTime)
   }.getOrElse("No assessment centre")
 
-  val assessmentCentreNameAndLocation: String = {
-    assessmentCentreAllocation.map(_.event).map { ac => ac.venue.description }.getOrElse("No assessment centre")
-  }
+  def eventLocation(al: Option[CandidateAllocationWithEvent]): String = al.map {_.event.venue.description}.getOrElse("")
 
-  val assessmentCentreStarted: Boolean = assessmentCentreAllocation.map(_.event).exists { event =>
+  def eventTypeText(al: Option[CandidateAllocationWithEvent]): String = al.map {x => x.event.eventType.displayValue}.getOrElse("")
+
+  def eventScheme(al: Option[CandidateAllocationWithEvent]): String = al.map(_.event).flatMap { e =>
+    e.eventType match {
+      case EventType.FSB | EventType.TELEPHONE_INTERVIEW => schemes.find(_.fsbType.map(_.key).contains(e.description)).map(_.name)
+      case _ => None
+    }
+  }.getOrElse("")
+
+
+  val fsacAllocation = allocationsWithEvent.find(_.event.eventType == EventType.FSAC)
+  val fsbAllocation = allocationsWithEvent.find(_.event.eventType != EventType.FSAC)
+
+  val assessmentCentreStartDateAndTime: String = eventStartDateAndTime(fsacAllocation)
+  val fsbStartDateAndTime: String = eventStartDateAndTime(fsbAllocation)
+
+  val assessmentCentreStarted: Boolean = allocationsWithEvent.map(_.event).exists { event =>
     val eventDate = event.date
     val sessionTime = event.sessions.head.startTime
     val sessionDateTime = new DateTime(
