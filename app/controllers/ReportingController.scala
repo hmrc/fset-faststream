@@ -283,7 +283,6 @@ trait ReportingController extends BaseController {
 
     val reports =
       for {
-        debug <- reportingRepository.numericTestExtractReport()
         applications <- reportingRepository.numericTestExtractReport().map(
           _.filter(_.schemes.exists(siftableSchemeIdsWithNumericRequirement.contains))
         )
