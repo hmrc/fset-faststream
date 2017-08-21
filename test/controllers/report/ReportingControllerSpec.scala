@@ -308,50 +308,11 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "numeric text extract report" must {
-      "return candidates in sift_entered or ready who have a numeric test requirement" in new TestFixture {
+      "return candidates in sift_entered or ready who have a numeric test requirement, " +
+        "ignoring candidates who do not meet this criteria" in new TestFixture {
         val underTest = new TestableReportingController
-        when(mockSchemeRepo.schemes).thenReturn(
-          Seq(
-            Scheme("Commercial", "COM", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-              siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
-            ),
-            Scheme("Finance", "FIN", "Finance", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-              siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
-            ),
-            Scheme("Generalist", "GCS", "Generalist", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-              siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
-            ),
-            Scheme("HumanResources", "HRS", "Human Resources", civilServantEligible = false, None, None,
-              siftEvaluationRequired = false, fsbType = None, telephoneInterviewType = None
-            )
-          )
-        )
 
-        val applicationForNumericTestExtractReport = ApplicationForNumericTestExtractReport(
-          "userId1", "appId1",
-          ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
-          ProgressStatuses.SIFT_ENTERED,
-          schemes = List(SchemeId("Commercial"), SchemeId("Finance"), SchemeId("Generalist"), SchemeId("HumanResources")),
-          disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
-          testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1
-        )
-
-        when(mockReportingRepository.numericTestExtractReport()).thenReturnAsync(
-          List(applicationForNumericTestExtractReport)
-        )
-
-        val contactDetailsWithId = ContactDetailsWithId(
-          "userId1",
-          Address("123, Fake Street"),
-          Some("AB1 2CD"),
-          outsideUk = false,
-          "fake@user.com",
-          Some("231456879")
-        )
-
-        when(mockContactDetailsRepository.findByUserIds(any())).thenReturnAsync(
-          List(contactDetailsWithId)
-        )
+        mocksForNumericTestExtract
 
         val response = underTest.numericTestExtractReport()(FakeRequest())
 
@@ -360,9 +321,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         result must have length 1
 
         result.head mustBe NumericTestExtractReportItem(
-          application = applicationForNumericTestExtractReport,
+          application = applicationForNumericSift,
           contactDetails = contactDetailsWithId,
-          questionnaire = QuestionnaireReportItem(None, None, None, None, None, None, None, "", None)
+          questionnaire = questionnaireReportItem
         )
       }
     }
@@ -392,6 +353,83 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       override val assessorRepository = mockAssessorRepository
       override val assessorAllocationRepository = mockAssessorAllocationRepository
       override val schemeRepo = mockSchemeRepo
+    }
+
+    val contactDetailsWithId = ContactDetailsWithId(
+      "userId1",
+      Address("123, Fake Street"),
+      Some("AB1 2CD"),
+      outsideUk = false,
+      "fake@user.com",
+      Some("231456879")
+    )
+
+    val questionnaireReportItem = QuestionnaireReportItem(None, None, None, None, None, None, None, "2.5", None)
+
+    val applicationForNumericSift = ApplicationForNumericTestExtractReport(
+      "userId1", "appId1",
+      ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
+      ProgressStatuses.SIFT_ENTERED,
+      schemes = List(SchemeId("Commercial"), SchemeId("Finance"), SchemeId("Generalist"), SchemeId("HumanResources")),
+      disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1
+    )
+
+    val applicationForFormSift = ApplicationForNumericTestExtractReport(
+      "userId2", "appId2",
+      ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
+      ProgressStatuses.SIFT_ENTERED,
+      schemes = List(SchemeId("Generalist")),
+      disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1
+    )
+
+    val applicationForNoSift = ApplicationForNumericTestExtractReport(
+      "userId3", "appId3",
+      ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
+      ProgressStatuses.SIFT_ENTERED,
+      schemes = List(SchemeId("HumanResources")),
+      disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1
+    )
+
+    def mocksForNumericTestExtract = {
+      when(mockSchemeRepo.schemes).thenReturn(
+        Seq(
+          Scheme("Commercial", "COM", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
+            siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+          ),
+          Scheme("Finance", "FIN", "Finance", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
+            siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+          ),
+          Scheme("Generalist", "GCS", "Generalist", civilServantEligible = false, None, Some(SiftRequirement.FORM),
+            siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+          ),
+          Scheme("HumanResources", "HRS", "Human Resources", civilServantEligible = false, None, None,
+            siftEvaluationRequired = false, fsbType = None, telephoneInterviewType = None
+          )
+        )
+      )
+
+      when(mockReportingRepository.numericTestExtractReport()).thenReturnAsync(
+        List(applicationForNumericSift, applicationForFormSift, applicationForNoSift)
+      )
+
+      when(mockContactDetailsRepository.findByUserIds(any())).thenReturnAsync(
+        List(
+          contactDetailsWithId,
+          contactDetailsWithId.copy(userId = "userId2"),
+          contactDetailsWithId.copy(userId = "userId3")
+        )
+      )
+
+      when(mockQuestionnaireRepository.findForOnlineTestPassMarkReport(any())).thenReturnAsync(
+        Map(
+          "appId1" -> questionnaireReportItem,
+          "appId2" -> questionnaireReportItem,
+          "appId3" -> questionnaireReportItem
+        )
+      )
     }
 
     val SuccessfulAdjustmentReportResponse = Future.successful(
