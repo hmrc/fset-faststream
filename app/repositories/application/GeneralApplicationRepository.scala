@@ -145,7 +145,7 @@ trait GeneralApplicationRepository {
 
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
 
-  def remove(applicationStatus: Option[String]): Future[Int]
+  def remove(applicationStatus: Option[String]): Future[List[String]]
 
 }
 

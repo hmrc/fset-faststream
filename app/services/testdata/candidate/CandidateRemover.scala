@@ -22,6 +22,7 @@ import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait CandidateRemover {
   val appRepo: GeneralApplicationRepository
@@ -37,7 +38,7 @@ object CandidateRemover extends CandidateRemover {
   def remove(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int] = {
     for {
       userIds <- appRepo.remove(applicationStatus)
-      _ <- userIds.map(uid => authClient.removeUser(uid))
+      _ <- Future.sequence(userIds.map(uid => authClient.removeUser(uid)))
     } yield userIds.size
   }
 }
