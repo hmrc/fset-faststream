@@ -23,7 +23,6 @@ import model.command.ProgressResponse
 import model.persisted.ContactDetailsWithId
 import model.persisted.eventschedules.Event
 import model.report._
-import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.{ ReportingMongoRepository, ReportingRepository }
@@ -282,20 +281,14 @@ trait ReportingController extends BaseController {
     val siftableSchemeIdsWithNumericRequirement = schemeRepo.schemes.filter(scheme => scheme.siftEvaluationRequired &&
       scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST)).map(_.id)
 
-    Logger.debug("Siftable = " + siftableSchemeIdsWithNumericRequirement)
-
     val reports =
       for {
         debug <- reportingRepository.numericTestExtractReport()
-        _ = Logger.debug("Apps returned (Pre) = " + debug.size)
         applications <- reportingRepository.numericTestExtractReport().map(
           _.filter(_.schemes.exists(siftableSchemeIdsWithNumericRequirement.contains))
         )
-        _ = Logger.debug("Apps returned = " + applications.size)
         contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(_.map(x => x.userId -> x)(breakOut).toMap)
-        _ = Logger.debug("Contacts returned = " + contactDetails.values.size)
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
-        _ = Logger.debug("Questionnaires returned = " + questionnaires.values.size)
       } yield for {
         a <- applications
         c <- contactDetails.get(a.userId)
