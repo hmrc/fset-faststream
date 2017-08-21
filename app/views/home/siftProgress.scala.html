@@ -65,6 +65,12 @@
     </p>
 }
 
+@renderViewAssessmentFeedback = {
+    <p><a href="@routes.AssessmentFeedbackController.present(page.userDataWithSchemes.application.applicationId)">
+        View your assessment feedback</a>
+    </p>
+}
+
 @renderCannotAttend = {
     <p>If you cannot attend, <a href="@routes.ApplicationController.helpdesk()">contact us</a>.</p>
 }
@@ -92,6 +98,7 @@
                     </div>
                 </section>
                 @renderFindMoreAboutAssessmentDay
+                @renderViewAssessmentFeedback
             }
             case (PostOnlineTestsStage.CONFIRMED_FOR_EVENT) => {
                 <p>Your assessment centre is booked.</p>
