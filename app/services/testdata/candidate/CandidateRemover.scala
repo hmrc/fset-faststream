@@ -16,6 +16,7 @@
 
 package services.testdata.candidate
 
+import connectors.AuthProviderClient
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -24,14 +25,19 @@ import scala.concurrent.Future
 
 trait CandidateRemover {
   val appRepo: GeneralApplicationRepository
+  val authClient: AuthProviderClient
 
   def remove(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int]
 }
 
 object CandidateRemover extends CandidateRemover {
   override val appRepo = repositories.applicationRepository
+  override val authClient: AuthProviderClient = AuthProviderClient
 
   def remove(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int] = {
-    appRepo.remove(applicationStatus)
+    for {
+      userIds <- appRepo.remove(applicationStatus)
+      _ <- userIds.map(uid => authClient.removeUser(uid))
+    } yield userIds.size
   }
 }
