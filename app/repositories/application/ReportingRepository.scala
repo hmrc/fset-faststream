@@ -195,7 +195,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
 
   override def numericTestExtractReport(): Future[List[ApplicationForNumericTestExtractReport]] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
+      BSONDocument(s"applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false))
     ))
 
     val projection = BSONDocument(

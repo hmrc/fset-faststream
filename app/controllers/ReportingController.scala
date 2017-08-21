@@ -18,10 +18,12 @@ package controllers
 
 import connectors.AuthProviderClient
 import model.Commands._
+import model.SiftRequirement
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsWithId
 import model.persisted.eventschedules.Event
 import model.report._
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.{ ReportingMongoRepository, ReportingRepository }
@@ -30,8 +32,8 @@ import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.{ EventsMongoRepository, EventsRepository }
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import scala.collection.breakOut
 
+import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -45,6 +47,7 @@ object ReportingController extends ReportingController {
   val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
+  val schemeRepo: SchemeYamlRepository.type = SchemeYamlRepository
   val authProviderClient = AuthProviderClient
 }
 
@@ -59,6 +62,7 @@ trait ReportingController extends BaseController {
   val assessmentScoresRepository: AssessmentScoresRepository
   val mediaRepository: MediaRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
+  val schemeRepo: SchemeYamlRepository.type
   val authProviderClient: AuthProviderClient
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -261,7 +265,7 @@ trait ReportingController extends BaseController {
     val reports =
       for {
         applications <- reportingRepository.onlineTestPassMarkReport()
-        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.userId))
+        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield {
         for {
           a <- applications
@@ -274,11 +278,24 @@ trait ReportingController extends BaseController {
   }
 
   def numericTestExtractReport(): Action[AnyContent] = Action.async { implicit request =>
+
+    val siftableSchemeIdsWithNumericRequirement = schemeRepo.schemes.filter(scheme => scheme.siftEvaluationRequired &&
+      scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST)).map(_.id)
+
+    Logger.debug("Siftable = " + siftableSchemeIdsWithNumericRequirement)
+
     val reports =
       for {
-        applications <- reportingRepository.numericTestExtractReport()
+        debug <- reportingRepository.numericTestExtractReport()
+        _ = Logger.debug("Apps returned (Pre) = " + debug.size)
+        applications <- reportingRepository.numericTestExtractReport().map(
+          _.filter(_.schemes.exists(siftableSchemeIdsWithNumericRequirement.contains))
+        )
+        _ = Logger.debug("Apps returned = " + applications.size)
         contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(_.map(x => x.userId -> x)(breakOut).toMap)
-        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.userId))
+        _ = Logger.debug("Contacts returned = " + contactDetails.values.size)
+        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
+        _ = Logger.debug("Questionnaires returned = " + questionnaires.values.size)
       } yield for {
         a <- applications
         c <- contactDetails.get(a.userId)
