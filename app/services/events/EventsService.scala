@@ -55,21 +55,15 @@ trait EventsService {
     }
   }
 
-  def save(event: Event): Future[Unit] = {
-    eventsRepo.save(event :: Nil)
-  }
+  def save(event: Event): Future[Unit] = eventsRepo.save(event :: Nil)
 
-  def getEvent(id: String): Future[Event] = {
-    eventsRepo.getEvent(id)
-  }
+  def getEvent(id: String): Future[Event] = eventsRepo.getEvent(id)
 
   def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue))
   }
 
-  def getEvents(ids: List[String], eventType: EventType): Future[List[Event]] = {
-    eventsRepo.getEventsById(ids, Some(eventType))
-  }
+  def getEvents(ids: List[String]): Future[List[Event]] = eventsRepo.getEventsById(ids)
 
   def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
     getEvents(eventType, venue).flatMap { events =>

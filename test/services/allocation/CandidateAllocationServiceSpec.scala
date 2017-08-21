@@ -114,11 +114,11 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
         )
       )
 
-      when(mockEventsService.getEvents(any[List[String]](), any[EventType]())).thenReturnAsync(
+      when(mockEventsService.getEvents(any[List[String]]())).thenReturnAsync(
         List(EventExamples.e1WithSessions)
       )
 
-      service.getSessionsForApplication("appId1", EventType.FSAC).futureValue mustBe List(
+      service.getSessionsForApplication("appId1").futureValue mustBe List(
         CandidateAllocationWithEvent("appId1", "version1", AllocationStatuses.UNCONFIRMED,
           model.exchange.Event(
             EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))

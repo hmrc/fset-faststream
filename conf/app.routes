@@ -155,7 +155,7 @@ PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId 
 DELETE      /candidate-allocations/reset-removals/:applicationId/eventType/:eventType       controllers.CandidateAllocationController.removeCandidateRemovalReason(applicationId: String, eventType: model.persisted.eventschedules.EventType.EventType)
 
 PUT         /candidate-allocations/confirm-allocation/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.confirmAllocation(eventId: String, sessionId: String)
-GET         /candidate-allocations/sessions/findByApplicationId                              controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String, sessionEventType: model.persisted.eventschedules.EventType.EventType)
+GET         /candidate-allocations/sessions/findByApplicationId                              controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String)
 
 POST          /assessments/fsb-events/:eventId/sessions/:sessionId/results                controllers.FsbTestGroupController.save(eventId: String, sessionId: String)
 GET           /assessments/fsb-events/results                                             controllers.FsbTestGroupController.find(applicationIds: List[String], fsbType: Option[String])
