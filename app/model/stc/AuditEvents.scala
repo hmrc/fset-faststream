@@ -74,5 +74,7 @@ object AuditEvents {
   case class FastPassUserAccepted(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class FastPassUserRejected(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
 
+  case class AutoProgressedToFSAC(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
+
 }
 // scalastyle:on number.of.methods
