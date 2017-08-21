@@ -18,16 +18,16 @@ package services
 
 import model.Commands.PhoneNumber
 import model.Exceptions.{ LastSchemeWithdrawException, PassMarkEvaluationNotFound }
+import model.ProgressStatuses.ProgressStatus
 import model.command.{ ProgressResponse, WithdrawApplication, WithdrawScheme }
-import model.{ ApplicationResponse, Candidate }
+import model._
 import model.stc.AuditEvents
 import org.joda.time.DateTime
 import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ Address, ApplicationRoute, SchemeId, SelectedSchemes }
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
-import repositories.MediaRepository
+import repositories.{ MediaRepository, SchemeRepository }
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
@@ -217,15 +217,36 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
-          any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
+          any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       val withdraw = WithdrawScheme(SchemeId("Commercial"), "reason", "Candidate")
 
       underTest.withdraw("appId", withdraw).futureValue
 
       verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
-        any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
+        any[Seq[SchemeEvaluationResult]]
       )
+    }
+
+    "progress to FSAC allocation if only non-siftable schemes are left" in new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Generalist"), "Green"),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), "Green")
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any[Seq[SchemeEvaluationResult]]
+      )).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      val withdraw = WithdrawScheme(SchemeId("DigitalAndTechnology"), "reason", "Candidate")
+
+      underTest.withdraw("appId", withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
+        any[Seq[SchemeEvaluationResult]]
+      )
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo("appId"), eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
     }
 
     "throw an exception when withdrawing from the last scheme" in new TestFixture {
@@ -235,7 +256,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
-          any(classOf[(WithdrawScheme) => Seq[SchemeEvaluationResult]])
+          any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
 
       val withdraw = WithdrawScheme(SchemeId("Commercial"), "reason", "Candidate")
@@ -255,6 +276,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val mediaRepoMock: MediaRepository = mock[MediaRepository]
     val evalPhase1ResultMock: EvaluatePhase1ResultService = mock[EvaluatePhase1ResultService]
     val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
+    val mockSchemeRepo = new SchemeRepository {
+      override lazy val nonSiftableSchemeIds = Seq(SchemeId("Generalist"), SchemeId("HumanResources"))
+    }
 
     val underTest = new ApplicationService with StcEventServiceFixture {
       val appRepository = appRepositoryMock
@@ -263,6 +287,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val eventService = eventServiceMock
       val mediaRepo = mediaRepoMock
       val schemePrefsRepository = schemeRepositoryMock
+      val schemesRepo = mockSchemeRepo
       val evaluateP1ResultService = evalPhase1ResultMock
       val evaluateP3ResultService = evalPhase3ResultMock
     }
