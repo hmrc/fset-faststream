@@ -51,7 +51,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application, Schemes.AllSchemes, phase3Results)
 
-      val page = PostOnlineTestsPage.apply(cachedUserMetadata, None, None, hasAnalysisExercise = false)
+      val page = PostOnlineTestsPage.apply(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
       page.userDataWithSchemes.successfulSchemes mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
 
@@ -61,7 +61,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       page.userDataWithSchemes.withdrawnSchemes mustBe Nil
       page.userDataWithSchemes.hasNumericRequirement mustBe false
       page.userDataWithSchemes.hasFormRequirement mustBe false
-      page.stage mustBe PostOnlineTestsStage.OTHER
+      page.fsacStage mustBe PostOnlineTestsStage.OTHER
     }
 
     "application is in correct stage" in {
@@ -77,9 +77,9 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         AllocationStatuses.UNCONFIRMED,
         EventsExamples.Event1
       )
-      val page = PostOnlineTestsPage.apply(cachedUserMetadata, Some(allocation), None, hasAnalysisExercise = false)
+      val page = PostOnlineTestsPage.apply(cachedUserMetadata, Seq(allocation), None, hasAnalysisExercise = false, List.empty)
 
-      page.stage mustBe PostOnlineTestsStage.ALLOCATED_TO_EVENT
+      page.fsacStage mustBe PostOnlineTestsStage.ALLOCATED_TO_EVENT
 
     }
 

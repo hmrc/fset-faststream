@@ -39,9 +39,6 @@ abstract class AssessmentFeedbackController(assessmentScoresClient: AssessmentSc
           data <- assessmentScoresClient
             .findReviewerAcceptedAssessmentScores(applicationId)
         } yield {
-          //scalastyle:off
-//          println(s"**** data = $data")
-          //scalastyle:on
           val page = AssessmentFeedbackPage(data)
           Ok(views.html.home.assessmentFeedback(page))
         }

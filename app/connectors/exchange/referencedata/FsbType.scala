@@ -14,29 +14,12 @@
  * limitations under the License.
  */
 
-package connectors.events
+package connectors.exchange.referencedata
 
-import models.UniqueIdentifier
-import models.events.EventType.EventType
-import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.{ Json, OFormat }
 
-case class Event(
-  id: UniqueIdentifier,
-  eventType: EventType,
-  description: String,
-  location: Location,
-  venue: Venue,
-  date: LocalDate,
-  capacity: Int,
-  minViableAttendees: Int,
-  attendeeSafetyMargin: Int,
-  startTime: LocalTime,
-  endTime: LocalTime,
-  skillRequirements: Map[String, Int],
-  sessions: List[Session]
-)
+case class FsbType(key: String)
 
-object Event {
-  implicit val eventFormat: OFormat[Event] = Json.format[Event]
+object FsbType {
+  implicit val format: OFormat[FsbType] = Json.format[FsbType]
 }

@@ -41,9 +41,7 @@ case class AssessmentScoresExercise(
   savedDate: Option[DateTime] = None,
   submittedDate: Option[DateTime] = None,
   version: Option[String] = None
-) {
-  def isSubmitted = submittedDate.isDefined
-}
+)
 
 object AssessmentScoresExercise {
   implicit val scoresAndFeedbackFormat = Json.format[AssessmentScoresExercise]
