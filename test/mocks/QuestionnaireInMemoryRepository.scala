@@ -37,7 +37,7 @@ object QuestionnaireInMemoryRepository extends QuestionnaireRepository with InMe
   override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] =
     Future.successful(Map.empty[String, QuestionnaireReportItem])
 
-  override def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]] =
+  override def findForOnlineTestPassMarkReport(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]] =
     Future.successful(Map.empty[String, QuestionnaireReportItem])
 }
 

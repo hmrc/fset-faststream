@@ -51,6 +51,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   val mockAssessorAllocationRepository = mock[AssessorAllocationRepository]
   val mockEventsRepository = mock[EventsRepository]
   val mockAssessorRepository = mock[AssessorRepository]
+  val mockSchemeRepo = mock[SchemeRepository]
 
   class TestableReportingController extends ReportingController {
     override val reportingRepository: ReportingRepository = reportingRepositoryMock
@@ -63,6 +64,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     override val eventsRepository = mockEventsRepository
     override val assessorRepository = mockAssessorRepository
     override val assessorAllocationRepository = mockAssessorAllocationRepository
+    override val schemeRepo = mockSchemeRepo
   }
 
   "Reporting controller create adjustment report" must {

@@ -47,8 +47,8 @@ object ReportingController extends ReportingController {
   val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
-  val schemeRepo: SchemeYamlRepository.type = SchemeYamlRepository
-  val authProviderClient = AuthProviderClient
+  val schemeRepo: SchemeRepository = SchemeYamlRepository
+  val authProviderClient: AuthProviderClient = AuthProviderClient
 }
 
 trait ReportingController extends BaseController {
@@ -62,7 +62,7 @@ trait ReportingController extends BaseController {
   val assessmentScoresRepository: AssessmentScoresRepository
   val mediaRepository: MediaRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
-  val schemeRepo: SchemeYamlRepository.type
+  val schemeRepo: SchemeRepository
   val authProviderClient: AuthProviderClient
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
