@@ -18,26 +18,32 @@ package services.testdata.candidate
 
 import connectors.AuthProviderClient
 import play.api.mvc.RequestHeader
-import repositories.application.GeneralApplicationRepository
+import repositories.MongoDbConnection
+import repositories.testdata.{ ApplicationRemovalMongoRepository, ApplicationRemovalRepository }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait CandidateRemover {
-  val appRepo: GeneralApplicationRepository
+  val appRemovalRepo: ApplicationRemovalRepository
   val authClient: AuthProviderClient
 
   def remove(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int]
 }
 
 object CandidateRemover extends CandidateRemover {
-  override val appRepo = repositories.applicationRepository
+
+  private implicit val connection = {
+    MongoDbConnection.mongoConnector.db
+  }
+
+  override val appRemovalRepo = new ApplicationRemovalMongoRepository()
   override val authClient: AuthProviderClient = AuthProviderClient
 
   def remove(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int] = {
     for {
-      userIds <- appRepo.remove(applicationStatus)
+      userIds <- appRemovalRepo.remove(applicationStatus)
       _ <- Future.sequence(userIds.map(uid => authClient.removeUser(uid)))
     } yield userIds.size
   }

@@ -145,8 +145,6 @@ trait GeneralApplicationRepository {
 
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
 
-  def remove(applicationStatus: Option[String]): Future[List[String]]
-
 }
 
 // scalastyle:off number.of.methods
@@ -910,20 +908,6 @@ class GeneralApplicationMongoRepository(
     replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
   }
 
-  override def remove(applicationStatus: Option[String]): Future[List[String]] = {
-    val query = applicationStatus.map(as => BSONDocument("applicationStatus" -> as)).getOrElse(BSONDocument())
-
-    val projection = BSONDocument(
-      "userId" -> true
-    )
-
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map {
-      docList => docList.map { doc => doc.getAs[String]("userId").get }
-    }.map { userIds =>
-      collection.remove(query).map(_.n)
-      userIds
-    }
-  }
 
   import ProgressStatuses._
   private val progressStatuses = Map(
