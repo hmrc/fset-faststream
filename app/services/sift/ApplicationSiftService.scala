@@ -76,7 +76,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
     def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], siftableSchemes: Set[SchemeId]) =
       if (siftedSchemes equals  siftableSchemes) {
-        BSONDocument("$set" -> progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED))
+        progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
       } else {
         BSONDocument.empty
       }
@@ -84,20 +84,19 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     (for {
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
       currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId)
-      (predicate, siftBson) = applicationSiftRepo.siftApplicationForSchemeBSON(applicationId, result)
     } yield {
       val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
-      val action = s"Sifting application for ${result.schemeId.value}"
       val candidatesGreenSchemes = currentSchemeStatus.collect { case s if s.result == Green.toString => s.schemeId }
       val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
       val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
-      val mergedUpdate = Seq(
-        BSONDocument("$set" -> currentSchemeStatusBSON(newSchemeStatus)),
+      val settableFields = Seq(currentSchemeStatusBSON(newSchemeStatus),
         maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
-      ).foldLeft(siftBson) { (acc, doc) => acc ++ doc }
+      )
 
-      applicationSiftRepo.update(applicationId, predicate, mergedUpdate, action)
+      play.api.Logger.error(s"\n\nBLAH : ${settableFields.map(BSONDocument.pretty)}")
+      applicationSiftRepo.siftApplicationForScheme(applicationId, result, settableFields)
+
     }) flatMap identity
   }
 }
