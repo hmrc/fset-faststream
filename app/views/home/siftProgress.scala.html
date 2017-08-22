@@ -77,7 +77,9 @@
 }
 
 @renderViewAssessmentFeedback = {
-    <p><a href="@routes.AssessmentFeedbackController.present(page.userDataWithSchemes.application.applicationId)">
+    <p>
+        <i class="fa fa-check"></i>
+        <a href="@routes.AssessmentFeedbackController.present(page.userDataWithSchemes.application.applicationId)">
         View your assessment feedback</a>
     </p>
 }
