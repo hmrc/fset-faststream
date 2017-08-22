@@ -276,13 +276,16 @@ trait ReportingController extends BaseController {
 
   def numericTestExtractReport(): Action[AnyContent] = Action.async { implicit request =>
 
-    val numericTestSchemeIds = schemeRepo.schemes.filter(scheme => scheme.siftEvaluationRequired &&
-      scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST)).map(_.id)
+    val numericTestSchemeIds = schemeRepo.schemes.collect {
+      case scheme if scheme.siftEvaluationRequired && scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST) => scheme.id
+    }
 
     val reports =
       for {
         applications <- reportingRepository.numericTestExtractReport().map(_.filter { app =>
-          val successfulSchemesSoFarIds = app.currentSchemeStatus.filter(_.result == Green.toString).map(_.schemeId)
+          val successfulSchemesSoFarIds = app.currentSchemeStatus.collect {
+            case evalResult if evalResult.result == Green.toString => evalResult.schemeId
+          }
           successfulSchemesSoFarIds.exists(numericTestSchemeIds.contains)
         })
         contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(_.map(x => x.userId -> x)(breakOut).toMap)
