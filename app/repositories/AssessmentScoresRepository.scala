@@ -35,18 +35,20 @@ trait AssessmentScoresRepository {
   def saveExercise(
     applicationId: UniqueIdentifier,
     section: AssessmentScoresSectionType.AssessmentScoresSectionType,
-    exercisesScores: AssessmentScoresExercise): Future[Unit]
+    exercisesScores: AssessmentScoresExercise,
+    newVersion: Option[String] = Some(UUIDFactory.generateUUID())): Future[Unit]
 
   def saveFinalFeedback(
     applicationId: UniqueIdentifier,
-    finalFeedback: AssessmentScoresFinalFeedback): Future[Unit]
+    finalFeedback: AssessmentScoresFinalFeedback,
+    newVersion: Option[String] = Some(UUIDFactory.generateUUID())): Future[Unit]
 
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]]
 
   def findAll: Future[List[AssessmentScoresAllExercises]]
 }
 
-abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collectionName: String)(implicit mongo: () => DB)
+abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit mongo: () => DB)
   extends ReactiveRepository[AssessmentScoresAllExercises, BSONObjectID](collectionName, mongo,
     AssessmentScoresAllExercises.jsonFormat, ReactiveMongoFormats.objectIdFormats)
     with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
@@ -54,22 +56,24 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
   def saveExercise(
     applicationId: UniqueIdentifier,
     section: AssessmentScoresSectionType.AssessmentScoresSectionType,
-    exercisesScores: AssessmentScoresExercise): Future[Unit] = {
+    exercisesScores: AssessmentScoresExercise,
+    newVersion: Option[String] = Some(UUIDFactory.generateUUID())): Future[Unit] = {
 
-    val newVersion = Some(UUIDFactory.generateUUID())
     val bsonSection = AssessmentScoresExercise.bsonHandler.write(exercisesScores.copy(version = newVersion))
     saveExerciseOrFinalFeedback(applicationId, section, bsonSection, exercisesScores.version)
   }
 
   def saveFinalFeedback(
     applicationId: UniqueIdentifier,
-    finalFeedback: AssessmentScoresFinalFeedback): Future[Unit] = {
+    finalFeedback: AssessmentScoresFinalFeedback,
+    newVersion: Option[String] = Some(UUIDFactory.generateUUID())): Future[Unit] = {
 
-    val newVersion = Some(UUIDFactory.generateUUID())
+    //val newVersion = Some(uuidFactory.generateUUID())
     val bsonSection = AssessmentScoresFinalFeedback.bsonHandler.write(finalFeedback.copy(version = newVersion))
     saveExerciseOrFinalFeedback(applicationId, AssessmentScoresSectionType.finalFeedback, bsonSection, finalFeedback.version)
   }
 
+  //scalastyle:off
   def saveExerciseOrFinalFeedback(
     applicationId: UniqueIdentifier,
     section: AssessmentScoresSectionType.AssessmentScoresSectionType,
@@ -115,7 +119,13 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     val update = buildUpdateForSaveWithOptimisticLocking(applicationId, section, bsonSection, oldVersion)
     val validator = singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
     collection.update(query, update, upsert = oldVersion.isEmpty).map(validator).recover {
-      case ex: Exception if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
+      case ex: Throwable if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
+        //scalastyle:off
+        println(s"-----------ex=$ex")
+        println(s"----------ex=${ex.printStackTrace()}")
+
+        //scalastyle:on
+        //if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
         throw new NotFoundException(s"You are trying to update a version of a [$section] " +
           s"for application id [$applicationId] that has been updated already")
     }
@@ -142,8 +152,8 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
   }
 }
 
-class AssessorAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends AssessmentScoresMongoRepository(dateTime, CollectionNames.ASSESSOR_ASSESSMENT_SCORES)
+class AssessorAssessmentScoresMongoRepository()(implicit mongo: () => DB)
+  extends AssessmentScoresMongoRepository(CollectionNames.ASSESSOR_ASSESSMENT_SCORES)
 
-class ReviewerAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends AssessmentScoresMongoRepository(dateTime, CollectionNames.REVIEWER_ASSESSMENT_SCORES)
+class ReviewerAssessmentScoresMongoRepository()(implicit mongo: () => DB)
+  extends AssessmentScoresMongoRepository(CollectionNames.REVIEWER_ASSESSMENT_SCORES)

@@ -45,7 +45,7 @@ case class AssessmentScoresExercise(
   savedDate: Option[DateTime] = None,
   submittedDate: Option[DateTime] = None,
   version: Option[String] = None
-) extends AssessmentScoresSection {
+) {
   def isSubmitted = submittedDate.isDefined
 }
 

@@ -27,7 +27,7 @@ case class AssessmentScoresFinalFeedback(
   updatedBy: UniqueIdentifier,
   acceptedDate: DateTime,
   version: Option[String] = None
-) extends AssessmentScoresSection
+)
 
 object AssessmentScoresFinalFeedback {
   implicit val jsonFormat = Json.format[AssessmentScoresFinalFeedback]

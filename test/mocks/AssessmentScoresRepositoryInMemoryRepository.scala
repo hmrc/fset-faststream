@@ -34,7 +34,8 @@ class AssessmentScoresRepositoryInMemoryRepository extends AssessmentScoresRepos
   def findAll: Future[List[AssessmentScoresAllExercises]] = ???
 
   def saveExercise(applicationId: UniqueIdentifier, exercise: AssessmentScoresSectionType,
-    exercisesScores: AssessmentScoresExercise): Future[Unit] = ???
+    exercisesScores: AssessmentScoresExercise, newVersion: Option[String]): Future[Unit] = ???
 
-  def saveFinalFeedback(applicationId: UniqueIdentifier, finalFeedback: AssessmentScoresFinalFeedback): Future[Unit] = ???
+  def saveFinalFeedback(applicationId: UniqueIdentifier, finalFeedback: AssessmentScoresFinalFeedback,
+    newVersion: Option[String]): Future[Unit] = ???
 }
