@@ -28,7 +28,7 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
-import repositories.{ AssessmentScoresRepository, AssessorAllocationRepository, AssessorRepository, MediaRepository, QuestionnaireRepository, contactdetails }
+import repositories.{ AssessmentScoresRepository, AssessorAllocationRepository, AssessorRepository, MediaRepository, QuestionnaireRepository, SchemeRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -38,8 +38,8 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
 
   "Online test pass mark report" should {
     "return nothing if no application exists" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(Nil)
-      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
+      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(Nil)
+      when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -49,8 +49,8 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return nothing if applications exist, but no questionnaires" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
-      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
+      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(applications)
+      when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -60,9 +60,9 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications and questionnaires if applications and questionnaires exist, but no test results" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applicationsWithNoTestResults)
+      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(applicationsWithNoTestResults)
 
-      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnairesForNoTestResults)
+      when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(questionnairesForNoTestResults)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -78,9 +78,9 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications with questionnaire and test results" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
+      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(applications)
 
-      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnaires)
+      when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(questionnaires)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -105,6 +105,8 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     val mockAssessorAllocationRepository = mock[AssessorAllocationRepository]
     val mockEventsRepository = mock[EventsRepository]
     val mockAssessorRepository = mock[AssessorRepository]
+    val mockSchemeYamlRepository = mock[SchemeRepository]
+
     val controller = new ReportingController {
       val reportingRepository = mockReportRepository
       val contactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
@@ -116,6 +118,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       val eventsRepository = mockEventsRepository
       val assessorRepository = mockAssessorRepository
       val assessorAllocationRepository = mockAssessorAllocationRepository
+      val schemeRepo = mockSchemeYamlRepository
     }
 
     lazy val testResults = Map(

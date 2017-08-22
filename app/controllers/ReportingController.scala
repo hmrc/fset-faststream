@@ -16,22 +16,21 @@
 
 package controllers
 
-import connectors.AuthProviderClient
-import model.Commands._
-import model.command.ProgressResponse
+import connectors.{ AuthProviderClient, ExchangeObjects }
+import model.EvaluationResults.Green
+import model.SiftRequirement
 import model.persisted.ContactDetailsWithId
-import model.persisted.eventschedules.Event
 import model.report._
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
-import repositories.application.{ ReportingMongoRepository, ReportingRepository }
+import repositories.application.{ GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.{ EventsMongoRepository, EventsRepository }
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import scala.collection.breakOut
 
+import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -45,7 +44,8 @@ object ReportingController extends ReportingController {
   val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
-  val authProviderClient = AuthProviderClient
+  val schemeRepo: SchemeRepository = SchemeYamlRepository
+  val authProviderClient: AuthProviderClient = AuthProviderClient
 }
 
 trait ReportingController extends BaseController {
@@ -59,6 +59,7 @@ trait ReportingController extends BaseController {
   val assessmentScoresRepository: AssessmentScoresRepository
   val mediaRepository: MediaRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
+  val schemeRepo: SchemeRepository
   val authProviderClient: AuthProviderClient
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -110,7 +111,10 @@ trait ReportingController extends BaseController {
 
     val reportRows = for {
       allAssessors <- assessorRepository.findAll()
-      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessors.map(_.userId)).map(_.map(x => x.userId -> x)(breakOut).toMap)
+      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessors.map(_.userId))
+        .map(
+          _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.Candidate]
+        )
       sortedEvents <- sortedEventsFut
       assessorAllocations <- assessorAllocationRepository.findAll().map(_.groupBy(_.id))
     } yield for {
@@ -150,7 +154,7 @@ trait ReportingController extends BaseController {
   }
 
   private def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],
-                                   contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
+    contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
     applications.map { application =>
       val contactDetails = contactDetailsMap.getOrElse(application.userId,
         throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
@@ -182,7 +186,7 @@ trait ReportingController extends BaseController {
   def candidateProgressReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val candidatesFut: Future[List[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
 
-    for{
+    for {
       candidates <- candidatesFut
     } yield Ok(Json.toJson(candidates))
   }
@@ -260,8 +264,8 @@ trait ReportingController extends BaseController {
   def onlineTestPassMarkReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports =
       for {
-        applications <- reportingRepository.onlineTestPassMarkReport(frameworkId)
-        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport
+        applications <- reportingRepository.onlineTestPassMarkReport
+        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield {
         for {
           a <- applications
@@ -272,4 +276,33 @@ trait ReportingController extends BaseController {
       Ok(Json.toJson(list))
     }
   }
+
+  def numericTestExtractReport(): Action[AnyContent] = Action.async { implicit request =>
+
+    val numericTestSchemeIds = schemeRepo.schemes.collect {
+      case scheme if scheme.siftEvaluationRequired && scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST) => scheme.id
+    }
+
+    val reports =
+      for {
+        applications <- reportingRepository.numericTestExtractReport.map(_.filter { app =>
+          val successfulSchemesSoFarIds = app.currentSchemeStatus.collect {
+            case evalResult if evalResult.result == Green.toString => evalResult.schemeId
+          }
+          successfulSchemesSoFarIds.exists(numericTestSchemeIds.contains)
+        })
+        contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId))
+          .map(
+            _.map(x => x.userId -> x)(breakOut): Map[String, ContactDetailsWithId]
+          )
+        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
+      } yield for {
+        a <- applications
+        c <- contactDetails.get(a.userId)
+        q <- questionnaires.get(a.applicationId)
+      } yield NumericTestExtractReportItem(a, c, q)
+
+      reports.map(list => Ok(Json.toJson(list)))
+  }
+
 }

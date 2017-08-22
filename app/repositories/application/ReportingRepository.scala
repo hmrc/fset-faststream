@@ -45,7 +45,9 @@ trait ReportingRepository {
 
   def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
 
-  def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReport]]
+  def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]]
+
+  def numericTestExtractReport: Future[List[ApplicationForNumericTestExtractReport]]
 
   def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]]
 
@@ -191,9 +193,30 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     reportQueryWithProjectionsBSON[ApplicationForDiversityReport](query, projection)
   }
 
-  override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+  override def numericTestExtractReport: Future[List[ApplicationForNumericTestExtractReport]] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("frameworkId" -> frameworkId),
+      BSONDocument(s"applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false))
+    ))
+
+    val projection = BSONDocument(
+      "userId" -> "1",
+      "applicationId" -> "1",
+      "personal-details" -> "1",
+      "scheme-preferences.schemes" -> "1",
+      "assistance-details" -> "1",
+      "testGroups.PHASE1" -> "1",
+      "testGroups.PHASE2" -> "1",
+      "testGroups.PHASE3.tests.callbacks.reviewed" -> 1,
+      "progress-status" -> "1",
+      "currentSchemeStatus" -> "1"
+    )
+
+    reportQueryWithProjectionsBSON[ApplicationForNumericTestExtractReport](query, projection)
+  }
+
+  override def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+    val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
     ))
 
@@ -425,6 +448,20 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val latestProgressStatus = ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses)
 
     UserApplicationProfile(userId, latestProgressStatus, firstName, lastName, dob)
+  }
+
+  private def toReportWithPersonalDetails(document: BSONDocument) = {
+    val applicationId = document.getAs[String]("applicationId").get
+    val userId = document.getAs[String]("userId").get
+
+    val personalDetailsDoc = document.getAs[BSONDocument]("personal-details").get
+    val firstName = personalDetailsDoc.getAs[String]("firstName").get
+    val lastName = personalDetailsDoc.getAs[String]("lastName").get
+    val preferredName = personalDetailsDoc.getAs[String]("preferredName").get
+    val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
+    val latestProgressStatus = ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses)
+
+    ReportWithPersonalDetails(applicationId, userId, Some(latestProgressStatus), Some(firstName), Some(lastName), Some(preferredName))
   }
 
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {

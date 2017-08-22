@@ -22,6 +22,7 @@ import play.api.libs.json.Json
 import model.report.TestResultsForOnlineTestPassMarkReportItem
 
 case class ApplicationForOnlineTestPassMarkReport(
+                                                   userId: String,
                                                    applicationId: String,
                                                    progress: String,
                                                    applicationRoute: ApplicationRoute,
