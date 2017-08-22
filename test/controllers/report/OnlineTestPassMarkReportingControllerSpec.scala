@@ -38,7 +38,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
 
   "Online test pass mark report" should {
     "return nothing if no application exists" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport()).thenReturnAsync(Nil)
+      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(Nil)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
@@ -49,7 +49,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return nothing if applications exist, but no questionnaires" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport()).thenReturnAsync(applications)
+      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(applications)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
@@ -60,7 +60,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications and questionnaires if applications and questionnaires exist, but no test results" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport()).thenReturnAsync(applicationsWithNoTestResults)
+      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(applicationsWithNoTestResults)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(questionnairesForNoTestResults)
 
@@ -78,7 +78,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications with questionnaire and test results" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport()).thenReturnAsync(applications)
+      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(applications)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(questionnaires)
 

@@ -418,7 +418,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         )
       )
 
-      when(mockReportingRepository.numericTestExtractReport()).thenReturnAsync(
+      when(mockReportingRepository.numericTestExtractReport).thenReturnAsync(
         List(applicationForNumericSift, applicationForFormSift, applicationForNoSift)
       )
 

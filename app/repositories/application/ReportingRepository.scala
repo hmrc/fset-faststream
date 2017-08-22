@@ -45,9 +45,9 @@ trait ReportingRepository {
 
   def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
 
-  def onlineTestPassMarkReport(): Future[List[ApplicationForOnlineTestPassMarkReport]]
+  def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]]
 
-  def numericTestExtractReport(): Future[List[ApplicationForNumericTestExtractReport]]
+  def numericTestExtractReport: Future[List[ApplicationForNumericTestExtractReport]]
 
   def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]]
 
@@ -193,7 +193,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     reportQueryWithProjectionsBSON[ApplicationForDiversityReport](query, projection)
   }
 
-  override def numericTestExtractReport(): Future[List[ApplicationForNumericTestExtractReport]] = {
+  override def numericTestExtractReport: Future[List[ApplicationForNumericTestExtractReport]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false))
@@ -215,7 +215,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     reportQueryWithProjectionsBSON[ApplicationForNumericTestExtractReport](query, projection)
   }
 
-  override def onlineTestPassMarkReport(): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+  override def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
     ))

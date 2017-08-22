@@ -261,7 +261,7 @@ trait ReportingController extends BaseController {
   def onlineTestPassMarkReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports =
       for {
-        applications <- reportingRepository.onlineTestPassMarkReport()
+        applications <- reportingRepository.onlineTestPassMarkReport
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield {
         for {
@@ -282,7 +282,7 @@ trait ReportingController extends BaseController {
 
     val reports =
       for {
-        applications <- reportingRepository.numericTestExtractReport().map(_.filter { app =>
+        applications <- reportingRepository.numericTestExtractReport.map(_.filter { app =>
           val successfulSchemesSoFarIds = app.currentSchemeStatus.collect {
             case evalResult if evalResult.result == Green.toString => evalResult.schemeId
           }
