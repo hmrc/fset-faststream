@@ -17,7 +17,7 @@
 package services.testdata.candidate.fsb
 
 import model.ProgressStatuses
-import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, FsbTestGroupResponse }
+import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -34,6 +34,7 @@ object FsbAllocationConfirmedStatusGenerator extends FsbAllocationConfirmedStatu
   override val fsbTestGroupService = FsbTestGroupService
 }
 
+// TODO: Allocate candidate to an event that this candidate is eligible for
 trait FsbAllocationConfirmedStatusGenerator extends ConstructiveGenerator {
   val applicationRepository: GeneralApplicationRepository
   val fsbTestGroupService: FsbTestGroupService

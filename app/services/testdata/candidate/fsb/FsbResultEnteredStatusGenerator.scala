@@ -16,7 +16,7 @@
 
 package services.testdata.candidate.fsb
 
-import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
+import model.Exceptions.{ InvalidApplicationStatusAndProgressStatusException, SchemeNotFoundException }
 import model.ProgressStatuses
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateCandidateResponse.FsbTestGroupResponse
@@ -32,12 +32,10 @@ import scala.concurrent.Future
 
 object FsbResultEnteredStatusGenerator extends FsbResultEnteredStatusGenerator {
   override val previousStatusGenerator: BaseGenerator = FsbAllocationConfirmedStatusGenerator
-  override val applicationRepository = repositories.applicationRepository
   override val fsbTestGroupService = FsbTestGroupService
 }
 
 trait FsbResultEnteredStatusGenerator extends ConstructiveGenerator {
-  val applicationRepository: GeneralApplicationRepository
   val fsbTestGroupService: FsbTestGroupService
 
   def generate(generationId: Int, createCandidateData: CreateCandidateData)
@@ -49,7 +47,11 @@ trait FsbResultEnteredStatusGenerator extends ConstructiveGenerator {
       } yield {
         createCandidateData.fsbTestGroupData.get.results.map { result =>
           // service updates progress status when saving result
-          fsbTestGroupService.saveResult(applicationId, result)
+          if (createCandidateData.schemeTypes.get.contains(result.schemeId)) {
+            fsbTestGroupService.saveResult(applicationId, result)
+          } else {
+            throw new SchemeNotFoundException(s"Candidate scheme preference does not have ${result.schemeId} ")
+          }
         }
         val fsbTestGroupResponse = createCandidateData.fsbTestGroupData.map(data => FsbTestGroupResponse(data.results))
         candidateInPreviousStatus.copy(fsbTestGroup = fsbTestGroupResponse)
