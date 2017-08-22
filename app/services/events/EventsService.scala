@@ -96,6 +96,10 @@ trait EventsService {
     eventsRepo.getEventsManuallyCreatedAfter(dateTime)
   }
 
+  def updateStructure(): Future[Unit] = {
+    eventsRepo.updateStructure()
+  }
+
   def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes
 
   def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemeRepo.getTelephoneInterviewTypes

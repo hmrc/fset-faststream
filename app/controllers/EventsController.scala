@@ -118,4 +118,8 @@ trait EventsController extends BaseController {
     }
   }
 
+  def addNewAttributes() = Action.async { implicit request =>
+    eventsService.updateStructure().map(_ => Ok)
+  }
+
 }

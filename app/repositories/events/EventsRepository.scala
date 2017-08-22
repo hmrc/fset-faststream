@@ -40,6 +40,7 @@ trait EventsRepository {
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
   def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]]
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
+  def updateStructure(): Future[Unit]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -93,5 +94,10 @@ class EventsMongoRepository(implicit mongo: () => DB)
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query).cursor[Event]().collect[List]()
+  }
+
+  def updateStructure(): Future[Unit] = {
+    val updateQuery = BSONDocument("$set" -> BSONDocument("wasBulkUploaded" -> false, "createdAt" -> DateTime.now.getMillis))
+    collection.update(BSONDocument.empty, updateQuery).map(_ => ())
   }
 }
