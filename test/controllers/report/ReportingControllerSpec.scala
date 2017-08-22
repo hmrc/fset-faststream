@@ -21,8 +21,9 @@ import connectors.AuthProviderClient
 import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
 import mocks._
+import model.EvaluationResults.Green
 import model.{ Scheme, _ }
-import model.persisted.{ ApplicationForNumericTestExtractReport, AssessorAllocation, ContactDetailsWithId, EventExamples }
+import model.persisted._
 import model.persisted.assessor.{ Assessor, AssessorStatus }
 import model.persisted.eventschedules.{ Event, SkillType }
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
@@ -372,7 +373,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       ProgressStatuses.SIFT_ENTERED,
       schemes = List(SchemeId("Commercial"), SchemeId("Finance"), SchemeId("Generalist"), SchemeId("HumanResources")),
       disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
-      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1
+      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
+      currentSchemeStatus =
+        List("Commercial", "Finance", "Generalist", "HumanResources").map(s => SchemeEvaluationResult(s, Green.toString))
     )
 
     val applicationForFormSift = ApplicationForNumericTestExtractReport(
@@ -381,7 +384,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       ProgressStatuses.SIFT_ENTERED,
       schemes = List(SchemeId("Generalist")),
       disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
-      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1
+      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
+      currentSchemeStatus =
+        List("Generalist").map(s => SchemeEvaluationResult(s, Green.toString))
     )
 
     val applicationForNoSift = ApplicationForNumericTestExtractReport(
@@ -390,7 +395,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       ProgressStatuses.SIFT_ENTERED,
       schemes = List(SchemeId("HumanResources")),
       disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
-      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1
+      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
+      currentSchemeStatus =
+        List("HumanResources").map(s => SchemeEvaluationResult(s, Green.toString))
     )
 
     def mocksForNumericTestExtract = {
