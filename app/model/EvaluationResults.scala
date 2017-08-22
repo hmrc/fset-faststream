@@ -17,6 +17,8 @@
 package model
 
 import model.persisted.SchemeEvaluationResult
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
 object EvaluationResults {
 
@@ -98,6 +100,11 @@ object EvaluationResults {
       analysisAndDecisionMakingAverage, buildingProductiveRelationshipsAverage,
       leadingAndCommunicatingAverage, strategicApproachToObjectivesAverage
     )
+  }
+
+  object CompetencyAverageResult {
+    implicit val competencyAverageResultFormat = Json.format[CompetencyAverageResult]
+    implicit val competencyAverageResultHandler = Macros.handler[CompetencyAverageResult]
   }
 
   @deprecated("Use SchemeEvaluationResult with SchemeId", since = "10/10/2016")
