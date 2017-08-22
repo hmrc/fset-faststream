@@ -17,7 +17,7 @@
 package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
-import connectors.AssessmentScoresClient
+import connectors.{ApplicationClient, AssessmentScoresClient}
 import models.UniqueIdentifier
 import models.page.AssessmentFeedbackPage
 import play.api.Play.current
@@ -26,20 +26,22 @@ import play.api.mvc.{Action, AnyContent}
 import security.Roles.ActiveUserRole
 import security.{SecurityEnvironment, SilhouetteComponent}
 
-object AssessmentFeedbackController extends AssessmentFeedbackController(AssessmentScoresClient) {
+object AssessmentFeedbackController extends AssessmentFeedbackController(AssessmentScoresClient, ApplicationClient) {
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
-abstract class AssessmentFeedbackController(assessmentScoresClient: AssessmentScoresClient) extends BaseController {
+abstract class AssessmentFeedbackController(assessmentScoresClient: AssessmentScoresClient,
+  applicationClient: ApplicationClient) extends BaseController {
 
   def present(applicationId: UniqueIdentifier): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>
       implicit cachedData =>
         for {
-          data <- assessmentScoresClient
+          reviewerScoresAndFeedback <- assessmentScoresClient
             .findReviewerAcceptedAssessmentScores(applicationId)
+          evaluatedAverageResults <- applicationClient.findFsacEvaluationAverages(applicationId)
         } yield {
-          val page = AssessmentFeedbackPage(data)
+          val page = AssessmentFeedbackPage(reviewerScoresAndFeedback, evaluatedAverageResults)
           Ok(views.html.home.assessmentFeedback(page))
         }
   }
