@@ -24,7 +24,7 @@ import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
 import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
-import helpers.CachedUserWithSchemeData
+import helpers.{ CachedUserWithSchemeData, CurrentSchemeStatus }
 import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
 import security.Roles.SchemeSpecificQuestionsRole
 
@@ -124,10 +124,8 @@ abstract class SiftQuestionsController(
 
       def enrichSchemeAnswersAddingMissingSiftSchemes(siftAnswers: SiftAnswers, userMetadata: CachedUserWithSchemeData) = {
         val enrichedExisting = referenceDataClient.allSchemes map { allSchemes =>
-          siftAnswers.schemeAnswers map { case (schemeId, answer) =>
-            allSchemes.find(_.id == SchemeId(schemeId)).map { scheme =>
-              scheme -> answer
-            }.get
+          siftAnswers.schemeAnswers flatMap { case (schemeId, answer) =>
+            allSchemes.collect { case s if s.id == SchemeId(schemeId) => s -> answer }
           }
         }
 
@@ -138,7 +136,7 @@ abstract class SiftQuestionsController(
       }
 
       def noSiftAnswersRecovery: PartialFunction[Throwable, Future[SiftAnswers]] = {
-        case sanf: SiftAnswersNotFound =>
+        case _: SiftAnswersNotFound =>
           for {
             schemeIds <- candidateCurrentSiftableSchemes(user.application.applicationId)
             sa = SiftAnswers(user.application.applicationId.toString, SiftAnswersStatus.DRAFT, None,
@@ -146,12 +144,18 @@ abstract class SiftQuestionsController(
           } yield sa
       }
 
+      def removeWithdrawnAnswers(answers: SiftAnswers, userMetadata: CachedUserWithSchemeData) = {
+        val withdrawnSchemeIds = userMetadata.withdrawnSchemes.map(_.id)
+        answers.copy(schemeAnswers = answers.schemeAnswers.filterKeys(schemeId => !withdrawnSchemeIds.contains(SchemeId(schemeId))))
+      }
+
       for {
         allSchemes <- referenceDataClient.allSchemes()
         schemeStatus <- applicationClient.getCurrentSchemeStatus(user.application.applicationId)
-        answers <- siftClient.getSiftAnswers(user.application.applicationId) recoverWith(noSiftAnswersRecovery)
+        answers <- siftClient.getSiftAnswers(user.application.applicationId) recoverWith noSiftAnswersRecovery
         userMetadata = CachedUserWithSchemeData(user.user, user.application, allSchemes, schemeStatus)
-        enrichedAnswers <- enrichSchemeAnswersAddingMissingSiftSchemes(answers, userMetadata)
+        filteredAnswers = removeWithdrawnAnswers(answers, userMetadata)
+        enrichedAnswers <- enrichSchemeAnswersAddingMissingSiftSchemes(filteredAnswers, userMetadata)
       } yield {
          val page = SiftPreviewPage(
            answers.applicationId,
