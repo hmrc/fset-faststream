@@ -473,7 +473,7 @@
       attendeeSafetyMargin: 2
       startTime: 14:00
       endTime: 16:00
-eventType: Telephone interview
+- eventType: Telephone interview
   description: SDIP
   location: London
   venue: LONDON_FSAC
