@@ -94,7 +94,6 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
         maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
       )
 
-      play.api.Logger.error(s"\n\nBLAH : ${settableFields.map(BSONDocument.pretty)}")
       applicationSiftRepo.siftApplicationForScheme(applicationId, result, settableFields)
 
     }) flatMap identity
