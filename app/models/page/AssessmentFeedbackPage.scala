@@ -24,11 +24,13 @@ case class CompetencyFeedback(competencyName: String, feedback: String)
 case class AssessmentFeedbackPage(
   exerciseFeedbackData: Seq[ExerciseFeedback],
   finalFeedback: String,
-  evaluatedAverageResults: CompetencyAverageResult
+  evaluatedAverageResults: CompetencyAverageResult,
+  candidateName: String
 )
 
 case object AssessmentFeedbackPage {
-  def apply(assessmentScores: AssessmentScoresAllExercises, evaluatedAverageResults: CompetencyAverageResult): AssessmentFeedbackPage = {
+  def apply(assessmentScores: AssessmentScoresAllExercises, evaluatedAverageResults: CompetencyAverageResult,
+    candidateName: String): AssessmentFeedbackPage = {
     val analysisExercise = ExerciseFeedback("Analysis exercise",
       Seq(
         CompetencyFeedback("Strategic Approach to Objectives",
@@ -60,6 +62,6 @@ case object AssessmentFeedbackPage {
       )
     )
     val finalFeedback = assessmentScores.finalFeedback.map{ s => s.feedback}.getOrElse("")
-    AssessmentFeedbackPage(Seq(analysisExercise, groupExercise, leadershipExercise), finalFeedback, evaluatedAverageResults)
+    AssessmentFeedbackPage(Seq(analysisExercise, groupExercise, leadershipExercise), finalFeedback, evaluatedAverageResults, candidateName)
   }
 }

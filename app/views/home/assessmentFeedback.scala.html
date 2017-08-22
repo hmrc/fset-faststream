@@ -34,6 +34,12 @@
     </div>
 }
 
+@printOnlyCandidateName = {
+    <div class="toggle-content show-print">
+        <p><b>Candidate name:</b> @page.candidateName</p>
+    </div>
+}
+
 @main_template(title = "Your scores and feedback") {
     <div class="grid-wrapper">
         <div class="hgroup grid grid-2-3">
@@ -92,7 +98,8 @@
 
     @for(exercise <- page.exerciseFeedbackData) {
         <section class="section-border break-before">
-        <h2 class="heading-large">@exercise.exerciseName</h2>
+            @printOnlyCandidateName
+            <h2 class="heading-large">@exercise.exerciseName</h2>
 
         @for(competencyData <- exercise.competencyFeedback) {
             <article class="text">
@@ -104,6 +111,7 @@
     }
 
     <section class="section-border break-before">
+        @printOnlyCandidateName
         <h2 class="heading-large">Strengths and Weaknesses</h2>
         <article class="text">
             <p>@page.finalFeedback</p>

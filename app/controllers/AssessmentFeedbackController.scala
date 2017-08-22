@@ -40,8 +40,10 @@ abstract class AssessmentFeedbackController(assessmentScoresClient: AssessmentSc
           reviewerScoresAndFeedback <- assessmentScoresClient
             .findReviewerAcceptedAssessmentScores(applicationId)
           evaluatedAverageResults <- applicationClient.findFsacEvaluationAverages(applicationId)
+          personalDetails <- applicationClient.getPersonalDetails(cachedData.user.userID, applicationId)
         } yield {
-          val page = AssessmentFeedbackPage(reviewerScoresAndFeedback, evaluatedAverageResults)
+          val name = s"${personalDetails.firstName} ${personalDetails.lastName}"
+          val page = AssessmentFeedbackPage(reviewerScoresAndFeedback, evaluatedAverageResults, name)
           Ok(views.html.home.assessmentFeedback(page))
         }
   }
