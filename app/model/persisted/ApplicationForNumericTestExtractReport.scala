@@ -35,7 +35,8 @@ case class ApplicationForNumericTestExtractReport(
                                                    gis: Option[Boolean],
                                                    onlineAdjustments: Option[String],
                                                    assessmentCentreAdjustments: Option[String],
-                                                   testResults: TestResultsForOnlineTestPassMarkReportItem
+                                                   testResults: TestResultsForOnlineTestPassMarkReportItem,
+                                                   currentSchemeStatus: List[SchemeEvaluationResult]
                                                      )
 
 object ApplicationForNumericTestExtractReport {

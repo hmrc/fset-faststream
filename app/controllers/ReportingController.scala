@@ -17,15 +17,13 @@
 package controllers
 
 import connectors.AuthProviderClient
-import model.Commands._
+import model.EvaluationResults.Green
 import model.SiftRequirement
-import model.command.ProgressResponse
 import model.persisted.ContactDetailsWithId
-import model.persisted.eventschedules.Event
 import model.report._
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
-import repositories.application.{ ReportingMongoRepository, ReportingRepository }
+import repositories.application.{ GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.{ EventsMongoRepository, EventsRepository }
@@ -278,14 +276,15 @@ trait ReportingController extends BaseController {
 
   def numericTestExtractReport(): Action[AnyContent] = Action.async { implicit request =>
 
-    val siftableSchemeIdsWithNumericRequirement = schemeRepo.schemes.filter(scheme => scheme.siftEvaluationRequired &&
+    val numericTestSchemeIds = schemeRepo.schemes.filter(scheme => scheme.siftEvaluationRequired &&
       scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST)).map(_.id)
 
     val reports =
       for {
-        applications <- reportingRepository.numericTestExtractReport().map(
-          _.filter(_.schemes.exists(siftableSchemeIdsWithNumericRequirement.contains))
-        )
+        applications <- reportingRepository.numericTestExtractReport().map(_.filter { app =>
+          val successfulSchemesSoFarIds = app.currentSchemeStatus.filter(_.result == Green.toString).map(_.schemeId)
+          successfulSchemesSoFarIds.exists(numericTestSchemeIds.contains)
+        })
         contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(_.map(x => x.userId -> x)(breakOut).toMap)
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield for {
@@ -294,7 +293,7 @@ trait ReportingController extends BaseController {
         q <- questionnaires.get(a.applicationId)
       } yield NumericTestExtractReportItem(a, c, q)
 
-    reports.map(list => Ok(Json.toJson(list)))
+      reports.map(list => Ok(Json.toJson(list)))
   }
 
 }

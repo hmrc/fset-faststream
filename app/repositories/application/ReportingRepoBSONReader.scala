@@ -31,7 +31,7 @@ import model.persisted._
 import model.report._
 import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.{ BaseBSONReader, CommonBSONDocuments }
+import repositories.{ BaseBSONReader, CommonBSONDocuments, CurrentSchemeStatusHelper }
 
 trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
@@ -239,6 +239,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
       val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
+      val currentSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").get
+
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
       ApplicationForNumericTestExtractReport(
@@ -254,7 +256,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         gis,
         onlineAdjustments,
         assessmentCentreAdjustments,
-        toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId))
+        toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId),
+        currentSchemeStatus
+      )
     }
   }
 
