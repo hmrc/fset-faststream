@@ -144,6 +144,7 @@ GET         /events/:eventId                                             control
 GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
 GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
+GET         /events-structure/add-new-attributes                         controllers.EventsController.addNewAttributes()
 
 # candidate allocations
 GET         /candidate-allocations/find-applications/event/:eventType/location/:location    controllers.CandidateAllocationController.findCandidatesEligibleForEventAllocation(location: String, eventType: model.persisted.eventschedules.EventType.EventType, eventDescription: String)
