@@ -44,6 +44,9 @@ trait AssessmentScoresController extends BaseController {
   def submitExercise() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[AssessmentScoresSubmitExerciseRequest] { submitRequest =>
+        //scalastyle:off
+        println(s"submitRequest=$submitRequest")
+        //scalastyle:on
         val assessmentExerciseType = AssessmentScoresSectionType.withName(submitRequest.exercise)
         service.submitExercise(
           submitRequest.applicationId,
