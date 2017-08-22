@@ -16,7 +16,7 @@
 
 package controllers
 
-import connectors.AuthProviderClient
+import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.EvaluationResults.Green
 import model.SiftRequirement
 import model.persisted.ContactDetailsWithId
@@ -111,7 +111,10 @@ trait ReportingController extends BaseController {
 
     val reportRows = for {
       allAssessors <- assessorRepository.findAll()
-      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessors.map(_.userId)).map(_.map(x => x.userId -> x)(breakOut).toMap)
+      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessors.map(_.userId))
+        .map(
+          _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.Candidate]
+        )
       sortedEvents <- sortedEventsFut
       assessorAllocations <- assessorAllocationRepository.findAll().map(_.groupBy(_.id))
     } yield for {
@@ -288,7 +291,10 @@ trait ReportingController extends BaseController {
           }
           successfulSchemesSoFarIds.exists(numericTestSchemeIds.contains)
         })
-        contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(_.map(x => x.userId -> x)(breakOut).toMap)
+        contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId))
+          .map(
+            _.map(x => x.userId -> x)(breakOut): Map[String, ContactDetailsWithId]
+          )
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield for {
         a <- applications
