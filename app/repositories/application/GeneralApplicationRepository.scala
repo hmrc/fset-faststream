@@ -967,12 +967,4 @@ class GeneralApplicationMongoRepository(
     case Some(r) => BSONDocument(name -> r)
     case _ => BSONDocument.empty
   }
-
-  private def perSchemeToBSON(name: String, result: Option[List[PerSchemeEvaluation]]): BSONDocument = result match {
-    case Some(m) =>
-      val schemes = m.map(x => BSONDocument(x.schemeName -> x.result.toString))
-      val schemesDoc = schemes.foldRight(BSONDocument.empty)((acc, doc) => acc.add(doc))
-      BSONDocument(name -> schemesDoc)
-    case _ => BSONDocument.empty
-  }
 }

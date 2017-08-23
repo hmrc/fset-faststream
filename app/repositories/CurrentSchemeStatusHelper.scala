@@ -19,6 +19,7 @@ package repositories
 import model.EvaluationResults._
 import model.SchemeId
 import model.persisted.SchemeEvaluationResult
+import play.api.Logger
 import reactivemongo.bson.BSONDocument
 
 import scala.annotation.tailrec
