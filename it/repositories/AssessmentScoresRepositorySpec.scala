@@ -71,7 +71,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
   }
 
   "save exercise" should {
-    "create new assessment scores with one exercise when it does not exist" in new TestFixture  {
+    "create new assessment scores with one exercise " +
+      "when assessment scores do not exist" in new TestFixture  {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None)
 
       repository.saveExercise(ApplicationId, AssessmentScoresSectionType.leadershipExercise, ExerciseScoresToSave,
@@ -83,7 +84,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       result mustBe Some(ExpectedScores)
     }
 
-    "update existing assessment scores with new exercise" in new TestFixture {
+    "update existing assessment scores with analysis exercise" +
+      "when assessment scores contains leadership exercise" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None)
       repository.saveExercise(ApplicationId, AssessmentScoresSectionType.leadershipExercise, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
@@ -100,8 +102,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       result mustBe Some(ExpectedScores)
     }
 
-    "update exercise in existing assessment scores " +
-      "when the exercise was saved before by same user" in new TestFixture {
+    "update analysis exercise in existing assessment scores " +
+      "when assessment scores with analysis exercise was saved before by same user" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None, updatedBy = UpdatedBy)
       repository.saveExercise(ApplicationId, AssessmentScoresSectionType.analysisExercise, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
@@ -150,6 +152,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  // save final feedback will only be called once per assessment scores, once called, it called be called from frontend.
   "save final feedback" should {
     "create new assessment scores with final feedback when it does not exist" in new TestFixture  {
       val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
@@ -160,6 +163,19 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
       val ExpectedScores = AssessmentScoresAllExercises(ApplicationId, None, None, None, Some(FinalFeedbackExpected))
       result mustBe Some(ExpectedScores)
+    }
+
+    "throw Not Found Exception " +
+      "when the exercise to be updated was updated before by another user" in new TestFixture {
+      val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
+      repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave, Some(NewVersion)).futureValue
+
+      val FinalFeedbackToSave2 = FinalFeedback2.copy(version = None, acceptedDate = LocalTime, updatedBy = UpdatedBy2)
+      try {
+        repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave2, Some(NewVersion2)).failed.futureValue
+      } catch {
+        case ex: Exception => ex.getClass mustBe classOf[model.Exceptions.NotFoundException]
+      }
     }
   }
 
@@ -203,6 +219,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     val ExerciseScores = AssessmentScoresExerciseExamples.Example3
     val ExerciseScores2 = AssessmentScoresExerciseExamples.Example2
     val FinalFeedback = AssessmentScoresFinalFeedbackExamples.Example1
+    val FinalFeedback2 = AssessmentScoresFinalFeedbackExamples.Example2
 
     val LocalTime = DateTimeFactory.nowLocalTimeZone
     val LocalDate = DateTimeFactory.nowLocalDate
