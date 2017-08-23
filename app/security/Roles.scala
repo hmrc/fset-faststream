@@ -199,7 +199,7 @@ object Roles {
 
   object SchemeSpecificQuestionsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(SIFT) && isSiftEntered(user) && !isSiftComplete(user)
+      activeUserWithActiveApp(user) && isSiftReady(user)
   }
 
   object WithdrawComponent extends AuthorisedUser {
