@@ -221,14 +221,14 @@ trait AssessorService {
   private def buildEmailContent(events: Seq[Event]): (String, String) = {
     def buildEmailTxt: String = {
       val eventsStr = events.map { event =>
-        s"${event.date.toString("EEEE, dd MM YYYY")} (${event.eventType} - ${event.location.name})"
+        s"${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - ${event.location.name})"
       }.mkString("\n")
       eventsStr
     }
 
     def buildEmailHtml: String = {
       val eventsHtml = events.map { event =>
-        s"<li>${event.date.toString("EEEE, dd MM YYYY")} (${event.eventType} - ${event.location.name}) </li>"
+        s"<li>${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - ${event.location.name}) </li>"
       }.mkString("")
       val body =
         s"""
