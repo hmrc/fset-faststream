@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package model
+package model.report
 
+import model.ReportWithPersonalDetails
+import model.persisted.{ ApplicationForNumericTestExtractReport, ContactDetails, ContactDetailsWithId }
 import play.api.libs.json.{ Json, OFormat }
 
-case class ReportWithPersonalDetails(applicationId: String, userId: String, progress: Option[String],
-  firstName: Option[String], lastName: Option[String], preferredName: Option[String])
+case class NumericTestExtractReportItem(
+  application: ApplicationForNumericTestExtractReport,
+  contactDetails: ContactDetailsWithId,
+  questionnaire: QuestionnaireReportItem)
 
-object ReportWithPersonalDetails {
-  implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
+object NumericTestExtractReportItem {
+  implicit val numericTestExtractReportItemFormat: OFormat[NumericTestExtractReportItem] = Json.format[NumericTestExtractReportItem]
 }
