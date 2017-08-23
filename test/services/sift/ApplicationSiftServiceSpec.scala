@@ -128,12 +128,31 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
         SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString)
       ))
       (mockSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
+      (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.Faststream)
 
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }
 
-     "sift a candidate with remaining schemes to sift" in new SiftUpdateTest {
+    "sift and update progress status for an SdipFaststream candidate" in new SiftUpdateTest {
+      override val schemeSiftResult = SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Red.toString)
+      val expectedUpdateBson = Seq(
+        currentSchemeUpdateBson(schemeSiftResult :: SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString) :: Nil : _*),
+        progressStatusUpdateBson
+      )
+      (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
+        SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
+      ))
+      (mockSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
+      (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.SdipFaststream)
+
+
+      play.api.Logger.error(s"\n\n TEST ${expectedUpdateBson.map(BSONDocument.pretty)}")
+      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+    }
+
+    "sift a candidate with remaining schemes to sift" in new SiftUpdateTest {
        val currentStatus = Seq(
         SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
@@ -143,6 +162,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
         BSONDocument.empty
       )
 
+      (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.Faststream)
       (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(currentStatus)
       (mockSiftRepo.siftApplicationForScheme _).expects("applicationId", schemeSiftResult, expectedUpdateBson).returningAsync
 
