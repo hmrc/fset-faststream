@@ -28,6 +28,16 @@
 @main_template(title = "Create your account", pageForms = Seq(signUpForm), notification = notification) {
     <h1 class="heading-xlarge">Create your account</h1>
 
+    <!-- TODO: Remove this div before product launch -->
+    <div class="panel-info standard-panel" id="applicationsAreClosed">
+        <div class="text">
+            <h2 class="heading-medium">Applications are closed</h2>
+            <p>This page is only for internal testing.</p>
+            <p>Applications for the Civil Service Fast Stream are currently closed.</p>
+            <p>Please do not try to apply, as your application may be deleted.</p>
+        </div>
+    </div>
+
     @if(!allAppRouteWindowsClosed) {
 
         @existingAccountPanel
