@@ -53,8 +53,8 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
       newLastRun = AssessorNewEventsJobInfo(DateTime.now)
       lastRunInfo = lastRunInfoOpt.getOrElse(newLastRun)
       isFirstJob = lastRunInfoOpt.isEmpty
-      _ <- assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun) if shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
       _ <- assessorsEventsSummaryJobsService.save(newLastRun)
+      _ <- assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun) if shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
     } yield {}
   }
 }
