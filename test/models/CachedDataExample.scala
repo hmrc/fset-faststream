@@ -82,6 +82,9 @@ object CachedDataExample {
     progress = ProgressExamples.Phase3TestsPassed, applicationRoute = ApplicationRoute.Sdip)
   val Phase3TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
     progress = ProgressExamples.Phase3TestsPassed)
+
+  val SiftApplication = Phase3TestsPassedApplication.copy(applicationStatus = ApplicationStatus.SIFT, progress = ProgressExamples.SiftEntered)
+
   val Phase1TestsExpiredApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE1_TESTS,
     progress = ProgressExamples.SubmittedProgress.copy(phase1TestProgress = Phase1TestProgress(phase1TestsExpired = true)))
   val EdipWithdrawnPhase1TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
@@ -90,5 +93,6 @@ object CachedDataExample {
     progress = ProgressExamples.Phase3TestsPassed, applicationRoute = ApplicationRoute.Sdip)
   val WithdrawnPhase3TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
     progress = ProgressExamples.Phase3TestsPassed)
+  val WithdrawnSiftApplication = SiftApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN)
   val ActiveCandidate = CachedData(ActiveCandidateUser, Some(CreatedApplication))
 }

@@ -101,10 +101,11 @@ class HomeControllerSpec extends BaseControllerSpec {
         val newAccountsStarted = true
         val newAccountsEnabled = true
         val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
+        val applicationsStartDate = None
+      }
 
-      val phase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
-        CachedDataExample.Phase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+      val sift = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.SiftApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
@@ -113,10 +114,11 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
         .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
 
       mockPostOnlineTestsDashboardCalls()
 
-      val result = controller(phase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
+      val result = controller(sift, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
 
@@ -135,17 +137,18 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
         .thenReturn(Future.successful(ActiveCandidate))
-      val withdrawnPhase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
-        CachedDataExample.WithdrawnPhase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+      val withdrawnSiftApp = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.WithdrawnSiftApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Generalist
       ))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
       when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
           .thenReturnAsync(None)
 
       mockPostOnlineTestsDashboardCalls()
 
-      val result = controller(withdrawnPhase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
+      val result = controller(withdrawnSiftApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
 

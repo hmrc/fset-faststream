@@ -170,4 +170,8 @@ object ProgressExamples {
   val WithdrawnAfterSubmitProgress = SubmittedProgress.copy(withdrawn = true)
   val ExportedToParityProgress = Phase3TestsPassed.copy(exported = true)
   val UpdateExportedToParityProgress = ExportedToParityProgress.copy(updateExported = true)
+  val SiftEntered = Phase3TestsPassed.copy(
+    siftProgress = SiftProgress( siftEntered = true )
+  )
+
 }

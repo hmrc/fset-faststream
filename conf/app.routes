@@ -36,7 +36,6 @@ GET         /application/withdraw                                   controllers.
 POST        /application/withdraw                                   controllers.WithdrawController.withdrawApplication
 GET         /application/withdraw/scheme                            controllers.WithdrawController.presentWithdrawScheme
 POST        /application/withdraw/scheme                            controllers.WithdrawController.withdrawScheme
-GET         /application/sdip-next-steps                            controllers.HomeController.showSdipNextSteps
 POST        /dashboard/submitWrittenExercise                        controllers.HomeController.submitAnalysisExercise
 POST        /application/confirm-assessment-centre-allocation       controllers.HomeController.confirmAssessmentCentreAllocation(allocationVersion: String, eventId: UniqueIdentifier,sessionId: UniqueIdentifier)
 
