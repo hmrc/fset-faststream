@@ -29,7 +29,7 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
-import repositories.{ AssessmentScoresRepository, AssessorAllocationRepository, AssessorRepository, MediaRepository, QuestionnaireRepository, contactdetails }
+import repositories.{ AssessmentScoresRepository, AssessorAllocationRepository, AssessorRepository, MediaRepository, QuestionnaireRepository, SchemeRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -129,6 +129,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
     val mockAssessorAllocationRepository = mock[AssessorAllocationRepository]
     val mockEventsRepository = mock[EventsRepository]
     val mockAssessorRepository = mock[AssessorRepository]
+    val mockSchemeRepo = mock[SchemeRepository]
     val controller = new ReportingController {
       val reportingRepository = mockReportRepository
       val contactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
@@ -140,6 +141,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
       val eventsRepository = mockEventsRepository
       val assessorRepository = mockAssessorRepository
       val assessorAllocationRepository = mockAssessorAllocationRepository
+      val schemeRepo = mockSchemeRepo
     }
 
     val applications = List(ApplicationForDiversityReportExamples.Example1,

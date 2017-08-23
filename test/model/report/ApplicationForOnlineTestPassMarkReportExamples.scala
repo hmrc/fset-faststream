@@ -33,6 +33,7 @@ object ApplicationForOnlineTestPassMarkReportExamples {
 
   def newApplicationForOnlineTestPassMarkReport(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
     ApplicationForOnlineTestPassMarkReport(
+      rnd("UserId"),
       rnd("AppId"),
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,

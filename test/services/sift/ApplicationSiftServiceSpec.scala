@@ -65,11 +65,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
 
   trait SiftUpdateTest extends TestFixture {
     val progressStatusUpdateBson = BSONDocument(
-      "$set" -> BSONDocument(
-        s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
-        s"progress-status-timestamp.${ProgressStatuses.SIFT_COMPLETED}" ->
-          BSONDateTimeHandler.write(DateTimeFactoryMock.nowLocalTimeZone)
-      )
+      s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
+      s"progress-status-timestamp.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDateTimeHandler.write(DateTimeFactoryMock.nowLocalTimeZone)
     )
 
     def currentSchemeUpdateBson(schemeResult: SchemeEvaluationResult*) = BSONDocument(
@@ -82,7 +79,6 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
     val queryBson = BSONDocument("applicationId" -> appId)
     val updateBson = BSONDocument("test" -> "test")
     (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
-    (mockSiftRepo.siftApplicationForSchemeBSON _).expects(appId, schemeSiftResult).returning((queryBson, updateBson))
   }
 
 
@@ -124,15 +120,15 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
 
     "sift and update progress status for a candidate" in new SiftUpdateTest {
       val expectedUpdateBson = Seq(
-        updateBson,
-        BSONDocument("$set" -> currentSchemeUpdateBson(schemeSiftResult)),
+        currentSchemeUpdateBson(schemeSiftResult),
         progressStatusUpdateBson
-      ).foldLeft(BSONDocument.empty)(_ ++ _)
+      )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
         SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString)
       ))
-      (mockSiftRepo.update _).expects("applicationId", queryBson, expectedUpdateBson, *).returningAsync
+      (mockSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
+
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }
@@ -143,12 +139,12 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
       )
       val expectedUpdateBson = Seq(
-        updateBson,
-        BSONDocument("$set" -> currentSchemeUpdateBson(currentStatus:_*))
-      ).foldLeft(BSONDocument.empty)(_ ++ _)
+        currentSchemeUpdateBson(currentStatus:_*),
+        BSONDocument.empty
+      )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(currentStatus)
-      (mockSiftRepo.update _).expects("applicationId", queryBson, expectedUpdateBson, *).returningAsync
+      (mockSiftRepo.siftApplicationForScheme _).expects("applicationId", schemeSiftResult, expectedUpdateBson).returningAsync
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }

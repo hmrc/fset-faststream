@@ -27,8 +27,18 @@ object AssessorSkill {
   implicit val assessorSkillFormatter: OFormat[AssessorSkill] = Json.format[AssessorSkill]
 
   val AllSkillsWithLabels = List(
-    AssessorSkill(ASSESSOR, "Assessor"),
-    AssessorSkill(FRAC_ASSESSOR, "FRAC Assessor"),
+    AssessorSkill(ASSESSOR, "FSAC Assessor"),
+    AssessorSkill(DAT_ASSESSOR, "DAT Assessor"),
+    AssessorSkill(FCO_ASSESSOR, "FCO Assessor"),
+    AssessorSkill(GCFS_ASSESSOR, "GCFS Assessor"),
+    AssessorSkill(EAC_ASSESSOR, "EAC Assessor"),
+    AssessorSkill(EAC_DS_ASSESSOR, "EAC_DS Assessor"),
+    AssessorSkill(SAC_ASSESSOR, "SAC Assessor"),
+    AssessorSkill(HOP_ASSESSOR, "HOP Assessor"),
+    AssessorSkill(PDFS_ASSESSOR, "PDFS Assessor"),
+    AssessorSkill(SEFS_ASSESSOR, "SEFS Assessor"),
+    AssessorSkill(EDIP_ASSESSOR, "EDIP Assessor"),
+    AssessorSkill(SDIP_ASSESSOR, "SDIP Assessor"),
     AssessorSkill(SRAC_ASSESSOR, "SRAC Assessor"),
     AssessorSkill(ORAC_ASSESSOR, "ORAC Assessor"),
     AssessorSkill(DEPARTMENTAL_ASSESSOR, "Departmental Assessor"),

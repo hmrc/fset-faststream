@@ -130,7 +130,7 @@ class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
 
     def mockPost[T] = {
       when(
-        mockWSHttp.POST(anyString(), any[T], anyObject())(any[Writes[T]], any[HttpReads[HttpResponse]], any[HeaderCarrier])
+        mockWSHttp.POST(anyString(), any[T], any())(any[Writes[T]], any[HttpReads[HttpResponse]], any[HeaderCarrier])
       )
     }
   }

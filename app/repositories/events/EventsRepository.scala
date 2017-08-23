@@ -35,11 +35,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Event]]
+  def count(implicit ec : scala.concurrent.ExecutionContext): Future[Int]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
   def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]]
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
+  def updateStructure(): Future[Unit]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -93,5 +95,10 @@ class EventsMongoRepository(implicit mongo: () => DB)
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query).cursor[Event]().collect[List]()
+  }
+
+  def updateStructure(): Future[Unit] = {
+    val updateQuery = BSONDocument("$set" -> BSONDocument("wasBulkUploaded" -> false, "createdAt" -> DateTime.now.getMillis))
+    collection.update(BSONDocument.empty, updateQuery).map(_ => ())
   }
 }

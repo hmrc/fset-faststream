@@ -23,7 +23,7 @@ import model.Exceptions.EmailTakenException
 import model._
 import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
 import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllocationRequest
-import model.command.testdata.CreateCandidateAllocationRequest
+import model.command.testdata.{ ClearCandidatesRequest, CreateCandidateAllocationRequest }
 import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.AssessorSkill
@@ -63,6 +63,14 @@ trait TestDataGeneratorController extends BaseController {
   def clearDatabase(generateDefaultUsers: Boolean): Action[AnyContent] = Action.async { implicit request =>
     TestDataGeneratorService.clearDatabase(generateDefaultUsers).map { _ =>
       Ok(Json.parse("""{"message": "success"}"""))
+    }
+  }
+
+  def clearCandidates(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[ClearCandidatesRequest] { clearRequest =>
+      TestDataGeneratorService.clearCandidates(clearRequest.applicationStatus).map { numDeleted =>
+        Ok(Json.parse(s"""{"message": "success, removed $numDeleted application"}"""))
+      }
     }
   }
 
