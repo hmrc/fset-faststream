@@ -17,6 +17,7 @@
 package services.sift
 
 import common.FutureEx
+import connectors.CSREmailClient
 import factories.DateTimeFactory
 import model.EvaluationResults.Green
 import model._
@@ -25,6 +26,7 @@ import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 
 import scala.concurrent.Future
@@ -34,20 +36,27 @@ import scala.language.postfixOps
 object ApplicationSiftService extends ApplicationSiftService {
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
+  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
   val schemeRepo = SchemeYamlRepository
   val dateTimeFactory = DateTimeFactory
+  val emailClient = CSREmailClient
 }
 
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
+
   def applicationSiftRepo: ApplicationSiftRepository
-
   def applicationRepo: GeneralApplicationRepository
-
+  def contactDetailsRepo: ContactDetailsRepository
   def schemeRepo: SchemeRepository
+  def emailClient: CSREmailClient
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
   }
+
+  def processNextApplicationFailedAtSift: Future[Unit] = applicationSiftRepo.nextApplicationFailedAtSift.flatMap(_.map { application =>
+    applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.SIFT_ALL_SCHEMES_FAILED)
+  }.getOrElse(Future()))
 
   private def requiresForms(schemeIds: Seq[SchemeId]) = {
     schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))

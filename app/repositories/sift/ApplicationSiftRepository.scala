@@ -19,6 +19,7 @@ package repositories.sift
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
+import model.EvaluationResults.{ Red, Withdrawn }
 import model._
 import model.Exceptions.ApplicationNotFound
 import model.command.ApplicationForSift
@@ -41,7 +42,7 @@ trait ApplicationSiftRepository {
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
-
+  def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]]
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
@@ -64,14 +65,15 @@ class ApplicationSiftMongoRepository(
   val prevPhase = ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
   val prevTestGroup = "PHASE3"
 
-  def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
-    def applicationForSiftBsonReads(document: BSONDocument): ApplicationForSift = {
-      val applicationId = document.getAs[String]("applicationId").get
-      val appStatus = document.getAs[ApplicationStatus]("applicationStatus").get
-      val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
-      ApplicationForSift(applicationId, appStatus, currentSchemeStatus)
-    }
+  private def applicationForSiftBsonReads(document: BSONDocument): ApplicationForSift = {
+    val applicationId = document.getAs[String]("applicationId").get
+    val userId = document.getAs[String]("userId").get
+    val appStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+    val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+    ApplicationForSift(applicationId, userId, appStatus, currentSchemeStatus)
+  }
 
+  def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
     val fsQuery = (route: ApplicationRoute) => BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> route),
       BSONDocument("applicationStatus" -> prevPhase),
@@ -93,6 +95,21 @@ class ApplicationSiftMongoRepository(
     ))
 
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
+      _.map { document => applicationForSiftBsonReads(document) }
+    }
+  }
+
+  def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]] = {
+    val predicate = BSONDocument(
+      "applicationRoute" -> ApplicationRoute.Faststream,
+      "applicationStatus" -> ApplicationStatus.SIFT,
+      s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
+      "currentSchemeStatus" -> BSONDocument("$all" -> BSONArray(
+        BSONDocument("$elemMatch" -> BSONDocument("result" -> BSONDocument("$in" -> Seq(Red.toString, Withdrawn.toString))))
+      ))
+    )
+
+    selectOneRandom[BSONDocument](predicate).map {
       _.map { document => applicationForSiftBsonReads(document) }
     }
   }
