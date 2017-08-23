@@ -49,9 +49,14 @@ trait EventsService {
 
 
   def saveAssessmentEvents(): Future[Unit] = {
-    eventsConfigRepo.events.flatMap { events =>
-      Logger.debug("Events have been processed!")
-      eventsRepo.save(events)
+    eventsRepo.count.flatMap {
+      case eventCount if eventCount >= 1 =>
+        throw new Exception("Events already exist in the system, batch import not possible.")
+      case _ =>
+      eventsConfigRepo.events.flatMap { events =>
+        Logger.debug("Events have been processed!")
+        eventsRepo.save(events)
+      }
     }
   }
 
