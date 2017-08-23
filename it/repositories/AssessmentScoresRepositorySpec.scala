@@ -229,8 +229,6 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     val UpdatedBy = UniqueIdentifier.randomUniqueIdentifier
     val UpdatedBy2 = UniqueIdentifier.randomUniqueIdentifier
 
-
     val repository = getRepository
-
   }
 }

@@ -46,7 +46,6 @@ object AssessmentScoresExerciseExamples {
       updatedBy,
       Some(dateTimeNow),
       Some(dateTimeNow),
-      //Some("version1")
       Some(UniqueIdentifier.randomUniqueIdentifier.toString())
     )
   }

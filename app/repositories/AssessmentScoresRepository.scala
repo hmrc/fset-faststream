@@ -68,12 +68,10 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
     finalFeedback: AssessmentScoresFinalFeedback,
     newVersion: Option[String] = Some(UUIDFactory.generateUUID())): Future[Unit] = {
 
-    //val newVersion = Some(uuidFactory.generateUUID())
     val bsonSection = AssessmentScoresFinalFeedback.bsonHandler.write(finalFeedback.copy(version = newVersion))
     saveExerciseOrFinalFeedback(applicationId, AssessmentScoresSectionType.finalFeedback, bsonSection, finalFeedback.version)
   }
 
-  //scalastyle:off
   def saveExerciseOrFinalFeedback(
     applicationId: UniqueIdentifier,
     section: AssessmentScoresSectionType.AssessmentScoresSectionType,
@@ -120,12 +118,6 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
     val validator = singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
     collection.update(query, update, upsert = oldVersion.isEmpty).map(validator).recover {
       case ex: Throwable if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
-        //scalastyle:off
-        println(s"-----------ex=$ex")
-        println(s"----------ex=${ex.printStackTrace()}")
-
-        //scalastyle:on
-        //if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
         throw new NotFoundException(s"You are trying to update a version of a [$section] " +
           s"for application id [$applicationId] that has been updated already")
     }
