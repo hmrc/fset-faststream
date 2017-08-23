@@ -45,6 +45,7 @@ class CachedUserWithSchemeData(
       val (status, failedAt) = schemeResult.result match {
         case "Red" => (SchemeStatus.Red, Some("online tests"))
         case "Green" => (SchemeStatus.Green, None)
+        case "Amber" => (SchemeStatus.Amber, None)
         case "Withdrawn" => (SchemeStatus.Withdrawn, None)
       }
 

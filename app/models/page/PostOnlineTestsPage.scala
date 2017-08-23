@@ -16,19 +16,19 @@
 
 package models.page
 
+import connectors.exchange.SchemeEvaluationResult
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.Scheme
 import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import helpers.{ CachedUserWithSchemeData, Timezones }
-import models.CachedData
+import helpers.{CachedUserWithSchemeData, Timezones}
+import models.{CachedData, SchemeStatus}
 import models.events.EventType
 import models.page.DashboardPage.Flags
-import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
-import org.joda.time.{ DateTime, LocalTime }
+import models.page.DashboardPage.Flags.{ProgressActive, ProgressInactiveDisabled}
+import org.joda.time.{DateTime, LocalTime}
 import play.twirl.api.Html
-import security.{ RoleUtils, Roles }
-
+import security.{RoleUtils, Roles}
 
 object PostOnlineTestsStage extends Enumeration {
   type PostOnlineTestsStage = Value
@@ -84,6 +84,24 @@ case class PostOnlineTestsPage(
     }
   }.getOrElse("")
 
+  def allSchemesFailed: Boolean = userDataWithSchemes.noFailedSchemes == userDataWithSchemes.rawSchemesStatus.length
+
+  def firstResidualPreferencePassed: Boolean = {
+
+    val zippedData = userDataWithSchemes.rawSchemesStatus.zipWithIndex
+
+    val firstAmber: Option[(SchemeEvaluationResult, Int)] =
+      zippedData.find{ case (evaluationResult, _) => evaluationResult.result == SchemeStatus.Amber.toString }
+
+    val firstGreen: Option[(SchemeEvaluationResult, Int)] =
+      zippedData.find{ case (evaluationResult, _) => evaluationResult.result == SchemeStatus.Green.toString }
+
+    (firstAmber, firstGreen) match {
+      case (Some((_, amberIndex)), Some((_, greenIndex))) => greenIndex < amberIndex
+      case (None, Some(green)) => true
+      case _ => false
+    }
+  }
 
   val fsacAllocation = allocationsWithEvent.find(_.event.eventType == EventType.FSAC)
   val fsbAllocation = allocationsWithEvent.find(_.event.eventType != EventType.FSAC)
