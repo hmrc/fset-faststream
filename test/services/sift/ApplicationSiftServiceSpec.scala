@@ -147,8 +147,6 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
       (mockSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
       (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.SdipFaststream)
 
-
-      play.api.Logger.error(s"\n\n TEST ${expectedUpdateBson.map(BSONDocument.pretty)}")
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }
 

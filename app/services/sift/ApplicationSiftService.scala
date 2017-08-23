@@ -94,7 +94,6 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     } yield {
 
       val settableFields = updateBuilder(currentSchemeStatus, currentSiftEvaluation)
-      play.api.Logger.error(s"\n\n BLAH ${settableFields.map(BSONDocument.pretty)}")
       applicationSiftRepo.siftApplicationForScheme(applicationId, result, settableFields)
 
     }) flatMap identity
