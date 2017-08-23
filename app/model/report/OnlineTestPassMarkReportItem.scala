@@ -24,14 +24,6 @@ case class OnlineTestPassMarkReportItem(
                            application: ApplicationForOnlineTestPassMarkReportItem,
                            questionnaire: QuestionnaireReportItem)
 
-case class PassMarkReportWithPersonalData(application: ReportWithPersonalDetails,
-                                          testResults: TestResultsForOnlineTestPassMarkReportItem,
-                                          contactDetails: PhoneAndEmail)
-
-object PassMarkReportWithPersonalData {
-  implicit val passMarkReportWithPersonalDetailsFormat = Json.format[PassMarkReportWithPersonalData]
-}
-
 object OnlineTestPassMarkReportItem {
   implicit val onlineTestPassMarkReportFormat = Json.format[OnlineTestPassMarkReportItem]
 }

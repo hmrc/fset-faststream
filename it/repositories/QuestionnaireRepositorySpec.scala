@@ -66,7 +66,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaires()
 
-      val report = questionnaireRepo.findForOnlineTestPassMarkReport.futureValue
+      val report = questionnaireRepo.findForOnlineTestPassMarkReport(List(applicationId1, applicationId2, applicationId3)).futureValue
 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
@@ -82,7 +82,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaire()
 
-      questionnaireRepo.findForOnlineTestPassMarkReport.futureValue
+      questionnaireRepo.findForOnlineTestPassMarkReport(List(applicationId1)).futureValue
 
       verify(socioEconomicCalculator).calculate(Map(
         "What is your gender identity?" -> "Male",
