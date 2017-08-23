@@ -33,7 +33,7 @@ import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.MongoDbConnection
 import services.testdata.admin.AdminUserBaseGenerator
 import services.testdata.allocation.{ AssessorAllocationGenerator, CandidateAllocationGenerator }
-import services.testdata.candidate.{ BaseGenerator, RegisteredStatusGenerator }
+import services.testdata.candidate.{ BaseGenerator, CandidateRemover, RegisteredStatusGenerator }
 import services.testdata.event.EventGenerator
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -56,6 +56,10 @@ trait TestDataGeneratorService extends MongoDbConnection {
       _ <- AuthProviderClient.removeAllUsers()
       _ <- generateUsers() if generateDefaultUsers
     } yield ()
+  }
+
+  def clearCandidates(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int] = {
+    CandidateRemover.remove(applicationStatus)
   }
 
   def generateUsers()(implicit hc: HeaderCarrier): Future[Unit] = {

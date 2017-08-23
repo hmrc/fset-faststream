@@ -143,6 +143,7 @@ trait GeneralApplicationRepository {
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
 
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
+
 }
 
 // scalastyle:off number.of.methods
@@ -903,6 +904,7 @@ class GeneralApplicationMongoRepository(
   override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = {
     replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
   }
+
 
   import ProgressStatuses._
   private val progressStatuses = Map(
