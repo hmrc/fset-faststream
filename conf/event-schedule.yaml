@@ -333,3 +333,171 @@
       attendeeSafetyMargin: 2
       startTime: 11:00
       endTime: 11:30
+- eventType: FSB
+  description: DAT FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-10-01
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 5
+    CHAIR: 5
+    EXERCISE_MARKER: 5
+    QUALITY_ASSURANCE_COORDINATOR: 5
+  sessions:
+    - description: Morning
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 12:00
+    - description: Evening
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 14:00
+      endTime: 16:00
+- eventType: FSB
+  description: FCO
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-10-02
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 5
+    CHAIR: 5
+    EXERCISE_MARKER: 5
+    QUALITY_ASSURANCE_COORDINATOR: 5
+  sessions:
+    - description: Morning
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 12:00
+    - description: Evening
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 14:00
+      endTime: 16:00
+- eventType: FSB
+  description: GCFS FSB
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-10-03
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 5
+    CHAIR: 5
+    EXERCISE_MARKER: 5
+    QUALITY_ASSURANCE_COORDINATOR: 5
+  sessions:
+    - description: Morning
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 12:00
+    - description: Evening
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 14:00
+      endTime: 16:00
+- eventType: FSB
+  description: EAC
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-10-04
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 5
+    CHAIR: 5
+    EXERCISE_MARKER: 5
+    QUALITY_ASSURANCE_COORDINATOR: 5
+  sessions:
+    - description: Morning
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 12:00
+    - description: Evening
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 14:00
+      endTime: 16:00
+- eventType: Telephone interview
+  description: EDIP
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-10-05
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 5
+    CHAIR: 5
+    EXERCISE_MARKER: 5
+    QUALITY_ASSURANCE_COORDINATOR: 5
+  sessions:
+    - description: Morning
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 12:00
+    - description: Evening
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 14:00
+      endTime: 16:00
+- eventType: Telephone interview
+  description: SDIP
+  location: London
+  venue: LONDON_FSAC
+  date: 2017-10-06
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 12:00
+  skillRequirements:
+    ASSESSOR: 5
+    CHAIR: 5
+    EXERCISE_MARKER: 5
+    QUALITY_ASSURANCE_COORDINATOR: 5
+  sessions:
+    - description: Morning
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 9:00
+      endTime: 12:00
+    - description: Evening
+      capacity: 36
+      minViableAttendees: 12
+      attendeeSafetyMargin: 2
+      startTime: 14:00
+      endTime: 16:00

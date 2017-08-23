@@ -15,7 +15,7 @@
     required: Degree_21_PostGrad
     specificRequirement: false
   siftRequirement: FORM
-  siftEvaluationRequired: true
+  siftEvaluationRequired: false
   fsbType: DAT FSB
 - id: DiplomaticService
   code: DS
@@ -52,7 +52,7 @@
     required: Degree_21
     specificRequirement: false
   siftRequirement: FORM
-  siftEvaluationRequired: true
+  siftEvaluationRequired: false
   fsbType: GCFS FSB
 - id: GovernmentEconomicsService
   code: GES
@@ -112,7 +112,7 @@
     required: Degree_22
     specificRequirement: false
   siftRequirement: FORM
-  siftEvaluationRequired: true
+  siftEvaluationRequired: false
   fsbType: HOP FSB
 - id: HumanResources
   code: HRFS
@@ -139,7 +139,7 @@
     required: Degree_22
     specificRequirement: false
   siftRequirement: FORM
-  siftEvaluationRequired: true
+  siftEvaluationRequired: false
 - id: ScienceAndEngineering
   code: SEFS
   name: Science And Engineering

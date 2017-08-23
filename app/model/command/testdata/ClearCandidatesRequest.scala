@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package model
+package model.command.testdata
 
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.Json
 
-case class ReportWithPersonalDetails(applicationId: String, userId: String, progress: Option[String],
-  firstName: Option[String], lastName: Option[String], preferredName: Option[String])
 
-object ReportWithPersonalDetails {
-  implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
+case class ClearCandidatesRequest(applicationStatus: Option[String])
+
+object ClearCandidatesRequest {
+  implicit val clearCandidatesRequestFormat = Json.format[ClearCandidatesRequest]
 }

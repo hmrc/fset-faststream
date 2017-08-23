@@ -36,16 +36,23 @@ object AuthProviderClient extends AuthProviderClient {
 }
 
 trait AuthProviderClient {
+
   sealed abstract class UserRole(val name: String)
 
   case object CandidateRole extends UserRole("candidate")
 
   case object AssessorRole extends UserRole("assessor")
+
   case object QacRole extends UserRole("qac")
+
   case object FaststreamTeamRole extends UserRole("faststream-team")
+
   case object ServiceSupportRole extends UserRole("service-support")
+
   case object ServiceAdminRole extends UserRole("service-admin")
+
   case object SuperAdminRole extends UserRole("super-admin")
+
   case object TechnicalAdminRole extends UserRole("tech-admin")
 
   val allRoles = List(AssessorRole, QacRole, FaststreamTeamRole, ServiceSupportRole, ServiceAdminRole, SuperAdminRole,
@@ -76,6 +83,16 @@ trait AuthProviderClient {
       response.json.as[UserResponse]
     }.recover {
       case Upstream4xxResponse(_, CONFLICT, _, _) => throw EmailTakenException()
+    }
+
+
+  def removeUser(userId: String)(implicit hc: HeaderCarrier): Future[Unit] =
+    WSHttp.DELETE(s"$url/$urlPrefix/user/$userId").map { (response) =>
+      if (response.status == NO_CONTENT) {
+        ()
+      } else {
+        throw new ConnectorException(s"Bad response received when removing user: $userId: $response")
+      }
     }
 
   def removeAllUsers()(implicit hc: HeaderCarrier): Future[Unit] =

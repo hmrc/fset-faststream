@@ -44,9 +44,7 @@ trait ApplicationSiftRepository {
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]]
-  def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
-  def siftApplicationForSchemeBSON(applicationId: String, result: SchemeEvaluationResult): (BSONDocument, BSONDocument)
-
+  def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
 
 }
@@ -114,18 +112,13 @@ class ApplicationSiftMongoRepository(
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
   }
 
-  def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    val (predicate, update) = siftApplicationForSchemeBSON(applicationId, result)
-
-    val validator = singleUpdateValidator(applicationId, s"sifting for ${result.schemeId}", ApplicationNotFound(applicationId))
-    collection.update(predicate, update) map validator
-  }
-
-   def siftApplicationForSchemeBSON(applicationId: String, result: SchemeEvaluationResult): (BSONDocument, BSONDocument) = {
+  def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult,
+    settableFields: Seq[BSONDocument] = Nil
+  ): Future[Unit] = {
 
      val update = BSONDocument(
        "$addToSet" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result),
-       "$set" -> BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "1")
+       "$set" -> settableFields.foldLeft(BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "2")) { (acc, doc) => acc ++ doc }
      )
 
      val predicate = BSONDocument("$and" -> BSONArray(
@@ -134,9 +127,11 @@ class ApplicationSiftMongoRepository(
          s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
        )
      ))
+    val validator = singleUpdateValidator(applicationId, s"sifting for ${result.schemeId}", ApplicationNotFound(applicationId))
 
-     (predicate, update)
-   }
+    collection.update(predicate, update) map validator
+  }
+
 
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
     val predicate = BSONDocument("applicationId" -> applicationId)

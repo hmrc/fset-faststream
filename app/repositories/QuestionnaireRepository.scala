@@ -33,7 +33,7 @@ import scala.language.postfixOps
 trait QuestionnaireRepository {
   def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit]
   def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]]
-  def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]]
+  def findForOnlineTestPassMarkReport(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]]
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
 
 
@@ -80,11 +80,14 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     }
   }
 
-  override def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]] = {
+  override def findForOnlineTestPassMarkReport(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]] = {
     // We need to ensure that the candidates have completed the last page of the questionnaire
     // however, only the first question on the employment page is mandatory, as if the answer is
     // unemployed, they don't need to answer other questions
-    val query = BSONDocument(s"questions.$EmploymentStatusQuestionText" -> BSONDocument("$exists" -> BSONBoolean(true)))
+    val query =
+      BSONDocument(s"questions.$EmploymentStatusQuestionText" -> BSONDocument("$exists" -> BSONBoolean(true))) ++
+      BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+
     findAllAsReportItem(query)
   }
 
