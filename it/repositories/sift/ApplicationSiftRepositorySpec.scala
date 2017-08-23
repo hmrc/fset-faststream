@@ -21,8 +21,6 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   val collectionName: String = CollectionNames.APPLICATION
 
   val Commercial: SchemeId = SchemeId("Commercial")
-  val Sdip: SchemeId = SchemeId("Sdip")
-  val Edip: SchemeId = SchemeId("Edip")
   val Generalist: SchemeId = SchemeId("Generalist")
   val ProjectDelivery = SchemeId("Project Delivery")
   val schemeDefinitions = List(Commercial, ProjectDelivery, Generalist)
@@ -54,6 +52,14 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       insertApplicationWithPhase1TestNotifiedResults("appId7",
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Sdip).futureValue
 
+      insertApplicationWithPhase3TestNotifiedResults("appId8",
+        List(
+          SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)
+        ),
+        applicationRoute = ApplicationRoute.SdipFaststream
+      ).futureValue
+
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
       appsForSift must contain theSameElementsAs List(
         ApplicationForSift("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
@@ -65,10 +71,13 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         ApplicationForSift("appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString))),
         ApplicationForSift("appId7", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)))
+          List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString))),
+        ApplicationForSift("appId8", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
+            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
       )
 
-      appsForSift.size mustBe 5
+      appsForSift.size mustBe 6
     }
 
     ("return no results when there are only applications that aren't in Passed_Notified which apply for sift or don't have Green/Passed "
