@@ -18,6 +18,8 @@ package services.assessmentcentre
 
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
+import model.EvaluationResults.Green
+import model.ProgressStatuses.ASSESSMENT_CENTRE_PASSED
 import model._
 import model.command.ApplicationForFsac
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
@@ -126,9 +128,19 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
       currentSchemeStatus <- calculateCurrentSchemeStatus(assessmentPassMarksSchemesAndScores.scores.applicationId,
         evaluationResult.schemesEvaluation)
       _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation, currentSchemeStatus)
+      _ <- maybeMoveCandidateToPassed(currentSchemeStatus)
     } yield {
       Logger.debug(s"written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
+  }
+
+  def maybeMoveCandidateToPassed(results: Seq[SchemeEvaluationResult]) = {
+    firstResidualPreference(results) match {
+      case evaluationResult if evaluationResult.result == Green.toString =>
+        applicationRepo.addProgressStatusAndUpdateAppStatus(ASSESSMENT_CENTRE_PASSED)
+      case _ => Future.successful()
+    }
+    // only move if in SCORES_ACCEPTED, if first residual pref is green, move to FSAC_PASSED
   }
 
   def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,
