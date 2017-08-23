@@ -148,6 +148,17 @@ trait AssessmentScoresController extends BaseController {
       Ok(Json.toJson(scores))
     }
   }
+
+  def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+    service.findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId).map {
+      case Some(scores) => Ok(Json.toJson(scores))
+      case None => NotFound
+    }.recover {
+      case other: Throwable =>
+        Logger.error(s"Exception when calling findAssessmentScoresByApplicationId: $other")
+        InternalServerError(other.getMessage)
+    }
+  }
 }
 
 object AssessorAssessmentScoresController extends AssessmentScoresController {
@@ -163,6 +174,11 @@ object AssessorAssessmentScoresController extends AssessmentScoresController {
     implicit request =>
       throw new UnsupportedOperationException("This method is only applicable for a reviewer")
   }
+
+  override def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async {
+    implicit request =>
+      throw new UnsupportedOperationException("This method is only applicable for a reviewer")
+  }
 }
 
 object ReviewerAssessmentScoresController extends AssessmentScoresController {
@@ -173,15 +189,4 @@ object ReviewerAssessmentScoresController extends AssessmentScoresController {
   val AssessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
   val AssessmentScoresAllExercisesSubmitted = "ReviewerAssessmentScoresAllExercisesSubmitted"
   val UserIdForAudit = "assessorId"
-
-  def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async { implicit request =>
-    service.findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId).map {
-      case Some(scores) => Ok(Json.toJson(scores))
-      case None => NotFound
-    }.recover {
-      case other: Throwable =>
-        Logger.error(s"Exception when calling findAssessmentScoresByApplicationId: $other")
-        InternalServerError(other.getMessage)
-    }
-  }
 }

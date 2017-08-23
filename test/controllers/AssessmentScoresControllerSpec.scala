@@ -31,6 +31,7 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import repositories.AssessmentScoresRepository
 import services.assessmentscores.AssessmentScoresService
+import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -50,7 +51,6 @@ class ReviewerAssessmentScoresControllerSpec extends AssessmentScoresControllerS
   override val assessmentScoresAllExercisesSubmitted = "ReviewerAssessmentScoresAllExercisesSubmitted"
   override val assessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
 }
-
 
 trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
@@ -74,7 +74,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       val response = controller.submitExercise()(request)
 
-      status(response) must be(OK)
+      status(response) mustBe OK
       verify(mockService).submitExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise), any())
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
     }
@@ -95,12 +95,11 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       val response = controller.saveExercise()(request)
 
-      status(response) must be(OK)
+      status(response) mustBe OK
       verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentExerciseType.analysisExercise), any())
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSaved), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
     }
   }
-
 
   "submit final feedback" should {
     "save final feedback, send AssessmentScoresOneExerciseSubmitted and AssessmentScoresAllExercisesSubmitted" +
@@ -121,7 +120,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       val response = controller.submitFinalFeedback()(request)
 
-      status(response) must be(OK)
+      status(response) mustBe OK
       verify(mockService).submitFinalFeedback(eqTo(appId), any())
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted),
         eqTo(oneExerciseAuditDetails))(any[HeaderCarrier], any[RequestHeader])
@@ -141,7 +140,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       val response = controller.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)(fakeRequest)
 
-      status(response) must be (OK)
+      status(response) mustBe OK
       contentAsJson(response) mustBe Json.toJson(expectedResponse)
     }
 
@@ -164,7 +163,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       val response = controller.findAssessmentScoresWithCandidateSummaryByEventId(eventId)(fakeRequest)
 
-      status(response) must be (OK)
+      status(response) mustBe OK
       contentAsJson(response) mustBe Json.toJson(expectedResponse)
     }
 
@@ -172,6 +171,24 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(
         Future.failed(EventNotFoundException(eventId.toString())))
       val response = controller.findAssessmentScoresWithCandidateSummaryByEventId(eventId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
+    }
+  }
+
+  "findAcceptedAssessmentScoresByApplicationId" should {
+    "return OK with reviewer accepted assessment scores" in new TestFixture {
+      val expectedResponse = Some(AssessmentScoresAllExercises(appId))
+      when(mockService.findAcceptedAssessmentScoresAndFeedbackByApplicationId(appId)).thenReturnAsync(expectedResponse)
+
+      val response = controller.findAcceptedAssessmentScoresByApplicationId(appId)(fakeRequest)
+
+      status(response) mustBe OK
+      contentAsJson(response) mustBe Json.toJson(expectedResponse)
+    }
+
+    "return NOT_FOUND if the data cannot be located" in new TestFixture {
+      when(mockService.findAcceptedAssessmentScoresAndFeedbackByApplicationId(appId)).thenReturnAsync(None)
+      val response = controller.findAcceptedAssessmentScoresByApplicationId(appId)(fakeRequest)
       status(response) mustBe NOT_FOUND
     }
   }
