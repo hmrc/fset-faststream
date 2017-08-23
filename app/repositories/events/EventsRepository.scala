@@ -35,6 +35,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Event]]
+  def count(implicit ec : scala.concurrent.ExecutionContext): Future[Int]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
