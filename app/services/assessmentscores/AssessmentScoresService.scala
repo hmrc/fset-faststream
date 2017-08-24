@@ -158,6 +158,14 @@ trait AssessmentScoresService {
     }
   }
 
+  def findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
+    for {
+      assessmentScoresAndFeedback <- assessmentScoresRepository.findAccepted(applicationId)
+    } yield {
+      assessmentScoresAndFeedback
+    }
+  }
+
   def findAssessmentScoresWithCandidateSummaryByEventId(eventId: UniqueIdentifier)
   : Future[List[AssessmentScoresFindResponse]] = {
     (for {
@@ -219,7 +227,6 @@ object AssessorAssessmentScoresService extends AssessorAssessmentScoresService {
   override val dateTimeFactory = DateTimeFactory
 }
 
-
 abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
   override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
 
@@ -229,7 +236,6 @@ abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
       allExercisesScores.leadershipExercise.map(_.isSubmitted).getOrElse(false) &&
       allExercisesScores.finalFeedback.isDefined
   }
-
 }
 
 object ReviewerAssessmentScoresService extends ReviewerAssessmentScoresService {

@@ -236,6 +236,7 @@ object CreateCandidateData {
                                  phase1TestData: Option[Phase1TestData] = None,
                                  phase2TestData: Option[Phase2TestData] = None,
                                  phase3TestData: Option[Phase3TestData] = None,
+                                 fsbTestGroupData: Option[FsbTestGroupDataRequest] = None,
                                  adjustmentInformation: Option[Adjustments] = None,
                                  assessorDetails: Option[AssessorData] = None
                                         ) extends CreateTestData
@@ -258,6 +259,7 @@ object CreateCandidateData {
         phase1TestData = o.phase1TestData.map(Phase1TestData.apply),
         phase2TestData = o.phase2TestData.map(Phase2TestData.apply),
         phase3TestData = o.phase3TestData.map(Phase3TestData.apply),
+        fsbTestGroupData = o.fsbTestGroupData,
         adjustmentInformation = o.adjustmentInformation
       )
     }

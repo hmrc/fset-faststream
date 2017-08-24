@@ -21,6 +21,7 @@ import model.testdata.CreateCandidateAllocationData
 import play.api.mvc.RequestHeader
 import services.allocation.CandidateAllocationService
 import uk.gov.hmrc.play.http.HeaderCarrier
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -35,8 +36,21 @@ trait CandidateAllocationGenerator {
   def generate(
     generationId: Int,
     createData: CreateCandidateAllocationData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateAllocationResponse] = {
-    candidateAllocationService.allocateCandidates(createData.toCandidateAllocations, true).map { d =>
-      CreateCandidateAllocationResponse(generationId, createData.copy(version = d.version)) }
+
+    candidateAllocationService.getCandidateAllocations(createData.eventId, createData.sessionId).flatMap { existingAllocation =>
+
+      val newAllocations = createData.toCandidateAllocations
+
+      val newAllocationsWithVersion = if(newAllocations.version.isEmpty) {
+        newAllocations.copy(version = existingAllocation.version.getOrElse(""))
+      } else {
+        createData.toCandidateAllocations
+      }
+
+      candidateAllocationService.allocateCandidates(newAllocationsWithVersion, true).map { d =>
+        CreateCandidateAllocationResponse(generationId, createData.copy(version = d.version))
+      }
+    }
   }
 
 }

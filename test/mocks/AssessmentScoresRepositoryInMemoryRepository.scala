@@ -38,4 +38,6 @@ class AssessmentScoresRepositoryInMemoryRepository extends AssessmentScoresRepos
 
   def saveFinalFeedback(applicationId: UniqueIdentifier, finalFeedback: AssessmentScoresFinalFeedback,
     newVersion: Option[String]): Future[Unit] = ???
+
+  def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = ???
 }
