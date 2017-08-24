@@ -19,7 +19,7 @@ package repositories.sift
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{ Red, Withdrawn }
+import model.EvaluationResults.{ Green, Red, Withdrawn }
 import model._
 import model.Exceptions.ApplicationNotFound
 import model.command.ApplicationForSift
@@ -104,9 +104,8 @@ class ApplicationSiftMongoRepository(
       "applicationRoute" -> ApplicationRoute.Faststream,
       "applicationStatus" -> ApplicationStatus.SIFT,
       s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
-      "currentSchemeStatus" -> BSONDocument("$all" -> BSONArray(
-        BSONDocument("$elemMatch" -> BSONDocument("result" -> BSONDocument("$in" -> Seq(Red.toString, Withdrawn.toString))))
-      ))
+      "currentSchemeStatus.result" -> Red.toString,
+      "currentSchemeStatus.result" -> BSONDocument("$ne" -> Green.toString)
     )
 
     selectOneRandom[BSONDocument](predicate).map {
