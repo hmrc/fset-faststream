@@ -26,7 +26,7 @@ import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
 import helpers.{ CachedUserWithSchemeData, CurrentSchemeStatus }
 import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
-import security.Roles.SchemeSpecificQuestionsRole
+import security.Roles.{ PreviewSchemeSpecificQuestionsRole, SchemeSpecificQuestionsRole }
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
@@ -119,7 +119,7 @@ abstract class SiftQuestionsController(
       )
   }
 
-  def presentPreview: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def presentPreview: Action[AnyContent] = CSRSecureAppAction(PreviewSchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
 
       def enrichSchemeAnswersAddingMissingSiftSchemes(siftAnswers: SiftAnswers, userMetadata: CachedUserWithSchemeData) = {
