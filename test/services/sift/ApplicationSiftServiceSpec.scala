@@ -16,27 +16,32 @@
 
 package services.sift
 
-import factories.{ DateTimeFactory, DateTimeFactoryMock }
+import connectors.EmailClient
+import factories.DateTimeFactoryMock
 import model._
 import model.command.ApplicationForSift
-import model.persisted.SchemeEvaluationResult
-import org.joda.time.{ DateTime, LocalDate }
+import model.persisted.{ ContactDetailsExamples, SchemeEvaluationResult }
+import org.joda.time.LocalDate
 import repositories.sift.ApplicationSiftRepository
-import testkit.ScalaMockUnitSpec
+import testkit.ScalaMockUnitWithAppSpec
 import testkit.ScalaMockImplicits._
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+import reactivemongo.bson.BSONDocument
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.BSONDateTimeHandler
+import repositories.contactdetails.ContactDetailsRepository
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
+class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
   trait TestFixture  {
     val appId = "applicationId"
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockSiftRepo = mock[ApplicationSiftRepository]
+    val mockEmailClient = mock[EmailClient]
+    val mockContactDetailsRepo = mock[ContactDetailsRepository]
     val mockSchemeRepo = new SchemeRepository {
       override lazy val schemes: Seq[Scheme] = Seq(
         Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
@@ -57,9 +62,10 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
       def applicationSiftRepo: ApplicationSiftRepository = mockSiftRepo
       def applicationRepo: GeneralApplicationRepository = mockAppRepo
       def schemeRepo: SchemeRepository = mockSchemeRepo
+      def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
+      def emailClient: EmailClient = mockEmailClient
       def dateTimeFactory = DateTimeFactoryMock
     }
-
 
   }
 
@@ -167,4 +173,19 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }
   }
+
+  "sendSiftEnteredNotification" must {
+    "send email to the right candidate" in new TestFixture {
+      val candidate = CandidateExamples.minCandidate("userId")
+      val contactDetails = ContactDetailsExamples.ContactDetailsUK
+
+      (mockAppRepo.find(_ : String)).expects(appId).returningAsync(Some(candidate))
+      (mockContactDetailsRepo.find _ ).expects("userId").returningAsync(contactDetails)
+      (mockEmailClient.notifyCandidateSiftEnteredAdditionalQuestions(_: String, _: String)(_: HeaderCarrier))
+        .expects(contactDetails.email, candidate.name, *).returningAsync
+
+      whenReady(service.sendSiftEnteredNotification(appId)(new HeaderCarrier())) { result => result mustBe unit }
+    }
+  }
+
 }

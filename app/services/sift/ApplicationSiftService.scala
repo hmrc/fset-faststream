@@ -17,6 +17,7 @@
 package services.sift
 
 import common.FutureEx
+import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
 import model.EvaluationResults.Green
 import model._
@@ -25,7 +26,10 @@ import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
+import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,6 +40,8 @@ object ApplicationSiftService extends ApplicationSiftService {
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
   val schemeRepo = SchemeYamlRepository
   val dateTimeFactory = DateTimeFactory
+  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
+  val emailClient = CSREmailClient
 }
 
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
@@ -45,6 +51,10 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def schemeRepo: SchemeRepository
 
+  def contactDetailsRepo: ContactDetailsRepository
+
+  def emailClient: EmailClient
+
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
   }
@@ -53,7 +63,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
   }
 
-  private def progressStatusForSiftStage(app: ApplicationForSift) = if (requiresForms(app.currentSchemeStatus.map(_.schemeId))) {
+  def progressStatusForSiftStage(app: ApplicationForSift) = if (requiresForms(app.currentSchemeStatus.map(_.schemeId))) {
     ProgressStatuses.SIFT_ENTERED
   } else {
     ProgressStatuses.SIFT_READY
@@ -61,7 +71,6 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def progressApplicationToSiftStage(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
-
       FutureEx.futureToEither(application,
         applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, progressStatusForSiftStage(application))
       )
@@ -80,8 +89,16 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
         case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
         case _ => buildSiftSettableFields(result, schemeFilter) _
       }
-
       siftApplicationForScheme(applicationId, result, updateFunction)
+    }
+  }
+
+  def sendSiftEnteredNotification(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    applicationRepo.find(applicationId).flatMap {
+      case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
+        emailClient.notifyCandidateSiftEnteredAdditionalQuestions(contactDetails.email, candidate.name)
+      }
+      case None => throw CouldNotFindCandidateWithApplication(applicationId)
     }
   }
 
