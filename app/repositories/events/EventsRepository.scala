@@ -99,6 +99,6 @@ class EventsMongoRepository(implicit mongo: () => DB)
 
   def updateStructure(): Future[Unit] = {
     val updateQuery = BSONDocument("$set" -> BSONDocument("wasBulkUploaded" -> false, "createdAt" -> DateTime.now.getMillis))
-    collection.update(BSONDocument.empty, updateQuery).map(_ => ())
+    collection.update(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
   }
 }
