@@ -16,14 +16,14 @@
 
 package testkit
 
+import org.scalatest.TestSuite
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Seconds, Span }
-import org.scalatestplus.play.PlaySpec
 
 import scala.concurrent.Future
 
 trait FutureHelper {
-  this: PlaySpec with ScalaFutures =>
+  this: TestSuite with ScalaFutures =>
 
   def assertNoExceptions(future: Future[Unit]) = try {
     implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = Span(500, Millis))

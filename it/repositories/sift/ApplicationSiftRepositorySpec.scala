@@ -1,7 +1,7 @@
 package repositories.sift
 
 import model.ApplicationRoute.ApplicationRoute
-import model.EvaluationResults.{ Green, Red, Withdrawn }
+import model.EvaluationResults.{ Green, Red  }
 import model.Phase3TestProfileExamples.phase3TestWithResult
 import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
@@ -12,8 +12,6 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 import repositories.onlinetesting.Phase2EvaluationMongoRepositorySpec.phase2TestWithResult
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.{ MockitoSugar, MongoRepositorySpec }
-
-import scala.concurrent.Future
 
 class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFutures with CommonRepository
   with MockitoSugar with TableDrivenPropertyChecks {
@@ -62,17 +60,17 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
       appsForSift must contain theSameElementsAs List(
-        ApplicationForSift("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId1", "appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId3", "appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(European, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId4", "appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId6", "appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId7", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId7", "appId7", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId8", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId8", "appId8", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
             SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
       )

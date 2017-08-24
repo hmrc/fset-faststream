@@ -16,27 +16,31 @@
 
 package services.sift
 
-import factories.{ DateTimeFactory, DateTimeFactoryMock }
+import connectors.CSREmailClient
+import factories.DateTimeFactoryMock
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.LocalDate
 import repositories.sift.ApplicationSiftRepository
-import testkit.ScalaMockUnitSpec
+import testkit.{ ScalaMockUnitSpec, ScalaMockUnitWithAppSpec }
 import testkit.ScalaMockImplicits._
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+import reactivemongo.bson.BSONDocument
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.BSONDateTimeHandler
+import repositories.contactdetails.ContactDetailsRepository
 
 import scala.concurrent.Future
 
-class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
+class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
   trait TestFixture  {
     val appId = "applicationId"
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockSiftRepo = mock[ApplicationSiftRepository]
+    val mockContactDetailsRepo = mock[ContactDetailsRepository]
+    val mockEmailClient = mock[CSREmailClient]
     val mockSchemeRepo = new SchemeRepository {
       override lazy val schemes: Seq[Scheme] = Seq(
         Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
@@ -58,6 +62,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
       def applicationRepo: GeneralApplicationRepository = mockAppRepo
       def schemeRepo: SchemeRepository = mockSchemeRepo
       def dateTimeFactory = DateTimeFactoryMock
+      def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
+      def emailClient = mockEmailClient
     }
 
 
@@ -86,11 +92,11 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
 
     "progress all applications regardless of failures" in new TestFixture {
       val applicationsToProgressToSift = List(
-        ApplicationForSift("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
-        ApplicationForSift("appId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId2", "userId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString))),
-        ApplicationForSift("appId3",ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId3", "userId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
       )
 

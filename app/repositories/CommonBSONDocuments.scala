@@ -156,7 +156,8 @@ trait CommonBSONDocuments extends BaseBSONReader {
           siftProgressResponse = SiftProgressResponse(
             siftEntered = getProgress(ProgressStatuses.SIFT_ENTERED.key),
             siftReady = getProgress(ProgressStatuses.SIFT_READY.key),
-            siftCompleted = getProgress(ProgressStatuses.SIFT_COMPLETED.key)
+            siftCompleted = getProgress(ProgressStatuses.SIFT_COMPLETED.key),
+            siftAllSchemesFailed = getProgress(ProgressStatuses.SIFT_ALL_SCHEMES_FAILED.key)
           ),
           assessmentCentre = AssessmentCentre(
             awaitingAllocation = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key),
