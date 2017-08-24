@@ -146,10 +146,11 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
           // No greens or ambers (i.e. all red or withdrawn)
           case None =>
             applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
+          case _ => Future.successful(())
         }
       } else {
         // Don't move anyone not in a SCORES_ACCEPTED status
-        Future.successful()
+        Future.successful(())
       }
 
   }
