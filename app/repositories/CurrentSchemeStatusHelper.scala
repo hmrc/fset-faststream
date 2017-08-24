@@ -19,6 +19,7 @@ package repositories
 import model.EvaluationResults._
 import model.SchemeId
 import model.persisted.SchemeEvaluationResult
+import play.api.Logger
 import reactivemongo.bson.BSONDocument
 
 import scala.annotation.tailrec
@@ -82,9 +83,15 @@ trait CurrentSchemeStatusHelper {
   def firstResidualPreference(results: Seq[SchemeEvaluationResult]): Option[SchemeEvaluationResult] = {
     val resultsWithIndex = results.zipWithIndex
 
-    resultsWithIndex.filterNot { case (result, idx) =>
+    Logger.debug("========= Pre AORG = " + resultsWithIndex)
+
+    val amberOrGreenPreferences = resultsWithIndex.filterNot { case (result, idx) =>
         result.result == Red.toString || result.result == Withdrawn.toString
-    } match {
+    }
+
+    Logger.debug("========= AORG = " + amberOrGreenPreferences)
+
+    amberOrGreenPreferences match {
       case Nil => None
       case list => Some(list.minBy(_._2)._1)
     }

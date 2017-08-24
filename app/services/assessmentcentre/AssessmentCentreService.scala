@@ -19,7 +19,7 @@ package services.assessmentcentre
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.EvaluationResults.Green
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model._
 import model.command.ApplicationForFsac
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
@@ -136,7 +136,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     }
   }
 
-  def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,
+  private def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,
                                          applicationStatus: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = {
       if (applicationStatus == ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString) {
         firstResidualPreference(results) match {
@@ -144,7 +144,8 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
           case Some(evaluationResult) if evaluationResult.result == Green.toString =>
             applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
           // No greens or ambers (i.e. all red or withdrawn)
-          case None => Future.successful()
+          case None =>
+            applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
         }
       } else {
         // Don't move anyone not in a SCORES_ACCEPTED status
