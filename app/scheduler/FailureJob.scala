@@ -22,17 +22,13 @@ import services.sift.ApplicationSiftService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object SiftFailureJob extends FailureJob {
+object SiftFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val service: ApplicationSiftService.type = ApplicationSiftService
   val config: SiftFailureJobConfig.type = SiftFailureJobConfig
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     service.processNextApplicationFailedAtSift
   }
-}
-
-trait FailureJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  def tryExecute()(implicit ec: ExecutionContext): Future[Unit]
 }
 
 object SiftFailureJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
