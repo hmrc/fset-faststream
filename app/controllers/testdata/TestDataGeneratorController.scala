@@ -27,6 +27,7 @@ import model.command.testdata.{ ClearCandidatesRequest, CreateCandidateAllocatio
 import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.AssessorSkill
+import model.persisted.{ FsbTestGroup, SchemeEvaluationResult }
 import model.persisted.assessor.AssessorStatus
 import model.persisted.eventschedules.{ EventType, Session, SkillType }
 import model.testdata.CreateAdminData.CreateAdminData
@@ -137,6 +138,9 @@ trait TestDataGeneratorController extends BaseController {
         score = Some(12.0),
         receivedBeforeInHours = Some(72),
         generateNullScoresForFewQuestions = Some(false)
+      )),
+      fsbTestGroupData = Some(FsbTestGroupDataRequest(
+        results = Seq(SchemeEvaluationResult("DigitalAndTechnology", "Green"))
       )),
       adjustmentInformation = Some(Adjustments(
         adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
@@ -343,8 +347,10 @@ trait TestDataGeneratorController extends BaseController {
     } catch {
       case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
         JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
-      case ex: Throwable => Future.successful(Conflict(JsObject(List(("message",
-        JsString(s"There was an exception creating the candidate. Message=[${ex.getMessage}]"))))))
+      case ex: Throwable =>
+        ex.printStackTrace()
+        Future.successful(Conflict(JsObject(List(("message",
+          JsString(s"There was an exception creating the candidate. Message=[${ex.getMessage}]"))))))
     }
   }
 

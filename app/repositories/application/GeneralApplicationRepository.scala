@@ -144,6 +144,8 @@ trait GeneralApplicationRepository {
 
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
 
+  def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
+
 }
 
 // scalastyle:off number.of.methods
@@ -974,5 +976,13 @@ class GeneralApplicationMongoRepository(
       val schemesDoc = schemes.foldRight(BSONDocument.empty)((acc, doc) => acc.add(doc))
       BSONDocument(name -> schemesDoc)
     case _ => BSONDocument.empty
+  }
+
+  def getApplicationRoute(applicationId: String): Future[ApplicationRoute] = {
+    val projection = BSONDocument("_id" -> false, "applicationRoute" -> true)
+    val predicate = BSONDocument("applicationId" -> applicationId)
+    collection.find(predicate, projection).one[BSONDocument].map(_.flatMap { doc =>
+      doc.getAs[ApplicationRoute]("applicationRoute")
+    }.getOrElse(throw ApplicationNotFound(s"No application found for $applicationId")))
   }
 }

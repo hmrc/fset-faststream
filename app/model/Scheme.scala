@@ -72,9 +72,15 @@ case class Scheme(
   fsbType: Option[FsbType],
   telephoneInterviewType: Option[TelephoneInterviewType],
   schemeGuide: Option[String]
-)
+) {
+
+  def isSdip: Boolean = id.value == Scheme.Sdip
+
+}
 
 object Scheme {
+
+  val Sdip = "Sdip"
   implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
   // scalastyle:off parameter.number
@@ -85,4 +91,7 @@ object Scheme {
     Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, siftEvaluationRequired,
       fsbType, telephoneInterviewType, schemeGuide)
   // scalastyle:on
+
+
+  def isSdip(id: SchemeId): Boolean = id.value == Sdip
 }

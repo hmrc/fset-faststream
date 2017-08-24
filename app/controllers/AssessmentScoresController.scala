@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.EventNotFoundException
+import model.Exceptions.{ EventNotFoundException, NotFoundException }
 import model.assessmentscores._
 import model.UniqueIdentifier
 import model.command.AssessmentScoresCommands._
@@ -44,36 +44,40 @@ trait AssessmentScoresController extends BaseController {
   def submitExercise() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[AssessmentScoresSubmitExerciseRequest] { submitRequest =>
-        val assessmentExerciseType = AssessmentExerciseType.withName(submitRequest.exercise)
+        val assessmentExerciseType = AssessmentScoresSectionType.withName(submitRequest.exercise)
         service.submitExercise(
           submitRequest.applicationId,
           assessmentExerciseType,
-          submitRequest.scoresAndFeedback
+          submitRequest.scoresExercise
         ).map { _ =>
           val auditDetails = Map(
             "applicationId" -> submitRequest.applicationId.toString(),
             "exercise" -> assessmentExerciseType.toString,
-            UserIdForAudit -> submitRequest.scoresAndFeedback.updatedBy.toString())
+            UserIdForAudit -> submitRequest.scoresExercise.updatedBy.toString())
           auditService.logEvent(AssessmentScoresOneExerciseSubmitted, auditDetails)
-        }.map (_ => Ok)
+        }.map (_ => Ok).recover {
+          case e: NotFoundException => Conflict(e.getMessage)
+        }
       }
   }
 
   def saveExercise() = Action.async(parse.json) {
     implicit request =>
       withJsonBody[AssessmentScoresSaveExerciseRequest] { submitRequest =>
-        val assessmentExerciseType = AssessmentExerciseType.withName(submitRequest.exercise)
+        val assessmentExerciseType = AssessmentScoresSectionType.withName(submitRequest.exercise)
         service.saveExercise(
           submitRequest.applicationId,
           assessmentExerciseType,
-          submitRequest.scoresAndFeedback
+          submitRequest.scoresExercise
         ).map { _ =>
           val auditDetails = Map(
             "applicationId" -> submitRequest.applicationId.toString(),
             "exercise" -> assessmentExerciseType.toString,
-            UserIdForAudit -> submitRequest.scoresAndFeedback.updatedBy.toString())
+            UserIdForAudit -> submitRequest.scoresExercise.updatedBy.toString())
           auditService.logEvent(AssessmentScoresOneExerciseSaved, auditDetails)
-        }.map (_ => Ok)
+        }.map (_ => Ok).recover {
+          case e: NotFoundException => Conflict(e.getMessage)
+        }
       }
   }
 
@@ -94,7 +98,9 @@ trait AssessmentScoresController extends BaseController {
             UserIdForAudit -> submitRequest.finalFeedback.updatedBy.toString())
           auditService.logEvent(AssessmentScoresAllExercisesSubmitted, allExercisesAuditDetails)
 
-        }.map (_ => Ok)
+        }.map (_ => Ok).recover {
+          case e: NotFoundException => Conflict(e.getMessage)
+        }
       }
   }
 
@@ -107,7 +113,9 @@ trait AssessmentScoresController extends BaseController {
             "assessorId" -> scores.analysisExercise.map(_.updatedBy.toString).getOrElse("Unknown")
           )
           auditService.logEvent(AssessmentScoresAllExercisesSubmitted, auditDetails)
-        }.map(_ => Ok)
+        }.map(_ => Ok).recover {
+          case e: NotFoundException => Conflict(e.getMessage)
+        }
       }
   }
 
@@ -115,10 +123,9 @@ trait AssessmentScoresController extends BaseController {
     service.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
-      case ex: EventNotFoundException => {
+      case ex: EventNotFoundException =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $ex")
         NotFound
-      }
       case other: Throwable =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $other")
         InternalServerError(other.getMessage)
@@ -129,10 +136,9 @@ trait AssessmentScoresController extends BaseController {
     service.findAssessmentScoresWithCandidateSummaryByEventId(eventId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
-      case ex: EventNotFoundException => {
+      case ex: EventNotFoundException =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $ex")
         NotFound
-      }
       case other: Throwable =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $other")
         InternalServerError(other.getMessage)
@@ -150,6 +156,17 @@ trait AssessmentScoresController extends BaseController {
       Ok(Json.toJson(scores))
     }
   }
+
+  def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+    service.findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId).map {
+      case Some(scores) => Ok(Json.toJson(scores))
+      case None => NotFound
+    }.recover {
+      case other: Throwable =>
+        Logger.error(s"Exception when calling findAssessmentScoresByApplicationId: $other")
+        InternalServerError(other.getMessage)
+    }
+  }
 }
 
 object AssessorAssessmentScoresController extends AssessmentScoresController {
@@ -162,6 +179,11 @@ object AssessorAssessmentScoresController extends AssessmentScoresController {
   val UserIdForAudit = "reviewerId"
 
   override def submitFinalFeedback() = Action.async(parse.json) {
+    implicit request =>
+      throw new UnsupportedOperationException("This method is only applicable for a reviewer")
+  }
+
+  override def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async {
     implicit request =>
       throw new UnsupportedOperationException("This method is only applicable for a reviewer")
   }
