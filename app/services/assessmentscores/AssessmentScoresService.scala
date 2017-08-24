@@ -19,7 +19,7 @@ package services.assessmentscores
 import factories.DateTimeFactory
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
 import model.{ ProgressStatuses, UniqueIdentifier }
-import model.command.AssessmentScoresCommands.{ AssessmentExerciseType, AssessmentScoresFindResponse, AssessmentScoresCandidateSummary }
+import model.command.AssessmentScoresCommands.{ AssessmentScoresSectionType, AssessmentScoresFindResponse, AssessmentScoresCandidateSummary }
 import model.persisted.eventschedules.Event
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -57,41 +57,41 @@ trait AssessmentScoresService {
   }
 
   def saveExercise(applicationId: UniqueIdentifier,
-    assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
+    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
     newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(savedDate = Some(dateTimeFactory.nowLocalTimeZone)))
   }
 
   def submitExercise(applicationId: UniqueIdentifier,
-    assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
+    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
     newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone)))
   }
 
   private def saveOrSubmitExercise(applicationId: UniqueIdentifier,
-    assessmentExerciseType: AssessmentExerciseType.AssessmentExerciseType,
+    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
     newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     def updateAllExercisesWithExercise(oldAllExercisesScores: AssessmentScoresAllExercises,
       newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
       assessmentExerciseType match {
-        case AssessmentExerciseType.analysisExercise =>
+        case AssessmentScoresSectionType.analysisExercise =>
           oldAllExercisesScores.copy(analysisExercise = Some(newExerciseScoresWithSubmittedDate))
-        case AssessmentExerciseType.groupExercise =>
+        case AssessmentScoresSectionType.groupExercise =>
           oldAllExercisesScores.copy(groupExercise = Some(newExerciseScoresWithSubmittedDate))
-        case AssessmentExerciseType.leadershipExercise =>
+        case AssessmentScoresSectionType.leadershipExercise =>
           oldAllExercisesScores.copy(leadershipExercise = Some(newExerciseScoresWithSubmittedDate))
       }
     }
 
-    (for {
+    for {
       oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
       oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
       newAllExercisesScores = updateAllExercisesWithExercise(oldAllExercisesScores, newExerciseScores)
-      _ <- assessmentScoresRepository.save(newAllExercisesScores)
+      _ <- assessmentScoresRepository.saveExercise(applicationId, assessmentExerciseType, newExerciseScores)
       _ <- updateStatusIfNeeded(newAllExercisesScores)
     } yield {
       ()
-    })
+    }
   }
 
   // We only submit final feedback for Reviewers/ QAC
@@ -122,14 +122,14 @@ trait AssessmentScoresService {
         finalFeedback = Some(newFinalFeedbackWithSubmittedDate))
     }
 
-    (for {
+    for {
       oldAllExercisesScoresMaybe <- findScoresAndVerify(applicationId)
       newAllExercisesScoresWithSubmittedDate = buildNewAllExercisesScoresWithSubmittedDate(oldAllExercisesScoresMaybe)
       _ <- assessmentScoresRepository.save(newAllExercisesScoresWithSubmittedDate)
       _ <- updateStatusIfNeeded(newAllExercisesScoresWithSubmittedDate)
     } yield {
       ()
-    })
+    }
   }
 
   protected def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean
@@ -155,6 +155,14 @@ trait AssessmentScoresService {
         UniqueIdentifier(candidateAllocation.sessionId))
     } yield {
       assessmentScoresWithCandidateSummary
+    }
+  }
+
+  def findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
+    for {
+      assessmentScoresAndFeedback <- assessmentScoresRepository.findAccepted(applicationId)
+    } yield {
+      assessmentScoresAndFeedback
     }
   }
 
@@ -219,7 +227,6 @@ object AssessorAssessmentScoresService extends AssessorAssessmentScoresService {
   override val dateTimeFactory = DateTimeFactory
 }
 
-
 abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
   override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
 
@@ -229,7 +236,6 @@ abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
       allExercisesScores.leadershipExercise.map(_.isSubmitted).getOrElse(false) &&
       allExercisesScores.finalFeedback.isDefined
   }
-
 }
 
 object ReviewerAssessmentScoresService extends ReviewerAssessmentScoresService {
