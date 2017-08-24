@@ -19,7 +19,7 @@ package services.sift
 import common.FutureEx
 import factories.DateTimeFactory
 import model.EvaluationResults.Green
-import model.{ ProgressStatuses, SchemeId, SerialUpdateResult, SiftRequirement }
+import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
@@ -40,7 +40,9 @@ object ApplicationSiftService extends ApplicationSiftService {
 
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
   def applicationSiftRepo: ApplicationSiftRepository
+
   def applicationRepo: GeneralApplicationRepository
+
   def schemeRepo: SchemeRepository
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
@@ -73,29 +75,54 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-
-    def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], siftableSchemes: Set[SchemeId]) =
-      if (siftedSchemes equals  siftableSchemes) {
-        progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
-      } else {
-        BSONDocument.empty
+    applicationRepo.getApplicationRoute(applicationId).flatMap { route =>
+      val updateFunction = route match {
+        case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
+        case _ => buildSiftSettableFields(result, schemeFilter) _
       }
 
+      siftApplicationForScheme(applicationId, result, updateFunction)
+    }
+  }
+
+  private def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult,
+    updateBuilder: (Seq[SchemeEvaluationResult], Seq[SchemeEvaluationResult]) => Seq[BSONDocument]
+  ): Future[Unit] = {
     (for {
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
       currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId)
     } yield {
-      val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
-      val candidatesGreenSchemes = currentSchemeStatus.collect { case s if s.result == Green.toString => s.schemeId }
-      val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
-      val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
-      val settableFields = Seq(currentSchemeStatusBSON(newSchemeStatus),
-        maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
-      )
-
+      val settableFields = updateBuilder(currentSchemeStatus, currentSiftEvaluation)
       applicationSiftRepo.siftApplicationForScheme(applicationId, result, settableFields)
 
     }) flatMap identity
+  }
+
+  private def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], siftableSchemes: Set[SchemeId]) = {
+    if (siftedSchemes equals siftableSchemes) {
+      progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
+    } else {
+      BSONDocument.empty
+    }
+  }
+
+  private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
+    case s if s.result == Green.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
+  }
+
+  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = { case s if s.result == Green.toString => s.schemeId }
+
+  private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
+    (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
+  ) = {
+    val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
+    val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
+    val candidatesSiftableSchemes = schemeRepo.siftableSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
+    val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
+
+    Seq(currentSchemeStatusBSON(newSchemeStatus),
+      maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
+    )
   }
 }

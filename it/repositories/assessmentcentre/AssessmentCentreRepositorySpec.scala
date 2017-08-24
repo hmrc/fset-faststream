@@ -31,7 +31,6 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
   val collectionName: String = CollectionNames.APPLICATION
 
   val Commercial: SchemeId = SchemeId("Commercial")
-  val Sdip: SchemeId = SchemeId("Sdip")
   val Generalist: SchemeId = SchemeId("Generalist")
   val ProjectDelivery = SchemeId("Project Delivery")
 

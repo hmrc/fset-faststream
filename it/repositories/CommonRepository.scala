@@ -40,7 +40,9 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   val European: SchemeId = SchemeId("European")
   val Finance = SchemeId("Finance")
   val DiplomaticService = SchemeId("Diplomatic Service")
-  val siftableSchemeDefinitions = List(European, Finance, DiplomaticService)
+  val Sdip = SchemeId("Sdip")
+  val Edip = SchemeId("Edip")
+  val siftableSchemeDefinitions = List(European, Finance, DiplomaticService, Edip, Sdip)
 
   def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, mockGatewayConfig)
 
@@ -130,10 +132,13 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
                              videoInterviewScore: Option[Double] = None,
                              applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                             ): Future[Unit] = {
+    val schemes = results.map(_.schemeId)
     val phase3PassMarkEvaluation = PassmarkEvaluation("", Some(""), results, "", Some(""))
 
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
-    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
+    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests), applicationRoute = Some(applicationRoute),
+      schemes = schemes
+    )
 
     phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None).futureValue
 
