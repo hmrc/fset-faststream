@@ -18,7 +18,7 @@ package services.sift
 
 import common.FutureEx
 import factories.DateTimeFactory
-import model.EvaluationResults.Green
+import model.EvaluationResults.{ Green, Withdrawn }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
@@ -108,10 +108,10 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
-    case s if s.result == Green.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
+    case s if s.result != Withdrawn.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
   }
 
-  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = { case s if s.result == Green.toString => s.schemeId }
+  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = { case s if s.result != Withdrawn.toString => s.schemeId }
 
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
     (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
