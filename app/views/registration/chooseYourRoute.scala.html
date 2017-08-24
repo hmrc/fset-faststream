@@ -33,7 +33,7 @@
                 @yesNoQuestion(form("faststreamEligible"), question = "Are you eligible to apply for the Civil Service Fast Stream?",
                 noMessage = Some("You must be eligible to apply for the Civil Service Fast Stream."))
 
-                <div class="panel-indent text">If you're eligible, you can also apply to be considered for the Summer Diversity Internship Programme (SDIP). </div>
+                <div class="panel-indent text">You can also apply to be considered for the <a href="https://www.faststream.gov.uk/summer-diversity-internship-programme/">Summer Diversity Internship Programme (SDIP)</a>, if you're eligible.</div>
 
 
                 @yesNoRadioWithNestedTogglePanel(form("sdipFastStreamConsider"),
@@ -43,9 +43,7 @@
                 @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) {
                     <h3 class="heading-medium">To be considered for SDIP, confirm the following statements are true</h3>
                     <ul id="eligibility-list" class="para-btm-margin text">
-                        <li>I'm either from a Black, Asian and Minority Ethnic (BAME)
-                          or socially/economically disadvantaged background, or
-                          disabled</li>
+                        <li>I'm either from a Black, Asian and Minority Ethnic (BAME) or socially/economically disadvantaged background, or disabled</li>
                         <li>I'm in the final 2 years at university</li>
                         <li>I qualify to apply according to the <a href="http://www.faststream.gov.uk/summer-diversity-internship-programme/" rel="external" target="_blank">eligibility requirements</a></li>
                     </ul>
@@ -73,8 +71,7 @@
                     <h2 class="heading-medium">Confirm the following statements are true</h2>
                 </div>
                 <ul id="eligibility-list" class="para-btm-margin text">
-                    <li>I'm either from a BAME or socially/economically disadvantaged
-                        background</li>
+                    <li>I'm either from a Black, Asian and Minority Ethnic (BAME) or socially/economically disadvantaged background, or disabled</li>
                     <li>I'm in the first year at university</li>
                     <li>I qualify to apply according to the <a href="https://www.faststream.gov.uk/early-diversity-internship-programme/"
                     rel="external" target="_blank">eligibility requirements</a></li>
@@ -93,9 +90,7 @@
                     <h2 class="heading-medium">Confirm the following statements are true</h2>
                 </div>
                 <ul id="eligibility-list" class="para-btm-margin text">
-                    <li>I'm either from a Black, Asian and Minority Ethnic (BAME)
-                        or socially/economically disadvantaged background, or
-                        disabled</li>
+                    <li>I'm either from a Black, Asian and Minority Ethnic (BAME) or socially/economically disadvantaged background, or disabled</li>
                     <li>I'm in the final 2 years at university</li>
                     <li>I qualify to apply according to the <a href="https://www.faststream.gov.uk/summer-diversity-internship-programme/"
                                                                 rel="external" target="_blank">eligibility requirements</a></li>

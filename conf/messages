@@ -111,7 +111,7 @@ civilServiceExperienceType.CivilServantViaFastTrack = I''m currently a civil ser
 civilServiceExperienceType.DiversityInternship = I''ve completed SDIP or EDIP
 internshipType.EDIP = Early Diversity Internship Programme
 internshipType.SDIPPreviousYear = Summer Diversity Internship Programme (previous years)
-internshipType.SDIPCurrentYear = Summer Diversity Internship Programme 2016 (this year)
+internshipType.SDIPCurrentYear = Summer Diversity Internship Programme 2017 (this year)
 error.needsEdipCompleted.required = Tell us if you have completed EDIP
 
 #partner graduate programmes
