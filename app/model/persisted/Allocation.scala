@@ -17,11 +17,12 @@
 package model.persisted
 
 import factories.UUIDFactory
-import model.AllocationStatuses
 import model.AllocationStatuses.AllocationStatus
 import model.persisted.eventschedules.SkillType.SkillType
+import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
+import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler, BSONMapHandler }
 
 trait Allocation {
   def id: String
@@ -56,7 +57,9 @@ case class CandidateAllocation(
   sessionId: String,
   status: AllocationStatus,
   version: String,
-  removeReason: Option[String]
+  removeReason: Option[String],
+  createdAt: LocalDate,
+  isNotified: Boolean
 ) extends Allocation
 
 object CandidateAllocation {
@@ -72,7 +75,9 @@ object CandidateAllocation {
         sessionId = allocations.sessionId,
         status = allocation.status,
         version = opLockVersion,
-        removeReason = None
+        removeReason = None,
+        createdAt = LocalDate.now(),
+        isNotified = false
       )
     }
   }
@@ -85,7 +90,10 @@ object CandidateAllocation {
         sessionId = sessionId,
         status = a.status,
         version = o.version.getOrElse(UUIDFactory.generateUUID()),
-        removeReason = a.removeReason)
+        removeReason = a.removeReason,
+        createdAt = LocalDate.now(),
+        isNotified = false
+      )
     }
   }
 }

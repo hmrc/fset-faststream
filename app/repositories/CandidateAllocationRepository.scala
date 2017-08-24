@@ -21,23 +21,28 @@ import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{ TooManyEventIdsException, TooManySessionIdsException }
 import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
+import org.joda.time.LocalDate
 import play.api.libs.json.OFormat
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import repositories.BSONDateTimeHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait CandidateAllocationRepository {
+
   def save(allocations: Seq[CandidateAllocation]): Future[Unit]
   def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]]
+  def findAllUnconfirmedAllocated(days: Int): Future[Seq[CandidateAllocation]]
   def isAllocationExists(applicationId: String, eventId: String, sessionId: String, version: Option[String]): Future[Boolean]
   def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]]
   def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]]
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit]
   def removeCandidateRemovalReason(applicationId: String): Future[Unit]
+  def markAsReminderSent(applicationId: String, eventId: String, sessionId: String): Future[Unit]
 
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit]
 }
@@ -68,6 +73,16 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
 
   def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
     collection.find(BSONDocument("id" -> BSONDocument("$in" -> applications)), projection)
+      .cursor[CandidateAllocation]().collect[Seq]()
+  }
+
+  def findAllUnconfirmedAllocated(days: Int): Future[Seq[CandidateAllocation]] = {
+    val today = LocalDate.now
+    collection.find(BSONDocument(
+      "createdAt" -> BSONDocument("$lte" -> today.minusDays(days)),
+      "status" -> AllocationStatuses.UNCONFIRMED,
+      "isNotified" -> false
+    ), projection)
       .cursor[CandidateAllocation]().collect[Seq]()
   }
 
@@ -161,9 +176,9 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       sessionIds.head
     }
 
-    val applicationId = allocations.map(_.id)
+    val applicationIds = allocations.map(_.id)
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("id" -> BSONDocument("$in" -> applicationId)),
+      BSONDocument("id" -> BSONDocument("$in" -> applicationIds)),
       BSONDocument("eventId" -> eventId),
       BSONDocument("sessionId" -> sessionId)
     ))
@@ -176,5 +191,18 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     } else {
       remove.map(_ => ())
     }
+  }
+
+  def markAsReminderSent(applicationId: String, eventId: String, sessionId: String): Future[Unit] = {
+    val query = BSONDocument(
+      "id" -> applicationId,
+      "eventId" -> eventId,
+      "sessionId" -> sessionId,
+      "status" -> AllocationStatuses.UNCONFIRMED
+    )
+    val update = BSONDocument("$set" -> BSONDocument("isNotified" -> true))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "mark allocation as notified")
+    collection.update(query, update) map validator
   }
 }

@@ -34,8 +34,10 @@ object EmailEvents {
   case class ApplicationConvertedToSdip(to: String, name: String) extends EmailEvent
 
   case class CandidateAllocationConfirmed(to: String, name: String, eventDate: String, eventTime: String,
-    eventType: String, eventVenue: String) extends EmailEvent
+    eventType: String, eventVenue: String, eventGuideUrl: String) extends EmailEvent
   case class CandidateAllocationConfirmationRequest(to: String, name: String, eventDate: String, eventTime: String,
-    eventType: String, eventVenue: String, deadlineDate: String) extends EmailEvent
+    eventType: String, eventVenue: String, deadlineDate: String, eventGuideUrl: String) extends EmailEvent
+  case class CandidateAllocationConfirmationReminder(to: String, name: String, eventDate: String, eventTime: String,
+    eventType: String, eventVenue: String, deadlineDate: String, eventGuideUrl: String) extends EmailEvent
 
 }
