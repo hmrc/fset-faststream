@@ -24,7 +24,7 @@ import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
-import services.assessoravailability.AssessorService
+import services.assessor.AssessorService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 

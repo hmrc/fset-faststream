@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.assessoravailability
+package services.assessor
 
 import common.FutureEx
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
@@ -22,6 +22,7 @@ import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
 import model.command.AllocationWithEvent
 import model.exchange.{ AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest }
+import model.persisted.AssessorAllocation
 import model.persisted.assessor.{ Assessor, AssessorStatus }
 import model.persisted.eventschedules.{ Event, Location, SkillType }
 import model.persisted.eventschedules.SkillType.SkillType
@@ -37,7 +38,7 @@ import scala.concurrent.Future
 
 object AssessorService extends AssessorService {
   val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
-  val allocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
+  val assessorAllocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
   val eventsService: EventsService = EventsService
   val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
   val authProviderClient: AuthProviderClient = AuthProviderClient
@@ -46,13 +47,15 @@ object AssessorService extends AssessorService {
 
 trait AssessorService {
   val assessorRepository: AssessorRepository
-  val allocationRepo: AssessorAllocationRepository
+  val assessorAllocationRepo: AssessorAllocationRepository
   val eventsService: EventsService
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
+
   def authProviderClient: AuthProviderClient
+
   def emailClient: EmailClient
 
-  private def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
+  private[assessor] def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
 
   def updateVersion(userId: String): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
@@ -62,22 +65,13 @@ trait AssessorService {
     }
   }
 
+  //scalastyle:off
   def saveAssessor(userId: String, assessor: model.exchange.Assessor): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) if assessor.version != existing.version =>
         throw OptimisticLockException(s"Assessor profile $userId has been modified.")
       case Some(existing) =>
-        // TODO: If we change skills, we have to decide if we want to reset the availability
-        val assessorToPersist = model.persisted.assessor.Assessor(
-          userId,
-          newVersion,
-          assessor.skills,
-          assessor.sifterSchemes,
-          assessor.civilServant,
-          existing.availability,
-          existing.status
-        )
-        assessorRepository.save(assessorToPersist).map(_ => ())
+        updateAssessor(userId, assessor, existing)
       case _ =>
         val assessorToPersist = model.persisted.assessor.Assessor(
           userId,
@@ -89,6 +83,47 @@ trait AssessorService {
           AssessorStatus.CREATED
         )
         assessorRepository.save(assessorToPersist).map(_ => ())
+    }
+  }
+
+  private def updateAssessor(userId: String, assessor: model.exchange.Assessor, existing: Assessor): Future[Unit] = {
+    def isFutureEvent(eventId: String): Future[Boolean] = {
+      eventsService.getEvent(eventId).map { event =>
+        val eventDate = event.date
+        val today = LocalDate.now()
+        eventDate.isEqual(today) || eventDate.isAfter(today)
+      }
+    }
+
+    def addIsFutureEvent(assessorAllocations: Seq[AssessorAllocation]) = {
+      assessorAllocations.foldLeft(Future.successful(List.empty[(AssessorAllocation, Boolean)])) { (futAccumulator, item) =>
+        futAccumulator.flatMap { accumulator => isFutureEvent(item.eventId).map((item, _)).map(_ :: accumulator) }
+      }
+    }
+
+    def getOnlyFutureAssessorAllocations(assessorAllocations: Seq[AssessorAllocation]) = {
+      addIsFutureEvent(assessorAllocations).map(tuple => tuple.filter(_._2==true).map(_._1))
+    }
+
+    val oldSkills = existing.skills.toSet
+    val newSkills = assessor.skills.toSet
+    val skillsToRemove = oldSkills -- newSkills
+
+    for {
+      allAssessorAllocations <- assessorAllocationRepo.find(userId)
+      onlyFutureAssessorAllocations <- getOnlyFutureAssessorAllocations(allAssessorAllocations)
+    } yield {
+      val firstAssessorAllocationWithSkillToRemove = onlyFutureAssessorAllocations.find(assessorAllocation =>
+        skillsToRemove.contains(assessorAllocation.allocatedAs))
+      if (firstAssessorAllocationWithSkillToRemove.isDefined) {
+        throw new Exception("You cannot remove skills when the user has been allocated to those future events with those skills." +
+          " Please remove the allocations from those events before removing the skills")
+      } else {
+        val assessorToPersist = model.persisted.assessor.Assessor(
+          userId, newVersion, assessor.skills, assessor.sifterSchemes, assessor.civilServant, existing.availability, existing.status
+        )
+        assessorRepository.save(assessorToPersist).map(_ => ())
+      }
     }
   }
 
@@ -140,7 +175,7 @@ trait AssessorService {
   }
 
   def findAllocations(assessorId: String, status: Option[AllocationStatus] = None): Future[Seq[AllocationWithEvent]] = {
-    allocationRepo.find(assessorId, status).flatMap { allocations =>
+    assessorAllocationRepo.find(assessorId, status).flatMap { allocations =>
       FutureEx.traverseSerial(allocations) { allocation =>
         eventsService.getEvent(allocation.eventId).map { event =>
           AllocationWithEvent(
@@ -172,7 +207,7 @@ trait AssessorService {
       FutureEx.futureToEither(
         req,
         updateVersion(req.assessorId).flatMap { _ =>
-          allocationRepo.updateAllocationStatus(req.assessorId, req.eventId, req.newStatus)
+          assessorAllocationRepo.updateAllocationStatus(req.assessorId, req.eventId, req.newStatus)
         }
       )
     }
@@ -189,7 +224,7 @@ trait AssessorService {
       val mapping = events.map { event =>
         val skills = event.skillRequirements.keySet.map(SkillType.withName).toSeq
         findUnavailableAssessors(skills, event.location, event.date).map { assessors =>
-          assessors.map( _ -> event)
+          assessors.map(_ -> event)
         }
       }
       Future.sequence(mapping).map(_.flatten)

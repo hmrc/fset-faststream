@@ -21,7 +21,7 @@ import model.AssessorNewEventsJobInfo
 import org.joda.time.{ DateTime, Duration }
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.AssessorsEventsSummaryJobsService
-import services.assessoravailability.AssessorService
+import services.assessor.AssessorService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }

@@ -21,7 +21,7 @@ import model.exchange.testdata.CreateAdminResponse.{ AssessorResponse, CreateAdm
 import model.persisted.assessor.AssessorStatus
 import model.testdata.CreateAdminData.{ AssessorData, CreateAdminData }
 import play.api.mvc.RequestHeader
-import services.assessoravailability.AssessorService
+import services.assessor.AssessorService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

@@ -18,6 +18,7 @@ package services.assessor
 
 import connectors.ExchangeObjects.Candidate
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
+import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.AssessorNotFoundException
 import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
 import model.persisted.EventExamples._
@@ -32,7 +33,7 @@ import org.mockito.Mockito._
 import repositories.events.LocationsWithVenuesRepository
 import repositories.{ AssessorAllocationRepository, AssessorRepository }
 import services.BaseServiceSpec
-import services.assessoravailability.AssessorService
+import services.assessor.AssessorService
 import services.events.EventsService
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -46,7 +47,8 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
   "save assessor" must {
 
-    "save NEW assessor when assessor is new" in new TestFixture {
+    "save NEW assessor " +
+      "when assessor is new" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(None)
       val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorNew)).futureValue
@@ -55,14 +57,21 @@ class AssessorServiceSpec extends BaseServiceSpec {
       verify(mockAssessorRepository).save(any[Assessor])
     }
 
-    "update skills and do not update availability when assessor previously EXISTED" in new TestFixture {
+    "update skills and do not update existing availability " +
+      "when assessor previously EXISTED but did not have future allocations to events" in new TestFixture {
 
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(Some(AssessorExisting))
+      when(mockAllocationRepo.find(eqTo(AssessorUserId), any[Option[AllocationStatus]]())).thenReturnAsync(Nil)
+
       val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorNew)).futureValue
       response mustBe unit
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
-      verify(mockAssessorRepository).save(any[Assessor])
+      //verify(mockAssessorRepository).save(any[Assessor])
+      val expectedAssessor = AssessorNew.copy(version = NewVersion, availability = AssessorExisting.availability,
+        status = AssessorStatus.AVAILABILITIES_SUBMITTED)
+      verify(mockAssessorRepository).save(eqTo(expectedAssessor))
     }
+
   }
 
   "save availability" must {
@@ -187,7 +196,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
 
     "notify assessors of new events" in new AssessorsEventsSummaryFixture {
-      val result = service.notifyAssessorsOfNewEvents(DateTime.now)(any[HeaderCarrier]).futureValue
+      val result = service.notifyAssessorsOfNewEvents(DateTime.now)(new HeaderCarrier).futureValue
       verify(mockemailClient, times(2)).notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])
     }
   }
@@ -205,14 +214,23 @@ class AssessorServiceSpec extends BaseServiceSpec {
     when(mockLocationsWithVenuesRepo.venues).thenReturnAsync(venues)
     when(mockAssessorRepository.save(any[Assessor])).thenReturnAsync()
 
-    val service = new AssessorService {
+    val nonSpiedService = new AssessorService {
       val assessorRepository: AssessorRepository = mockAssessorRepository
-      val allocationRepo: AssessorAllocationRepository = mockAllocationRepo
+      val assessorAllocationRepo: AssessorAllocationRepository = mockAllocationRepo
       val eventsService: EventsService = mockEventService
       val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
       val authProviderClient: AuthProviderClient = mockAuthProviderClient
       val emailClient: EmailClient = mockemailClient
     }
+
+    import org.mockito.Mockito
+
+    val NewVersion = nonSpiedService.newVersion
+    val service = Mockito.spy(nonSpiedService)
+    //Mockito.doReturn(NewVersion).when(spyService).newVersion
+
+    when(service.newVersion).thenReturn(NewVersion)
+
   }
 
   trait AssessorsEventsSummaryFixture extends TestFixture {
