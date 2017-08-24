@@ -1,0 +1,121 @@
+
+@import models.page.AssessmentFeedbackPage
+@(page: AssessmentFeedbackPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+
+@returnToHomePage = {
+    <a href="@routes.HomeController.present()">Return to homepage</a>
+}
+
+@scoresDefinitions = {
+    <div class="grid grid-1-2">
+        <h2 class="heading-small">What the scores mean</h2>
+        <table class="scores-explanation-table">
+            <tr class="strong-candidate">
+                <td><span class="bold-small">4</span></td>
+                <td>Minor areas for development but provides strong indicators that the
+                    candidate would be suitable for the Fast Stream.</td>
+            </tr>
+            <tr class="good-candidate">
+                <td><span class="bold-small">3</span></td>
+                <td>Some areas for development but also provides indicators that the
+                    candidate would be suitable for the Fast Stream.</td>
+            </tr>
+            <tr class="ok-candidate">
+                <td><span class="bold-small">2</span></td>
+                <td>A number of areas for development needed to make the candidate suitable
+                    for the Fast Stream.</td>
+            </tr>
+            <tr class="unsuitable-candidate">
+                <td><span class="bold-small">1</span></td>
+                <td>Too many areas for development for the candidate to be suitable
+                    for the Fast Stream.</td>
+            </tr>
+        </table>
+    </div>
+}
+
+@printOnlyCandidateName = {
+    <div class="toggle-content show-print">
+        <p><b>Candidate name:</b> @page.candidateName</p>
+    </div>
+}
+
+@main_template(title = "Your scores and feedback") {
+    <div class="grid-wrapper">
+        <div class="hgroup grid grid-2-3">
+            <h1 class="heading-xlarge">Your scores and feedback</h1>
+            <p class="subtitle">Assessment centre</p>
+        </div>
+        <div class="grid grid-1-3">
+            <div class="page-link">
+                <p>
+                    @returnToHomePage
+                </p>
+                <p>
+                    <a href="" class="print-trigger" id="printLink"><i class="fa fa-print"></i>Print this page</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="heading-large">Scores</h2>
+    <div class="panel-indent text">
+        <p>Your performance is measured against four competencies.  Each competency
+            is tested at least twice during the centre. We'll calculate an average
+            score to measure your overall performance in each competency, ranging
+            from 1.00 to 4.00.</p>
+    </div>
+    <div class="grid-wrapper">
+        <div class="grid grid-1-2">
+            <div class="inner-block-padr">
+                <h2 class="heading-small">How you scored</h2>
+                <table>
+                    <tr>
+                        <td>Strategic Approach to Objectives</td>
+                        <td class="ta-right">@page.evaluatedAverageResults.strategicApproachToObjectivesAverage</td>
+                    </tr>
+                    <tr>
+                        <td>Analysis and Decision-making</td>
+                        <td class="ta-right">@page.evaluatedAverageResults.analysisAndDecisionMakingAverage</td>
+                    </tr>
+                    <tr>
+                        <td>Leading and Communicating</td>
+                        <td class="ta-right">@page.evaluatedAverageResults.leadingAndCommunicatingAverage</td>
+                    </tr>
+                    <tr>
+                        <td>Building Productive Relationships</td>
+                        <td class="ta-right">@page.evaluatedAverageResults.buildingProductiveRelationshipsAverage</td>
+                    </tr>
+                    <tr>
+                        <td>Overall score</td>
+                        <td class="ta-right">@page.evaluatedAverageResults.overallScore</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        @scoresDefinitions
+    </div>
+
+    @for(exercise <- page.exerciseFeedbackData) {
+        <section class="section-border break-before">
+            @printOnlyCandidateName
+            <h2 class="heading-large">@exercise.exerciseName</h2>
+
+        @for(competencyData <- exercise.competencyFeedback) {
+            <article class="text">
+                <h3 class="heading-medium">@competencyData.competencyName</h3>
+                <p>@competencyData.feedback</p>
+            </article>
+        }
+        </section>
+    }
+
+    <section class="section-border break-before">
+        @printOnlyCandidateName
+        <h2 class="heading-large">Strengths and Weaknesses</h2>
+        <article class="text">
+            <p>@page.finalFeedback</p>
+        </article>
+    </section>
+    <p class="hide-print">@returnToHomePage</p>
+}

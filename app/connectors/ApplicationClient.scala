@@ -24,9 +24,10 @@ import connectors.exchange.GeneralDetails._
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
-import connectors.exchange.candidateevents.{ CandidateAllocationWithEvent, CandidateAllocations }
+import connectors.exchange.candidateevents.{CandidateAllocationWithEvent, CandidateAllocations}
+import connectors.exchange.candidatescores.CompetencyAverageResult
 import models.events.EventType.EventType
-import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
+import models.{Adjustments, ApplicationRoute, UniqueIdentifier}
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
@@ -95,6 +96,16 @@ trait ApplicationClient {
       response.json.as[ApplicationResponse]
     } recover {
       case _: NotFoundException => throw new ApplicationNotFound()
+    }
+  }
+
+  def findFsacEvaluationAverages(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[CompetencyAverageResult] = {
+    http.GET(s"$apiBaseUrl/application/$applicationId/fsacEvaluationAverages").map { response =>
+      response.json.as[CompetencyAverageResult]
+    } recover {
+      case _: NotFoundException =>
+        val msg = s"Found no fsac evaluation averages for application id: $applicationId"
+        throw new FsacEvaluatedAverageScoresNotFound(msg)
     }
   }
 
@@ -360,4 +371,6 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class CandidateAlreadyHasAnAnalysisExerciseException extends Exception
 
   sealed class OptimisticLockException(m: String) extends Exception(m)
+
+  sealed class FsacEvaluatedAverageScoresNotFound(m: String) extends Exception(m)
 }

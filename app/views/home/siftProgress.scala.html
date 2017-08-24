@@ -77,6 +77,14 @@
     </p>
 }
 
+@renderViewAssessmentFeedback = {
+    <p>
+        <i class="fa fa-check"></i>
+        <a href="@routes.AssessmentFeedbackController.present(page.userDataWithSchemes.application.applicationId)">
+        View your assessment feedback</a>
+    </p>
+}
+
 @renderCannotAttend = {
     <p>If you cannot attend, <a href="@routes.ApplicationController.helpdesk()">contact us</a>.</p>
 }
@@ -130,6 +138,9 @@
             case PostOnlineTestsStage.EVENT_ATTENDED => {
                 <p>Thanks for attending the assessment centre.</p>
                 <p>We'll contact you as soon as we've got your result. Keep an eye on your email inbox, including your junk mail.</p>
+                @if(page.allSchemesFailed || page.firstResidualPreferencePassed) {
+                    @renderViewAssessmentFeedback
+                }
             }
             case _ => {
                 <p>If you've successfully passed the previous stages, you'll be invited to an assessment centre.</p>
