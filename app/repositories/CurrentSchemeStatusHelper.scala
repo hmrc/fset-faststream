@@ -79,31 +79,14 @@ trait CurrentSchemeStatusHelper {
       """.stripMargin)
   }
 
-  def firstResidualPreference(results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
+  def firstResidualPreference(results: Seq[SchemeEvaluationResult]): Option[SchemeEvaluationResult] = {
     val resultsWithIndex = results.zipWithIndex
 
     resultsWithIndex.filterNot { case (result, idx) =>
         result.result == Red.toString || result.result == Withdrawn.toString
-    }
-
-    resultsWithIndex.minBy(_._2)._1
-  }
-
-  def firstResidualPreferencePassed: Boolean = {
-
-    val zippedData = userDataWithSchemes.rawSchemesStatus.zipWithIndex
-
-    val firstAmber: Option[(SchemeEvaluationResult, Int)] =
-      zippedData.find{ case (evaluationResult, _) => evaluationResult.result == SchemeStatus.Amber.toString }
-
-    val firstGreen: Option[(SchemeEvaluationResult, Int)] =
-      zippedData.find{ case (evaluationResult, _) => evaluationResult.result == SchemeStatus.Green.toString }
-
-    (firstAmber, firstGreen) match {
-      case (Some((_, amberIndex)), Some((_, greenIndex))) => greenIndex < amberIndex
-      case (None, Some(green)) => true
-      case _ => false
+    } match {
+      case Nil => None
+      case list => Some(list.minBy(_._2)._1)
     }
   }
-
 }
