@@ -70,7 +70,7 @@ abstract class SchemePreferencesController(
                   routes.AssistanceDetailsController.present()
                     routes.AssistanceDetailsController.present()
                   } else {
-                    routes.PartnerGraduateProgrammesController.present()
+                    routes.AssistanceDetailsController.present()
                   }
                 }
               }
