@@ -9,7 +9,7 @@
   siftEvaluationRequired: true
 - id: DigitalAndTechnology
   code: DAT
-  name: Digital And Technology
+  name: Digital, Data & Technology
   civilServantEligible: true
   degree:
     required: Degree_21_PostGrad
@@ -27,6 +27,16 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: FCO
+- id: DiplomaticServiceEconomists
+  code: GES-DS
+  name: Diplomatic Service (Economists)
+  civilServantEligible: false
+  degree:
+    required: Degree_DipServEconomics
+    specificRequirement: true
+  siftRequirement: FORM
+  siftEvaluationRequired: true
+  fsbType: EAC_DS
 - id: Finance
   code: FIFS
   name: Finance
@@ -64,16 +74,6 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: EAC
-- id: GovernmentEconomicsServiceDiplomaticService
-  code: GES-DS
-  name: Government Economics Service - Diplomatic Service
-  civilServantEligible: false
-  degree:
-    required: Degree_DipServEconomics
-    specificRequirement: true
-  siftRequirement: FORM
-  siftEvaluationRequired: true
-  fsbType: EAC_DS
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -122,15 +122,6 @@
     required: Degree_22
     specificRequirement: false
   siftEvaluationRequired: false
-- id: International
-  code: IFS
-  name: International
-  civilServantEligible: true
-  degree:
-    required: Degree_22
-    specificRequirement: true
-  siftRequirement: FORM
-  siftEvaluationRequired: true
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
