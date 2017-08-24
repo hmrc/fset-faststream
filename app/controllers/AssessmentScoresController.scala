@@ -115,10 +115,9 @@ trait AssessmentScoresController extends BaseController {
     service.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
-      case ex: EventNotFoundException => {
+      case ex: EventNotFoundException =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $ex")
         NotFound
-      }
       case other: Throwable =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $other")
         InternalServerError(other.getMessage)
@@ -129,10 +128,9 @@ trait AssessmentScoresController extends BaseController {
     service.findAssessmentScoresWithCandidateSummaryByEventId(eventId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
-      case ex: EventNotFoundException => {
+      case ex: EventNotFoundException =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $ex")
         NotFound
-      }
       case other: Throwable =>
         Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $other")
         InternalServerError(other.getMessage)
@@ -150,6 +148,17 @@ trait AssessmentScoresController extends BaseController {
       Ok(Json.toJson(scores))
     }
   }
+
+  def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+    service.findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId).map {
+      case Some(scores) => Ok(Json.toJson(scores))
+      case None => NotFound
+    }.recover {
+      case other: Throwable =>
+        Logger.error(s"Exception when calling findAssessmentScoresByApplicationId: $other")
+        InternalServerError(other.getMessage)
+    }
+  }
 }
 
 object AssessorAssessmentScoresController extends AssessmentScoresController {
@@ -162,6 +171,11 @@ object AssessorAssessmentScoresController extends AssessmentScoresController {
   val UserIdForAudit = "reviewerId"
 
   override def submitFinalFeedback() = Action.async(parse.json) {
+    implicit request =>
+      throw new UnsupportedOperationException("This method is only applicable for a reviewer")
+  }
+
+  override def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async {
     implicit request =>
       throw new UnsupportedOperationException("This method is only applicable for a reviewer")
   }

@@ -32,6 +32,8 @@ trait AssessmentScoresRepository {
 
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]]
 
+  def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]]
+
   def findAll: Future[List[AssessmentScoresAllExercises]]
 }
 
@@ -54,6 +56,12 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
     collection.find(query).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 
+  def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
+    val query = BSONDocument("applicationId" -> applicationId.toString(),
+    "finalFeedback" -> BSONDocument("$exists" -> BSONBoolean(true)))
+    collection.find(query).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+  }
+
   def findAll: Future[List[AssessmentScoresAllExercises]] = {
     val query = BSONDocument.empty
     collection.find(query).cursor[BSONDocument](ReadPreference.nearest)
@@ -62,7 +70,11 @@ abstract class AssessmentScoresMongoRepository(dateTime: DateTimeFactory, collec
 }
 
 class AssessorAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends AssessmentScoresMongoRepository(dateTime, CollectionNames.ASSESSOR_ASSESSMENT_SCORES)
+  extends AssessmentScoresMongoRepository(dateTime, CollectionNames.ASSESSOR_ASSESSMENT_SCORES) {
+  override def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
+    throw new UnsupportedOperationException("This method is only applicable for a reviewer")
+  }
+}
 
 class ReviewerAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends AssessmentScoresMongoRepository(dateTime, CollectionNames.REVIEWER_ASSESSMENT_SCORES)

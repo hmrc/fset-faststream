@@ -31,4 +31,6 @@ class AssessmentScoresRepositoryInMemoryRepository extends AssessmentScoresRepos
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = ???
 
   def findAll: Future[List[AssessmentScoresAllExercises]] = ???
+
+  def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = ???
 }
