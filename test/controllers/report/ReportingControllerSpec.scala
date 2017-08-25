@@ -404,16 +404,16 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       when(mockSchemeRepo.schemes).thenReturn(
         Seq(
           Scheme("Commercial", "COM", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-            siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+            siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None, schemeGuide = None
           ),
           Scheme("Finance", "FIN", "Finance", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-            siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+            siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None, schemeGuide = None
           ),
           Scheme("Generalist", "GCS", "Generalist", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-            siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+            siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None, schemeGuide = None
           ),
           Scheme("HumanResources", "HRS", "Human Resources", civilServantEligible = false, None, None,
-            siftEvaluationRequired = false, fsbType = None, telephoneInterviewType = None
+            siftEvaluationRequired = false, fsbType = None, telephoneInterviewType = None, schemeGuide = None
           )
         )
       )

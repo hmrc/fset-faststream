@@ -38,6 +38,7 @@ object CreateCandidateResponse {
     phase1TestGroup: Option[TestGroupResponse] = None,
     phase2TestGroup: Option[TestGroupResponse] = None,
     phase3TestGroup: Option[TestGroupResponse] = None,
+    fsbTestGroup: Option[FsbTestGroupResponse] = None,
     siftForms: Option[Seq[SiftForm]] = None,
     schemePreferences: Option[SelectedSchemes] = None,
     accessCode: Option[String] = None,
@@ -48,6 +49,12 @@ object CreateCandidateResponse {
   object CreateCandidateResponse {
     implicit val createCandidateResponseFormat: OFormat[CreateCandidateResponse] =
       Json.format[CreateCandidateResponse]
+  }
+
+  case class FsbTestGroupResponse(results: Seq[SchemeEvaluationResult])
+
+  object FsbTestGroupResponse {
+    implicit val fsbTestGroupResponse: OFormat[FsbTestGroupResponse] = Json.format[FsbTestGroupResponse]
   }
 
   case class TestGroupResponse(tests: List[TestResponse], schemeResult: Option[PassmarkEvaluation])
