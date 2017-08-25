@@ -38,12 +38,12 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
 
   implicit val degreeFormat = yamlFormat2((a: String, b: Boolean) => Degree(a, b))
 
-  implicit val schemeFormat = yamlFormat9((
+  implicit val schemeFormat = yamlFormat10((
     id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
     siftRequirement: Option[SiftRequirement.Value], evaluationRequired: Boolean,
-    fsbType: Option[String], telephoneInterviewType: Option[String]
+    fsbType: Option[String], telephoneInterviewType: Option[String], schemeGuide: Option[String]
   ) => Scheme(SchemeId(id),code,name, civilServantEligible, degree, siftRequirement, evaluationRequired,
-    fsbType.map(t => FsbType(t)), telephoneInterviewType.map(k => TelephoneInterviewType(k, name))
+    fsbType.map(t => FsbType(t)), telephoneInterviewType.map(k => TelephoneInterviewType(k, name)), schemeGuide
   ))
 }
 
