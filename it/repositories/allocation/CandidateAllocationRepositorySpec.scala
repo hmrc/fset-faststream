@@ -3,17 +3,19 @@ package repositories.allocation
 import model.AllocationStatuses
 import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
+import org.joda.time.LocalDate
 import repositories.{ CandidateAllocationMongoRepository, CollectionNames }
 import testkit.MongoRepositorySpec
+import AllocationStatuses._
 
 class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.CANDIDATE_ALLOCATION
   def repository: CandidateAllocationMongoRepository = new CandidateAllocationMongoRepository()
   val allocations: Seq[CandidateAllocation] = Seq(
-    CandidateAllocation("candId1", "eventId1", "sessionId1", AllocationStatuses.UNCONFIRMED, "version1", None),
-    CandidateAllocation("candId2", "eventId1", "sessionId1", AllocationStatuses.CONFIRMED, "version1", None),
-    CandidateAllocation("candId3", "eventId2", "sessionId2",  AllocationStatuses.UNCONFIRMED, "version1", None)
+    CandidateAllocation("candId1", "eventId1", "sessionId1", UNCONFIRMED, "version1", None, LocalDate.now(), false),
+    CandidateAllocation("candId2", "eventId1", "sessionId1", CONFIRMED, "version1", None, LocalDate.now(), false),
+    CandidateAllocation("candId3", "eventId2", "sessionId2",  UNCONFIRMED, "version1", None, LocalDate.now().minusDays(6), false)
   )
 
   def storeAllocations = allocations.foreach(a => repository.save(Seq(a)).futureValue)
@@ -95,6 +97,16 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       val docs = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
       docs.size mustBe 1
       docs.head mustBe allocations.tail.head
+    }
+
+    "find candidates to notify and mark as reminder sent" in {
+      storeAllocations
+      repository.findAllUnconfirmedAllocated(5).futureValue.size mustBe 1
+      val res = repository.findAllUnconfirmedAllocated(0).futureValue
+      res.size mustBe 2
+      val first = res.head
+      repository.markAsReminderSent(first.id, first.eventId, first.sessionId).futureValue
+      repository.findAllUnconfirmedAllocated(0).futureValue.size mustBe 1
     }
   }
 }

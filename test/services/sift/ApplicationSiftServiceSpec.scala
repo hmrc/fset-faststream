@@ -40,13 +40,13 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitSpec {
     val mockSchemeRepo = new SchemeRepository {
       override lazy val schemes: Seq[Scheme] = Seq(
         Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None, schemeGuide = None
         ),
         Scheme("International", "INT", "International", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None, schemeGuide = None
         ),
         Scheme("Commercial", "GCS", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None, schemeGuide = None
         )
       )
 
