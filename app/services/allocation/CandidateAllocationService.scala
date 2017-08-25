@@ -332,4 +332,6 @@ trait CandidateAllocationService extends EventSink {
       } yield (eventDetails, personalDetails, contactDetails)
     }
 
+  def updateStructure(): Future[Unit] = candidateAllocationRepo.updateStructure()
+
   }

@@ -45,6 +45,7 @@ trait CandidateAllocationRepository {
   def markAsReminderSent(applicationId: String, eventId: String, sessionId: String): Future[Unit]
 
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit]
+  def updateStructure(): Future[Unit]
 }
 
 class CandidateAllocationMongoRepository(implicit mongo: () => DB)
@@ -205,4 +206,10 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     val validator = singleUpdateValidator(applicationId, actionDesc = "mark allocation as notified")
     collection.update(query, update) map validator
   }
+
+  def updateStructure(): Future[Unit] = {
+    val updateQuery = BSONDocument("$set" -> BSONDocument("reminderSent" -> true, "createdAt" -> LocalDate.now))
+    collection.update(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
+  }
+
 }
