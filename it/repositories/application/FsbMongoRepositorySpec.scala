@@ -32,7 +32,7 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
   import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
-  lazy val repository = repositories.fsbTestGroupRepository
+  lazy val repository = repositories.fsbRepository
   lazy val applicationRepo = repositories.applicationRepository
 
   "save" must {

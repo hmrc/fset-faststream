@@ -55,7 +55,7 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
 
     val query = BSONDocument(
       "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
-      s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_PASSED}" -> true,
+      s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_PASSED}" -> true
     )
 
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))

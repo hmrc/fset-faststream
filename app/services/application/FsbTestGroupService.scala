@@ -31,7 +31,7 @@ import scala.util.Try
 
 object FsbTestGroupService extends FsbTestGroupService {
   override val applicationRepository = repositories.applicationRepository
-  override val fsbTestGroupRepository = repositories.fsbTestGroupRepository
+  override val fsbTestGroupRepository = repositories.fsbRepository
   override val eventsService = EventsService
   override val schemeRepository = SchemeYamlRepository
 }
