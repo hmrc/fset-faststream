@@ -19,7 +19,7 @@ package scheduler
 import config.WaitingScheduledJobConfig
 import play.api.Logger
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
+import ProgressToFsbOrOfferJobConfig.conf
 import services.assessmentcentre.{ AssessmentCentreService, AssessmentCentreToFsbOrOfferProgressionService }
 
 import scala.concurrent.{ ExecutionContext, Future }

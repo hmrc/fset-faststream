@@ -18,7 +18,7 @@ package scheduler
 
 import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
+import ProgressToSiftJobConfig.conf
 import services.sift.ApplicationSiftService
 
 import scala.concurrent.{ ExecutionContext, Future }
