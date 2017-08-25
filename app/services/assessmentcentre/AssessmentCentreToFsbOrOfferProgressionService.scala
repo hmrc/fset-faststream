@@ -17,32 +17,25 @@
 package services.assessmentcentre
 
 import common.FutureEx
-import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.EvaluationResults.Green
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model._
 import model.command.ApplicationForProgression
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
-import play.api.Logger
-import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
+import repositories.{ CurrentSchemeStatusHelper, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
-import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.fsb.FsbRepository
-import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
-import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.{ AssessmentCentrePassMarkSettingsService, PassMarkSettingsService }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object AssessmentCentreToFsbOrOfferProgressionService extends AssessmentCentreToFsbOrOfferProgressionService {
+  val fsbRequiredSchemeIds: Seq[SchemeId] = SchemeYamlRepository.fsbSchemeIds
   val applicationRepo = repositories.applicationRepository
   val fsbRepo = repositories.fsbRepository
 }
 
 trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatusHelper {
+  val fsbRequiredSchemeIds: Seq[SchemeId]
   def applicationRepo: GeneralApplicationRepository
   def fsbRepo: FsbRepository
 
@@ -52,14 +45,24 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
 
   def progressApplicationsToFsbOrJobOffer(applications: Seq[ApplicationForProgression])
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
+
+    def maybeProgressToFsbOrJobOffer(application: ApplicationForProgression, firstResidual: SchemeEvaluationResult): Future[Unit] = {
+      if (firstResidual.result == Green.toString && fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
+        fsbRepo.progressToFsb(application)
+      } else if (firstResidual.result == Green.toString && !fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
+        fsbRepo.progressToJobOffer(application)
+      } else {
+        Future.successful(())
+      }
+    }
+
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
         for {
           currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
-          firstResidualPreference <-
-        }
-        fsbRepo.progressToAssessmentCentre(application,
-          ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+          firstResidual = firstResidualPreference(currentSchemeStatus).get
+          _ <- maybeProgressToFsbOrJobOffer(application, firstResidual)
+        } yield ()
       )
     }
 
