@@ -16,21 +16,4 @@
 
 package model.assessmentscores
 
-import model.UniqueIdentifier
-import org.joda.time.DateTime
-import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
-import repositories._
-
-case class AssessmentScoresFinalFeedback(
-  feedback: String,
-  updatedBy: UniqueIdentifier,
-  acceptedDate: DateTime,
-  version: Option[String] = None
-) extends AssessmentScoresSection
-
-object AssessmentScoresFinalFeedback {
-  implicit val jsonFormat = Json.format[AssessmentScoresFinalFeedback]
-  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentScoresFinalFeedback] =
-    Macros.handler[AssessmentScoresFinalFeedback]
-}
+trait AssessmentScoresSection

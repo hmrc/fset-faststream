@@ -19,19 +19,18 @@ package controllers
 import java.nio.file.Files
 
 import akka.stream.scaladsl.Source
-import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
-import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
-import model.command.WithdrawApplication
+import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound}
+import model.{CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses}
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{Action, AnyContent}
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
 import services.application.ApplicationService
 import services.assessmentcentre.AssessmentCentreService
-import services.assessmentcentre.AssessmentCentreService.{ CandidateAlreadyHasAnAnalysisExerciseException, CandidateHasNoAnalysisExerciseException }
+import services.assessmentcentre.AssessmentCentreService._
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -200,4 +199,15 @@ trait ApplicationController extends BaseController {
     }
   }
 
+  def getFsacEvaluationResultAverages(applicationId: String) = Action.async {
+    implicit request =>
+      for {
+        averagesOpt <- assessmentCentreService.getFsacEvaluationResultAverages(applicationId)
+      } yield {
+        averagesOpt match {
+          case Some(averages) => Ok(Json.toJson(averages))
+          case None => NotFound(s"Cannot find evaluation averages for applicationId: $applicationId")
+        }
+      }
+  }
 }
