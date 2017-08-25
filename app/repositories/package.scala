@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import factories.DateTimeFactory
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
@@ -92,8 +92,8 @@ package object repositories {
   lazy val fileUploadRepository = new FileUploadMongoRepository()
   lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
   lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
-  lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository(DateTimeFactory)
-  lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository(DateTimeFactory)
+  lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository
+  lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository
   lazy val assessorsEventsSummaryJobsRepository = new AssessorsEventsSummaryJobsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
