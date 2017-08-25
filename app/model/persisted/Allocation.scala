@@ -59,7 +59,7 @@ case class CandidateAllocation(
   version: String,
   removeReason: Option[String],
   createdAt: LocalDate,
-  isNotified: Boolean
+  reminderSent: Boolean
 ) extends Allocation
 
 object CandidateAllocation {
@@ -77,7 +77,7 @@ object CandidateAllocation {
         version = opLockVersion,
         removeReason = None,
         createdAt = LocalDate.now(),
-        isNotified = false
+        reminderSent = false
       )
     }
   }
@@ -92,7 +92,7 @@ object CandidateAllocation {
         version = o.version.getOrElse(UUIDFactory.generateUUID()),
         removeReason = a.removeReason,
         createdAt = LocalDate.now(),
-        isNotified = false
+        reminderSent = false
       )
     }
   }

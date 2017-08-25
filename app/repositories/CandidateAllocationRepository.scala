@@ -81,7 +81,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     collection.find(BSONDocument(
       "createdAt" -> BSONDocument("$lte" -> today.minusDays(days)),
       "status" -> AllocationStatuses.UNCONFIRMED,
-      "isNotified" -> false
+      "reminderSent" -> false
     ), projection)
       .cursor[CandidateAllocation]().collect[Seq]()
   }
@@ -200,7 +200,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       "sessionId" -> sessionId,
       "status" -> AllocationStatuses.UNCONFIRMED
     )
-    val update = BSONDocument("$set" -> BSONDocument("isNotified" -> true))
+    val update = BSONDocument("$set" -> BSONDocument("reminderSent" -> true))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "mark allocation as notified")
     collection.update(query, update) map validator

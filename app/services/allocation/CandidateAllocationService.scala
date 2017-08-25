@@ -205,16 +205,14 @@ trait CandidateAllocationService extends EventSink {
 
   def processUnconfirmedCandidates()(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     candidateAllocationRepo.findAllUnconfirmedAllocated(eventsConfig.daysBeforeInvitationReminder).flatMap { allocations =>
-      val rr = Future.sequence(allocations.map { alloc =>
-        val r = eventsService.getEvent(alloc.eventId).flatMap { event =>
+      Future.sequence(allocations.map { alloc =>
+        eventsService.getEvent(alloc.eventId).flatMap { event =>
           sendCandidateEmail(CandidateAllocation.fromPersisted(alloc), event, UniqueIdentifier(alloc.sessionId), isAwaitingReminder = true)
             .flatMap { _ =>
               candidateAllocationRepo.markAsReminderSent(alloc.id, alloc.eventId, alloc.sessionId)
           }
         }
-        r
-      })
-      rr.map(_ => ())
+      }).map(_ => ())
     }
   }
 
