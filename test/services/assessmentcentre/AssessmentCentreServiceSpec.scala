@@ -18,9 +18,10 @@ package services.assessmentcentre
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.EvaluationResults._
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model._
 import model.assessmentscores.AssessmentScoresAllExercises
-import model.command.ApplicationForFsac
+import model.command.{ ApplicationForFsac, ApplicationStatusDetails }
 import model.exchange.passmarksettings._
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
@@ -138,6 +139,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(*, *)
         .returning(evaluationResult)
 
+      (mockAppRepo.findStatus _)
+        .expects(applicationId.toString())
+        .returningAsync(scoresAcceptedApplicationStatusDetails)
+
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
+        .expects(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
+        .returning(Future.successful(()))
+
       val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Amber.toString),
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
       (mockAppRepo.getCurrentSchemeStatus _)
@@ -167,6 +176,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       (mockEvaluationEngine.evaluate _)
         .expects(*, *)
         .returning(evaluationResult)
+
+      (mockAppRepo.findStatus _)
+        .expects(applicationId.toString())
+        .returningAsync(scoresAcceptedApplicationStatusDetails)
+
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
+        .expects(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
+        .returning(Future.successful(()))
 
       val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
@@ -198,6 +215,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(*, *)
         .returning(evaluationResult)
 
+      (mockAppRepo.findStatus _)
+        .expects(applicationId.toString())
+        .returningAsync(scoresAcceptedApplicationStatusDetails)
+
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
+        .expects(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
+        .returning(Future.successful(()))
+
       val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
       (mockAppRepo.getCurrentSchemeStatus _)
@@ -206,6 +231,40 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
       val newSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
+      val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
+
+      (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
+        .expects(expectedEvaluation, newSchemeStatus)
+        .returning(Future.successful(()))
+
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId("Commercial")),
+        scores = AssessmentScoresAllExercises(applicationId = applicationId))
+      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, None)
+      service.evaluateAssessmentCandidate(assessmentData, config).futureValue
+    }
+
+    "save evaluation result to red with current status green updated to red and current scheme status containing ambers" in new TestFixture {
+      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+      val evaluationResult = AssessmentEvaluationResult(
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult)
+
+      (mockEvaluationEngine.evaluate _)
+        .expects(*, *)
+        .returning(evaluationResult)
+
+      (mockAppRepo.findStatus _)
+        .expects(applicationId.toString())
+        .returningAsync(scoresAcceptedApplicationStatusDetails)
+
+      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Amber.toString))
+      (mockAppRepo.getCurrentSchemeStatus _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(currentSchemeStatus))
+
+      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Amber.toString))
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
 
@@ -242,6 +301,13 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
       ApplicationForFsac("appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
+    )
+
+    val scoresAcceptedApplicationStatusDetails = ApplicationStatusDetails(
+      ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString,
+      ApplicationRoute.Faststream,
+      None,
+      None
     )
 
     def progressToAssessmentCentreMocks = {
