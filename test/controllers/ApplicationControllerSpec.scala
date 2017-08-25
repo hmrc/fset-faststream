@@ -19,23 +19,25 @@ package controllers
 import config.TestFixtureBase
 import mocks.application.DocumentRootInMemoryRepository
 import model.EvaluationResults.Green
+import model.Exceptions.CannotUpdateFSACIndicator
 import model.command.WithdrawApplication
-import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, SchemeId }
+import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
+import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
+import model.{ApplicationRoute, SchemeId}
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
 import services.application.ApplicationService
 import services.assessmentcentre.AssessmentCentreService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.personaldetails.PersonalDetailsService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -158,11 +160,44 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
+  "update FSAC indicator" must {
+    val userId = "2222-2222"
+    "successfully update when all the data is valid" in new TestFixture {
+      when(mockPersonalDetailsService.updateFsacIndicator(any[String], any[String], any[String])).thenReturn(Future.successful(()))
+
+      val request = FakeRequest(Helpers.POST,
+        controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")
+      val result = TestApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run
+      status(result) mustBe OK
+    }
+
+    "return a bad request when the fsac indicator is invalid" in new TestFixture {
+      when(mockPersonalDetailsService.updateFsacIndicator(any[String], any[String], any[String]))
+        .thenReturn(Future.failed(new IllegalArgumentException("boom")))
+
+      val request = FakeRequest(Helpers.POST,
+        controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")
+      val result = TestApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run
+      status(result) mustBe BAD_REQUEST
+    }
+
+    "return a bad request when the repository fails to update (applicationId or userId is wrong)" in new TestFixture {
+      when(mockPersonalDetailsService.updateFsacIndicator(any[String], any[String], any[String]))
+        .thenReturn(Future.failed(new CannotUpdateFSACIndicator("boom")))
+
+      val request = FakeRequest(Helpers.POST,
+        controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")
+      val result = TestApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run
+      status(result) mustBe BAD_REQUEST
+    }
+  }
+
   trait TestFixture extends TestFixtureBase {
     val mockApplicationService = mock[ApplicationService]
     val mockPassmarkService = mock[EvaluatePhase3ResultService]
     val mockAssessmentCentreService = mock[AssessmentCentreService]
     val mockFileUploadRepository = mock[FileUploadMongoRepository]
+    val mockPersonalDetailsService = mock[PersonalDetailsService]
 
     object TestApplicationController extends ApplicationController {
       override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
@@ -171,6 +206,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       override val passmarkService: EvaluatePhase3ResultService = mockPassmarkService
       override val assessmentCentreService: AssessmentCentreService = mockAssessmentCentreService
       override val uploadRepository: FileUploadMongoRepository = mockFileUploadRepository
+      override val personalDetailsService: PersonalDetailsService = mockPersonalDetailsService
     }
 
     def applicationProgressRequest(applicationId: String) = {

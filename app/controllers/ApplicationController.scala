@@ -19,20 +19,20 @@ package controllers
 import java.nio.file.Files
 
 import akka.stream.scaladsl.Source
-import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
-import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
-import model.command.WithdrawApplication
+import model.Exceptions._
+import model.{CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses}
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{Action, AnyContent}
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
 import services.application.ApplicationService
 import services.assessmentcentre.AssessmentCentreService
-import services.assessmentcentre.AssessmentCentreService.{ CandidateAlreadyHasAnAnalysisExerciseException, CandidateHasNoAnalysisExerciseException }
+import services.assessmentcentre.AssessmentCentreService._
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.personaldetails.PersonalDetailsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,6 +45,7 @@ object ApplicationController extends ApplicationController {
   val passmarkService = EvaluatePhase3ResultService
   val assessmentCentreService = AssessmentCentreService
   val uploadRepository = fileUploadRepository
+  val personalDetailsService = PersonalDetailsService
 }
 
 trait ApplicationController extends BaseController {
@@ -54,6 +55,7 @@ trait ApplicationController extends BaseController {
   val passmarkService: EvaluatePhase3ResultService
   val assessmentCentreService: AssessmentCentreService
   val uploadRepository: FileUploadMongoRepository
+  val personalDetailsService: PersonalDetailsService
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
@@ -86,7 +88,6 @@ trait ApplicationController extends BaseController {
       case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
     }
   }
-
 
   def preview(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[PreviewRequest] { _ =>
@@ -200,4 +201,13 @@ trait ApplicationController extends BaseController {
     }
   }
 
+  def updateFsacIndicator(userId: String, applicationId: String, fsacArea: String) = Action.async { implicit request =>
+    personalDetailsService.updateFsacIndicator(applicationId, userId, fsacArea) map { _ =>
+      Ok
+    } recover {
+      case _: IllegalArgumentException => BadRequest(s"Invalid FSAC area supplied when trying to update the FSAC indicator - $fsacArea")
+      case _: CannotUpdateFSACIndicator =>
+        BadRequest(s"Failed to update FSAC indicator userId = $userId, applicationId = $applicationId, are the ids correct?")
+    }
+  }
 }
