@@ -16,6 +16,7 @@
 
 package services.allocation
 
+import config.{ EventsConfig, MicroserviceAppConfig }
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.OptimisticLockException
 import model.ProgressStatuses.EventProgressStatuses
@@ -26,7 +27,7 @@ import model.exchange.candidateevents.{ CandidateAllocationSummary, CandidateAll
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, EventType }
 import model.persisted.{ ContactDetails, PersonalDetails }
-import model.stc.EmailEvents.{ CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
+import model.stc.EmailEvents.{ CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -56,6 +57,8 @@ object CandidateAllocationService extends CandidateAllocationService {
   val authProviderClient = AuthProviderClient
   val emailClient = CSREmailClient
 
+  val eventsConfig = MicroserviceAppConfig.eventsConfig
+
   case class CouldNotFindCandidateWithApplication(appId: String) extends Exception(appId)
 
 }
@@ -70,7 +73,7 @@ trait CandidateAllocationService extends EventSink {
   def eventsService: EventsService
   def emailClient: EmailClient
   def authProviderClient: AuthProviderClient
-
+  def eventsConfig: EventsConfig
 
   private val dateFormat = "dd MMMM YYYY"
 
@@ -159,11 +162,13 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
+  private val PdfsSchemeId = "ProjectDelivery"
+
   def findCandidatesEligibleForEventAllocation(assessmentCentreLocation: String, eventType: EventType, eventDescription: String) = {
     val schemeId = eventType match {
       case EventType.FSAC => None
       case EventType.FSB => Some(schemeRepository.getSchemeForFsb(eventDescription).id)
-      case EventType.SKYPE_INTERVIEW => Some(SchemeId("ProjectDelivery")) // how to avoid this hard code?
+      case EventType.SKYPE_INTERVIEW => Some(SchemeId(PdfsSchemeId))
       case EventType.TELEPHONE_INTERVIEW => Some(schemeRepository.getSchemeForTelephoneInterview(eventDescription).id)
     }
 
@@ -196,6 +201,21 @@ trait CandidateAllocationService extends EventSink {
       applicationRepo.resetApplicationAllocationStatus(appId, eventType)
     )
   }
+
+
+  def processUnconfirmedCandidates()(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    candidateAllocationRepo.findAllUnconfirmedAllocated(eventsConfig.daysBeforeInvitationReminder).flatMap { allocations =>
+      Future.sequence(allocations.map { alloc =>
+        eventsService.getEvent(alloc.eventId).flatMap { event =>
+          sendCandidateEmail(CandidateAllocation.fromPersisted(alloc), event, UniqueIdentifier(alloc.sessionId), isAwaitingReminder = true)
+            .flatMap { _ =>
+              candidateAllocationRepo.markAsReminderSent(alloc.id, alloc.eventId, alloc.sessionId)
+          }
+        }
+      }).map(_ => ())
+    }
+  }
+
 
   // this can be generalised for all cases
   private def updateStatusInvited(allocs: Seq[persisted.CandidateAllocation], eventType: EventType) = {
@@ -243,27 +263,43 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
+  private def eventGuide(event: Event) = {
+    event.eventType match {
+      case EventType.FSAC => Some(eventsConfig.fsacGuideUrl)
+      case EventType.FSB => schemeRepository.getSchemeForFsb(event.description).schemeGuide
+      case EventType.SKYPE_INTERVIEW => schemeRepository.getSchemeForId(SchemeId(PdfsSchemeId)).flatMap(_.schemeGuide)
+      case EventType.TELEPHONE_INTERVIEW => schemeRepository.getSchemeForTelephoneInterview(event.description).schemeGuide
+    }
+  }
+
     private def sendCandidateEmail(
       candidateAllocation: CandidateAllocation,
       event: Event,
-      sessionId: UniqueIdentifier)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+      sessionId: UniqueIdentifier,
+      isAwaitingReminder: Boolean = false
+    )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
       val eventDate = event.date.toString(dateFormat)
       val localTime = event.sessions.find(_.id == sessionId).map(_.startTime).getOrElse(event.startTime)
       val eventTime = localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
       val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
+      val eventGuideUrl = eventGuide(event).getOrElse("")
+
       applicationRepo.find(candidateAllocation.id).flatMap {
         case Some(candidate) =>
           eventSink {
             val res = authProviderClient.findByUserIds(Seq(candidate.userId)).map { candidates =>
               candidates.map { candidate =>
                 candidateAllocation.status match {
+                  case AllocationStatuses.UNCONFIRMED if isAwaitingReminder =>
+                    CandidateAllocationConfirmationReminder(candidate.email, candidate.name, eventDate, eventTime,
+                      event.eventType.displayValue, event.venue.description, deadlineDateTime, eventGuideUrl)
                   case AllocationStatuses.UNCONFIRMED =>
                     CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime,
-                      event.eventType.displayValue, event.venue.description, deadlineDateTime)
+                      event.eventType.displayValue, event.venue.description, deadlineDateTime, eventGuideUrl)
                   case AllocationStatuses.CONFIRMED =>
                     CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime,
-                      event.eventType.displayValue, event.venue.description)
+                      event.eventType.displayValue, event.venue.description, eventGuideUrl)
                 }
               }
             } recover { case ex => throw new RuntimeException(s"Was not able to retrieve user details for candidate ${candidate.userId}", ex) }

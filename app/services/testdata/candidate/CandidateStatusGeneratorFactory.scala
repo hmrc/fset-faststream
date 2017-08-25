@@ -23,7 +23,7 @@ import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import services.testdata.admin.{ AdminCreatedStatusGenerator, AdminUserBaseGenerator, AssessorCreatedStatusGenerator }
 import services.testdata.candidate.assessmentcentre.AssessmentCentreAwaitingAllocationStatusGenerator
-import services.testdata.candidate.fsb.FsbAwaitingAllocationStatusGenerator
+import services.testdata.candidate.fsb.{ FsbAllocationConfirmedStatusGenerator, FsbAwaitingAllocationStatusGenerator, FsbResultEnteredStatusGenerator }
 import services.testdata.candidate.onlinetests._
 import services.testdata.candidate.onlinetests.phase1._
 import services.testdata.candidate.onlinetests.phase2._
@@ -72,6 +72,8 @@ object CandidateStatusGeneratorFactory {
         case PHASE3_TESTS_FAILED => Phase3TestsFailedStatusGenerator
         case PHASE3_TESTS_PASSED_NOTIFIED => Phase3TestsPassedNotifiedStatusGenerator
         case SIFT => SiftEnteredStatusGenerator
+        case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
+          s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")
       }
       case (SUBMITTED, Some(ProgressStatuses.SUBMITTED)) => SubmittedStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PERSONAL_DETAILS)) => InProgressPersonalDetailsStatusGenerator
@@ -132,6 +134,8 @@ object CandidateStatusGeneratorFactory {
 
       case (ASSESSMENT_CENTRE, Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)) => AssessmentCentreAwaitingAllocationStatusGenerator
       case (FSB, Some(ProgressStatuses.FSB_AWAITING_ALLOCATION)) => FsbAwaitingAllocationStatusGenerator
+      case (FSB, Some(ProgressStatuses.FSB_ALLOCATION_CONFIRMED)) => FsbAllocationConfirmedStatusGenerator
+      case (FSB, Some(ProgressStatuses.FSB_RESULT_ENTERED)) => FsbResultEnteredStatusGenerator
 
       case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")

@@ -36,6 +36,8 @@ GET         /application/:applicationId/phase3/results                   control
 GET         /application/:applicationId/currentSchemeStatus              controllers.ApplicationController.getCurrentSchemeStatus(applicationId: String)
 #GET         /application/:applicationId/sift/results                    controllers.ApplicationController.getSchemeResults(applicationId: String)
 #GET         /application/:applicationId/assessmentcentre/results        controllers.ApplicationController.getSchemeResults(applicationId: String)
+
+GET         /application/:applicationId/fsacEvaluationAverages           controllers.ApplicationController.getFsacEvaluationResultAverages(applicationId: String)
 POST        /application/:userId/:applicationId/:fsacArea                controllers.ApplicationController.updateFsacIndicator(userId: String, applicationId: String, fsacArea: String)
 
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
@@ -177,7 +179,7 @@ GET         /assessment-scores/reviewer/with-candidate-summary/application/:appl
 GET         /assessment-scores/reviewer/with-candidate-summary/event/:eventId                 controllers.ReviewerAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
 GET         /assessment-scores/reviewer/:applicationId                                        controllers.ReviewerAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
 GET         /assessment-scores/reviewer                                                       controllers.ReviewerAssessmentScoresController.findAll
-
+GET         /assessment-scores/reviewer/accepted-scores/application/:applicationId            controllers.ReviewerAssessmentScoresController.findAcceptedAssessmentScoresByApplicationId(applicationId: model.UniqueIdentifier)
 
 # Scheme Specific Questions/Answers
 GET         /sift-answers/:applicationId/general                         controllers.SchemeSiftAnswersController.getGeneralAnswers(applicationId: String)

@@ -19,7 +19,7 @@ package controllers
 import java.nio.file.Files
 
 import akka.stream.scaladsl.Source
-import model.Exceptions._
+import model.Exceptions.{ApplicationNotFound, CannotUpdateFSACIndicator, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound}
 import model.{CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses}
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
@@ -199,6 +199,18 @@ trait ApplicationController extends BaseController {
     appRepository.find(applicationIds).map { candidates =>
       Ok(Json.toJson(candidates))
     }
+  }
+
+  def getFsacEvaluationResultAverages(applicationId: String) = Action.async {
+    implicit request =>
+      for {
+        averagesOpt <- assessmentCentreService.getFsacEvaluationResultAverages(applicationId)
+      } yield {
+        averagesOpt match {
+          case Some(averages) => Ok(Json.toJson(averages))
+          case None => NotFound(s"Cannot find evaluation averages for applicationId: $applicationId")
+        }
+      }
   }
 
   def updateFsacIndicator(userId: String, applicationId: String, fsacArea: String) = Action.async { implicit request =>
