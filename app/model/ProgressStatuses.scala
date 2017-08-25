@@ -121,6 +121,7 @@ object ProgressStatuses {
   case object ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_PASSED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+  case object ASSESSMENT_CENTRE_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
 
   case object FSB_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.FSB)
@@ -129,6 +130,8 @@ object ProgressStatuses {
   case object FSB_RESULT_ENTERED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_PASSED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_FAILED extends ProgressStatus(ApplicationStatus.FSB)
+
+  case object ELIGIBLE_FOR_JOB_OFFER extends ProgressStatus(ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
 
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)

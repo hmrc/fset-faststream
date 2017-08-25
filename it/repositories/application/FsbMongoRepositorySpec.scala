@@ -27,7 +27,7 @@ import reactivemongo.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
-class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
+class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   import ImplicitBSONHandlers._
 

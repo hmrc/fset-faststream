@@ -19,7 +19,7 @@ package repositories.assessmentcentre
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model._
-import model.command.{ ApplicationForFsac, ApplicationForSift }
+import model.command.{ ApplicationForProgression, ApplicationForSift }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
 import reactivemongo.api.DB
@@ -33,9 +33,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.implicitConversions
 
+object AssessmentCentreRepository {
+  implicit def applicationForFsacBsonReads(document: BSONDocument): ApplicationForProgression = {
+    val applicationId = document.getAs[String]("applicationId").get
+    val appStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+    val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+    ApplicationForProgression(applicationId, appStatus, currentSchemeStatus)
+  }
+}
+
 trait AssessmentCentreRepository {
-  def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]]
-  def progressToAssessmentCentre(application: ApplicationForFsac, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
+  def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]]
+  def progressToAssessmentCentre(application: ApplicationForProgression, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[UniqueIdentifier]]
@@ -55,13 +64,8 @@ class AssessmentCentreMongoRepository (
 
   val fsacKey = "FSAC"
 
-  def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
-    implicit def applicationForFsacBsonReads(document: BSONDocument): ApplicationForFsac = {
-      val applicationId = document.getAs[String]("applicationId").get
-      val appStatus = document.getAs[ApplicationStatus]("applicationStatus").get
-      val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
-      ApplicationForFsac(applicationId, appStatus, currentSchemeStatus)
-    }
+  def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+    import AssessmentCentreRepository.applicationForFsacBsonReads
 
     val query = BSONDocument("$or" -> BSONArray(
       BSONDocument(
@@ -77,7 +81,7 @@ class AssessmentCentreMongoRepository (
       )
     ))
 
-    val unfiltered = selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForFsac))
+    val unfiltered = selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
     unfiltered.map(_.filter { app =>
       app.applicationStatus match {
         case ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED => app.currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString)
@@ -135,7 +139,7 @@ class AssessmentCentreMongoRepository (
     case _ => BSONDocument.empty
   }
 
-  def progressToAssessmentCentre(application: ApplicationForFsac, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
+  def progressToAssessmentCentre(application: ApplicationForProgression, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to assessment centre")
 

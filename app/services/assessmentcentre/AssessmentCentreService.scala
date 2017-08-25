@@ -18,14 +18,16 @@ package services.assessmentcentre
 
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
+import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model._
-import model.command.ApplicationForFsac
+import model.command.ApplicationForProgression
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import play.api.Logger
+import reactivemongo.bson.BSONDocument
 import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
@@ -54,11 +56,12 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   def assessmentScoresRepo: AssessmentScoresRepository
   def evaluationEngine: AssessmentCentreEvaluationEngine
 
-  def nextApplicationsForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
+  def nextApplicationsForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     assessmentCentreRepo.nextApplicationForAssessmentCentre(batchSize)
   }
 
-  def progressApplicationsToAssessmentCentre(applications: Seq[ApplicationForFsac]): Future[SerialUpdateResult[ApplicationForFsac]] = {
+  def progressApplicationsToAssessmentCentre(applications: Seq[ApplicationForProgression])
+  : Future[SerialUpdateResult[ApplicationForProgression]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
         assessmentCentreRepo.progressToAssessmentCentre(application,
@@ -152,7 +155,6 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
         // Don't move anyone not in a SCORES_ACCEPTED status
         Future.successful(())
       }
-
   }
 
   def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,
