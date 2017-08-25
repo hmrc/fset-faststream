@@ -970,14 +970,6 @@ class GeneralApplicationMongoRepository(
     case _ => BSONDocument.empty
   }
 
-  private def perSchemeToBSON(name: String, result: Option[List[PerSchemeEvaluation]]): BSONDocument = result match {
-    case Some(m) =>
-      val schemes = m.map(x => BSONDocument(x.schemeName -> x.result.toString))
-      val schemesDoc = schemes.foldRight(BSONDocument.empty)((acc, doc) => acc.add(doc))
-      BSONDocument(name -> schemesDoc)
-    case _ => BSONDocument.empty
-  }
-
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute] = {
     val projection = BSONDocument("_id" -> false, "applicationRoute" -> true)
     val predicate = BSONDocument("applicationId" -> applicationId)

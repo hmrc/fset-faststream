@@ -25,7 +25,7 @@ import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.Logger
-import repositories.AssessmentScoresRepository
+import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
@@ -46,7 +46,7 @@ object AssessmentCentreService extends AssessmentCentreService {
   case class CandidateHasNoAnalysisExerciseException(message: String) extends Exception(message)
 }
 
-trait AssessmentCentreService {
+trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   def applicationRepo: GeneralApplicationRepository
   def assessmentCentreRepo: AssessmentCentreRepository
   def passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings]
@@ -141,12 +141,6 @@ trait AssessmentCentreService {
       Logger.debug(s"After evaluation newSchemeStatus = $newSchemeStatus for applicationId: $applicationId")
       newSchemeStatus
     }
-  }
-
-  def calculateCurrentSchemeStatus(existingEvaluations: Seq[SchemeEvaluationResult],
-    newEvaluations: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
-    val notUpdated = existingEvaluations.filterNot( existingEvaluation => newEvaluations.exists(_.schemeId == existingEvaluation.schemeId))
-    newEvaluations ++ notUpdated
   }
 
   def getTests(applicationId: String): Future[AssessmentCentreTests] = {
