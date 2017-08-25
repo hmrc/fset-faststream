@@ -9,7 +9,7 @@
   siftEvaluationRequired: true
 - id: DigitalAndTechnology
   code: DAT
-  name: Digital And Technology
+  name: Digital, Data & Technology
   civilServantEligible: true
   degree:
     required: Degree_21_PostGrad
@@ -29,6 +29,17 @@
   siftEvaluationRequired: true
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/1232/fco-guide.pdf
+- id: DiplomaticServiceEconomists
+  code: GES-DS
+  name: Diplomatic Service (Economists)
+  civilServantEligible: false
+  degree:
+    required: Degree_DipServEconomics
+    specificRequirement: true
+  siftRequirement: FORM
+  siftEvaluationRequired: true
+  fsbType: EAC_DS
+  schemeGuide: https://www.faststream.gov.uk/media/1234/ges_ds-guide.pdf
 - id: Finance
   code: FIFS
   name: Finance
@@ -68,17 +79,6 @@
   siftEvaluationRequired: true
   fsbType: EAC
   schemeGuide: https://www.faststream.gov.uk/media/1231/eac-guide.pdf
-- id: GovernmentEconomicsServiceDiplomaticService
-  code: GES-DS
-  name: Government Economics Service - Diplomatic Service
-  civilServantEligible: false
-  degree:
-    required: Degree_DipServEconomics
-    specificRequirement: true
-  siftRequirement: FORM
-  siftEvaluationRequired: true
-  fsbType: EAC_DS
-  schemeGuide: https://www.faststream.gov.uk/media/1234/ges_ds-guide.pdf
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -131,15 +131,6 @@
     required: Degree_22
     specificRequirement: false
   siftEvaluationRequired: false
-- id: International
-  code: IFS
-  name: International
-  civilServantEligible: true
-  degree:
-    required: Degree_22
-    specificRequirement: true
-  siftRequirement: FORM
-  siftEvaluationRequired: true
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
