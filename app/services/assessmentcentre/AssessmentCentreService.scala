@@ -21,11 +21,12 @@ import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
+import model.EvaluationResults.CompetencyAverageResult
 import model._
 import model.command.ApplicationForProgression
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
+import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.Logger
 import reactivemongo.bson.BSONDocument
 import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
@@ -33,7 +34,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.{ AssessmentCentrePassMarkSettingsService, PassMarkSettingsService }
+import services.passmarksettings.{AssessmentCentrePassMarkSettingsService, PassMarkSettingsService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -180,5 +181,13 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
                 assessmentCentreRepo.updateTests(applicationId, tests.copy(analysisExercise = Some(AnalysisExercise(fileId))))
             } else { throw CandidateAlreadyHasAnAnalysisExerciseException(s"App Id: $applicationId, File Id: $fileId") }
     } yield ()
+  }
+
+  def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]] = {
+    for {
+      averagesOpt <- assessmentCentreRepo.getFsacEvaluationResultAverages(applicationId)
+    } yield {
+      averagesOpt
+    }
   }
 }

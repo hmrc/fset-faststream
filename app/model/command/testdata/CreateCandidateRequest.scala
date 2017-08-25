@@ -18,7 +18,7 @@ package model.command.testdata
 
 import model.{ Adjustments, SchemeId }
 import model.ApplicationRoute.ApplicationRoute
-import model.persisted.PassmarkEvaluation
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import play.api.libs.json.{ Json, OFormat }
 
 object CreateCandidateRequest {
@@ -103,6 +103,12 @@ object CreateCandidateRequest {
     implicit val phase3TestDataFormat: OFormat[Phase3TestDataRequest] = Json.format[Phase3TestDataRequest]
   }
 
+  case class FsbTestGroupDataRequest(results: Seq[SchemeEvaluationResult])
+
+  object FsbTestGroupDataRequest {
+    implicit val fsbTestGroupDataFormat: OFormat[FsbTestGroupDataRequest] = Json.format[FsbTestGroupDataRequest]
+  }
+
   case class PersonalDataRequest(
                                   emailPrefix: Option[String] = None,
                                   firstName: Option[String] = None,
@@ -145,6 +151,7 @@ object CreateCandidateRequest {
                                      phase1TestData: Option[Phase1TestDataRequest],
                                      phase2TestData: Option[Phase2TestDataRequest],
                                      phase3TestData: Option[Phase3TestDataRequest],
+                                     fsbTestGroupData: Option[FsbTestGroupDataRequest],
                                      adjustmentInformation: Option[Adjustments] = None
                                    ) extends CreateTestDataRequest
 
@@ -172,8 +179,10 @@ object CreateCandidateRequest {
         phase1TestData = None,
         phase2TestData = None,
         phase3TestData = None,
+        fsbTestGroupData = None,
         adjustmentInformation = None
       )
     }
   }
+
 }

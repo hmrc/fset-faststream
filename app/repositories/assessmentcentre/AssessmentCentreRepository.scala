@@ -18,12 +18,13 @@ package repositories.assessmentcentre
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
+import model.EvaluationResults.CompetencyAverageResult
 import model._
 import model.command.{ ApplicationForProgression, ApplicationForSift }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
 import repositories._
 import repositories.application.GeneralApplicationRepoBSONReader
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -50,6 +51,7 @@ trait AssessmentCentreRepository {
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[UniqueIdentifier]]
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
+  def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
 }
 
 class AssessmentCentreMongoRepository (
@@ -160,6 +162,22 @@ class AssessmentCentreMongoRepository (
       } yield tests).getOrElse(AssessmentCentreTests())
 
       case _ => AssessmentCentreTests()
+    }
+  }
+
+  override def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("_id" -> false, s"testGroups.$fsacKey.evaluation.competency-average" -> true)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(document) =>
+        for {
+          testGroups <- document.getAs[BSONDocument]("testGroups")
+          fsac <- testGroups.getAs[BSONDocument](fsacKey)
+          evaluation <- fsac.getAs[BSONDocument]("evaluation")
+          competencyAverage <- evaluation.getAs[CompetencyAverageResult]("competency-average")
+        } yield competencyAverage
+      case None => None
     }
   }
 

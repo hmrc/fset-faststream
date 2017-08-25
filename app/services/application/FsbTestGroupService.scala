@@ -49,10 +49,13 @@ trait FsbTestGroupService {
   }
 
   def saveResult(schemeId: SchemeId, applicationResult: ApplicationResult): Future[Unit] = {
-    val schemeEvaluationResult = SchemeEvaluationResult(schemeId, applicationResult.result)
+    saveResult(applicationResult.applicationId, SchemeEvaluationResult(schemeId, applicationResult.result))
+  }
+
+  def saveResult(applicationId: String, schemeEvaluationResult: SchemeEvaluationResult): Future[Unit] = {
     for {
-      _ <- fsbTestGroupRepository.save(applicationResult.applicationId, schemeEvaluationResult)
-      _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(applicationResult.applicationId, FSB_RESULT_ENTERED)
+      _ <- fsbTestGroupRepository.save(applicationId, schemeEvaluationResult)
+      _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(applicationId, FSB_RESULT_ENTERED)
     } yield ()
   }
 
