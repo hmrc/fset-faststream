@@ -18,6 +18,8 @@ package services.assessmentcentre
 
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
+import model.EvaluationResults.Green
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model.EvaluationResults.CompetencyAverageResult
 import model._
 import model.command.ApplicationForFsac
@@ -25,7 +27,7 @@ import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.Logger
-import repositories.AssessmentScoresRepository
+import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
@@ -46,7 +48,7 @@ object AssessmentCentreService extends AssessmentCentreService {
   case class CandidateHasNoAnalysisExerciseException(message: String) extends Exception(message)
 }
 
-trait AssessmentCentreService {
+trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   def applicationRepo: GeneralApplicationRepository
   def assessmentCentreRepo: AssessmentCentreRepository
   def passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings]
@@ -121,15 +123,37 @@ trait AssessmentCentreService {
 
     Logger.debug(s"now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}" +
       s"")
-    val evaluation = AssessmentPassMarkEvaluation(assessmentPassMarksSchemesAndScores.scores.applicationId,
+    val applicationId = assessmentPassMarksSchemesAndScores.scores.applicationId
+    val evaluation = AssessmentPassMarkEvaluation(applicationId,
       assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
     for {
-      currentSchemeStatus <- calculateCurrentSchemeStatus(assessmentPassMarksSchemesAndScores.scores.applicationId,
+      currentSchemeStatus <- calculateCurrentSchemeStatus(applicationId,
         evaluationResult.schemesEvaluation)
       _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation, currentSchemeStatus)
+      applicationStatus <- applicationRepo.findStatus(applicationId.toString())
+      _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.status, currentSchemeStatus)
     } yield {
       Logger.debug(s"written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
+  }
+
+  private def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,
+                                         applicationStatus: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = {
+      if (applicationStatus == ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString) {
+        firstResidualPreference(results) match {
+          // First residual preference is green
+          case Some(evaluationResult) if evaluationResult.result == Green.toString =>
+            applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
+          // No greens or ambers (i.e. all red or withdrawn)
+          case None =>
+            applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
+          case _ => Future.successful(())
+        }
+      } else {
+        // Don't move anyone not in a SCORES_ACCEPTED status
+        Future.successful(())
+      }
+
   }
 
   def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,
@@ -141,12 +165,6 @@ trait AssessmentCentreService {
       Logger.debug(s"After evaluation newSchemeStatus = $newSchemeStatus for applicationId: $applicationId")
       newSchemeStatus
     }
-  }
-
-  def calculateCurrentSchemeStatus(existingEvaluations: Seq[SchemeEvaluationResult],
-    newEvaluations: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
-    val notUpdated = existingEvaluations.filterNot( existingEvaluation => newEvaluations.exists(_.schemeId == existingEvaluation.schemeId))
-    newEvaluations ++ notUpdated
   }
 
   def getTests(applicationId: String): Future[AssessmentCentreTests] = {

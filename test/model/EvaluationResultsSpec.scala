@@ -67,7 +67,7 @@ class EvaluationResultsSpec extends UnitSpec with TableDrivenPropertyChecks {
         ("addend", "sum"),
         (Red, Red),
         (Amber, Amber),
-        (Green, Amber),
+        (Green, Green),
         (Withdrawn, Withdrawn)
       )
 
