@@ -34,28 +34,28 @@ object AssessmentScoresCommands {
     implicit val jsonFormat: Format[AssessmentScoresCandidateSummary] = Json.format[AssessmentScoresCandidateSummary]
   }
 
-  object AssessmentExerciseType extends Enumeration {
-    type AssessmentExerciseType = Value
+  object AssessmentScoresSectionType extends Enumeration {
+    type AssessmentScoresSectionType = Value
 
-    val analysisExercise, groupExercise, leadershipExercise = Value
+    val analysisExercise, groupExercise, leadershipExercise, finalFeedback = Value
 
-    implicit val assessmentExerciseFormat = new Format[AssessmentExerciseType] {
-      def reads(json: JsValue) = JsSuccess(AssessmentExerciseType.withName(json.as[String]))
+    implicit val assessmentExerciseFormat = new Format[AssessmentScoresSectionType] {
+      def reads(json: JsValue) = JsSuccess(AssessmentScoresSectionType.withName(json.as[String]))
 
-      def writes(scheme: AssessmentExerciseType) = JsString(scheme.toString)
+      def writes(scheme: AssessmentScoresSectionType) = JsString(scheme.toString)
     }
 
-    implicit object BSONEnumHandler extends BSONHandler[BSONString, AssessmentExerciseType] {
-      def read(doc: BSONString) = AssessmentExerciseType.withName(doc.value)
+    implicit object BSONEnumHandler extends BSONHandler[BSONString, AssessmentScoresSectionType] {
+      def read(doc: BSONString) = AssessmentScoresSectionType.withName(doc.value)
 
-      def write(scheme: AssessmentExerciseType) = BSON.write(scheme.toString)
+      def write(scheme: AssessmentScoresSectionType) = BSON.write(scheme.toString)
     }
   }
 
   case class AssessmentScoresSubmitExerciseRequest(
     applicationId: UniqueIdentifier,
     exercise: String,
-    scoresAndFeedback: AssessmentScoresExercise
+    scoresExercise: AssessmentScoresExercise
   )
   object AssessmentScoresSubmitExerciseRequest {
     implicit val jsonFormat: Format[AssessmentScoresSubmitExerciseRequest] = Json.format[AssessmentScoresSubmitExerciseRequest]
@@ -70,7 +70,7 @@ object AssessmentScoresCommands {
     implicit val jsonFormat: Format[AssessmentScoresFinalFeedbackSubmitRequest] = Json.format[AssessmentScoresFinalFeedbackSubmitRequest]
   }
 
-  case class AssessmentScoresFindResponse(candidate: AssessmentScoresCandidateSummary, scoresAndFeedback: Option[AssessmentScoresAllExercises])
+  case class AssessmentScoresFindResponse(candidate: AssessmentScoresCandidateSummary, scoresAllExercises: Option[AssessmentScoresAllExercises])
   object AssessmentScoresFindResponse {
     implicit val jsonFormat: Format[AssessmentScoresFindResponse] = Json.format[AssessmentScoresFindResponse]
   }

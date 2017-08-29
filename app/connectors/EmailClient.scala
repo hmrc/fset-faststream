@@ -20,6 +20,7 @@ import java.util.TimeZone
 
 import config.{ EmailConfig, WSHttp }
 import connectors.ExchangeObjects._
+import model.stc.EmailEvents.{ CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalDateTime }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -209,21 +210,26 @@ trait EmailClient extends WSHttp {
   def sendApplicationExtendedToSdip(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_app_converted_to_sdip_confirmation", Map("name" -> name))
 
-  def sendCandidateConfirmationRequestToEvent(to: String, name: String,
-    eventDate: String, eventTime: String,
-    eventType: String, eventVenue: String,
-    deadlineDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
-    sendEmail(to, "fset_faststream_candidate_need_confirm_assessment_date",
-      Map("name" -> name, "eventDate" -> eventDate, "eventStartTime" -> eventTime,
-        "eventType" -> eventType, "eventVenue" -> eventVenue, "deadlineDate" -> deadlineDate))
+  def sendCandidateConfirmationRequestToEvent(c: CandidateAllocationConfirmationRequest)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(c.to, "fset_faststream_candidate_need_confirm_assessment_date",
+      Map("name" -> c.name, "eventDate" -> c.eventDate, "eventStartTime" -> c.eventTime,
+        "eventType" -> c.eventType, "eventVenue" -> c.eventVenue, "deadlineDate" -> c.deadlineDate,
+      "eventGuideUrl" -> c.eventGuideUrl))
   }
+
+  def sendCandidateConfirmationRequestReminderToEvent(c: CandidateAllocationConfirmationReminder)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(c.to, "fset_faststream_candidate_need_confirm_assessment_date_reminder",
+      Map("name" -> c.name, "eventDate" -> c.eventDate, "eventStartTime" -> c.eventTime, "eventType" -> c.eventType,
+        "eventVenue" -> c.eventVenue, "deadlineDate" -> c.deadlineDate, "eventGuideUrl" -> c.eventGuideUrl))
+  }
+
 
   def sendCandidateInvitationConfirmedToEvent(to: String, name: String,
     eventDate: String, eventTime: String,
-    eventType: String, eventVenue: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    eventType: String, eventVenue: String, eventGuideUrl: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     sendEmail(to, "fset_faststream_candidate_assessment_scheduled",
       Map("name" -> name, "eventDate" -> eventDate, "eventStartTime" -> eventTime,
-        "eventType" -> eventType, "eventVenue" -> eventVenue))
+        "eventType" -> eventType, "eventVenue" -> eventVenue, "eventGuideUrl" -> eventGuideUrl))
   }
 
   def sendAssessorAllocatedToEvent(to: String, name: String, eventDate: String, eventRole: String, eventName: String,

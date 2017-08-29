@@ -43,7 +43,7 @@ object EvaluationResults {
     def toReportReadableString: String = "Amber"
 
     def +(that: Result): Result = that match {
-      case Green => this
+      case Green => Green
       case Red => Red
       case Amber => this
       case Withdrawn => Withdrawn
@@ -85,10 +85,6 @@ object EvaluationResults {
     val Pass, Fail = Value
   }
 
-  @deprecated("This should be deleted", since = "31/07/2017")
-  case class RuleCategoryResult(location1Scheme1: Result, location1Scheme2: Option[Result],
-    location2Scheme1: Option[Result], location2Scheme2: Option[Result], alternativeScheme: Option[Result])
-
   case class CompetencyAverageResult(
     analysisAndDecisionMakingAverage: Double,
     buildingProductiveRelationshipsAverage: Double,
@@ -106,9 +102,6 @@ object EvaluationResults {
     implicit val competencyAverageResultFormat = Json.format[CompetencyAverageResult]
     implicit val competencyAverageResultHandler = Macros.handler[CompetencyAverageResult]
   }
-
-  @deprecated("Use SchemeEvaluationResult with SchemeId", since = "10/10/2016")
-  case class PerSchemeEvaluation(schemeName: String, result: Result)
 
   case class AssessmentEvaluationResult(
     passedMinimumCompetencyLevel: Option[Boolean],

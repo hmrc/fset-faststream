@@ -16,6 +16,7 @@
 
 package services.allocation
 
+import config.EventsConfig
 import connectors.{ AuthProviderClient, EmailClient }
 import connectors.ExchangeObjects.Candidate
 import model.{ AllocationStatuses, CandidateExamples, persisted }
@@ -109,7 +110,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockCandidateAllocationRepository.allocationsForApplication(any[String]())).thenReturnAsync(
         Seq(
           model.persisted.CandidateAllocation(
-            "appId1", EventExamples.e1.id, EventExamples.e1Session1Id, AllocationStatuses.UNCONFIRMED, "version1", None
+            "appId1", EventExamples.e1.id, EventExamples.e1Session1Id, AllocationStatuses.UNCONFIRMED, "version1", None, LocalDate.now(), false
           )
         )
       )
@@ -155,6 +156,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
 
       override def schemeRepository: SchemeRepository = SchemeYamlRepository
+
+      override def eventsConfig: EventsConfig = EventsConfig("", "", 1)
     }
 
     protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
