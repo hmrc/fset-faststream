@@ -75,12 +75,14 @@ case class Scheme(
 ) {
 
   def isSdip: Boolean = id.value == Scheme.Sdip
+  def isEdip: Boolean = id.value == Scheme.Edip
 
 }
 
 object Scheme {
 
   val Sdip = "Sdip"
+  val Edip = "Edip"
   implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
   // scalastyle:off parameter.number
@@ -94,4 +96,5 @@ object Scheme {
 
 
   def isSdip(id: SchemeId): Boolean = id.value == Sdip
+  def isEdip(id: SchemeId): Boolean = id.value == Edip
 }

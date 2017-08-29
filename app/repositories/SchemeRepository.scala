@@ -66,13 +66,15 @@ trait SchemeRepository {
     schemes.flatMap(s => s.telephoneInterviewType.map(t => t.key -> s)).toMap
   }
 
-  def getSchemeForFsb(fsb: String) = {
+  def getSchemeForFsb(fsb: String): Scheme = {
     schemesByFsb.getOrElse(fsb, throw SchemeNotFoundException(s"Can not find scheme for FSB: $fsb"))
   }
 
-  def getSchemeForTelephoneInterview(tel: String) = {
+  def getSchemeForTelephoneInterview(tel: String): Scheme = {
     schemesByTelephoneInterview.getOrElse(tel, throw SchemeNotFoundException(s"Can not find scheme for TelephoneInterview: $tel"))
   }
+
+  def faststreamSchemes: Seq[Scheme] = schemes.filterNot(s => s.isSdip || s.isEdip)
 
   def getSchemesForIds(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => getSchemeForId(id) }
 

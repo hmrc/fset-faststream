@@ -19,7 +19,7 @@ package repositories.sift
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{ Green, Red, Withdrawn }
+import model.EvaluationResults.{ Amber, Green, Red, Withdrawn }
 import model._
 import model.Exceptions.ApplicationNotFound
 import model.command.ApplicationForSift
@@ -101,13 +101,11 @@ class ApplicationSiftMongoRepository(
 
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]] = {
     val predicate = BSONDocument(
-      "applicationRoute" -> ApplicationRoute.Faststream,
       "applicationStatus" -> ApplicationStatus.SIFT,
       s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
       "currentSchemeStatus.result" -> Red.toString,
-      "currentSchemeStatus.result" -> BSONDocument("$ne" -> Green.toString)
+      "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
     )
-
     selectOneRandom[BSONDocument](predicate).map {
       _.map { document => applicationForSiftBsonReads(document) }
     }
@@ -132,17 +130,17 @@ class ApplicationSiftMongoRepository(
     settableFields: Seq[BSONDocument] = Nil
   ): Future[Unit] = {
 
-     val update = BSONDocument(
-       "$addToSet" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result),
-       "$set" -> settableFields.foldLeft(BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "2")) { (acc, doc) => acc ++ doc }
-     )
+    val update = BSONDocument(
+      "$addToSet" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result),
+      "$set" -> settableFields.foldLeft(BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "2")) { (acc, doc) => acc ++ doc }
+    )
 
-     val predicate = BSONDocument("$and" -> BSONArray(
-       BSONDocument("applicationId" -> applicationId),
-       BSONDocument(
-         s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
-       )
-     ))
+    val predicate = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(
+        s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
+      )
+    ))
     val validator = singleUpdateValidator(applicationId, s"sifting for ${result.schemeId}", ApplicationNotFound(applicationId))
 
     collection.update(predicate, update) map validator

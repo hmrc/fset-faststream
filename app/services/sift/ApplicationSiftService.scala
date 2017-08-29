@@ -19,7 +19,7 @@ package services.sift
 import common.FutureEx
 import connectors.CSREmailClient
 import factories.DateTimeFactory
-import model.EvaluationResults.{ Green, Withdrawn }
+import model.EvaluationResults.{ Green, Red, Withdrawn }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
@@ -117,6 +117,14 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
+  private def maybeFailSdip(result: SchemeEvaluationResult) = {
+    if (Scheme.isSdip(result.schemeId) && result.result == Red.toString) {
+      progressStatusOnlyBSON(ProgressStatuses.SDIP_FAILED_AT_SIFT)
+    } else {
+      BSONDocument.empty
+    }
+  }
+
   private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
     case s if s.result != Withdrawn.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
   }
@@ -132,7 +140,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
     Seq(currentSchemeStatusBSON(newSchemeStatus),
-      maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
+      maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet),
+      maybeFailSdip(result)
     )
   }
 }
