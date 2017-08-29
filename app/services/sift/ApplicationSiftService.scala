@@ -142,6 +142,11 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     Seq(currentSchemeStatusBSON(newSchemeStatus),
       maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet),
       maybeFailSdip(result)
-    )
+    ).foldLeft(Seq.empty[BSONDocument]) { (acc, doc) =>
+      doc match {
+        case _ @BSONDocument.empty => acc
+        case _ => acc :+ doc
+      }
+    }
   }
 }
