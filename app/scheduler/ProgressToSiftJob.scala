@@ -43,9 +43,7 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
       case applications => siftService.progressApplicationToSiftStage(applications).map { result =>
         result.successes.map { application =>
           if (isSiftEnteredStatus(application)) {
-            siftService.sendSiftEnteredNotification(application.applicationId).map { unit =>
-              play.api.Logger.info(s"Notified ${application.applicationId} about SIFT_ENTERED")
-            }
+            siftService.sendSiftEnteredNotification(application.applicationId).map(_ => ())
           }
         }
         play.api.Logger.info(s"Progress to sift complete - ${result.successes.size} updated and ${result.failures.size} failed to update")

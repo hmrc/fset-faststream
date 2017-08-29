@@ -16,12 +16,18 @@
 
 package command
 
-import model.ApplicationStatus
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
+import model.{ ApplicationStatus, SchemeId }
 
 object ApplicationForSiftExamples {
 
   def phase3TestNotified(applicationId: String) = ApplicationForSift(applicationId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
     currentSchemeStatus = Seq(SchemeEvaluationResult("EDIP", "Pass")))
+
+  def phase3TestNotifiedWithSchemes(applicationId: String, schemes: Seq[SchemeId]) = {
+    val evaluationResults = schemes.map(schemeId => SchemeEvaluationResult(schemeId, "Pass"))
+    ApplicationForSift(applicationId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, currentSchemeStatus = evaluationResults)
+  }
+
 }

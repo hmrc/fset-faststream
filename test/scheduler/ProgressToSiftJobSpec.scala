@@ -19,7 +19,7 @@ package scheduler
 import command.ApplicationForSiftExamples
 import config.WaitingScheduledJobConfig
 import model.command.ApplicationForSift
-import model.{ ProgressStatuses, SerialUpdateResult }
+import model.{ ProgressStatuses, SchemeId, SerialUpdateResult }
 import services.sift.ApplicationSiftService
 import testkit.ScalaMockUnitWithAppSpec
 import testkit.ScalaMockImplicits._
@@ -55,6 +55,18 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftService.nextApplicationsReadyForSiftStage _).expects(10).returningAsync(applications)
       (mockApplicationSiftService.progressApplicationToSiftStage _).expects(applications).returningAsync(expected)
       (mockApplicationSiftService.progressStatusForSiftStage(_: ApplicationForSift)).expects(*).returning(ProgressStatuses.SIFT_READY)
+      TestProgressToSiftJob.tryExecute().futureValue mustBe unit
+    }
+
+    "send only one notification for a candidate with multiple eligible schemes" in {
+      val applications = List(
+        ApplicationForSiftExamples.phase3TestNotifiedWithSchemes("applicationId", schemes = Seq(SchemeId("Scheme1"), SchemeId("Scheme2")))
+      )
+      val expected = SerialUpdateResult(failures = Nil, successes = applications)
+      (mockApplicationSiftService.nextApplicationsReadyForSiftStage _).expects(10).returningAsync(applications)
+      (mockApplicationSiftService.progressApplicationToSiftStage _).expects(applications).returningAsync(expected)
+      (mockApplicationSiftService.progressStatusForSiftStage(_: ApplicationForSift)).expects(*).returning(ProgressStatuses.SIFT_ENTERED)
+      (mockApplicationSiftService.sendSiftEnteredNotification(_: String)(_: HeaderCarrier)).expects("applicationId", *).returningAsync
       TestProgressToSiftJob.tryExecute().futureValue mustBe unit
     }
   }
