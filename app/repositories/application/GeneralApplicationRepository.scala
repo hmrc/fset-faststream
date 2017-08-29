@@ -50,7 +50,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Try
+import scala.util.{ Success, Try }
 
 // TODO FAST STREAM
 // This is far too large an interface - we should look at splitting up based on
@@ -225,10 +225,13 @@ class GeneralApplicationMongoRepository(
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val progressStatusTimeStampDoc = document.getAs[BSONDocument]("progress-status-timestamp")
-        val latestProgressStatus = progressStatusTimeStampDoc.map { timestamps =>
+        val latestProgressStatus = progressStatusTimeStampDoc.flatMap { timestamps =>
           val relevantProgressStatuses = timestamps.elements.filter(_._1.startsWith(applicationStatus))
           val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element._1).get)
-          ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus._1)
+          Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus._1)) match {
+            case Success(progressStatus) => Some(progressStatus)
+            case _ => None
+          }
         }
 
         val progressStatusTimeStamp = progressStatusTimeStampDoc.flatMap { timestamps =>
