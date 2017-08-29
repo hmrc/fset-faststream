@@ -66,11 +66,11 @@ trait SchemeRepository {
     schemes.flatMap(s => s.telephoneInterviewType.map(t => t.key -> s)).toMap
   }
 
-  def getSchemeForFsb(fsb: String) = {
+  def getSchemeForFsb(fsb: String): Scheme = {
     schemesByFsb.getOrElse(fsb, throw SchemeNotFoundException(s"Can not find scheme for FSB: $fsb"))
   }
 
-  def getSchemeForTelephoneInterview(tel: String) = {
+  def getSchemeForTelephoneInterview(tel: String): Scheme = {
     schemesByTelephoneInterview.getOrElse(tel, throw SchemeNotFoundException(s"Can not find scheme for TelephoneInterview: $tel"))
   }
 
@@ -79,6 +79,14 @@ trait SchemeRepository {
   def getSchemeForId(id: SchemeId): Option[Scheme] = schemes.find(_.id == id)
 
   def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id}
+
+  def siftableAndNoEvaluationSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if s.siftRequirement.isDefined && s.siftEvaluationRequired => s.id
+  }
+
+  def nonSiftableAndNoEvaluationSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if !s.siftEvaluationRequired => s.id
+  }
 
   def nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id}
 

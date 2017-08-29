@@ -278,6 +278,11 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
     val mockSchemeRepo = new SchemeRepository {
       override lazy val nonSiftableSchemeIds = Seq(SchemeId("Generalist"), SchemeId("HumanResources"))
+      override lazy val nonSiftableAndNoEvaluationSchemeIds = Seq(SchemeId("Edip"), SchemeId("HousesOfParliament"),
+        SchemeId("ScienceAndEngineering"), SchemeId("DigitalAndTechnology"), SchemeId("GovernmentCommunicationService"),
+        SchemeId("ProjectDelivery")
+      )
+      override lazy val siftableSchemeIds = Seq(SchemeId("Commercial"))
     }
 
     val underTest = new ApplicationService with StcEventServiceFixture {
