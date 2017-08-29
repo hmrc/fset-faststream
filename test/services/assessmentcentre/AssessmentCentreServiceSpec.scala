@@ -304,9 +304,9 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     )
 
     val scoresAcceptedApplicationStatusDetails = ApplicationStatusDetails(
-      ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString,
+      ApplicationStatus.ASSESSMENT_CENTRE.toString,
       ApplicationRoute.Faststream,
-      None,
+      Some(ASSESSMENT_CENTRE_SCORES_ACCEPTED),
       None,
       None
     )
