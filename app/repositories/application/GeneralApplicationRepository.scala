@@ -28,7 +28,7 @@ import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.{ EventProgressStatuses, PREVIEW }
+import model.ProgressStatuses.{ EventProgressStatuses, PREVIEW, ProgressStatus }
 import model.command._
 import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
 import model.persisted._
@@ -225,21 +225,22 @@ class GeneralApplicationMongoRepository(
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val progressStatusTimeStampDoc = document.getAs[BSONDocument]("progress-status-timestamp")
+        val latestProgressStatus = progressStatusTimeStampDoc.map { timestamps =>
+          val relevantProgressStatuses = timestamps.elements.filter(_._1.startsWith(applicationStatus))
+          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element._1).get)
+          ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus._1)
+        }
+
         val progressStatusTimeStamp = progressStatusTimeStampDoc.flatMap { timestamps =>
           val relevantProgressStatuses = timestamps.elements.filter(_._1.startsWith(applicationStatus))
-
-          if (relevantProgressStatuses.nonEmpty) {
-            val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element._1).get)
+          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element._1).get)
             timestamps.getAs[DateTime](latestRelevantProgressStatus._1)
-          } else {
-            progressStatusDateFallback(applicationStatus, document)
-          }
         }
           .orElse(
             progressStatusDateFallback(applicationStatus, document)
           )
         val submissionDeadline = document.getAs[DateTime]("submissionDeadline")
-        ApplicationStatusDetails(applicationStatus, applicationRoute, progressStatusTimeStamp, submissionDeadline)
+        ApplicationStatusDetails(applicationStatus, applicationRoute, latestProgressStatus, progressStatusTimeStamp, submissionDeadline)
 
       case None => throw ApplicationNotFound(applicationId)
     }

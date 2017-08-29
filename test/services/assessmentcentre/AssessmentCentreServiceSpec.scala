@@ -307,6 +307,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString,
       ApplicationRoute.Faststream,
       None,
+      None,
       None
     )
 
