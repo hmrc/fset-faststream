@@ -17,8 +17,10 @@
 package controllers
 
 import connectors.SchemeClient.SchemePreferencesNotFound
+import connectors.exchange.referencedata.SchemeId
 import connectors.{ ReferenceDataClient, SchemeClient }
 import forms.SelectedSchemesForm
+import models.ApplicationRoute
 import models.page.SelectedSchemesPage
 import security.Roles.SchemesRole
 import security.SilhouetteComponent
@@ -62,8 +64,16 @@ abstract class SchemePreferencesController(
             Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(page, isCivilServant, invalidForm)))
           },
           selectedSchemes => {
+            val sdip = SchemeId("Sdip")
+            val selectedSchemesAmended = cachedData.application.applicationRoute match {
+              case ApplicationRoute.SdipFaststream if !selectedSchemes.schemes.contains(sdip.value) => {
+                selectedSchemes.copy(schemes = selectedSchemes.schemes :+ sdip.value)
+              }
+              case _ => selectedSchemes
+            }
+
             for {
-              _ <- schemeClient.updateSchemePreferences(selectedSchemes)(cachedData.application.applicationId)
+              _ <- schemeClient.updateSchemePreferences(selectedSchemesAmended)(cachedData.application.applicationId)
               redirect <- env.userService.refreshCachedUser(cachedData.user.userID).map { _ =>
                 Redirect {
                   if (isCivilServant) {
