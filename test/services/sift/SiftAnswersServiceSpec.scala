@@ -28,11 +28,11 @@ import testkit.ScalaMockImplicits._
 class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
 
   val DaT = Scheme(SchemeId("DigitalAndTechnology"), "DaT", "Digital and Technology", civilServantEligible = false,
-    degree = None, siftEvaluationRequired = true,
-    siftRequirement = Some(SiftRequirement.FORM), fsbType = None, telephoneInterviewType = None)
+    degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
+    fsbType = None, telephoneInterviewType = None, schemeGuide = None)
   val HoP = Scheme(SchemeId("HousesOfParliament"), "HoP", "Houses of Parliament", civilServantEligible = false,
-    degree = None, siftEvaluationRequired = true,
-    siftRequirement = Some(SiftRequirement.FORM), fsbType = None, telephoneInterviewType = None)
+    degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
+    fsbType = None, telephoneInterviewType = None, schemeGuide = None)
 
 
   trait TestFixture {

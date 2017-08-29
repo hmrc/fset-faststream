@@ -44,17 +44,17 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     val mockSchemeRepo = new SchemeRepository {
       override lazy val schemes: Seq[Scheme] = Seq(
         Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None, schemeGuide = None
         ),
-        Scheme("International", "INT", "International", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+        Scheme("GovernmentSocialResearchService", "GSR", "GovernmentSocialResearchService", civilServantEligible = false, None, Some(SiftRequirement.FORM),
+          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None, schemeGuide = None
         ),
         Scheme("Commercial", "GCS", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None
+          siftEvaluationRequired = true, fsbType = None, telephoneInterviewType = None, schemeGuide = None
         )
       )
 
-      override def siftableSchemeIds: Seq[SchemeId] = Seq(SchemeId("International"), SchemeId("Commercial"))
+      override def siftableSchemeIds: Seq[SchemeId] = Seq(SchemeId("GovernmentSocialResearchService"), SchemeId("Commercial"))
     }
 
     val service = new ApplicationSiftService {
@@ -81,7 +81,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         }
       )
 
-    val schemeSiftResult = SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString)
+    val schemeSiftResult = SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString)
     val queryBson = BSONDocument("applicationId" -> appId)
     val updateBson = BSONDocument("test" -> "test")
     (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
@@ -131,7 +131,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
-        SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString)
       ))
       (mockSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
       (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.Faststream)
@@ -141,13 +141,13 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     }
 
     "sift and update progress status for an SdipFaststream candidate" in new SiftUpdateTest {
-      override val schemeSiftResult = SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Red.toString)
+      override val schemeSiftResult = SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(schemeSiftResult :: SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString) :: Nil : _*),
         progressStatusUpdateBson
       )
       (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
-        SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
       ))
       (mockSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
@@ -158,7 +158,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
     "sift a candidate with remaining schemes to sift" in new SiftUpdateTest {
        val currentStatus = Seq(
-        SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
       )
       val expectedUpdateBson = Seq(
