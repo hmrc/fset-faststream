@@ -104,7 +104,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString)))
 
       whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(1)) { result =>
-        result mustBe ApplicationForFsac("appId3", ApplicationStatus.SIFT,
+        result mustBe ApplicationForProgression("appId3", ApplicationStatus.SIFT,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
             SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
             SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))
