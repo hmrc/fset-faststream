@@ -18,9 +18,9 @@ package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRHttp, SecurityEnvironmentImpl }
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.exchange.{ AssistanceDetailsExamples, PartnerGraduateProgrammesExamples, GeneralDetailsExamples, SchemePreferencesExamples }
+import connectors.exchange.{ AssistanceDetailsExamples, GeneralDetailsExamples, SchemePreferencesExamples }
 import connectors.{ ApplicationClient, SchemeClient }
 import forms.AssistanceDetailsFormExamples
 import models.SecurityUserExamples._
@@ -97,14 +97,6 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
 
-    "redirect to home page with error when partner graduate programmes cannot be found" in new TestFixture {
-      when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.failed(new PartnerGraduateProgrammesNotFound))
-      val result = controller.present()(fakeRequest)
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.HomeController.present().url))
-    }
-
     "redirect to home page with error when assistance details cannot be found" in new TestFixture {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new AssistanceDetailsNotFound))
@@ -143,8 +135,6 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       .thenReturn(Future.successful(SchemePreferencesExamples.DefaultSelectedSchemes))
     when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
-    when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(PartnerGraduateProgrammesExamples.InterestedNotAll))
 
     class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient, mockSchemeClient)
       with TestableSecureActions {
