@@ -88,6 +88,30 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
   }
 
   "progressToFsac" must {
+
+    "ignore candidates who only have Sdip/Edip green at the end of sifting" in {
+      insertApplicationWithSiftComplete("appId1",
+        List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
+      insertApplicationWithSiftComplete("appId2",
+        List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
+      insertApplicationWithSiftComplete("appId3",
+        List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString)))
+
+      whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(1)) { result =>
+        result mustBe ApplicationForFsac("appId3", ApplicationStatus.SIFT,
+          List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
+            SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))
+        ) :: Nil
+      }
+    }
+
     "progress candidates who have completed the sift phase" in {
       insertApplicationWithSiftComplete("appId11",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),

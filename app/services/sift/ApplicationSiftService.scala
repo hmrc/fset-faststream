@@ -96,7 +96,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   def sendSiftEnteredNotification(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     applicationRepo.find(applicationId).flatMap {
       case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
-        emailClient.notifyCandidateSiftEnteredAdditionalQuestions(contactDetails.email, candidate.name)
+        emailClient.notifyCandidateSiftEnteredAdditionalQuestions(contactDetails.email, candidate.name).map(_ => ())
       }
       case None => throw CouldNotFindCandidateWithApplication(applicationId)
     }
