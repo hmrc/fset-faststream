@@ -228,10 +228,7 @@ class GeneralApplicationMongoRepository(
         val latestProgressStatus = progressStatusTimeStampDoc.flatMap { timestamps =>
           val relevantProgressStatuses = timestamps.elements.filter(_._1.startsWith(applicationStatus))
           val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element._1).get)
-          Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus._1)) match {
-            case Success(progressStatus) => Some(progressStatus)
-            case _ => None
-          }
+          Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus._1)).toOption
         }
 
         val progressStatusTimeStamp = progressStatusTimeStampDoc.flatMap { timestamps =>

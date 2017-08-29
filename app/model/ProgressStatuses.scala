@@ -130,6 +130,7 @@ object ProgressStatuses {
   case object FSB_RESULT_ENTERED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_PASSED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_FAILED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSB_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.FSB)
 
   case object ELIGIBLE_FOR_JOB_OFFER extends ProgressStatus(ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
 

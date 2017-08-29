@@ -47,9 +47,10 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
 
     def maybeProgressToFsbOrJobOffer(application: ApplicationForProgression, firstResidual: SchemeEvaluationResult): Future[Unit] = {
+      
       if (firstResidual.result == Green.toString && fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
         fsbRepo.progressToFsb(application)
-      } else if (firstResidual.result == Green.toString && !fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
+      } else if (firstResidual.result == Green.toString) {
         fsbRepo.progressToJobOffer(application)
       } else {
         Future.successful(())

@@ -38,7 +38,8 @@ case class Fsb(
                 failedToAttend: Boolean = false,
                 resultEntered: Boolean = false,
                 passed: Boolean = false,
-                failed: Boolean = false
+                failed: Boolean = false,
+                failedNotified: Boolean = false
 )
 
 case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
