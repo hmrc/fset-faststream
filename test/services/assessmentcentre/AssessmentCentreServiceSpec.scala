@@ -21,7 +21,7 @@ import model.EvaluationResults._
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model._
 import model.assessmentscores.AssessmentScoresAllExercises
-import model.command.{ ApplicationForFsac, ApplicationStatusDetails }
+import model.command.{ ApplicationForProgression, ApplicationStatusDetails }
 import model.exchange.passmarksettings._
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
@@ -295,17 +295,18 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     }
 
     val applicationsToProgressToSift = List(
-      ApplicationForFsac("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+      ApplicationForProgression("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
-      ApplicationForFsac("appId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+      ApplicationForProgression("appId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
-      ApplicationForFsac("appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+      ApplicationForProgression("appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
     )
 
     val scoresAcceptedApplicationStatusDetails = ApplicationStatusDetails(
-      ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString,
+      ApplicationStatus.ASSESSMENT_CENTRE.toString,
       ApplicationRoute.Faststream,
+      Some(ASSESSMENT_CENTRE_SCORES_ACCEPTED),
       None,
       None
     )
