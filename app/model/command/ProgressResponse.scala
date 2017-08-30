@@ -94,7 +94,9 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
 case class SiftProgressResponse(
   siftEntered: Boolean = false,
   siftReady: Boolean = false,
-  siftCompleted: Boolean = false
+  siftCompleted: Boolean = false,
+  sdipFailedAtSift: Boolean = false,
+  failedAtSift: Boolean = false
 )
 
 case class ProgressResponse(

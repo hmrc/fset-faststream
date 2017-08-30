@@ -17,14 +17,13 @@
 package testkit
 
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatestplus.play.PlaySpec
 
-class UnitSpec extends PlaySpec with testkit.MockitoSugar with ScalaFutures {
+trait UnitSpec extends PlaySpec with testkit.MockitoSugar with ScalaFutures {
 
   val unit = () // This approach avoids both scala compiler and intellij warnings
 }
 
-class ScalaMockUnitSpec extends PlaySpec with org.scalamock.scalatest.MockFactory with ScalaFutures with ExtendedTimeout {
+trait ScalaMockUnitSpec extends PlaySpec with org.scalamock.scalatest.MockFactory with ScalaFutures with ExtendedTimeout {
   val unit = () // This approach avoids both scala compiler and intellij warnings
 }
