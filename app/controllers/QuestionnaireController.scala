@@ -176,7 +176,7 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient)
   }
 
   private def universityMessageKey(implicit app: CachedDataWithApp) = app.application.applicationRoute match {
-    case ApplicationRoute.Edip | ApplicationRoute.Sdip => "currentUniversity"
+    case ApplicationRoute.Edip | ApplicationRoute.Sdip | ApplicationRoute.SdipFaststream => "currentUniversity"
     case ApplicationRoute.Faststream => "university"
   }
 }
