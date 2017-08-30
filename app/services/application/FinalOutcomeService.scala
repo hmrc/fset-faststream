@@ -17,10 +17,11 @@
 package services.application
 
 import common.FutureEx
-import connectors.{ CSREmailClient, EmailClient }
+import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, FSB_FAILED }
 import model.SerialUpdateResult
 import model.command.ApplicationForProgression
+import play.api.Logger
 import repositories.application.{ FinalOutcomeRepository, GeneralApplicationRepository }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -33,6 +34,8 @@ object FinalOutcomeService extends FinalOutcomeService {
   val applicationRepo = repositories.applicationRepository
   val finalOutcomeRepo = repositories.finalOutcomeRepository
   val emailClient = CSREmailClient
+  val authProviderClient = AuthProviderClient
+
 
 }
 
@@ -40,6 +43,7 @@ trait FinalOutcomeService {
 
   def applicationRepo: GeneralApplicationRepository
   def finalOutcomeRepo: FinalOutcomeRepository
+  def authProviderClient: AuthProviderClient
   def emailClient: EmailClient
 
   val FinalFailedStates = Seq(ASSESSMENT_CENTRE_FAILED, FSB_FAILED)
@@ -54,34 +58,45 @@ trait FinalOutcomeService {
 
   def progressApplicationsToFinalSuccessNotified(applications: Seq[ApplicationForProgression])(implicit hc: HeaderCarrier)
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
-    FutureEx.traverseSerial(applications) {app =>
+    FutureEx.traverseSerial(applications) { app =>
       FutureEx.futureToEither(app,
-        for {
-          candidateOpt <- applicationRepo.find(app.applicationId)
-          candidate = candidateOpt.getOrElse(sys.error(s"Can't find application for ${app.applicationId}"))
-          firstSchemeRes = finalOutcomeRepo.firstResidualPreference(app.currentSchemeStatus)
-            .getOrElse(sys.error(s"No first residual preference for ${app.applicationId}"))
-          email = candidate.email.getOrElse(sys.error(s"Can't find email for ${app.applicationId}"))
-          _ <- emailClient.notifyCandidateOnFinalSuccess(email, candidate.name, firstSchemeRes.schemeId.value)
-          _ <- finalOutcomeRepo.progressToJobOfferNotified(app)
-        } yield ()
+        withErrLogging(s"Final success notification for app ${app.applicationId}") {
+          for {
+            candidate <- retrieveCandidateDetails(app.applicationId)
+            firstSchemeRes = finalOutcomeRepo.firstResidualPreference(app.currentSchemeStatus)
+              .getOrElse(sys.error(s"No first residual preference for ${app.applicationId}"))
+            _ <- emailClient.notifyCandidateOnFinalSuccess(candidate.email, candidate.name, firstSchemeRes.schemeId.value)
+            _ <- finalOutcomeRepo.progressToJobOfferNotified(app)
+          } yield ()
+        }
       )
     } map SerialUpdateResult.fromEither
   }
 
   def progressApplicationsToFinalFailureNotified(applications: Seq[ApplicationForProgression])(implicit hc: HeaderCarrier)
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
-    FutureEx.traverseSerial(applications) {app =>
+    FutureEx.traverseSerial(applications) { app =>
       FutureEx.futureToEither(app,
-        for {
-          candidateOpt <- applicationRepo.find(app.applicationId)
-          candidate = candidateOpt.getOrElse(sys.error(s"Can't find application for ${app.applicationId}"))
-          email = candidate.email.getOrElse(sys.error(s"Can't find email for ${app.applicationId}"))
-          _ <- emailClient.notifyCandidateOnFinalFailure(email, candidate.name)
-          _ <- finalOutcomeRepo.progressToFinalFailureNotified(app)
-        } yield ()
+        withErrLogging(s"Final failure notification for app ${app.applicationId}") {
+          for {
+            candidate <- retrieveCandidateDetails(app.applicationId)
+            _ <- emailClient.notifyCandidateOnFinalFailure(candidate.email, candidate.name)
+            _ <- finalOutcomeRepo.progressToFinalFailureNotified(app)
+          } yield ()
+        }
       )
-    } map SerialUpdateResult.fromEither
+    }.map(SerialUpdateResult.fromEither)
   }
 
+  private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
+    applicationRepo.find(applicationId).flatMap {
+      case Some(app) => authProviderClient.findByUserIds(Seq(app.userId))
+      case None => sys.error(s"Can't find application $applicationId")
+    }.map(_.headOption.getOrElse(sys.error(s"Can't find user records for $applicationId")))
   }
+
+  private def withErrLogging[T](logPrefix: String)(f: Future[T]): Future[T] = {
+    f.recoverWith { case ex => Logger.warn(s"$logPrefix: ${ex.getMessage}"); f }
+  }
+
+}
