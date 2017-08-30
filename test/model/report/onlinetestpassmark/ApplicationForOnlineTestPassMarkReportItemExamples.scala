@@ -16,7 +16,8 @@
 
 package model.report.onlinetestpassmark
 
-import model.{ ApplicationRoute, SchemeId }
+import model.persisted.SchemeEvaluationResult
+import model.{ ApplicationRoute, EvaluationResults, SchemeId }
 import model.report.{ ApplicationForOnlineTestPassMarkReportItem, TestResultsForOnlineTestPassMarkReportItem }
 
 import scala.util.Random
@@ -39,7 +40,9 @@ object ApplicationForOnlineTestPassMarkReportItemExamples {
       None,
       None,
       None,
-      testsResult)
+      testsResult,
+      List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString)))
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
 }
