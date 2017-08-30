@@ -89,11 +89,11 @@ trait SiftAnswersService {
   private def maybeMoveToCompleted(applicationId: String, passedSchemes: Set[SchemeId],
                                    passedSchemesWithoutRequirement: Set[SchemeId]): Future[Unit] = {
     val canBeMoved = (passedSchemes.size == passedSchemesWithoutRequirement.size) &&
-      passedSchemes.forall(passedSchemesWithoutRequirement.contains)
+      passedSchemes == passedSchemesWithoutRequirement
     if(canBeMoved) {
       appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED)
     } else {
-      Future(())
+      Future.successful(())
     }
   }
 }

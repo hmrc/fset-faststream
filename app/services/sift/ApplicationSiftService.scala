@@ -78,7 +78,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationRepo.getApplicationRoute(applicationId).flatMap { route =>
       val updateFunction = route match {
         case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
-        case _ => buildSiftSettableFields(result, greenSchemeFilter) _
+        case _ => buildSiftSettableFields(result, schemeFilter) _
       }
 
       siftApplicationForScheme(applicationId, result, updateFunction)
@@ -112,7 +112,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     case s if s.result != Withdrawn.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
   }
 
-  private def greenSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = { case s if s.result != Withdrawn.toString => s.schemeId }
+  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = { case s if s.result != Withdrawn.toString => s.schemeId }
 
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
     (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
