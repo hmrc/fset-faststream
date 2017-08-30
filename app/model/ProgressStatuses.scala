@@ -111,6 +111,7 @@ object ProgressStatuses {
   case object SIFT_READY extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_COMPLETED extends ProgressStatus(ApplicationStatus.SIFT)
   case object FAILED_AT_SIFT extends ProgressStatus(ApplicationStatus.FAILED_AT_SIFT)
+  case object FAILED_AT_SIFT_NOTIFIED extends ProgressStatus(ApplicationStatus.FAILED_AT_SIFT)
   case object SDIP_FAILED_AT_SIFT extends ProgressStatus(ApplicationStatus.SIFT)
 
   case object ASSESSMENT_CENTRE_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)

@@ -18,6 +18,7 @@ package repositories.application
 
 import factories.DateTimeFactory
 import model.EvaluationResults.{ Amber, Green, Red }
+import model.ProgressStatuses
 import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, _ }
 import model.command.ApplicationForProgression
 import model.persisted.FsbTestGroup
@@ -48,28 +49,23 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
   with ReactiveRepositoryHelpers with CommonBSONDocuments {
 
 
-  private val FinalFailedStatuses = Seq(
-    ASSESSMENT_CENTRE_FAILED,
-    FSB_FAILED
-  )
+  case class FinalState(failed: ProgressStatuses.ProgressStatus, notified: ProgressStatuses.ProgressStatus)
 
-  private val FinalFailedNotifiedStatuses = Seq(
-    ASSESSMENT_CENTRE_FAILED_NOTIFIED,
-    FSB_FAILED_NOTIFIED
+  private val FailedStatuses = Seq(
+    FinalState(ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED),
+    FinalState(FSB_FAILED, FSB_FAILED_NOTIFIED),
+    FinalState(FAILED_AT_SIFT, FAILED_AT_SIFT_NOTIFIED)
   )
 
   def nextApplicationForFinalFailureNotification(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
     val queryStatus = BSONDocument("$or" -> BSONArray(
-      FinalFailedStatuses.map { failStatus =>
-        val notificationStatus = FinalFailedNotifiedStatuses
-          .find(notifiedState => notifiedState.applicationStatus == failStatus.applicationStatus)
-          .getOrElse(sys.error(s"Could not find relevant notification state for $failStatus"))
+      FailedStatuses.map { status =>
         BSONDocument(
-          "applicationStatus" -> failStatus.applicationStatus,
-          s"progress-status.$failStatus" -> true,
-          s"progress-status.$notificationStatus" -> BSONDocument("$ne" -> true)
+          "applicationStatus" -> status.failed.applicationStatus,
+          s"progress-status.${status.failed}" -> true,
+          s"progress-status.${status.notified}" -> BSONDocument("$ne" -> true)
 
         )
       }
@@ -98,10 +94,10 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     val query = BSONDocument("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to final failure")
 
-    val finalNotifiedState = FinalFailedNotifiedStatuses.find(_.applicationStatus == application.applicationStatus)
+    val finalNotifiedState = FailedStatuses.find(_.notified.applicationStatus == application.applicationStatus)
       .getOrElse(sys.error(s"Unexpected status for progression to final failure: ${application.applicationStatus}"))
 
-    collection.update(query, BSONDocument("$set" -> applicationStatusBSON(finalNotifiedState))) map validator
+    collection.update(query, BSONDocument("$set" -> applicationStatusBSON(finalNotifiedState.notified))) map validator
   }
 
   def progressToJobOfferNotified(application: ApplicationForProgression): Future[Unit] = {
