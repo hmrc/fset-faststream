@@ -229,7 +229,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "testGroups.PHASE1" -> "1",
       "testGroups.PHASE2" -> "1",
       "testGroups.PHASE3.tests.callbacks.reviewed" -> 1,
-      "progress-status" -> "1"
+      "progress-status" -> "1",
+      "currentSchemeStatus" -> "1"
     )
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
