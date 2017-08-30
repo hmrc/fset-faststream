@@ -56,7 +56,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def processNextApplicationFailedAtSift: Future[Unit] = applicationSiftRepo.nextApplicationFailedAtSift.flatMap(_.map { application =>
     applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.FAILED_AT_SIFT)
-  }.getOrElse(Future()))
+  }.getOrElse(Future.successful(())))
 
   private def requiresForms(schemeIds: Seq[SchemeId]) = {
     schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))

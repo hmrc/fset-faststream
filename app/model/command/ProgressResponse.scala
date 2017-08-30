@@ -93,6 +93,7 @@ case class SiftProgressResponse(
   siftEntered: Boolean = false,
   siftReady: Boolean = false,
   siftCompleted: Boolean = false,
+  sdipFailedAtSift: Boolean = false,
   failedAtSift: Boolean = false
 )
 
