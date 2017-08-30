@@ -10,7 +10,7 @@
 @{implicit val cachedData = page.userDataWithSchemes.toCachedData}
 
 @renderSchemeForm = {
-    <div class="inner-block-padr" id="schemeForms">
+    <section class="inner-block-padr" id="schemeForms">
         <h2 class='heading-medium'>Extra information</h2>
         <p>At least one of your scheme preferences require you to answer
             some additional questions.</p>
@@ -24,7 +24,7 @@
                     <a href="@routes.SiftQuestionsController.presentSchemeForm(curSiftableScheme.id)">@{
                         curSiftableScheme.name
                         }</a>
-                    <span class="font-xsmall">(this section will require you to answer questions in detail, 300 words or more)</span></li>
+                    <span class="font-xsmall">(in this section, you'll be assessed with one or more questions)</span></li>
                 }
                 <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()">Preview before you submit</a></li>
             } else {
@@ -32,12 +32,12 @@
                 <ul class="list-text list-withicons" data-extrainfolist=""><li><i class="fa fa-check the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()">View your submitted answers</a></li></ul>
             }
         </ul>
-    </div>
+    </section>
 
 }
 
 @renderNumericTest = {
-    <div class="inner-block-padr" id="numericTest">
+    <section class="inner-block-padr" id="numericTest">
         <h2 class="heading-medium">Take a numerical test</h2>
         <p>At least one of your scheme preferences require you to take a
             numerical test.</p>
@@ -45,7 +45,7 @@
             an eye on your email inbox, including your junk mail.</p>
         <p>You should complete this within 7 days from the date of your
             email. Failure to do this will hold up your application.</p>
-    </div>
+    </section>
 }
 
 @renderCompletedSectionOne = {
