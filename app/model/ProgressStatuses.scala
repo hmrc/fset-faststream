@@ -17,7 +17,6 @@
 package model
 
 import model.ApplicationStatus._
-import model.persisted.eventschedules.EventType.EventType
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
@@ -133,6 +132,7 @@ object ProgressStatuses {
   case object FSB_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.FSB)
 
   case object ELIGIBLE_FOR_JOB_OFFER extends ProgressStatus(ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
+  case object ELIGIBLE_FOR_JOB_OFFER_NOTIFIED extends ProgressStatus(ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
 
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)

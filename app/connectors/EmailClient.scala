@@ -264,6 +264,15 @@ trait EmailClient extends WSHttp {
     sendEmail(to, "fset_faststream_notify_assessors_of_new_events",
       Map("name" -> name, "htmlBody" -> htmlBody, "txtBody" -> txtBody))
   }
+
+  def notifyCandidateOnFinalFailure(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_app_final_failed", Map("name" -> name))
+  }
+
+  def notifyCandidateOnFinalSuccess(to: String, name: String, scheme: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_app_final_success", Map("name" -> name, "scheme" -> scheme))
+  }
+
 }
 
 object EmailDateFormatter {
