@@ -17,7 +17,7 @@
 package model.report
 
 import model.ApplicationStatus._
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED }
+import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER => _, _ }
 import model.command.ProgressResponse
 
 trait ProgressStatusesReportLabels {
@@ -89,6 +89,7 @@ trait ProgressStatusesReportLabels {
     (progress.assessmentCentre.failedToAttend, 435, AssessmentCentreFailedToAttend),
     (progress.assessmentCentre.awaitingReevaluation, 438, AssessmentCentreAwaitingReevaluation),
     (progress.assessmentCentre.failed, 440, AssessmentCentreFailedProgress),
+    (progress.assessmentCentre.failedNotified, 450, AssessmentCentreFailedNotifiedProgress),
     (progress.assessmentCentre.passed, 460, AssessmentCentrePassedProgress),
     (progress.fsb.awaitingAllocation, 480, FsbAwaitingAllocation),
     (progress.fsb.allocationUnconfirmed, 485, FsbAllocationUnconfirmed),
@@ -97,6 +98,8 @@ trait ProgressStatusesReportLabels {
     (progress.fsb.resultEntered, 500, FsbResultEntered),
     (progress.fsb.passed, 505, FsbPassed),
     (progress.fsb.failed, 510, FsbFailed),
+    (progress.fsb.failedNotified, 515, FsbFailedNotified),
+    (progress.eligibleForJobOffer, 800, EligibleForJobOffer),
     (progress.withdrawn, 999, WithdrawnProgress),
     (progress.applicationArchived, 1000, ApplicationArchived)
   )
@@ -196,8 +199,11 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val FsbAllocationConfirmed = "fsb_allocation_confirmed"
   val FsbFailedToAttend = "fsb_failed_to_attend"
   val FsbResultEntered = "fsb_result_entered"
-  val FsbPassed = "fsb_passed"
-  val FsbFailed = "fsb_failed"
+  val FsbPassed = FSB_PASSED.toString.toLowerCase()
+  val FsbFailed = FSB_FAILED.toString.toLowerCase()
+  val FsbFailedNotified = FSB_FAILED_NOTIFIED.toString.toLowerCase()
+
+  val EligibleForJobOffer = ELIGIBLE_FOR_JOB_OFFER.toString.toLowerCase()
 
   val SiftEntered = "sift_entered"
   val SiftReady = "ready_for_sifting"
@@ -211,4 +217,5 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val OnlineTestFailedProgress = "online_test_failed"
   val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toString.toLowerCase()
   val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toString.toLowerCase()
+  val AssessmentCentreFailedNotifiedProgress = ASSESSMENT_CENTRE_FAILED_NOTIFIED.toString.toLowerCase()
 }

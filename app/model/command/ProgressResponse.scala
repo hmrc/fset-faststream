@@ -27,7 +27,8 @@ case class AssessmentCentre(
   scoresAccepted: Boolean = false,
   awaitingReevaluation: Boolean = false,
   passed: Boolean = false,
-  failed: Boolean = false
+  failed: Boolean = false,
+  failedNotified: Boolean = false
 )
 
 case class Fsb(
@@ -37,7 +38,8 @@ case class Fsb(
                 failedToAttend: Boolean = false,
                 resultEntered: Boolean = false,
                 passed: Boolean = false,
-                failed: Boolean = false
+                failed: Boolean = false,
+                failedNotified: Boolean = false
 )
 
 case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
@@ -108,6 +110,7 @@ case class ProgressResponse(
   submitted: Boolean = false,
   fastPassAccepted: Boolean = false,
   withdrawn: Boolean = false,
+  eligibleForJobOffer: Boolean = false,
   phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
   phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
   phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),

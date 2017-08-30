@@ -18,21 +18,23 @@ package services.assessmentcentre
 
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
+import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED, ProgressStatus }
 import model.EvaluationResults.CompetencyAverageResult
 import model._
-import model.command.ApplicationForFsac
+import model.command.ApplicationForProgression
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
+import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import play.api.Logger
+import reactivemongo.bson.BSONDocument
 import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.{AssessmentCentrePassMarkSettingsService, PassMarkSettingsService}
+import services.passmarksettings.{ AssessmentCentrePassMarkSettingsService, PassMarkSettingsService }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -55,11 +57,14 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   def assessmentScoresRepo: AssessmentScoresRepository
   def evaluationEngine: AssessmentCentreEvaluationEngine
 
-  def nextApplicationsForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForFsac]] = {
+  private val logPrefix = "[Assessment Evaluation]"
+
+  def nextApplicationsForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     assessmentCentreRepo.nextApplicationForAssessmentCentre(batchSize)
   }
 
-  def progressApplicationsToAssessmentCentre(applications: Seq[ApplicationForFsac]): Future[SerialUpdateResult[ApplicationForFsac]] = {
+  def progressApplicationsToAssessmentCentre(applications: Seq[ApplicationForProgression])
+  : Future[SerialUpdateResult[ApplicationForProgression]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
         assessmentCentreRepo.progressToAssessmentCentre(application,
@@ -73,17 +78,17 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   def nextAssessmentCandidateReadyForEvaluation: Future[Option[AssessmentPassMarksSchemesAndScores]] = {
     passmarkService.getLatestPassMarkSettings.flatMap {
       case Some(passmark) =>
-        Logger.debug(s"Assessment evaluation found pass marks - $passmark")
+        Logger.debug(s"$logPrefix Assessment evaluation found pass marks - $passmark")
         assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.version).flatMap {
           case Some(appId) =>
-            Logger.debug(s"Assessment evaluation found candidate to process - applicationId = $appId")
+            Logger.debug(s"$logPrefix Assessment evaluation found candidate to process - applicationId = $appId")
             tryToFindEvaluationData(appId, passmark)
           case None =>
-            Logger.debug(s"Assessment evaluation completed - no candidates found")
+            Logger.debug(s"$logPrefix Assessment evaluation completed - no candidates found")
             Future.successful(None)
         }
       case None =>
-        Logger.debug("Assessment centre pass marks have not been set")
+        Logger.debug("$logPrefix Assessment centre pass marks have not been set")
         Future.successful(None)
     }
   }
@@ -104,10 +109,10 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
       currentSchemeStatusList <- applicationRepo.getCurrentSchemeStatus(appId.toString())
     } yield {
       assessmentCentreScoresOpt.map { scores =>
-        Logger.debug(s"AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
+        Logger.debug(s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
         val schemesToEvaluate = filterSchemesToEvaluate(currentSchemeStatusList)
 
-        Logger.debug(s"AssessmentCentreService - tryToFindEvaluationData - current scheme status excluding RED = $schemesToEvaluate")
+        Logger.debug(s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - current scheme status excluding RED = $schemesToEvaluate")
         AssessmentPassMarksSchemesAndScores(passmark, schemesToEvaluate, scores)
       }
     }
@@ -116,12 +121,12 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   def evaluateAssessmentCandidate(assessmentPassMarksSchemesAndScores: AssessmentPassMarksSchemesAndScores,
     config: AssessmentEvaluationMinimumCompetencyLevel): Future[Unit] = {
 
-    Logger.debug(s"evaluateAssessmentCandidate - running")
+    Logger.debug(s"$logPrefix evaluateAssessmentCandidate - running")
 
     val evaluationResult = evaluationEngine.evaluate(assessmentPassMarksSchemesAndScores, config)
-    Logger.debug(s"evaluation result = $evaluationResult")
+    Logger.debug(s"$logPrefix evaluation result = $evaluationResult")
 
-    Logger.debug(s"now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}" +
+    Logger.debug(s"$logPrefix now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}" +
       s"")
     val applicationId = assessmentPassMarksSchemesAndScores.scores.applicationId
     val evaluation = AssessmentPassMarkEvaluation(applicationId,
@@ -131,29 +136,39 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
         evaluationResult.schemesEvaluation)
       _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation, currentSchemeStatus)
       applicationStatus <- applicationRepo.findStatus(applicationId.toString())
-      _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.status, currentSchemeStatus)
+      _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus)
     } yield {
-      Logger.debug(s"written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+      Logger.debug(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
   }
 
   private def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,
-                                         applicationStatus: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = {
-      if (applicationStatus == ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString) {
+    latestProgressStatusOpt: Option[ProgressStatus], results: Seq[SchemeEvaluationResult]): Future[Unit] = {
+
+    latestProgressStatusOpt.map { latestProgressStatus =>
+      if (latestProgressStatus == ASSESSMENT_CENTRE_SCORES_ACCEPTED) {
         firstResidualPreference(results) match {
           // First residual preference is green
           case Some(evaluationResult) if evaluationResult.result == Green.toString =>
+            Logger.debug(s"$logPrefix First residual preference (${evaluationResult.schemeId.toString()}) is green, moving candidate to passed")
             applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
           // No greens or ambers (i.e. all red or withdrawn)
           case None =>
+            Logger.debug(s"$logPrefix There is no first non-red residual preference, moving candidate to failed")
             applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
-          case _ => Future.successful(())
+          case _ =>
+            Logger.debug(s"$logPrefix Residual preferences are amber or red (but not all red), candidate status has not been changed")
+            Future.successful(())
         }
       } else {
         // Don't move anyone not in a SCORES_ACCEPTED status
+        Logger.debug(s"$logPrefix This was a reevaluation, candidate is not in SCORES_ACCEPTED, candidate status has not been changed")
         Future.successful(())
       }
-
+    }.getOrElse {
+      Logger.debug(s"$logPrefix No progress status, candidate status has not been changed")
+      Future.successful(())
+    }
   }
 
   def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,

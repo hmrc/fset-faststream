@@ -32,7 +32,7 @@ object ApplicationStatus extends Enumeration with ApplicationStatusOnlyForTest {
   val PHASE3_TESTS, PHASE3_TESTS_PASSED_WITH_AMBER, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED = Value
   val PHASE3_TESTS_PASSED_NOTIFIED, PHASE1_TESTS_PASSED_NOTIFIED, ARCHIVED, FAST_PASS_ACCEPTED = Value
   val SIFT, FAILED_AT_SIFT = Value
-  val ASSESSMENT_CENTRE, FSB = Value
+  val ASSESSMENT_CENTRE, FSB, ELIGIBLE_FOR_JOB_OFFER = Value
   implicit def toString(applicationStatus: ApplicationStatus): String = applicationStatus.toString
 
   implicit val applicationStatusFormat = new Format[ApplicationStatus] {
