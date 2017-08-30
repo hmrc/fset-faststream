@@ -14,34 +14,70 @@
  * limitations under the License.
  */
 
-package repositories.application
+package repositories.fsb
 
+import factories.DateTimeFactory
 import model.Exceptions.AlreadyEvaluatedForSchemeException
-import model.SchemeId
+import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION }
+import model.{ ApplicationStatus, EvaluationResults, ProgressStatuses, SchemeId }
+import model.command.ApplicationForProgression
+import model.persisted.fsac.AssessmentCentreTests
 import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
 import repositories._
+import repositories.assessmentcentre.AssessmentCentreRepository
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait FsbTestGroupRepository {
+trait FsbRepository {
+  def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]]
+  def progressToFsb(application: ApplicationForProgression): Future[Unit]
+  def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
   def save(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
-
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
-
   def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
 }
 
-class FsbTestGroupMongoRepository(implicit mongo: () => DB) extends
+class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB) extends
   ReactiveRepository[FsbTestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo, FsbTestGroup.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats) with FsbTestGroupRepository with CurrentSchemeStatusHelper with ReactiveRepositoryHelpers {
+    ReactiveMongoFormats.objectIdFormats) with FsbRepository with RandomSelection with CurrentSchemeStatusHelper with ReactiveRepositoryHelpers
+  with CommonBSONDocuments {
 
   private val APPLICATION_ID = "applicationId"
   private val FSB_TEST_GROUPS = "testGroups.FSB"
+
+  def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+    import AssessmentCentreRepository.applicationForFsacBsonReads
+
+    val query = BSONDocument(
+      "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
+      s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_PASSED}" -> true
+    )
+
+    selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
+  }
+
+  def progressToFsb(application: ApplicationForProgression): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> application.applicationId)
+    val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to fsb awaiting allocation")
+
+    collection.update(query, BSONDocument("$set" ->
+      applicationStatusBSON(FSB_AWAITING_ALLOCATION)
+    )) map validator
+  }
+
+  def progressToJobOffer(application: ApplicationForProgression): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> application.applicationId)
+    val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to eligible for job offer")
+
+    collection.update(query, BSONDocument("$set" ->
+      applicationStatusBSON(ELIGIBLE_FOR_JOB_OFFER)
+    )) map validator
+  }
 
   override def save(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
     val selector = BSONDocument("$and" -> BSONArray(

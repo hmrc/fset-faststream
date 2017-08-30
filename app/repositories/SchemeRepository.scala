@@ -78,7 +78,9 @@ trait SchemeRepository {
 
   def getSchemeForId(id: SchemeId): Option[Scheme] = schemes.find(_.id == id)
 
-  def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id}
+  def fsbSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.fsbType.isDefined => s.id }
+
+  def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id }
 
   def siftableAndNoEvaluationSchemeIds: Seq[SchemeId] = schemes.collect {
     case s if s.siftRequirement.isDefined && s.siftEvaluationRequired => s.id
@@ -88,7 +90,7 @@ trait SchemeRepository {
     case s if !s.siftEvaluationRequired => s.id
   }
 
-  def nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id}
+  def nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id }
 
   def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
 

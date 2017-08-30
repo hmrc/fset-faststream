@@ -18,7 +18,7 @@ package repositories.assessmentcentre
 
 import model.ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION
 import model._
-import model.command.ApplicationForFsac
+import model.command.ApplicationForProgression
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import model.persisted.SchemeEvaluationResult
 import org.scalatest.concurrent.ScalaFutures
@@ -58,11 +58,11 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
       whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
         appsForAc must contain(
-          ApplicationForFsac("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          ApplicationForProgression("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
         )
         appsForAc must contain(
-          ApplicationForFsac("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          ApplicationForProgression("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
             List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)))
         )
         appsForAc.length mustBe 2
@@ -88,6 +88,30 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
   }
 
   "progressToFsac" must {
+
+    "ignore candidates who only have Sdip/Edip green at the end of sifting" in {
+      insertApplicationWithSiftComplete("appId1",
+        List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
+      insertApplicationWithSiftComplete("appId2",
+        List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
+      insertApplicationWithSiftComplete("appId3",
+        List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString)))
+
+      whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(1)) { result =>
+        result mustBe ApplicationForProgression("appId3", ApplicationStatus.SIFT,
+          List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
+            SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))
+        ) :: Nil
+      }
+    }
+
     "progress candidates who have completed the sift phase" in {
       insertApplicationWithSiftComplete("appId11",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
@@ -97,7 +121,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
       val nextResults = assessmentCentreRepository.nextApplicationForAssessmentCentre(1).futureValue
       nextResults mustBe List(
-        ApplicationForFsac("appId11", ApplicationStatus.SIFT,
+        ApplicationForProgression("appId11", ApplicationStatus.SIFT,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
             SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
             SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))
