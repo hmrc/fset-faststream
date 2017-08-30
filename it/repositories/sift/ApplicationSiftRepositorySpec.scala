@@ -13,8 +13,6 @@ import repositories.onlinetesting.Phase2EvaluationMongoRepositorySpec.phase2Test
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.{ MockitoSugar, MongoRepositorySpec }
 
-import scala.concurrent.Future
-
 class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFutures with CommonRepository
   with MockitoSugar with TableDrivenPropertyChecks {
 
@@ -62,17 +60,17 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
       appsForSift must contain theSameElementsAs List(
-        ApplicationForSift("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId1", "appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId3", "appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(European, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId4", "appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId6", "appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId7", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId7", "appId7", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId8", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+        ApplicationForSift("appId8", "appId8", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
             SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
       )
@@ -104,7 +102,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   "findApplicationsReadyForSifting" must {
     "return fast stream candidates that are ready for sifting" in {
-      createSiftEligibleCandidates(UserId, "appId1")
+      createSiftEligibleCandidates("appId1")
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
       val candidate = candidates.head
@@ -117,7 +115,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     def candidates = Table(
       ("appId", "unit", "scheme"),
-      ("appId1", createSiftEligibleCandidates(UserId, "appId1"), Commercial),
+      ("appId1", createSiftEligibleCandidates("appId1"), Commercial),
       ("appId2", createSdipSiftCandidates("appId2"), Sdip),
       ("appId3", createEdipSiftCandidates("appId3"), Edip)
     )
@@ -132,7 +130,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     }
 
     "eligible for other schema after sifting on one" in {
-      createSiftEligibleCandidates(UserId, "appId14")
+      createSiftEligibleCandidates("appId14")
       repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(European, "Red")).futureValue
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
@@ -146,7 +144,38 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     }
   }
 
-  private def createSiftEligibleCandidates(userId: String, appId: String, resultToSave: List[SchemeEvaluationResult] = List(
+  "next application failed at sift" must {
+    "return candidates who are all red at the end of sift" in {
+      val schemeStatus = List(
+        SchemeEvaluationResult(Commercial, Red.toString),
+        SchemeEvaluationResult(European, Withdrawn.toString),
+        SchemeEvaluationResult(Generalist, Red.toString)
+      )
+      createSiftEligibleCandidates("appId", schemeStatus)
+      applicationRepository.addProgressStatusAndUpdateAppStatus("appId", ProgressStatuses.SIFT_COMPLETED).futureValue
+
+      whenReady(repository.nextApplicationFailedAtSift) {  result =>
+        result mustBe defined
+        result.get mustBe ApplicationForSift("appId", "appId", ApplicationStatus.SIFT, schemeStatus)
+      }
+
+    }
+    "ignore candidates who are not all red at the end of sift" in {
+      val schemeStatus = List(
+        SchemeEvaluationResult(Commercial, Red.toString),
+        SchemeEvaluationResult(European, Green.toString),
+        SchemeEvaluationResult(Generalist, Red.toString)
+      )
+      createSiftEligibleCandidates("appId", schemeStatus)
+      applicationRepository.addProgressStatusAndUpdateAppStatus("appId", ProgressStatuses.SIFT_COMPLETED).futureValue
+
+      whenReady(repository.nextApplicationFailedAtSift) {  result =>
+        result mustBe None
+      }
+    }
+  }
+
+  private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
       SchemeEvaluationResult(Commercial, Green.toString),
       SchemeEvaluationResult(European, Green.toString),
       SchemeEvaluationResult(Generalist, Red.toString)
@@ -154,7 +183,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   ) = {
 
     val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
-    insertApplication(appId,
+    insertApplication(appAndUserId,
       ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
       Some(phase3TestWithResult),
       schemes = List(Commercial, European),
@@ -162,8 +191,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
       "phase3_version1-res", Some("phase2_version1-res"))
-    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3Evaluation, Some(PHASE3_TESTS_PASSED)).futureValue
-    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_READY).futureValue
+    phase3EvaluationRepo.savePassmarkEvaluation(appAndUserId, phase3Evaluation, Some(PHASE3_TESTS_PASSED)).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appAndUserId, ProgressStatuses.SIFT_READY).futureValue
   }
 
   private def createSdipSiftCandidates(appId: String) = createXdipSiftCandidates(ApplicationRoute.Sdip)(appId)

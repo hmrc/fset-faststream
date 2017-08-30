@@ -20,7 +20,8 @@ import model.ProgressStatuses.FSB_RESULT_ENTERED
 import model.SchemeId
 import model.exchange.ApplicationResult
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
-import repositories.application.{ FsbTestGroupRepository, GeneralApplicationMongoRepository }
+import repositories.application.GeneralApplicationMongoRepository
+import repositories.fsb.FsbRepository
 import repositories.{ SchemeRepository, SchemeYamlRepository }
 import services.events.EventsService
 
@@ -30,14 +31,14 @@ import scala.util.Try
 
 object FsbTestGroupService extends FsbTestGroupService {
   override val applicationRepository = repositories.applicationRepository
-  override val fsbTestGroupRepository = repositories.fsbTestGroupRepository
+  override val fsbTestGroupRepository = repositories.fsbRepository
   override val eventsService = EventsService
   override val schemeRepository = SchemeYamlRepository
 }
 
 trait FsbTestGroupService {
   val applicationRepository: GeneralApplicationMongoRepository
-  val fsbTestGroupRepository: FsbTestGroupRepository
+  val fsbTestGroupRepository: FsbRepository
   val schemeRepository: SchemeRepository
   val eventsService: EventsService
 

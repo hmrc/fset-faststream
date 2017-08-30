@@ -19,7 +19,7 @@ package services.sift
 import common.FutureEx
 import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
-import model.EvaluationResults.{ Green, Withdrawn }
+import model.EvaluationResults.{ Red, Withdrawn }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
@@ -38,26 +38,27 @@ import scala.language.postfixOps
 object ApplicationSiftService extends ApplicationSiftService {
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
+  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
   val schemeRepo = SchemeYamlRepository
   val dateTimeFactory = DateTimeFactory
-  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
   val emailClient = CSREmailClient
 }
 
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
+
   def applicationSiftRepo: ApplicationSiftRepository
-
   def applicationRepo: GeneralApplicationRepository
-
-  def schemeRepo: SchemeRepository
-
   def contactDetailsRepo: ContactDetailsRepository
-
+  def schemeRepo: SchemeRepository
   def emailClient: EmailClient
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
   }
+
+  def processNextApplicationFailedAtSift: Future[Unit] = applicationSiftRepo.nextApplicationFailedAtSift.flatMap(_.map { application =>
+    applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.FAILED_AT_SIFT)
+  }.getOrElse(Future.successful(())))
 
   private def requiresForms(schemeIds: Seq[SchemeId]) = {
     schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
@@ -125,6 +126,14 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
+  private def maybeFailSdip(result: SchemeEvaluationResult) = {
+    if (Scheme.isSdip(result.schemeId) && result.result == Red.toString) {
+      progressStatusOnlyBSON(ProgressStatuses.SDIP_FAILED_AT_SIFT)
+    } else {
+      BSONDocument.empty
+    }
+  }
+
   private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
     case s if s.result != Withdrawn.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
   }
@@ -140,7 +149,13 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
     Seq(currentSchemeStatusBSON(newSchemeStatus),
-      maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
-    )
+      maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet),
+      maybeFailSdip(result)
+    ).foldLeft(Seq.empty[BSONDocument]) { (acc, doc) =>
+      doc match {
+        case _ @BSONDocument.empty => acc
+        case _ => acc :+ doc
+      }
+    }
   }
 }

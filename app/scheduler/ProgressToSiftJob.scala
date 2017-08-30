@@ -20,7 +20,7 @@ import config.WaitingScheduledJobConfig
 import model.ProgressStatuses
 import model.command.ApplicationForSift
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
+import ProgressToSiftJobConfig.conf
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -34,7 +34,7 @@ object ProgressToSiftJob extends ProgressToSiftJob {
 trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
 
-  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
+  lazy val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = new HeaderCarrier()

@@ -16,7 +16,7 @@
 
 package scheduler
 
-import command.ApplicationForSiftExamples
+import model.command.ApplicationForSiftExamples
 import config.WaitingScheduledJobConfig
 import model.command.ApplicationForSift
 import model.{ ProgressStatuses, SchemeId, SerialUpdateResult }
@@ -35,6 +35,7 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
 
   object TestProgressToSiftJob extends ProgressToSiftJob {
     override val siftService: ApplicationSiftService = mockApplicationSiftService
+    override lazy val batchSize = 10
     val config = BasicJobConfig[WaitingScheduledJobConfig]("", "")
   }
 
