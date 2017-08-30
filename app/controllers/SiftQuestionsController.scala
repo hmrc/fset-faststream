@@ -130,7 +130,7 @@ abstract class SiftQuestionsController(
         }
 
         enrichedExisting map { ee =>
-          val toAdd = ee.keySet diff userMetadata.schemesForSiftForms.toSet
+          val toAdd = userMetadata.schemesForSiftForms.toSet diff ee.keySet
           ee ++ toAdd.map {scheme => scheme -> SchemeSpecificAnswer("")}
         }
       }
