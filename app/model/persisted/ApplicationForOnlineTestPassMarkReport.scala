@@ -31,8 +31,8 @@ case class ApplicationForOnlineTestPassMarkReport(
                                                    gis: Option[Boolean],
                                                    onlineAdjustments: Option[String],
                                                    assessmentCentreAdjustments: Option[String],
-                                                   testResults: TestResultsForOnlineTestPassMarkReportItem
-                                                     )
+                                                   testResults: TestResultsForOnlineTestPassMarkReportItem,
+                                                   currentSchemeStatus: List[SchemeEvaluationResult])
 
 object ApplicationForOnlineTestPassMarkReport {
   implicit val applicationForOnlineTestReportFormat = Json.format[ApplicationForOnlineTestPassMarkReport]
