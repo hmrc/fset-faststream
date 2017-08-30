@@ -7,6 +7,7 @@ import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
+
 class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   val collectionName = CollectionNames.APPLICATION
@@ -58,8 +59,6 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
     applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).futureValue
     redApp
   }
-
-
 
   private def createApplication(): String = {
     val applicationId = generateUUID()
