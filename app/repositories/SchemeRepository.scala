@@ -74,6 +74,8 @@ trait SchemeRepository {
     schemesByTelephoneInterview.getOrElse(tel, throw SchemeNotFoundException(s"Can not find scheme for TelephoneInterview: $tel"))
   }
 
+  def faststreamSchemes: Seq[Scheme] = schemes.filterNot(s => s.isSdip || s.isEdip)
+
   def getSchemesForIds(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => getSchemeForId(id) }
 
   def getSchemeForId(id: SchemeId): Option[Scheme] = schemes.find(_.id == id)

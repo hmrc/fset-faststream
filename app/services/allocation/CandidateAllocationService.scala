@@ -42,7 +42,6 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 object CandidateAllocationService extends CandidateAllocationService {
   val candidateAllocationRepo: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
@@ -60,7 +59,6 @@ object CandidateAllocationService extends CandidateAllocationService {
   val eventsConfig = MicroserviceAppConfig.eventsConfig
 
   case class CouldNotFindCandidateWithApplication(appId: String) extends Exception(appId)
-
 }
 
 trait CandidateAllocationService extends EventSink {
@@ -179,7 +177,6 @@ trait CandidateAllocationService extends EventSink {
     applicationRepo.findAllocatedApplications(appIds)
   }
 
-
   def getCandidateAllocationsSummary(appIds: Seq[String]): Future[Seq[CandidateAllocationSummary]] = {
     candidateAllocationRepo.findAllAllocations(appIds).flatMap { allocs =>
       Future.sequence(allocs.map { ca =>
@@ -202,7 +199,6 @@ trait CandidateAllocationService extends EventSink {
     )
   }
 
-
   def processUnconfirmedCandidates()(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     candidateAllocationRepo.findAllUnconfirmedAllocated(eventsConfig.daysBeforeInvitationReminder).flatMap { allocations =>
       Future.sequence(allocations.map { alloc =>
@@ -215,7 +211,6 @@ trait CandidateAllocationService extends EventSink {
       }).map(_ => ())
     }
   }
-
 
   // this can be generalised for all cases
   private def updateStatusInvited(allocs: Seq[persisted.CandidateAllocation], eventType: EventType) = {
@@ -272,66 +267,65 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
-    private def sendCandidateEmail(
-      candidateAllocation: CandidateAllocation,
-      event: Event,
-      sessionId: UniqueIdentifier,
-      isAwaitingReminder: Boolean = false
-    )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  private def sendCandidateEmail(
+    candidateAllocation: CandidateAllocation,
+    event: Event,
+    sessionId: UniqueIdentifier,
+    isAwaitingReminder: Boolean = false
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-      val eventDate = event.date.toString(dateFormat)
-      val localTime = event.sessions.find(_.id == sessionId).map(_.startTime).getOrElse(event.startTime)
-      val eventTime = localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
-      val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
-      val eventGuideUrl = eventGuide(event).getOrElse("")
+    val eventDate = event.date.toString(dateFormat)
+    val localTime = event.sessions.find(_.id == sessionId).map(_.startTime).getOrElse(event.startTime)
+    val eventTime = localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
+    val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
+    val eventGuideUrl = eventGuide(event).getOrElse("")
 
-      applicationRepo.find(candidateAllocation.id).flatMap {
-        case Some(candidate) =>
-          eventSink {
-            val res = authProviderClient.findByUserIds(Seq(candidate.userId)).map { candidates =>
-              candidates.map { candidate =>
-                candidateAllocation.status match {
-                  case AllocationStatuses.UNCONFIRMED if isAwaitingReminder =>
-                    CandidateAllocationConfirmationReminder(candidate.email, candidate.name, eventDate, eventTime,
-                      event.eventType.displayValue, event.venue.description, deadlineDateTime, eventGuideUrl)
-                  case AllocationStatuses.UNCONFIRMED =>
-                    CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime,
-                      event.eventType.displayValue, event.venue.description, deadlineDateTime, eventGuideUrl)
-                  case AllocationStatuses.CONFIRMED =>
-                    CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime,
-                      event.eventType.displayValue, event.venue.description, eventGuideUrl)
-                }
+    applicationRepo.find(candidateAllocation.id).flatMap {
+      case Some(candidate) =>
+        eventSink {
+          val res = authProviderClient.findByUserIds(Seq(candidate.userId)).map { candidates =>
+            candidates.map { candidate =>
+              candidateAllocation.status match {
+                case AllocationStatuses.UNCONFIRMED if isAwaitingReminder =>
+                  CandidateAllocationConfirmationReminder(candidate.email, candidate.name, eventDate, eventTime,
+                    event.eventType.displayValue, event.venue.description, deadlineDateTime, eventGuideUrl)
+                case AllocationStatuses.UNCONFIRMED =>
+                  CandidateAllocationConfirmationRequest(candidate.email, candidate.name, eventDate, eventTime,
+                    event.eventType.displayValue, event.venue.description, deadlineDateTime, eventGuideUrl)
+                case AllocationStatuses.CONFIRMED =>
+                  CandidateAllocationConfirmed(candidate.email, candidate.name, eventDate, eventTime,
+                    event.eventType.displayValue, event.venue.description, eventGuideUrl)
               }
-            } recover { case ex => throw new RuntimeException(s"Was not able to retrieve user details for candidate ${candidate.userId}", ex) }
-            res.asInstanceOf[Future[StcEvents]]
-          }
-        case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.id}")
-      }
+            }
+          } recover { case ex => throw new RuntimeException(s"Was not able to retrieve user details for candidate ${candidate.userId}", ex) }
+          res.asInstanceOf[Future[StcEvents]]
+        }
+      case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.id}")
     }
+  }
 
-    private def notifyCandidateUnallocated(eventId: String, allocation: CandidateAllocation)(implicit hc: HeaderCarrier) = {
-      getFullDetails(eventId, allocation).flatMap { case (event, personalDetails, contactDetails) =>
-        emailClient.sendCandidateUnAllocatedFromEvent(
-          contactDetails.email,
-          s"${personalDetails.firstName} ${personalDetails.lastName}",
-          event.date.toString("d MMMM YYYY")
-        )
-      }
+  private def notifyCandidateUnallocated(eventId: String, allocation: CandidateAllocation)(implicit hc: HeaderCarrier) = {
+    getFullDetails(eventId, allocation).flatMap { case (event, personalDetails, contactDetails) =>
+      emailClient.sendCandidateUnAllocatedFromEvent(
+        contactDetails.email,
+        s"${personalDetails.firstName} ${personalDetails.lastName}",
+        event.date.toString("d MMMM YYYY")
+      )
     }
+  }
 
-    private def getFullDetails(
-      eventId: String,
-      allocation: command.CandidateAllocation)
-      (implicit hc: HeaderCarrier): Future[(Event, PersonalDetails, ContactDetails)] = {
-      for {
-        eventDetails <- eventsService.getEvent(eventId)
-        candidates <- applicationRepo.find(allocation.id :: Nil)
-        candidate = candidates.headOption.getOrElse(throw CouldNotFindCandidateWithApplication(allocation.id))
-        personalDetails <- personalDetailsRepo.find(allocation.id)
-        contactDetails <- contactDetailsRepo.find(candidate.userId)
-      } yield (eventDetails, personalDetails, contactDetails)
-    }
+  private def getFullDetails(
+    eventId: String,
+    allocation: command.CandidateAllocation)
+    (implicit hc: HeaderCarrier): Future[(Event, PersonalDetails, ContactDetails)] = {
+    for {
+      eventDetails <- eventsService.getEvent(eventId)
+      candidates <- applicationRepo.find(allocation.id :: Nil)
+      candidate = candidates.headOption.getOrElse(throw CouldNotFindCandidateWithApplication(allocation.id))
+      personalDetails <- personalDetailsRepo.find(allocation.id)
+      contactDetails <- contactDetailsRepo.find(candidate.userId)
+    } yield (eventDetails, personalDetails, contactDetails)
+  }
 
   def updateStructure(): Future[Unit] = candidateAllocationRepo.updateStructure()
-
-  }
+}

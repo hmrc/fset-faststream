@@ -19,7 +19,7 @@ package controllers.testdata
 import play.api.mvc.{ Action, AnyContent }
 import scheduler.assessment.EvaluateAssessmentScoreJob
 import scheduler.onlinetesting.{ EvaluatePhase1ResultJob, EvaluatePhase2ResultJob, EvaluatePhase3ResultJob }
-import scheduler.{ NotifyAssessorsOfNewEventsJob, ProgressToAssessmentCentreJob, ProgressToSiftJob }
+import scheduler.{ NotifyAssessorsOfNewEventsJob, ProgressToAssessmentCentreJob, ProgressToSiftJob, SiftFailureJob }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -49,6 +49,12 @@ class TestJobsController extends BaseController {
   def progressCandidatesToSift: Action[AnyContent] = Action.async { implicit request =>
     ProgressToSiftJob.tryExecute().map { _ =>
       Ok("Progress to sift result job started")
+    }
+  }
+
+  def processFailedAtSift: Action[AnyContent] = Action.async { implicit request =>
+    SiftFailureJob.tryExecute().map { _ =>
+      Ok("Process failed applications at sift job started")
     }
   }
 
