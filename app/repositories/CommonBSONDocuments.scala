@@ -108,6 +108,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
           fastPassAccepted = getProgress(ProgressStatuses.FAST_PASS_ACCEPTED.key),
           withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
           applicationArchived = getProgress(ProgressStatuses.APPLICATION_ARCHIVED.key),
+          eligibleForJobOffer = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER.key),
           phase1ProgressResponse = Phase1ProgressResponse(
             phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
             phase1TestsFirstReminder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
@@ -167,7 +168,8 @@ trait CommonBSONDocuments extends BaseBSONReader {
             scoresAccepted = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.key),
             awaitingReevaluation = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
             passed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
-            failed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key)
+            failed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key),
+            failedNotified = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key)
           ),
           fsb = Fsb(
             getProgress(ProgressStatuses.FSB_AWAITING_ALLOCATION.key),
@@ -176,7 +178,8 @@ trait CommonBSONDocuments extends BaseBSONReader {
             getProgress(ProgressStatuses.FSB_FAILED_TO_ATTEND.key),
             getProgress(ProgressStatuses.FSB_RESULT_ENTERED.key),
             getProgress(ProgressStatuses.FSB_PASSED.key),
-            getProgress(ProgressStatuses.FSB_FAILED.key)
+            getProgress(ProgressStatuses.FSB_FAILED.key),
+            getProgress(ProgressStatuses.FSB_FAILED_NOTIFIED.key)
           )
         )
       }).getOrElse(ProgressResponse(applicationId))

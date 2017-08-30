@@ -117,4 +117,9 @@ trait CandidateAllocationController extends BaseController {
       NoContent
     }
   }
+
+  def addNewAttributes() = Action.async { implicit request =>
+    candidateAllocationService.updateStructure().map(_ => Ok)
+  }
+
 }

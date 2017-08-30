@@ -326,4 +326,6 @@ trait CandidateAllocationService extends EventSink {
       contactDetails <- contactDetailsRepo.find(candidate.userId)
     } yield (eventDetails, personalDetails, contactDetails)
   }
+
+  def updateStructure(): Future[Unit] = candidateAllocationRepo.updateStructure()
 }

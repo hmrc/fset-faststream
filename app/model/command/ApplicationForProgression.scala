@@ -20,14 +20,14 @@ import model.ApplicationStatus.ApplicationStatus
 import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.{ Json, OFormat }
 
-case class ApplicationForFsac(
+case class ApplicationForProgression(
   applicationId: String,
   applicationStatus: ApplicationStatus,
   currentSchemeStatus: Seq[SchemeEvaluationResult]
 )
 
-object ApplicationForFsac {
-  implicit val applicationForFsacFormat: OFormat[ApplicationForFsac] = Json.format[ApplicationForFsac]
+object ApplicationForProgression {
+  implicit val applicationForFsacFormat: OFormat[ApplicationForProgression] = Json.format[ApplicationForProgression]
 
 
 }
