@@ -14,40 +14,40 @@
         @helper.CSRF.formField
         <fieldset>
             <div class="form-group">
-                @select_search(page.form("passportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What country is named on your current passport?"))
+                @select_search(page.form("passportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What country's nationality is on your current passport?"))
             </div>
             <label class="form-label">Do you currently hold a second passport?</label>
             @yesNoRadioWithTogglePanel(page.form("multiplePassports"),
                 'id -> "multiplePassports"
             ) {
                 <div id="multiplePassports-panel-yes" class="toggle-content" >
-                    <div>
-                        @select_search(page.form("secondPassportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What country issued your second passport?"))
+                    <div class="form-group">
+                        @select_search(page.form("secondPassportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What country's nationality is on your second passport?"))
                     </div>
                 </div>
             }
         </fieldset>
 
         <fieldset>
-            <legend class="form-label" id="UndergraduateDegree">Do you have an undergraduate degree?</legend>
+            <legend class="form-label" id="UndergraduateDegree">Do you have an undergraduate degree? (or expect to have)</legend>
             @yesNoRadioWithTogglePanel(page.form("hasUndergradDegree"), 'id -> "undergradDegree") {
                 <div id="undergradDegree-panel-yes" class="toggle-content" >
                     <h2 class="heading-medium">Undergraduate degree</h2>
                     <div class="form-group">
                         @helper.inputText(page.form("undergradDegree.name"),
                             'id -> "undergradDegree.name",
-                            '_label -> "What was the name of your degree?",
+                            '_label -> "Enter the name of your degree (include title and subject)",
+                            '_help -> "For example, Psychology BA Hons",
                             'class -> "form-control",
                             '_showConstraints -> false
                         )
                     </div>
                     <div class="form-group">
-                        @select(page.form("undergradDegree.classification"), UndergradDegreeInfoForm.Classifications)("")(Html("What was your degree classification?"))
+                        @select(page.form("undergradDegree.classification"), UndergradDegreeInfoForm.Classifications)("Select one")(Html("Degree class achieved or predicted"))
                     </div>
                      <div class="form-group">
                         @helper.inputText(page.form("undergradDegree.graduationYear"),
-                            '_label -> "What year did you graduate?",
-                            '_help -> "Or enter the year you expect to graduate",
+                            '_label -> "Year of graduation",
                             'class -> "form-control",
                             '_class -> "form-group-compound",
                             '_showConstraints -> false
@@ -66,22 +66,22 @@
         </fieldset>
 
         <fieldset>
-            <legend class="form-label" id="PostgraduateDegree">Do you have a postgraduate degree?</legend>
+            <legend class="form-label" id="PostgraduateDegree">Do you have a postgraduate degree? (or expect to have)</legend>
             @yesNoRadioWithTogglePanel(page.form("hasPostgradDegree"), 'id -> "postgradDegree") {
                 <div id="postgradDegree-panel-yes" class="toggle-content" >
                     <h2 class="heading-medium">Postgraduate degree</h2>
                     <div class="form-group">
                         @helper.inputText(page.form("postgradDegree.name"),
                             'id -> "postgradDegree.name",
-                            '_label -> "What was the name of your degree?",
+                            '_label -> "Enter the name of your degree (include title and subject)",
+                            '_help -> "For example, Psychology MA",
                             'class -> "form-control",
                             '_showConstraints -> false
                         )
                     </div>
                      <div class="form-group">
                         @helper.inputText(page.form("postgradDegree.graduationYear"),
-                            '_label -> "What year did you graduate?",
-                            '_help -> "Or enter the year you expect to graduate",
+                            '_label -> "Year of graduation",
                             'class -> "form-control",
                             '_class -> "form-group-compound",
                             '_showConstraints -> false
@@ -90,6 +90,7 @@
                     <div class="form-group">
                         @helper.textarea(page.form("postgradDegree.otherDetails"),
                             '_label -> "List any other details about your postgraduate degree",
+                            '_help -> "For example, modules studied or outline of research",
                             'class -> "form-control",
                             'rows -> 5,
                             '_showConstraints -> false
