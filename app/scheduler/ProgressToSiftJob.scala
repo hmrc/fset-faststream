@@ -17,9 +17,12 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
+import model.ProgressStatuses
+import model.command.ApplicationForSift
 import scheduler.clustering.SingleInstanceScheduledJob
 import ProgressToSiftJobConfig.conf
 import services.sift.ApplicationSiftService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -31,16 +34,27 @@ object ProgressToSiftJob extends ProgressToSiftJob {
 trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
 
-  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
+  lazy val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    implicit val hc: HeaderCarrier = new HeaderCarrier()
     siftService.nextApplicationsReadyForSiftStage(batchSize).flatMap {
       case Nil => Future.successful(())
       case applications => siftService.progressApplicationToSiftStage(applications).map { result =>
+        result.successes.map { application =>
+          if (isSiftEnteredStatus(application)) {
+            siftService.sendSiftEnteredNotification(application.applicationId).map(_ => ())
+          }
+        }
         play.api.Logger.info(s"Progress to sift complete - ${result.successes.size} updated and ${result.failures.size} failed to update")
       }
     }
   }
+
+  private def isSiftEnteredStatus(application: ApplicationForSift): Boolean = {
+    siftService.progressStatusForSiftStage(application) == ProgressStatuses.SIFT_ENTERED
+  }
+
 }
 
 object ProgressToSiftJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
