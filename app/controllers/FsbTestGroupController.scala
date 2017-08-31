@@ -21,7 +21,7 @@ import model.Exceptions.{ AlreadyEvaluatedForSchemeException, SchemeNotFoundExce
 import model.exchange.FsbEvaluationResults
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
-import services.application.FsbTestGroupService
+import services.application.FsbService
 import services.events.EventsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -29,11 +29,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object FsbTestGroupController extends FsbTestGroupController {
   val eventsService = EventsService
-  val fsbService = FsbTestGroupService
+  val fsbService = FsbService
 }
 
 trait FsbTestGroupController extends BaseController {
-  val fsbService: FsbTestGroupService
+  val fsbService: FsbService
   val eventsService: EventsService
 
   def save(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>

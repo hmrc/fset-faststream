@@ -17,31 +17,42 @@
 package services.application
 
 import model.ProgressStatuses.FSB_RESULT_ENTERED
-import model.SchemeId
+import model.{ AssessmentPassMarksSchemesAndScores, SchemeId }
 import model.exchange.ApplicationResult
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
+import play.api.Logger
 import repositories.application.GeneralApplicationMongoRepository
-import repositories.fsb.FsbRepository
+import repositories.fsb.{ FsbMongoRepository, FsbRepository }
 import repositories.{ SchemeRepository, SchemeYamlRepository }
-import services.events.EventsService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
 
-object FsbTestGroupService extends FsbTestGroupService {
-  override val applicationRepository = repositories.applicationRepository
-  override val fsbTestGroupRepository = repositories.fsbRepository
-  override val eventsService = EventsService
-  override val schemeRepository = SchemeYamlRepository
+object FsbService extends FsbService {
+  override val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
+  override val fsbRepo: FsbMongoRepository = repositories.fsbRepository
+  override val schemeRepo: SchemeYamlRepository.type = SchemeYamlRepository
 }
 
-trait FsbTestGroupService {
-  val applicationRepository: GeneralApplicationMongoRepository
-  val fsbTestGroupRepository: FsbRepository
-  val schemeRepository: SchemeRepository
-  val eventsService: EventsService
+trait FsbService {
+  val applicationRepo: GeneralApplicationMongoRepository
+  val fsbRepo: FsbRepository
+  val schemeRepo: SchemeRepository
 
+  val logPrefix = "[FsbEvaluation]"
+
+  def nextFsbCandidateReadyForEvaluation: Future[Option[AssessmentPassMarksSchemesAndScores]] = {
+    fsbRepo.nextApplicationReadyForFsbEvaluation().flatMap {
+          case Some(appId) =>
+            Logger.debug(s"$logPrefix Found candidate to process - applicationId = $appId")
+            tryToFindEvaluationData(appId, passmark)
+          case None =>
+            Logger.debug(s"$logPrefix Completed - no candidates found")
+            Future.successful(None)
+        }
+
+  }
   def saveResults(schemeId: SchemeId, applicationResults: List[ApplicationResult]): Future[List[Unit]] = {
     Future.sequence(
       applicationResults.map(applicationResult => saveResult(schemeId, applicationResult))
@@ -54,20 +65,20 @@ trait FsbTestGroupService {
 
   def saveResult(applicationId: String, schemeEvaluationResult: SchemeEvaluationResult): Future[Unit] = {
     for {
-      _ <- fsbTestGroupRepository.save(applicationId, schemeEvaluationResult)
-      _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(applicationId, FSB_RESULT_ENTERED)
+      _ <- fsbRepo.save(applicationId, schemeEvaluationResult)
+      _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, FSB_RESULT_ENTERED)
     } yield ()
   }
 
   def findByApplicationIdsAndFsbType(applicationIds: List[String], mayBeFsbType: Option[String]): Future[List[FsbSchemeResult]] = {
     val maybeSchemeId = mayBeFsbType.flatMap { fsb =>
-      Try(schemeRepository.getSchemeForFsb(fsb)).toOption
+      Try(schemeRepo.getSchemeForFsb(fsb)).toOption
     }.map(_.id)
     findByApplicationIdsAndScheme(applicationIds, maybeSchemeId)
   }
 
   def findByApplicationIdsAndScheme(applicationIds: List[String], mayBeSchemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
-    fsbTestGroupRepository.findByApplicationIds(applicationIds, mayBeSchemeId)
+    fsbRepo.findByApplicationIds(applicationIds, mayBeSchemeId)
   }
 
 }
