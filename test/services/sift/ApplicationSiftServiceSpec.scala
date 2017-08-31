@@ -186,6 +186,47 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }
+
+    "sift candidate and update progress status if remaining schemes don't require sift" in new SiftUpdateTest {
+      val currentStatus = Seq(
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("HousesOfParliament"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+      )
+      val expectedUpdateBson = Seq(
+        currentSchemeUpdateBson(currentStatus:_*),
+        progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)
+      )
+
+      override val schemeSiftResult = SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+
+      (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.Faststream)
+      (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(currentStatus)
+      (mockSiftRepo.siftApplicationForScheme _).expects("applicationId", schemeSiftResult, expectedUpdateBson).returningAsync
+
+      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+    }
+
+    "sift candidate and update progress status if remaining schemes are generalists and/or dont require sift" in new SiftUpdateTest {
+      val currentStatus = Seq(
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("HousesOfParliament"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+      )
+      val expectedUpdateBson = Seq(
+        currentSchemeUpdateBson(currentStatus: _*),
+        progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)
+      )
+
+      override val schemeSiftResult = SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+
+      (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.Faststream)
+      (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(currentStatus)
+      (mockSiftRepo.siftApplicationForScheme _).expects("applicationId", schemeSiftResult, expectedUpdateBson).returningAsync
+
+      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+    }
   }
 
   "sendSiftEnteredNotification" must {
