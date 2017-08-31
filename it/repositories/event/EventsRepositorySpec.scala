@@ -83,7 +83,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "filter and return empty list" in {
-      repository.save(EventExamples.EventsNew.filterNot(_.eventType == EventType.FSAC)).futureValue
+      repository.save(EventExamples.EventsNew.filter(_.eventType == EventType.FSAC)).futureValue
       val result = repository.getEvents(Some(EventType.FSB), Some(EventExamples.VenueNewcastle)).futureValue
       result.size mustBe 0
     }
