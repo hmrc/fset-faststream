@@ -25,6 +25,7 @@ import model.persisted.SchemeEvaluationResult
 import play.api.Logger
 import repositories.{ CurrentSchemeStatusHelper, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -34,6 +35,7 @@ import scala.concurrent.Future
 object AssessmentCentreToFsbOrOfferProgressionService extends AssessmentCentreToFsbOrOfferProgressionService {
   val fsbRequiredSchemeIds: Seq[SchemeId] = SchemeYamlRepository.fsbSchemeIds
   val applicationRepo = repositories.applicationRepository
+  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
   val fsbRepo = repositories.fsbRepository
   val emailClient = CSREmailClient
   val authProviderClient = AuthProviderClient
@@ -45,11 +47,11 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
 
   def applicationRepo: GeneralApplicationRepository
 
+  def contactDetailsRepo: ContactDetailsRepository
+
   def fsbRepo: FsbRepository
 
   def emailClient: EmailClient
-
-  def authProviderClient: AuthProviderClient
 
   def nextApplicationsForFsbOrJobOffer(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     fsbRepo.nextApplicationForFsbOrJobOfferProgression(batchSize)
@@ -64,8 +66,8 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
 
       if (firstResidual.result == Green.toString && fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
         fsbRepo.progressToFsb(application).flatMap { _ =>
-          retrieveCandidateDetails(application.applicationId).flatMap { candidate =>
-            emailClient.sendCandidateAssessmentCompletedMovedToFsb(candidate.email, candidate.name)
+          retrieveCandidateDetails(application.applicationId).flatMap { case (candidate, cd) =>
+            emailClient.sendCandidateAssessmentCompletedMovedToFsb(cd.email, candidate.name)
           }
         }.map(_ => ())
       } else if (firstResidual.result == Green.toString) {
@@ -91,9 +93,9 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
 
   private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
     applicationRepo.find(applicationId).flatMap {
-      case Some(app) => authProviderClient.findByUserIds(Seq(app.userId))
+      case Some(app) => contactDetailsRepo.find(app.userId).map {cd => (app, cd)}
       case None => sys.error(s"Can't find application $applicationId")
-    }.map(_.headOption.getOrElse(sys.error(s"Can't find user records for $applicationId")))
+    }
   }
 
   private def withErrLogging[T](logPrefix: String)(f: Future[T]): Future[T] = {

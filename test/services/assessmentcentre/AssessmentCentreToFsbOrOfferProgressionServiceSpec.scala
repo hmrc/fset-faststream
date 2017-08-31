@@ -20,8 +20,9 @@ import connectors.ExchangeObjects.Candidate
 import connectors.{ AuthProviderClient, EmailClient }
 import model.{ SchemeId, _ }
 import model.command.ApplicationForProgression
-import model.persisted.SchemeEvaluationResult
+import model.persisted.{ ContactDetails, SchemeEvaluationResult }
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
@@ -45,15 +46,15 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
 
         (mockApplicationRepository.find(_: String))
           .expects(expectedApplication.applicationId)
-          .returningAsync(Option(c0)).once
+          .returningAsync(Option(c0))
 
-        (mockAuthProviderClient.findByUserIds(_: Seq[String])(_: HeaderCarrier))
-          .expects(Seq(userId), hc)
-          .returningAsync(Seq(c1)).once
+        (mockContactDetailsRepo.find _)
+          .expects(userId)
+          .returningAsync(c1)
 
         (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier))
-          .expects(c1.email, c1.name, hc)
-          .returningAsync.once
+          .expects(c1.email, c0.name, hc)
+          .returningAsync
       }
 
       whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToFsb)(hc)) {
@@ -110,7 +111,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
   trait TestFixture  {
     val mockFsbRepository = mock[FsbRepository]
     val mockApplicationRepository = mock[GeneralApplicationRepository]
-    val mockAuthProviderClient = mock[AuthProviderClient]
+    val mockContactDetailsRepo = mock[ContactDetailsRepository]
     val mockEmailClient = mock[EmailClient]
 
     val service: AssessmentCentreToFsbOrOfferProgressionService = new AssessmentCentreToFsbOrOfferProgressionService() {
@@ -120,7 +121,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
         SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService"))
 
       override def emailClient: EmailClient = mockEmailClient
-      override def authProviderClient: AuthProviderClient = mockAuthProviderClient
+      override def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
     }
 
     val userId = "1"
@@ -128,7 +129,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
 
     val c0 = model.Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
 
-    val c1 = Candidate("Joe", "Bloggs", None, "joe.bloggs@test.com", None, "userId1", List("user"))
+    val c1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
     val applicationsToProgressToFsb = List(
       ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
         List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString))),
