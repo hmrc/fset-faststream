@@ -45,7 +45,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "filter SKYPE_INTERVIEW in NEWCASTLE_LONGBENTON " in {
       repository.save(EventExamples.EventsNew).futureValue
-      val result = repository.getEvents(Some(EventType.SKYPE_INTERVIEW), Some(EventExamples.VenueNewcastle)).futureValue
+      val result = repository.getEvents(Some(EventType.FSB), Some(EventExamples.VenueNewcastle)).futureValue
       result.size mustBe 1
       result.head.venue mustBe EventExamples.VenueNewcastle
     }
@@ -71,7 +71,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEvents(Some(EventType.ALL_EVENTS), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 3
-      result.exists(_.eventType == EventType.TELEPHONE_INTERVIEW) mustBe true
+      result.exists(_.eventType == EventType.FSB) mustBe true
       result.forall(_.venue == VenueType.LONDON_FSAC)
       result.exists(_.eventType == EventType.FSAC) mustBe true
     }
@@ -83,8 +83,8 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "filter and return empty list" in {
-      repository.save(EventExamples.EventsNew).futureValue
-      val result = repository.getEvents(Some(EventType.TELEPHONE_INTERVIEW), Some(EventExamples.VenueNewcastle)).futureValue
+      repository.save(EventExamples.EventsNew.filterNot(_.eventType == EventType.FSAC)).futureValue
+      val result = repository.getEvents(Some(EventType.FSB), Some(EventExamples.VenueNewcastle)).futureValue
       result.size mustBe 0
     }
 
@@ -108,11 +108,8 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "return multiple events by Id with filter on event type" in {
       repository.save(EventExamples.EventsNew).futureValue
-      val result = repository.getEventsById(
-        EventExamples.EventsNew.map(_.id),
-        Some(EventType.TELEPHONE_INTERVIEW)
-      ).futureValue
-      result mustBe EventExamples.EventsNew.filter(_.eventType == EventType.TELEPHONE_INTERVIEW)
+      val result = repository.getEventsById(EventExamples.EventsNew.map(_.id), Some(EventType.FSB)).futureValue
+      result mustBe EventExamples.EventsNew.filter(_.eventType == EventType.FSB)
     }
 
     "return the newly created events since the specified date" in {
