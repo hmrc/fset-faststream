@@ -19,7 +19,7 @@ package repositories.fsb
 import factories.DateTimeFactory
 import model.Exceptions.AlreadyEvaluatedForSchemeException
 import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION }
-import model.{ ApplicationStatus, EvaluationResults, ProgressStatuses, SchemeId }
+import model._
 import model.command.ApplicationForProgression
 import model.persisted.fsac.AssessmentCentreTests
 import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
@@ -34,6 +34,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait FsbRepository {
+  def nextApplicationReadyForFsbEvaluation: Future[Option[UniqueIdentifier]]
   def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]]
   def progressToFsb(application: ApplicationForProgression): Future[Unit]
   def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
@@ -49,6 +50,19 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
 
   private val APPLICATION_ID = "applicationId"
   private val FSB_TEST_GROUPS = "testGroups.FSB"
+
+  override def nextApplicationReadyForFsbEvaluation: Future[Option[UniqueIdentifier]] = {
+    val query =
+      BSONDocument(
+        s"applicationStatus" -> ApplicationStatus.FSB.toString,
+        s"progress-status.${ProgressStatuses.FSB_RESULT_ENTERED}" -> true,
+        s"progress-status.${ProgressStatuses.FSB_FAILED}" -> BSONDocument("$exists" -> false),
+        s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$exists" -> false)
+      )
+
+    selectOneRandom[BSONDocument](query).map(_.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get)
+    )
+  }
 
   def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
