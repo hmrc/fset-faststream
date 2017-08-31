@@ -38,7 +38,7 @@ GET         /application/:applicationId/currentSchemeStatus              control
 #GET         /application/:applicationId/assessmentcentre/results        controllers.ApplicationController.getSchemeResults(applicationId: String)
 
 GET         /application/:applicationId/fsacEvaluationAverages           controllers.ApplicationController.getFsacEvaluationResultAverages(applicationId: String)
-POST        /application/:userId/:applicationId/:fsacArea                controllers.ApplicationController.updateFsacIndicator(userId: String, applicationId: String, fsacArea: String)
+POST        /application/:userId/:applicationId/:fsacAssessmentCentre    controllers.ApplicationController.updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String)
 
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
 GET         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
@@ -202,3 +202,5 @@ GET         /reference/candidate-remove-reasons                          control
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
 GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations
 GET         /reference/locations-with-venues                             controllers.reference.LocationAndVenueController.locationsWithVenues
+
+GET         /reference/fsac/assessment-centres                           controllers.reference.FsacIndicatorController.getAssessmentCentres
