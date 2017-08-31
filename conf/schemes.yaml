@@ -149,7 +149,7 @@
     required: Degree_CharteredEngineer
     specificRequirement: true
   siftRequirement: FORM
-  siftEvaluationRequired: true
+  siftEvaluationRequired: false
   fsbType: SEFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/1238/sefs-guide.pdf
 - id: Edip
