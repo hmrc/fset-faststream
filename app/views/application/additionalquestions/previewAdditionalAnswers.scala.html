@@ -14,13 +14,13 @@
         </h2>
         <div class="text">
             @page.generalAnswers.map { ga =>
-                <h4 class="bold-small">What country is named on your current passport?</h4>
+                <h4 class="bold-small">What country's nationality is on your current passport?</h4>
                 <p>@ga.passportCountry</p>
                 <h4 class="bold-small">Do you currently hold a second passport?</h4>
                 <p>@SiftPreviewPage.booleanToYesNo(ga.multiplePassports)</p>
 
                 @ga.secondPassportCountry.map { sp =>
-                    <h4 class="bold-small">What country is named on your second passport?</h4>
+                    <h4 class="bold-small">What country's nationality is on your second passport?</h4>
                     <p>@{sp}</p>
                 }
             }
@@ -38,15 +38,15 @@
             @page.generalAnswers.map { ga =>
                 @ga.undergradDegree.map { ug =>
                     <div class="text">
-                        <h4 class="bold-small">What was the name of your degree?</h4>
+                        <h4 class="bold-small">Enter the name of your degree (include title and subject)</h4>
                         <p>@ug.name</p>
                     </div>
                     <div class="text">
-                        <h4 class="bold-small">What was your degree classification?</h4>
+                        <h4 class="bold-small">Degree class achieved or predicted</h4>
                         <p>@ug.classification</p>
                     </div>
                     <div class="text">
-                        <h4 class="bold-small">What year did you graduate?</h4>
+                        <h4 class="bold-small">Year of graduation</h4>
                         <p>@ug.graduationYear</p>
                     </div>
 
@@ -73,11 +73,11 @@
         @page.generalAnswers.map { ga =>
             @ga.postgradDegree.map { pg =>
                 <div class="text">
-                    <h4 class="bold-small">What was the name of your degree?</h4>
+                    <h4 class="bold-small">Enter the name of your degree (include title and subject)</h4>
                     <p>@pg.name</p>
                 </div>
                 <div class="text">
-                    <h4 class="bold-small">What year did you graduate?</h4>
+                    <h4 class="bold-small">Year of graduation</h4>
                     <p>@pg.graduationYear</p>
                 </div>
                 <div class="text">
@@ -109,7 +109,7 @@
             @if(!answer.rawText.isEmpty) {
                 <div class="text">
                     <h4 class="bold-small">Your response</h4>
-                    <p>@answer.rawText</p>
+                    <pre style="white-space: pre-wrap">@answer.rawText</pre>
                 </div>
             }
         </section>
