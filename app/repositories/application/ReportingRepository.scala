@@ -451,20 +451,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     UserApplicationProfile(userId, latestProgressStatus, firstName, lastName, dob)
   }
 
-  private def toReportWithPersonalDetails(document: BSONDocument) = {
-    val applicationId = document.getAs[String]("applicationId").get
-    val userId = document.getAs[String]("userId").get
-
-    val personalDetailsDoc = document.getAs[BSONDocument]("personal-details").get
-    val firstName = personalDetailsDoc.getAs[String]("firstName").get
-    val lastName = personalDetailsDoc.getAs[String]("lastName").get
-    val preferredName = personalDetailsDoc.getAs[String]("preferredName").get
-    val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
-    val latestProgressStatus = ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses)
-
-    ReportWithPersonalDetails(applicationId, userId, Some(latestProgressStatus), Some(firstName), Some(lastName), Some(preferredName))
-  }
-
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
     val isNotSubmitted = !progress.submitted
     val isNotWithdrawn = !progress.withdrawn
