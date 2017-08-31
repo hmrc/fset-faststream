@@ -16,26 +16,16 @@
 
 package services.assessmentcentre
 
-import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.EvaluationResults._
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
-import model._
-import model.assessmentscores.AssessmentScoresAllExercises
-import model.command.{ ApplicationForProgression, ApplicationStatusDetails }
-import model.exchange.passmarksettings._
+import connectors.ExchangeObjects.Candidate
+import connectors.{ AuthProviderClient, EmailClient, ExchangeObjects }
+import model.{ SchemeId, _ }
+import model.command.ApplicationForProgression
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
-import org.joda.time.DateTime
-import play.api.libs.json.Format
-import repositories.AssessmentScoresRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.fsb.FsbRepository
-import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
-import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.PassMarkSettingsService
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -51,10 +41,22 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
 
         (mockFsbRepository.progressToFsb _)
           .expects(expectedApplication)
-          .returning(Future.successful(())).once
+          .returningAsync.once
+
+        (mockApplicationRepository.find(_: String))
+          .expects(expectedApplication.applicationId)
+          .returningAsync(Option(c0)).once
+
+        (mockAuthProviderClient.findByUserIds(_: Seq[String])(_: HeaderCarrier))
+          .expects(Seq(userId), hc)
+          .returningAsync(Seq(c1)).once
+
+        (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier))
+          .expects(c1.email, c1.name, hc)
+          .returningAsync.once
       }
 
-      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToFsb)) {
+      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToFsb)(hc)) {
         results =>
           val failedApplications = Seq()
           val passedApplications = applicationsToProgressToFsb
@@ -73,7 +75,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
           .returning(Future.successful(())).once
       }
 
-      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToJobOffer)) {
+      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToJobOffer)(hc)) {
         results =>
           val failedApplications = Seq()
           val passedApplications = applicationsToProgressToJobOffer
@@ -96,7 +98,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
           .returning(Future.successful(())).never
       }
 
-      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsNotToProgress)) {
+      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsNotToProgress)(hc)) {
         results =>
           val failedApplications = Seq(applicationsNotToProgress.head, applicationsNotToProgress(2))
           val passedApplications = Seq(applicationsNotToProgress(1))
@@ -108,14 +110,25 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
   trait TestFixture  {
     val mockFsbRepository = mock[FsbRepository]
     val mockApplicationRepository = mock[GeneralApplicationRepository]
+    val mockAuthProviderClient = mock[AuthProviderClient]
+    val mockEmailClient = mock[EmailClient]
 
     val service: AssessmentCentreToFsbOrOfferProgressionService = new AssessmentCentreToFsbOrOfferProgressionService() {
       val fsbRepo = mockFsbRepository
       val applicationRepo = mockApplicationRepository
       val fsbRequiredSchemeIds: Seq[SchemeId] = Seq(SchemeId("DigitalAndTechnology"),
         SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService"))
+
+      override def emailClient: EmailClient = mockEmailClient
+      override def authProviderClient: AuthProviderClient = mockAuthProviderClient
     }
 
+    val userId = "1"
+    implicit val hc = HeaderCarrier()
+
+    val c0 = model.Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+
+    val c1 = Candidate("Joe", "Bloggs", None, "joe.bloggs@test.com", None, "userId1", List("user"))
     val applicationsToProgressToFsb = List(
       ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
         List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString))),

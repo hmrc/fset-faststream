@@ -17,13 +17,16 @@
 package services.assessmentcentre
 
 import common.FutureEx
+import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.EvaluationResults.Green
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.SchemeEvaluationResult
+import play.api.Logger
 import repositories.{ CurrentSchemeStatusHelper, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
 import repositories.fsb.FsbRepository
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,24 +35,39 @@ object AssessmentCentreToFsbOrOfferProgressionService extends AssessmentCentreTo
   val fsbRequiredSchemeIds: Seq[SchemeId] = SchemeYamlRepository.fsbSchemeIds
   val applicationRepo = repositories.applicationRepository
   val fsbRepo = repositories.fsbRepository
+  val emailClient = CSREmailClient
+  val authProviderClient = AuthProviderClient
 }
 
 trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatusHelper {
-  val fsbRequiredSchemeIds: Seq[SchemeId]
+
+  def fsbRequiredSchemeIds: Seq[SchemeId]
+
   def applicationRepo: GeneralApplicationRepository
+
   def fsbRepo: FsbRepository
+
+  def emailClient: EmailClient
+
+  def authProviderClient: AuthProviderClient
 
   def nextApplicationsForFsbOrJobOffer(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     fsbRepo.nextApplicationForFsbOrJobOfferProgression(batchSize)
   }
 
-  def progressApplicationsToFsbOrJobOffer(applications: Seq[ApplicationForProgression])
+  def progressApplicationsToFsbOrJobOffer(applications: Seq[ApplicationForProgression])(implicit hc: HeaderCarrier)
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
 
-    def maybeProgressToFsbOrJobOffer(application: ApplicationForProgression, firstResidual: SchemeEvaluationResult): Future[Unit] = {
-      
+    def maybeProgressToFsbOrJobOffer(
+      application: ApplicationForProgression,
+      firstResidual: SchemeEvaluationResult)(implicit hc: HeaderCarrier): Future[Unit] = {
+
       if (firstResidual.result == Green.toString && fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
-        fsbRepo.progressToFsb(application)
+        fsbRepo.progressToFsb(application).flatMap { _ =>
+          retrieveCandidateDetails(application.applicationId).flatMap { candidate =>
+            emailClient.sendCandidateAssessmentCompletedMovedToFsb(candidate.email, candidate.name)
+          }
+        }.map(_ => ())
       } else if (firstResidual.result == Green.toString) {
         fsbRepo.progressToJobOffer(application)
       } else {
@@ -59,14 +77,27 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
 
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
-        for {
-          currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
-          firstResidual = firstResidualPreference(currentSchemeStatus).get
-          _ <- maybeProgressToFsbOrJobOffer(application, firstResidual)
-        } yield ()
+        withErrLogging("Failed while progress to fsb or job offer") {
+          for {
+            currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
+            firstResidual = firstResidualPreference(currentSchemeStatus).get
+            _ <- maybeProgressToFsbOrJobOffer(application, firstResidual)
+          } yield ()
+        }
       )
     }
-
     updates.map(SerialUpdateResult.fromEither)
   }
+
+  private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
+    applicationRepo.find(applicationId).flatMap {
+      case Some(app) => authProviderClient.findByUserIds(Seq(app.userId))
+      case None => sys.error(s"Can't find application $applicationId")
+    }.map(_.headOption.getOrElse(sys.error(s"Can't find user records for $applicationId")))
+  }
+
+  private def withErrLogging[T](logPrefix: String)(f: Future[T]): Future[T] = {
+    f.recoverWith { case ex => Logger.warn(s"$logPrefix: ${ex.getMessage}"); f }
+  }
+
 }
