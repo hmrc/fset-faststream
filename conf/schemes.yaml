@@ -9,7 +9,7 @@
   siftEvaluationRequired: true
 - id: DigitalAndTechnology
   code: DAT
-  name: Digital And Technology
+  name: Digital, Data & Technology
   civilServantEligible: true
   degree:
     required: Degree_21_PostGrad
@@ -17,6 +17,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: DAT FSB
+  schemeGuide: https://www.faststream.gov.uk/media/1230/dat-guide.pdf
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
@@ -27,6 +28,18 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: FCO
+  schemeGuide: https://www.faststream.gov.uk/media/1232/fco-guide.pdf
+- id: DiplomaticServiceEconomists
+  code: GES-DS
+  name: Diplomatic Service (Economists)
+  civilServantEligible: false
+  degree:
+    required: Degree_DipServEconomics
+    specificRequirement: true
+  siftRequirement: FORM
+  siftEvaluationRequired: true
+  fsbType: EAC_DS
+  schemeGuide: https://www.faststream.gov.uk/media/1234/ges_ds-guide.pdf
 - id: Finance
   code: FIFS
   name: Finance
@@ -54,6 +67,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: GCFS FSB
+  schemeGuide: https://www.faststream.gov.uk/media/1233/gcfs-guide.pdf
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
@@ -64,16 +78,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: EAC
-- id: GovernmentEconomicsServiceDiplomaticService
-  code: GES-DS
-  name: Government Economics Service - Diplomatic Service
-  civilServantEligible: false
-  degree:
-    required: Degree_DipServEconomics
-    specificRequirement: true
-  siftRequirement: FORM
-  siftEvaluationRequired: true
-  fsbType: EAC_DS
+  schemeGuide: https://www.faststream.gov.uk/media/1231/eac-guide.pdf
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -84,6 +89,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: ORAC
+  schemeGuide: https://www.faststream.gov.uk/media/1236/orac-guide.pdf
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
@@ -94,6 +100,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SRAC
+  schemeGuide: https://www.faststream.gov.uk/media/1240/srac-guide.pdf
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
@@ -104,6 +111,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SAC
+  schemeGuide: https://www.faststream.gov.uk/media/1237/sac-guide.pdf
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
@@ -114,6 +122,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: HOP FSB
+  schemeGuide: https://www.faststream.gov.uk/media/1235/hop_fsb-guide.pdf
 - id: HumanResources
   code: HRFS
   name: Human Resources
@@ -122,15 +131,6 @@
     required: Degree_22
     specificRequirement: false
   siftEvaluationRequired: false
-- id: International
-  code: IFS
-  name: International
-  civilServantEligible: true
-  degree:
-    required: Degree_22
-    specificRequirement: true
-  siftRequirement: FORM
-  siftEvaluationRequired: true
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
@@ -140,6 +140,7 @@
     specificRequirement: false
   siftRequirement: FORM
   siftEvaluationRequired: false
+  schemeGuide: https://www.faststream.gov.uk/media/1243/pdfs-guide.pdf
 - id: ScienceAndEngineering
   code: SEFS
   name: Science And Engineering
@@ -150,6 +151,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SEFS FSB
+  schemeGuide: https://www.faststream.gov.uk/media/1238/sefs-guide.pdf
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
@@ -157,6 +159,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   telephoneInterviewType: EDIP
+  schemeGuide: https://www.faststream.gov.uk/media/1242/edip-guide.pdf
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
@@ -164,3 +167,4 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   telephoneInterviewType: SDIP
+  schemeGuide: https://www.faststream.gov.uk/media/1244/sdip-guide.pdf

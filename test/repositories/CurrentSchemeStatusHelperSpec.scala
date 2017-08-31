@@ -30,21 +30,21 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
     "update status when one does not exist" in {
       val currentStatus = Nil
       val newStatus = SchemeEvaluationResult(SchemeId("Commercial"), Green.toString) ::
-        SchemeEvaluationResult(SchemeId("International"), Red.toString) :: Nil
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), Red.toString) :: Nil
 
       helper.calculateCurrentSchemeStatus(currentStatus, newStatus) mustBe newStatus
     }
 
     "update existing statuses" in {
       val currentStatus = SchemeEvaluationResult(SchemeId("Commercial"), Green.toString) ::
-        SchemeEvaluationResult(SchemeId("International"), Green.toString) :: Nil
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), Green.toString) :: Nil
 
       val newStatus = SchemeEvaluationResult(SchemeId("Commercial"), Red.toString) ::
        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString) :: Nil
 
       helper.calculateCurrentSchemeStatus(currentStatus, newStatus) mustBe
        SchemeEvaluationResult(SchemeId("Commercial"), Red.toString) ::
-       SchemeEvaluationResult(SchemeId("International"), Green.toString) ::
+       SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), Green.toString) ::
        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString) :: Nil
     }
 

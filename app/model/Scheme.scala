@@ -70,26 +70,31 @@ case class Scheme(
   siftRequirement: Option[SiftRequirement.Value],
   siftEvaluationRequired: Boolean,
   fsbType: Option[FsbType],
-  telephoneInterviewType: Option[TelephoneInterviewType]
+  telephoneInterviewType: Option[TelephoneInterviewType],
+  schemeGuide: Option[String]
 ) {
 
   def isSdip: Boolean = id.value == Scheme.Sdip
+  def isEdip: Boolean = id.value == Scheme.Edip
 
 }
 
 object Scheme {
 
   val Sdip = "Sdip"
+  val Edip = "Edip"
   implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
   // scalastyle:off parameter.number
   def apply(id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
             siftRequirement: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean,
-    fsbType: Option[FsbType], telephoneInterviewType: Option[TelephoneInterviewType]
+    fsbType: Option[FsbType], telephoneInterviewType: Option[TelephoneInterviewType], schemeGuide: Option[String]
   ): Scheme =
-    Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, siftEvaluationRequired, fsbType, telephoneInterviewType)
+    Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, siftEvaluationRequired,
+      fsbType, telephoneInterviewType, schemeGuide)
   // scalastyle:on
 
 
   def isSdip(id: SchemeId): Boolean = id.value == Sdip
+  def isEdip(id: SchemeId): Boolean = id.value == Edip
 }

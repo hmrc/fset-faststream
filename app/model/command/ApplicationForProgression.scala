@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package testkit
+package model.command
 
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.PlaySpec
+import model.ApplicationStatus.ApplicationStatus
+import model.persisted.SchemeEvaluationResult
+import play.api.libs.json.{ Json, OFormat }
 
-trait UnitSpec extends PlaySpec with testkit.MockitoSugar with ScalaFutures {
+case class ApplicationForProgression(
+  applicationId: String,
+  applicationStatus: ApplicationStatus,
+  currentSchemeStatus: Seq[SchemeEvaluationResult]
+)
 
-  val unit = () // This approach avoids both scala compiler and intellij warnings
-}
+object ApplicationForProgression {
+  implicit val applicationForFsacFormat: OFormat[ApplicationForProgression] = Json.format[ApplicationForProgression]
 
-trait ScalaMockUnitSpec extends PlaySpec with org.scalamock.scalatest.MockFactory with ScalaFutures with ExtendedTimeout {
-  val unit = () // This approach avoids both scala compiler and intellij warnings
+
 }

@@ -17,11 +17,13 @@
 package model.command
 
 import model.ApplicationRoute.ApplicationRoute
+import model.ProgressStatuses.ProgressStatus
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
 case class ApplicationStatusDetails(status: String,
                                     applicationRoute: ApplicationRoute,
+                                    latestProgressStatus: Option[ProgressStatus],
                                     statusDate: Option[DateTime] = None,
                                     overrideSubmissionDeadline: Option[DateTime])
 

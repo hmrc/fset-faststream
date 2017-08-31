@@ -27,12 +27,12 @@ import reactivemongo.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
-class FsbTestGroupMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
+class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
-  lazy val repository = repositories.fsbTestGroupRepository
+  lazy val repository = repositories.fsbRepository
   lazy val applicationRepo = repositories.applicationRepository
 
   "save" must {

@@ -17,15 +17,19 @@
 package services.sift
 
 import common.FutureEx
+import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
-import model.EvaluationResults.Green
+import model.EvaluationResults.{ Red, Withdrawn }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
+import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,26 +38,33 @@ import scala.language.postfixOps
 object ApplicationSiftService extends ApplicationSiftService {
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
+  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
   val schemeRepo = SchemeYamlRepository
   val dateTimeFactory = DateTimeFactory
+  val emailClient = CSREmailClient
 }
 
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
+
   def applicationSiftRepo: ApplicationSiftRepository
-
   def applicationRepo: GeneralApplicationRepository
-
+  def contactDetailsRepo: ContactDetailsRepository
   def schemeRepo: SchemeRepository
+  def emailClient: EmailClient
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
   }
 
+  def processNextApplicationFailedAtSift: Future[Unit] = applicationSiftRepo.nextApplicationFailedAtSift.flatMap(_.map { application =>
+    applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.FAILED_AT_SIFT)
+  }.getOrElse(Future.successful(())))
+
   private def requiresForms(schemeIds: Seq[SchemeId]) = {
     schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
   }
 
-  private def progressStatusForSiftStage(app: ApplicationForSift) = if (requiresForms(app.currentSchemeStatus.map(_.schemeId))) {
+  def progressStatusForSiftStage(app: ApplicationForSift) = if (requiresForms(app.currentSchemeStatus.map(_.schemeId))) {
     ProgressStatuses.SIFT_ENTERED
   } else {
     ProgressStatuses.SIFT_READY
@@ -61,7 +72,6 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def progressApplicationToSiftStage(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
-
       FutureEx.futureToEither(application,
         applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, progressStatusForSiftStage(application))
       )
@@ -80,8 +90,16 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
         case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
         case _ => buildSiftSettableFields(result, schemeFilter) _
       }
-
       siftApplicationForScheme(applicationId, result, updateFunction)
+    }
+  }
+
+  def sendSiftEnteredNotification(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    applicationRepo.find(applicationId).flatMap {
+      case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
+        emailClient.notifyCandidateSiftEnteredAdditionalQuestions(contactDetails.email, candidate.name).map(_ => ())
+      }
+      case None => throw CouldNotFindCandidateWithApplication(applicationId)
     }
   }
 
@@ -100,18 +118,27 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   private def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], siftableSchemes: Set[SchemeId]) = {
-    if (siftedSchemes equals siftableSchemes) {
+    //  siftedSchemes may contain Sdip if it's been sifted before FS schemes, but we want to ignore it.
+    if (siftableSchemes subsetOf siftedSchemes) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
     } else {
       BSONDocument.empty
     }
   }
 
-  private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
-    case s if s.result == Green.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
+  private def maybeFailSdip(result: SchemeEvaluationResult) = {
+    if (Scheme.isSdip(result.schemeId) && result.result == Red.toString) {
+      progressStatusOnlyBSON(ProgressStatuses.SDIP_FAILED_AT_SIFT)
+    } else {
+      BSONDocument.empty
+    }
   }
 
-  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = { case s if s.result == Green.toString => s.schemeId }
+  private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
+    case s if s.result != Withdrawn.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
+  }
+
+  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = { case s if s.result != Withdrawn.toString => s.schemeId }
 
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
     (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
@@ -122,7 +149,13 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
     Seq(currentSchemeStatusBSON(newSchemeStatus),
-      maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
-    )
+      maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet),
+      maybeFailSdip(result)
+    ).foldLeft(Seq.empty[BSONDocument]) { (acc, doc) =>
+      doc match {
+        case _ @BSONDocument.empty => acc
+        case _ => acc :+ doc
+      }
+    }
   }
 }

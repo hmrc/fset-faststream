@@ -39,6 +39,7 @@ import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.events.EventsMongoRepository
 import repositories.fileupload.FileUploadMongoRepository
 import repositories.fsacindicator.FSACIndicatorMongoRepository
+import repositories.fsb.FsbMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 import repositories.sift.{ ApplicationSiftMongoRepository, SiftAnswersMongoRepository }
 import repositories.stc.StcEventMongoRepository
@@ -76,7 +77,6 @@ package object repositories {
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
-  lazy val fsbTestGroupRepository = new FsbTestGroupMongoRepository()
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
   lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
@@ -92,6 +92,7 @@ package object repositories {
   lazy val fileUploadRepository = new FileUploadMongoRepository()
   lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
   lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
+  lazy val fsbRepository = new FsbMongoRepository(DateTimeFactory)
   lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository
   lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository
   lazy val assessorsEventsSummaryJobsRepository = new AssessorsEventsSummaryJobsMongoRepository()

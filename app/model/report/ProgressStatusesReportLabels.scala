@@ -17,7 +17,7 @@
 package model.report
 
 import model.ApplicationStatus._
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED }
+import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER => _, _ }
 import model.command.ProgressResponse
 
 trait ProgressStatusesReportLabels {
@@ -78,6 +78,8 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
     (progress.siftProgressResponse.siftEntered, 400, SiftEntered),
     (progress.siftProgressResponse.siftReady, 403, SiftReady),
+    (progress.siftProgressResponse.failedAtSift, 404, SiftFailed),
+    (progress.siftProgressResponse.sdipFailedAtSift, 405, SdipSiftFailed),
     (progress.siftProgressResponse.siftCompleted, 406, SiftCompleted),
     (progress.assessmentCentre.awaitingAllocation, 420, AssessmentCentreAwaitingAllocation),
     (progress.assessmentCentre.allocationUnconfirmed, 423, AssessmentCentreAllocationUnconfirmed),
@@ -87,6 +89,7 @@ trait ProgressStatusesReportLabels {
     (progress.assessmentCentre.failedToAttend, 435, AssessmentCentreFailedToAttend),
     (progress.assessmentCentre.awaitingReevaluation, 438, AssessmentCentreAwaitingReevaluation),
     (progress.assessmentCentre.failed, 440, AssessmentCentreFailedProgress),
+    (progress.assessmentCentre.failedNotified, 450, AssessmentCentreFailedNotifiedProgress),
     (progress.assessmentCentre.passed, 460, AssessmentCentrePassedProgress),
     (progress.fsb.awaitingAllocation, 480, FsbAwaitingAllocation),
     (progress.fsb.allocationUnconfirmed, 485, FsbAllocationUnconfirmed),
@@ -95,6 +98,8 @@ trait ProgressStatusesReportLabels {
     (progress.fsb.resultEntered, 500, FsbResultEntered),
     (progress.fsb.passed, 505, FsbPassed),
     (progress.fsb.failed, 510, FsbFailed),
+    (progress.fsb.failedNotified, 515, FsbFailedNotified),
+    (progress.eligibleForJobOffer, 800, EligibleForJobOffer),
     (progress.withdrawn, 999, WithdrawnProgress),
     (progress.applicationArchived, 1000, ApplicationArchived)
   )
@@ -194,12 +199,17 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val FsbAllocationConfirmed = "fsb_allocation_confirmed"
   val FsbFailedToAttend = "fsb_failed_to_attend"
   val FsbResultEntered = "fsb_result_entered"
-  val FsbPassed = "fsb_passed"
-  val FsbFailed = "fsb_failed"
+  val FsbPassed = FSB_PASSED.toString.toLowerCase()
+  val FsbFailed = FSB_FAILED.toString.toLowerCase()
+  val FsbFailedNotified = FSB_FAILED_NOTIFIED.toString.toLowerCase()
+
+  val EligibleForJobOffer = ELIGIBLE_FOR_JOB_OFFER.toString.toLowerCase()
 
   val SiftEntered = "sift_entered"
   val SiftReady = "ready_for_sifting"
   val SiftCompleted = "sift_completed"
+  val SiftFailed = "failed_at_sift"
+  val SdipSiftFailed = "sdip_failed_at_sift"
   val ApplicationArchived = "application_archived"
   val FastPassAccepted = "fast_pass_accepted"
 
@@ -207,4 +217,5 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val OnlineTestFailedProgress = "online_test_failed"
   val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toString.toLowerCase()
   val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toString.toLowerCase()
+  val AssessmentCentreFailedNotifiedProgress = ASSESSMENT_CENTRE_FAILED_NOTIFIED.toString.toLowerCase()
 }

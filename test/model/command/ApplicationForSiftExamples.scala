@@ -16,18 +16,17 @@
 
 package model.command
 
-import model.ApplicationStatus.ApplicationStatus
 import model.persisted.SchemeEvaluationResult
-import play.api.libs.json.{ Json, OFormat }
+import model.{ ApplicationStatus, SchemeId }
 
-case class ApplicationForFsac(
-  applicationId: String,
-  applicationStatus: ApplicationStatus,
-  currentSchemeStatus: Seq[SchemeEvaluationResult]
-)
+object ApplicationForSiftExamples {
 
-object ApplicationForFsac {
-  implicit val applicationForFsacFormat: OFormat[ApplicationForFsac] = Json.format[ApplicationForFsac]
+  def phase3TestNotified(applicationId: String) = ApplicationForSift(applicationId, "userId", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+    currentSchemeStatus = Seq(SchemeEvaluationResult("EDIP", "Pass")))
 
+  def phase3TestNotifiedWithSchemes(applicationId: String, schemes: Seq[SchemeId]) = {
+    val evaluationResults = schemes.map(schemeId => SchemeEvaluationResult(schemeId, "Pass"))
+    ApplicationForSift(applicationId, "userId", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, currentSchemeStatus = evaluationResults)
+  }
 
 }

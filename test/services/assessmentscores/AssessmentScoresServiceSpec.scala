@@ -21,11 +21,11 @@ import model.Exceptions.EventNotFoundException
 import model.ProgressStatuses.ProgressStatus
 import model.{ AllocationStatuses, ProgressStatuses, UniqueIdentifier }
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
-import model.command.AssessmentScoresCommands.{ AssessmentScoresSectionType, AssessmentScoresFindResponse, AssessmentScoresCandidateSummary }
+import model.command.AssessmentScoresCommands.{ AssessmentScoresSectionType, AssessmentScoresCandidateSummary, AssessmentScoresFindResponse }
 import model.command.PersonalDetailsExamples
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import model.persisted.{ CandidateAllocation, EventExamples }
-import org.joda.time.DateTimeZone
+import org.joda.time.{ DateTimeZone, LocalDate }
 import org.mockito.Mockito.when
 import repositories.{ AssessmentScoresRepository, CandidateAllocationMongoRepository }
 import repositories.events.EventsRepository
@@ -415,7 +415,10 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
       EventExamples.e1WithSession.sessions.head.id,
       AllocationStatuses.CONFIRMED,
       "version1",
-      None))
+      None,
+      LocalDate.now(),
+      false
+    ))
     when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSession))
     when(candidateAllocationRepositoryMock.find(appId.toString())).thenReturn(Future.successful(candidateAllocations))
     when(personalDetailsRepositoryMock.find(appId.toString())).thenReturn(Future.successful(PersonalDetailsExamples.completed))

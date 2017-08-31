@@ -42,6 +42,7 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- siftService.progressApplicationToSiftStage(Seq(ApplicationForSift(candidateInPreviousStatus.applicationId.get,
+        candidateInPreviousStatus.userId,
         ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         candidateInPreviousStatus.phase3TestGroup.get.schemeResult.get.result)))
     } yield {

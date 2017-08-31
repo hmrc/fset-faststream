@@ -48,14 +48,21 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = new HeaderCarrier()
-    for {
-      lastRunInfoOpt <- assessorsEventsSummaryJobsService.lastRun
-      newLastRun = AssessorNewEventsJobInfo(DateTime.now)
-      lastRunInfo = lastRunInfoOpt.getOrElse(newLastRun)
-      isFirstJob = lastRunInfoOpt.isEmpty
-      _ <- assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun) if shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
-      _ <- assessorsEventsSummaryJobsService.save(newLastRun)
-    } yield {}
+
+    assessorsEventsSummaryJobsService.lastRun.flatMap { lastRunInfoOpt =>
+      val newLastRun = AssessorNewEventsJobInfo(DateTime.now)
+      val lastRunInfo = lastRunInfoOpt.getOrElse(newLastRun)
+      val isFirstJob = lastRunInfoOpt.isEmpty
+      val canRun = shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
+
+      if (canRun) {
+        assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun).flatMap { nFut =>
+          assessorsEventsSummaryJobsService.save(newLastRun).map(_ => ())
+        }
+      } else {
+        Future.successful(())
+      }
+    }
   }
 }
 
