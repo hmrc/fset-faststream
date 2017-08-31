@@ -79,7 +79,7 @@ case class PostOnlineTestsPage(
 
   def eventScheme(al: Option[CandidateAllocationWithEvent]): String = al.map(_.event).flatMap { e =>
     e.eventType match {
-      case EventType.FSB | EventType.TELEPHONE_INTERVIEW => schemes.find(_.fsbType.map(_.key).contains(e.description)).map(_.name)
+      case EventType.FSB => schemes.find(_.fsbType.map(_.key).contains(e.description)).map(_.name)
       case _ => None
     }
   }.getOrElse("")

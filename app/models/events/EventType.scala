@@ -21,13 +21,11 @@ import play.api.libs.json._
 object EventType extends Enumeration {
   type EventType = Value
 
-  val ALL_EVENTS, FSAC, FSB, TELEPHONE_INTERVIEW, SKYPE_INTERVIEW = Value
+  val ALL_EVENTS, FSAC, FSB = Value
 
   val options = Map(
-    TELEPHONE_INTERVIEW -> "Telephone Interview",
     FSAC -> "Fast Stream Assessment Centre",
-    FSB -> "Final Selection Board",
-    SKYPE_INTERVIEW -> "Skype Interview"
+    FSB -> "Final Selection Board"
   )
 
   val allOption = Map(ALL_EVENTS -> "All Events")
