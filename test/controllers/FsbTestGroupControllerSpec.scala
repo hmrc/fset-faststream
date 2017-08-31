@@ -42,7 +42,7 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
         civilServantEligible = true,
         Some(Degree(required = "Degree_22", specificRequirement = false)),
         siftRequirement = None,
-        siftEvaluationRequired = true, None, None, None)
+        siftEvaluationRequired = true, None, None)
 
       val applicationResults = List(
         ApplicationResult("applicationId1", "Pass"),

@@ -24,7 +24,7 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
-import persisted.{ FsbTypeExamples, TelephoneInterviewTypeExamples }
+import persisted.FsbTypeExamples
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.Future

@@ -196,7 +196,6 @@ GET         /sift-answers/:applicationId                                 control
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
 GET         /reference/schemes                                           controllers.reference.SchemesController.allSchemes
 GET         /reference/fsb-types                                         controllers.reference.EventDataController.getFsbTypes
-GET         /reference/telephone-interview-types                         controllers.reference.EventDataController.getTelephoneInterviewTypes
 GET         /reference/candidate-remove-reasons                          controllers.reference.EventDataController.candidateRemoveReasons
 
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues

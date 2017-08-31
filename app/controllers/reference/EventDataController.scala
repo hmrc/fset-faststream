@@ -34,10 +34,6 @@ trait EventDataController extends BaseController {
     Ok(Json.toJson(eventsService.getFsbTypes))
   }
 
-  def getTelephoneInterviewTypes: Action[AnyContent] = Action { implicit request =>
-    Ok(Json.toJson(eventsService.getTelephoneInterviewTypes))
-  }
-
   def candidateRemoveReasons: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(CandidateRemoveReason.Values))
   }

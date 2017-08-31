@@ -23,13 +23,11 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 object EventType extends Enumeration {
   type EventType = Value
 
-  val ALL_EVENTS, FSAC, FSB, TELEPHONE_INTERVIEW, SKYPE_INTERVIEW = Value
+  val ALL_EVENTS, FSAC, FSB = Value
 
   val options = Map(
-    TELEPHONE_INTERVIEW -> "Telephone Interview",
     FSAC -> "Fast Stream Assessment Centre",
-    FSB -> "FSB",
-    SKYPE_INTERVIEW -> "Skype Interview"
+    FSB -> "Final Selection Board"
   )
 
   val allOption = Map(ALL_EVENTS -> "All Events")
