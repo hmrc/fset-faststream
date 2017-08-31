@@ -31,15 +31,18 @@ object EvaluateFsbJob extends EvaluateFsbJob {
 trait EvaluateFsbJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val fsbService: FsbService
 
-  val config = EvaluateFsbJobConfig
+  val config: EvaluateFsbJobConfig.type = EvaluateFsbJobConfig
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.debug(s"EvaluateFsbJob starting")
-    fsbService.nextFsbCandidateReadyForEvaluation.flatMap { candidateResultsOpt =>
-      candidateResultsOpt.map { candidateResults =>
+    fsbService.nextFsbCandidateReadyForEvaluation.flatMap { appIdOpt =>
+      appIdOpt.map { appId =>
         Logger.debug(s"EvaluateFsbJob found a candidate - now evaluating...")
-        fsbService.evaluateFsbCandidate(candidateResults)
-      }.getOrElse(Future.successful(()))
+        fsbService.evaluateFsbCandidate(appId)
+      }.getOrElse {
+        Logger.debug(s"EvaluateFsbJob no candidates found - going back to sleep...")
+        Future.successful(())
+      }
     }
   }
 }

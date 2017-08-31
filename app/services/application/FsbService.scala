@@ -16,8 +16,9 @@
 
 package services.application
 
+import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.ProgressStatuses.FSB_RESULT_ENTERED
-import model.{ AssessmentPassMarksSchemesAndScores, SchemeId }
+import model.{ AssessmentPassMarkEvaluation, AssessmentPassMarksSchemesAndScores, SchemeId, UniqueIdentifier }
 import model.exchange.ApplicationResult
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import play.api.Logger
@@ -42,17 +43,31 @@ trait FsbService {
 
   val logPrefix = "[FsbEvaluation]"
 
-  def nextFsbCandidateReadyForEvaluation: Future[Option[AssessmentPassMarksSchemesAndScores]] = {
-    fsbRepo.nextApplicationReadyForFsbEvaluation().flatMap {
-          case Some(appId) =>
-            Logger.debug(s"$logPrefix Found candidate to process - applicationId = $appId")
-            tryToFindEvaluationData(appId, passmark)
-          case None =>
-            Logger.debug(s"$logPrefix Completed - no candidates found")
-            Future.successful(None)
-        }
-
+  def nextFsbCandidateReadyForEvaluation: Future[Option[UniqueIdentifier]] = {
+    fsbRepo.nextApplicationReadyForFsbEvaluation
   }
+
+  def evaluateFsbCandidate(appId: UniqueIdentifier): Future[Unit] = {
+
+    Logger.debug(s"$logPrefix running for application $appId")
+
+    // Get evaluation
+    // Get first residual
+    // If green in evaluation, eligible for job offer
+    // If red -> fsb failed
+
+    
+    for {
+      currentSchemeStatus <- calculateCurrentSchemeStatus(applicationId,
+        evaluationResult.schemesEvaluation)
+      _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation, currentSchemeStatus)
+      applicationStatus <- applicationRepo.findStatus(applicationId.toString())
+      _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus)
+    } yield {
+      Logger.debug(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+    }
+  }
+
   def saveResults(schemeId: SchemeId, applicationResults: List[ApplicationResult]): Future[List[Unit]] = {
     Future.sequence(
       applicationResults.map(applicationResult => saveResult(schemeId, applicationResult))
