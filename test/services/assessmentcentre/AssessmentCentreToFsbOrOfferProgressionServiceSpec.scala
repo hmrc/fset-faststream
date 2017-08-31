@@ -17,10 +17,8 @@
 package services.assessmentcentre
 
 import connectors.ExchangeObjects.Candidate
-import connectors.{ AuthProviderClient, EmailClient, ExchangeObjects }
+import connectors.{ AuthProviderClient, EmailClient }
 import model.{ SchemeId, _ }
-import model.command.ApplicationForProgression
-import model._
 import model.command.ApplicationForProgression
 import model.persisted.SchemeEvaluationResult
 import repositories.application.GeneralApplicationRepository
