@@ -38,7 +38,6 @@ object AssessmentCentreToFsbOrOfferProgressionService extends AssessmentCentreTo
   val contactDetailsRepo = repositories.faststreamContactDetailsRepository
   val fsbRepo = repositories.fsbRepository
   val emailClient = CSREmailClient
-  val authProviderClient = AuthProviderClient
 }
 
 trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatusHelper {
