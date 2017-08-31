@@ -213,11 +213,12 @@ trait ApplicationController extends BaseController {
       }
   }
 
-  def updateFsacIndicator(userId: String, applicationId: String, fsacArea: String) = Action.async { implicit request =>
-    personalDetailsService.updateFsacIndicator(applicationId, userId, fsacArea) map { _ =>
+  def updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String) = Action.async { implicit request =>
+    personalDetailsService.updateFsacIndicator(applicationId, userId, fsacAssessmentCentre) map { _ =>
       Ok
     } recover {
-      case _: IllegalArgumentException => BadRequest(s"Invalid FSAC area supplied when trying to update the FSAC indicator - $fsacArea")
+      case _: IllegalArgumentException =>
+        BadRequest(s"Invalid FSAC assessment centre supplied when trying to update the FSAC indicator - $fsacAssessmentCentre")
       case _: CannotUpdateFSACIndicator =>
         BadRequest(s"Failed to update FSAC indicator userId = $userId, applicationId = $applicationId, are the ids correct?")
     }
