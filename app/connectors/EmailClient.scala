@@ -268,6 +268,11 @@ trait EmailClient extends WSHttp {
     sendEmail(to, "fset_faststream_notify_assessors_of_new_events",
       Map("name" -> name, "htmlBody" -> htmlBody, "txtBody" -> txtBody))
   }
+
+  def notifyCandidateSiftEnteredAdditionalQuestions(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_candidate_sift_entered_additional_questions", Map("name" -> name))
+  }
+
 }
 
 object EmailDateFormatter {

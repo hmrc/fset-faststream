@@ -20,6 +20,8 @@ import connectors.ExchangeObjects.Candidate
 import connectors.{ AuthProviderClient, EmailClient, ExchangeObjects }
 import model.{ SchemeId, _ }
 import model.command.ApplicationForProgression
+import model._
+import model.command.ApplicationForProgression
 import model.persisted.SchemeEvaluationResult
 import repositories.application.GeneralApplicationRepository
 import repositories.fsb.FsbRepository
