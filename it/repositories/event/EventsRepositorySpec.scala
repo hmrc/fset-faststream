@@ -43,7 +43,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       result.contains(EventExamples.EventsNew.tail.head) mustBe true
     }
 
-    "filter SKYPE_INTERVIEW in NEWCASTLE_LONGBENTON " in {
+    "filter FSB in NEWCASTLE_LONGBENTON " in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEvents(Some(EventType.FSB), Some(EventExamples.VenueNewcastle)).futureValue
       result.size mustBe 1
