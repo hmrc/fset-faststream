@@ -17,14 +17,16 @@
 package services.application
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.ProgressStatuses.FSB_RESULT_ENTERED
+import model.EvaluationResults.{ Green, Red }
+import model.ProgressStatuses._
 import model.{ AssessmentPassMarkEvaluation, AssessmentPassMarksSchemesAndScores, SchemeId, UniqueIdentifier }
 import model.exchange.ApplicationResult
-import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
+import model.fsb.FSBProgressStatus
+import model.persisted.{ FsbEvaluation, FsbSchemeResult, SchemeEvaluationResult }
 import play.api.Logger
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.fsb.{ FsbMongoRepository, FsbRepository }
-import repositories.{ SchemeRepository, SchemeYamlRepository }
+import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -36,7 +38,7 @@ object FsbService extends FsbService {
   override val schemeRepo: SchemeYamlRepository.type = SchemeYamlRepository
 }
 
-trait FsbService {
+trait FsbService extends CurrentSchemeStatusHelper {
   val applicationRepo: GeneralApplicationMongoRepository
   val fsbRepo: FsbRepository
   val schemeRepo: SchemeRepository
@@ -47,24 +49,61 @@ trait FsbService {
     fsbRepo.nextApplicationReadyForFsbEvaluation
   }
 
-  def evaluateFsbCandidate(appId: UniqueIdentifier): Future[Unit] = {
+  def evaluateFsbCandidate(applicationId: UniqueIdentifier): Future[Unit] = {
 
-    Logger.debug(s"$logPrefix running for application $appId")
+    Logger.debug(s"$logPrefix running for application $applicationId")
 
-    // Get evaluation
-    // Get first residual
-    // If green in evaluation, eligible for job offer
-    // If red -> fsb failed
+    val appId = applicationId.toString()
 
-    
     for {
-      currentSchemeStatus <- calculateCurrentSchemeStatus(applicationId,
-        evaluationResult.schemesEvaluation)
-      _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation, currentSchemeStatus)
-      applicationStatus <- applicationRepo.findStatus(applicationId.toString())
-      _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus)
+      fsbEvaluation <- fsbRepo.findByApplicationId(appId).map(_.map(_.evaluation.result))
+      currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(appId)
+      firstPreference = firstResidualPreference(currentSchemeStatus)
+      _ <- passOrFailFsb(appId, fsbEvaluation, firstPreference, currentSchemeStatus)
     } yield {
-      Logger.debug(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+      Logger.debug(s"$logPrefix written to DB... applicationId = $appId")
+    }
+  }
+
+  private def passOrFailFsb(appId: String, fsbEvaluation: Option[Seq[SchemeEvaluationResult]],
+    firstResidualPreferenceOpt: Option[SchemeEvaluationResult], currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
+
+    require(fsbEvaluation.isDefined, "Evaluation for scheme must be defined to reach this stage, unexpected error.")
+    require(firstResidualPreferenceOpt.isDefined, "First residual preference must be defined to reach this stage, unexpected error.")
+
+    val firstResidualPreference = firstResidualPreferenceOpt.get
+
+    val firstResidualInEvaluation = fsbEvaluation.get.find(_.schemeId == firstResidualPreference.schemeId)
+
+    require(firstResidualInEvaluation.isDefined,
+      "First residual preference must be present in FSB fsbEvaluation for pass/fail, unexpected error.")
+
+    val firstResidualInEval = firstResidualInEvaluation.get
+
+    if (firstResidualInEval.result == Green.toString) {
+      for {
+        _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
+        // There are no notifications before going to eligible but we want audit trail to show we've passed
+        _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
+      } yield ()
+
+    } else if (firstResidualInEvaluation.get.result == Red.toString) {
+        for {
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)
+          newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluation.get)
+          _ <- fsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)
+          _ <- maybeMarkAsFailedAll(appId, newCurrentSchemeStatus)
+        } yield ()
+    } else {
+      throw new Exception(s"Unexpected result in FSB scheme fsbEvaluation (${firstResidualInEvaluation.get})")
+    }
+  }
+
+  private def maybeMarkAsFailedAll(appId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
+    if (firstResidualPreference(newCurrentSchemeStatus).isEmpty) {
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_FAILED)
+    } else {
+      Future.successful(())
     }
   }
 
@@ -80,7 +119,7 @@ trait FsbService {
 
   def saveResult(applicationId: String, schemeEvaluationResult: SchemeEvaluationResult): Future[Unit] = {
     for {
-      _ <- fsbRepo.save(applicationId, schemeEvaluationResult)
+      _ <- fsbRepo.saveResult(applicationId, schemeEvaluationResult)
       _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, FSB_RESULT_ENTERED)
     } yield ()
   }

@@ -20,6 +20,7 @@ import common.FutureEx
 import model.EvaluationResults.Green
 import model._
 import model.command.ApplicationForProgression
+import model.fsb.FSBProgressStatus
 import model.persisted.SchemeEvaluationResult
 import repositories.{ CurrentSchemeStatusHelper, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
@@ -47,9 +48,11 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
 
     def maybeProgressToFsbOrJobOffer(application: ApplicationForProgression, firstResidual: SchemeEvaluationResult): Future[Unit] = {
-      
+
       if (firstResidual.result == Green.toString && fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
-        fsbRepo.progressToFsb(application)
+        for {
+          _ <- fsbRepo.progressToFsb(application)
+        } yield ()
       } else if (firstResidual.result == Green.toString) {
         fsbRepo.progressToJobOffer(application)
       } else {

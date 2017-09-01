@@ -39,7 +39,7 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
     "create new FSB entry in testGroup if it doesn't exist" in {
       val applicationId = createApplication()
       val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
-      repository.save(applicationId, schemeEvaluationResult).futureValue
+      repository.saveResult(applicationId, schemeEvaluationResult).futureValue
       val Some(result) = repository.findByApplicationId(applicationId).futureValue
       val fsbTestGroup = FsbTestGroup(List(schemeEvaluationResult))
       result mustBe fsbTestGroup
@@ -48,7 +48,7 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
     "update currentSchemeStatus" in {
       val applicationId = createApplication()
       val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
-      repository.save(applicationId, schemeEvaluationResult).futureValue
+      repository.saveResult(applicationId, schemeEvaluationResult).futureValue
 
       val currentSchemeStatus: Seq[SchemeEvaluationResult] = applicationRepo.getCurrentSchemeStatus(applicationId).futureValue
       currentSchemeStatus must have size 1
@@ -58,10 +58,10 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
     "add to result array if result array already exist" in {
       val applicationId = createApplication()
       val schemeEvaluationResult1 = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")
-      repository.save(applicationId, schemeEvaluationResult1).futureValue
+      repository.saveResult(applicationId, schemeEvaluationResult1).futureValue
 
       val schemeEvaluationResult2 = SchemeEvaluationResult("GovernmentSocialResearchService", "Green")
-      repository.save(applicationId, schemeEvaluationResult2).futureValue
+      repository.saveResult(applicationId, schemeEvaluationResult2).futureValue
 
       val Some(result) = repository.findByApplicationId(applicationId).futureValue
       val expectedFsbTestGroup = FsbTestGroup(List(schemeEvaluationResult1, schemeEvaluationResult2))
@@ -71,10 +71,10 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
     "not overwrite existing value" in {
       val applicationId = createApplication()
       val scheme: String = "GovernmentSocialResearchService"
-      repository.save(applicationId, SchemeEvaluationResult(scheme, "Green")).futureValue
+      repository.saveResult(applicationId, SchemeEvaluationResult(scheme, "Green")).futureValue
 
       val exception = intercept[Exception] {
-        repository.save(applicationId,  SchemeEvaluationResult(scheme, "Red")).futureValue
+        repository.saveResult(applicationId,  SchemeEvaluationResult(scheme, "Red")).futureValue
       }
       exception.getMessage must include(s"Fsb evaluation already done for application $applicationId for scheme $scheme")
     }
@@ -85,7 +85,7 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
     "return the FsbTestGroup for the given applicationId" in {
       val applicationId = createApplication()
       val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
-      repository.save(applicationId, schemeEvaluationResult).futureValue
+      repository.saveResult(applicationId, schemeEvaluationResult).futureValue
       val Some(result) = repository.findByApplicationId(applicationId).futureValue
       val fsbTestGroup = FsbTestGroup(List(schemeEvaluationResult))
       result mustBe fsbTestGroup
@@ -109,9 +109,9 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
       val applicationId3 = createApplication()
       val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)
 
-      repository.save(applicationId1, schemeEvaluationResult).futureValue
-      repository.save(applicationId2, schemeEvaluationResult.copy(result = Red.toString)).futureValue
-      repository.save(applicationId3, schemeEvaluationResult).futureValue
+      repository.saveResult(applicationId1, schemeEvaluationResult).futureValue
+      repository.saveResult(applicationId2, schemeEvaluationResult.copy(result = Red.toString)).futureValue
+      repository.saveResult(applicationId3, schemeEvaluationResult).futureValue
 
       val result = repository.findByApplicationIds(List(applicationId1, applicationId2, applicationId3), None).futureValue
 
@@ -128,9 +128,9 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
       val applicationId1 = createApplication()
       val applicationId2 = createApplication()
 
-      repository.save(applicationId1, SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString)).futureValue
-      repository.save(applicationId1, SchemeEvaluationResult("GovernmentSocialResearchService", Green.toString)).futureValue
-      repository.save(applicationId2, SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)).futureValue
+      repository.saveResult(applicationId1, SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString)).futureValue
+      repository.saveResult(applicationId1, SchemeEvaluationResult("GovernmentSocialResearchService", Green.toString)).futureValue
+      repository.saveResult(applicationId2, SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)).futureValue
 
       val result = repository.findByApplicationIds(
         List(applicationId1, applicationId2), Some(SchemeId("GovernmentOperationalResearchService"))).futureValue

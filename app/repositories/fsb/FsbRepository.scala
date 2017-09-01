@@ -38,7 +38,9 @@ trait FsbRepository {
   def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]]
   def progressToFsb(application: ApplicationForProgression): Future[Unit]
   def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
-  def save(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  def addFsbProgressStatus(applicationId: String, progressStatus: String): Future[Unit]
+  def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
   def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
 }
@@ -93,7 +95,7 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     )) map validator
   }
 
-  override def save(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+  override def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
     val selector = BSONDocument("$and" -> BSONArray(
       BSONDocument(APPLICATION_ID -> applicationId),
       BSONDocument(
@@ -102,14 +104,41 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     ))
 
     val modifier = BSONDocument(
-      "$addToSet" -> BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result),
-      "$set" -> currentSchemeStatusBSON(Seq(result))
+      "$addToSet" -> BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result)
     )
     val message = s"Fsb evaluation already done for application $applicationId for scheme ${result.schemeId}"
     val validator = singleUpdateValidator(
       applicationId, actionDesc = s"saving fsb assessment result $result", AlreadyEvaluatedForSchemeException(message)
     )
     collection.update(selector, modifier) map validator
+  }
+
+  override def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val update = BSONDocument(
+      "$set" -> BSONDocument("currentSchemeStatus" -> newCurrentSchemeStatus)
+    )
+
+    val validator = singleUpdateValidator(
+      applicationId, actionDesc = s"Updating current scheme status"
+    )
+
+    collection.update(query, update) map validator
+  }
+
+  override def addFsbProgressStatus(applicationId: String, progressStatus: String): Future[Unit] = {
+
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val update = BSONDocument(
+      s"fsb-progress-status.$progressStatus" -> true,
+      s"fsb-progress-status-timestamp.$progressStatus" -> dateTimeFactory.nowLocalTimeZone
+    )
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "adding fsb progress status")
+
+    collection.update(query, update) map validator
   }
 
   override def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]] = {

@@ -775,7 +775,7 @@ class GeneralApplicationMongoRepository(
       applicationStatusBSON(progressStatus))
     ) map validator
   }
-
+  
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty, "Progress statuses to remove cannot be empty")
 

@@ -181,7 +181,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             getProgress(ProgressStatuses.FSB_RESULT_ENTERED.key),
             getProgress(ProgressStatuses.FSB_PASSED.key),
             getProgress(ProgressStatuses.FSB_FAILED.key),
-            getProgress(ProgressStatuses.FSB_FAILED_NOTIFIED.key)
+            getProgress(ProgressStatuses.ALL_FSBS_FAILED_NOTIFIED.key)
           )
         )
       }).getOrElse(ProgressResponse(applicationId))
