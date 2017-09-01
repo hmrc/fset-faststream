@@ -101,7 +101,8 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
 
   def submitPersonalDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
     implicit user =>
-      val redirect = if(user.application.applicationRoute == ApplicationRoute.Faststream) {
+      val redirect = if(user.application.applicationRoute == ApplicationRoute.Faststream ||
+      user.application.applicationRoute == ApplicationRoute.SdipFaststream) {
         Redirect(routes.SchemePreferencesController.present())
       } else {
         Redirect(routes.AssistanceDetailsController.present())
