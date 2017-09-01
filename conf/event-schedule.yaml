@@ -108,7 +108,7 @@
       attendeeSafetyMargin: 2
       startTime: 9:00
       endTime: 10:30
-- eventType: Telephone interview
+- eventType: FSB
   description: ORAC
   location: Newcastle
   venue: NEWCASTLE_LONGBENTON
@@ -221,8 +221,8 @@
       attendeeSafetyMargin: 2
       startTime: 9:00
       endTime: 10:30
-- eventType: Skype interview
-  description: SKYPE
+- eventType: FSB
+  description: PDFS - Skype interview
   location: Virtual
   venue: VIRTUAL
   date: 2017-08-04
@@ -244,8 +244,8 @@
       attendeeSafetyMargin: 2
       startTime: 9:30
       endTime: 10:00
-- eventType: Skype interview
-  description: SKYPE
+- eventType: FSB
+  description: PDFS - Skype interview
   location: Virtual
   venue: VIRTUAL
   date: 2018-02-04
@@ -267,8 +267,8 @@
       attendeeSafetyMargin: 2
       startTime: 9:00
       endTime: 10:30
-- eventType: Skype interview
-  description: SKYPE
+- eventType: FSB
+  description: PDFS - Skype interview
   location: Virtual
   venue: VIRTUAL
   date: 2018-02-04
@@ -286,10 +286,10 @@
       attendeeSafetyMargin: 2
       startTime: 9:00
       endTime: 10:30
-- eventType: Telephone Interview
-  description: Telephone Interview
-  location: Newcastle
-  venue: NEWCASTLE_LONGBENTON
+- eventType: FSB
+  description: SDIP - Telephone interview
+  location: Virtual
+  venue: VIRTUAL
   date: 2018-03-04
   capacity: 36
   minViableAttendees: 12
@@ -445,10 +445,10 @@
       attendeeSafetyMargin: 2
       startTime: 14:00
       endTime: 16:00
-- eventType: Telephone interview
-  description: EDIP
-  location: London
-  venue: LONDON_FSAC
+- eventType: FSB
+  description: EDIP - Telephone interview
+  location: Virtual
+  venue: VIRTUAL
   date: 2017-10-05
   capacity: 36
   minViableAttendees: 12
@@ -473,10 +473,10 @@
       attendeeSafetyMargin: 2
       startTime: 14:00
       endTime: 16:00
-- eventType: Telephone interview
-  description: SDIP
-  location: London
-  venue: LONDON_FSAC
+- eventType: FSB
+  description: SDIP - Telephone interview
+  location: Virtual
+  venue: VIRTUAL
   date: 2017-10-06
   capacity: 36
   minViableAttendees: 12

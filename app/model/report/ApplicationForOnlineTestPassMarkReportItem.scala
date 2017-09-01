@@ -18,7 +18,7 @@ package model.report
 
 import model.ApplicationRoute._
 import model.SchemeId
-import model.persisted.ApplicationForOnlineTestPassMarkReport
+import model.persisted.{ ApplicationForOnlineTestPassMarkReport, SchemeEvaluationResult }
 import play.api.libs.json.Json
 
 case class ApplicationForOnlineTestPassMarkReportItem(
@@ -29,8 +29,8 @@ case class ApplicationForOnlineTestPassMarkReportItem(
                                                        gis: Option[Boolean],
                                                        onlineAdjustments: Option[String],
                                                        assessmentCentreAdjustments: Option[String],
-                                                       testResults: TestResultsForOnlineTestPassMarkReportItem
-                                                     )
+                                                       testResults: TestResultsForOnlineTestPassMarkReportItem,
+                                                       currentSchemeStatus: List[SchemeEvaluationResult])
 
 object ApplicationForOnlineTestPassMarkReportItem {
   implicit val applicationForOnlineTestReportItemFormat = Json.format[ApplicationForOnlineTestPassMarkReportItem]
@@ -45,7 +45,8 @@ object ApplicationForOnlineTestPassMarkReportItem {
       gis = a.gis,
       onlineAdjustments = a.onlineAdjustments,
       assessmentCentreAdjustments = a.assessmentCentreAdjustments,
-      testResults = a.testResults
+      testResults = a.testResults,
+      currentSchemeStatus = a.currentSchemeStatus
     )
   }
 }

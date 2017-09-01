@@ -38,13 +38,12 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
 
   implicit val degreeFormat = yamlFormat2((a: String, b: Boolean) => Degree(a, b))
 
-  implicit val schemeFormat = yamlFormat10((
+  implicit val schemeFormat = yamlFormat9((
     id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
     siftRequirement: Option[SiftRequirement.Value], evaluationRequired: Boolean,
-    fsbType: Option[String], telephoneInterviewType: Option[String], schemeGuide: Option[String]
+    fsbType: Option[String], schemeGuide: Option[String]
   ) => Scheme(SchemeId(id),code,name, civilServantEligible, degree, siftRequirement, evaluationRequired,
-    fsbType.map(t => FsbType(t)), telephoneInterviewType.map(k => TelephoneInterviewType(k, name)), schemeGuide
-  ))
+    fsbType.map(t => FsbType(t)), schemeGuide))
 }
 
 trait SchemeRepository {
@@ -62,16 +61,9 @@ trait SchemeRepository {
   }
 
   private lazy val schemesByFsb: Map[String, Scheme] = schemes.flatMap(s => s.fsbType.map(ft => ft.key -> s)).toMap
-  private lazy val schemesByTelephoneInterview: Map[String, Scheme] = {
-    schemes.flatMap(s => s.telephoneInterviewType.map(t => t.key -> s)).toMap
-  }
 
   def getSchemeForFsb(fsb: String): Scheme = {
     schemesByFsb.getOrElse(fsb, throw SchemeNotFoundException(s"Can not find scheme for FSB: $fsb"))
-  }
-
-  def getSchemeForTelephoneInterview(tel: String): Scheme = {
-    schemesByTelephoneInterview.getOrElse(tel, throw SchemeNotFoundException(s"Can not find scheme for TelephoneInterview: $tel"))
   }
 
   def faststreamSchemes: Seq[Scheme] = schemes.filterNot(s => s.isSdip || s.isEdip)
@@ -84,11 +76,17 @@ trait SchemeRepository {
 
   def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id }
 
+  def siftableAndNoEvaluationSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if s.siftRequirement.isDefined && s.siftEvaluationRequired => s.id
+  }
+
+  def nonSiftableAndNoEvaluationSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if !s.siftEvaluationRequired => s.id
+  }
+
   def nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id }
 
   def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
-
-  def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemes.flatMap(_.telephoneInterviewType)
 }
 
 object SchemeYamlRepository extends SchemeRepository

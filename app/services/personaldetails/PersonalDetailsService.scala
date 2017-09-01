@@ -98,4 +98,15 @@ trait PersonalDetailsService {
       _ <- civilServiceExperienceDetailsUpdateFut
     } yield {}
   }
+
+  def updateFsacIndicator(applicationId: String, userId: String, fsacAssessmentCentre: String): Future[Unit] = {
+    val validFsacAssessmentCentres = fsacIndicatorCSVRepository.getAssessmentCentres
+    val msg = s"Invalid FSAC assessment centre supplied when trying to update the FSAC indicator - $fsacAssessmentCentre"
+    if (!validFsacAssessmentCentres.contains(fsacAssessmentCentre)) {
+      Future.failed(new IllegalArgumentException(msg))
+    } else {
+      fsacIndicatorRepository.update(applicationId, userId,
+        model.persisted.FSACIndicator(model.FSACIndicator(fsacAssessmentCentre, fsacAssessmentCentre)))
+    }
+  }
 }

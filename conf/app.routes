@@ -36,7 +36,9 @@ GET         /application/:applicationId/phase3/results                   control
 GET         /application/:applicationId/currentSchemeStatus              controllers.ApplicationController.getCurrentSchemeStatus(applicationId: String)
 #GET         /application/:applicationId/sift/results                    controllers.ApplicationController.getSchemeResults(applicationId: String)
 #GET         /application/:applicationId/assessmentcentre/results        controllers.ApplicationController.getSchemeResults(applicationId: String)
+
 GET         /application/:applicationId/fsacEvaluationAverages           controllers.ApplicationController.getFsacEvaluationResultAverages(applicationId: String)
+POST        /application/:userId/:applicationId/:fsacAssessmentCentre    controllers.ApplicationController.updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String)
 
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
 GET         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
@@ -194,9 +196,13 @@ GET         /sift-answers/:applicationId                                 control
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
 GET         /reference/schemes                                           controllers.reference.SchemesController.allSchemes
 GET         /reference/fsb-types                                         controllers.reference.EventDataController.getFsbTypes
-GET         /reference/telephone-interview-types                         controllers.reference.EventDataController.getTelephoneInterviewTypes
 GET         /reference/candidate-remove-reasons                          controllers.reference.EventDataController.candidateRemoveReasons
 
 GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
 GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations
 GET         /reference/locations-with-venues                             controllers.reference.LocationAndVenueController.locationsWithVenues
+
+GET         /reference/fsac/assessment-centres                           controllers.reference.FsacIndicatorController.getAssessmentCentres
+
+# Metrics endpoints
+GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatuscounts

@@ -62,6 +62,9 @@ object FSACIndicatorCSVRepository extends FSACIndicatorCSVRepository {
       indicators.get(postCodeUpperCase).fold[Option[FSACIndicator]](Some(DefaultIndicator))(indicator => Some(indicator))
     })
   }
+
+  override def getAssessmentCentres: Seq[String] =
+    indicators.values.groupBy( fsacIndicator => fsacIndicator.assessmentCentre).keys.toSeq
 }
 
 trait FSACIndicatorCSVRepository extends CsvHelper {
@@ -71,4 +74,6 @@ trait FSACIndicatorCSVRepository extends CsvHelper {
   private[repositories] val indicators: Map[String, FSACIndicator]
 
   def find(postcode: Option[String], outsideUk: Boolean): Option[FSACIndicator]
+
+  def getAssessmentCentres: Seq[String]
 }

@@ -116,8 +116,9 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
     def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult]) = {
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
+      val shouldProgressToFSAC = greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet
 
-      if (greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet) {
+      if (shouldProgressToFSAC) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map { _ =>
           AuditEvents.AutoProgressedToFSAC(Map("applicationId" -> applicationId, "reason" -> "last siftable scheme withdrawn")) :: Nil
         }

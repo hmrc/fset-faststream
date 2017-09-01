@@ -16,24 +16,11 @@
 
 package services.assessmentcentre
 
-import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.EvaluationResults._
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model._
-import model.assessmentscores.AssessmentScoresAllExercises
-import model.command.{ ApplicationForProgression, ApplicationStatusDetails }
-import model.exchange.passmarksettings._
+import model.command.ApplicationForProgression
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
-import org.joda.time.DateTime
-import play.api.libs.json.Format
-import repositories.AssessmentScoresRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.fsb.FsbRepository
-import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
-import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.PassMarkSettingsService
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 

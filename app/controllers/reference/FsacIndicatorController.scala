@@ -16,25 +16,21 @@
 
 package controllers.reference
 
-import model.exchange.candidateevents.CandidateRemoveReason
+import model.exchange.FsacAssessmentCentres
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import services.events.EventsService
+import play.api.mvc.{Action, AnyContent}
+import repositories.csv.FSACIndicatorCSVRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
-object EventDataController extends EventDataController {
-  val eventsService: EventsService = EventsService
+object FsacIndicatorController extends FsacIndicatorController {
+  val fsacIndicatorRepository: FSACIndicatorCSVRepository = FSACIndicatorCSVRepository
 }
 
-trait EventDataController extends BaseController {
+trait FsacIndicatorController extends BaseController {
 
-  def eventsService: EventsService
+  def fsacIndicatorRepository: FSACIndicatorCSVRepository
 
-  def getFsbTypes: Action[AnyContent] = Action { implicit request =>
-    Ok(Json.toJson(eventsService.getFsbTypes))
-  }
-
-  def candidateRemoveReasons: Action[AnyContent] = Action { implicit request =>
-    Ok(Json.toJson(CandidateRemoveReason.Values))
+  def getAssessmentCentres: Action[AnyContent] = Action { implicit request =>
+    Ok(Json.toJson(FsacAssessmentCentres(fsacIndicatorRepository.getAssessmentCentres)))
   }
 }

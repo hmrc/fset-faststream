@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package persisted
+package model.exchange
 
-import model.TelephoneInterviewType
+import play.api.libs.json.{Json, OFormat}
 
-object TelephoneInterviewTypeExamples {
-  val YamlTelephoneInterviewTypes = List(
-    TelephoneInterviewType("EDIP", "Early Diversity Internship Program"),
-    TelephoneInterviewType("SDIP", "Summer Diversity Internship Program")
-  )
+case class FsacAssessmentCentres(assessmentCentres: Seq[String])
+
+object FsacAssessmentCentres {
+  implicit val assessmentCentresFormatter: OFormat[FsacAssessmentCentres] = Json.format[FsacAssessmentCentres]
 }
