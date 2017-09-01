@@ -65,11 +65,15 @@ trait DurationFormatter {
 
   private def timeFormat(dateTime: DateTime) = expireTimeFormatter.toFormatter.print(dateTime).toLowerCase
 
+  private def dateFormat(dateTime: DateTime) = expireDateFormatter.toFormatter.print(dateTime)
+
   def getExpireTime: String = timeFormat(expirationDate)
 
   def getExpireTimeLondon: String = timeFormat(expirationDateLondon)
 
   def getExpireDateTime: String = expireTimeFormatter.append(expireDateFormatter.toFormatter).toFormatter.print(expirationDate)
 
-  def getExpireDate: String = expireDateFormatter.toFormatter.print(expirationDate)
+  def getExpireDate: String = dateFormat(expirationDate)
+
+  def getExpireDateLondon: String = dateFormat(expirationDateLondon)
 }
