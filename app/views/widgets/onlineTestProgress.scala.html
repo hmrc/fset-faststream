@@ -36,10 +36,12 @@
             @invigilatedETraySection()
         } else {
             <p id="etrayDescription" class="">This section is timed, after starting the section you'll have 80 minutes to complete it. If we've agreed you require extra time, this will be added to the 80 minutes.</p>
-            <p id="etrayTime" class="">You have <strong>@{
-                phase2Test.getDuration
-            }</strong> to finish
-                the e-tray</p>
+            <p id="etrayTime" class="no-btm-margin">
+                You have <strong>@{ phase2Test.getDuration }</strong> to finish the e-tray.
+            </p>
+            <p id="etrayExpires">
+                It expires at <strong id="etrayExpiryTime">@{ phase2Test.getExpireTimeLondon }</strong> (London) on <strong id="etrayExpiryDate">@{ phase2Test.getExpireDateLondon }</strong>.
+            </p>
             <div id="etrayTestButton">
                 @helper.form(action = routes.CubiksTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
                     @helper.CSRF.formField

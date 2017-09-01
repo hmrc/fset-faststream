@@ -16,8 +16,9 @@
 
 package models.page
 
-import org.joda.time.{ DateTime, Period, PeriodType }
+import helpers.Timezones
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
+import org.joda.time.{ DateTime, Period, PeriodType }
 
 trait DurationFormatter {
 
@@ -60,9 +61,19 @@ trait DurationFormatter {
       .appendLiteral(" ")
       .appendYear(4, 4)
 
-  def getExpireTime: String = expireTimeFormatter.toFormatter.print(expirationDate).replace("PM", "pm").replace("AM", "am")
+  private val expirationDateLondon = expirationDate.withZone(Timezones.londonDateTimezone)
+
+  private def timeFormat(dateTime: DateTime) = expireTimeFormatter.toFormatter.print(dateTime).toLowerCase
+
+  private def dateFormat(dateTime: DateTime) = expireDateFormatter.toFormatter.print(dateTime)
+
+  def getExpireTime: String = timeFormat(expirationDate)
+
+  def getExpireTimeLondon: String = timeFormat(expirationDateLondon)
 
   def getExpireDateTime: String = expireTimeFormatter.append(expireDateFormatter.toFormatter).toFormatter.print(expirationDate)
 
-  def getExpireDate: String = expireDateFormatter.toFormatter.print(expirationDate)
+  def getExpireDate: String = dateFormat(expirationDate)
+
+  def getExpireDateLondon: String = dateFormat(expirationDateLondon)
 }
