@@ -203,3 +203,6 @@ GET         /reference/locations                                         control
 GET         /reference/locations-with-venues                             controllers.reference.LocationAndVenueController.locationsWithVenues
 
 GET         /reference/fsac/assessment-centres                           controllers.reference.FsacIndicatorController.getAssessmentCentres
+
+# Metrics endpoints
+GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatuscounts
