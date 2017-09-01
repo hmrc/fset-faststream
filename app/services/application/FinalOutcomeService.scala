@@ -17,33 +17,33 @@
 package services.application
 
 import common.FutureEx
-import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
+import connectors.{ CSREmailClient, EmailClient }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, FSB_FAILED }
 import model.SerialUpdateResult
 import model.command.ApplicationForProgression
-import play.api.Logger
 import repositories.application.{ FinalOutcomeRepository, GeneralApplicationRepository }
+import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 
 object FinalOutcomeService extends FinalOutcomeService {
 
+  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
   val applicationRepo = repositories.applicationRepository
   val finalOutcomeRepo = repositories.finalOutcomeRepository
   val emailClient = CSREmailClient
-  val authProviderClient = AuthProviderClient
 
 
 }
 
 trait FinalOutcomeService {
 
+  def contactDetailsRepo: ContactDetailsRepository
   def applicationRepo: GeneralApplicationRepository
   def finalOutcomeRepo: FinalOutcomeRepository
-  def authProviderClient: AuthProviderClient
   def emailClient: EmailClient
 
   val FinalFailedStates = Seq(ASSESSMENT_CENTRE_FAILED, FSB_FAILED)
@@ -60,12 +60,12 @@ trait FinalOutcomeService {
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
     FutureEx.traverseSerial(applications) { app =>
       FutureEx.futureToEither(app,
-        withErrLogging(s"Final success notification for app ${app.applicationId}") {
+        FutureEx.withErrLogging(s"Final success notification for app ${app.applicationId}") {
           for {
-            candidate <- retrieveCandidateDetails(app.applicationId)
+            (candidate, contactDetails) <- retrieveCandidateDetails(app.applicationId)
             firstSchemeRes = finalOutcomeRepo.firstResidualPreference(app.currentSchemeStatus)
               .getOrElse(sys.error(s"No first residual preference for ${app.applicationId}"))
-            _ <- emailClient.notifyCandidateOnFinalSuccess(candidate.email, candidate.name, firstSchemeRes.schemeId.value)
+            _ <- emailClient.notifyCandidateOnFinalSuccess(contactDetails.email, candidate.name, firstSchemeRes.schemeId.value)
             _ <- finalOutcomeRepo.progressToJobOfferNotified(app)
           } yield ()
         }
@@ -77,10 +77,10 @@ trait FinalOutcomeService {
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
     FutureEx.traverseSerial(applications) { app =>
       FutureEx.futureToEither(app,
-        withErrLogging(s"Final failure notification for app ${app.applicationId}") {
+        FutureEx.withErrLogging(s"Final failure notification for app ${app.applicationId}") {
           for {
-            candidate <- retrieveCandidateDetails(app.applicationId)
-            _ <- emailClient.notifyCandidateOnFinalFailure(candidate.email, candidate.name)
+            (candidate, contactDetails) <- retrieveCandidateDetails(app.applicationId)
+            _ <- emailClient.notifyCandidateOnFinalFailure(contactDetails.email, candidate.name)
             _ <- finalOutcomeRepo.progressToFinalFailureNotified(app)
           } yield ()
         }
@@ -90,13 +90,9 @@ trait FinalOutcomeService {
 
   private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
     applicationRepo.find(applicationId).flatMap {
-      case Some(app) => authProviderClient.findByUserIds(Seq(app.userId))
+      case Some(app) => contactDetailsRepo.find(app.userId).map { cd => (app, cd) }
       case None => sys.error(s"Can't find application $applicationId")
-    }.map(_.headOption.getOrElse(sys.error(s"Can't find user records for $applicationId")))
-  }
-
-  private def withErrLogging[T](logPrefix: String)(f: Future[T]): Future[T] = {
-    f.recoverWith { case ex => Logger.warn(s"$logPrefix: ${ex.getMessage}"); f }
+    }
   }
 
 }
