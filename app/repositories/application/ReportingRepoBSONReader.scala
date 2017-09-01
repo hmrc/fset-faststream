@@ -186,10 +186,13 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val userId = doc.getAs[String]("userId").getOrElse("")
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
+      val curSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(
+        schemes.getOrElse(List.empty).map(s => new SchemeEvaluationResult(s, EvaluationResults.Green.toString)))
+
       ApplicationForDiversityReport(applicationId, userId, applicationRoute,
         Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
         schemes.getOrElse(List.empty), disability, gis, onlineAdjustments,
-        assessmentCentreAdjustments, civilServiceExperience)
+        assessmentCentreAdjustments, civilServiceExperience, curSchemeStatus)
     }
   }
 
@@ -207,7 +210,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
       val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
       val curSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(
-        schemes.get.map(s => new SchemeEvaluationResult(s, EvaluationResults.Green.toString)))
+        schemes.getOrElse(List.empty).map(s => new SchemeEvaluationResult(s, EvaluationResults.Green.toString)))
 
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
