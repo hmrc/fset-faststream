@@ -16,7 +16,7 @@
 
 package models.page
 
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import org.scalatestplus.play.PlaySpec
 
 class DurationFormatterSpec extends PlaySpec {
@@ -53,6 +53,30 @@ class DurationFormatterSpec extends PlaySpec {
     }
   }
 
+  "getExpireTimeLondon" should {
+    "return BST time when expirationDate is during BST period" in {
+      // BST starts on 26 March at 1:00am UTC, in 2017
+      // London is 1 hour ahead of UTC, during BST
+      val dateTimeFormatter = new DurationFormatter {
+        override def expirationDate: DateTime = new DateTime(DateTimeZone.UTC)
+          .withDate(LocalDate.parse("2017-03-26"))
+          .withTime(LocalTime.parse("1:00"))
+      }
+      dateTimeFormatter.getExpireTime mustBe "1:00am"
+      dateTimeFormatter.getExpireTimeLondon mustBe "2:00am"
+    }
+
+    "return GMT time when expirationDate is not during BST period" in {
+      val dateTimeFormatter = new DurationFormatter {
+        override def expirationDate: DateTime = new DateTime(DateTimeZone.UTC)
+          .withDate(LocalDate.parse("2017-03-26"))
+          .withTime(LocalTime.parse("0:59"))
+      }
+      dateTimeFormatter.getExpireTime mustBe "12:59am"
+      dateTimeFormatter.getExpireTimeLondon mustBe "12:59am"
+    }
+  }
+
   trait TestFixture {
     self =>
     def now = DateTime.now
@@ -63,4 +87,5 @@ class DurationFormatterSpec extends PlaySpec {
       override def expirationDate: DateTime = self.now
     }
   }
+
 }

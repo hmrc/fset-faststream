@@ -40,7 +40,7 @@
                 You have <strong>@{ phase2Test.getDuration }</strong> to finish the e-tray.
             </p>
             <p id="etrayExpires">
-                It expires at <strong id="etrayExpiryTime">@{ phase2Test.getExpireTime }</strong> (London) on <strong id="etrayExpiryDate">@{phase2Test.getExpireDate}</strong>.
+                It expires at <strong id="etrayExpiryTime">@{ phase2Test.getExpireTimeLondon }</strong> (London) on <strong id="etrayExpiryDate">@{ phase2Test.getExpireDate }</strong>.
             </p>
             <div id="etrayTestButton">
                 @helper.form(action = routes.CubiksTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
