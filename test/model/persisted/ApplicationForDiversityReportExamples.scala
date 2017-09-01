@@ -37,6 +37,8 @@ object ApplicationForDiversityReportExamples {
       Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"),
         Some("fastPass-101"))),
       List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("GovernmentCommunicationService"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("European"), EvaluationResults.Green.toString))
     )
 }
