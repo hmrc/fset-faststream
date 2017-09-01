@@ -16,8 +16,8 @@
 
 package model.persisted
 
-import model.persisted.{ ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport }
-import model.{ ApplicationRoute, SchemeId }
+import model.persisted.{ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport}
+import model.{ApplicationRoute, EvaluationResults, SchemeId}
 
 object ApplicationForDiversityReportExamples {
 
@@ -25,8 +25,9 @@ object ApplicationForDiversityReportExamples {
     ApplicationForDiversityReport("appId5", "userId10", ApplicationRoute.Faststream,  Some("phase1_tests_completed"),
       List(SchemeId("DiplomaticService"), SchemeId("Commercial")), Some("No"), Some(false), Some("No"), Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"),
-        Some(""))
-      )
+        Some(""))),
+      List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))
     )
 
   val Example2 =
@@ -34,7 +35,8 @@ object ApplicationForDiversityReportExamples {
       List(SchemeId("DiplomaticServiceEconomics"), SchemeId("Commercial"), SchemeId("GovernmentCommunicationService"),
         SchemeId("European")), Some("Yes"), Some(true), Some("Yes"), Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"),
-        Some("fastPass-101"))
-      )
+        Some("fastPass-101"))),
+      List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))
     )
 }
