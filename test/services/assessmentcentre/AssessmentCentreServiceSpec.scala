@@ -158,6 +158,10 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
 
+      (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(None))
+
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
         .expects(expectedEvaluation, newSchemeStatus)
         .returning(Future.successful(()))
@@ -195,6 +199,10 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
+
+      (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(None))
 
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
         .expects(expectedEvaluation, newSchemeStatus)
@@ -234,6 +242,10 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
 
+      (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(None))
+
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
         .expects(expectedEvaluation, newSchemeStatus)
         .returning(Future.successful(()))
@@ -267,6 +279,10 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Amber.toString))
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
+
+      (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(None))
 
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
         .expects(expectedEvaluation, newSchemeStatus)
