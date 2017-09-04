@@ -39,7 +39,21 @@ case class Event(
   skillRequirements: Map[String, Int],
   sessions: List[Session],
   wasBulkUploaded: Boolean = false
-)
+) {
+  def session(sessionId: String): Session = {
+    sessions.find(_.id == sessionId).getOrElse(throw new Exception(s"Unable to find session with ID $sessionId"))
+  }
+}
+
+case class UpdateEvent(id: String, skillRequirements: Map[String, Int], sessions: Seq[UpdateSession]) {
+  def session(sessionId: String): UpdateSession = {
+    sessions.find(_.id == sessionId).getOrElse(throw new Exception(s"Unable to find session with ID $sessionId"))
+  }
+}
+
+object UpdateEvent {
+  implicit val format = Json.format[UpdateEvent]
+}
 
 object Event {
   implicit val eventFormat: OFormat[Event] = Json.format[Event]
