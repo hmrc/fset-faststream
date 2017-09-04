@@ -241,12 +241,12 @@ class AssessorServiceSpec extends BaseServiceSpec {
       createdAt = DateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1,
         SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
 
-    val e2 = Event(id = "eventId2", eventType = EventType.TELEPHONE_INTERVIEW, description = "ORAC", location = LocationLondon,
+    val e2 = Event(id = "eventId2", eventType = EventType.FSB, description = "ORAC", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
       createdAt = DateTime.now, skillRequirements = Map(SkillType.CHAIR.toString -> 1), sessions = List())
 
-    val e3 = Event(id = "eventId3", eventType = EventType.SKYPE_INTERVIEW, description = "GCFS FSB",
+    val e3 = Event(id = "eventId3", eventType = EventType.FSB, description = "GCFS FSB",
       location = LocationNewcastle, venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
       createdAt = DateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1), sessions = List())

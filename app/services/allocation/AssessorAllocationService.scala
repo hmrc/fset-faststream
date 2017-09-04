@@ -63,7 +63,6 @@ trait AssessorAllocationService extends EventSink {
   def getAllocation(eventId: String, userId: String): Future[Option[exchange.AssessorAllocation]] = {
     assessorAllocationRepo.find(userId, eventId).map { allocationOpt =>
       allocationOpt.map { allocation =>
-        play.api.Logger.debug(s"**** found allocation - $allocation")
         exchange.AssessorAllocation(allocation.id, allocation.status, model.exchange.AssessorSkill(allocation.allocatedAs, ""))
       }
     }

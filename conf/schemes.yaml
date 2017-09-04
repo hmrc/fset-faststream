@@ -140,6 +140,7 @@
     specificRequirement: false
   siftRequirement: FORM
   siftEvaluationRequired: false
+  fsbType: PDFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/1243/pdfs-guide.pdf
 - id: ScienceAndEngineering
   code: SEFS
@@ -149,7 +150,7 @@
     required: Degree_CharteredEngineer
     specificRequirement: true
   siftRequirement: FORM
-  siftEvaluationRequired: true
+  siftEvaluationRequired: false
   fsbType: SEFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/1238/sefs-guide.pdf
 - id: Edip
@@ -158,7 +159,7 @@
   civilServantEligible: true
   siftRequirement: FORM
   siftEvaluationRequired: false
-  telephoneInterviewType: EDIP
+  fsbType: EDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/1242/edip-guide.pdf
 - id: Sdip
   code: SDIP
@@ -166,5 +167,5 @@
   civilServantEligible: true
   siftRequirement: FORM
   siftEvaluationRequired: true
-  telephoneInterviewType: SDIP
+  fsbType: SDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/1244/sdip-guide.pdf

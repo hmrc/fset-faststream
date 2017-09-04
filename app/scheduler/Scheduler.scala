@@ -19,6 +19,7 @@ package scheduler
 import play.api.Logger
 import scheduler.assessment.{ EvaluateAssessmentScoreJob, EvaluateAssessmentScoreJobConfig }
 import scheduler.fixer.{ FixerJob, FixerJobConfig }
+import scheduler.fsb.{ EvaluateFsbJob, EvaluateFsbJobConfig }
 import scheduler.onlinetesting._
 import uk.gov.hmrc.play.scheduling.{ RunningOfScheduledJobs, ScheduledJob }
 
@@ -64,6 +65,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(NotifyAssessorsOfNewEventsJobConfig, NotifyAssessorsOfNewEventsJob),
     maybeInitScheduler(SiftFailureJobConfig, SiftFailureJob),
     maybeInitScheduler(ProgressToFsbOrOfferJobConfig, ProgressToFsbOrOfferJob),
-    maybeInitScheduler(ReminderEventAllocationJobConfig, ReminderEventAllocationJob)
+    maybeInitScheduler(ReminderEventAllocationJobConfig, ReminderEventAllocationJob),
+    maybeInitScheduler(EvaluateFsbJobConfig, EvaluateFsbJob)
   ).flatten
 }

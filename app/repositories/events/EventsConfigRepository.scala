@@ -19,7 +19,7 @@ package repositories.events
 import common.FutureEx
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
-import model.{ FsbType, TelephoneInterviewType }
+import model.FsbType
 import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._

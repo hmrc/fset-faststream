@@ -14,27 +14,35 @@
  * limitations under the License.
  */
 
-package controllers.reference
+package controllers.metrics
 
-import model.exchange.candidateevents.CandidateRemoveReason
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import services.events.EventsService
+import play.api.mvc.Action
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
-object EventDataController extends EventDataController {
-  val eventsService: EventsService = EventsService
+import scala.concurrent.Future
+
+case class ProgressStatusMetrics(
+  SUBMITTED: Int,
+  PHASE1_TESTS_INVITED: Int
+)
+
+object ProgressStatusMetrics {
+  implicit val progressStatusMetricsFormat = Json.format[ProgressStatusMetrics]
 }
 
-trait EventDataController extends BaseController {
+object MetricsController extends MetricsController
 
-  def eventsService: EventsService
+trait MetricsController extends BaseController {
 
-  def getFsbTypes: Action[AnyContent] = Action { implicit request =>
-    Ok(Json.toJson(eventsService.getFsbTypes))
-  }
-
-  def candidateRemoveReasons: Action[AnyContent] = Action { implicit request =>
-    Ok(Json.toJson(CandidateRemoveReason.Values))
+  def progressStatuscounts = Action.async {
+    Future.successful(
+      Ok(Json.toJson(
+        ProgressStatusMetrics(
+          5012,
+          10
+        )
+      ))
+    )
   }
 }

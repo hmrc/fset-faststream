@@ -19,7 +19,7 @@ package model.report
 import model.ApplicationRoute._
 import model.SchemeId
 import play.api.libs.json.Json
-import model.persisted.ApplicationForDiversityReport
+import model.persisted.{ApplicationForDiversityReport, SchemeEvaluationResult}
 
 case class ApplicationForDiversityReportItem(
                                               progress: Option[String],
@@ -29,7 +29,8 @@ case class ApplicationForDiversityReportItem(
                                               gis: Option[Boolean],
                                               onlineAdjustments: Option[String],
                                               assessmentCentreAdjustments: Option[String],
-                                              civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsReportItem]
+                                              civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsReportItem],
+                                              currentSchemeStatus: List[SchemeEvaluationResult]
                                             ) {
 
 }
@@ -52,7 +53,8 @@ object ApplicationForDiversityReportItem {
       assessmentCentreAdjustments = a.assessmentCentreAdjustments,
       civilServiceExperiencesDetails = a.civilServiceExperiencesDetails.map { c =>
         CivilServiceExperienceDetailsReportItem.create(c)
-      }
+      },
+      currentSchemeStatus = a.currentSchemeStatus
     )
   }
 }

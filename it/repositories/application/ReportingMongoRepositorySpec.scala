@@ -112,7 +112,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head mustBe ApplicationForDiversityReport(appId, userId, ApplicationRoute.Faststream, Some("registered"),
-        List.empty, None, None, None, None, None)
+        List.empty, None, None, None, None, None, List.empty)
     }
 
     "for an application with all fields" in {
@@ -134,17 +134,23 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ApplicationForDiversityReport(appId1, userId1, ApplicationRoute.Faststream, Some("submitted"),
           List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))),
+          List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))),
         ApplicationForDiversityReport(
           appId2, userId2, ApplicationRoute.Faststream, Some("submitted"),
           List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))),
+          List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))),
         ApplicationForDiversityReport(
           appId3, userId3, ApplicationRoute.Faststream, Some("submitted"),
           List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))),
+          List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString)))
       )
     }
   }
