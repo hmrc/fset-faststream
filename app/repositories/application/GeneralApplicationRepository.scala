@@ -63,7 +63,7 @@ trait GeneralApplicationRepository {
 
   def find(applicationId: String): Future[Option[Candidate]]
 
-  def find(applicationIds: List[String]): Future[List[Candidate]]
+  def find(applicationIds: Seq[String]): Future[List[Candidate]]
 
   def findProgress(applicationId: String): Future[ProgressResponse]
 
@@ -180,7 +180,7 @@ class GeneralApplicationMongoRepository(
     bsonCollection.find(query).one[Candidate]
   }
 
-  def find(applicationIds: List[String]): Future[List[Candidate]] = {
+  def find(applicationIds: Seq[String]): Future[List[Candidate]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
   }

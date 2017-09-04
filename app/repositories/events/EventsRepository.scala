@@ -39,7 +39,7 @@ trait EventsRepository {
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
-  def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]]
+  def getEventsById(eventIds: Seq[String], eventType: Option[EventType] = None): Future[List[Event]]
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
 }
@@ -88,7 +88,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
   private def buildEventTypeFilter(eventType: Option[EventType]) =
     eventType.filterNot(_ == EventType.ALL_EVENTS).map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) }
 
-  def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]] = {
+  def getEventsById(eventIds: Seq[String], eventType: Option[EventType] = None): Future[List[Event]] = {
     val query = List(
       buildEventTypeFilter(eventType),
       Option(BSONDocument("id" -> BSONDocument("$in" -> eventIds)))
