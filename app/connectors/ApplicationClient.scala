@@ -21,7 +21,6 @@ import java.net.URLEncoder
 import config.CSRHttp
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.GeneralDetails._
-import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
 import connectors.exchange.candidateevents.{CandidateAllocationWithEvent, CandidateAllocations}
@@ -126,26 +125,6 @@ trait ApplicationClient {
       response.json.as[GeneralDetails]
     } recover {
       case e: NotFoundException => throw new PersonalDetailsNotFound()
-    }
-  }
-
-  def updatePartnerGraduateProgrammes(applicationId: UniqueIdentifier, pgp: PartnerGraduateProgrammes)
-                                     (implicit hc: HeaderCarrier) = {
-    http.PUT(
-      s"$apiBaseUrl/partner-graduate-programmes/$applicationId",
-      pgp
-    ).map {
-      case x: HttpResponse if x.status == CREATED => ()
-    } recover {
-      case _: BadRequestException => throw new CannotUpdateRecord()
-    }
-  }
-
-  def getPartnerGraduateProgrammes(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
-    http.GET(s"$apiBaseUrl/partner-graduate-programmes/$applicationId").map { response =>
-      response.json.as[connectors.exchange.PartnerGraduateProgrammes]
-    } recover {
-      case _: NotFoundException => throw new PartnerGraduateProgrammesNotFound()
     }
   }
 
@@ -345,8 +324,6 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class PersonalDetailsNotFound extends Exception
 
   sealed class AssistanceDetailsNotFound extends Exception
-
-  sealed class PartnerGraduateProgrammesNotFound extends Exception
 
   sealed class ApplicationNotFound extends Exception
 

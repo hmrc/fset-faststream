@@ -13,7 +13,7 @@
         <label for="@id" class="form-label">
             @if(isFaststream(user)) {
                 @Messages("university.question")
-                <span>Your first degree or your current university if you haven't finished yet</span>
+                <span class="form-hint">Your first degree or your current university if you haven't finished yet</span>
             } else {@if(isEdip(user) || isSdip(user)) {
                 @Messages("edip.university.question")
             }}

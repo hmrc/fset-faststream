@@ -26,8 +26,7 @@ object ProgressResponseExamples {
   val InProgress = Initial.copy(personalDetails = true)
   val InPersonalDetails = Initial.copy(personalDetails = true)
   val InSchemePreferencesDetails = InPersonalDetails.copy(schemePreferences = true)
-  val InPartnerGraduateProgrammes = InSchemePreferencesDetails.copy(partnerGraduateProgrammes = true)
-  val InAssistanceDetails = InPartnerGraduateProgrammes.copy(assistanceDetails = true)
+  val InAssistanceDetails = InSchemePreferencesDetails.copy(assistanceDetails = true)
   val InQuestionnaire = InAssistanceDetails.copy(questionnaire = List("start_questionnaire", "diversity_questionnaire",
     "education_questionnaire", "occupation_questionnaire"))
   val InPreview = InQuestionnaire.copy(preview = true)
