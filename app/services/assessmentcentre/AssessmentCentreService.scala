@@ -132,8 +132,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     val evaluation = AssessmentPassMarkEvaluation(applicationId,
       assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
     for {
-      currentSchemeStatus <- calculateCurrentSchemeStatus(applicationId,
-        evaluationResult.schemesEvaluation)
+      currentSchemeStatus <- calculateCurrentSchemeStatus(applicationId, evaluationResult.schemesEvaluation)
       _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation, currentSchemeStatus)
       applicationStatus <- applicationRepo.findStatus(applicationId.toString())
       _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus)
