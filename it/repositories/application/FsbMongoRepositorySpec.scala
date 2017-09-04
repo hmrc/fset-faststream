@@ -45,16 +45,6 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
       result mustBe fsbTestGroup
     }
 
-    "update currentSchemeStatus" in {
-      val applicationId = createApplication()
-      val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
-      repository.saveResult(applicationId, schemeEvaluationResult).futureValue
-
-      val currentSchemeStatus: Seq[SchemeEvaluationResult] = applicationRepo.getCurrentSchemeStatus(applicationId).futureValue
-      currentSchemeStatus must have size 1
-      currentSchemeStatus.head mustBe schemeEvaluationResult
-    }
-
     "add to result array if result array already exist" in {
       val applicationId = createApplication()
       val schemeEvaluationResult1 = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")
