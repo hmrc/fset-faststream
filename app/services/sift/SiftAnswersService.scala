@@ -75,10 +75,25 @@ trait SiftAnswersService {
       currentSchemeStatus <- appRepo.getCurrentSchemeStatus(applicationId)
       schemesPassed = currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
       schemesPassedRequiringSift = schemeRepository.schemes.filter( s =>
-        schemesPassed.contains(s.id) && s.siftRequirement == Some(SiftRequirement.FORM)
+        schemesPassed.contains(s.id) && s.siftRequirement.contains(SiftRequirement.FORM)
+      ).map(_.id).toSet
+      schemesPassedWithoutRequirement = schemeRepository.schemes.filter( s =>
+        schemesPassed.contains(s.id) && !s.siftEvaluationRequired
       ).map(_.id).toSet
       _ <- siftAnswersRepo.submitAnswers(applicationId, schemesPassedRequiringSift)
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
+      _ <- maybeMoveToCompleted(applicationId, schemesPassed, schemesPassedWithoutRequirement)
     } yield {}
+  }
+
+  private def maybeMoveToCompleted(applicationId: String, passedSchemes: Set[SchemeId],
+                                   passedSchemesWithoutRequirement: Set[SchemeId]): Future[Unit] = {
+    val canBeMoved = (passedSchemes.size == passedSchemesWithoutRequirement.size) &&
+      passedSchemes == passedSchemesWithoutRequirement
+    if(canBeMoved) {
+      appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED)
+    } else {
+      Future.successful(())
+    }
   }
 }

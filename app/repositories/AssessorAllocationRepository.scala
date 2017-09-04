@@ -59,7 +59,6 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
   }
 
   def find(id: String, eventId: String): Future[Option[AssessorAllocation]] = {
-    play.api.Logger.debug(s"**** finding allocation for userId = $id, eventId = $eventId")
     val query = BSONDocument("id" -> id, "eventId" -> eventId)
     collection.find(query, projection).one[AssessorAllocation]
   }

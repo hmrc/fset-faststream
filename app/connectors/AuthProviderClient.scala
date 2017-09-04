@@ -33,9 +33,6 @@ object AuthProviderClient extends AuthProviderClient {
   sealed class TokenEmailPairInvalidException() extends Exception
   sealed class UserRoleDoesNotExistException(message: String) extends Exception(message)
   sealed class TooManyResultsException(message: String) extends Exception(message)
-}
-
-trait AuthProviderClient {
 
   sealed abstract class UserRole(val name: String)
 
@@ -54,6 +51,9 @@ trait AuthProviderClient {
   case object SuperAdminRole extends UserRole("super-admin")
 
   case object TechnicalAdminRole extends UserRole("tech-admin")
+}
+
+trait AuthProviderClient {
 
   val allRoles = List(AssessorRole, QacRole, FaststreamTeamRole, ServiceSupportRole, ServiceAdminRole, SuperAdminRole,
     TechnicalAdminRole)

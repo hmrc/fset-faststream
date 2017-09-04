@@ -166,8 +166,6 @@ trait CandidateAllocationService extends EventSink {
     val schemeId = eventType match {
       case EventType.FSAC => None
       case EventType.FSB => Some(schemeRepository.getSchemeForFsb(eventDescription).id)
-      case EventType.SKYPE_INTERVIEW => Some(SchemeId(PdfsSchemeId))
-      case EventType.TELEPHONE_INTERVIEW => Some(schemeRepository.getSchemeForTelephoneInterview(eventDescription).id)
     }
 
     applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCentreLocation), eventType, schemeId)
@@ -258,13 +256,9 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
-  private def eventGuide(event: Event) = {
-    event.eventType match {
-      case EventType.FSAC => Some(eventsConfig.fsacGuideUrl)
-      case EventType.FSB => schemeRepository.getSchemeForFsb(event.description).schemeGuide
-      case EventType.SKYPE_INTERVIEW => schemeRepository.getSchemeForId(SchemeId(PdfsSchemeId)).flatMap(_.schemeGuide)
-      case EventType.TELEPHONE_INTERVIEW => schemeRepository.getSchemeForTelephoneInterview(event.description).schemeGuide
-    }
+  private def eventGuide(event: Event) = event.eventType match {
+    case EventType.FSAC => Some(eventsConfig.fsacGuideUrl)
+    case EventType.FSB => schemeRepository.getSchemeForFsb(event.description).schemeGuide
   }
 
   private def sendCandidateEmail(

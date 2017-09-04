@@ -188,7 +188,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "assistance-details" -> "1",
       "civil-service-experience-details" -> "1",
       "applicationId" -> "1",
-      "progress-status" -> "2"
+      "progress-status" -> "2",
+      "currentSchemeStatus" -> "1"
     )
     reportQueryWithProjectionsBSON[ApplicationForDiversityReport](query, projection)
   }

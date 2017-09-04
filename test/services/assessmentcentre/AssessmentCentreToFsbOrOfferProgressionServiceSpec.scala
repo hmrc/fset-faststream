@@ -16,13 +16,17 @@
 
 package services.assessmentcentre
 
-import model._
+import connectors.ExchangeObjects.Candidate
+import connectors.{ AuthProviderClient, EmailClient }
+import model.{ SchemeId, _ }
 import model.command.ApplicationForProgression
-import model.persisted.SchemeEvaluationResult
+import model.persisted.{ ContactDetails, SchemeEvaluationResult }
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -38,10 +42,22 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
 
         (mockFsbRepository.progressToFsb _)
           .expects(expectedApplication)
-          .returning(Future.successful(())).once
+          .returningAsync.once
+
+        (mockApplicationRepository.find(_: String))
+          .expects(expectedApplication.applicationId)
+          .returningAsync(Option(c0))
+
+        (mockContactDetailsRepo.find _)
+          .expects(userId)
+          .returningAsync(c1)
+
+        (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier))
+          .expects(c1.email, c0.name, hc)
+          .returningAsync
       }
 
-      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToFsb)) {
+      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToFsb)(hc)) {
         results =>
           val failedApplications = Seq()
           val passedApplications = applicationsToProgressToFsb
@@ -60,7 +76,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
           .returning(Future.successful(())).once
       }
 
-      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToJobOffer)) {
+      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToJobOffer)(hc)) {
         results =>
           val failedApplications = Seq()
           val passedApplications = applicationsToProgressToJobOffer
@@ -83,7 +99,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
           .returning(Future.successful(())).never
       }
 
-      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsNotToProgress)) {
+      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsNotToProgress)(hc)) {
         results =>
           val failedApplications = Seq(applicationsNotToProgress.head, applicationsNotToProgress(2))
           val passedApplications = Seq(applicationsNotToProgress(1))
@@ -95,14 +111,25 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
   trait TestFixture  {
     val mockFsbRepository = mock[FsbRepository]
     val mockApplicationRepository = mock[GeneralApplicationRepository]
+    val mockContactDetailsRepo = mock[ContactDetailsRepository]
+    val mockEmailClient = mock[EmailClient]
 
     val service: AssessmentCentreToFsbOrOfferProgressionService = new AssessmentCentreToFsbOrOfferProgressionService() {
       val fsbRepo = mockFsbRepository
       val applicationRepo = mockApplicationRepository
       val fsbRequiredSchemeIds: Seq[SchemeId] = Seq(SchemeId("DigitalAndTechnology"),
         SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService"))
+
+      override def emailClient: EmailClient = mockEmailClient
+      override def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
     }
 
+    val userId = "1"
+    implicit val hc = HeaderCarrier()
+
+    val c0 = model.Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+
+    val c1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
     val applicationsToProgressToFsb = List(
       ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
         List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString))),

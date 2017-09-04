@@ -29,7 +29,8 @@ case class ApplicationForDiversityReport(applicationId: String,
                                              gis: Option[Boolean],
                                              onlineAdjustments: Option[String],
                                              assessmentCentreAdjustments: Option[String],
-                                             civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsForDiversityReport]
+                                             civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsForDiversityReport],
+                                             currentSchemeStatus: List[SchemeEvaluationResult]
                                             )
 
 object ApplicationForDiversityReport {

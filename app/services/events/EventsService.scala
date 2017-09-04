@@ -107,8 +107,6 @@ trait EventsService {
 
   def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes
 
-  def getTelephoneInterviewTypes: Seq[TelephoneInterviewType] = schemeRepo.getTelephoneInterviewTypes
-
   def findSchemeByEvent(eventId: String): Future[Scheme] = {
     getEvent(eventId).map { event => schemeRepo.getSchemeForFsb(event.description) }
   }

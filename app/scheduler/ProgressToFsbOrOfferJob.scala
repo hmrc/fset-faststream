@@ -18,9 +18,10 @@ package scheduler
 
 import config.WaitingScheduledJobConfig
 import play.api.Logger
+import scheduler.ProgressToFsbOrOfferJobConfig.conf
 import scheduler.clustering.SingleInstanceScheduledJob
-import ProgressToFsbOrOfferJobConfig.conf
-import services.assessmentcentre.{ AssessmentCentreService, AssessmentCentreToFsbOrOfferProgressionService }
+import services.assessmentcentre.AssessmentCentreToFsbOrOfferProgressionService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -35,6 +36,7 @@ trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[
   val batchSize: Int = conf.batchSize.getOrElse(10)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    implicit val hc = HeaderCarrier()
     assessmentCentreToFsbOrOfferService.nextApplicationsForFsbOrJobOffer(batchSize).flatMap {
       case Nil => Future.successful(())
       case applications => assessmentCentreToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applications).map { result =>
