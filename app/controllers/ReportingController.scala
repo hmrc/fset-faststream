@@ -309,7 +309,9 @@ trait ReportingController extends BaseController {
   }
 
   def candidateAcceptanceReport: Action[AnyContent] = Action.async { implicit request =>
-    val rows = candidateAllocationRepo.allAllocationUnconfirmed.flatMap { candidateAllocations =>
+
+    val headers = Seq("Candidate email", "allocation date", "event type", "event description", "location", "venue")
+    val data = candidateAllocationRepo.allAllocationUnconfirmed.flatMap { candidateAllocations =>
       for {
         events <- eventsRepository.getEventsById(candidateAllocations.map(_.eventId))
         candidates <- applicationRepository.find(candidateAllocations.map(_.id))
@@ -322,15 +324,15 @@ trait ReportingController extends BaseController {
         candidateAllocations.map { allocation =>
           val e = eventMap(allocation.eventId)
 
-            makeRow(List(Some(cdMap(allocation.id).email), Some(allocation.createdAt.toString), Some(e.eventType.toString), Some(e.description),
-              Some(e.location.name), Some(e.venue.name)):_*
+            headers ++ makeRow(List(Some(cdMap(allocation.id).email), Some(allocation.createdAt.toString), Some(e.eventType.toString),
+              Some(e.description), Some(e.location.name), Some(e.venue.name)):_*
             )
         }
       }
 
     }
 
-    Future(Ok(rows))
+    Future(Ok(data))
   }
 
 
