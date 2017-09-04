@@ -18,7 +18,7 @@ package repositories.events
 
 import config.MicroserviceAppConfig
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
+import model.persisted.eventschedules._
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.DateTime
@@ -28,6 +28,7 @@ import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import repositories.BSONDateTimeHandler
+import repositories.BSONMapHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
@@ -42,6 +43,7 @@ trait EventsRepository {
   def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]]
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
+  def updateEvent(updatedEvent: Event): Future[Unit]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -52,6 +54,11 @@ class EventsMongoRepository(implicit mongo: () => DB)
   def save(events: List[Event]): Future[Unit] = {
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
       .map(_ => ())
+  }
+
+  def updateEvent(updatedEvent: Event): Future[Unit] = {
+    val query = BSONDocument("id" -> updatedEvent.id)
+    collection.update(query, updatedEvent).map(_ => ())
   }
 
   def getEvent(id: String): Future[Event] = {

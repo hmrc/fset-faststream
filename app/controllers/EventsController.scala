@@ -21,7 +21,7 @@ import model.persisted.eventschedules
 import model.{ command, exchange }
 import model.exchange.{ AssessorAllocations, Event => ExchangeEvent }
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Event, EventType }
+import model.persisted.eventschedules.{ Event, EventType, UpdateEvent }
 import model.{ command, exchange }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
@@ -57,6 +57,12 @@ trait EventsController extends BaseController {
       eventsService.save(persistedEvent).map { _ =>
         Created
       }.recover { case e: Exception => UnprocessableEntity(e.getMessage) }
+    }
+  }
+
+  def updateEvent(eventId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[UpdateEvent] { eventUpdate =>
+      eventsService.update(eventUpdate).map { _ => Ok }
     }
   }
 

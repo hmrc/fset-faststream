@@ -28,6 +28,17 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       result.size mustBe 2
     }
 
+    "update events" in {
+      val eventId = "eventId"
+      val event = EventExamples.e1WithSessions.copy(id = eventId, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1))
+      repository.save(event :: Nil).futureValue mustBe unit
+
+      val updatedSessions = event.sessions.head.copy(capacity = 40, minViableAttendees = 30, attendeeSafetyMargin = 10) :: event.sessions.tail
+      val updatedEvent = event.copy(skillRequirements = Map(SkillType.ASSESSOR.toString -> 4), sessions = updatedSessions)
+      repository.updateEvent(updatedEvent).futureValue mustBe unit
+      repository.getEvent(eventId).futureValue mustBe updatedEvent
+    }
+
     "find all events" in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.findAll().futureValue
