@@ -59,7 +59,6 @@ object ProgressExamples {
   val FullProgress = Progress(
     personalDetails = true,
     schemePreferences = true,
-    partnerGraduateProgrammes = true,
     assistanceDetails = true,
     preview = true,
     startedQuestionnaire = true,
@@ -110,7 +109,6 @@ object ProgressExamples {
   val Phase3TestsPassed = Progress(
     personalDetails = true,
     schemePreferences = true,
-    partnerGraduateProgrammes = true,
     assistanceDetails = true,
     preview = true,
     startedQuestionnaire = true,
@@ -162,8 +160,7 @@ object ProgressExamples {
 
   val PersonalDetailsProgress = InitialProgress.copy(personalDetails = true)
   val SchemePreferencesProgress = PersonalDetailsProgress.copy(schemePreferences = true)
-  val PartnerGraduateProgrammesProgress = SchemePreferencesProgress.copy(partnerGraduateProgrammes = true)
-  val AssistanceDetailsProgress = PartnerGraduateProgrammesProgress.copy(assistanceDetails = true)
+  val AssistanceDetailsProgress = SchemePreferencesProgress.copy(assistanceDetails = true)
   val QuestionnaireProgress = AssistanceDetailsProgress.copy(startedQuestionnaire = true, diversityQuestionnaire = true,
     educationQuestionnaire = true ,occupationQuestionnaire = true)
   val PreviewProgress = QuestionnaireProgress.copy(preview = true)

@@ -114,10 +114,6 @@ internshipType.SDIPPreviousYear = Summer Diversity Internship Programme (previou
 internshipType.SDIPCurrentYear = Summer Diversity Internship Programme 2017 (this year)
 error.needsEdipCompleted.required = Tell us if you have completed EDIP
 
-#partner graduate programmes
-error.interested.required = Tell us if you are interested in any partner programme
-error.partnerGraduateProgrammes.chooseone = You must choose at least one partner programme
-
 #assistance
 error.hasDisability.required=Tell us if you consider yourself to have a disability
 error.hasDisabilityDescription.required=

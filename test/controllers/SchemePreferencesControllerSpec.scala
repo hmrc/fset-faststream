@@ -97,7 +97,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       val result = controllerUnderTest.submit(request)
       print(contentAsString(result))
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.PartnerGraduateProgrammesController.present().url))
+      redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
     }
   }
 }
