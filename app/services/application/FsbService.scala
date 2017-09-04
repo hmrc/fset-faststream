@@ -101,7 +101,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
 
   private def maybeMarkAsFailedAll(appId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
     if (firstResidualPreference(newCurrentSchemeStatus).isEmpty) {
-      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_FAILED)
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_AND_FSACS_FAILED)
     } else {
       Future.successful(())
     }

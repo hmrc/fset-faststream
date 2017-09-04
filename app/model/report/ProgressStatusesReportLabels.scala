@@ -202,8 +202,8 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val FsbResultEntered = "fsb_result_entered"
   val FsbPassed = FSB_PASSED.toString.toLowerCase()
   val FsbFailed = FSB_FAILED.toString.toLowerCase()
-  val FsbAllFailed = ALL_FSBS_FAILED.toString.toLowerCase()
-  val FsbAllFailedNotified = ALL_FSBS_FAILED_NOTIFIED.toString.toLowerCase()
+  val FsbAllFailed = ALL_FSBS_AND_FSACS_FAILED.toString.toLowerCase()
+  val FsbAllFailedNotified = ALL_FSBS_AND_FSACS_FAILED_NOTIFIED.toString.toLowerCase()
 
   val EligibleForJobOffer = ELIGIBLE_FOR_JOB_OFFER.toString.toLowerCase()
 
