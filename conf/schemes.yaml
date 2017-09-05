@@ -144,13 +144,13 @@
   schemeGuide: https://www.faststream.gov.uk/media/1243/pdfs-guide.pdf
 - id: ScienceAndEngineering
   code: SEFS
-  name: Science And Engineering
+  name: Science and Engineering
   civilServantEligible: true
   degree:
     required: Degree_CharteredEngineer
     specificRequirement: true
   siftRequirement: FORM
-  siftEvaluationRequired: false
+  siftEvaluationRequired: true
   fsbType: SEFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/1238/sefs-guide.pdf
 - id: Edip
