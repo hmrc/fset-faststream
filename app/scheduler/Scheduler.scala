@@ -66,6 +66,8 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(SiftFailureJobConfig, SiftFailureJob),
     maybeInitScheduler(ProgressToFsbOrOfferJobConfig, ProgressToFsbOrOfferJob),
     maybeInitScheduler(ReminderEventAllocationJobConfig, ReminderEventAllocationJob),
+    maybeInitScheduler(NotifyOnFinalFailureJobConfig, NotifyOnFinalFailureJob),
+    maybeInitScheduler(NotifyOnFinalSuccessJobConfig, NotifyOnFinalSuccessJob),
     maybeInitScheduler(EvaluateFsbJobConfig, EvaluateFsbJob)
   ).flatten
 }
