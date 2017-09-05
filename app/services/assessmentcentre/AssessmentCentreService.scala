@@ -132,7 +132,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     for {
       currentSchemeStatus <- calculateCurrentSchemeStatus(applicationId, evaluationResult.schemesEvaluation)
       evaluatedSchemes <- assessmentCentreRepo.getFsacEvaluatedSchemes(applicationId.toString())
-      mergedEvaluation <- mergeSchemes(evaluationResult.schemesEvaluation, evaluatedSchemes, evaluation)
+      mergedEvaluation = mergeSchemes(evaluationResult.schemesEvaluation, evaluatedSchemes, evaluation)
       _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(mergedEvaluation, currentSchemeStatus)
       applicationStatus <- applicationRepo.findStatus(applicationId.toString())
       _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus)
@@ -142,8 +142,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   }
 
   private def mergeSchemes(evaluation: Seq[SchemeEvaluationResult], evaluatedSchemesFromDb: Option[Seq[SchemeEvaluationResult]],
-    assessmentPassmarkEvaluation: AssessmentPassMarkEvaluation): Future[AssessmentPassMarkEvaluation] = {
-    Future.successful {
+    assessmentPassmarkEvaluation: AssessmentPassMarkEvaluation): AssessmentPassMarkEvaluation = {
       // find any schemes which have been previously evaluated and stored in db and are not in the current evaluated schemes collection
       // these will only be schemes that have been evaluated to red
       val failedSchemes = evaluatedSchemesFromDb.map { evaluatedSchemesSeq =>
@@ -158,7 +157,6 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
           passedMinimumCompetencyLevel = assessmentPassmarkEvaluation.evaluationResult.passedMinimumCompetencyLevel,
           competencyAverageResult = assessmentPassmarkEvaluation.evaluationResult.competencyAverageResult,
           schemesEvaluation = allSchemes))
-    }
   }
 
   private def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,
