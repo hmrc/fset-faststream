@@ -65,6 +65,7 @@ object ApplicationData {
 
     val SIFT = Value
     val ASSESSMENT_CENTRE, FSB = Value
+    val ELIGIBLE_FOR_JOB_OFFER = Value
 
     val WITHDRAWN = Value
     // format: ON

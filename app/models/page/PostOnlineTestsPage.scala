@@ -63,6 +63,11 @@ case class PostOnlineTestsPage(
     case _ => OTHER
   }
 
+
+  def isFinalSuccess = RoleUtils.isEligibleForJobOffer(userDataWithSchemes.toCachedData)
+
+  def isFinalFailure = RoleUtils.isFastStreamFailed(userDataWithSchemes.toCachedData)
+
   def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 
   private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {
