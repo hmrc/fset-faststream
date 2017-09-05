@@ -19,7 +19,7 @@ package services.events
 import model._
 import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Event, Venue }
+import model.persisted.eventschedules.{ Event, UpdateEvent, Venue }
 import org.joda.time.DateTime
 import play.api.Logger
 import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
@@ -62,7 +62,23 @@ trait EventsService {
 
   def save(event: Event): Future[Unit] = eventsRepo.save(event :: Nil)
 
+  def update(eventUpdate: UpdateEvent): Future[Unit] = {
+    getEvent(eventUpdate.id).flatMap { event =>
+      val updatedEvent = event.copy(skillRequirements = eventUpdate.skillRequirements,
+        sessions = event.sessions.map { s =>
+          val sessionUpdate = eventUpdate.session(s.id)
+          s.copy(capacity = sessionUpdate.capacity,
+            attendeeSafetyMargin = sessionUpdate.attendeeSafetyMargin,
+            minViableAttendees = sessionUpdate.minViableAttendees)
+        }
+      )
+      eventsRepo.updateEvent(updatedEvent)
+    }
+  }
+
   def getEvent(id: String): Future[Event] = eventsRepo.getEvent(id)
+
+  def delete(id: String): Future[Unit] = eventsRepo.remove(id)
 
   def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue))

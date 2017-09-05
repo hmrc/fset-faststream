@@ -88,7 +88,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
             Future.successful(None)
         }
       case None =>
-        Logger.debug("$logPrefix Assessment centre pass marks have not been set")
+        Logger.debug(s"$logPrefix Assessment centre pass marks have not been set")
         Future.successful(None)
     }
   }

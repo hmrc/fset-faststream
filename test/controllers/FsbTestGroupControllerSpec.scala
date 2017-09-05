@@ -21,7 +21,7 @@ import model.{ Degree, Scheme }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import services.application.FsbTestGroupService
+import services.application.FsbService
 import services.events.EventsService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
@@ -29,7 +29,7 @@ import testkit.UnitWithAppSpec
 class FsbTestGroupControllerSpec extends UnitWithAppSpec {
 
   val mockEventsService = mock[EventsService]
-  val mockFsbTestGroupService = mock[FsbTestGroupService]
+  val mockFsbTestGroupService = mock[FsbService]
 
   val controller = new FsbTestGroupController {
     val eventsService = mockEventsService

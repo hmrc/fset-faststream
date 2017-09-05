@@ -254,6 +254,10 @@ trait EmailClient extends WSHttp {
     )
   }
 
+  def sendCandidateAssessmentCompletedMovedToFsb(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_candidate_assessment_centre_completed", Map("name" -> name))
+  }
+
   def sendCandidateUnAllocatedFromEvent(to: String, name: String, eventDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_event_candidate_unallocated",
       Map("name" -> name, "eventDate" -> eventDate)

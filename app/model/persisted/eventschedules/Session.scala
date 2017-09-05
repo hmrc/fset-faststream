@@ -34,6 +34,12 @@ case class Session(
   endTime: LocalTime
 )
 
+case class UpdateSession(id: String, capacity: Int, minViableAttendees: Int, attendeeSafetyMargin: Int)
+
+object UpdateSession {
+  implicit val format = Json.format[UpdateSession]
+}
+
 object Session {
   implicit val eventFormat: OFormat[Session] = Json.format[Session]
   implicit val eventHandler = Macros.handler[Session]
