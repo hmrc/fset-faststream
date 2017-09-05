@@ -27,7 +27,8 @@ case class AssessmentCentre(
   scoresAccepted: Boolean = false,
   awaitingReevaluation: Boolean = false,
   passed: Boolean = false,
-  failed: Boolean = false
+  failed: Boolean = false,
+  failedNotified: Boolean = false
 )
 
 case class Fsb(
@@ -37,7 +38,9 @@ case class Fsb(
   failedToAttend: Boolean = false,
   resultEntered: Boolean = false,
   passed: Boolean = false,
-  failed: Boolean = false
+  failed: Boolean = false,
+  allFailed: Boolean = false,
+  allFailedNotified: Boolean = false
 )
 
 case class Phase1ProgressResponse(
