@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.http.ws._
 trait WSHttp extends WSGet with WSPut with WSPost with WSDelete with AppName {
   // Disable implicit _outbound_ auditing.
   override val hooks = NoneRequired
-  val playWS: WSClient = WS.client
+  lazy val playWS: WSClient = WS.client
 }
 
 object WSHttp extends WSHttp

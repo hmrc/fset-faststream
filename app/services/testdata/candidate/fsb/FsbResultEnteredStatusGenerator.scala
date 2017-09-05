@@ -23,7 +23,7 @@ import model.exchange.testdata.CreateCandidateResponse.FsbTestGroupResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import services.application.FsbTestGroupService
+import services.application.FsbService
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -32,11 +32,11 @@ import scala.concurrent.Future
 
 object FsbResultEnteredStatusGenerator extends FsbResultEnteredStatusGenerator {
   override val previousStatusGenerator: BaseGenerator = FsbAllocationConfirmedStatusGenerator
-  override val fsbTestGroupService = FsbTestGroupService
+  override val fsbTestGroupService = FsbService
 }
 
 trait FsbResultEnteredStatusGenerator extends ConstructiveGenerator {
-  val fsbTestGroupService: FsbTestGroupService
+  val fsbTestGroupService: FsbService
 
   def generate(generationId: Int, createCandidateData: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
