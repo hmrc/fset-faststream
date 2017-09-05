@@ -141,7 +141,8 @@ object CandidateStatusGeneratorFactory {
       case (FSB, Some(ProgressStatuses.FSB_ALLOCATION_CONFIRMED)) => FsbAllocationConfirmedStatusGenerator
       case (FSB, Some(ProgressStatuses.FSB_RESULT_ENTERED)) => FsbResultEnteredStatusGenerator
       case (FSB, Some(ProgressStatuses.FSB_FAILED)) => FsbFailedStatusGenerator
-      case (FSB, Some(ProgressStatuses.FSB_FAILED_NOTIFIED)) => FsbFailedNotifiedStatusGenerator
+      case (FSB, Some(ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)) => AllFsbFailedStatusGenerator
+      case (FSB, Some(ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED_NOTIFIED)) => AllFsbFailedNotifiedStatusGenerator
 
       case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")

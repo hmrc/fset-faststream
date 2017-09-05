@@ -52,10 +52,10 @@ object AssessmentCentreFailedNotifiedStatusGenerator extends TestsFailedStatusGe
   val failedStatus = ASSESSMENT_CENTRE_FAILED_NOTIFIED
 }
 
-object FsbFailedNotifiedStatusGenerator extends TestsFailedStatusGenerator {
-  val previousStatusGenerator = FsbFailedStatusGenerator
+object AllFsbFailedNotifiedStatusGenerator extends TestsFailedStatusGenerator {
+  val previousStatusGenerator = AllFsbFailedStatusGenerator
   val appRepository = applicationRepository
-  val failedStatus = FSB_FAILED_NOTIFIED
+  val failedStatus = ALL_FSBS_AND_FSACS_FAILED_NOTIFIED
 }
 
 trait TestsFailedNotifiedStatusGenerator extends ConstructiveGenerator {

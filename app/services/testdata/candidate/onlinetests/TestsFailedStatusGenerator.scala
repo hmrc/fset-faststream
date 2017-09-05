@@ -64,6 +64,12 @@ object FsbFailedStatusGenerator extends TestsFailedStatusGenerator {
   val failedStatus = FSB_FAILED
 }
 
+object AllFsbFailedStatusGenerator extends TestsFailedStatusGenerator {
+  val previousStatusGenerator = FsbResultEnteredStatusGenerator
+  val appRepository = applicationRepository
+  val failedStatus = ALL_FSBS_AND_FSACS_FAILED
+}
+
 trait TestsFailedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
   val failedStatus: ProgressStatus
