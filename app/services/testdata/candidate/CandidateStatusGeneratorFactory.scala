@@ -19,11 +19,12 @@ package services.testdata.candidate
 import model.ApplicationStatus._
 import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
 import model.ProgressStatuses
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED }
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateCandidateData.CreateCandidateData
-import services.testdata.admin.{ AdminCreatedStatusGenerator, AdminUserBaseGenerator, AssessorCreatedStatusGenerator }
-import services.testdata.candidate.assessmentcentre.AssessmentCentreAwaitingAllocationStatusGenerator
-import services.testdata.candidate.fsb.{ FsbAllocationConfirmedStatusGenerator, FsbAwaitingAllocationStatusGenerator, FsbResultEnteredStatusGenerator }
+import services.testdata.admin._
+import services.testdata.candidate.assessmentcentre._
+import services.testdata.candidate.fsb._
 import services.testdata.candidate.onlinetests._
 import services.testdata.candidate.onlinetests.phase1._
 import services.testdata.candidate.onlinetests.phase2._
@@ -132,10 +133,15 @@ object CandidateStatusGeneratorFactory {
       case (SIFT, Some(ProgressStatuses.SIFT_READY)) => SiftFormsSubmittedStatusGenerator
       case (SIFT, Some(ProgressStatuses.SIFT_COMPLETED)) => SiftCompleteStatusGenerator
 
-      case (ASSESSMENT_CENTRE, Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)) => AssessmentCentreAwaitingAllocationStatusGenerator
+      case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_AWAITING_ALLOCATION)) => AssessmentCentreAwaitingAllocationStatusGenerator
+      case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED)) => AssessmentCentreAllocationConfirmedStatusGenerator
+      case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_FAILED)) => AssessmentCentreFailedStatusGenerator
+      case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_FAILED_NOTIFIED)) => AssessmentCentreFailedNotifiedStatusGenerator
       case (FSB, Some(ProgressStatuses.FSB_AWAITING_ALLOCATION)) => FsbAwaitingAllocationStatusGenerator
       case (FSB, Some(ProgressStatuses.FSB_ALLOCATION_CONFIRMED)) => FsbAllocationConfirmedStatusGenerator
       case (FSB, Some(ProgressStatuses.FSB_RESULT_ENTERED)) => FsbResultEnteredStatusGenerator
+      case (FSB, Some(ProgressStatuses.FSB_FAILED)) => FsbFailedStatusGenerator
+      case (FSB, Some(ProgressStatuses.FSB_FAILED_NOTIFIED)) => FsbFailedNotifiedStatusGenerator
 
       case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")

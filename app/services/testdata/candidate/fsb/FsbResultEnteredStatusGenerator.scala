@@ -50,7 +50,7 @@ trait FsbResultEnteredStatusGenerator extends ConstructiveGenerator {
           if (createCandidateData.schemeTypes.get.contains(result.schemeId)) {
             fsbTestGroupService.saveResult(applicationId, result)
           } else {
-            throw new SchemeNotFoundException(s"Candidate scheme preference does not have ${result.schemeId} ")
+            throw SchemeNotFoundException(s"Candidate scheme preference does not have ${result.schemeId} ")
           }
         }
         val fsbTestGroupResponse = createCandidateData.fsbTestGroupData.map(data => FsbTestGroupResponse(data.results))

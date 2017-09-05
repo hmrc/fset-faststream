@@ -24,6 +24,8 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.testdata.candidate.ConstructiveGenerator
+import services.testdata.candidate.assessmentcentre.AssessmentCentreAllocationConfirmedStatusGenerator
+import services.testdata.candidate.fsb.FsbResultEnteredStatusGenerator
 import services.testdata.candidate.onlinetests.phase1.Phase1TestsResultsReceivedStatusGenerator
 import services.testdata.candidate.onlinetests.phase2.Phase2TestsResultsReceivedStatusGenerator
 import services.testdata.candidate.onlinetests.phase3.Phase3TestsResultsReceivedStatusGenerator
@@ -48,6 +50,18 @@ object Phase3TestsFailedStatusGenerator extends TestsFailedStatusGenerator {
   val previousStatusGenerator = Phase3TestsResultsReceivedStatusGenerator
   val appRepository = applicationRepository
   val failedStatus = PHASE3_TESTS_FAILED
+}
+
+object AssessmentCentreFailedStatusGenerator extends TestsFailedStatusGenerator {
+  val previousStatusGenerator = AssessmentCentreAllocationConfirmedStatusGenerator
+  val appRepository = applicationRepository
+  val failedStatus = ASSESSMENT_CENTRE_FAILED
+}
+
+object FsbFailedStatusGenerator extends TestsFailedStatusGenerator {
+  val previousStatusGenerator = FsbResultEnteredStatusGenerator
+  val appRepository = applicationRepository
+  val failedStatus = FSB_FAILED
 }
 
 trait TestsFailedStatusGenerator extends ConstructiveGenerator {
