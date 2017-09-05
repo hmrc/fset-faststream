@@ -310,7 +310,7 @@ trait ReportingController extends BaseController {
 
   def candidateAcceptanceReport(): Action[AnyContent] = Action.async { implicit request =>
 
-    val headers = Seq("Candidate email", "allocation date", "event type", "event description", "location", "venue")
+    val headers = Seq("Candidate email, allocation date, event type, event description, location, venue")
     candidateAllocationRepo.allAllocationUnconfirmed.flatMap { candidateAllocations =>
       for {
         events <- eventsRepository.getEventsById(candidateAllocations.map(_.eventId))
@@ -327,7 +327,6 @@ trait ReportingController extends BaseController {
             Some(e.description), Some(e.location.name), Some(e.venue.name)):_*
           )
         }
-
         Ok(Json.toJson(report))
       }
     }
