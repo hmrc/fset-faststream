@@ -16,13 +16,15 @@
 
 package services.testdata.candidate.fsb
 
+import model.EvaluationResults.Green
 import model.Exceptions.{ InvalidApplicationStatusAndProgressStatusException, SchemeNotFoundException }
-import model.ProgressStatuses
+import model.SchemeId
+import model.command.testdata.CreateCandidateRequest.FsbTestGroupDataRequest
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateCandidateResponse.FsbTestGroupResponse
+import model.persisted.SchemeEvaluationResult
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories.application.GeneralApplicationRepository
 import services.application.FsbService
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -38,8 +40,20 @@ object FsbResultEnteredStatusGenerator extends FsbResultEnteredStatusGenerator {
 trait FsbResultEnteredStatusGenerator extends ConstructiveGenerator {
   val fsbTestGroupService: FsbService
 
-  def generate(generationId: Int, createCandidateData: CreateCandidateData)
+  def generate(generationId: Int, createCandidateDataIn: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+
+    val createCandidateData = if (createCandidateDataIn.fsbTestGroupData.isEmpty) {
+      val schemeTypes = createCandidateDataIn.schemeTypes.getOrElse(List(SchemeId("HumanResources")))
+      val schemeResults = schemeTypes.map { schemeId =>
+        SchemeEvaluationResult(schemeId, Green.toString) // fake data
+      }
+      val res = FsbTestGroupDataRequest(schemeResults)
+      createCandidateDataIn.copy(fsbTestGroupData = Some(res), schemeTypes = Some(schemeTypes))
+    } else {
+      createCandidateDataIn
+    }
+
     if (createCandidateData.fsbTestGroupData.isDefined) {
       for {
         candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, createCandidateData)
