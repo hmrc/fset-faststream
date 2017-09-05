@@ -53,7 +53,7 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
 
   private val FailedStatuses = Seq(
     FinalState(ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED),
-    FinalState(FSB_FAILED, FSB_FAILED_NOTIFIED),
+    FinalState(FSB_FAILED, ALL_FSBS_AND_FSACS_FAILED_NOTIFIED),
     FinalState(FAILED_AT_SIFT, FAILED_AT_SIFT_NOTIFIED)
   )
 
