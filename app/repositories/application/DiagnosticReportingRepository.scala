@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait DiagnosticReportingRepository {
-  def findByUserId(userId: String): Future[List[JsObject]]
+  def findByApplicationId(userId: String): Future[List[JsObject]]
   def findAll(): Enumerator[JsValue]
 }
 
@@ -51,7 +51,7 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
     "testGroups.PHASE3.tests.callbacks" -> 0
   )
 
-  def findByUserId(userId: String): Future[List[JsObject]] = {
+  def findByApplicationId(userId: String): Future[List[JsObject]] = {
     val projection = defaultExclusions
 
     val results = collection.find(Json.obj("userId" -> userId), projection)
