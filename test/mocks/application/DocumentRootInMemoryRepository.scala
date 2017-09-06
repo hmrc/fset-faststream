@@ -43,7 +43,7 @@ object DocumentRootInMemoryRepository extends DocumentRootInMemoryRepository
 // scalastyle:off number.of.methods
 class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
-  override def find(applicationIds: List[String]): Future[List[Candidate]] = ???
+  override def find(applicationIds: Seq[String]): Future[List[Candidate]] = ???
   override def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime) = ???
 
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
