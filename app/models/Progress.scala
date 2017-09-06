@@ -80,7 +80,6 @@ case class EligibleForJobOfferProgress(
 case class Progress(
   personalDetails: Boolean = false,
   schemePreferences: Boolean = false,
-  partnerGraduateProgrammes: Boolean = false,
   assistanceDetails: Boolean = false,
   preview: Boolean = false,
   startedQuestionnaire: Boolean = false,
@@ -115,7 +114,6 @@ object Progress {
     Progress(
       personalDetails = progressResponse.personalDetails,
       schemePreferences = progressResponse.schemePreferences,
-      partnerGraduateProgrammes = progressResponse.partnerGraduateProgrammes,
       assistanceDetails = progressResponse.assistanceDetails,
       preview = progressResponse.preview,
       startedQuestionnaire = progressResponse.questionnaire.contains("start_questionnaire"),

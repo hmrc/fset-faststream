@@ -1,11 +1,10 @@
 @(
         generalDetails: connectors.exchange.GeneralDetails,
         schemePreferences: connectors.exchange.SelectedSchemes,
-        partnerGraduateProgrammes: Option[connectors.exchange.PartnerGraduateProgrammes],
         assistanceDetails: connectors.exchange.AssistanceDetails,
         applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
-@import views.html.application.previewapplication.{assistanceDetailsViewSection, personalDetailsViewSection, schemePreferencesViewSection, partnerGraduateProgrammesViewSection, diversityQuestionnaireViewSection}
+@import views.html.application.previewapplication.{assistanceDetailsViewSection, personalDetailsViewSection, schemePreferencesViewSection, diversityQuestionnaireViewSection}
 @import models.ApplicationData.ApplicationStatus._
 @import security.Roles._
 @import security.RoleUtils._
@@ -50,10 +49,6 @@
 
     @if(isFaststream(user)) {
         @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", routes.SchemePreferencesController.present()))
-    }
-
-    @if(partnerGraduateProgrammes.isDefined) {
-        @partnerGraduateProgrammesViewSection(partnerGraduateProgrammes.get)(edit_link("editPartnerGraduateProgrammes", routes.PartnerGraduateProgrammesController.present()))
     }
 
     @assistanceDetailsViewSection(assistanceDetails)(edit_link("editAssistanceDetails", routes.AssistanceDetailsController.present()))

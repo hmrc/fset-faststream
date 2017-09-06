@@ -45,9 +45,6 @@ POST        /application/details                                    controllers.
 GET         /application/details/continue                           controllers.PersonalDetailsController.presentAndContinue
 POST        /application/details/continue                           controllers.PersonalDetailsController.submitPersonalDetailsAndContinue
 
-GET         /application/partner-graduate-programmes                controllers.PartnerGraduateProgrammesController.present
-POST        /application/partner-graduate-programmes                controllers.PartnerGraduateProgrammesController.submit
-
 GET         /application/schemes                                    controllers.SchemePreferencesController.present
 POST        /application/schemes                                    controllers.SchemePreferencesController.submit
 
