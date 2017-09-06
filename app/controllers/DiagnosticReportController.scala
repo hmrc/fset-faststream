@@ -17,8 +17,8 @@
 package controllers
 
 import akka.stream.scaladsl.Source
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsValue, Json }
+import model.UniqueIdentifier
+import play.api.libs.json.{ JsObject, Json }
 import play.api.libs.streams.Streams
 import play.api.mvc.Action
 import repositories._
@@ -29,18 +29,32 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object DiagnosticReportController extends DiagnosticReportController {
   val drRepository: DiagnosticReportingRepository = diagnosticReportRepository
+  val assessorAssessmentCentreScoresRepo = repositories.assessorAssessmentScoresRepository
+  val reviewerAssessmentCentreScoresRepo = repositories.reviewerAssessmentScoresRepository
 }
 
 trait DiagnosticReportController extends BaseController {
 
-  val drRepository: DiagnosticReportingRepository
+  def drRepository: DiagnosticReportingRepository
+  def assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
+  def reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
 
-  def getApplicationByUserId(userId: String) = Action.async { implicit request =>
-    val applicationUser = drRepository.findByUserId(userId)
+  def getApplicationByUserId(applicationId: String) = Action.async { implicit request =>
 
-    applicationUser.map { au =>
-      Ok(Json.toJson(au))
-    } recover {
+    (for {
+      application <- drRepository.findByApplicationId(applicationId)
+      assessorScores <- assessorAssessmentCentreScoresRepo.find(UniqueIdentifier(applicationId))
+      reviewerScores <- reviewerAssessmentCentreScoresRepo.find(UniqueIdentifier(applicationId))
+    } yield {
+      val assessorScoresJson = assessorScores.map(s => Json.toJson(s).as[JsObject])
+      val reviewerScoresJson = reviewerScores.map(s => Json.toJson(s).as[JsObject])
+
+      val allJson = Seq(assessorScoresJson, reviewerScoresJson).flatten.foldLeft(application) { (a, v) =>
+        a :+ v
+      }
+
+      Ok(Json.toJson(allJson))
+    }).recover {
       case _ => NotFound
     }
   }
