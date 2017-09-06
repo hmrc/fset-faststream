@@ -341,6 +341,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val mockEventsRepository = mock[EventsRepository]
     val mockAssessorRepository = mock[AssessorRepository]
     val mockSchemeRepo = mock[SchemeRepository]
+    val mockCandidateAllocationRepo = mock[CandidateAllocationRepository]
 
     class TestableReportingController extends ReportingController {
       override val reportingRepository: ReportingRepository = mockReportingRepository
@@ -354,6 +355,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       override val assessorRepository = mockAssessorRepository
       override val assessorAllocationRepository = mockAssessorAllocationRepository
       override val schemeRepo = mockSchemeRepo
+      val candidateAllocationRepo = mockCandidateAllocationRepo
     }
 
     val contactDetailsWithId = ContactDetailsWithId(

@@ -108,7 +108,10 @@ trait CommonBSONDocuments extends BaseBSONReader {
           fastPassAccepted = getProgress(ProgressStatuses.FAST_PASS_ACCEPTED.key),
           withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
           applicationArchived = getProgress(ProgressStatuses.APPLICATION_ARCHIVED.key),
-          eligibleForJobOffer = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER.key),
+          eligibleForJobOffer = EligibleForJobOfferResponse(
+            eligibleForJobOffer = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER.key),
+            eligibleForJobOfferNotified = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED.key)
+          ),
           phase1ProgressResponse = Phase1ProgressResponse(
             phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
             phase1TestsFirstReminder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
@@ -159,6 +162,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             siftReady = getProgress(ProgressStatuses.SIFT_READY.key),
             siftCompleted = getProgress(ProgressStatuses.SIFT_COMPLETED.key),
             failedAtSift = getProgress(ProgressStatuses.FAILED_AT_SIFT.key),
+            failedAtSiftNotified = getProgress(ProgressStatuses.FAILED_AT_SIFT_NOTIFIED.key),
             sdipFailedAtSift = getProgress(ProgressStatuses.SDIP_FAILED_AT_SIFT.key)
           ),
           assessmentCentre = AssessmentCentre(

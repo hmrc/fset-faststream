@@ -19,7 +19,6 @@ package repositories
 import model.AllocationStatuses
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{ TooManyEventIdsException, TooManySessionIdsException }
-import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
 import org.joda.time.LocalDate
 import play.api.libs.json.OFormat
@@ -46,6 +45,7 @@ trait CandidateAllocationRepository {
 
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit]
   def updateStructure(): Future[Unit]
+  def allAllocationUnconfirmed: Future[Seq[CandidateAllocation]]
 }
 
 class CandidateAllocationMongoRepository(implicit mongo: () => DB)
@@ -212,4 +212,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     collection.update(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
   }
 
+  def allAllocationUnconfirmed: Future[Seq[CandidateAllocation]] = {
+    collection.find(BSONDocument("status" -> AllocationStatuses.UNCONFIRMED), projection).cursor[CandidateAllocation]().collect[Seq]()
+  }
 }
