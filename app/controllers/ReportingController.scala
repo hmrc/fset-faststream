@@ -41,7 +41,7 @@ object ReportingController extends ReportingController {
   val assessorAllocationRepository: AssessorAllocationRepository = repositories.assessorAllocationRepository
   val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
-  val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
+  val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
   val schemeRepo: SchemeRepository = SchemeYamlRepository
@@ -265,12 +265,14 @@ trait ReportingController extends BaseController {
     val reports =
       for {
         applications <- reportingRepository.onlineTestPassMarkReport
+        fsacResults <- assessmentScoresRepository.findAll
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield {
         for {
           a <- applications
+          fr = fsacResults.find(_.applicationId == a.applicationId)
           q <- questionnaires.get(a.applicationId)
-        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(a), q)
+        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(a, fr), q)
       }
     reports.map { list =>
       Ok(Json.toJson(list))

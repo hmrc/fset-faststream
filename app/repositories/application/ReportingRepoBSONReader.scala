@@ -26,6 +26,7 @@ import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _
 import model.Commands._
 import model.InternshipType.{ InternshipType, apply => _ }
 import model.OnlineTestCommands.TestResult
+import model.assessmentscores.AssessmentScoresAllExercises
 import model.command._
 import model.persisted._
 import model.report._
@@ -286,15 +287,16 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
-  private[application] def toTestResultsForOnlineTestPassMarkReportItem(doc: BSONDocument, applicationId: String):
+  private[application] def toTestResultsForOnlineTestPassMarkReportItem(
+    appDoc: BSONDocument, applicationId: String):
   TestResultsForOnlineTestPassMarkReportItem = {
 
-    val testGroupsDoc = doc.getAs[BSONDocument]("testGroups")
+    val testGroupsDoc = appDoc.getAs[BSONDocument]("testGroups")
     val (behaviouralTestResult, situationalTestResult) = toPhase1TestResults(testGroupsDoc)
     val etrayTestResult = toPhase2TestResults(applicationId, testGroupsDoc)
     val videoInterviewResults = toPhase3TestResults(testGroupsDoc)
 
-    TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult, videoInterviewResults)
+    TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult, videoInterviewResults, None)
   }
 
   private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]) = {
