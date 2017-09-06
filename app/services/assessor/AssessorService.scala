@@ -52,7 +52,6 @@ trait AssessorService {
   val locationsWithVenuesRepo: LocationsWithVenuesRepository
 
   def authProviderClient: AuthProviderClient
-
   def emailClient: EmailClient
 
   private[assessor] def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
@@ -123,13 +122,17 @@ trait AssessorService {
       addIsFutureEvent(assessorAllocations).map(tuple => tuple.filter(_._2).map(_._1))
     }
 
-    for {
-      allAssessorAllocations <- assessorAllocationRepo.find(userId)
-      onlyFutureAssessorAllocations <- filterOnlyFutureAssessorAllocations(allAssessorAllocations)
-    } yield {
-      val firstAssessorAllocationWithSkillToRemove = onlyFutureAssessorAllocations.find(assessorAllocation =>
-        skills.contains(assessorAllocation.allocatedAs))
-      (firstAssessorAllocationWithSkillToRemove.isDefined)
+    if (skills.isEmpty) {
+      Future.successful(false)
+    } else {
+      for {
+        allAssessorAllocations <- assessorAllocationRepo.find(userId)
+        onlyFutureAssessorAllocations <- filterOnlyFutureAssessorAllocations(allAssessorAllocations)
+      } yield {
+        val firstAssessorAllocationWithSkillToRemove = onlyFutureAssessorAllocations.find(assessorAllocation =>
+          skills.contains(assessorAllocation.allocatedAs))
+        (firstAssessorAllocationWithSkillToRemove.isDefined)
+      }
     }
   }
 

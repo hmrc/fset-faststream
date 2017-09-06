@@ -19,14 +19,14 @@ package services.assessor
 import connectors.ExchangeObjects.Candidate
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.AllocationStatuses.AllocationStatus
-import model.Exceptions.AssessorNotFoundException
+import model.Exceptions._
 import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
 import model.persisted.EventExamples._
 import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
 import model.persisted.assessor.AssessorExamples._
 import model.persisted.eventschedules._
-import model.persisted.{ EventExamples, ReferenceData }
-import model.{ AllocationStatuses, Exceptions }
+import model.persisted.{ AssessorAllocation, EventExamples, ReferenceData }
+import model.{ AllocationStatuses, Exceptions, UniqueIdentifier }
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -190,7 +190,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       resultKeys.foreach { key =>
         assessorToEventsMapping.keys.toList.contains(key) mustBe true
       }
-      result.foreach{ case (assessor, assessorEvents) =>
+      result.foreach { case (assessor, assessorEvents) =>
         assessorEvents mustBe assessorToEventsMapping(assessor)
       }
     }
@@ -198,6 +198,89 @@ class AssessorServiceSpec extends BaseServiceSpec {
     "notify assessors of new events" in new AssessorsEventsSummaryFixture {
       val result = service.notifyAssessorsOfNewEvents(DateTime.now)(new HeaderCarrier).futureValue
       verify(mockemailClient, times(2)).notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])
+    }
+  }
+
+  "saveAssessor" must {
+    "update assessor " +
+      "when we add skills even if there are future allocations" in new TestFixtureWithFutureAllocations {
+      when(mockAssessorRepository.save(any())).thenReturnAsync()
+      service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorWith2Skill)).futureValue
+      verify(mockAssessorRepository).save(any[Assessor])
+    }
+
+    "update assessor " +
+      "when we keep the skills even if there are future allocations" in new TestFixtureWithFutureAllocations {
+      when(mockAssessorRepository.save(any())).thenReturnAsync()
+      val AssessorToSave = AssessorWithSkill.copy(civilServant = !AssessorWithSkill.civilServant)
+      service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorToSave)).futureValue
+      verify(mockAssessorRepository).save(any[Assessor])
+    }
+
+    "update assessor " +
+      "when we remove skill where the assessor has not future allocations" in new TestFixtureWithFutureAllocations {
+      val assessor = AssessorWith2Skill
+      val userId = assessor.userId
+      override val futureAllocations = Seq(AssessorAllocation(userId, eventId, AllocationStatuses.CONFIRMED, SkillType.ASSESSOR, ""))
+      when(mockAllocationRepo.find(userId)).thenReturnAsync(futureAllocations)
+      when(mockAssessorRepository.find(eqTo(userId))).thenReturnAsync(Some(assessor))
+      val AssessorToSave = assessor.copy(skills = List("ASSESSOR"))
+
+      service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorToSave)).futureValue
+
+      verify(mockAssessorRepository).save(any[Assessor])
+    }
+
+    "update assessor " +
+      "when we remove skill where the assessor has allocations in the past" in new TestFixtureWithFutureAllocations {
+      override val futureEvent = EventExamples.e1.copy(id = eventId, eventType = EventType.FSAC, date = LocalDate.now().minusDays(1))
+      when(mockEventService.getEvent(eventId)).thenReturnAsync(futureEvent)
+      val AssessorToSave = AssessorWithSkill.copy(skills = List("SIFTER"))
+
+      service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorToSave)).futureValue
+
+      verify(mockAssessorRepository).save(any[Assessor])
+    }
+
+    "throw CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException " +
+      "when we remove skill where the assessor has future allocations" in new TestFixtureWithFutureAllocations {
+      val AssessorToSave = AssessorWithSkill.copy(skills = List("SIFTER"))
+
+      intercept[CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException] {
+        Await.result(service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorToSave)), 10 seconds)
+      }
+
+      verify(mockAssessorRepository, times(0)).save(any[Assessor])
+    }
+  }
+
+  "removeAssessor" should {
+    "throw AssessorNotFoundException " +
+      "when assessor does not exist" in new TestFixture {
+      when(mockAssessorRepository.find(AssessorUserId)).thenReturnAsync(None)
+      intercept[AssessorNotFoundException] {
+        Await.result(service.remove(UniqueIdentifier(AssessorUserId)), 10 seconds)
+      }
+      verify(mockAssessorRepository, times(0)).remove(eqTo(UniqueIdentifier(AssessorUserId)))
+    }
+
+    "throw CannotRemoveAssessorWhenFutureAllocationExistsException " +
+      "when assessor exists and there are future allocations in the same skills" in new TestFixtureWithFutureAllocations {
+      intercept[CannotRemoveAssessorWhenFutureAllocationExistsException] {
+        Await.result(service.remove(UniqueIdentifier(AssessorUserId)), 10 seconds)
+      }
+      verify(mockAssessorRepository, times(0)).remove(eqTo(UniqueIdentifier(AssessorUserId)))
+    }
+
+    "remove assessor " +
+      "when assessor exists and there are allocations with those skills but none in the future" in new TestFixtureWithFutureAllocations {
+      override val futureEvent = EventExamples.e1.copy(id = eventId, eventType = EventType.FSAC, date = LocalDate.now().minusDays(1))
+      when(mockEventService.getEvent(eventId)).thenReturnAsync(futureEvent)
+
+      when(mockAssessorRepository.remove(eqTo(UniqueIdentifier(AssessorUserId)))).thenReturnAsync()
+
+      service.remove(UniqueIdentifier(AssessorUserId)).futureValue
+      verify(mockAssessorRepository).remove(eqTo(UniqueIdentifier(AssessorUserId)))
     }
   }
 
@@ -264,7 +347,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val a1 = Assessor("userId1", None, a1Skills.map(_.toString), Nil, civilServant = true, Set.empty, AssessorStatus.CREATED)
     val a2 = Assessor("userId2", None, a2Skills.map(_.toString), Nil, civilServant = true, Set.empty, AssessorStatus.CREATED)
     val a3 = Assessor("userId3", None, a1Skills.map(_.toString), Nil, civilServant = true, availabilities, AssessorStatus.CREATED)
-    val assessors: Seq[Assessor] = Seq (a1, a2)
+    val assessors: Seq[Assessor] = Seq(a1, a2)
 
     val findByUserIdsResponse = Seq(
       Candidate("Joe", "Bloggs", None, "joe.bloggs@test.com", None, "userId1", List("assessor")),
@@ -290,4 +373,17 @@ class AssessorServiceSpec extends BaseServiceSpec {
     when(mockemailClient.notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
 
   }
+
+  trait TestFixtureWithFutureAllocations extends TestFixture {
+    when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(Some(AssessorWithSkill))
+
+    val eventId = "eventId"
+    val futureEvent = EventExamples.e1.copy(id = eventId, eventType = EventType.FSAC, date = LocalDate.now().plusDays(1))
+    when(mockEventService.getEvent(eqTo(eventId))).thenReturnAsync(futureEvent)
+
+    val futureAllocations = Seq(AssessorAllocation(AssessorUserId, eventId, AllocationStatuses.CONFIRMED, SkillType.ASSESSOR, ""))
+    when(mockAllocationRepo.find(AssessorUserId)).thenReturnAsync(futureAllocations)
+  }
+
 }
+
