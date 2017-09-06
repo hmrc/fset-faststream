@@ -33,7 +33,7 @@ object ProgressToFsbOrOfferJob extends ProgressToFsbOrOfferJob {
 trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val assessmentCentreToFsbOrOfferService: AssessmentCentreToFsbOrOfferProgressionService
 
-  val batchSize: Int = conf.batchSize.getOrElse(10)
+  val batchSize: Int = conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()

@@ -100,8 +100,8 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
         ).flatten
       }
 
-      def calculateLastFsbFailedScheme(schemesInPreferenceOrder: Seq[SchemeId], fsbEvaluation: List[FsbSchemeResult]) = {
-        schemesInPreferenceOrder.filter(fsbEvaluation.contains).last
+      def calculateLastFsbFailedScheme(schemesInPreferenceOrder: Seq[SchemeId], fsbEvaluation: FsbSchemeResult) = {
+        schemesInPreferenceOrder.filter(fsbEvaluation.results.map(_.schemeId).contains).last
       }
 
       if (latestProgressStatus == FSB_FAILED) {
@@ -110,7 +110,7 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
           fsbStatusesToArchive = calculateFsbStatusesToArchive(progressResponse)
           schemesInPreferenceOrder = application.currentSchemeStatus.map(_.schemeId)
           fsbEvaluation <- fsbRepo.findByApplicationIds(List(application.applicationId), None)
-          lastSchemeFailedAtFsb = calculateLastFsbFailedScheme(schemesInPreferenceOrder, fsbEvaluation)
+          lastSchemeFailedAtFsb = calculateLastFsbFailedScheme(schemesInPreferenceOrder, fsbEvaluation.head)
           _ <- fsbRepo.addFsbProgressStatuses(application.applicationId, fsbStatusesToArchive.map(_ + "_" + lastSchemeFailedAtFsb))
           _ <- applicationRepo.removeProgressStatuses(application.applicationId, fsbStatusesToArchive)
         } yield ()
@@ -121,7 +121,7 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
 
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
-        withErrLogging("Failed while progress to fsb or job offer") {
+        withErrLogging("Failed while progressing to fsb or job offer") {
           for {
             currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
             firstResidual = firstResidualPreference(currentSchemeStatus).get
