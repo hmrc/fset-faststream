@@ -194,8 +194,8 @@ class AssessmentCentreMongoRepository (
           testGroups <- document.getAs[BSONDocument]("testGroups")
           fsac <- testGroups.getAs[BSONDocument](fsacKey)
           evaluation <- fsac.getAs[BSONDocument]("evaluation")
-          competencyAverage <- evaluation.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")
-        } yield competencyAverage
+          schemesEvaluation <- evaluation.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")
+        } yield schemesEvaluation
       case None => None
     }
   }
