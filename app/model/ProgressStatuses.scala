@@ -125,6 +125,8 @@ object ProgressStatuses {
   case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
 
+  // FSB statuses are specially archived. If you're changing these also consult hard coded lists
+  // in AssessmentCentretoFsbOrOfferProgressionService
   case object FSB_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.FSB)

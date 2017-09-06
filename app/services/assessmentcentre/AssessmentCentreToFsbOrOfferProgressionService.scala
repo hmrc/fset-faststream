@@ -19,10 +19,11 @@ package services.assessmentcentre
 import common.FutureEx
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.EvaluationResults.Green
+import model.ProgressStatuses._
 import model._
-import model.command.ApplicationForProgression
+import model.command.{ ApplicationForProgression, ProgressResponse }
 import model.fsb.FSBProgressStatus
-import model.persisted.SchemeEvaluationResult
+import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import play.api.Logger
 import repositories.{ CurrentSchemeStatusHelper, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
@@ -57,21 +58,62 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
     fsbRepo.nextApplicationForFsbOrJobOfferProgression(batchSize)
   }
 
+  // scalastyle:off method.length
   def progressApplicationsToFsbOrJobOffer(applications: Seq[ApplicationForProgression])(implicit hc: HeaderCarrier)
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
 
     def maybeProgressToFsbOrJobOffer(
       application: ApplicationForProgression,
+      latestProgressStatus: ProgressStatus,
       firstResidual: SchemeEvaluationResult)(implicit hc: HeaderCarrier): Future[Unit] = {
 
       if (firstResidual.result == Green.toString && fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
         fsbRepo.progressToFsb(application).flatMap { _ =>
           retrieveCandidateDetails(application.applicationId).flatMap { case (candidate, cd) =>
-            emailClient.sendCandidateAssessmentCompletedMovedToFsb(cd.email, candidate.name)
+            if (latestProgressStatus == ASSESSMENT_CENTRE_PASSED) {
+              emailClient.sendCandidateAssessmentCompletedMovedToFsb(cd.email, candidate.name)
+            } else {
+              Future.successful(())
+            }
           }
         }.map(_ => ())
       } else if (firstResidual.result == Green.toString) {
         fsbRepo.progressToJobOffer(application)
+      } else {
+        Future.successful(())
+      }
+    }
+
+    def maybeArchiveOldFsbStatuses(application: ApplicationForProgression,
+      latestProgressStatus: ProgressStatus) = {
+
+      def calculateFsbStatusesToArchive(progressResponse: ProgressResponse): List[ProgressStatus] = {
+        val fsbStatuses = progressResponse.fsb
+        List(
+          if (fsbStatuses.allocationConfirmed) { Some(FSB_ALLOCATION_CONFIRMED) } else { None },
+          if (fsbStatuses.allocationUnconfirmed) { Some(FSB_ALLOCATION_UNCONFIRMED) } else { None },
+          if (fsbStatuses.awaitingAllocation) { Some(FSB_AWAITING_ALLOCATION) } else { None },
+          if (fsbStatuses.failed) { Some(FSB_FAILED) } else { None },
+          if (fsbStatuses.failedToAttend) { Some(FSB_FAILED_TO_ATTEND) } else { None },
+          if (fsbStatuses.passed) { Some(FSB_PASSED) } else { None },
+          if (fsbStatuses.resultEntered) { Some(FSB_RESULT_ENTERED) } else { None }
+        ).flatten
+      }
+
+      def calculateLastFsbFailedScheme(schemesInPreferenceOrder: Seq[SchemeId], fsbEvaluation: List[FsbSchemeResult]) = {
+        schemesInPreferenceOrder.filter(fsbEvaluation.contains).last
+      }
+
+      if (latestProgressStatus == FSB_FAILED) {
+        for {
+          progressResponse <- applicationRepo.findProgress(application.applicationId)
+          fsbStatusesToArchive = calculateFsbStatusesToArchive(progressResponse)
+          schemesInPreferenceOrder = application.currentSchemeStatus.map(_.schemeId)
+          fsbEvaluation <- fsbRepo.findByApplicationIds(List(application.applicationId), None)
+          lastSchemeFailedAtFsb = calculateLastFsbFailedScheme(schemesInPreferenceOrder, fsbEvaluation)
+          _ <- fsbRepo.addFsbProgressStatuses(application.applicationId, fsbStatusesToArchive.map(_ + "_" + lastSchemeFailedAtFsb))
+          _ <- applicationRepo.removeProgressStatuses(application.applicationId, fsbStatusesToArchive)
+        } yield ()
       } else {
         Future.successful(())
       }
@@ -83,13 +125,16 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
           for {
             currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
             firstResidual = firstResidualPreference(currentSchemeStatus).get
-            _ <- maybeProgressToFsbOrJobOffer(application, firstResidual)
+            applicationStatus <- applicationRepo.findStatus(application.applicationId)
+            _ <- maybeArchiveOldFsbStatuses(application, applicationStatus.latestProgressStatus.get)
+            _ <- maybeProgressToFsbOrJobOffer(application, applicationStatus.latestProgressStatus.get, firstResidual)
           } yield ()
         }
       )
     }
     updates.map(SerialUpdateResult.fromEither)
   }
+  // scalastyle:on
 
   private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
     applicationRepo.find(applicationId).flatMap {

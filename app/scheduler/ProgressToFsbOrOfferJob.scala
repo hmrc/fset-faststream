@@ -41,7 +41,7 @@ trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[
       case Nil => Future.successful(())
       case applications => assessmentCentreToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applications).map { result =>
         Logger.info(
-          s"Progress to fsb or job offer complete - ${result.successes.size} updated and ${result.failures.size} failed to update"
+          s"Progress to fsb or job offer complete - ${result.successes.size} processed successfully and ${result.failures.size} failed to update"
         )
       }
     }

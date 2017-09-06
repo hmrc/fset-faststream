@@ -18,7 +18,7 @@ package repositories.fsb
 
 import factories.DateTimeFactory
 import model.Exceptions.AlreadyEvaluatedForSchemeException
-import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION }
+import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION, ProgressStatus }
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.fsac.AssessmentCentreTests
@@ -39,7 +39,7 @@ trait FsbRepository {
   def progressToFsb(application: ApplicationForProgression): Future[Unit]
   def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
   def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
-  def addFsbProgressStatus(applicationId: String, progressStatus: String): Future[Unit]
+  def addFsbProgressStatuses(applicationId: String, progressStatuses: List[String]): Future[Unit]
   def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
   def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
@@ -69,10 +69,17 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
   def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
-    val query = BSONDocument(
-      "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
-      s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_PASSED}" -> true
-    )
+    val query = BSONDocument("$or" -> BSONArray(
+      BSONDocument(
+        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
+        s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_PASSED}" -> true
+      ),
+      BSONDocument(
+        "applicationStatus" -> ApplicationStatus.FSB,
+        s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
+        s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)
+      )
+    ))
 
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
   }
@@ -127,16 +134,20 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     collection.update(query, update) map validator
   }
 
-  override def addFsbProgressStatus(applicationId: String, progressStatus: String): Future[Unit] = {
+  override def addFsbProgressStatuses(applicationId: String, progressStatuses: List[String]): Future[Unit] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val update = BSONDocument(
-      s"fsb-progress-status.$progressStatus" -> true,
-      s"fsb-progress-status-timestamp.$progressStatus" -> dateTimeFactory.nowLocalTimeZone
-    )
+    val updateSubDoc = progressStatuses.map { progressStatus =>
+      BSONDocument(
+        s"fsb-progress-status.$progressStatus" -> true,
+        s"fsb-progress-status-timestamp.$progressStatus" -> dateTimeFactory.nowLocalTimeZone
+      )
+    }.reduce(_ ++ _)
 
-    val validator = singleUpdateValidator(applicationId, actionDesc = "adding fsb progress status")
+    val update = BSONDocument("$set" -> updateSubDoc)
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "adding fsb progress statuses")
 
     collection.update(query, update) map validator
   }
