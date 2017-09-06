@@ -46,6 +46,11 @@ object Exceptions {
 
   case class CannotUpdatePreview(applicationId: String) extends Exception(applicationId)
 
+  case class CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException(userId: String,
+    msg: String) extends Exception(msg)
+
+  case class CannotRemoveAssessorWhenFutureAllocationExistsException(userId: String, msg: String) extends Exception(msg)
+
   case class PersonalDetailsNotFound(applicationId: String) extends Exception(applicationId)
 
   case class FSACIndicatorNotFound(applicationId: String) extends Exception(applicationId)

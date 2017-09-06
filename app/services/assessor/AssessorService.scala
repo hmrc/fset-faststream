@@ -19,7 +19,7 @@ package services.assessor
 import common.FutureEx
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.AllocationStatuses.AllocationStatus
-import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
+import model.Exceptions._
 import model.command.AllocationWithEvent
 import model.exchange.{ AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest }
 import model.persisted.AssessorAllocation
@@ -65,7 +65,6 @@ trait AssessorService {
     }
   }
 
-  //scalastyle:off
   def saveAssessor(userId: String, assessor: model.exchange.Assessor): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) if assessor.version != existing.version =>
@@ -87,36 +86,14 @@ trait AssessorService {
   }
 
   private def updateAssessor(userId: String, assessor: model.exchange.Assessor, existing: Assessor): Future[Unit] = {
-    def isFutureEvent(eventId: String): Future[Boolean] = {
-      eventsService.getEvent(eventId).map { event =>
-        val eventDate = event.date
-        val today = LocalDate.now()
-        eventDate.isEqual(today) || eventDate.isAfter(today)
-      }
-    }
-
-    def addIsFutureEvent(assessorAllocations: Seq[AssessorAllocation]) = {
-      assessorAllocations.foldLeft(Future.successful(List.empty[(AssessorAllocation, Boolean)])) { (futAccumulator, item) =>
-        futAccumulator.flatMap { accumulator => isFutureEvent(item.eventId).map((item, _)).map(_ :: accumulator) }
-      }
-    }
-
-    def getOnlyFutureAssessorAllocations(assessorAllocations: Seq[AssessorAllocation]) = {
-      addIsFutureEvent(assessorAllocations).map(tuple => tuple.filter(_._2==true).map(_._1))
-    }
-
     val oldSkills = existing.skills.toSet
     val newSkills = assessor.skills.toSet
     val skillsToRemove = oldSkills -- newSkills
 
-    for {
-      allAssessorAllocations <- assessorAllocationRepo.find(userId)
-      onlyFutureAssessorAllocations <- getOnlyFutureAssessorAllocations(allAssessorAllocations)
-    } yield {
-      val firstAssessorAllocationWithSkillToRemove = onlyFutureAssessorAllocations.find(assessorAllocation =>
-        skillsToRemove.contains(assessorAllocation.allocatedAs))
-      if (firstAssessorAllocationWithSkillToRemove.isDefined) {
-        throw new Exception("You cannot remove skills when the user has been allocated to those future events with those skills." +
+    hasFutureAssessorAllocations(userId, skillsToRemove).map { hasFutureAssessorAllocationsVal =>
+      if (hasFutureAssessorAllocationsVal) {
+        throw new CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException(userId,
+          s"You cannot remove skills from user with id $userId when the user has been allocated to those future events with those skills." +
           " Please remove the allocations from those events before removing the skills")
       } else {
         val assessorToPersist = model.persisted.assessor.Assessor(
@@ -126,6 +103,36 @@ trait AssessorService {
       }
     }
   }
+
+  private def hasFutureAssessorAllocations(userId: String, skills: Set[String]): Future[Boolean] = {
+    def filterOnlyFutureAssessorAllocations(assessorAllocations: Seq[AssessorAllocation]) = {
+      def addIsFutureEvent(assessorAllocations: Seq[AssessorAllocation]) = {
+        def isFutureEvent(eventId: String): Future[Boolean] = {
+          eventsService.getEvent(eventId).map { event =>
+            val eventDate = event.date
+            val today = LocalDate.now()
+            eventDate.isEqual(today) || eventDate.isAfter(today)
+          }
+        }
+
+        assessorAllocations.foldLeft(Future.successful(List.empty[(AssessorAllocation, Boolean)])) { (futAccumulator, item) =>
+          futAccumulator.flatMap { accumulator => isFutureEvent(item.eventId).map((item, _)).map(_ :: accumulator) }
+        }
+      }
+
+      addIsFutureEvent(assessorAllocations).map(tuple => tuple.filter(_._2).map(_._1))
+    }
+
+    for {
+      allAssessorAllocations <- assessorAllocationRepo.find(userId)
+      onlyFutureAssessorAllocations <- filterOnlyFutureAssessorAllocations(allAssessorAllocations)
+    } yield {
+      val firstAssessorAllocationWithSkillToRemove = onlyFutureAssessorAllocations.find(assessorAllocation =>
+        skills.contains(assessorAllocation.allocatedAs))
+      (firstAssessorAllocationWithSkillToRemove.isDefined)
+    }
+  }
+
 
   def saveAvailability(assessorAvailabilities: AssessorAvailabilities): Future[Unit] = {
     val userId = assessorAvailabilities.userId
@@ -287,4 +294,21 @@ trait AssessorService {
     }
   }
 
+  def remove(userId: UniqueIdentifier): Future[Unit] = {
+    assessorRepository.find(userId.toString).flatMap {
+      case Some(existing) =>
+        val skillsToRemove = existing.skills.toSet
+        hasFutureAssessorAllocations(userId.toString, skillsToRemove).map { hasFutureAssessorAllocationsVal =>
+          if (hasFutureAssessorAllocationsVal) {
+            throw new CannotRemoveAssessorWhenFutureAllocationExistsException(userId.toString,
+              s"You cannot remove assessor from user with id $userId when the user has been allocated to future events." +
+                " Please remove the allocations from those events before removing the assessor")
+          } else {
+            assessorRepository.remove(userId).map(_ => ())
+          }
+        }
+      case _ =>
+        throw new AssessorNotFoundException("Assessor with id [$userId] could not be removed because it does not exist.")
+    }
+  }
 }
