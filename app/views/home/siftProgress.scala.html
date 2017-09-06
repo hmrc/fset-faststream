@@ -12,7 +12,7 @@
 @renderSchemeForm = {
     <section class="inner-block-padr" id="schemeForms">
         <h2 class='heading-medium'>Extra information</h2>
-        
+
         @if(!page.haveAdditionalQuestionsBeenSubmitted) {
             <p>At least one of your scheme preferences require you to answer some additional questions.</p>
             <p>You should complete this within 7 days from the date of your email. Failure to do this will hold up your application.</p>
@@ -93,7 +93,7 @@
         <h2 class="heading-medium ">Attend an assessment centre</h2>
 
         <div id="assessmentBlurb">
-        @(page.fsacStage) match {
+        @page.fsacStage match {
             case PostOnlineTestsStage.UPLOAD_EXERCISES => {
                 @renderEventDetails(page.fsacAllocation)
                 <section>
@@ -134,10 +134,10 @@
                 @renderCannotAttend
                 @renderFindMoreAboutAssessmentDay
             }
-            case PostOnlineTestsStage.EVENT_ATTENDED => {
+            case PostOnlineTestsStage.EVENT_ATTENDED | PostOnlineTestsStage.ASSESSMENT_CENTRE_FAILED | PostOnlineTestsStage.ASSESSMENT_CENTRE_PASSED => {
                 <p>Thanks for attending the assessment centre.</p>
                 <p>We'll contact you as soon as we've got your result. Keep an eye on your email inbox, including your junk mail.</p>
-                @if(page.allSchemesFailed || page.firstResidualPreferencePassed) {
+                @if(page.fsacStage == PostOnlineTestsStage.ASSESSMENT_CENTRE_FAILED || page.fsacStage == PostOnlineTestsStage.ASSESSMENT_CENTRE_PASSED) {
                     @renderViewAssessmentFeedback
                 }
             }
