@@ -358,7 +358,4 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   private[this] def toTestResult(tr: model.persisted.TestResult) = {
     TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
   }
-
-  private def extract(key: String)(root: Option[BSONDocument]): Option[String] = root.flatMap(_.getAs[String](key))
-
 }

@@ -21,7 +21,7 @@ import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import services.application.FsbTestGroupService
+import services.application.FsbService
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -31,13 +31,13 @@ import scala.concurrent.Future
 object FsbAllocationConfirmedStatusGenerator extends FsbAllocationConfirmedStatusGenerator {
   override val previousStatusGenerator: BaseGenerator = FsbAwaitingAllocationStatusGenerator
   override val applicationRepository = repositories.applicationRepository
-  override val fsbTestGroupService = FsbTestGroupService
+  override val fsbTestGroupService = FsbService
 }
 
 // TODO: Allocate candidate to an event that this candidate is eligible for
 trait FsbAllocationConfirmedStatusGenerator extends ConstructiveGenerator {
   val applicationRepository: GeneralApplicationRepository
-  val fsbTestGroupService: FsbTestGroupService
+  val fsbTestGroupService: FsbService
 
   def generate(generationId: Int, createCandidateData: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {

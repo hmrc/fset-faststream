@@ -63,7 +63,7 @@ trait GeneralApplicationRepository {
 
   def find(applicationId: String): Future[Option[Candidate]]
 
-  def find(applicationIds: List[String]): Future[List[Candidate]]
+  def find(applicationIds: Seq[String]): Future[List[Candidate]]
 
   def findProgress(applicationId: String): Future[ProgressResponse]
 
@@ -180,7 +180,7 @@ class GeneralApplicationMongoRepository(
     bsonCollection.find(query).one[Candidate]
   }
 
-  def find(applicationIds: List[String]): Future[List[Candidate]] = {
+  def find(applicationIds: Seq[String]): Future[List[Candidate]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
   }
@@ -775,7 +775,7 @@ class GeneralApplicationMongoRepository(
       applicationStatusBSON(progressStatus))
     ) map validator
   }
-
+  
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty, "Progress statuses to remove cannot be empty")
 

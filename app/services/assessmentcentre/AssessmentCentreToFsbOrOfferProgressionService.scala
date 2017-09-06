@@ -21,6 +21,7 @@ import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.EvaluationResults.Green
 import model._
 import model.command.ApplicationForProgression
+import model.fsb.FSBProgressStatus
 import model.persisted.SchemeEvaluationResult
 import play.api.Logger
 import repositories.{ CurrentSchemeStatusHelper, SchemeYamlRepository }

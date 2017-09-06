@@ -18,16 +18,19 @@ package repositories.events
 
 import config.MicroserviceAppConfig
 import model.Exceptions.EventNotFoundException
+import model.persisted.eventschedules._
+import model.Exceptions.{ CannotUpdateSchemePreferences, EventNotFoundException }
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.DateTime
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.CollectionNames
+import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import repositories.BSONDateTimeHandler
+import repositories.BSONMapHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
@@ -36,22 +39,29 @@ trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Event]]
   def count(implicit ec : scala.concurrent.ExecutionContext): Future[Int]
+  def remove(id: String): Future[Unit]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
-  def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]]
+  def getEventsById(eventIds: Seq[String], eventType: Option[EventType] = None): Future[List[Event]]
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
+  def updateEvent(updatedEvent: Event): Future[Unit]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Event, BSONObjectID](CollectionNames.ASSESSMENT_EVENTS,
     mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
-    with EventsRepository {
+    with EventsRepository with ReactiveRepositoryHelpers {
 
   def save(events: List[Event]): Future[Unit] = {
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
       .map(_ => ())
+  }
+
+  def updateEvent(updatedEvent: Event): Future[Unit] = {
+    val query = BSONDocument("id" -> updatedEvent.id)
+    collection.update(query, updatedEvent).map(_ => ())
   }
 
   def getEvent(id: String): Future[Event] = {
@@ -59,6 +69,12 @@ class EventsMongoRepository(implicit mongo: () => DB)
       case Some(event) => event
       case None => throw EventNotFoundException(s"No event found with id $id")
     }
+  }
+
+  def remove(id: String): Future[Unit] = {
+    val validator = singleRemovalValidator(id, actionDesc = "deleting event")
+
+    collection.remove(BSONDocument("id" -> id)) map validator
   }
 
   def getEvents(eventType: Option[EventType] = None, venueType: Option[Venue] = None,
@@ -88,7 +104,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
   private def buildEventTypeFilter(eventType: Option[EventType]) =
     eventType.filterNot(_ == EventType.ALL_EVENTS).map { eventTypeVal => BSONDocument("eventType" -> eventTypeVal.toString) }
 
-  def getEventsById(eventIds: List[String], eventType: Option[EventType] = None): Future[List[Event]] = {
+  def getEventsById(eventIds: Seq[String], eventType: Option[EventType] = None): Future[List[Event]] = {
     val query = List(
       buildEventTypeFilter(eventType),
       Option(BSONDocument("id" -> BSONDocument("$in" -> eventIds)))

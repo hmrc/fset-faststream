@@ -21,7 +21,7 @@ import model.persisted.eventschedules
 import model.{ command, exchange }
 import model.exchange.{ AssessorAllocations, Event => ExchangeEvent }
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Event, EventType }
+import model.persisted.eventschedules.{ Event, EventType, UpdateEvent }
 import model.{ command, exchange }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
@@ -60,6 +60,12 @@ trait EventsController extends BaseController {
     }
   }
 
+  def updateEvent(eventId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[UpdateEvent] { eventUpdate =>
+      eventsService.update(eventUpdate).map { _ => Ok }
+    }
+  }
+
   def getEvent(eventId: String): Action[AnyContent] = Action.async { implicit request =>
     eventsService.getEvent(eventId).map { event =>
       Ok(Json.toJson(event))
@@ -91,6 +97,10 @@ trait EventsController extends BaseController {
         Ok(Json.toJson(allocations))
       }
     }
+  }
+
+  def delete(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+    eventsService.delete(eventId).map(_ => Ok)
   }
 
   def getAssessorAllocation(eventId: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
