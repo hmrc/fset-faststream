@@ -77,6 +77,7 @@ GET         /report/analytical-schemes/:frameworkId                      control
 GET         /report/numeric-test-extract                                 controllers.ReportingController.numericTestExtractReport()
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
 GET         /report/assessor-allocation                                  controllers.ReportingController.assessorAllocationReport()
+GET         /report/candidate-acceptance                                 controllers.ReportingController.candidateAcceptanceReport()
 
 GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
 GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
