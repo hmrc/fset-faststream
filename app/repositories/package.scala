@@ -93,6 +93,7 @@ package object repositories {
   lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
   lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
   lazy val fsbRepository = new FsbMongoRepository(DateTimeFactory)
+  lazy val finalOutcomeRepository = new FinaOutcomeMongoRepository(DateTimeFactory)
   lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository
   lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository
   lazy val assessorsEventsSummaryJobsRepository = new AssessorsEventsSummaryJobsMongoRepository()
