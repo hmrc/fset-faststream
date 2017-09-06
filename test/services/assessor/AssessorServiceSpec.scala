@@ -66,7 +66,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorNew)).futureValue
       response mustBe unit
       verify(mockAssessorRepository).find(eqTo(AssessorUserId))
-      //verify(mockAssessorRepository).save(any[Assessor])
       val expectedAssessor = AssessorNew.copy(version = NewVersion, availability = AssessorExisting.availability,
         status = AssessorStatus.AVAILABILITIES_SUBMITTED)
       verify(mockAssessorRepository).save(eqTo(expectedAssessor))
@@ -310,7 +309,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
     val NewVersion = nonSpiedService.newVersion
     val service = Mockito.spy(nonSpiedService)
-    //Mockito.doReturn(NewVersion).when(spyService).newVersion
 
     when(service.newVersion).thenReturn(NewVersion)
 
