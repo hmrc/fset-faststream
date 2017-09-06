@@ -130,7 +130,23 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
   }
 
   "evaluate assessment scores" should {
-    "save evaluation result to green with current status amber updated to green" in new TestFixture {
+    "write back schemes that have failed in a previous evaluation and current status amber updated to green" in new TestFixture {
+      // The current scheme status (the common area that represents the current status of each scheme)
+      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Amber.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
+      (mockAppRepo.getCurrentSchemeStatus _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(currentSchemeStatus))
+
+      // The schemes that have been evaluated during a previous evaluation
+      (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
+        .expects(applicationId.toString())
+        .returningAsync(Some(Seq(
+          SchemeEvaluationResult(SchemeId("Commercial"), Amber.toString),
+          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString)))
+        )
+
+      // This is the result of current evaluation (excludes failed schemes from previous evaluation)
       val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
       val evaluationResult = AssessmentEvaluationResult(
         passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult)
@@ -147,20 +163,15 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
         .returning(Future.successful(()))
 
-      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Amber.toString),
-        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
-      (mockAppRepo.getCurrentSchemeStatus _)
-        .expects(applicationId.toString())
-        .returning(Future.successful(currentSchemeStatus))
-
       val newSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
+      // The merged evaluation is the current evaluation plus any failed schemes from previous evaluation
+      val mergedEvaluationResult = List(
+        SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString)
+      )
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
-        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, schemeEvaluationResult))
-
-      (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
-        .expects(applicationId.toString())
-        .returning(Future.successful(None))
+        passedMinimumCompetencyLevel = Some(true), competencyAverageResult, mergedEvaluationResult))
 
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
         .expects(expectedEvaluation, newSchemeStatus)
@@ -202,7 +213,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
       (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
         .expects(applicationId.toString())
-        .returning(Future.successful(None))
+        .returningAsync(None)
 
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
         .expects(expectedEvaluation, newSchemeStatus)
@@ -244,7 +255,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
       (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
         .expects(applicationId.toString())
-        .returning(Future.successful(None))
+        .returningAsync(None)
 
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
         .expects(expectedEvaluation, newSchemeStatus)
@@ -282,7 +293,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
       (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
         .expects(applicationId.toString())
-        .returning(Future.successful(None))
+        .returningAsync(None)
 
       (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
         .expects(expectedEvaluation, newSchemeStatus)
