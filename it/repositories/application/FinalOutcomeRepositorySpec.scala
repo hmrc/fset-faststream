@@ -41,16 +41,21 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   private def createFailedRedApp(): String = {
     val redApp = createApplication()
-    fsbRepo.save(redApp, SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")).futureValue
-    applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.FSB_FAILED).futureValue
+    val res = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")
+    fsbRepo.saveResult(redApp, res).futureValue
+    fsbRepo.updateCurrentSchemeStatus(redApp, Seq(res))
+    applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue
     redApp
   }
 
   private def createFailedRedWithGreenScheme(): String = {
     val redApp = createApplication()
-    fsbRepo.save(redApp, SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")).futureValue
-    fsbRepo.save(redApp, SchemeEvaluationResult("DiplomaticService", "Green")).futureValue
-    applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.FSB_FAILED).futureValue
+    val s1 = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")
+    fsbRepo.saveResult(redApp, s1).futureValue
+    val s2 = SchemeEvaluationResult("DiplomaticService", "Green")
+    fsbRepo.saveResult(redApp, s2).futureValue
+    fsbRepo.updateCurrentSchemeStatus(redApp, Seq(s1, s2))
+    applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue
     redApp
   }
 
