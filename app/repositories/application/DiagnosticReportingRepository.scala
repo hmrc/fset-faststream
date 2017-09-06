@@ -54,7 +54,7 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
   def findByApplicationId(userId: String): Future[List[JsObject]] = {
     val projection = defaultExclusions
 
-    val results = collection.find(Json.obj("userId" -> userId), projection)
+    val results = collection.find(Json.obj("applicationId" -> userId), projection)
       .cursor[JsObject](ReadPreference.primaryPreferred)
       .collect[List]()
 
