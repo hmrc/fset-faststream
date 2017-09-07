@@ -104,7 +104,7 @@
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
-  civilServantEligible: true
+  civilServantEligible: false
   degree:
     required: Degree_Numerate
     specificRequirement: true
