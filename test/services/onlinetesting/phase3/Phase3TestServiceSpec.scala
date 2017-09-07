@@ -361,7 +361,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "extend a test group from the current time if it's expired" in new Phase3TestServiceFixture {
-      val daysToExtend = 7
+      val daysToExtend = 5
       phase3TestServiceWithExpiredTestGroup.extendTestGroupExpiryTime("a", daysToExtend, "A N User").futureValue
 
       val launchpadRequestCaptor = ArgumentCaptor.forClass(classOf[ExtendDeadlineRequest])
@@ -377,7 +377,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "extend a test group from its expiry time if it's not expired" in new Phase3TestServiceFixture {
-      val daysToExtend = 7
+      val daysToExtend = 5
       phase3TestServiceWithUnexpiredTestGroup.extendTestGroupExpiryTime("a", daysToExtend, "A N User").futureValue
 
       val launchpadRequestCaptor = ArgumentCaptor.forClass(classOf[ExtendDeadlineRequest])
@@ -450,8 +450,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val testInterviewId = 123
     val testTimeNow = DateTime.parse("2016-10-01T00:00:01Z")
     val unexpiredTestExpiryTime = DateTime.parse("2016-11-01T00:00:01Z")
-    val expectedFromNowExpiryTime = testTimeNow.plusDays(7)
-    val expectedFromExistingExpiryExpiryTime = unexpiredTestExpiryTime.plusDays(7)
+    val expectedFromNowExpiryTime = testTimeNow.plusDays(5)
+    val expectedFromExistingExpiryExpiryTime = unexpiredTestExpiryTime.plusDays(5)
     val testExpiredTime = testTimeNow.minusDays(3)
     val testLaunchpadCandidateId = "CND_123"
     val testFaststreamCustomCandidateId = "FSCND_456"
@@ -465,7 +465,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val gatewayConfigMock = LaunchpadGatewayConfig(
       "localhost",
       Phase3TestsConfig(
-        timeToExpireInDays = 7,
+        timeToExpireInDays = 5,
         invigilatedTimeToExpireInDays = 90,
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
         Map(
