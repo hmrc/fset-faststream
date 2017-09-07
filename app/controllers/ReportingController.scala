@@ -16,18 +16,18 @@
 
 package controllers
 
-import connectors.{ AuthProviderClient, ExchangeObjects }
+import connectors.{AuthProviderClient, ExchangeObjects}
 import model.EvaluationResults.Green
-import model.SiftRequirement
+import model.{SiftRequirement, UniqueIdentifier}
 import model.persisted.ContactDetailsWithId
 import model.report._
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, Request }
-import repositories.application.{ GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository }
+import play.api.mvc.{Action, AnyContent, Request}
+import repositories.application.{GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository}
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
-import repositories.events.{ EventsMongoRepository, EventsRepository }
-import repositories.{ QuestionnaireRepository, _ }
+import repositories.events.{EventsMongoRepository, EventsRepository}
+import repositories.{QuestionnaireRepository, _}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.collection.breakOut
@@ -270,7 +270,7 @@ trait ReportingController extends BaseController {
       } yield {
         for {
           a <- applications
-          fr = fsacResults.find(_.applicationId == a.applicationId)
+          fr = fsacResults.find(_.applicationId == UniqueIdentifier(a.applicationId))
           q <- questionnaires.get(a.applicationId)
         } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(a, fr), q)
       }
