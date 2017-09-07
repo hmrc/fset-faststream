@@ -91,8 +91,9 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
   "find eligible candidates" must {
     "return all candidates except no-shows" in new TestFixture {
 
-      private val c1 = CandidateEligibleForEvent("app1", "", "", true, DateTime.now())
-      private val c2 = CandidateEligibleForEvent("app2", "", "", true, DateTime.now())
+      private val fsacIndicator = model.FSACIndicator("","")
+      private val c1 = CandidateEligibleForEvent("app1", "", "", true, fsacIndicator, DateTime.now())
+      private val c2 = CandidateEligibleForEvent("app2", "", "", true, fsacIndicator, DateTime.now())
       private val loc = "London"
       private val eventType = EventType.FSAC
       private val desc = "ORAC"
