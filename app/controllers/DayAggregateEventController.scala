@@ -16,7 +16,6 @@
 
 package controllers
 
-import config.MicroserviceAppConfig
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
@@ -47,8 +46,9 @@ trait DayAggregateEventController extends BaseController {
   }
 
   private def find(location: Option[Location], skills: Seq[SkillType] = Nil) = {
-    eventsRepository.getEvents(None, None, location, skills).map {
-      _.groupBy(e => DayAggregateEvent(e.date, e.location)).keys.toList
+    eventsRepository.getEvents(None, None, location, skills).map { events =>
+      events.distinctTransform(_.date, e => DayAggregateEvent(e.date, Location("Home"))) ++
+      events.distinctTransform(e => (e.date, e.location), e => DayAggregateEvent(e.date, e.location))
     }
   }
 }
