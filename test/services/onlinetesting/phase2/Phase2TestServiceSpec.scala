@@ -307,7 +307,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
     }
 
-    "reset and set 7 days expiry date for non invigilated e-tray" in new Phase2TestServiceFixture {
+    "reset and set 5 days expiry date for non invigilated e-tray" in new Phase2TestServiceFixture {
       val currentExpiryDate = now.minusDays(2)
       override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
         List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
@@ -346,7 +346,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(otRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
 
       val phase2TestGroup = phase2TestGroupCaptor.getValue
-      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(7).toLocalDate
+      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(5).toLocalDate
 
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
     }
@@ -447,7 +447,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
     }
 
-    "reset invigilated e-tray by removing adjustments and set 7 days expiry date" in new Phase2TestServiceFixture {
+    "reset invigilated e-tray by removing adjustments and set 5 days expiry date" in new Phase2TestServiceFixture {
       val currentExpiryDate = now.plusDays(30)
       override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
         List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId, invigilatedAccessCode = Some("ABC")))
@@ -488,7 +488,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(otRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
 
       val phase2TestGroup = phase2TestGroupCaptor.getValue
-      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(7).toLocalDate
+      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(5).toLocalDate
 
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
     }
@@ -554,14 +554,14 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         phase2TestsSecondReminder = true
       ))
 
-    "extend the test to 7 days from now and remove: expired and two reminder progresses" in new Phase2TestServiceFixture {
+    "extend the test to 5 days from now and remove: expired and two reminder progresses" in new Phase2TestServiceFixture {
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
       val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
 
-      phase2TestService.extendTestGroupExpiryTime("appId", 7, "admin").futureValue
+      phase2TestService.extendTestGroupExpiryTime("appId", 5, "admin").futureValue
 
-      verify(otRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(7), "phase2")
+      verify(otRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(5), "phase2")
       verify(appRepositoryMock).removeProgressStatuses("appId", List(
         PHASE2_TESTS_EXPIRED, PHASE2_TESTS_SECOND_REMINDER, PHASE2_TESTS_FIRST_REMINDER)
       )
@@ -676,7 +676,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
   }
 
   "Extend time for test which has not expired yet" should {
-    "extend the test to 7 days from expiration date which is in 1 day, remove two reminder progresses" in new Phase2TestServiceFixture {
+    "extend the test to 5 days from expiration date which is in 1 day, remove two reminder progresses" in new Phase2TestServiceFixture {
       val progress = phase2Progress(
         Phase2ProgressResponse(
           phase2TestsFirstReminder = true,
@@ -687,9 +687,9 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.plusDays(1), List(phase2Test))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
 
-      phase2TestService.extendTestGroupExpiryTime("appId", 7, "admin").futureValue
+      phase2TestService.extendTestGroupExpiryTime("appId", 5, "admin").futureValue
 
-      verify(otRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(8), "phase2")
+      verify(otRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(6), "phase2")
       verify(appRepositoryMock).removeProgressStatuses("appId", List(
         PHASE2_TESTS_SECOND_REMINDER, PHASE2_TESTS_FIRST_REMINDER)
       )
@@ -801,12 +801,12 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     def availableSchedules = Map("irad" -> IradSchedule, "daro" -> DaroSchedule)
     val gatewayConfigMock =  CubiksGatewayConfig(
       "",
-      Phase1TestsConfig(expiryTimeInDays = 7,
+      Phase1TestsConfig(expiryTimeInDays = 5,
         scheduleIds = Map("sjq" -> 16196, "bq" -> 16194),
         List("sjq", "bq"),
         List("sjq")
       ),
-      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, expiryTimeInDaysForInvigilatedETray = 90, availableSchedules),
+      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, availableSchedules),
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",
       emailDomain = "test.com"
@@ -817,7 +817,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val authenticateUrl = "http://localhost/authenticate"
     val invitationDate = now
     val startedDate = invitationDate.plusDays(1)
-    val expirationDate = invitationDate.plusDays(7)
+    val expirationDate = invitationDate.plusDays(5)
     val expiredDate = now.minusMinutes(1)
     val invigilatedExpirationDate = invitationDate.plusDays(90)
 
