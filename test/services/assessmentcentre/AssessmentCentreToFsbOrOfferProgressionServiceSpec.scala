@@ -18,8 +18,9 @@ package services.assessmentcentre
 
 import connectors.ExchangeObjects.Candidate
 import connectors.{ AuthProviderClient, EmailClient }
+import model.ProgressStatuses.ASSESSMENT_CENTRE_PASSED
 import model.{ SchemeId, _ }
-import model.command.ApplicationForProgression
+import model.command.{ ApplicationForProgression, ApplicationStatusDetails }
 import model.persisted.{ ContactDetails, SchemeEvaluationResult }
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -46,14 +47,18 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
 
         (mockApplicationRepository.find(_: String))
           .expects(expectedApplication.applicationId)
-          .returningAsync(Option(c0))
+          .returningAsync(Option(candidate0))
+
+        (mockApplicationRepository.findStatus(_: String))
+          .expects(expectedApplication.applicationId)
+          .returningAsync(assessmentCentrePassedApplicationStatus)
 
         (mockContactDetailsRepo.find _)
           .expects(userId)
-          .returningAsync(c1)
+          .returningAsync(candidate1)
 
         (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier))
-          .expects(c1.email, c0.name, hc)
+          .expects(candidate1.email, candidate0.name, hc)
           .returningAsync
       }
 
@@ -70,6 +75,10 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
         (mockApplicationRepository.getCurrentSchemeStatus _)
           .expects(expectedApplication.applicationId)
           .returningAsync(expectedApplication.currentSchemeStatus).once
+
+        (mockApplicationRepository.findStatus(_: String))
+          .expects(expectedApplication.applicationId)
+          .returningAsync(assessmentCentrePassedApplicationStatus)
 
         (mockFsbRepository.progressToJobOffer _)
           .expects(expectedApplication)
@@ -90,6 +99,10 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
           .expects(expectedApplication.applicationId)
           .returningAsync(expectedApplication.currentSchemeStatus).once
 
+        (mockApplicationRepository.findStatus(_: String))
+          .expects(expectedApplication.applicationId)
+          .returningAsync(assessmentCentrePassedApplicationStatus)
+
         (mockFsbRepository.progressToJobOffer _)
           .expects(*)
           .returning(Future.successful(())).never
@@ -101,8 +114,8 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
 
       whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsNotToProgress)(hc)) {
         results =>
-          val failedApplications = Seq(applicationsNotToProgress.head, applicationsNotToProgress(2))
-          val passedApplications = Seq(applicationsNotToProgress(1))
+          val failedApplications = Seq()
+          val passedApplications = applicationsNotToProgress
           results mustBe SerialUpdateResult(failedApplications, passedApplications)
       }
     }
@@ -127,9 +140,17 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
     val userId = "1"
     implicit val hc = HeaderCarrier()
 
-    val c0 = model.Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+    val assessmentCentrePassedApplicationStatus = ApplicationStatusDetails(
+    ApplicationStatus.ASSESSMENT_CENTRE,
+    ApplicationRoute.Faststream,
+    Some(ASSESSMENT_CENTRE_PASSED),
+    None,
+    None
+    )
 
-    val c1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
+    val candidate0 = model.Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+
+    val candidate1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
     val applicationsToProgressToFsb = List(
       ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
         List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString))),

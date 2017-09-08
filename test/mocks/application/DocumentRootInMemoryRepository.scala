@@ -167,4 +167,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def getApplicationRoute(applicationId: String) = ???
 
   override def getLatestProgressStatuses = ???
+
+  override def getProgressStatusTimestamps(applicationId: String) = ???
 }

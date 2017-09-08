@@ -23,6 +23,8 @@ import model._
 import model.command.ApplicationForProgression
 import model.persisted.fsac.AssessmentCentreTests
 import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
+import org.joda.time.DateTime
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
 import repositories._
@@ -39,7 +41,7 @@ trait FsbRepository {
   def progressToFsb(application: ApplicationForProgression): Future[Unit]
   def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
   def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
-  def addFsbProgressStatuses(applicationId: String, progressStatuses: List[String]): Future[Unit]
+  def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit]
   def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
   def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
@@ -134,14 +136,15 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     collection.update(query, update) map validator
   }
 
-  override def addFsbProgressStatuses(applicationId: String, progressStatuses: List[String]): Future[Unit] = {
+  override def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit] = {
+    require(progressStatuses.nonEmpty, "Progress statuses to add must be specified")
 
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val updateSubDoc = progressStatuses.map { progressStatus =>
+    val updateSubDoc = progressStatuses.map { case (progressStatus, progressStatusTimestamp) =>
       BSONDocument(
         s"fsb-progress-status.$progressStatus" -> true,
-        s"fsb-progress-status-timestamp.$progressStatus" -> dateTimeFactory.nowLocalTimeZone
+        s"fsb-progress-status-timestamp.$progressStatus" -> progressStatusTimestamp
       )
     }.reduce(_ ++ _)
 

@@ -24,6 +24,7 @@ import model._
 import model.command.{ ApplicationForProgression, ProgressResponse }
 import model.fsb.FSBProgressStatus
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
+import org.joda.time.DateTime
 import play.api.Logger
 import repositories.{ CurrentSchemeStatusHelper, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
@@ -65,39 +66,43 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
     def maybeProgressToFsbOrJobOffer(
       application: ApplicationForProgression,
       latestProgressStatus: ProgressStatus,
-      firstResidual: SchemeEvaluationResult)(implicit hc: HeaderCarrier): Future[Unit] = {
+      firstResidualOpt: Option[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
 
-      if (firstResidual.result == Green.toString && fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
-        fsbRepo.progressToFsb(application).flatMap { _ =>
-          retrieveCandidateDetails(application.applicationId).flatMap { case (candidate, cd) =>
-            if (latestProgressStatus == ASSESSMENT_CENTRE_PASSED) {
-              emailClient.sendCandidateAssessmentCompletedMovedToFsb(cd.email, candidate.name)
-            } else {
-              Future.successful(())
+      firstResidualOpt.map { firstResidual =>
+
+        if (firstResidual.result == Green.toString && fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
+          fsbRepo.progressToFsb(application).flatMap { _ =>
+            retrieveCandidateDetails(application.applicationId).flatMap { case (candidate, cd) =>
+              if (latestProgressStatus == ASSESSMENT_CENTRE_PASSED) {
+                emailClient.sendCandidateAssessmentCompletedMovedToFsb(cd.email, candidate.name)
+              } else {
+                Future.successful(())
+              }
             }
-          }
-        }.map(_ => ())
-      } else if (firstResidual.result == Green.toString) {
-        fsbRepo.progressToJobOffer(application)
-      } else {
-        Future.successful(())
-      }
+          }.map(_ => ())
+        } else if (firstResidual.result == Green.toString) {
+          fsbRepo.progressToJobOffer(application)
+        } else {
+          Future.successful(())
+        }
+      }.getOrElse(Future.successful(()))
     }
 
     def maybeArchiveOldFsbStatuses(application: ApplicationForProgression,
       latestProgressStatus: ProgressStatus) = {
 
-      def calculateFsbStatusesToArchive(progressResponse: ProgressResponse): List[ProgressStatus] = {
-        val fsbStatuses = progressResponse.fsb
-        List(
-          if (fsbStatuses.allocationConfirmed) { Some(FSB_ALLOCATION_CONFIRMED) } else { None },
-          if (fsbStatuses.allocationUnconfirmed) { Some(FSB_ALLOCATION_UNCONFIRMED) } else { None },
-          if (fsbStatuses.awaitingAllocation) { Some(FSB_AWAITING_ALLOCATION) } else { None },
-          if (fsbStatuses.failed) { Some(FSB_FAILED) } else { None },
-          if (fsbStatuses.failedToAttend) { Some(FSB_FAILED_TO_ATTEND) } else { None },
-          if (fsbStatuses.passed) { Some(FSB_PASSED) } else { None },
-          if (fsbStatuses.resultEntered) { Some(FSB_RESULT_ENTERED) } else { None }
-        ).flatten
+      def calculateFsbStatusesToArchive(progressTimestamps: Map[String, DateTime]): List[(ProgressStatus, DateTime)] = {
+
+        val progressStatusesToArchive = List(FSB_ALLOCATION_CONFIRMED, FSB_ALLOCATION_UNCONFIRMED, FSB_AWAITING_ALLOCATION,
+          FSB_FAILED, FSB_FAILED_TO_ATTEND, FSB_PASSED, FSB_RESULT_ENTERED)
+
+        progressStatusesToArchive.flatMap { statusToArchive =>
+          if (progressTimestamps.contains(statusToArchive.toString)) {
+            Some(ProgressStatuses.nameToProgressStatus(statusToArchive.toString) -> progressTimestamps(statusToArchive.toString))
+          } else {
+            Nil
+          }
+        }
       }
 
       def calculateLastFsbFailedScheme(schemesInPreferenceOrder: Seq[SchemeId], fsbEvaluation: FsbSchemeResult) = {
@@ -106,13 +111,15 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
 
       if (latestProgressStatus == FSB_FAILED) {
         for {
-          progressResponse <- applicationRepo.findProgress(application.applicationId)
-          fsbStatusesToArchive = calculateFsbStatusesToArchive(progressResponse)
+          progressStatusTimestamps <- applicationRepo.getProgressStatusTimestamps(application.applicationId)
+          fsbStatusesToArchive = calculateFsbStatusesToArchive(progressStatusTimestamps.toMap)
           schemesInPreferenceOrder = application.currentSchemeStatus.map(_.schemeId)
           fsbEvaluation <- fsbRepo.findByApplicationIds(List(application.applicationId), None)
           lastSchemeFailedAtFsb = calculateLastFsbFailedScheme(schemesInPreferenceOrder, fsbEvaluation.head)
-          _ <- fsbRepo.addFsbProgressStatuses(application.applicationId, fsbStatusesToArchive.map(_ + "_" + lastSchemeFailedAtFsb))
-          _ <- applicationRepo.removeProgressStatuses(application.applicationId, fsbStatusesToArchive)
+          _ <- fsbRepo.addFsbProgressStatuses(application.applicationId,
+            fsbStatusesToArchive.map(x => x._1 + "_" + lastSchemeFailedAtFsb -> x._2)
+          )
+          _ <- applicationRepo.removeProgressStatuses(application.applicationId, fsbStatusesToArchive.map(_._1))
         } yield ()
       } else {
         Future.successful(())
@@ -124,10 +131,15 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
         withErrLogging("Failed while progressing to fsb or job offer") {
           for {
             currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
-            firstResidual = firstResidualPreference(currentSchemeStatus).get
+            _ = Logger.warn(s"APP = ${application.applicationId} foo")
+            firstResidual = firstResidualPreference(currentSchemeStatus)
+            _ = Logger.warn(s"APP = ${application.applicationId} bar")
             applicationStatus <- applicationRepo.findStatus(application.applicationId)
+            _ = Logger.warn(s"APP = ${application.applicationId} gah")
             _ <- maybeArchiveOldFsbStatuses(application, applicationStatus.latestProgressStatus.get)
+            _ = Logger.warn(s"APP = ${application.applicationId} yey")
             _ <- maybeProgressToFsbOrJobOffer(application, applicationStatus.latestProgressStatus.get, firstResidual)
+            _ = Logger.warn(s"APP = ${application.applicationId} rar")
           } yield ()
         }
       )
@@ -144,7 +156,10 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
   }
 
   private def withErrLogging[T](logPrefix: String)(f: Future[T]): Future[T] = {
-    f.recoverWith { case ex => Logger.warn(s"$logPrefix: ${ex.getMessage}"); f }
+    f.recoverWith {
+      case ex: Throwable => Logger.warn(s"$logPrefix: ${ex.getMessage}", ex)
+        f
+    }
   }
 
 }
