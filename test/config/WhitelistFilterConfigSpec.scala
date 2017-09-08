@@ -28,7 +28,8 @@ class WhitelistFilterConfigSpec extends UnitWithAppSpec {
   override implicit lazy val app: FakeApplication =
     FakeApplication(additionalConfiguration = additionalConfig ++ Map(
         "whitelistExcludedCalls" -> Base64.getEncoder.encodeToString("/ping/ping,/healthcheck".getBytes),
-        "whitelist" -> Base64.getEncoder.encodeToString("11.22.33.44".getBytes)
+        "whitelist" -> Base64.getEncoder.encodeToString("11.22.33.44,8.8.8.8".getBytes),
+        "whitelistFileUpload" -> Base64.getEncoder.encodeToString("8.8.8.8".getBytes)
       ),
      withGlobal = Some(ProductionFrontendGlobal))
 
@@ -38,13 +39,16 @@ class WhitelistFilterConfigSpec extends UnitWithAppSpec {
         FrontendAppConfig.whitelistExcluded mustBe Seq("/ping/ping", "/healthcheck")
       }
       "the whitelist IPs are requested" in {
-        FrontendAppConfig.whitelist mustBe Seq("11.22.33.44")
+        FrontendAppConfig.whitelist mustBe Seq("11.22.33.44","8.8.8.8")
+      }
+      "the file upload whitelist IPs are requested" in {
+        FrontendAppConfig.whitelistFileUpload mustBe Seq("8.8.8.8")
       }
     }
   }
 
   "ProductionFrontendGlobal" must {
-    "let requests passing" when {
+    "let requests pass" when {
       "coming from an IP in the white list must work as normal" in {
         val request = FakeRequest(GET, "/fset-fast-stream/signup").withHeaders("True-Client-IP" -> "11.22.33.44")
         val Some(result) = route(app, request)
@@ -72,6 +76,27 @@ class WhitelistFilterConfigSpec extends UnitWithAppSpec {
         val Some(result) = route(app, request)
 
         status(result) mustBe NOT_IMPLEMENTED
+      }
+
+      "Uploading a file from an IP not on the main whitelist" in {
+        val request = FakeRequest(GET, "/fset-fast-stream/file-submission/foobar").withHeaders("True-Client-IP" -> "93.00.33.33")
+        val Some(result) = route(app, request)
+
+        status(result) mustBe FORBIDDEN
+      }
+
+      "Uploading a file from an IP on the main whitelist, but not on the file upload whitelist" in {
+        val request = FakeRequest(GET, "/fset-fast-stream/file-submission/foobar").withHeaders("True-Client-IP" -> "11.22.33.44")
+        val Some(result) = route(app, request)
+
+        status(result) mustBe FORBIDDEN
+      }
+
+      "Uploading a file from an IP on the main whitelist, and on the file upload whitelist" in {
+        val request = FakeRequest(GET, "/fset-fast-stream/file-submission/foobar").withHeaders("True-Client-IP" -> "8.8.8.8")
+        val Some(result) = route(app, request)
+
+        status(result) mustBe NOT_FOUND
       }
     }
   }

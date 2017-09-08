@@ -28,7 +28,8 @@ import helpers.WSBinaryPost
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.ws.WS
-import play.api.mvc.{ Call, RequestHeader }
+import play.api.mvc.Results.{ Forbidden, NotImplemented, Redirect }
+import play.api.mvc.{ Call, RequestHeader, Result }
 import security.{ CsrCredentialsProvider, UserCacheService }
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -38,6 +39,7 @@ import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.whitelist.AkamaiWhitelistFilter
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 object FrontendAuditConnector extends AuditConnector {
@@ -94,18 +96,56 @@ object SecurityEnvironmentImpl extends SecurityEnvironmentImpl
 object WhitelistFilter extends AkamaiWhitelistFilter with RunMode with MicroserviceFilterSupport {
 
   // Whitelist Configuration
-  private def whitelistConfig(key: String):Seq[String] =
-  Some(new String(Base64.getDecoder().decode(Play.configuration.getString(key).getOrElse("")), "UTF-8"))
-    .map(_.split(",")).getOrElse(Array.empty).toSeq
+  private def whitelistConfig(key: String): Seq[String] =
+    Some(new String(Base64.getDecoder.decode(Play.configuration.getString(key).getOrElse("")), "UTF-8"))
+      .map(_.split(",")).getOrElse(Array.empty).toSeq
 
   // List of IP addresses
   override def whitelist: Seq[String] = whitelistConfig("whitelist")
+
+  // List of allowed file upload addresses
+  def whitelistFileUpload: Seq[String] = whitelistConfig("whitelistFileUpload")
+
+  // List of prefixes that file uploads happen under
+  val fileUploadPathPrefixes = List("/fset-fast-stream/file-submission/")
 
   // Es. /ping/ping,/admin/details
   override def excludedPaths: Seq[Call] = whitelistConfig("whitelistExcludedCalls").map {
     path => Call("GET", path)
   }
 
-  override def destination: Call = Call("GET", "https://www.apply-civil-service-fast-stream.service.gov.uk/outage-fset-faststream/index.html")
+  def destination: Call = Call(
+    "GET",
+    "https://www.apply-civil-service-fast-stream.service.gov.uk/outage-fset-faststream/index.html"
+  )
 
+  // Modified AkamaiWhitelistFilter (play-whitelist-filter)
+  private def isCircularDestination(requestHeader: RequestHeader): Boolean =
+    requestHeader.uri == destination.url
+
+  private def toCall(rh: RequestHeader): Call =
+    Call(rh.method, rh.uri)
+
+  override def apply(f: (RequestHeader) => Future[Result])(rh: RequestHeader): Future[Result] =
+    if (excludedPaths.contains(toCall(rh))) {
+      f(rh)
+    } else {
+      rh.headers.get(trueClient) map {
+        ip =>
+          if (fileUploadPathPrefixes.exists(pathPrefix => rh.uri.startsWith(pathPrefix))) {
+            if (whitelistFileUpload.contains(ip)) {
+              f(rh)
+            } else {
+              Future.successful(Forbidden)
+            }
+          }
+          else if (whitelist.head == "*" || whitelist.contains(ip)) {
+            f(rh)
+          } else if (isCircularDestination(rh)) {
+            Future.successful(Forbidden)
+          } else {
+            Future.successful(Redirect(destination))
+          }
+      } getOrElse Future.successful(NotImplemented)
+    }
 }
