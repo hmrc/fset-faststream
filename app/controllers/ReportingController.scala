@@ -16,11 +16,13 @@
 
 package controllers
 
+import config.LocationsAndVenuesConfig
 import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.EvaluationResults.Green
+import model.exchange.AssessorAvailability
 import model.{ Candidate, SiftRequirement }
 import model.persisted.ContactDetailsWithId
-import model.persisted.eventschedules.Event
+import model.persisted.eventschedules.{ Event, Location }
 import model.report._
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
@@ -129,7 +131,12 @@ trait ReportingController extends BaseController {
       val roleByDate = sortedEvents.map { event =>
         theAssessorAllocations.find(_.eventId == event.id).map(allocation =>
           s"${allocation.allocatedAs.toString} (${allocation.status.toString})"
-        )
+        ).orElse {
+          val availabilities = theAssessor.availability.filter(_.date == event.date)
+          if (availabilities.isEmpty) { None } else {
+            Some(availabilities.map(_.location.name).mkString(", "))
+          }
+        }
       }
 
       val assessorInfo = List(Some(s"${theAssessorAuthProviderInfo.firstName} ${theAssessorAuthProviderInfo.lastName}"),
@@ -138,10 +145,7 @@ trait ReportingController extends BaseController {
         Some(theAssessorAuthProviderInfo.email), theAssessorAuthProviderInfo.phone,
         Some(if (theAssessor.civilServant) { "Internal" } else { "External" }))
 
-      makeRow(
-        assessorInfo ++
-        roleByDate: _*
-      )
+      makeRow(assessorInfo ++ roleByDate: _*)
     }
 
     sortedEventsFut.flatMap { events =>
