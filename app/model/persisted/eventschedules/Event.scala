@@ -21,7 +21,7 @@ import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import model.exchange.{ Event => ExchangeEvent }
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler, BSONMapHandler }
+import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler, BSONMapStringIntHandler }
 
 case class Event(
   id: String,
@@ -54,6 +54,21 @@ object UpdateEvent {
 object Event {
   implicit val eventFormat: OFormat[Event] = Json.format[Event]
   implicit val eventHandler = Macros.handler[Event]
+
+  implicit def eventsToDistinctT(events: Seq[Event]) = new {
+    def distinctTransform[S, T](uniqueness: Event => S, transformer: Event => T)
+      (implicit cbf: scala.collection.generic.CanBuildFrom[Seq[Event], T, Seq[T]]) = {
+      val builder = cbf()
+      val seenAlready = scala.collection.mutable.HashSet[S]()
+      for (event <- events) {
+        if (!seenAlready(uniqueness(event))){
+          builder += transformer(event)
+          seenAlready += uniqueness(event)
+        }
+      }
+      builder.result()
+    }
+  }
 
   def apply(exchangeEvent: ExchangeEvent): Event = {
     new Event(

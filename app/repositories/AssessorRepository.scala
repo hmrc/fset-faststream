@@ -16,6 +16,7 @@
 
 package repositories
 
+import model.UniqueIdentifier
 import model.persisted.assessor.{ Assessor, AssessorStatus }
 import model.persisted.eventschedules.{ Event, Location }
 import model.persisted.eventschedules.SkillType.SkillType
@@ -37,6 +38,7 @@ trait AssessorRepository {
   def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]]
   def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]]
   def findUnavailableAssessors(skills: Seq[SkillType], location: Location, date: LocalDate): Future[Seq[Assessor]]
+  def remove(userId: UniqueIdentifier): Future[Unit]
 }
 
 class AssessorMongoRepository(implicit mongo: () => DB)
@@ -68,7 +70,7 @@ class AssessorMongoRepository(implicit mongo: () => DB)
       BSONDocument("skills" -> BSONDocument("$in" -> skills)),
       BSONDocument("availability" ->
         BSONDocument("$elemMatch" -> BSONDocument(
-          "location" -> location,
+          "location" -> BSONDocument("$in" -> BSONArray(location, "Home")),
           "date" -> date
         )))
     ))
@@ -99,5 +101,10 @@ class AssessorMongoRepository(implicit mongo: () => DB)
       )
     ))
     collection.find(query).cursor[Assessor]().collect[Seq]()
+  }
+
+  def remove(userId: UniqueIdentifier): Future[Unit] = {
+    val validator = singleRemovalValidator(userId.toString, actionDesc = "deleting assessor")
+    collection.remove(BSONDocument("userId" -> userId)) map validator
   }
 }

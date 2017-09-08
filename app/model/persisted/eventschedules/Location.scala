@@ -20,7 +20,9 @@ import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import repositories.events.LocationWithVenue
 
-case class Location(name: String)
+case class Location(name: String) {
+  def isHome: Boolean = name == "Home"
+}
 
 object Location {
   implicit val locationFormat: OFormat[Location] = Json.format[Location]

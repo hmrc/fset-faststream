@@ -18,7 +18,10 @@ package controllers.metrics
 
 import play.api.libs.json.Json
 import play.api.mvc.Action
+import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import repositories._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
@@ -31,18 +34,17 @@ object ProgressStatusMetrics {
   implicit val progressStatusMetricsFormat = Json.format[ProgressStatusMetrics]
 }
 
-object MetricsController extends MetricsController
+object MetricsController extends MetricsController {
+  override val applicationRepo = applicationRepository
+}
 
 trait MetricsController extends BaseController {
+  val applicationRepo: GeneralApplicationRepository
 
-  def progressStatuscounts = Action.async {
-    Future.successful(
-      Ok(Json.toJson(
-        ProgressStatusMetrics(
-          5012,
-          10
-        )
-      ))
-    )
+  def progressStatusCounts = Action.async {
+   applicationRepo.getLatestProgressStatuses.map { list =>
+     val listWithCounts = list.groupBy(identity).mapValues(_.size)
+     Ok(Json.toJson(listWithCounts))
+   }
   }
 }

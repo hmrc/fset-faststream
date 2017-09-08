@@ -124,6 +124,7 @@ GET         /schools                                                     control
 
 POST        /assessor/save/:userId                                       controllers.AssessorController.saveAssessor(userId: String)
 GET         /assessor/find/:userId                                       controllers.AssessorController.findAssessor(userId: String)
+DELETE      /assessor/remove/:userId                                     controllers.AssessorController.removeAssessor(userId: model.UniqueIdentifier)
 
 POST        /assessor/availability/save                                  controllers.AssessorController.saveAvailability()
 GET         /assessor/availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
@@ -208,4 +209,4 @@ GET         /reference/locations-with-venues                             control
 GET         /reference/fsac/assessment-centres                           controllers.reference.FsacIndicatorController.getAssessmentCentres
 
 # Metrics endpoints
-GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatuscounts
+GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatusCounts
