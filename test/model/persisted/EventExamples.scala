@@ -78,6 +78,7 @@ object EventExamples {
 
   val DayAggregateEventsNew = List(
     DayAggregateEvent(LocalDate.now, LocationLondon),
+    DayAggregateEvent(LocalDate.now, Location("Home")),
     DayAggregateEvent(LocalDate.now, LocationNewcastle)
   )
 

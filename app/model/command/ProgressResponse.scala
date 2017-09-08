@@ -97,7 +97,13 @@ case class SiftProgressResponse(
   siftReady: Boolean = false,
   siftCompleted: Boolean = false,
   sdipFailedAtSift: Boolean = false,
-  failedAtSift: Boolean = false
+  failedAtSift: Boolean = false,
+  failedAtSiftNotified: Boolean = false
+)
+
+case class EligibleForJobOfferResponse(
+  eligibleForJobOffer: Boolean = false,
+  eligibleForJobOfferNotified: Boolean = false
 )
 
 case class ProgressResponse(
@@ -111,7 +117,7 @@ case class ProgressResponse(
   submitted: Boolean = false,
   fastPassAccepted: Boolean = false,
   withdrawn: Boolean = false,
-  eligibleForJobOffer: Boolean = false,
+  eligibleForJobOffer: EligibleForJobOfferResponse = EligibleForJobOfferResponse(),
   phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
   phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
   phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
@@ -127,6 +133,7 @@ case class ProgressResponse(
 object ProgressResponse {
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
   implicit val fsbFormat = Json.format[Fsb]
+  implicit val eligibleForJobOfferFormat = Json.format[EligibleForJobOfferResponse]
   implicit val phase1ProgressResponseFormat = Json.format[Phase1ProgressResponse]
   implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
   implicit val phase3ProgressResponseFormat = Json.format[Phase3ProgressResponse]

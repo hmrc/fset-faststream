@@ -54,7 +54,7 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
 
       status(res) mustBe OK
       val resReal = Json.fromJson[List[DayAggregateEvent]](Json.parse(contentAsString(res))).get
-      resReal must contain theSameElementsAs EventExamples.DayAggregateEventsNew.filter(_.location == location)
+      resReal must contain theSameElementsAs EventExamples.DayAggregateEventsNew.filter(e => e.location == location || e.location.name == "Home")
     }
 
     "return EMPTY list when nothing found" in new TestFixture {

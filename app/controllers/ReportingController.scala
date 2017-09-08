@@ -18,8 +18,9 @@ package controllers
 
 import connectors.{AuthProviderClient, ExchangeObjects}
 import model.EvaluationResults.Green
-import model.{SiftRequirement, UniqueIdentifier}
+import model.{ Candidate, SiftRequirement ,UniqueIdentifier }
 import model.persisted.ContactDetailsWithId
+import model.persisted.eventschedules.Event
 import model.report._
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Request}
@@ -46,6 +47,7 @@ object ReportingController extends ReportingController {
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
   val schemeRepo: SchemeRepository = SchemeYamlRepository
   val authProviderClient: AuthProviderClient = AuthProviderClient
+  val candidateAllocationRepo = repositories.candidateAllocationRepository
 }
 
 trait ReportingController extends BaseController {
@@ -61,6 +63,7 @@ trait ReportingController extends BaseController {
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
   val schemeRepo: SchemeRepository
   val authProviderClient: AuthProviderClient
+  val candidateAllocationRepo: CandidateAllocationRepository
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     for {
@@ -306,5 +309,30 @@ trait ReportingController extends BaseController {
 
       reports.map(list => Ok(Json.toJson(list)))
   }
+
+  def candidateAcceptanceReport(): Action[AnyContent] = Action.async { implicit request =>
+
+    val headers = Seq("Candidate email, allocation date, event type, event description, location, venue")
+    candidateAllocationRepo.allAllocationUnconfirmed.flatMap { candidateAllocations =>
+      for {
+        events <- eventsRepository.getEventsById(candidateAllocations.map(_.eventId))
+        candidates <- applicationRepository.find(candidateAllocations.map(_.id))
+        contactDetails <- contactDetailsRepository.findByUserIds(candidates.map(_.userId))
+      } yield {
+        val eventMap: Map[String, Event] = events.map(e => e.id -> e)(breakOut)
+        val cdMap: Map[String, ContactDetailsWithId] =
+          candidates.map(c => c.applicationId.get -> contactDetails.find(_.userId == c.userId).get)(breakOut)
+
+        val report = headers ++ candidateAllocations.map { allocation =>
+          val e = eventMap(allocation.eventId)
+          makeRow(List(Some(cdMap(allocation.id).email), Some(allocation.createdAt.toString), Some(e.eventType.toString),
+            Some(e.description), Some(e.location.name), Some(e.venue.name)):_*
+          )
+        }
+        Ok(Json.toJson(report))
+      }
+    }
+  }
+
 
 }

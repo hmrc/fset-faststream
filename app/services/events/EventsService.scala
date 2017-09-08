@@ -78,6 +78,8 @@ trait EventsService {
 
   def getEvent(id: String): Future[Event] = eventsRepo.getEvent(id)
 
+  def delete(id: String): Future[Unit] = eventsRepo.remove(id)
+
   def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue))
   }

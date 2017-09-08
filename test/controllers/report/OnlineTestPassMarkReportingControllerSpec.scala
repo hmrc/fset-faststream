@@ -28,7 +28,7 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
-import repositories.{ AssessmentScoresRepository, AssessorAllocationRepository, AssessorRepository, MediaRepository, QuestionnaireRepository, SchemeRepository, contactdetails }
+import repositories.{ AssessmentScoresRepository, AssessorAllocationRepository, AssessorRepository, CandidateAllocationRepository, MediaRepository, QuestionnaireRepository, SchemeRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -107,6 +107,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     val mockAssessorRepository = mock[AssessorRepository]
     val mockSchemeYamlRepository = mock[SchemeRepository]
     val mockAssessmentScoresRepository = mock[AssessmentScoresRepository]
+    val mockCandidateAllocationRepo = mock[CandidateAllocationRepository]
 
     val controller = new ReportingController {
       val reportingRepository = mockReportRepository
@@ -120,6 +121,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       val assessorRepository = mockAssessorRepository
       val assessorAllocationRepository = mockAssessorAllocationRepository
       val schemeRepo = mockSchemeYamlRepository
+      val candidateAllocationRepo = mockCandidateAllocationRepo
     }
 
     lazy val testResults = Map(

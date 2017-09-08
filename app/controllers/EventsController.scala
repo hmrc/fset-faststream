@@ -99,6 +99,10 @@ trait EventsController extends BaseController {
     }
   }
 
+  def delete(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+    eventsService.delete(eventId).map(_ => Ok)
+  }
+
   def getAssessorAllocation(eventId: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
     assessorAllocationService.getAllocation(eventId, userId).map {
       case Some(allocation) => Ok(Json.toJson(allocation))

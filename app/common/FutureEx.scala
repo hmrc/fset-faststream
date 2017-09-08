@@ -16,6 +16,8 @@
 
 package common
 
+import play.api.Logger
+
 import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.language.higherKinds
@@ -62,6 +64,11 @@ object FutureEx {
   def futureToEither[T](updateReq: T, result: Future[Unit])(implicit ex: ExecutionContext): Future[Either[T, T]] = {
     result.map { _ => Right(updateReq) }.recover { case _: Exception => Left(updateReq) }
   }
+
+  def withErrLogging[T](logPrefix: String)(f: Future[T])(implicit ec: ExecutionContext): Future[T] = {
+    f.recoverWith { case ex => Logger.warn(s"$logPrefix: ${ex.getMessage}"); f }
+  }
+
 }
 
 object TryEx {

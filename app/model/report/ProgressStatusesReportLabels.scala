@@ -79,8 +79,9 @@ trait ProgressStatusesReportLabels {
     (progress.siftProgressResponse.siftEntered, 400, SiftEntered),
     (progress.siftProgressResponse.siftReady, 403, SiftReady),
     (progress.siftProgressResponse.failedAtSift, 404, SiftFailed),
-    (progress.siftProgressResponse.sdipFailedAtSift, 405, SdipSiftFailed),
-    (progress.siftProgressResponse.siftCompleted, 406, SiftCompleted),
+    (progress.siftProgressResponse.failedAtSiftNotified, 405, SiftFailedNotified),
+    (progress.siftProgressResponse.sdipFailedAtSift, 406, SdipSiftFailed),
+    (progress.siftProgressResponse.siftCompleted, 407, SiftCompleted),
     (progress.assessmentCentre.awaitingAllocation, 420, AssessmentCentreAwaitingAllocation),
     (progress.assessmentCentre.allocationUnconfirmed, 423, AssessmentCentreAllocationUnconfirmed),
     (progress.assessmentCentre.allocationConfirmed, 426, AssessmentCentreAllocationConfirmed),
@@ -100,7 +101,8 @@ trait ProgressStatusesReportLabels {
     (progress.fsb.failed, 510, FsbFailed),
     (progress.fsb.allFailed, 513, FsbAllFailed),
     (progress.fsb.allFailedNotified, 515, FsbAllFailedNotified),
-    (progress.eligibleForJobOffer, 800, EligibleForJobOffer),
+    (progress.eligibleForJobOffer.eligibleForJobOffer, 800, EligibleForJobOffer),
+    (progress.eligibleForJobOffer.eligibleForJobOfferNotified, 801, EligibleForJobOfferNotified),
     (progress.withdrawn, 999, WithdrawnProgress),
     (progress.applicationArchived, 1000, ApplicationArchived)
   )
@@ -206,11 +208,13 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val FsbAllFailedNotified = ALL_FSBS_AND_FSACS_FAILED_NOTIFIED.toString.toLowerCase()
 
   val EligibleForJobOffer = ELIGIBLE_FOR_JOB_OFFER.toString.toLowerCase()
+  val EligibleForJobOfferNotified = ELIGIBLE_FOR_JOB_OFFER_NOTIFIED.toString.toLowerCase()
 
   val SiftEntered = "sift_entered"
   val SiftReady = "ready_for_sifting"
   val SiftCompleted = "sift_completed"
   val SiftFailed = "failed_at_sift"
+  val SiftFailedNotified = FAILED_AT_SIFT_NOTIFIED.toString.toLowerCase()
   val SdipSiftFailed = "sdip_failed_at_sift"
   val ApplicationArchived = "application_archived"
   val FastPassAccepted = "fast_pass_accepted"
