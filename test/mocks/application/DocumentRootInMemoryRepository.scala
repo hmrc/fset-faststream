@@ -165,4 +165,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]) = ???
 
   override def getApplicationRoute(applicationId: String) = ???
+
+  override def getLatestProgressStatuses = ???
 }
