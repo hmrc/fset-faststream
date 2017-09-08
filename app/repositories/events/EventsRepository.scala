@@ -30,7 +30,7 @@ import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments,
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import repositories.BSONDateTimeHandler
-import repositories.BSONMapHandler
+import repositories.BSONMapStringIntHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }

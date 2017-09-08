@@ -37,7 +37,8 @@ import model.persisted.eventschedules.EventType.EventType
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ Format, JsNumber, JsObject }
+import play.api.Logger
+import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, document, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
@@ -146,6 +147,7 @@ trait GeneralApplicationRepository {
 
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 
+  def getLatestProgressStatuses: Future[List[String]]
 }
 
 // scalastyle:off number.of.methods
@@ -775,7 +777,7 @@ class GeneralApplicationMongoRepository(
       applicationStatusBSON(progressStatus))
     ) map validator
   }
-  
+
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty, "Progress statuses to remove cannot be empty")
 
@@ -883,7 +885,8 @@ class GeneralApplicationMongoRepository(
           "personal-details.firstName" -> true,
           "personal-details.lastName" -> true,
           "assistance-details.needsSupportAtVenue" -> true,
-          "progress-status-timestamp" -> true
+          "progress-status-timestamp" -> true,
+          "fsac-indicator" -> true
         )
         val ascending = JsNumber(1)
         // Eligible candidates should be sorted based on when they passed PHASE 3
@@ -943,8 +946,15 @@ class GeneralApplicationMongoRepository(
     val lastName = personalDetails.getAs[String]("lastName").get
     val needsAdjustment = doc.getAs[BSONDocument]("assistance-details").flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)
     val dateReady = doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](ApplicationStatus.PHASE3_TESTS_PASSED))
+    val fsacIndicator = doc.getAs[model.persisted.FSACIndicator]("fsac-indicator").get
 
-    CandidateEligibleForEvent(applicationId, firstName, lastName, needsAdjustment, dateReady.getOrElse(DateTime.now()))
+    CandidateEligibleForEvent(
+      applicationId,
+      firstName,
+      lastName,
+      needsAdjustment,
+      model.FSACIndicator(fsacIndicator),
+      dateReady.getOrElse(DateTime.now()))
   }
 
   private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
@@ -977,5 +987,18 @@ class GeneralApplicationMongoRepository(
     collection.find(predicate, projection).one[BSONDocument].map(_.flatMap { doc =>
       doc.getAs[ApplicationRoute]("applicationRoute")
     }.getOrElse(throw ApplicationNotFound(s"No application found for $applicationId")))
+  }
+
+  def getLatestProgressStatuses: Future[List[String]] = {
+    val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
+    val query = BSONDocument()
+
+    collection.find(query, projection).cursor[BSONDocument].collect[List]().map { doc =>
+      doc.map { item =>
+        item.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.map { progressStatus =>
+          progressStatus._1 -> progressStatus._2.toString
+        }.sortBy(tup => tup._2).reverse.head._1
+      }
+    }
   }
 }

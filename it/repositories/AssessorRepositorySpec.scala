@@ -1,7 +1,7 @@
 package repositories
 
 import factories.UUIDFactory
-import model.SchemeId
+import model.{ SchemeId, UniqueIdentifier }
 import model.persisted.EventExamples
 import model.persisted.eventschedules.{ Location, SkillType }
 import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
@@ -14,7 +14,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
   def repository = new AssessorMongoRepository()
 
-  private val userId = "123"
+  private val userId = UniqueIdentifier.randomUniqueIdentifier.toString
   private val AssessorWithAvailabilities = Assessor(userId, None,
     List("assessor", "qac"), List(SchemeId("Sdip")), true,
     Set(AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
@@ -34,7 +34,6 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
     }
 
     "save and find the assessor" in {
-      val userId = "123"
       repository.save(AssessorWithAvailabilities).futureValue
 
       val result = repository.find(userId).futureValue
@@ -52,8 +51,8 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
       val result = repository.findAll().futureValue
 
-      result must contain (AssessorWithAvailabilities)
-      result must contain (secondAssessor)
+      result must contain(AssessorWithAvailabilities)
+      result must contain(secondAssessor)
     }
 
     "save assessor and add availabilities" in {
@@ -117,6 +116,15 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       val eventSkills = List(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)
       val result = repository.findUnavailableAssessors(eventSkills, london, eventDate).futureValue
       result.size mustBe 2
+    }
+
+    "save and remove assessor" in {
+      repository.save(AssessorWithAvailabilities).futureValue
+
+      repository.remove(UniqueIdentifier(userId)).futureValue
+
+      val result = repository.find(userId.toString).futureValue
+      result mustBe None
     }
   }
 }
