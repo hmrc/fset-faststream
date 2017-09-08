@@ -982,21 +982,19 @@ class GeneralApplicationMongoRepository(
   }
 
   def getLatestProgressStatuses: Future[List[ProgressStatus]] = {
-    import BSONDateTimeHandler._
-    import BSONMapStringStringHandler._
-
     val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
     val query = BSONDocument()
 
     collection.find(query, projection).cursor[BSONDocument].collect[List]().map { doc =>
-      val foo = doc.map { item =>
-        val head = item.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.map { progressStatus =>
-          ProgressStatuses.nameToProgressStatus(progressStatus._1) -> progressStatus._2.toString
-        }.toMap
+      doc.map { item =>
+        item.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.flatMap { progressStatus =>
+          if (progressStatus._1 == IN_PROGRESS.toString) {
+            None
+          } else {
+            Some(ProgressStatuses.nameToProgressStatus(progressStatus._1) -> progressStatus._2.toString)
+          }
+        }.sortBy(tup => tup._2).reverse.head._1
       }
-      Logger.warn("Contents = " + Json.toJson(foo.toList.sortBy(tup => tup._2).reverse.head._1))
-
-      foo.toList.sortBy(tup => tup._2).reverse.head._1
     }
   }
 }
