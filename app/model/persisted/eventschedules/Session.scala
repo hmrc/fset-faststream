@@ -22,7 +22,7 @@ import org.joda.time.LocalTime
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import repositories.events.SessionConfig
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
+import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapStringIntHandler }
 
 case class Session(
   id: String,

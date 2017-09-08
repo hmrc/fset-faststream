@@ -37,7 +37,8 @@ import model.persisted.eventschedules.EventType.EventType
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ Format, JsNumber, JsObject }
+import play.api.Logger
+import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, document, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
@@ -146,6 +147,7 @@ trait GeneralApplicationRepository {
 
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 
+  def getLatestProgressStatuses: Future[List[ProgressStatus]]
 }
 
 // scalastyle:off number.of.methods
@@ -775,7 +777,7 @@ class GeneralApplicationMongoRepository(
       applicationStatusBSON(progressStatus))
     ) map validator
   }
-  
+
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty, "Progress statuses to remove cannot be empty")
 
@@ -977,5 +979,22 @@ class GeneralApplicationMongoRepository(
     collection.find(predicate, projection).one[BSONDocument].map(_.flatMap { doc =>
       doc.getAs[ApplicationRoute]("applicationRoute")
     }.getOrElse(throw ApplicationNotFound(s"No application found for $applicationId")))
+  }
+
+  def getLatestProgressStatuses: Future[List[ProgressStatus]] = {
+    val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
+    val query = BSONDocument()
+
+    collection.find(query, projection).cursor[BSONDocument].collect[List]().map { doc =>
+      doc.map { item =>
+        item.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.flatMap { progressStatus =>
+          if (progressStatus._1 == IN_PROGRESS.toString) {
+            None
+          } else {
+            Some(ProgressStatuses.nameToProgressStatus(progressStatus._1) -> progressStatus._2.toString)
+          }
+        }.sortBy(tup => tup._2).reverse.head._1
+      }
+    }
   }
 }
