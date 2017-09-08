@@ -17,6 +17,7 @@
 package controllers
 
 import model.Exceptions._
+import model.UniqueIdentifier
 import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
 import model.exchange.{ Assessor, AssessorAvailabilities, AssessorAvailability }
@@ -24,7 +25,7 @@ import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
-import services.assessoravailability.AssessorService
+import services.assessor.AssessorService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 
@@ -38,11 +39,30 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   }
 
   "save assessor" must {
-    "return OK when save is successful" in {
+    "return OK " +
+      "when save is successful" in {
       val Request = fakeRequest(AssessorExamples.Assessor1)
       when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(Future.successful(()))
       val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
       status(response) mustBe OK
+    }
+
+    "return FAILED_DEPENDENCY " +
+      "when there is a CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException" in {
+      val Request = fakeRequest(AssessorExamples.Assessor1)
+      when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(
+        Future.failed(new CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException("", "")))
+      val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
+      status(response) mustBe FAILED_DEPENDENCY
+    }
+
+    "return CONFLICT " +
+      "when there is a OptimisticLockException" in {
+      val Request = fakeRequest(AssessorExamples.Assessor1)
+      when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(
+        Future.failed(new OptimisticLockException("")))
+      val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
+      status(response) mustBe CONFLICT
     }
   }
 
@@ -100,6 +120,35 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       val response = controller.countSubmittedAvailability()(fakeRequest)
       status(response) mustBe OK
       contentAsJson(response) mustBe Json.obj("size" -> 5)
+    }
+  }
+
+  "removeAssessor" must {
+    "return CONFLICT " +
+      "when there is CannotRemoveAssessorWhenFutureAllocationExistsException in" in {
+      val userId = UniqueIdentifier.randomUniqueIdentifier
+      when(mockAssessorService.remove(eqTo(userId))).thenReturn(
+        Future.failed(new CannotRemoveAssessorWhenFutureAllocationExistsException("", "")))
+      val response = controller.removeAssessor(userId)(fakeRequest)
+      status(response) mustBe CONFLICT
+    }
+
+    "return NOT_FOUND " +
+      "when there is CannotRemoveAssessorWhenFutureAllocationExistsException in" in {
+      val userId = UniqueIdentifier.randomUniqueIdentifier
+      when(mockAssessorService.remove(eqTo(userId))).thenReturn(Future.failed(new AssessorNotFoundException("")))
+      val response = controller.removeAssessor(userId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
+    }
+
+    "return OK " +
+      "when assessor is removed" in {
+      val userId = UniqueIdentifier.randomUniqueIdentifier
+      when(mockAssessorService.remove(eqTo(userId))).thenReturnAsync()
+      val response = controller.removeAssessor(userId)(fakeRequest)
+      status(response) mustBe OK
+      response.futureValue
+      verify(mockAssessorService).remove(eqTo(userId))
     }
   }
 }
