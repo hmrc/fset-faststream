@@ -119,10 +119,11 @@ trait AssessorService {
           futAccumulator.flatMap { accumulator => isFutureEvent(item.eventId).map((item, _)).map(_ :: accumulator) }
         }
       }
-      addIsFutureEvent(assessorAllocations).map { tuple =>
-        val (assessorAlllocation, isFutureEvent) = tuple
-        tuple.filter(isFutureEvent).map(assessorAlllocation)
-      }
+      addIsFutureEvent(assessorAllocations).map(tuple => tuple.filter(_._2).map(_._1))
+
+      case class AssessorAllocationIsFutureEvent(assessorAlllocation: AssessorAllocation, isFutureEvent: Boolean)
+      addIsFutureEvent(assessorAllocations).map(_.map(tuple =>
+        AssessorAllocationIsFutureEvent(tuple._1, tuple._2)).filter(_.isFutureEvent).map(_.assessorAlllocation))
     }
 
     if (skills.isEmpty) {
