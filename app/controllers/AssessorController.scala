@@ -42,7 +42,7 @@ trait AssessorController extends BaseController {
     withJsonBody[Assessor] { assessor =>
       assessorService.saveAssessor(userId, assessor).map(_ => Ok).recover {
         case e: OptimisticLockException => Conflict(e.getMessage)
-        case e: CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException => Conflict(e.getMessage)
+        case e: CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException => FailedDependency(e.getMessage)
       }
     }
   }

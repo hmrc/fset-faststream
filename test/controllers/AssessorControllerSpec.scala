@@ -47,13 +47,13 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       status(response) mustBe OK
     }
 
-    "return CONFLICT " +
+    "return FAILED_DEPENDENCY " +
       "when there is a CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException" in {
       val Request = fakeRequest(AssessorExamples.Assessor1)
       when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(
         Future.failed(new CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException("", "")))
       val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
-      status(response) mustBe CONFLICT
+      status(response) mustBe FAILED_DEPENDENCY
     }
 
     "return CONFLICT " +

@@ -104,13 +104,14 @@ trait AssessorService {
   }
 
   private def hasFutureAssessorAllocations(userId: String, skills: Set[String]): Future[Boolean] = {
+    val today = LocalDate.now()
+
     def filterOnlyFutureAssessorAllocations(assessorAllocations: Seq[AssessorAllocation]) = {
       def addIsFutureEvent(assessorAllocations: Seq[AssessorAllocation]) = {
         def isFutureEvent(eventId: String): Future[Boolean] = {
           eventsService.getEvent(eventId).map { event =>
             val eventDate = event.date
-            val today = LocalDate.now()
-            eventDate.isEqual(today) || eventDate.isAfter(today)
+            today.isBefore(eventDate)
           }
         }
 
@@ -118,8 +119,10 @@ trait AssessorService {
           futAccumulator.flatMap { accumulator => isFutureEvent(item.eventId).map((item, _)).map(_ :: accumulator) }
         }
       }
-
-      addIsFutureEvent(assessorAllocations).map(tuple => tuple.filter(_._2).map(_._1))
+      addIsFutureEvent(assessorAllocations).map { tuple =>
+        val (assessorAlllocation, isFutureEvent) = tuple
+        tuple.filter(isFutureEvent).map(assessorAlllocation)
+      }
     }
 
     if (skills.isEmpty) {
@@ -303,7 +306,7 @@ trait AssessorService {
         val skillsToRemove = existing.skills.toSet
         hasFutureAssessorAllocations(userId.toString, skillsToRemove).map { hasFutureAssessorAllocationsVal =>
           if (hasFutureAssessorAllocationsVal) {
-            throw new CannotRemoveAssessorWhenFutureAllocationExistsException(userId.toString,
+            throw CannotRemoveAssessorWhenFutureAllocationExistsException(userId.toString,
               s"You cannot remove assessor from user with id $userId when the user has been allocated to future events." +
                 " Please remove the allocations from those events before removing the assessor")
           } else {
@@ -311,7 +314,7 @@ trait AssessorService {
           }
         }
       case _ =>
-        throw new AssessorNotFoundException("Assessor with id [$userId] could not be removed because it does not exist.")
+        throw AssessorNotFoundException("Assessor with id [$userId] could not be removed because it does not exist.")
     }
   }
 }
