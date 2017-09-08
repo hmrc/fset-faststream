@@ -148,6 +148,8 @@ trait GeneralApplicationRepository {
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 
   def getLatestProgressStatuses: Future[List[String]]
+
+  def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
 }
 
 // scalastyle:off number.of.methods
@@ -999,6 +1001,21 @@ class GeneralApplicationMongoRepository(
           progressStatus._1 -> progressStatus._2.toString
         }.sortBy(tup => tup._2).reverse.head._1
       }
+    }
+  }
+
+  def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = {
+    import BSONDateTimeHandler._
+
+    val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      case Some(doc) => doc.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.map {
+        case (progressStatus: String, bsonDateTime: BSONDateTime) =>
+          progressStatus -> bsonDateTime.as[DateTime]
+      }
+      case _ => Nil
     }
   }
 }
