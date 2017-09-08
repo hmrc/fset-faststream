@@ -885,7 +885,8 @@ class GeneralApplicationMongoRepository(
           "personal-details.firstName" -> true,
           "personal-details.lastName" -> true,
           "assistance-details.needsSupportAtVenue" -> true,
-          "progress-status-timestamp" -> true
+          "progress-status-timestamp" -> true,
+          "fsac-indicator" -> true
         )
         val ascending = JsNumber(1)
         // Eligible candidates should be sorted based on when they passed PHASE 3
@@ -945,8 +946,15 @@ class GeneralApplicationMongoRepository(
     val lastName = personalDetails.getAs[String]("lastName").get
     val needsAdjustment = doc.getAs[BSONDocument]("assistance-details").flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)
     val dateReady = doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](ApplicationStatus.PHASE3_TESTS_PASSED))
+    val fsacIndicator = doc.getAs[model.persisted.FSACIndicator]("fsac-indicator").get
 
-    CandidateEligibleForEvent(applicationId, firstName, lastName, needsAdjustment, dateReady.getOrElse(DateTime.now()))
+    CandidateEligibleForEvent(
+      applicationId,
+      firstName,
+      lastName,
+      needsAdjustment,
+      model.FSACIndicator(fsacIndicator),
+      dateReady.getOrElse(DateTime.now()))
   }
 
   private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
