@@ -38,8 +38,13 @@ trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob[BasicJobConf
     Logger.debug(s"EvaluateAssessmentScoreJob starting")
     applicationAssessmentService.nextAssessmentCandidateReadyForEvaluation.flatMap { candidateResultsOpt =>
       candidateResultsOpt.map { candidateResults =>
-        Logger.debug(s"EvaluateAssessmentScoreJob found a candidate - now evaluating...")
-        applicationAssessmentService.evaluateAssessmentCandidate(candidateResults, minimumCompetencyLevelConfig)
+        if (candidateResults.schemes.isEmpty) {
+          Logger.debug(s"EvaluateAssessmentScoreJob - no non-RED schemes found so will not evaluate this candidate")
+          Future.successful(())
+        } else {
+          Logger.debug(s"EvaluateAssessmentScoreJob found a candidate - now evaluating...")
+          applicationAssessmentService.evaluateAssessmentCandidate(candidateResults, minimumCompetencyLevelConfig)
+        }
       }.getOrElse(Future.successful(()))
     }
   }

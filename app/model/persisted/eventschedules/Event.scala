@@ -21,7 +21,7 @@ import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import model.exchange.{ Event => ExchangeEvent }
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler, BSONMapHandler }
+import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler, BSONMapStringIntHandler }
 
 case class Event(
   id: String,
