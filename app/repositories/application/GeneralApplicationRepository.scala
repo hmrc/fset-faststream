@@ -147,7 +147,7 @@ trait GeneralApplicationRepository {
 
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 
-  def getLatestProgressStatuses: Future[List[ProgressStatus]]
+  def getLatestProgressStatuses: Future[List[String]]
 }
 
 // scalastyle:off number.of.methods
@@ -981,18 +981,14 @@ class GeneralApplicationMongoRepository(
     }.getOrElse(throw ApplicationNotFound(s"No application found for $applicationId")))
   }
 
-  def getLatestProgressStatuses: Future[List[ProgressStatus]] = {
+  def getLatestProgressStatuses: Future[List[String]] = {
     val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
     val query = BSONDocument()
 
     collection.find(query, projection).cursor[BSONDocument].collect[List]().map { doc =>
       doc.map { item =>
-        item.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.flatMap { progressStatus =>
-          if (progressStatus._1 == IN_PROGRESS.toString) {
-            None
-          } else {
-            Some(ProgressStatuses.nameToProgressStatus(progressStatus._1) -> progressStatus._2.toString)
-          }
+        item.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.map { progressStatus =>
+          progressStatus._1 -> progressStatus._2.toString
         }.sortBy(tup => tup._2).reverse.head._1
       }
     }

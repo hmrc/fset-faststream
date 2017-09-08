@@ -41,9 +41,9 @@ object MetricsController extends MetricsController {
 trait MetricsController extends BaseController {
   val applicationRepo: GeneralApplicationRepository
 
-  def progressStatuscounts = Action.async {
+  def progressStatusCounts = Action.async {
    applicationRepo.getLatestProgressStatuses.map { list =>
-     val listWithCounts = list.map(_.toString).groupBy(identity).mapValues(_.size)
+     val listWithCounts = list.groupBy(identity).mapValues(_.size)
      Ok(Json.toJson(listWithCounts))
    }
   }

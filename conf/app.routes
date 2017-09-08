@@ -209,4 +209,4 @@ GET         /reference/locations-with-venues                             control
 GET         /reference/fsac/assessment-centres                           controllers.reference.FsacIndicatorController.getAssessmentCentres
 
 # Metrics endpoints
-GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatuscounts
+GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatusCounts
