@@ -47,12 +47,6 @@ sealed case class FailedTestTypeSdipFs(template: String, applicationRoute: Appli
   override val notificationProgress: String = getProgressStatusForSdipFsFailedNotified(ApplicationStatus.SUBMITTED).key
 }
 
-sealed case class SuccessfulTestTypeSdipFs(template: String, applicationRoute: ApplicationRoute) extends NotificationTestTypeSdipFs {
-  // Using a bogus ApplicationStatus just to get the progress status key
-  override val progressStatus: String = getProgressStatusForSdipFsSuccess(ApplicationStatus.SUBMITTED).key
-  override val notificationProgress: String = getProgressStatusForSdipFsPassedNotified(ApplicationStatus.SUBMITTED).key
-}
-
 object Phase1FailedTestType
   extends FailedTestType(PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED, PHASE1_TESTS_RESULTS_RECEIVED,
     "fset_faststream_app_online_phase1_test_failed")
@@ -77,6 +71,3 @@ object Phase3SuccessTestType
 
 object FailedSdipFsTestType
   extends FailedTestTypeSdipFs("fset_faststream_app_online_sdip_fs_test_failed", ApplicationRoute.SdipFaststream)
-
-object SuccessfulSdipFsTestType
-  extends SuccessfulTestTypeSdipFs("fset_faststream_app_online_sdip_fs_test_success", ApplicationRoute.SdipFaststream)

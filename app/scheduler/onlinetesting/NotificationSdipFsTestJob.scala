@@ -33,13 +33,6 @@ object FailedSdipFsTestJob extends NotificationSdipFsTestJob {
   val config = FailedPhase1TestJobConfig
 }
 
-object SuccessfulSdipFsTestJob extends NotificationSdipFsTestJob {
-  override val service = Phase1TestService
-  override val notificationType = SuccessfulSdipFsTestType
-
-  val config = SuccessfulSdipFsTestJobConfig
-}
-
 trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
 
   val service: OnlineTestService
@@ -55,9 +48,4 @@ trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfi
 object FailedSdipFsTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
   configPrefix = "scheduling.online-testing.failed-sdip-fs-test-job",
   name = "FailedSdipFsTestJob"
-)
-
-object SuccessfulSdipFsTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
-  configPrefix = "scheduling.online-testing.success-sdip-fs-test-job",
-  name = "SuccessfulSdipFsTestJob"
 )

@@ -107,12 +107,12 @@ trait OnlineTestService extends TimeExtension with EventSink {
   protected def processTestForSdipFsNotification(toNotify: TestResultSdipFsNotification, `type`: NotificationTestTypeSdipFs)
                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    val notificationProgressStatus = Try{(`type`, toNotify.applicationStatus) match {
+    val notificationProgressStatus = Try {
+      (`type`, toNotify.applicationStatus) match {
       case(n: FailedTestTypeSdipFs, status) =>
         getProgressStatusForSdipFsFailedNotified(status)
-      case(n: SuccessfulTestTypeSdipFs, status) =>
-        getProgressStatusForSdipFsPassedNotified(status)
-    }}
+      }
+    }
 
     for {
       notificationStatus <- Future.fromTry(notificationProgressStatus)
