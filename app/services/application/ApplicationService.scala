@@ -117,7 +117,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
     def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult], latestProgressStatus: Option[ProgressStatus]) = {
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
-      val shouldProgressToFSAC = !latestProgressStatus.contains(ProgressStatuses.SIFT_READY) &&
+      val shouldProgressToFSAC = !latestProgressStatus.contains(ProgressStatuses.SIFT_ENTERED) &&
         (greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet)
 
       if (shouldProgressToFSAC) {
