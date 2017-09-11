@@ -16,10 +16,12 @@
 
 package services.application
 
+import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.EvaluationResults.{ Green, Red }
 import model.ProgressStatuses._
-import model.{ AssessmentPassMarkEvaluation, AssessmentPassMarksSchemesAndScores, SchemeId, UniqueIdentifier }
+import model._
+import model.command.ApplicationForProgression
 import model.exchange.ApplicationResult
 import model.fsb.FSBProgressStatus
 import model.persisted.{ FsbEvaluation, FsbSchemeResult, SchemeEvaluationResult }
@@ -47,6 +49,18 @@ trait FsbService extends CurrentSchemeStatusHelper {
 
   def nextFsbCandidateReadyForEvaluation: Future[Option[UniqueIdentifier]] = {
     fsbRepo.nextApplicationReadyForFsbEvaluation
+  }
+
+  def processApplicationsFailedAtFsb(batchSize: Int): Future[SerialUpdateResult[ApplicationForProgression]] = {
+    fsbRepo.nextApplicationFailedAtFsb(batchSize).flatMap { applications =>
+      val updates = FutureEx.traverseSerial(applications) { application =>
+        FutureEx.futureToEither(application,
+          applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
+        )
+      }
+
+      updates.map(SerialUpdateResult.fromEither)
+    }
   }
 
   def evaluateFsbCandidate(applicationId: UniqueIdentifier): Future[Unit] = {

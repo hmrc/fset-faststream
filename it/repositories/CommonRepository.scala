@@ -1,5 +1,6 @@
 package repositories
 
+import common.FutureEx
 import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig }
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
@@ -151,6 +152,14 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     insertApplicationWithPhase3TestNotifiedResults(appId, results.toList, applicationRoute = applicationRoute).futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED).futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
+  }
+
+  def insertApplicationAtFsbWithStatus(appId: String, results: Seq[SchemeEvaluationResult], progressStatus: ProgressStatus,
+    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+  ) = {
+    insertApplicationWithSiftComplete(appId, results, applicationRoute)
+    FutureEx.traverseSerial(results) { result => fsbRepository.saveResult(appId, result) }.futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, progressStatus).futureValue
   }
 
   def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {

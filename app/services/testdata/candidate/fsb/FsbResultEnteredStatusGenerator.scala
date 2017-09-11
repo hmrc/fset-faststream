@@ -17,12 +17,10 @@
 package services.testdata.candidate.fsb
 
 import model.Exceptions.{ InvalidApplicationStatusAndProgressStatusException, SchemeNotFoundException }
-import model.ProgressStatuses
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateCandidateResponse.FsbTestGroupResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories.application.GeneralApplicationRepository
 import services.application.FsbService
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -50,7 +48,7 @@ trait FsbResultEnteredStatusGenerator extends ConstructiveGenerator {
           if (createCandidateData.schemeTypes.get.contains(result.schemeId)) {
             fsbTestGroupService.saveResult(applicationId, result)
           } else {
-            throw new SchemeNotFoundException(s"Candidate scheme preference does not have ${result.schemeId} ")
+            throw SchemeNotFoundException(s"Candidate scheme preference does not have ${result.schemeId} ")
           }
         }
         val fsbTestGroupResponse = createCandidateData.fsbTestGroupData.map(data => FsbTestGroupResponse(data.results))

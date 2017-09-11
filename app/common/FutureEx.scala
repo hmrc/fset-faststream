@@ -23,6 +23,7 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.language.higherKinds
 import scala.util.Try
 
+
 object FutureEx {
   /**
    * Serial alternative to Future.traverse. Transforms a `TraversableOnce[A]` into a `Future[TraversableOnce[B]]` using
