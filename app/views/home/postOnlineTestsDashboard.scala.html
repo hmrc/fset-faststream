@@ -51,79 +51,141 @@
     }
 }
 
+@renderViewAssessmentFeedback = {
+<p>
+    <i class="fa fa-check"></i>
+    <a href="@routes.AssessmentFeedbackController.present(page.userDataWithSchemes.application.applicationId)">
+        View your assessment centre feedback</a>
+</p>
+}
+
+
+@finalSuccess = {
+<section class="section-border">
+    <section class="text" data-successtop>
+        <div id="unsuccessfulNormal">
+            <h2 class="heading-large">Congratulations!</h2>
+            <p>You've passed all the required stages. We are delighted to be able
+                to offer you a role on the Civil Service Fast Stream, for your
+                chosen scheme:</p>
+            @page.userDataWithSchemes.successfulSchemes.headOption.map { schemeResult =>
+                <h2 class="heading-medium">@{schemeResult.scheme.name}</h2>
+            }
+
+            <h3 class="heading-small">Next steps</h3>
+            <p>To enable us to complete your pre-employment checks, follow the
+                <a href="https://faststream.gov.uk/faqs">instructions on the Fast Stream website</a>.</p>
+            @renderViewAssessmentFeedback
+        </div>
+        @unsuccessfulSchemes
+        @withdrawnSchemes
+    </section>
+</section>
+}
+
+@finalFailure = {
+<section class="section-border">
+    <section class="text" data-successtop>
+        <div id="unsuccessfulNormal">
+            <p>Unfortunately, you've been unsuccessful this year. Thank you for
+                all the effort you've put in so far.</p>
+            <p>We appreciate this will be disappointing. You should be proud of
+                how far you've got through this competitive process.</p>
+            <p>Please try again next year, alternatively you can see what other
+                <a href="https://civilservicejobs.service.gov.uk/">jobs are available in the Civil Service</a>.</p>
+            <ul class="list-text">
+                <li>
+                    <h3 class="bold-small">1st preference</h3>
+                    @page.userDataWithSchemes.successfulSchemes.headOption.map { schemeResult =>
+                    <p>@{schemeResult.scheme.name}
+                        <br>(unsuccessful at the assessment centre)</p>
+                    }
+                </li>
+            </ul>
+            @renderViewAssessmentFeedback
+        </div>
+        @unsuccessfulSchemes
+        @withdrawnSchemes
+    </section>
+</section>
+}
+
+@failedToAttend = {
+<section class="section-border">
+    <section class="text" data-successtop>
+        <div id="unsuccessfulNoAttend">
+            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                Important</p>
+            <div id="assessmentFailedToAttend">
+                <p>Unfortunately, you've been unsuccessful as you didn't attend the assessment centre.</p>
+                <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact
+                    us</a>.</p>
+                <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil
+                    Service jobs</a>
+                    site for more opportunities with us.</p>
+            </div>
+            <ul class="list-text">
+                <li>
+                    <h3 class="bold-small">1st preference</h3>
+                    @page.userDataWithSchemes.successfulSchemes.headOption.map { schemeResult =>
+                    <p>@{schemeResult.scheme.name}
+                        <br>(unsuccessful at the assessment centre)</p>
+                    }
+                </li>
+            </ul>
+        </div>
+        @unsuccessfulSchemes
+        @withdrawnSchemes
+    </section>
+</section>
+}
+
 @main_template(title = "Home", additionalJavascriptFilenames = List("siftProgress.js")) {
 
     @commonSectionPostOnlineTests(page.userDataWithSchemes.toCachedData)
 
     @sdipFaststreamBanner(page.userDataWithSchemes.toCachedData)
 
-@if(page.fsacStage == PostOnlineTestsStage.FAILED_TO_ATTEND || page.fsbStage == PostOnlineTestsStage.FAILED_TO_ATTEND) {
-    <section class="section-border">
-        <section class="text" data-successtop>
-            <div id="unsuccessfulNoAttend">
-                <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
-                    Important</p>
-                <div id="assessmentFailedToAttend">
-                    <p>Unfortunately, you've been unsuccessful as you didn't attend the assessment centre.</p>
-                    <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact
-                        us</a>.</p>
-                    <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil
-                        Service jobs</a>
-                        site for more opportunities with us.</p>
-                </div>
-                <ul class="list-text">
-                    <li>
-                        <h3 class="bold-small">1st preference</h3>
-                        @page.userDataWithSchemes.successfulSchemes.headOption.map { schemeResult =>
-                            <p>@{schemeResult.scheme.name}
-                            <br>(unsuccessful at the assessment centre)</p>
-                        }
-                    </li>
-                </ul>
-            </div>
-            @unsuccessfulSchemes
-            @withdrawnSchemes
-        </section>
-
-    </section>
-} else {
-    <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.userDataWithSchemes.toCachedData)){disabled}" id="mainProgressPage">
-        <div class="text">
-            @if(isSdip(page.userDataWithSchemes.toCachedData) || isEdip(page.userDataWithSchemes.toCachedData)) {
+@page match {
+    case _ if page.isFinalSuccess => { @finalSuccess }
+    case _ if page.isFinalFailure => { @finalFailure }
+    case _ if page.fsacStage == PostOnlineTestsStage.FAILED_TO_ATTEND || page.fsbStage == PostOnlineTestsStage.FAILED_TO_ATTEND => { @failedToAttend }
+    case _ => {
+        <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.userDataWithSchemes.toCachedData)){disabled}" id="mainProgressPage">
+            <div class="text">
+                @if(isSdip(page.userDataWithSchemes.toCachedData) || isEdip(page.userDataWithSchemes.toCachedData)) {
                 <section>
                     <p>Congratulations, you're through to the next stage.</p>
                 </section>
 
-            } else {
+                } else {
                 <section>
                     <p>Congratulations, you're through to the next stage for @{page.userDataWithSchemes.noSuccessfulSchemes} of your preferred schemes.</p>
                     <p>Check your scheme preferences, as the order may have changed.</p>
                     @if(SchemeWithdrawRole.isAuthorized(page.userDataWithSchemes.toCachedData)) {
-                        <div class="panel-indent" id="importantToProgress">
-                            <p><i class="fa fa-exclamation-triangle"></i>Important</p>
-                            <p><span>
-                                To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
-                                If
-                                you've changed your mind, you can <a href="@routes.WithdrawController.presentWithdrawScheme">withdraw from individual schemes</a>.
-                            </p>
-                        </div>
+                    <div class="panel-indent" id="importantToProgress">
+                        <p><i class="fa fa-exclamation-triangle"></i>Important</p>
+                        <p><span>To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
+                            If you've changed your mind, you can <a href="@routes.WithdrawController.presentWithdrawScheme">withdraw from individual schemes</a>.
+                        </p>
+                    </div>
                     }
                     @for((schemeResult, index) <- page.userDataWithSchemes.successfulSchemes.zipWithIndex) {
-                        <section>
-                            <h3 class="bold-small">@getOrder(index + 1) preference</h3>
-                            <p>@{schemeResult.scheme.name}</p>
-                        </section>
+                    <section>
+                        <h3 class="bold-small">@getOrder(index + 1) preference</h3>
+                        <p>@{schemeResult.scheme.name}</p>
+                    </section>
                     }
                 </section>
 
                 @unsuccessfulSchemes
                 @withdrawnSchemes
-            }
-        </div>
-        <h2 class="heading-large">Next steps</h2>
-        @siftProgress(page)
-    </section>
-    @withdrawSection(page.userDataWithSchemes.toCachedData)
-}
-
+                }
+            </div>
+            <h2 class="heading-large">Next steps</h2>
+            @siftProgress(page)
+        </section>
+        @withdrawSection(page.userDataWithSchemes.toCachedData)
+        }
+    }
 }
