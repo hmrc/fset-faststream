@@ -355,7 +355,7 @@ object RoleUtils {
   def isSdipFaststreamSuccessful(implicit user: CachedData): Boolean =
     user.application.fold(false)(_.progress.phase1TestProgress.sdipFSSuccessful)
 
-  def isEligibleForJobOffer(implicit user: CachedData): Boolean = user.application.exists(_.progress.eligibleForJobOffer.eligibleForJobOffer)
+  def isEligibleForJobOffer(implicit user: CachedData): Boolean = user.application.exists(_.progress.jobOffer.eligible)
 
   def isAllFsbFailed(implicit user: CachedData): Boolean = user.application.exists(_.progress.fsb.allFailed)
 
