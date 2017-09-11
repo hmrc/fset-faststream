@@ -150,6 +150,8 @@ trait GeneralApplicationRepository {
   def getLatestProgressStatuses: Future[List[String]]
 
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
+
+  def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int]
 }
 
 // scalastyle:off number.of.methods
@@ -996,10 +998,12 @@ class GeneralApplicationMongoRepository(
     val query = BSONDocument()
 
     collection.find(query, projection).cursor[BSONDocument].collect[List]().map { doc =>
-      doc.map { item =>
-        item.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.map { progressStatus =>
-          progressStatus._1 -> progressStatus._2.toString
-        }.sortBy(tup => tup._2).reverse.head._1
+      doc.flatMap { item =>
+        item.getAs[BSONDocument]("progress-status-timestamp").map {
+          _.elements.toList.map { progressStatus =>
+            progressStatus._1 -> progressStatus._2.toString
+          }.sortBy(tup => tup._2).reverse.head._1
+        }
       }
     }
   }

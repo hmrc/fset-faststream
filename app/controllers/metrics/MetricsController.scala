@@ -42,9 +42,11 @@ trait MetricsController extends BaseController {
   val applicationRepo: GeneralApplicationRepository
 
   def progressStatusCounts = Action.async {
-   applicationRepo.getLatestProgressStatuses.map { list =>
-     val listWithCounts = list.groupBy(identity).mapValues(_.size)
-     Ok(Json.toJson(listWithCounts))
-   }
+    applicationRepo.count.flatMap { allApplications =>
+      applicationRepo.getLatestProgressStatuses.map { list =>
+        val listWithCounts = list.groupBy(identity).mapValues(_.size)
+        Ok(Json.toJson(listWithCounts ++ Map("TOTAL_APPLICATION_COUNT" -> allApplications)))
+      }
+    }
   }
 }
