@@ -52,12 +52,12 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
   val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
   val testGatewayConfig = CubiksGatewayConfig(
     "",
-    Phase1TestsConfig(expiryTimeInDays = 7,
+    Phase1TestsConfig(expiryTimeInDays = 5,
       scheduleIds = Map("sjq" -> 16196, "bq" -> 16194),
       List("sjq", "bq"),
       List("sjq")
     ),
-    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, expiryTimeInDaysForInvigilatedETray = 90,
+    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90,
       Map("daro" -> Phase2ScheduleExamples.DaroSchedule)),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
@@ -102,7 +102,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
   val invitationDate = DateTime.parse("2016-05-11")
   val startedDate = invitationDate.plusDays(1)
-  val expirationDate = invitationDate.plusDays(7)
+  val expirationDate = invitationDate.plusDays(5)
 
   val phase1TestBq = CubiksTest(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("bq"),
     usedForResults = true,

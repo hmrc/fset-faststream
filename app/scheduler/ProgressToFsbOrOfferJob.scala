@@ -33,7 +33,7 @@ object ProgressToFsbOrOfferJob extends ProgressToFsbOrOfferJob {
 trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val assessmentCentreToFsbOrOfferService: AssessmentCentreToFsbOrOfferProgressionService
 
-  val batchSize: Int = conf.batchSize.getOrElse(10)
+  val batchSize: Int = conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
@@ -41,7 +41,7 @@ trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[
       case Nil => Future.successful(())
       case applications => assessmentCentreToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applications).map { result =>
         Logger.info(
-          s"Progress to fsb or job offer complete - ${result.successes.size} updated and ${result.failures.size} failed to update"
+          s"Progress to fsb or job offer complete - ${result.successes.size} processed successfully and ${result.failures.size} failed to update"
         )
       }
     }

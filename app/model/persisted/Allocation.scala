@@ -22,7 +22,7 @@ import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler, BSONMapHandler }
+import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler, BSONMapStringIntHandler }
 
 trait Allocation {
   def id: String

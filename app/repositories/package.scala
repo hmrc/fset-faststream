@@ -160,7 +160,7 @@ package object repositories {
     def write(jdtime: LocalTime) = BSONString(jdtime.toString("HH:mm"))
   }
 
-  implicit object BSONMapHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
+  implicit object BSONMapStringIntHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
     override def write(map: Map[String, Int]): BSONDocument = {
       val elements = map.toStream.map { tuple =>
         tuple._1 -> BSONInteger(tuple._2)
@@ -172,6 +172,23 @@ package object repositories {
       val elements = bson.elements.map { tuple =>
         // assume that all values in the document are BSONDocuments
         tuple._1 -> tuple._2.seeAsTry[Int].get
+      }
+      elements.toMap
+    }
+  }
+
+  implicit object BSONMapStringStringHandler extends BSONHandler[BSONDocument, Map[String, String]] {
+    override def write(map: Map[String, String]): BSONDocument = {
+      val elements = map.toStream.map { tuple =>
+        tuple._1 -> BSONString(tuple._2)
+      }
+      BSONDocument(elements)
+    }
+
+    override def read(bson: BSONDocument): Map[String, String] = {
+      val elements = bson.elements.map { tuple =>
+        // assume that all values in the document are BSONDocuments
+        tuple._1 -> tuple._2.seeAsTry[String].get
       }
       elements.toMap
     }

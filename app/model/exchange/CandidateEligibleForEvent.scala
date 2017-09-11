@@ -16,6 +16,7 @@
 
 package model.exchange
 
+import model.FSACIndicator
 import org.joda.time.DateTime
 import play.api.libs.json.{ Format, Json }
 
@@ -24,6 +25,7 @@ case class CandidateEligibleForEvent(
   firstName: String,
   lastName: String,
   needsAdjustment: Boolean,
+  fsacIndicator: FSACIndicator,
   dateReady: DateTime)
 
 object CandidateEligibleForEvent {

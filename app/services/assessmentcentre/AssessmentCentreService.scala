@@ -19,22 +19,21 @@ package services.assessmentcentre
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.Green
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED, ProgressStatus }
-import model.EvaluationResults.CompetencyAverageResult
+import model.EvaluationResults.{AssessmentEvaluationResult, CompetencyAverageResult, Green}
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED, ProgressStatus}
 import model._
 import model.command.ApplicationForProgression
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
+import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.Logger
 import reactivemongo.bson.BSONDocument
-import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
+import repositories.{AssessmentScoresRepository, CurrentSchemeStatusHelper}
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.{ AssessmentCentrePassMarkSettingsService, PassMarkSettingsService }
+import services.passmarksettings.{AssessmentCentrePassMarkSettingsService, PassMarkSettingsService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -98,8 +97,10 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
 
     def filterSchemesToEvaluate(schemeList: Seq[SchemeEvaluationResult]) = {
-      schemeList.filterNot( schemeEvaluationResult => schemeEvaluationResult.result == model.EvaluationResults.Red.toString)
-        .map(_.schemeId)
+      schemeList.filterNot( schemeEvaluationResult =>
+        schemeEvaluationResult.result == model.EvaluationResults.Red.toString ||
+        schemeEvaluationResult.result == model.EvaluationResults.Withdrawn.toString
+      ).map(_.schemeId)
     }
 
     for {
@@ -129,17 +130,35 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     Logger.debug(s"$logPrefix now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}" +
       s"")
     val applicationId = assessmentPassMarksSchemesAndScores.scores.applicationId
-    val evaluation = AssessmentPassMarkEvaluation(applicationId,
-      assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
+    val evaluation = AssessmentPassMarkEvaluation(applicationId, assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
     for {
-      currentSchemeStatus <- calculateCurrentSchemeStatus(applicationId,
-        evaluationResult.schemesEvaluation)
-      _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation, currentSchemeStatus)
+      currentSchemeStatus <- calculateCurrentSchemeStatus(applicationId, evaluationResult.schemesEvaluation)
+      evaluatedSchemes <- assessmentCentreRepo.getFsacEvaluatedSchemes(applicationId.toString())
+      mergedEvaluation = mergeSchemes(evaluationResult.schemesEvaluation, evaluatedSchemes, evaluation)
+      _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(mergedEvaluation, currentSchemeStatus)
       applicationStatus <- applicationRepo.findStatus(applicationId.toString())
       _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus)
     } yield {
       Logger.debug(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
+  }
+
+  private def mergeSchemes(evaluation: Seq[SchemeEvaluationResult], evaluatedSchemesFromDb: Option[Seq[SchemeEvaluationResult]],
+    assessmentPassmarkEvaluation: AssessmentPassMarkEvaluation): AssessmentPassMarkEvaluation = {
+      // find any schemes which have been previously evaluated and stored in db and are not in the current evaluated schemes collection
+      // these will only be schemes that have been evaluated to red
+      val failedSchemes = evaluatedSchemesFromDb.map { evaluatedSchemesSeq =>
+        val schemesEvaluatedNow: Seq[SchemeId] = evaluation.groupBy(_.schemeId).keys.toList
+
+        // Any schemes read from db, which have not been evaluated this time will be failed schemes so identify those here
+        evaluatedSchemesSeq.filterNot( es => schemesEvaluatedNow.contains(es.schemeId) )
+      }.getOrElse(Nil)
+      val allSchemes = evaluation ++ failedSchemes
+      assessmentPassmarkEvaluation.copy(evaluationResult =
+        AssessmentEvaluationResult(
+          passedMinimumCompetencyLevel = assessmentPassmarkEvaluation.evaluationResult.passedMinimumCompetencyLevel,
+          competencyAverageResult = assessmentPassmarkEvaluation.evaluationResult.competencyAverageResult,
+          schemesEvaluation = allSchemes))
   }
 
   private def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,

@@ -39,7 +39,8 @@ trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
     for {
       user <- createUser(generationId, createData)
     } yield {
-      CreateAdminResponse(generationId, user.userId, None, user.email, user.firstName, user.lastName)
+      CreateAdminResponse(generationId, user.userId, None, user.email, user.firstName, user.lastName,
+        roles = user.roles, disabled = user.disabled)
     }
   }
 
@@ -52,7 +53,7 @@ trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
       _ <- authProviderClient.activate(data.email, token)
     } yield {
       CreateAdminResponse(generationId, user.userId.toString, None, data.email,
-        data.firstName, data.lastName, data.phone, data.assessor.map(AssessorResponse(_)))
+        data.firstName, data.lastName, data.phone, user.roles, user.disabled, data.assessor.map(AssessorResponse(_)))
     }
   }
 

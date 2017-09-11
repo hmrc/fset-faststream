@@ -52,6 +52,7 @@ trait AssessmentCentreRepository {
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
+  def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
 }
 
 class AssessmentCentreMongoRepository (
@@ -179,6 +180,22 @@ class AssessmentCentreMongoRepository (
           evaluation <- fsac.getAs[BSONDocument]("evaluation")
           competencyAverage <- evaluation.getAs[CompetencyAverageResult]("competency-average")
         } yield competencyAverage
+      case None => None
+    }
+  }
+
+  override def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("_id" -> false, s"testGroups.$fsacKey.evaluation.schemes-evaluation" -> true)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(document) =>
+        for {
+          testGroups <- document.getAs[BSONDocument]("testGroups")
+          fsac <- testGroups.getAs[BSONDocument](fsacKey)
+          evaluation <- fsac.getAs[BSONDocument]("evaluation")
+          schemesEvaluation <- evaluation.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")
+        } yield schemesEvaluation
       case None => None
     }
   }

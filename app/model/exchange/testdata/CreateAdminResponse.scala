@@ -16,6 +16,7 @@
 
 package model.exchange.testdata
 
+import model.SchemeId
 import model.exchange.AssessorAvailability
 import model.persisted.assessor.AssessorStatus.AssessorStatus
 import model.testdata.CreateAdminData.AssessorData
@@ -24,31 +25,35 @@ import play.api.libs.json.{ Json, OFormat }
 object CreateAdminResponse {
 
   case class CreateAdminResponse(generationId: Int, userId: String,
-                                 preferedName: Option[String], email: String,
-                                 firstName: String, lastName: String, phone: Option[String] = None,
-                                 assessor: Option[AssessorResponse] = None) extends CreateTestDataResponse
+    preferedName: Option[String], email: String,
+    firstName: String, lastName: String, phone: Option[String] = None,
+    roles: List[String],
+    disabled: Boolean,
+    assessor: Option[AssessorResponse] = None) extends CreateTestDataResponse
 
   object CreateAdminResponse {
     implicit val createAdminResponseFormat: OFormat[CreateAdminResponse] =
       Json.format[CreateAdminResponse]
   }
 
-  case class AssessorResponse(skills: List[String], civilServant: Boolean, availability: Set[AssessorAvailability], status: AssessorStatus)
+  case class AssessorResponse(skills: List[String], civilServant: Boolean, availability: Set[AssessorAvailability],
+    status: AssessorStatus, sifterSchemes: List[String])
 
   object AssessorResponse {
     implicit val assessorResponseFormat: OFormat[AssessorResponse] = Json.format[AssessorResponse]
 
     def apply(exchange: model.exchange.Assessor): AssessorResponse = {
-      AssessorResponse(exchange.skills, exchange.civilServant, Set.empty, exchange.status)
+      AssessorResponse(exchange.skills, exchange.civilServant, Set.empty, exchange.status, exchange.sifterSchemes.map(_.value))
     }
 
     def apply(persisted: model.persisted.assessor.Assessor): AssessorResponse = {
       AssessorResponse(persisted.skills, persisted.civilServant,
-        persisted.availability.map(a => AssessorAvailability.apply(a)), persisted.status)
+        persisted.availability.map(a => AssessorAvailability.apply(a)), persisted.status, persisted.sifterSchemes.map(_.value))
     }
 
     def apply(data: AssessorData): AssessorResponse = {
-      AssessorResponse(data.skills, data.civilServant, data.availability.getOrElse(Set.empty), data.status)
+      AssessorResponse(data.skills, data.civilServant, data.availability.getOrElse(Set.empty), data.status,
+        data.sifterSchemes.map(_.value))
     }
   }
 

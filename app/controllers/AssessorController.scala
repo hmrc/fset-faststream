@@ -17,14 +17,14 @@
 package controllers
 
 import model.AllocationStatuses.AllocationStatus
-import model.Exceptions.{ AssessorNotFoundException, OptimisticLockException }
-import model.SerialUpdateResult
+import model.Exceptions._
+import model.{ SerialUpdateResult, UniqueIdentifier }
 import model.exchange._
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
-import services.assessoravailability.AssessorService
+import services.assessor.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,6 +42,7 @@ trait AssessorController extends BaseController {
     withJsonBody[Assessor] { assessor =>
       assessorService.saveAssessor(userId, assessor).map(_ => Ok).recover {
         case e: OptimisticLockException => Conflict(e.getMessage)
+        case e: CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException => FailedDependency(e.getMessage)
       }
     }
   }
@@ -100,4 +101,13 @@ trait AssessorController extends BaseController {
     }
   }
 
+  def removeAssessor(userId: UniqueIdentifier): Action[AnyContent] = Action.async { implicit request =>
+    assessorService.remove(userId).map {
+      _ => Ok
+    }.recover {
+      case e: CannotRemoveAssessorWhenFutureAllocationExistsException => Conflict(e.getMessage())
+      case e: AssessorNotFoundException => NotFound(e.getMessage)
+    }
+
+  }
 }
