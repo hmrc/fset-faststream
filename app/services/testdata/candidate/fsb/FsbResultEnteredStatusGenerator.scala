@@ -18,15 +18,14 @@ package services.testdata.candidate.fsb
 
 import model.EvaluationResults.Green
 import model.Exceptions.{ InvalidApplicationStatusAndProgressStatusException, SchemeNotFoundException }
-import model.SchemeId
 import model.command.testdata.CreateCandidateRequest.FsbTestGroupDataRequest
-import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.exchange.testdata.CreateCandidateResponse.FsbTestGroupResponse
+import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, FsbTestGroupResponse }
 import model.persisted.SchemeEvaluationResult
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.application.FsbService
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
+import services.testdata.faker.DataFaker
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,16 +34,18 @@ import scala.concurrent.Future
 object FsbResultEnteredStatusGenerator extends FsbResultEnteredStatusGenerator {
   override val previousStatusGenerator: BaseGenerator = FsbAllocationConfirmedStatusGenerator
   override val fsbTestGroupService = FsbService
+  override val dataFaker: DataFaker = DataFaker
 }
 
 trait FsbResultEnteredStatusGenerator extends ConstructiveGenerator {
   val fsbTestGroupService: FsbService
+  val dataFaker: DataFaker
 
   def generate(generationId: Int, createCandidateDataIn: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     val createCandidateData = if (createCandidateDataIn.fsbTestGroupData.isEmpty) {
-      val schemeTypes = createCandidateDataIn.schemeTypes.getOrElse(List(SchemeId("HumanResources")))
+      val schemeTypes = createCandidateDataIn.schemeTypes.getOrElse(dataFaker.Random.schemeTypes.map(_.id))
       val schemeResults = schemeTypes.map { schemeId =>
         SchemeEvaluationResult(schemeId, Green.toString) // fake data
       }

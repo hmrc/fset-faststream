@@ -101,8 +101,8 @@ trait ProgressStatusesReportLabels {
     (progress.fsb.failed, 510, FsbFailed),
     (progress.fsb.allFailed, 513, FsbAllFailed),
     (progress.fsb.allFailedNotified, 515, FsbAllFailedNotified),
-    (progress.eligibleForJobOffer.eligibleForJobOffer, 800, EligibleForJobOffer),
-    (progress.eligibleForJobOffer.eligibleForJobOfferNotified, 801, EligibleForJobOfferNotified),
+    (progress.eligibleForJobOffer.eligible, 800, EligibleForJobOffer),
+    (progress.eligibleForJobOffer.eligibleNotified, 801, EligibleForJobOfferNotified),
     (progress.withdrawn, 999, WithdrawnProgress),
     (progress.applicationArchived, 1000, ApplicationArchived)
   )
