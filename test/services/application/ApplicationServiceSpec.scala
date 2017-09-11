@@ -243,7 +243,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
 
       val withdraw = WithdrawScheme(SchemeId("DigitalAndTechnology"), "reason", "Candidate")
 
