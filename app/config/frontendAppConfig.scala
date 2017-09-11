@@ -115,5 +115,6 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   ).map(_.split(",")).getOrElse(Array.empty).toSeq
 
   lazy val whitelist = whitelistConfig("whitelist")
+  lazy val whitelistFileUpload = whitelistConfig("whitelistFileUpload")
   lazy val whitelistExcluded = whitelistConfig("whitelistExcludedCalls")
 }
