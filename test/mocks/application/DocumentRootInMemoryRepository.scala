@@ -169,4 +169,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def getLatestProgressStatuses = ???
 
   override def getProgressStatusTimestamps(applicationId: String) = ???
+
+  override def count(implicit ec : scala.concurrent.ExecutionContext): Future[Int] = ???
 }
