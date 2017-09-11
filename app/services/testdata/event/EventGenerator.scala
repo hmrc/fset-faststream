@@ -16,24 +16,36 @@
 
 package services.testdata.event
 
+import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.testdata.CreateEventResponse.CreateEventResponse
-import repositories.events.EventsRepository
+import repositories.events.{ EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import model.testdata.CreateEventData.CreateEventData
 
 import scala.concurrent.Future
 
 object EventGenerator extends EventGenerator {
   override val eventsRepository = repositories.eventsRepository
+  override val locationsAndVenuesRepository = LocationsWithVenuesInMemoryRepository
 }
 
 trait EventGenerator {
   import scala.concurrent.ExecutionContext.Implicits.global
+  def eventsRepository: EventsRepository
+  def locationsAndVenuesRepository: LocationsWithVenuesRepository
 
-  val eventsRepository: EventsRepository
+  def allVenues = locationsAndVenuesRepository.venues.map(_.options)
+
 
   def generate(generationId: Int, createData: CreateEventData): Future[CreateEventResponse] = {
     val event = createData.toEvent
 
     eventsRepository.save(List(event)).map { _ => CreateEventResponse(generationId, createData) }
+  }
+
+  def createEvent(generationId: Int, request: CreateEventRequest) = {
+    allVenues.flatMap { venues =>
+      val data = CreateEventData.apply(request, venues)(generationId)
+      generate(generationId, data)
+    }
   }
 }
