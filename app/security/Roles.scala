@@ -355,6 +355,16 @@ object RoleUtils {
   def isSdipFaststreamSuccessful(implicit user: CachedData): Boolean =
     user.application.fold(false)(_.progress.phase1TestProgress.sdipFSSuccessful)
 
+  def isEligibleForJobOffer(implicit user: CachedData): Boolean = user.application.exists(_.progress.jobOffer.eligible)
+
+  def isAllFsbFailed(implicit user: CachedData): Boolean = user.application.exists(_.progress.fsb.allFailed)
+
+  def isAssessmentCentreFailed(implicit user: CachedData): Boolean = user.application.exists(_.progress.assessmentCentre.failed)
+
+  def isFailedAtSift(implicit user: CachedData): Boolean = user.application.exists(_.progress.siftProgress.failedAtSift)
+
+  def isFastStreamFailed(implicit  user: CachedData): Boolean = isFailedAtSift || isAllFsbFailed || isAssessmentCentreFailed
+
   def isFaststream(implicit user: Option[CachedData]): Boolean = user.forall(u => isFaststream(u))
 
   def isEdip(implicit user: Option[CachedData]): Boolean = user.exists(isEdip(_))

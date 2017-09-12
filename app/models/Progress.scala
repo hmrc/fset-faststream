@@ -66,7 +66,15 @@ case class Phase3TestProgress(
 case class SiftProgress(
   siftEntered: Boolean = false,
   siftReady: Boolean = false,
-  siftCompleted: Boolean = false
+  siftCompleted: Boolean = false,
+  sdipFailedAtSift: Boolean = false,
+  failedAtSift: Boolean = false,
+  failedAtSiftNotified: Boolean = false
+)
+
+case class JobOfferProgress(
+  eligible: Boolean = false,
+  eligibleNotified: Boolean = false
 )
 
 case class Progress(
@@ -80,6 +88,7 @@ case class Progress(
   occupationQuestionnaire: Boolean = false,
   submitted: Boolean = false,
   withdrawn: Boolean = false,
+  jobOffer: JobOfferProgress = JobOfferProgress(),
   phase1TestProgress: Phase1TestProgress = Phase1TestProgress(),
   phase2TestProgress: Phase2TestProgress = Phase2TestProgress(),
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
@@ -93,6 +102,7 @@ case class Progress(
 object Progress {
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
   implicit val fsbFormat = Json.format[Fsb]
+  implicit val eligibleForJobOfferProgressFormat = Json.format[JobOfferProgress]
   implicit val phase1TestProgressFormat = Json.format[Phase1TestProgress]
   implicit val phase2TestProgressFormat = Json.format[Phase2TestProgress]
   implicit val phase3TestProgressFormat = Json.format[Phase3TestProgress]
@@ -112,6 +122,10 @@ object Progress {
       occupationQuestionnaire = progressResponse.questionnaire.contains("occupation_questionnaire"),
       submitted = progressResponse.submitted,
       withdrawn = progressResponse.withdrawn,
+      jobOffer = JobOfferProgress(
+        eligible = progressResponse.eligibleForJobOffer.eligible,
+        eligibleNotified = progressResponse.eligibleForJobOffer.eligibleNotified
+      ),
       phase1TestProgress = Phase1TestProgress(
         phase1TestsInvited = progressResponse.phase1ProgressResponse.phase1TestsInvited,
         phase1TestsStarted  = progressResponse.phase1ProgressResponse.phase1TestsStarted,

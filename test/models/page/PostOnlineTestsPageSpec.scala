@@ -171,5 +171,17 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
       page.firstResidualPreferencePassed mustBe false
     }
+
+    "indicate final failed when assessment_centre failed and no Green schemes" in {
+      val schemeResults = SchemeEvaluationResult(SchemeId("Commercial"), SchemeStatus.Red.toString) :: Nil
+      val userApp = userDataWithApp.application.copy(
+        progress = userDataWithApp.application.progress.copy(
+          assessmentCentre = userDataWithApp.application.progress.assessmentCentre.copy(failed = true)
+        ))
+      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userApp, Schemes.AllSchemes, schemeResults)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = true, List.empty)
+
+      page.isFinalFailure mustBe true
+    }
   }
 }
