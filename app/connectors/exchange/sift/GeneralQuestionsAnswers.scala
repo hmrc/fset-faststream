@@ -59,9 +59,9 @@ object PostGradDegreeInfoAnswers {
 }
 
 case class GeneralQuestionsAnswers(
-  multiplePassports: Boolean,
-  secondPassportCountry: Option[String],
-  passportCountry: String,
+  multipleNationalities: Boolean,
+  secondNationality: Option[String],
+  nationality: String,
   undergradDegree: Option[UndergradDegreeInfoAnswers],
   postgradDegree: Option[PostGradDegreeInfoAnswers]
 )
@@ -71,9 +71,9 @@ object GeneralQuestionsAnswers {
 
   def apply(a: GeneralQuestionsForm.Data): GeneralQuestionsAnswers = {
     GeneralQuestionsAnswers(
-      a.multiplePassports.get,
-      a.secondPassportCountry,
-      a.passportCountry.getOrElse(""),
+      a.multipleNationalities.get,
+      a.secondNationality,
+      a.nationality.getOrElse(""),
       a.undergradDegree map(UndergradDegreeInfoAnswers(_)),
       a.postgradDegree map(PostGradDegreeInfoAnswers(_))
     )

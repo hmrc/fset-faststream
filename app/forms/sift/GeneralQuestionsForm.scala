@@ -16,16 +16,12 @@
 
 package forms.sift
 
-import connectors.exchange.sift.{ GeneralQuestionsAnswers, PostGradDegreeInfoAnswers, UndergradDegreeInfoAnswers }
 import forms.Mappings._
-import forms.sift.GeneralQuestionsForm.{ Countries, postGradDegreeInfoFormFormatter, undergradDegreeInfoFormFormatter }
+import forms.sift.GeneralQuestionsForm.{ postGradDegreeInfoFormFormatter, undergradDegreeInfoFormFormatter }
 import mappings.{ SeqMapping, Year }
 import play.api.data.Forms._
 import play.api.data.{ Form, FormError }
 import play.api.data.format.Formatter
-import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
 class UndergradDegreeInfoForm(classifications: Seq[String]) {
   val form = Form(
@@ -72,12 +68,12 @@ object PostGradDegreeInfoForm {
 }
 
 
-class GeneralQuestionsForm(validCountries: Seq[String]) {
+class GeneralQuestionsForm(validNationalities: Seq[String]) {
   val form = Form(
-    mapping("multiplePassports" -> of(BooleanMapping.booleanFormatter("generalquestions.error.multiplepassports")),
-      "secondPassportCountry" -> of(SeqMapping.conditionalRequiredSetFormatter(
-        data => data.get("multiplePassports").getOrElse("") == "true", validCountries)),
-      "passportCountry" -> of(SeqMapping.requiredSetFormatter(validCountries)),
+    mapping("multipleNationalities" -> of(BooleanMapping.booleanFormatter("generalquestions.error.multiplenationalities")),
+      "secondNationality" -> of(SeqMapping.conditionalRequiredSetFormatter(
+        data => data.getOrElse("multipleNationalities", "") == "true", validNationalities)),
+      "nationality" -> of(SeqMapping.requiredSetFormatter(validNationalities)),
       "hasUndergradDegree" -> of(BooleanMapping.booleanFormatter("generalquestions.error.undergraduatedegree")),
       "undergradDegree" -> of(undergradDegreeInfoFormFormatter("hasUndergradDegree")),
       "hasPostgradDegree" -> of(BooleanMapping.booleanFormatter("generalquestions.error.postgraduatedegree")),
@@ -86,12 +82,12 @@ class GeneralQuestionsForm(validCountries: Seq[String]) {
 }
 
 object GeneralQuestionsForm {
-  def apply() = new GeneralQuestionsForm(Countries)
+  def apply() = new GeneralQuestionsForm(Nationalities)
 
   case class Data(
-    multiplePassports: Option[Boolean],
-    secondPassportCountry: Option[String],
-    passportCountry: Option[String],
+    multipleNationalities: Option[Boolean],
+    secondNationality: Option[String],
+    nationality: Option[String],
     hasUndergradDegree: Option[Boolean],
     undergradDegree: Option[UndergradDegreeInfoForm.Data],
     hasPostgradDegree: Option[Boolean],
@@ -134,7 +130,7 @@ object GeneralQuestionsForm {
       fastPassData.map(fpd => PostGradDegreeInfoForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 
-   val Countries = Seq(
+   val Nationalities = Seq(
     "Afghan",
     "Albanian",
     "Algerian",
