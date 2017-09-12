@@ -276,12 +276,12 @@ assessmentCentre.analysisExercise.upload.success=You''ve successfully submitted 
 assessmentCentre.event.confirm.success=You''ve successfully confirmed
 assessmentCentre.event.confirm.optimistic.lock=There''s been a problem accepting this event, please refresh and try again
 
-passportCountry.chooseOne=You must select a country from the list
-passportCountry.unsupported.value=You must select a valid country from the list
-secondPassportCountry.chooseOne=You must select a country from the list
-secondPassportCountry.unsupported.value=You must select a country from the list
+nationality.chooseOne=You must select a nationality from the list
+nationality.unsupported.value=You must select a nationality from the list
+secondNationality.chooseOne=You must select a country from the list
+secondNationality.unsupported.value=You must select a country from the list
 
-generalquestions.error.multiplepassports.required=You must tell us if you have multiple passports
+generalquestions.error.multiplenationalities.required=You must tell us if you have multiple nationalities
 generalquestions.error.undergraduatedegree.required=You must tell us if you have an undergraduate degree
 generalquestions.error.postgraduatedegree.required=You must tell us if you have a postgraduate degree
 
