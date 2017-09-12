@@ -14,13 +14,13 @@
         </h2>
         <div class="text">
             @page.generalAnswers.map { ga =>
-                <h4 class="bold-small">What country's nationality is on your current passport?</h4>
+                <h4 class="bold-small">What is your current nationality?</h4>
                 <p>@ga.passportCountry</p>
-                <h4 class="bold-small">Do you currently hold a second passport?</h4>
+                <h4 class="bold-small">Do you currently hold a dual nationality?</h4>
                 <p>@SiftPreviewPage.booleanToYesNo(ga.multiplePassports)</p>
 
                 @ga.secondPassportCountry.map { sp =>
-                    <h4 class="bold-small">What country's nationality is on your second passport?</h4>
+                    <h4 class="bold-small">What is your second nationality?</h4>
                     <p>@{sp}</p>
                 }
             }
