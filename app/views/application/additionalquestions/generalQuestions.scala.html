@@ -14,15 +14,15 @@
         @helper.CSRF.formField
         <fieldset>
             <div class="form-group">
-                @select_search(page.form("passportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What country's nationality is on your current passport?"))
+                @select_search(page.form("passportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What is your current nationality?"))
             </div>
-            <label class="form-label">Do you currently hold a second passport?</label>
+            <label class="form-label">Do you currently hold a dual nationality?</label>
             @yesNoRadioWithTogglePanel(page.form("multiplePassports"),
                 'id -> "multiplePassports"
             ) {
                 <div id="multiplePassports-panel-yes" class="toggle-content" >
                     <div class="form-group">
-                        @select_search(page.form("secondPassportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What country's nationality is on your second passport?"))
+                        @select_search(page.form("secondPassportCountry"), GeneralQuestionsForm.Countries.toSeq)(Html("What is your second nationality?"))
                     </div>
                 </div>
             }
