@@ -843,7 +843,8 @@ class GeneralApplicationMongoRepository(
       "personal-details.firstName" -> true,
       "personal-details.lastName" -> true,
       "assistance-details.needsSupportAtVenue" -> true,
-      "progress-status-timestamp" -> true
+      "progress-status-timestamp" -> true,
+      "fsac-indicator" -> true
     )
 
     val ascending = JsNumber(1)
