@@ -45,7 +45,7 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
   def generateGeneralAnswers = GeneralQuestionsAnswers(
     multiplePassports = false,
     secondPassportCountry = None,
-    passportCountry = "United Kingdom",
+    passportCountry = "British",
     undergradDegree = None, postgradDegree = None
   )
 

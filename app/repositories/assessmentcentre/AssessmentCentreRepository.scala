@@ -17,14 +17,15 @@
 package repositories.assessmentcentre
 
 import factories.DateTimeFactory
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.CompetencyAverageResult
+import model.EvaluationResults.{ CompetencyAverageResult, Green }
 import model._
 import model.command.{ ApplicationForProgression, ApplicationForSift }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories._
 import repositories.application.GeneralApplicationRepoBSONReader
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -70,13 +71,24 @@ class AssessmentCentreMongoRepository (
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
+    val xdipQuery = (route: ApplicationRoute) => BSONDocument(
+      "applicationRoute" -> route,
+      "applicationStatus" -> ApplicationStatus.SIFT,
+      s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
+      "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument("result" -> Green.toString))
+    )
+
+    val fastStreamNoSiftableSchemes = BSONDocument(
+      "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+      "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument(
+        "schemeId" -> BSONDocument("$nin" -> siftableSchemeIds),
+        "result" -> EvaluationResults.Green.toString
+      )))
+
     val query = BSONDocument("$or" -> BSONArray(
-      BSONDocument(
-        "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-        "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument(
-          "schemeId" -> BSONDocument("$nin" -> siftableSchemeIds),
-          "result" -> EvaluationResults.Green.toString
-        ))),
+      xdipQuery(ApplicationRoute.Sdip),
+      xdipQuery(ApplicationRoute.Edip),
+      fastStreamNoSiftableSchemes,
       BSONDocument(
         "applicationStatus" -> ApplicationStatus.SIFT,
         s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,

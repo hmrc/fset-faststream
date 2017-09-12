@@ -21,8 +21,9 @@ import model._
 import model.command.ApplicationForProgression
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import model.persisted.SchemeEvaluationResult
+import model.report.onlinetestpassmark.ApplicationForOnlineTestPassMarkReportItemExamples
 import org.scalatest.concurrent.ScalaFutures
-import repositories.{ CollectionNames, CommonRepository}
+import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 
@@ -34,8 +35,8 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
   val Generalist: SchemeId = SchemeId("Generalist")
   val ProjectDelivery = SchemeId("Project Delivery")
 
-  "next Application for sift" must {
-    "ignore applications in incorrect statuses and return only the Phase3 Passed_Notified applications that are not eligible for sift" in {
+  "next Application for assessment centre" must {
+    "return applications from phase 1, 3 and sift stages" in {
       insertApplicationWithPhase3TestNotifiedResults("appId1",
         List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))).futureValue
 
@@ -56,16 +57,24 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       insertApplicationWithPhase3TestNotifiedResults("appId6",
         List(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Red.toString))).futureValue
 
+      insertApplicationWithSiftComplete("appId7",
+        List(SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)), applicationRoute = ApplicationRoute.Sdip)
+
+      insertApplicationWithSiftComplete("appId8",
+        List(SchemeEvaluationResult(SchemeId("Edip"), EvaluationResults.Green.toString)), applicationRoute = ApplicationRoute.Edip)
+
       whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
-        appsForAc must contain(
+        appsForAc must contain theSameElementsAs Seq(
           ApplicationForProgression("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
-        )
-        appsForAc must contain(
+            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
           ApplicationForProgression("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)))
+            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString))),
+          ApplicationForProgression("appId7", ApplicationStatus.SIFT,
+            List(SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString))),
+          ApplicationForProgression("appId8", ApplicationStatus.SIFT,
+            List(SchemeEvaluationResult(SchemeId("Edip"), EvaluationResults.Green.toString)))
         )
-        appsForAc.length mustBe 2
+        appsForAc.length mustBe 4
       }
     }
 
