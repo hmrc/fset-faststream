@@ -106,13 +106,14 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     val mockEventsRepository = mock[EventsRepository]
     val mockAssessorRepository = mock[AssessorRepository]
     val mockSchemeYamlRepository = mock[SchemeRepository]
+    val mockAssessmentScoresRepository = mock[AssessmentScoresRepository]
     val mockCandidateAllocationRepo = mock[CandidateAllocationRepository]
 
     val controller = new ReportingController {
       val reportingRepository = mockReportRepository
       val contactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
       val questionnaireRepository = mockQuestionRepository
-      val assessmentScoresRepository = mock[AssessmentScoresRepository]
+      val assessmentScoresRepository = mockAssessmentScoresRepository
       val mediaRepository: MediaRepository = mockMediaRepository
       val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
       val authProviderClient = mock[AuthProviderClient]
@@ -151,6 +152,8 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       FakeRequest(Helpers.GET, controllers.routes.ReportingController.onlineTestPassMarkReport(frameworkId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
+
+    when(mockAssessmentScoresRepository.findAll).thenReturnAsync(Nil)
   }
 
 }
