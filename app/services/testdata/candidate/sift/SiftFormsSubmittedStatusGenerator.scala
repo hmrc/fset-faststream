@@ -43,9 +43,9 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
   val schemeRepo: SchemeRepository
 
   def generateGeneralAnswers = GeneralQuestionsAnswers(
-    multiplePassports = false,
-    secondPassportCountry = None,
-    passportCountry = "United Kingdom",
+    multipleNationalities = false,
+    secondNationality = None,
+    nationality = "British",
     undergradDegree = None, postgradDegree = None
   )
 

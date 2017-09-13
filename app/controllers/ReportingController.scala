@@ -17,20 +17,20 @@
 package controllers
 
 import config.LocationsAndVenuesConfig
-import connectors.{ AuthProviderClient, ExchangeObjects }
+import connectors.{AuthProviderClient, ExchangeObjects}
 import model.EvaluationResults.Green
+import model.{ Candidate, SiftRequirement ,UniqueIdentifier }
 import model.exchange.AssessorAvailability
-import model.{ Candidate, SiftRequirement }
 import model.persisted.ContactDetailsWithId
 import model.persisted.eventschedules.{ Event, Location }
 import model.report._
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, Request }
-import repositories.application.{ GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository }
+import play.api.mvc.{Action, AnyContent, Request}
+import repositories.application.{GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository}
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
-import repositories.events.{ EventsMongoRepository, EventsRepository }
-import repositories.{ QuestionnaireRepository, _ }
+import repositories.events.{EventsMongoRepository, EventsRepository}
+import repositories.{QuestionnaireRepository, _}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.collection.breakOut
@@ -44,7 +44,7 @@ object ReportingController extends ReportingController {
   val assessorAllocationRepository: AssessorAllocationRepository = repositories.assessorAllocationRepository
   val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
-  val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
+  val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
   val schemeRepo: SchemeRepository = SchemeYamlRepository
@@ -272,12 +272,14 @@ trait ReportingController extends BaseController {
     val reports =
       for {
         applications <- reportingRepository.onlineTestPassMarkReport
+        fsacResults <- assessmentScoresRepository.findAll
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield {
         for {
           a <- applications
+          fr = fsacResults.find(_.applicationId == UniqueIdentifier(a.applicationId))
           q <- questionnaires.get(a.applicationId)
-        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(a), q)
+        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(a, fr), q)
       }
     reports.map { list =>
       Ok(Json.toJson(list))

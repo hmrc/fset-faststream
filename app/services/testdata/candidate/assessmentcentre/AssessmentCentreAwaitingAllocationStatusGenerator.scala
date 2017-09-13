@@ -16,9 +16,9 @@
 
 package services.testdata.candidate.assessmentcentre
 
-import model.{ ApplicationStatus, EvaluationResults }
+import model.ApplicationStatus
 import model.EvaluationResults.Green
-import model.command.{ ApplicationForProgression, ApplicationForSift }
+import model.command.ApplicationForProgression
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.SchemeEvaluationResult
 import model.testdata.CreateCandidateData.CreateCandidateData
@@ -45,9 +45,9 @@ trait AssessmentCentreAwaitingAllocationStatusGenerator extends ConstructiveGene
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       siftResults = candidateInPreviousStatus.schemePreferences.get.schemes.map(scheme => SchemeEvaluationResult(scheme, Green.toString))
-      _ <- assessmentCentreService.progressApplicationsToAssessmentCentre(Seq(ApplicationForProgression(candidateInPreviousStatus.applicationId.get,
-        ApplicationStatus.SIFT, siftResults
-      )))
+      _ <- assessmentCentreService.progressApplicationsToAssessmentCentre(
+        Seq(ApplicationForProgression(candidateInPreviousStatus.applicationId.get, ApplicationStatus.SIFT, siftResults
+        )))
     } yield {
       candidateInPreviousStatus
     }

@@ -19,12 +19,14 @@ package model.report
 import model.OnlineTestCommands.TestResult
 import play.api.libs.json.Json
 import model.OnlineTestCommands.Implicits._
+import model.assessmentscores.AssessmentScoresAllExercises
 
 case class TestResultsForOnlineTestPassMarkReportItem(
                                                       behavioural: Option[TestResult],
                                                       situational: Option[TestResult],
                                                       etray: Option[TestResult],
-                                                      videoInterview: Option[VideoInterviewTestResult]
+                                                      videoInterview: Option[VideoInterviewTestResult],
+                                                      fsac: Option[AssessmentScoresAllExercises]
                                                      )
 
 object TestResultsForOnlineTestPassMarkReportItem {
