@@ -56,8 +56,7 @@ case class Phase1ProgressResponse(
   phase1TestsFailed: Boolean = false,
   sdipFSFailed: Boolean = false,
   sdipFSFailedNotified: Boolean = false,
-  sdipFSSuccessful: Boolean = false,
-  sdipFSSuccessfulNotified: Boolean = false
+  sdipFSSuccessful: Boolean = false
 )
 
 case class Phase2ProgressResponse(

@@ -139,8 +139,7 @@ object Progress {
         phase1TestsFailed = progressResponse.phase1ProgressResponse.phase1TestsFailed,
         sdipFSFailed = progressResponse.phase1ProgressResponse.sdipFSFailed,
         sdipFSFailedNotified = progressResponse.phase1ProgressResponse.sdipFSFailedNotified,
-        sdipFSSuccessful = progressResponse.phase1ProgressResponse.sdipFSSuccessful,
-        sdipFSSuccessfulNotified = progressResponse.phase1ProgressResponse.sdipFSSuccessfulNotified
+        sdipFSSuccessful = progressResponse.phase1ProgressResponse.sdipFSSuccessful
       ),
       phase2TestProgress = Phase2TestProgress(
         phase2TestsInvited = progressResponse.phase2ProgressResponse.phase2TestsInvited,
