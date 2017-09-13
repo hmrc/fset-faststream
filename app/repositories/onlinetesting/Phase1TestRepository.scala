@@ -100,6 +100,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       BSONDocument("$and" -> BSONArray(
         BSONDocument(s"progress-status.${FailedSdipFsTestType.progressStatus}" -> BSONDocument("$ne" -> true)),
         BSONDocument(s"progress-status.${SuccessfulSdipFsTestType.progressStatus}" -> BSONDocument("$ne" -> true))
+
       )),
       BSONDocument("testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" ->
         BSONDocument("schemeId" -> SchemeId("Sdip"),
