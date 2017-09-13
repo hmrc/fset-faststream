@@ -23,10 +23,16 @@ import play.api.data.Forms._
 
 object AssistanceDetailsForm {
 
-  val isFastStream = (requestParams: Map[String, String]) =>
+  val isFastStream: (Map[String, String]) => Boolean = (requestParams: Map[String, String]) =>
     requestParams.getOrElse("applicationRoute", Faststream.toString) == Faststream.toString
 
-  val isEdipOrSdip = (requestParams: Map[String, String]) => {
+  val isSdipFastStream: (Map[String, String]) => Boolean = (requestParams: Map[String, String]) =>
+    requestParams.getOrElse("applicationRoute", SdipFaststream.toString) == SdipFaststream.toString
+
+  val isFastStreamOrSdipFastStream: (Map[String, String]) => Boolean = (requestParams: Map[String, String]) =>
+    isFastStream(requestParams) || isSdipFastStream(requestParams)
+
+  val isEdipOrSdip: (Map[String, String]) => Boolean = (requestParams: Map[String, String]) => {
     requestParams.getOrElse("applicationRoute", Faststream.toString) == Edip.toString ||
       requestParams.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
   }
@@ -36,10 +42,11 @@ object AssistanceDetailsForm {
       "hasDisability" -> Mappings.nonEmptyTrimmedText("error.hasDisability.required", 31),
       "hasDisabilityDescription" -> optional(Mappings.nonEmptyTrimmedText("error.hasDisabilityDescription.required", 2048)),
       "guaranteedInterview" -> of(requiredFormatterWithMaxLengthCheck("hasDisability", "guaranteedInterview", None)),
-      "needsSupportForOnlineAssessment" -> of(Mappings.mayBeOptionalString("error.needsSupportForOnlineAssessment.required", 31, isFastStream)),
+      "needsSupportForOnlineAssessment" -> of(
+        Mappings.mayBeOptionalString("error.needsSupportForOnlineAssessment.required", 31, isFastStreamOrSdipFastStream)),
       "needsSupportForOnlineAssessmentDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportForOnlineAssessment",
         "needsSupportForOnlineAssessmentDescription", Some(2048))),
-      "needsSupportAtVenue" -> of(Mappings.mayBeOptionalString("error.needsSupportAtVenue.required", 31, isFastStream)),
+      "needsSupportAtVenue" -> of(Mappings.mayBeOptionalString("error.needsSupportAtVenue.required", 31, isFastStreamOrSdipFastStream)),
       "needsSupportAtVenueDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportAtVenue", "needsSupportAtVenueDescription",
         Some(2048))),
       "needsSupportForPhoneInterview" -> of(Mappings.mayBeOptionalString("error.needsSupportForPhoneInterview.required", 31, isEdipOrSdip)),
