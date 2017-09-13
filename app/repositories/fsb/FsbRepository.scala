@@ -73,18 +73,13 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
   def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
-    val allRed = (key: String) => BSONDocument(
-      s"$key" -> BSONDocument("$elemMatch" -> BSONDocument(
-        "result" -> Red.toString,
-        "result" -> BSONDocument("nin" -> Seq(Amber.toString, Green.toString))
-      ))
-    )
-
     val predicate = BSONDocument(
       "applicationStatus" -> ApplicationStatus.FSB,
       s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
-      s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$ne" -> false)
-    ) ++ allRed("currentSchemeStatus") ++ allRed(s"$FSB_TEST_GROUPS.evaluation.result")
+      s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$ne" -> true),
+      "currentSchemeStatus.result" -> Red.toString,
+      "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
+    )
 
     play.api.Logger.error(BSONDocument.pretty(predicate))
 
