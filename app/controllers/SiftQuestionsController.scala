@@ -180,7 +180,7 @@ abstract class SiftQuestionsController(
   private def candidateCurrentSiftableSchemes(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     applicationClient.getCurrentSchemeStatus(applicationId).flatMap { schemes =>
       Future.traverse(schemes.collect {
-        case scheme if scheme.result == "Green" => scheme.schemeId
+        case scheme if scheme.result != "Red" => scheme.schemeId
       }) { schemeId =>
         schemeMetadata(schemeId)
       }.map(_.collect { case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id})
