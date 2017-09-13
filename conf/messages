@@ -162,8 +162,8 @@ scheme.HousesOfParliament.description=Houses of Parliament
 scheme.HumanResources.description=Human Resources
 scheme.ProjectDelivery.description=Project Delivery
 scheme.ScienceAndEngineering.description=Science & Engineering
-scheme.Edip.description=Edip
-scheme.Sdip.description=Sdip
+scheme.Edip.description=Early Diversity Internship Programme
+scheme.Sdip.description=Summer Diversity Internship Programme
 
 # TODO: Review these for 2018
 scheme.DiplomaticServiceEconomics.link=government-economic-service
