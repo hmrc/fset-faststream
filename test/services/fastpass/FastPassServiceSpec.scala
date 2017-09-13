@@ -55,6 +55,7 @@ class FastPassServiceSpec extends UnitSpec {
 
       verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
       verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED)
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
       verify(emailClientMock).sendEmailWithName(
