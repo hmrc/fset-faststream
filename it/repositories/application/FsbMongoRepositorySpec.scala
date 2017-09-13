@@ -19,21 +19,34 @@ package repositories.application
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.{ Green, Red }
-import model.Exceptions.AlreadyEvaluatedForSchemeException
-import model.SchemeId
+import model.command.ApplicationForProgression
+import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
 import model.persisted._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.CollectionNames
+import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
-class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
+class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository {
 
   import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
   lazy val repository = repositories.fsbRepository
   lazy val applicationRepo = repositories.applicationRepository
+
+  "all failed at fsb" must {
+    "select candidates that are all red at FSB" in {
+      val evalResults = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red") ::
+        SchemeEvaluationResult("Commercial", "Red") :: Nil
+      insertApplicationAtFsbWithStatus("appId", evalResults, ProgressStatuses.FSB_FAILED)
+
+      whenReady(repository.nextApplicationFailedAtFsb(1)) { result =>
+        result.size mustBe 1
+        result.head mustBe ApplicationForProgression("appId", ApplicationStatus.FSB, evalResults)
+      }
+    }
+  }
 
   "save" must {
     "create new FSB entry in testGroup if it doesn't exist" in {
@@ -135,7 +148,7 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   }
 
-  private def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
+  //private def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
 
   private def createApplication(): String = {
     val applicationId = generateUUID()

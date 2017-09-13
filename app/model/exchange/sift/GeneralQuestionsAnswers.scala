@@ -58,9 +58,9 @@ object PostGradDegreeInfoAnswers {
 }
 
 case class GeneralQuestionsAnswers(
-  multiplePassports: Boolean,
-  secondPassportCountry: Option[String],
-  passportCountry: String,
+  multipleNationalities: Boolean,
+  secondNationality: Option[String],
+  nationality: String,
   undergradDegree: Option[UndergradDegreeInfoAnswers],
   postgradDegree: Option[PostGradDegreeInfoAnswers]
 )
@@ -70,9 +70,9 @@ object GeneralQuestionsAnswers {
 
   def apply(a: model.persisted.sift.GeneralQuestionsAnswers): GeneralQuestionsAnswers = {
     GeneralQuestionsAnswers(
-      a.multiplePassports,
-      a.secondPassportCountry,
-      a.passportCountry,
+      a.multipleNationalities,
+      a.secondNationality,
+      a.nationality,
       a.undergradDegree.map(model.exchange.sift.UndergradDegreeInfoAnswers(_)),
       a.postgradDegree.map(model.exchange.sift.PostGradDegreeInfoAnswers(_))
     )

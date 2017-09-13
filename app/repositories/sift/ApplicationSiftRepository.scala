@@ -106,6 +106,7 @@ class ApplicationSiftMongoRepository(
       "currentSchemeStatus.result" -> Red.toString,
       "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
     )
+
     selectOneRandom[BSONDocument](predicate).map {
       _.map { document => applicationForSiftBsonReads(document) }
     }
