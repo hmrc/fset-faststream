@@ -97,8 +97,10 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
 
     def filterSchemesToEvaluate(schemeList: Seq[SchemeEvaluationResult]) = {
-      schemeList.filterNot( schemeEvaluationResult => schemeEvaluationResult.result == model.EvaluationResults.Red.toString)
-        .map(_.schemeId)
+      schemeList.filterNot( schemeEvaluationResult =>
+        schemeEvaluationResult.result == model.EvaluationResults.Red.toString ||
+        schemeEvaluationResult.result == model.EvaluationResults.Withdrawn.toString
+      ).map(_.schemeId)
     }
 
     for {

@@ -108,9 +108,9 @@ trait CommonBSONDocuments extends BaseBSONReader {
           fastPassAccepted = getProgress(ProgressStatuses.FAST_PASS_ACCEPTED.key),
           withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
           applicationArchived = getProgress(ProgressStatuses.APPLICATION_ARCHIVED.key),
-          eligibleForJobOffer = EligibleForJobOfferResponse(
-            eligibleForJobOffer = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER.key),
-            eligibleForJobOfferNotified = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED.key)
+          eligibleForJobOffer = JobOfferProgressResponse(
+            eligible = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER.key),
+            eligibleNotified = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED.key)
           ),
           phase1ProgressResponse = Phase1ProgressResponse(
             phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),

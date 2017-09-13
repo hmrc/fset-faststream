@@ -89,6 +89,8 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
   "next assessment candidate" should {
     "return an assessment candidate score with application Id" in new ReturnPassMarksFixture {
+
+      val commercialScheme = SchemeId("Commercial")
       (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
         .expects(*)
         .returning(Future.successful(Some(applicationId)))
@@ -99,13 +101,41 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
       (mockAppRepo.getCurrentSchemeStatus _)
         .expects(*)
-        .returning(Future.successful(List(SchemeEvaluationResult(schemeId = SchemeId("Commercial"), result = Green.toString))))
+        .returning(Future.successful(List(SchemeEvaluationResult(schemeId = commercialScheme, result = Green.toString))))
 
       val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
 
       result must not be empty
       result.get.passmark mustBe passMarkSettings
-      result.get.schemes mustBe List(SchemeId("Commercial"))
+      result.get.schemes mustBe List(commercialScheme)
+      result.get.scores.applicationId mustBe applicationId
+    }
+
+    "withdrawn schemes should be not be evaluated" in new ReturnPassMarksFixture {
+
+      val commercialScheme = SchemeId("Commercial")
+      val datScheme = SchemeId("DigitalAndTechnology")
+      val currentSchemeStatus = List(
+        SchemeEvaluationResult(schemeId = commercialScheme, result = Green.toString),
+        SchemeEvaluationResult(schemeId = datScheme, result = Withdrawn.toString)
+      )
+      (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
+        .expects(*)
+        .returning(Future.successful(Some(applicationId)))
+
+      (mockAssessmentScoresRepo.find _)
+        .expects(*)
+        .returning(Future.successful(Some(AssessmentScoresAllExercises(applicationId))))
+
+      (mockAppRepo.getCurrentSchemeStatus _)
+        .expects(*)
+        .returning(Future.successful(currentSchemeStatus))
+
+      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+
+      result must not be empty
+      result.get.passmark mustBe passMarkSettings
+      result.get.schemes mustBe List(commercialScheme)
       result.get.scores.applicationId mustBe applicationId
     }
 
