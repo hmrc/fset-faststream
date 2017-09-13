@@ -81,8 +81,6 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
       "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
     )
 
-    play.api.Logger.error(BSONDocument.pretty(predicate))
-
     selectRandom[BSONDocument](predicate, batchSize).map(_.map(doc => doc: ApplicationForProgression))
   }
 

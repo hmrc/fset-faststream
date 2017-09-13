@@ -107,7 +107,6 @@ class ApplicationSiftMongoRepository(
       "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
     )
 
-    play.api.Logger.error(BSONDocument.pretty(predicate))
     selectOneRandom[BSONDocument](predicate).map {
       _.map { document => applicationForSiftBsonReads(document) }
     }
