@@ -20,7 +20,7 @@ import factories.DateTimeFactory
 import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
 import model.command._
-import model.{ ApplicationStatus, FailedSdipFsTestType, ProgressStatuses }
+import model.{ ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType }
 import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader }
 
 import scala.language.implicitConversions
@@ -126,7 +126,8 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key),
             phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key),
             sdipFSFailed = getProgress(FailedSdipFsTestType.progressStatus),
-            sdipFSFailedNotified = getProgress(FailedSdipFsTestType.notificationProgress)
+            sdipFSFailedNotified = getProgress(FailedSdipFsTestType.notificationProgress),
+            sdipFSSuccessful = getProgress(SuccessfulSdipFsTestType.progressStatus)
           ),
           phase2ProgressResponse = Phase2ProgressResponse(
             phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
