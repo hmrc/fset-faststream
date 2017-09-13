@@ -20,6 +20,7 @@ import common.FutureEx
 import connectors.ExchangeObjects
 import model.EvaluationResults.Green
 import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
+import model.ProgressStatuses.ProgressStatus
 import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
@@ -114,9 +115,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       calculateCurrentSchemeStatus(current, SchemeEvaluationResult(withdrawRequest.schemeId, EvaluationResults.Withdrawn.toString) :: Nil)
     }
 
-    def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult]) = {
+    def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult], latestProgressStatus: Option[ProgressStatus]) = {
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
-      val shouldProgressToFSAC = greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet
+      val shouldProgressToFSAC = !latestProgressStatus.contains(ProgressStatuses.SIFT_ENTERED) &&
+        (greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet)
 
       if (shouldProgressToFSAC) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map { _ =>
@@ -128,8 +130,9 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     for {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
       latestSchemeStatus = buildLatestSchemeStatus(currentSchemeStatus, withdrawRequest)
+      appStatuses <- appRepository.findStatus(applicationId)
       _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, latestSchemeStatus)
-      _ <- maybeProgressToFSAC(latestSchemeStatus)
+      _ <- maybeProgressToFSAC(latestSchemeStatus, appStatuses.latestProgressStatus)
     } yield {
       DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
         AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::

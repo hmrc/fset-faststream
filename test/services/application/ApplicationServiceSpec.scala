@@ -19,7 +19,7 @@ package services
 import model.Commands.PhoneNumber
 import model.Exceptions.{ LastSchemeWithdrawException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses.ProgressStatus
-import model.command.{ ProgressResponse, WithdrawApplication, WithdrawScheme }
+import model.command.{ ApplicationStatusDetails, ProgressResponse, WithdrawApplication, WithdrawScheme }
 import model._
 import model.stc.AuditEvents
 import org.joda.time.DateTime
@@ -219,6 +219,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
+
       val withdraw = WithdrawScheme(SchemeId("Commercial"), "reason", "Candidate")
 
       underTest.withdraw("appId", withdraw).futureValue
@@ -239,6 +242,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
+
       val withdraw = WithdrawScheme(SchemeId("DigitalAndTechnology"), "reason", "Candidate")
 
       underTest.withdraw("appId", withdraw).futureValue
