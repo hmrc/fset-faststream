@@ -17,6 +17,7 @@
 package repositories.fsb
 
 import factories.DateTimeFactory
+import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.AlreadyEvaluatedForSchemeException
 import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION, ProgressStatus }
 import model._
@@ -45,6 +46,7 @@ trait FsbRepository {
   def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
   def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
+  def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]]
 }
 
 class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB) extends
@@ -66,6 +68,20 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
 
     selectOneRandom[BSONDocument](query).map(_.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get)
     )
+  }
+
+  def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+    import AssessmentCentreRepository.applicationForFsacBsonReads
+
+    val predicate = BSONDocument(
+      "applicationStatus" -> ApplicationStatus.FSB,
+      s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
+      s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$ne" -> true),
+      "currentSchemeStatus.result" -> Red.toString,
+      "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
+    )
+
+    selectRandom[BSONDocument](predicate, batchSize).map(_.map(doc => doc: ApplicationForProgression))
   }
 
   def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
