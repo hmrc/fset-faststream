@@ -1,13 +1,13 @@
 London:
   - LONDON_FSAC:
-      description: London (Bush House)
+      description: London (100 Parliament Street)
   - LONDON_FSAC_2:
       description: London (Parliament Square)
+  - LONDON_FSB:
+      description: London (FCO King Charles Street)
 Newcastle:
   - NEWCASTLE_FSAC:
-      description: Newcastle (Cathedral Square Jobcentre)
-  - NEWCASTLE_LONGBENTON:
-      description: Newcastle (Longbenton)
+      description: Newcastle (Tyne View Park)
 Virtual:
   - VIRTUAL:
       description: Virtual
