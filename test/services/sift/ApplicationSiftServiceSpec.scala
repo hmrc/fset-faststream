@@ -45,28 +45,28 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     val mockSchemeRepo = new SchemeRepository {
       override lazy val schemes: Seq[Scheme] = Seq(
         Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None
+          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
         ),
         Scheme("GovernmentSocialResearchService", "GSR", "GovernmentSocialResearchService", civilServantEligible = false, None,
-          Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None,  schemeGuide = None
+          Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None,  schemeGuide = None, schemeQuestion = None
         ),
         Scheme("Commercial", "GCS", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-          siftEvaluationRequired = true, fsbType = None, schemeGuide = None
+          siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None
         ),
         Scheme("HousesOfParliament", "HOP", "Houses of Parliament", civilServantEligible = true, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None
+          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
         ),
         Scheme("ProjectDelivery", "PDFS", "Project Delivery", civilServantEligible = true, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None
+          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
         ),
         Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering", civilServantEligible = true, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None
+          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
         ),
         Scheme("Edip", "EDIP", "Early Diversity Internship Programme", civilServantEligible = true, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None
+          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
         ),
         Scheme("Generalist", "GFS", "Generalist", civilServantEligible = true, None, None, siftEvaluationRequired = false,
-          fsbType = None, schemeGuide = None
+          fsbType = None, schemeGuide = None, schemeQuestion = None
         )
       )
 
