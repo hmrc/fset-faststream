@@ -71,13 +71,6 @@ class AssessmentCentreMongoRepository (
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
-    val xdipQuery = (route: ApplicationRoute) => BSONDocument(
-      "applicationRoute" -> route,
-      "applicationStatus" -> ApplicationStatus.SIFT,
-      s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
-      "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument("result" -> Green.toString))
-    )
-
     val fastStreamNoSiftableSchemes = BSONDocument(
       "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
       "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument(
@@ -86,8 +79,6 @@ class AssessmentCentreMongoRepository (
       )))
 
     val query = BSONDocument("$or" -> BSONArray(
-      xdipQuery(ApplicationRoute.Sdip),
-      xdipQuery(ApplicationRoute.Edip),
       fastStreamNoSiftableSchemes,
       BSONDocument(
         "applicationStatus" -> ApplicationStatus.SIFT,

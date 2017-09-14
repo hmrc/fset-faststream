@@ -17,6 +17,7 @@
 package repositories.fsb
 
 import factories.DateTimeFactory
+import model.ApplicationRoute.ApplicationRoute
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.AlreadyEvaluatedForSchemeException
 import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION, ProgressStatus }
@@ -86,6 +87,12 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
 
   def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
+    val xdipQuery = (route: ApplicationRoute) => BSONDocument(
+      "applicationRoute" -> route,
+      "applicationStatus" -> ApplicationStatus.SIFT,
+      s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
+      "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument("result" -> Green.toString))
+    )
 
     val query = BSONDocument("$or" -> BSONArray(
       BSONDocument(
@@ -96,7 +103,9 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
         "applicationStatus" -> ApplicationStatus.FSB,
         s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
         s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)
-      )
+      ),
+      xdipQuery(ApplicationRoute.Sdip),
+      xdipQuery(ApplicationRoute.Edip)
     ))
 
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
