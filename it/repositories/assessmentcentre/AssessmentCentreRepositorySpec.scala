@@ -57,24 +57,14 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       insertApplicationWithPhase3TestNotifiedResults("appId6",
         List(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Red.toString))).futureValue
 
-      insertApplicationWithSiftComplete("appId7",
-        List(SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)), applicationRoute = ApplicationRoute.Sdip)
-
-      insertApplicationWithSiftComplete("appId8",
-        List(SchemeEvaluationResult(SchemeId("Edip"), EvaluationResults.Green.toString)), applicationRoute = ApplicationRoute.Edip)
-
       whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
         appsForAc must contain theSameElementsAs Seq(
           ApplicationForProgression("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
           ApplicationForProgression("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString))),
-          ApplicationForProgression("appId7", ApplicationStatus.SIFT,
-            List(SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString))),
-          ApplicationForProgression("appId8", ApplicationStatus.SIFT,
-            List(SchemeEvaluationResult(SchemeId("Edip"), EvaluationResults.Green.toString)))
+            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString)))
         )
-        appsForAc.length mustBe 4
+        appsForAc.length mustBe 2
       }
     }
 
