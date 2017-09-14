@@ -60,7 +60,9 @@ case class Scheme(
   degree: Option[Degree],
   siftRequirement: Option[SiftRequirement.Value],
   siftEvaluationRequired: Boolean,
-  fsbType: Option[FsbType]
+  fsbType: Option[FsbType],
+  schemeGuide: Option[String],
+  schemeQuestion: Option[String]
 )
 
 object Scheme {
@@ -69,9 +71,9 @@ object Scheme {
   // scalastyle:off parameter.number
   def apply(id: String, code: String, name: String, civilServantEligible: Boolean,
     degree: Option[Degree], siftRequirement: Option[SiftRequirement.Value], siftEvaluationRequired: Boolean,
-    fsbType: Option[FsbType]
+    fsbType: Option[FsbType], schemeGuide: Option[String], schemeQuestion: Option[String]
   ): Scheme =
     Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, siftEvaluationRequired,
-      fsbType)
+      fsbType, schemeGuide, schemeQuestion)
   // scalastyle:on
 }

@@ -2,17 +2,15 @@
 
 @import controllers.SiftQuestionsController
 @import helpers.CSRFieldConstructor._
-@import views.html.widgets.{ radioBoxHorizontal, select_guard }
 
 @main_template(title = scheme.name, pageForms = Seq(schemeSpecificQuestionsForm)) {
-
     <h1 class="heading-xlarge">@scheme.name</h1>
     <div class="panel-indent">
         <div class="text">
             <p>This scheme requires you to answer some additional questions before you can be successful for the next stage.</p>
             <p>Take your time with this section, when you're ready:</p>
             <ul class="list-bullet">
-                <li>read the <a target="_blank" href="/scheme-questions-template-2.docx">scheme questions (this will download a document)</a></li>
+                <li>read the <a target="_blank" href="@scheme.schemeQuestion.getOrElse('#')">scheme questions (this will download a document)</a></li>
                 <li>use the template in the document to answer the questions</li>
                 <li>copy and paste the headings and responses into the box</li>
             </ul>
