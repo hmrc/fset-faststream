@@ -140,6 +140,15 @@
 </section>
 }
 
+@firstScheme = {
+    @for((schemeResult, index) <- page.userDataWithSchemes.successfulSchemes.zipWithIndex) {
+        <section>
+            <h3 class="bold-small">@getOrder(index + 1) preference</h3>
+            <p>@{schemeResult.scheme.name}</p>
+        </section>
+    }
+}
+
 @main_template(title = "Home", additionalJavascriptFilenames = List("siftProgress.js")) {
 
     @commonSectionPostOnlineTests(page.userDataWithSchemes.toCachedData)
@@ -150,6 +159,23 @@
     case _ if page.isFinalSuccess => { @finalSuccess }
     case _ if page.isFinalFailure => { @finalFailure }
     case _ if page.fsacStage == PostOnlineTestsStage.FAILED_TO_ATTEND || page.fsbStage == PostOnlineTestsStage.FAILED_TO_ATTEND => { @failedToAttend }
+    case _ if page.fsbStage ==  PostOnlineTestsStage.FSB_FAILED => {
+        <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.userDataWithSchemes.toCachedData)){disabled}" id="mainProgressPage">
+            <div class="text">
+
+                <section>
+                    <p>Unfortunately, you were not successful at your most recent assessment. We'll contact you when your next assessment is scheduled.</p>
+                    <p>Check your scheme preferences, as the order may have changed.</p>
+                    @firstScheme
+                </section>
+                @unsuccessfulSchemes
+                @withdrawnSchemes
+            </div>
+            <h2 class="heading-large">Next steps</h2>
+            @siftProgress(page)
+        </section>
+        @withdrawSection(page.userDataWithSchemes.toCachedData)
+        }
     case _ => {
         <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.userDataWithSchemes.toCachedData)){disabled}" id="mainProgressPage">
             <div class="text">
@@ -170,14 +196,8 @@
                         </p>
                     </div>
                     }
-                    @for((schemeResult, index) <- page.userDataWithSchemes.successfulSchemes.zipWithIndex) {
-                    <section>
-                        <h3 class="bold-small">@getOrder(index + 1) preference</h3>
-                        <p>@{schemeResult.scheme.name}</p>
-                    </section>
-                    }
+                    @firstScheme
                 </section>
-
                 @unsuccessfulSchemes
                 @withdrawnSchemes
                 }

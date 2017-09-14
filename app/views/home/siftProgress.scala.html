@@ -195,14 +195,18 @@
             <div class="inner-block-padr">
                 <h2 class="heading-medium ">Final stage</h2>
                 @page.fsbStage match {
-                    case (PostOnlineTestsStage.CONFIRMED_FOR_EVENT) => {
+                    case PostOnlineTestsStage.FSB_FAILED => {
+                        <p>You'll be contacted as soon as your assessment date is scheduled.<br />
+                            Keep an eye on your email inbox, including your junk mail.</p>
+                    }
+                    case PostOnlineTestsStage.CONFIRMED_FOR_EVENT => {
                         <p>Your assessment centre is booked.</p>
                         @renderEventType(page.fsbAllocation)
                         @renderEventDetails(page.fsbAllocation)
                         @renderCannotAttend
                         @renderFindMoreAboutAssessmentDay
                     }
-                    case (PostOnlineTestsStage.ALLOCATED_TO_EVENT) => {
+                    case PostOnlineTestsStage.ALLOCATED_TO_EVENT => {
                         <p>Confirm you can attend this assessment centre</p>
                         @renderEventType(page.fsbAllocation)
                         @renderEventDetails(page.fsbAllocation)
