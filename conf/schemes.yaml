@@ -18,6 +18,7 @@
   siftEvaluationRequired: false
   fsbType: DAT FSB
   schemeGuide: https://www.faststream.gov.uk/media/1230/dat-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1261/scheme-questions-ddat.rtf
 - id: DiplomaticService
   code: DS
   name: Diplomatic Service
@@ -29,6 +30,7 @@
   siftEvaluationRequired: true
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/1232/fco-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1246/scheme-questions-fco.rtf
 - id: DiplomaticServiceEconomists
   code: GES-DS
   name: Diplomatic Service (Economists)
@@ -40,6 +42,7 @@
   siftEvaluationRequired: true
   fsbType: EAC_DS
   schemeGuide: https://www.faststream.gov.uk/media/1234/ges_ds-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1246/scheme-questions-fco.rtf
 - id: Finance
   code: FIFS
   name: Finance
@@ -68,6 +71,7 @@
   siftEvaluationRequired: false
   fsbType: GCFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/1233/gcfs-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1247/scheme-questions-gcfs.rtf
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
@@ -79,6 +83,7 @@
   siftEvaluationRequired: true
   fsbType: EAC
   schemeGuide: https://www.faststream.gov.uk/media/1231/eac-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1248/scheme-questions-ges.rtf
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -90,6 +95,7 @@
   siftEvaluationRequired: true
   fsbType: ORAC
   schemeGuide: https://www.faststream.gov.uk/media/1236/orac-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1249/scheme-questions-gors.rtf
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
@@ -101,6 +107,7 @@
   siftEvaluationRequired: true
   fsbType: SRAC
   schemeGuide: https://www.faststream.gov.uk/media/1240/srac-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1262/scheme-questions-gsr.rtf
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
@@ -112,6 +119,7 @@
   siftEvaluationRequired: true
   fsbType: SAC
   schemeGuide: https://www.faststream.gov.uk/media/1237/sac-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1250/scheme-questions-gss.rtf
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
@@ -123,6 +131,7 @@
   siftEvaluationRequired: false
   fsbType: HOP FSB
   schemeGuide: https://www.faststream.gov.uk/media/1235/hop_fsb-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1251/scheme-questions-hop.rtf
 - id: HumanResources
   code: HRFS
   name: Human Resources
@@ -142,6 +151,7 @@
   siftEvaluationRequired: false
   fsbType: PDFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/1243/pdfs-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1252/scheme-questions-pdfs.rtf
 - id: ScienceAndEngineering
   code: SEFS
   name: Science and Engineering
@@ -153,6 +163,7 @@
   siftEvaluationRequired: true
   fsbType: SEFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/1238/sefs-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1254/scheme-questions-sefs.rtf
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
@@ -161,6 +172,7 @@
   siftEvaluationRequired: false
   fsbType: EDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/1242/edip-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1245/scheme-questions-edip.rtf
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
@@ -169,3 +181,4 @@
   siftEvaluationRequired: true
   fsbType: SDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/1244/sdip-guide.pdf
+  schemeQuestion: https://www.faststream.gov.uk/media/1253/scheme-questions-sdip.rtf

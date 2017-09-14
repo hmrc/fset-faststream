@@ -29,10 +29,10 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
 
   val DaT = Scheme(SchemeId("DigitalAndTechnology"), "DaT", "Digital and Technology", civilServantEligible = false,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
-    fsbType = None, schemeGuide = None)
+    fsbType = None, schemeGuide = None, schemeQuestion = None)
   val HoP = Scheme(SchemeId("HousesOfParliament"), "HoP", "Houses of Parliament", civilServantEligible = false,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
-    fsbType = None, schemeGuide = None)
+    fsbType = None, schemeGuide = None, schemeQuestion = None)
 
 
   trait TestFixture {
