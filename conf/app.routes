@@ -175,6 +175,7 @@ GET         /assessment-scores/assessor/with-candidate-summary/application/:appl
 GET         /assessment-scores/assessor/with-candidate-summary/event/:eventId                 controllers.AssessorAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
 GET         /assessment-scores/assessor/:applicationId                                        controllers.AssessorAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
 GET         /assessment-scores/assessor                                                       controllers.AssessorAssessmentScoresController.findAll
+POST        /assessment-scores/assessor/reset-exercises/:applicationId                        controllers.AssessorAssessmentScoresController.resetExercises(applicationId: model.UniqueIdentifier)
 
 # reviewer assessment scores
 POST        /assessment-scores/reviewer/save-exercise                                         controllers.ReviewerAssessmentScoresController.saveExercise()

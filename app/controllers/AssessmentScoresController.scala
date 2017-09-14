@@ -167,6 +167,43 @@ trait AssessmentScoresController extends BaseController {
         InternalServerError(other.getMessage)
     }
   }
+
+  def resetExercises(applicationId: UniqueIdentifier) = Action.async(parse.json) {
+    implicit request =>
+      withJsonBody[ResetExercisesRequest] { resetExercisesRequest =>
+        //scalastyle:off
+        println("****")
+        println("**** I GOT CALLED !!!!!!!!!!!!!!!")
+        println(s"**** data = $resetExercisesRequest")
+
+        val withAnalysis = if (resetExercisesRequest.analysis) List("analysisExercise") else List.empty[String]
+        val withGroup = if (resetExercisesRequest.group) withAnalysis ++ List("groupExercise") else withAnalysis
+        val exercisesToRemove = if (resetExercisesRequest.leadership) withGroup ++ List("leadershipExercise") else withGroup
+
+        println(s"**** exercises to remove = $exercisesToRemove")
+        println("****")
+        //scalastyle:on
+
+        repository.resetExercise(applicationId, exercisesToRemove).map { _ =>
+          val auditDetails = Map(
+            "applicationId" -> applicationId.toString(),
+            "resetAnalysisExercise" -> resetExercisesRequest.analysis.toString,
+            "resetGroupExercise" -> resetExercisesRequest.group.toString,
+            "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString
+//            UserIdForAudit -> resetExercisesRequest.scoresExercise.updatedBy.toString()
+          )
+          auditService.logEvent(AssessmentScoresOneExerciseSaved, auditDetails)
+          //scalastyle:off
+          println("**** SUCCESS")
+          //scalastyle:on
+          Ok
+        }.recover {
+          case other: Throwable =>
+            Logger.error(s"Exception when calling resetExercises with applicationId $applicationId: $other")
+            InternalServerError(other.getMessage)
+        }
+      }
+  }
 }
 
 object AssessorAssessmentScoresController extends AssessmentScoresController {

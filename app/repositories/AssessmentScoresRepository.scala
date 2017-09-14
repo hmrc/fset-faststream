@@ -48,6 +48,8 @@ trait AssessmentScoresRepository {
   def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]]
 
   def findAll: Future[List[AssessmentScoresAllExercises]]
+
+  def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit]
 }
 
 abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit mongo: () => DB)
@@ -149,6 +151,26 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
     val query = BSONDocument.empty
     collection.find(query).cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+  }
+
+  def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit] = {
+    //scalastyle:off
+    println("****")
+    println(s"**** resetExercise called - applicationId = $applicationId, exercisesToRemove = $exercisesToRemove")
+    println("****")
+    //scalastyle:on
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val exercisesToUnset = exercisesToRemove.flatMap { exercise =>
+      Map(s"$exercise" -> BSONString(""))
+    }
+
+    //scalastyle:off
+    println(s"**** resetExercise called - applicationId = $applicationId, exercisesToUnset = $exercisesToUnset")
+    //scalastyle:on
+
+    val unsetDoc = BSONDocument("$unset" -> BSONDocument(exercisesToUnset))
+    collection.update(query, unsetDoc) map( s => s )
   }
 }
 

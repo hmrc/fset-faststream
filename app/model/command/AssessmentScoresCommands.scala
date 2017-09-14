@@ -74,4 +74,14 @@ object AssessmentScoresCommands {
   object AssessmentScoresFindResponse {
     implicit val jsonFormat: Format[AssessmentScoresFindResponse] = Json.format[AssessmentScoresFindResponse]
   }
+
+  case class ResetExercisesRequest(
+    applicationId: UniqueIdentifier,
+    analysis: Boolean,
+    group: Boolean,
+    leadership: Boolean
+  )
+  object ResetExercisesRequest {
+    implicit val jsonFormat: Format[ResetExercisesRequest] = Json.format[ResetExercisesRequest]
+  }
 }
