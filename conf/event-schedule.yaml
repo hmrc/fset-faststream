@@ -10484,7 +10484,7 @@
   description: DS
   location: London
   venue: LONDON_FSB
-  date: 2017-03-12
+  date: 2018-03-12
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
@@ -10554,7 +10554,7 @@
   description: DS
   location: London
   venue: LONDON_FSB
-  date: 2017-03-13
+  date: 2018-03-13
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
@@ -10624,7 +10624,7 @@
   description: DS
   location: London
   venue: LONDON_FSB
-  date: 2017-03-14
+  date: 2018-03-14
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
@@ -10694,7 +10694,7 @@
   description: DS
   location: London
   venue: LONDON_FSB
-  date: 2017-03-15
+  date: 2018-03-15
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
@@ -10764,7 +10764,7 @@
   description: DS
   location: London
   venue: LONDON_FSB
-  date: 2017-03-16
+  date: 2018-03-16
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
