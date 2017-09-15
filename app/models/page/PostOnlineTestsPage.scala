@@ -33,7 +33,7 @@ import security.{RoleUtils, Roles}
 object PostOnlineTestsStage extends Enumeration {
   type PostOnlineTestsStage = Value
   val FAILED_TO_ATTEND, CONFIRMED_FOR_EVENT, UPLOAD_EXERCISES, ALLOCATED_TO_EVENT, EVENT_ATTENDED, OTHER = Value
-  val ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_FAILED = Value
+  val ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_FAILED, FSB_FAILED = Value
 }
 
 case class PostOnlineTestsPage(
@@ -61,6 +61,7 @@ case class PostOnlineTestsPage(
 
   def fsbStage: PostOnlineTestsStage = userDataWithSchemes.application.progress.fsb match {
     case e if e.failedToAttend => FAILED_TO_ATTEND
+    case e if e.failed => FSB_FAILED
     case e if e.allocationConfirmed => CONFIRMED_FOR_EVENT
     case e if e.allocationUnconfirmed => ALLOCATED_TO_EVENT
     case _ => OTHER
