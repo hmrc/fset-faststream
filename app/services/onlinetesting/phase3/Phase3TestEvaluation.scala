@@ -45,7 +45,7 @@ trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
             s"video pass = ${schemePassmark.schemeThresholds.videoInterview.passThreshold}, " +
             s"video result = $phase3Result")
           val phase2Result = Result(phase2SchemeEvaluation.result)
-          Option(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase2Result, phase3Result).toString))
+          Some(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase2Result, phase3Result).toString))
         } getOrElse {
           if (Scheme.isSdip(schemeToEvaluate) && applicationRoute == ApplicationRoute.SdipFaststream) {
             val phase2Result = Result(phase2SchemeEvaluation.result)

@@ -42,7 +42,7 @@ trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
             s"etray pass = ${schemePassmark.schemeThresholds.etray.passThreshold}, " +
             s"etray result = $phase2Result")
           val phase1Result = Result(phase1SchemeEvaluation.result)
-          Option(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, phase2Result).toString))
+          Some(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, phase2Result).toString))
         } getOrElse {
           if (Scheme.isSdip(schemeToEvaluate) && applicationRoute == ApplicationRoute.SdipFaststream) {
             val phase1Result = Result(phase1SchemeEvaluation.result)

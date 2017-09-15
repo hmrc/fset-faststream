@@ -55,7 +55,7 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
           s"bq pass = ${schemePassmark.schemeThresholds.behavioural.passThreshold}, " +
           s"bq result = $bqResult"
         )
-        Option(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(sjqResult, bqResult).toString))
+        Some(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(sjqResult, bqResult).toString))
       }.getOrElse {
         if (Scheme.isSdip(schemeToEvaluate) && applicationRoute == ApplicationRoute.SdipFaststream) {
           Option(SchemeEvaluationResult(schemeToEvaluate, Amber.toString))
