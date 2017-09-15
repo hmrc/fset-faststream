@@ -224,22 +224,22 @@ object CreateCandidateData {
   }
 
   case class CreateCandidateData(statusData: StatusData,
-                                 personalData: PersonalData = PersonalData(),
-                                 diversityDetails: DiversityDetails = DiversityDetails(),
-                                 assistanceDetails: AssistanceDetails = AssistanceDetails(),
-                                 cubiksUrl: String,
-                                 schemeTypes: Option[List[SchemeId]] = None,
-                                 isCivilServant: Boolean = false,
-                                 hasFastPass: Boolean = false,
-                                 hasDegree: Boolean = Random.bool,
-                                 region: Option[String] = None,
-                                 phase1TestData: Option[Phase1TestData] = None,
-                                 phase2TestData: Option[Phase2TestData] = None,
-                                 phase3TestData: Option[Phase3TestData] = None,
-                                 fsbTestGroupData: Option[FsbTestGroupDataRequest] = None,
-                                 adjustmentInformation: Option[Adjustments] = None,
-                                 assessorDetails: Option[AssessorData] = None
-                                        ) extends CreateTestData
+    personalData: PersonalData = PersonalData(),
+    diversityDetails: DiversityDetails = DiversityDetails(),
+    assistanceDetails: AssistanceDetails = AssistanceDetails(),
+    cubiksUrl: String,
+    schemeTypes: Option[List[SchemeId]] = None,
+    isCivilServant: Boolean = false,
+    hasFastPass: Boolean = false,
+    hasDegree: Boolean = Random.bool,
+    region: Option[String] = None,
+    phase1TestData: Option[Phase1TestData] = None,
+    phase2TestData: Option[Phase2TestData] = None,
+    phase3TestData: Option[Phase3TestData] = None,
+    fsbTestGroupData: Option[FsbTestGroupDataRequest] = None,
+    adjustmentInformation: Option[Adjustments] = None,
+    assessorDetails: Option[AssessorData] = None
+  ) extends CreateTestData
 
   object CreateCandidateData {
     def apply(cubiksUrlFromConfig: String, o: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
