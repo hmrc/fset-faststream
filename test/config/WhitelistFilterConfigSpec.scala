@@ -61,7 +61,7 @@ class WhitelistFilterConfigSpec extends UnitWithAppSpec {
         val Some(result) = route(app, request)
 
         status(result) mustBe SEE_OTHER
-        redirectLocation(result) mustBe Some("https://www.apply-civil-service-fast-stream.service.gov.uk/outage-fset-faststream/index.html")
+        redirectLocation(result) mustBe Some("https://www.apply-civil-service-fast-stream.service.gov.uk/shutter/fset-faststream/index.html")
       }
 
       "coming from an IP NOT in the white-list, but with a white-listed path must work as normal" in {

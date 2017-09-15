@@ -101,10 +101,10 @@ object WhitelistFilter extends AkamaiWhitelistFilter with RunMode with Microserv
       .map(_.split(",")).getOrElse(Array.empty).toSeq
 
   // List of IP addresses
-  override def whitelist: Seq[String] = whitelistConfig("whitelist")
+  override val whitelist: Seq[String] = whitelistConfig("whitelist")
 
   // List of allowed file upload addresses
-  def whitelistFileUpload: Seq[String] = whitelistConfig("whitelistFileUpload")
+  val whitelistFileUpload: Seq[String] = whitelistConfig("whitelistFileUpload")
 
   // List of prefixes that file uploads happen under
   val fileUploadPathPrefixes = List("/fset-fast-stream/file-submission/")
@@ -116,7 +116,7 @@ object WhitelistFilter extends AkamaiWhitelistFilter with RunMode with Microserv
 
   def destination: Call = Call(
     "GET",
-    "https://www.apply-civil-service-fast-stream.service.gov.uk/outage-fset-faststream/index.html"
+    "https://www.apply-civil-service-fast-stream.service.gov.uk/shutter/fset-faststream/index.html"
   )
 
   // Modified AkamaiWhitelistFilter (play-whitelist-filter)
