@@ -16,8 +16,9 @@
 
 package services.onlinetesting.phase2
 
-import model.EvaluationResults.Result
-import model.SchemeId
+import model.ApplicationRoute.ApplicationRoute
+import model.EvaluationResults.{ Amber, Result }
+import model.{ ApplicationRoute, Scheme, SchemeId }
 import model.exchange.passmarksettings.Phase2PassMarkSettings
 import model.persisted.{ SchemeEvaluationResult, TestResult }
 import play.api.Logger
@@ -25,22 +26,33 @@ import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluate(schemes: List[SchemeId], etrayTestResult: TestResult,
-               phase1SchemesEvaluation: List[SchemeEvaluationResult],
-               passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
-    for {
+  def evaluate(applicationRoute: ApplicationRoute, schemes: List[SchemeId], etrayTestResult: TestResult,
+               phase1SchemesEvaluation: List[SchemeEvaluationResult], passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
+
+    val evaluationResults = for {
       schemeToEvaluate <- schemes
-      schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
-      phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
-      val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.etray)(etrayTestResult.tScore)
-      Logger.debug(s"processing scheme $schemeToEvaluate, " +
-        s"etray score = ${etrayTestResult.tScore}, " +
-        s"etray fail = ${schemePassmark.schemeThresholds.etray.failThreshold}, " +
-        s"etray pass = ${schemePassmark.schemeThresholds.etray.passThreshold}, " +
-        s"etray result = $phase2Result")
-      val phase1Result = Result(phase1SchemeEvaluation.result)
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, phase2Result).toString)
+      val schemePassmarkOpt = passmark.schemes.find(_.schemeId == schemeToEvaluate)
+      phase1SchemesEvaluation.find(_.schemeId == schemeToEvaluate).flatMap { phase1SchemeEvaluation =>
+        schemePassmarkOpt.map { schemePassmark =>
+          val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.etray)(etrayTestResult.tScore)
+          Logger.debug(s"processing scheme $schemeToEvaluate, " +
+            s"etray score = ${etrayTestResult.tScore}, " +
+            s"etray fail = ${schemePassmark.schemeThresholds.etray.failThreshold}, " +
+            s"etray pass = ${schemePassmark.schemeThresholds.etray.passThreshold}, " +
+            s"etray result = $phase2Result")
+          val phase1Result = Result(phase1SchemeEvaluation.result)
+          Option(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, phase2Result).toString))
+        } getOrElse {
+          if (Scheme.isSdip(schemeToEvaluate) && applicationRoute == ApplicationRoute.SdipFaststream) {
+            val phase1Result = Result(phase1SchemeEvaluation.result)
+            Option(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, Amber).toString))
+          } else {
+            None
+          }
+        }
+      }
     }
+    evaluationResults.flatten
   }
 }

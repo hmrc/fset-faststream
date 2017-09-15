@@ -17,6 +17,7 @@
 package services.onlinetesting.phase1
 
 import config.CubiksGatewayConfig
+import model.ApplicationRoute.ApplicationRoute
 import model.EvaluationResults.Green
 import model.ProgressStatuses.ProgressStatus
 import model._
@@ -197,7 +198,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       override def bq = BqId
 
       override def evaluateForNonGis(schemes: List[SchemeId], sjqTestResult: TestResult,bqTestResult: TestResult,
-                                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+                                     passmark: Phase1PassMarkSettings, applicationRoute: ApplicationRoute): List[SchemeEvaluationResult] = {
         Nil
       }
     }
@@ -213,7 +214,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     trait StubbedPhase1TestEvaluation extends Phase1TestEvaluation {
       override def evaluateForNonGis(schemes: List[SchemeId], sjqTestResult: TestResult,bqTestResult: TestResult,
-                                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+                                     passmark: Phase1PassMarkSettings, applicationRoute: ApplicationRoute): List[SchemeEvaluationResult] = {
         EvaluateForNonGis
       }
     }

@@ -18,7 +18,7 @@ package services.onlinetesting.phase1
 
 import model.EvaluationResults._
 import model.Phase1TestExamples._
-import model.SchemeId
+import model.{ ApplicationRoute, SchemeId }
 import model.exchange.passmarksettings._
 import model.persisted.SchemeEvaluationResult
 import org.scalatest.prop.TableDrivenPropertyChecks
@@ -81,9 +81,11 @@ class Phase1TestEvaluationSpec extends BaseServiceSpec with TableDrivenPropertyC
       forAll (Phase1EvaluationData) { (schemes: List[SchemeId], sjqResult, bqResultOpt: Option[Double], expected: List[Result]) =>
         val result = bqResultOpt match {
           case Some(bqResult) =>
-            evaluation.evaluateForNonGis(schemes, createTestResult(sjqResult), createTestResult(bqResult), CurrentPassmarkWithAmbers)
+            evaluation.evaluateForNonGis(
+              schemes, createTestResult(sjqResult), createTestResult(bqResult), CurrentPassmarkWithAmbers, ApplicationRoute.Faststream)
           case None =>
-            evaluation.evaluateForGis(schemes, createTestResult(sjqResult), CurrentPassmarkWithAmbers)
+            evaluation.evaluateForGis(
+              schemes, createTestResult(sjqResult), CurrentPassmarkWithAmbers, ApplicationRoute.Faststream)
         }
 
         result mustBe normalize(schemes, expected)
@@ -94,9 +96,11 @@ class Phase1TestEvaluationSpec extends BaseServiceSpec with TableDrivenPropertyC
       forAll (Phase1EvaluationDataWithoutAmbers) { (schemes: List[SchemeId], sjqResult, bqResultOpt: Option[Double], expected: List[Result]) =>
         val result = bqResultOpt match {
           case Some(bqResult) =>
-            evaluation.evaluateForNonGis(schemes, createTestResult(sjqResult), createTestResult(bqResult), CurrentPassmarkWithoutAmbers)
+            evaluation.evaluateForNonGis(
+              schemes, createTestResult(sjqResult), createTestResult(bqResult), CurrentPassmarkWithoutAmbers, ApplicationRoute.Faststream)
           case None =>
-            evaluation.evaluateForGis(schemes, createTestResult(sjqResult), CurrentPassmarkWithoutAmbers)
+            evaluation.evaluateForGis(
+              schemes, createTestResult(sjqResult), CurrentPassmarkWithoutAmbers, ApplicationRoute.Faststream)
         }
 
         result mustBe normalize(schemes, expected)

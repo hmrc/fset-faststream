@@ -17,36 +17,45 @@
 package services.onlinetesting.phase3
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
-import model.EvaluationResults.Result
-import model.SchemeId
+import model.ApplicationRoute.ApplicationRoute
+import model.EvaluationResults.{ Amber, Result }
+import model.{ ApplicationRoute, Scheme, SchemeId }
 import model.exchange.passmarksettings.Phase3PassMarkSettings
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.SchemeEvaluationResult
 import play.api.Logger
-import repositories.onlinetesting.Phase3EvaluationMongoRepository
-
-import scala.concurrent.Future
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluate(schemes: List[SchemeId], launchpadTestResult: ReviewedCallbackRequest,
+  def evaluate(applicationRoute: ApplicationRoute, schemes: List[SchemeId], launchpadTestResult: ReviewedCallbackRequest,
                phase2SchemesEvaluation: List[SchemeEvaluationResult],
                passmark: Phase3PassMarkSettings): List[SchemeEvaluationResult] = {
 
-    for {
+    val evaluationResults = for {
       schemeToEvaluate <- schemes
-      schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
-      phase2SchemeEvaluation <- phase2SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
-      val phase3Result = evaluateTestResult(schemePassmark.schemeThresholds.videoInterview)(
-        Some(launchpadTestResult.calculateTotalScore()))
-      Logger.debug(s"processing scheme $schemeToEvaluate, " +
-        s"video score = ${launchpadTestResult.calculateTotalScore()}, " +
-        s"video fail = ${schemePassmark.schemeThresholds.videoInterview.failThreshold}, " +
-        s"video pass = ${schemePassmark.schemeThresholds.videoInterview.passThreshold}, " +
-        s"video result = $phase3Result")
-      val phase2Result = Result(phase2SchemeEvaluation.result)
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase2Result, phase3Result).toString)
+      val schemePassmarkOpt = passmark.schemes find (_.schemeId == schemeToEvaluate)
+      phase2SchemesEvaluation.find(_.schemeId == schemeToEvaluate).flatMap { phase2SchemeEvaluation =>
+        schemePassmarkOpt.map { schemePassmark =>
+          val phase3Result = evaluateTestResult(schemePassmark.schemeThresholds.videoInterview)(
+            Some(launchpadTestResult.calculateTotalScore()))
+          Logger.debug(s"processing scheme $schemeToEvaluate, " +
+            s"video score = ${launchpadTestResult.calculateTotalScore()}, " +
+            s"video fail = ${schemePassmark.schemeThresholds.videoInterview.failThreshold}, " +
+            s"video pass = ${schemePassmark.schemeThresholds.videoInterview.passThreshold}, " +
+            s"video result = $phase3Result")
+          val phase2Result = Result(phase2SchemeEvaluation.result)
+          Option(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase2Result, phase3Result).toString))
+        } getOrElse {
+          if (Scheme.isSdip(schemeToEvaluate) && applicationRoute == ApplicationRoute.SdipFaststream) {
+            val phase2Result = Result(phase2SchemeEvaluation.result)
+            Option(SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase2Result, Amber).toString))
+          } else {
+            None
+          }
+        }
+      }
     }
+    evaluationResults.flatten
   }
 }
