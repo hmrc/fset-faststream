@@ -43,7 +43,6 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
     "personal-details" -> 0)  // these reports should not export personally identifiable data
 
   private val largeFields = Json.obj(
-    "progress-status-timestamp" -> 0, // this is quite a bit of data, that is not really used for queries as progress-status is easier
     "testGroups.PHASE1.tests.reportLinkURL" -> 0,
     "testGroups.PHASE1.tests.testUrl" -> 0,
     "testGroups.PHASE2.tests.reportLinkURL" -> 0,
