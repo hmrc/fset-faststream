@@ -16,13 +16,14 @@
 
 package controllers.metrics
 
+import model.ApplicationStatus
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import repositories._
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 case class ProgressStatusMetrics(
@@ -43,9 +44,15 @@ trait MetricsController extends BaseController {
 
   def progressStatusCounts = Action.async {
     applicationRepo.count.flatMap { allApplications =>
-      applicationRepo.getLatestProgressStatuses.map { list =>
-        val listWithCounts = list.groupBy(identity).mapValues(_.size)
-        Ok(Json.toJson(listWithCounts ++ Map("TOTAL_APPLICATION_COUNT" -> allApplications)))
+      applicationRepo.countByStatus(ApplicationStatus.CREATED).flatMap { createdCount =>
+        applicationRepo.getLatestProgressStatuses.map { list =>
+          val listWithCounts = list.groupBy(identity).mapValues(_.size)
+          Ok(Json.toJson(
+            listWithCounts ++
+              Map("TOTAL_APPLICATION_COUNT" -> allApplications) ++
+              Map("CREATED" -> createdCount)
+          ))
+        }
       }
     }
   }
