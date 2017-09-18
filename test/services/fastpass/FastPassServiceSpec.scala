@@ -17,16 +17,18 @@
 package services.fastpass
 
 import connectors.OnlineTestEmailClient
-import model.{ CivilServiceExperienceDetails, ProgressStatuses }
+import model.{ CivilServiceExperienceDetails, ProgressStatuses, SelectedSchemesExamples }
 import model.command.PersonalDetailsExamples._
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.personaldetails.PersonalDetailsService
+import services.scheme.SchemePreferencesService
 import services.stc.StcEventServiceFixture
 import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -55,12 +57,13 @@ class FastPassServiceSpec extends UnitSpec {
 
       verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
       verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED)
+      verify(schemePreferencesServiceMock).find(appId)
+      verify(schemesRepositoryMock).siftableSchemeIds
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
       verify(emailClientMock).sendEmailWithName(
         eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
-      verifyNoMoreInteractions(csedRepositoryMock, appRepoMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+      verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
 
     }
 
@@ -85,22 +88,26 @@ class FastPassServiceSpec extends UnitSpec {
 
     }
 
-    "fail to complete the process if a service fails" in new TestFixture {
+    "fail to complete the process if a service fails" in new TextFixtureWithMockResponses {
+
       when(personalDetailsServiceMock.find(any[String], any[String])).thenReturn(personalDetailsResponse)
       when(cdRepositoryMock.find(any[String])).thenReturn(contactDetailsResponse)
       when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
       when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceError)
+
+      play.api.Logger.error("\n\n\n\n")
+      play.api.Logger.error(s"\n${underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue}")
 
 
       val result = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue
 
       result mustBe error
 
-      verifyDataStoreEvents(1,
+      verifyDataStoreEvents(2,
         List("ApplicationReadyForExport")
       )
 
-      verifyAuditEvents(1,
+      verifyAuditEvents(2,
         List("ApplicationReadyForExport")
       )
     }
@@ -134,6 +141,8 @@ class FastPassServiceSpec extends UnitSpec {
     val emailClientMock = mock[OnlineTestEmailClient]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val csedRepositoryMock = mock[CivilServiceExperienceDetailsRepository]
+    val schemePreferencesServiceMock = mock[SchemePreferencesService]
+    val schemesRepositoryMock = mock[SchemeRepository]
     val accepted = true
     val rejected = false
     val userId = "user123"
@@ -144,6 +153,8 @@ class FastPassServiceSpec extends UnitSpec {
     val contactDetailsResponse = Future.successful(ContactDetailsUK)
     val error = new RuntimeException("Something bad happened")
     val serviceError = Future.failed(error)
+    val selectedSchemes = SelectedSchemesExamples.TwoSchemes
+    val siftableSchemes = SelectedSchemesExamples.siftableSchemes.schemes
 
     val underTest = new FastPassService {
       val appRepo = appRepoMock
@@ -152,6 +163,8 @@ class FastPassServiceSpec extends UnitSpec {
       val emailClient = emailClientMock
       val cdRepository = cdRepositoryMock
       val csedRepository = csedRepositoryMock
+      val schemePreferencesService = schemePreferencesServiceMock
+      val schemesRepository = schemesRepositoryMock
       override val fastPassDetails = CivilServiceExperienceDetails(
         applicable = true,
         fastPassReceived = Some(true),
@@ -168,6 +181,7 @@ class FastPassServiceSpec extends UnitSpec {
     when(personalDetailsServiceMock.find(any[String], any[String])).thenReturn(personalDetailsResponse)
     when(cdRepositoryMock.find(any[String])).thenReturn(contactDetailsResponse)
     when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(serviceFutureResponse)
+    when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(selectedSchemes))
+    when(schemesRepositoryMock.siftableSchemeIds).thenReturn(siftableSchemes)
   }
-
 }
