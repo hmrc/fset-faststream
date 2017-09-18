@@ -51,23 +51,25 @@ class EventsControllerSpec extends UnitWithAppSpec {
       val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
     }
+  }
 
+  "getEvents" must {
     "return OK with all events" in new TestFixture {
-      when(mockEventsService.getEvents(any[EventType.EventType], any[Venue])).thenReturnAsync(List(MockEvent))
-
-      val res = controller.getEvents("FSAC","LONDON_FSAC")(FakeRequest())
-      status(res) mustBe OK
+      when(mockEventsService.getEvents(any[EventType.EventType], any[Venue], any())).thenReturnAsync(List(MockEvent))
+      status(controller.getEvents("FSAC", "LONDON_FSAC")(FakeRequest())) mustBe OK
     }
 
-     "return 400 for invalid event" in new TestFixture {
-       status(controller.getEvents("blah","LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
+    "return 400 for invalid event" in new TestFixture {
+      status(controller.getEvents("blah", "LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
     }
 
-     "return 400 for invalid venue type" in new TestFixture {
-       when(mockLocationsWithVenuesRepo.venue("blah")).thenReturn(Future.failed(UnknownVenueException("")))
-       status(controller.getEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
+    "return 400 for invalid venue type" in new TestFixture {
+      when(mockLocationsWithVenuesRepo.venue("blah")).thenReturn(Future.failed(UnknownVenueException("")))
+      status(controller.getEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
     }
+  }
 
+  "getEvent" should {
     "return 200 for an event for an id" in new TestFixture {
       when(mockEventsService.getEvent(any[String])).thenReturnAsync(MockEvent)
 

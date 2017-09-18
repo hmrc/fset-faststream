@@ -141,9 +141,10 @@ GET         /events/:eventId/delete                                      control
 GET         /events/:eventId/users/:userId/allocation                    controllers.EventsController.getAssessorAllocation(eventId: String, userId: String)
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 POST        /events/:eventId/update                                      controllers.EventsController.updateEvent(eventId: String)
-GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
+GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String, description: Option[String] = None)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
-GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
+GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType, description: Option[String] = None)
+GET         /events-with-allocations-summary/:venueName/:eventType/:description       controllers.EventsController.getEventsWithAllocationsSummaryWithDescription(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType, description: String)
 GET         /events-structure/add-new-attributes                         controllers.EventsController.addNewAttributes()
 
 # candidate allocations
