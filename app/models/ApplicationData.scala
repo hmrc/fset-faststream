@@ -63,7 +63,7 @@ object ApplicationData {
     val FAST_PASS_ACCEPTED, PHASE1_TESTS_PASSED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED = Value
     val ARCHIVED = Value
 
-    val SIFT = Value
+    val SIFT, FAILED_AT_SIFT = Value
     val ASSESSMENT_CENTRE, FSB = Value
     val ELIGIBLE_FOR_JOB_OFFER = Value
 

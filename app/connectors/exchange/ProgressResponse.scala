@@ -87,7 +87,10 @@ case class Phase3ProgressResponse(
 case class SiftProgressResponse(
   siftEntered: Boolean = false,
   siftReady: Boolean = false,
-  siftCompleted: Boolean = false
+  siftCompleted: Boolean = false,
+  sdipFailedAtSift: Boolean = false,
+  failedAtSift: Boolean = false,
+  failedAtSiftNotified: Boolean = false
 )
 
 case class JobOfferProgressResponse(

@@ -166,8 +166,11 @@ object Progress {
       siftProgress = SiftProgress(
         siftEntered = progressResponse.siftProgressResponse.siftEntered,
         siftReady = progressResponse.siftProgressResponse.siftReady,
-        siftCompleted = progressResponse.siftProgressResponse.siftCompleted
-      ),
+        siftCompleted = progressResponse.siftProgressResponse.siftCompleted,
+        sdipFailedAtSift = progressResponse.siftProgressResponse.sdipFailedAtSift,
+        failedAtSift = progressResponse.siftProgressResponse.failedAtSift,
+        failedAtSiftNotified = progressResponse.siftProgressResponse.failedAtSiftNotified
+  ),
       exported = progressResponse.exported,
       updateExported = progressResponse.updateExported,
       assessmentCentre = progressResponse.assessmentCentre,
