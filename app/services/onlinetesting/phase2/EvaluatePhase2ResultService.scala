@@ -46,7 +46,7 @@ trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2
 
     val schemeResults = (optEtrayResult, application.prevPhaseEvaluation) match {
       case (Some(etrayTest), Some(prevPhaseEvaluation)) =>
-        evaluate(application.preferences.schemes, etrayTest, prevPhaseEvaluation.result, passmark)
+        evaluate(application.applicationRoute, application.preferences.schemes, etrayTest, prevPhaseEvaluation.result, passmark)
       case _ => throw new IllegalStateException(s"Illegal number of phase2 active tests with results " +
         s"for this application: ${application.applicationId}")
     }
