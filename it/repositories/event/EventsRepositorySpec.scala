@@ -15,19 +15,23 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
   lazy val repository = repositories.eventsRepository
 
-  "Events" should {
+  "Events Repository" should {
     "create indexes for the repository" in {
       val indexes = indexesWithFields(repository)
       indexes must contain theSameElementsAs
         Seq(List("eventType", "date", "location", "venue"), List("_id"))
     }
+  }
 
+  "save" should {
     "save and fetch events" in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 2
     }
+  }
 
+  "updateEvent" should {
     "update events" in {
       val eventId = "eventId"
       val event = EventExamples.e1WithSessions.copy(id = eventId, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1))
@@ -38,14 +42,18 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       repository.updateEvent(updatedEvent).futureValue mustBe unit
       repository.getEvent(eventId).futureValue mustBe updatedEvent
     }
+  }
 
+  "findAll" should {
     "find all events" in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.findAll().futureValue
       result.size mustBe 5
       result must contain theSameElementsAs EventExamples.EventsNew
     }
+  }
 
+  "getEvents" should {
     "filter FSAC in LONDON_FSAC events" in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueLondon)).futureValue
@@ -87,10 +95,16 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       result.exists(_.eventType == EventType.FSAC) mustBe true
     }
 
-    "filter FSAC in ALL_VENUES"  in {
+    "filter FSAC in ALL_VENUES" in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueAll)).futureValue
       result.size mustBe 3
+    }
+
+    "filter FSB subtype in ALL_VENUES" in {
+      repository.save(EventExamples.EventsNew).futureValue
+      val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueAll), description = Some("DFS FSB")).futureValue
+      result.size mustBe 1
     }
 
     "filter and return empty list" in {
@@ -98,7 +112,9 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       val result = repository.getEvents(Some(EventType.FSB), Some(EventExamples.VenueNewcastle)).futureValue
       result.size mustBe 0
     }
+  }
 
+  "getEvent" should {
     "return a single event by Id" in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEvent(EventExamples.EventsNew.head.id).futureValue
@@ -110,7 +126,9 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       val result = repository.getEvent("fakeid").failed.futureValue
       result mustBe a[EventNotFoundException]
     }
+  }
 
+  "getEventsById" should {
     "return multiple events by Id" in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEventsById(EventExamples.EventsNew.map(_.id)).futureValue
