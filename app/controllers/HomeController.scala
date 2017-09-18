@@ -73,8 +73,9 @@ abstract class HomeController(
         for {
         page <- cachedData.application.map { implicit application =>
           cachedData match {
-            case _ if !(isSiftEntered || isSiftReady || isAwaitingAllocation) =>
+            case _ if !(isSiftEntered || isSiftReady || isPhase3TestsPassed) => {
               dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
+            }
             case _ => displayPostOnlineTestsPage
           }
         }.getOrElse {
