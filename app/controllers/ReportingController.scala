@@ -133,7 +133,9 @@ trait ReportingController extends BaseController {
           s"${allocation.allocatedAs.toString} (${allocation.status.toString})"
         ).orElse {
           val availabilities = theAssessor.availability.filter(_.date == event.date)
-          if (availabilities.isEmpty) { None } else {
+          if (availabilities.isEmpty) {
+            None
+          } else {
             Some(availabilities.map(_.location.name).mkString(", "))
           }
         }
