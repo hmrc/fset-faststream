@@ -38,17 +38,22 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
   Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] {
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
-    Logger.debug(s"Evaluating phase1 appId=${application.applicationId}")
-
-    val activeTests = application.activeCubiksTests
-    require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
-    val sjqTestOpt = findFirstSjqTest(activeTests)
-    val bqTestOpt = findFirstBqTest(activeTests)
-
-    if (evaluateSdipOnly(application)) {
-      updatePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+    if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
+      Logger.warn(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
+      Future.successful(())
     } else {
-      savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+      Logger.debug(s"Evaluating Phase1 appId=${application.applicationId}")
+
+      val activeTests = application.activeCubiksTests
+      require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
+      val sjqTestOpt = findFirstSjqTest(activeTests)
+      val bqTestOpt = findFirstBqTest(activeTests)
+
+      if (evaluateSdipOnly(application)) {
+        updatePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+      } else {
+        savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+      }
     }
   }
 
