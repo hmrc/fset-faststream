@@ -59,7 +59,7 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
 
     val schemeResults = (optLatestReviewed, application.prevPhaseEvaluation) match {
       case (Some(launchpadReview), Some(prevPhaseEvaluation)) =>
-        evaluate(application.applicationRoute, application.preferences.schemes, launchpadReview, prevPhaseEvaluation.result, passmark)
+        evaluate(application.preferences.schemes, launchpadReview, prevPhaseEvaluation.result, passmark)
 
       case _ => throw new IllegalStateException(s"Illegal number of phase3 active tests with results " +
         s"for this application: ${application.applicationId}")

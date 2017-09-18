@@ -56,10 +56,9 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
                               (implicit application: ApplicationReadyForEvaluation,passmark: Phase1PassMarkSettings) =
     (sjqTestOpt, bqTestOpt) match {
       case (Some(sjqTest), None) if application.isGis && sjqTest.testResult.isDefined =>
-        evaluateForGis(getSchemesToEvaluate(application), sjqTest.testResult.get, passmark, application.applicationRoute)
+        evaluateForGis(getSchemesToEvaluate(application), sjqTest.testResult.get, passmark)
       case (Some(sjqTest), Some(bqTest)) if application.nonGis && sjqTest.testResult.isDefined && bqTest.testResult.isDefined =>
-        evaluateForNonGis(
-          getSchemesToEvaluate(application), sjqTest.testResult.get, bqTest.testResult.get, passmark, application.applicationRoute)
+        evaluateForNonGis(getSchemesToEvaluate(application), sjqTest.testResult.get, bqTest.testResult.get, passmark)
       case _ =>
         throw new IllegalStateException(s"Illegal number of active tests with results for this application: ${application.applicationId}")
   }
