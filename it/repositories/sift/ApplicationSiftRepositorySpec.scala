@@ -45,7 +45,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         List(SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString))).futureValue
 
       insertApplicationWithPhase1TestNotifiedResults("appId6",
-      List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Edip).futureValue
+        List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Edip).futureValue
 
       insertApplicationWithPhase1TestNotifiedResults("appId7",
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Sdip).futureValue
@@ -75,139 +75,140 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         ApplicationForSift("appId8", "appId8", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
           SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))*/
-        )
+      )
 
-        appsForSift.size mustBe 5
-}
+      appsForSift.size mustBe 5
+    }
 
-("return no results when there are only applications that aren't in Passed_Notified which apply for sift or don't have Green/Passed "
-+ "results") in {
+    ("return no results when there are only applications that aren't in Passed_Notified which apply for sift or don't have Green/Passed "
+      + "results") in {
 
-insertApplicationWithPhase1TestResults("appId5", 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
-insertApplicationWithPhase1TestResults("appId6", 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
+      insertApplicationWithPhase1TestResults("appId5", 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
+      insertApplicationWithPhase1TestResults("appId6", 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
 
-insertApplicationWithPhase3TestResults("appId7", None,
-PassmarkEvaluation("1", None, List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)), "1", None))(Finance)
+      insertApplicationWithPhase3TestResults("appId7", None,
+        PassmarkEvaluation("1", None, List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)), "1", None))(Finance)
 
-insertApplicationWithPhase3TestNotifiedResults("appId8",
-List(SchemeEvaluationResult(Generalist, EvaluationResults.Green.toString))).futureValue
-updateApplicationStatus("appId8", ApplicationStatus.PHASE3_TESTS_FAILED)
-insertApplicationWithPhase3TestNotifiedResults("appId9",
-List(SchemeEvaluationResult(Finance, EvaluationResults.Red.toString))).futureValue
-insertApplicationWithPhase3TestNotifiedResults("appId10",
-List(SchemeEvaluationResult(ProjectDelivery, EvaluationResults.Red.toString))).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId8",
+        List(SchemeEvaluationResult(Generalist, EvaluationResults.Green.toString))).futureValue
+      updateApplicationStatus("appId8", ApplicationStatus.PHASE3_TESTS_FAILED)
+      insertApplicationWithPhase3TestNotifiedResults("appId9",
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Red.toString))).futureValue
+      insertApplicationWithPhase3TestNotifiedResults("appId10",
+        List(SchemeEvaluationResult(ProjectDelivery, EvaluationResults.Red.toString))).futureValue
 
-val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
-appsForSift mustBe Nil
-}
-}
+      val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
+      appsForSift mustBe Nil
+    }
+  }
 
-"findApplicationsReadyForSifting" must {
-"return fast stream candidates that are ready for sifting" in {
-createSiftEligibleCandidates("appId1")
-val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
-candidates.size mustBe 1
-val candidate = candidates.head
-candidate.applicationId mustBe Some("appId1")
-}
+  "findApplicationsReadyForSifting" must {
+    "return fast stream candidates that are ready for sifting" in {
+      createSiftEligibleCandidates("appId1")
+      val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
+      candidates.size mustBe 1
+      val candidate = candidates.head
+      candidate.applicationId mustBe Some("appId1")
+    }
 
-}
+  }
 
-"siftCandidate" must {
+  "siftCandidate" must {
 
-def candidates = Table(
-("appId", "unit", "scheme"),
-("appId1", createSiftEligibleCandidates("appId1"), Commercial),
-("appId2", createSdipSiftCandidates("appId2"), Sdip),
-("appId3", createEdipSiftCandidates("appId3"), Edip)
-)
+    def candidates = Table(
+      ("appId", "unit", "scheme"),
+      ("appId1", createSiftEligibleCandidates("appId1"), Commercial),
+      ("appId2", createSdipSiftCandidates("appId2"), Sdip),
+      ("appId3", createEdipSiftCandidates("appId3"), Edip)
+    )
 
-"sift candidate as Passed" in {
-forAll (candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
-repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green")).futureValue
-val candidatesForSift = repository.findApplicationsReadyForSchemeSift(scheme).futureValue
-play.api.Logger.error(s"\n\n$candidatesForSift - $scheme")
-candidatesForSift.size mustBe 0
-}
-}
+    "sift candidate as Passed" in {
+      forAll(candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
+        repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green")).futureValue
+        val candidatesForSift = repository.findApplicationsReadyForSchemeSift(scheme).futureValue
+        play.api.Logger.error(s"\n\n$candidatesForSift - $scheme")
+        candidatesForSift.size mustBe 0
+      }
+    }
 
-"eligible for other schema after sifting on one" in {
-createSiftEligibleCandidates("appId14")
-repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(European, "Red")).futureValue
-val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
-candidates.size mustBe 1
-}
+    "eligible for other schema after sifting on one" in {
+      createSiftEligibleCandidates("appId14")
+      repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(European, "Red")).futureValue
+      val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
+      candidates.size mustBe 1
+    }
 
-"not sift application for already sifted scheme" in forAll (candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
-repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green")).futureValue
-intercept[Exception] {
-repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Red")).futureValue
-}
-}
-}
+    "not sift application for already sifted scheme" in forAll(candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
+      repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green")).futureValue
+      intercept[Exception] {
+        repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Red")).futureValue
+      }
+    }
+  }
 
-"next application failed at sift" must {
-"return candidates who are all red at the end of sift" in {
-val schemeStatus = List(
-SchemeEvaluationResult(Commercial, Red.toString),
-SchemeEvaluationResult(European, Withdrawn.toString),
-SchemeEvaluationResult(Generalist, Red.toString)
-)
-createSiftEligibleCandidates("appId", schemeStatus)
-applicationRepository.addProgressStatusAndUpdateAppStatus("appId", ProgressStatuses.SIFT_COMPLETED).futureValue
+  "next application failed at sift" must {
+    "return candidates who are all red at the end of sift" in {
+      val schemeStatus = List(
+        SchemeEvaluationResult(Commercial, Red.toString),
+        SchemeEvaluationResult(European, Withdrawn.toString),
+        SchemeEvaluationResult(Generalist, Red.toString)
+      )
+      createSiftEligibleCandidates("appId", schemeStatus)
+      applicationRepository.addProgressStatusAndUpdateAppStatus("appId", ProgressStatuses.SIFT_COMPLETED).futureValue
 
-whenReady(repository.nextApplicationFailedAtSift) {  result =>
-result mustBe defined
-result.get mustBe ApplicationForSift("appId", "appId", ApplicationStatus.SIFT, schemeStatus)
-}
+      whenReady(repository.nextApplicationFailedAtSift) { result =>
+        result mustBe defined
+        result.get mustBe ApplicationForSift("appId", "appId", ApplicationStatus.SIFT, schemeStatus)
+      }
 
-}
-"ignore candidates who are not all red at the end of sift" in {
-val schemeStatus = List(
-SchemeEvaluationResult(Commercial, Red.toString),
-SchemeEvaluationResult(European, Green.toString),
-SchemeEvaluationResult(Generalist, Red.toString)
-)
-createSiftEligibleCandidates("appId", schemeStatus)
-applicationRepository.addProgressStatusAndUpdateAppStatus("appId", ProgressStatuses.SIFT_COMPLETED).futureValue
+    }
+    "ignore candidates who are not all red at the end of sift" in {
+      val schemeStatus = List(
+        SchemeEvaluationResult(Commercial, Red.toString),
+        SchemeEvaluationResult(European, Green.toString),
+        SchemeEvaluationResult(Generalist, Red.toString)
+      )
+      createSiftEligibleCandidates("appId", schemeStatus)
+      applicationRepository.addProgressStatusAndUpdateAppStatus("appId", ProgressStatuses.SIFT_COMPLETED).futureValue
 
-whenReady(repository.nextApplicationFailedAtSift) {  result =>
-result mustBe None
-}
-}
-}
+      whenReady(repository.nextApplicationFailedAtSift) { result =>
+        result mustBe None
+      }
+    }
+  }
 
-private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
-SchemeEvaluationResult(Commercial, Green.toString),
-SchemeEvaluationResult(European, Green.toString),
-SchemeEvaluationResult(Generalist, Red.toString)
-)
-) = {
+  private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
+    SchemeEvaluationResult(Commercial, Green.toString),
+    SchemeEvaluationResult(European, Green.toString),
+    SchemeEvaluationResult(Generalist, Red.toString)
+  )
+  ) = {
 
-val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
-insertApplication(appAndUserId,
-ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
-Some(phase3TestWithResult),
-schemes = List(Commercial, European),
-phase2Evaluation = Some(phase2Evaluation))
+    val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
+    insertApplication(appAndUserId,
+      ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
+      Some(phase3TestWithResult),
+      schemes = List(Commercial, European),
+      phase2Evaluation = Some(phase2Evaluation))
 
-val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
-"phase3_version1-res", Some("phase2_version1-res"))
-phase3EvaluationRepo.savePassmarkEvaluation(appAndUserId, phase3Evaluation, Some(PHASE3_TESTS_PASSED)).futureValue
-applicationRepository.addProgressStatusAndUpdateAppStatus(appAndUserId, ProgressStatuses.SIFT_READY).futureValue
-}
+    val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
+      "phase3_version1-res", Some("phase2_version1-res"))
+    phase3EvaluationRepo.savePassmarkEvaluation(appAndUserId, phase3Evaluation, Some(PHASE3_TESTS_PASSED)).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appAndUserId, ProgressStatuses.SIFT_READY).futureValue
+  }
 
-private def createSdipSiftCandidates(appId: String) = createXdipSiftCandidates(ApplicationRoute.Sdip)(appId)
-private def createEdipSiftCandidates(appId: String) = createXdipSiftCandidates(ApplicationRoute.Edip)(appId)
+  private def createSdipSiftCandidates(appId: String) = createXdipSiftCandidates(ApplicationRoute.Sdip)(appId)
 
-private def createXdipSiftCandidates(route: ApplicationRoute)(appId: String) = {
-val resultToSave = (if (route == ApplicationRoute.Sdip) {
-SchemeEvaluationResult(Sdip, Green.toString)
-} else {
-SchemeEvaluationResult(Edip, Green.toString)
-}) :: Nil
+  private def createEdipSiftCandidates(appId: String) = createXdipSiftCandidates(ApplicationRoute.Edip)(appId)
 
-insertApplicationWithPhase1TestNotifiedResults(appId, resultToSave, appRoute = route).futureValue
-applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_READY).futureValue
-}
+  private def createXdipSiftCandidates(route: ApplicationRoute)(appId: String) = {
+    val resultToSave = (if (route == ApplicationRoute.Sdip) {
+      SchemeEvaluationResult(Sdip, Green.toString)
+    } else {
+      SchemeEvaluationResult(Edip, Green.toString)
+    }) :: Nil
+
+    insertApplicationWithPhase1TestNotifiedResults(appId, resultToSave, appRoute = route).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_READY).futureValue
+  }
 }
