@@ -18,7 +18,7 @@ package model.persisted
 
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.SelectedSchemes
+import model.{ ApplicationRoute, SelectedSchemes }
 import model.persisted.phase3tests.LaunchpadTest
 import play.api.libs.json._
 
@@ -33,6 +33,7 @@ case class ApplicationReadyForEvaluation(
   preferences: SelectedSchemes
 ) {
   def nonGis = !isGis
+  def isSdipFaststream = applicationRoute == ApplicationRoute.SdipFaststream
 }
 
 object ApplicationReadyForEvaluation {

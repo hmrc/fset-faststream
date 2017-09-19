@@ -18,4 +18,6 @@ package model
 
 object SelectedSchemesExamples {
   val TwoSchemes = SelectedSchemes(List(SchemeId("DigitalAndTechnology"), SchemeId("Commercial")), orderAgreed = true, eligible = true)
+
+  val siftableSchemes = SelectedSchemes(List(SchemeId("Commercial"), SchemeId("Finance")), orderAgreed = true, eligible = true)
 }
