@@ -39,7 +39,7 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
-      Logger.warn(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
+      Logger.info(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
     } else {
       Logger.debug(s"Evaluating Phase1 appId=${application.applicationId}")

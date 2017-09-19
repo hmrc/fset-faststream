@@ -18,7 +18,7 @@ package model.persisted
 
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.{ApplicationRoute, SelectedSchemes}
+import model.{ ApplicationRoute, SelectedSchemes }
 import model.persisted.phase3tests.LaunchpadTest
 import play.api.libs.json._
 
