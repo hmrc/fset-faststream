@@ -154,20 +154,11 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
   }
 
   def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit] = {
-    //scalastyle:off
-    println("****")
-    println(s"**** resetExercise called - applicationId = $applicationId, exercisesToRemove = $exercisesToRemove")
-    println("****")
-    //scalastyle:on
     val query = BSONDocument("applicationId" -> applicationId)
 
     val exercisesToUnset = exercisesToRemove.flatMap { exercise =>
       Map(s"$exercise" -> BSONString(""))
     }
-
-    //scalastyle:off
-    println(s"**** resetExercise called - applicationId = $applicationId, exercisesToUnset = $exercisesToUnset")
-    //scalastyle:on
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(exercisesToUnset))
     collection.update(query, unsetDoc) map( s => s )
