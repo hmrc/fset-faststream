@@ -148,35 +148,14 @@ class Phase1EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(impl
   })
 
   val nextApplicationQuery = (currentPassmarkVersion: String) => {
-    val phase1TestsApplications = BSONDocument("$and" -> BSONArray(
+    BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
-      BSONDocument("applicationRoute" -> BSONDocument("$not" -> BSONDocument("$in" -> List(ApplicationRoute.SdipFaststream)))),
       BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
       BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
       BSONDocument("$or" -> BSONArray(
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
       ))
-    ))
-
-    val sdipFaststreamApplications = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
-      BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
-      BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
-      )),
-      BSONDocument(s"testGroups.$phase.evaluation.result" ->
-        BSONDocument("$not" -> BSONDocument("$elemMatch" ->
-          BSONDocument("schemeId" -> SchemeId("Sdip"),
-            "result" -> BSONDocument("$in" -> List(Green.toString, Red.toString))
-          ))))
-    ))
-
-    BSONDocument("$or" -> BSONArray(
-      phase1TestsApplications,
-      sdipFaststreamApplications
     ))
   }
 }
