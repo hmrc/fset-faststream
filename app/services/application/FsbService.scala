@@ -17,18 +17,19 @@
 package services.application
 
 import common.FutureEx
-import config.AssessmentEvaluationMinimumCompetencyLevel
+import connectors.{ CSREmailClient, EmailClient }
 import model.EvaluationResults.{ Green, Red }
 import model.ProgressStatuses._
 import model._
 import model.command.ApplicationForProgression
 import model.exchange.ApplicationResult
-import model.fsb.FSBProgressStatus
-import model.persisted.{ FsbEvaluation, FsbSchemeResult, SchemeEvaluationResult }
+import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import play.api.Logger
 import repositories.application.GeneralApplicationMongoRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.{ FsbMongoRepository, FsbRepository }
 import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -36,14 +37,18 @@ import scala.util.Try
 
 object FsbService extends FsbService {
   override val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
+  override val contactDetailsRepo: ContactDetailsRepository = repositories.faststreamContactDetailsRepository
   override val fsbRepo: FsbMongoRepository = repositories.fsbRepository
   override val schemeRepo: SchemeYamlRepository.type = SchemeYamlRepository
+  override val emailClient: EmailClient = CSREmailClient
 }
 
 trait FsbService extends CurrentSchemeStatusHelper {
   val applicationRepo: GeneralApplicationMongoRepository
+  val contactDetailsRepo: ContactDetailsRepository
   val fsbRepo: FsbRepository
   val schemeRepo: SchemeRepository
+  val emailClient: EmailClient
 
   val logPrefix = "[FsbEvaluation]"
 
@@ -63,7 +68,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
     }
   }
 
-  def evaluateFsbCandidate(applicationId: UniqueIdentifier): Future[Unit] = {
+  def evaluateFsbCandidate(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     Logger.debug(s"$logPrefix running for application $applicationId")
 
@@ -79,8 +84,10 @@ trait FsbService extends CurrentSchemeStatusHelper {
     }
   }
 
-  private def passOrFailFsb(appId: String, fsbEvaluation: Option[Seq[SchemeEvaluationResult]],
-    firstResidualPreferenceOpt: Option[SchemeEvaluationResult], currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
+  private def passOrFailFsb(appId: String,
+    fsbEvaluation: Option[Seq[SchemeEvaluationResult]],
+    firstResidualPreferenceOpt: Option[SchemeEvaluationResult],
+    currentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
 
     require(fsbEvaluation.isDefined, "Evaluation for scheme must be defined to reach this stage, unexpected error.")
     require(firstResidualPreferenceOpt.isDefined, "First residual preference must be defined to reach this stage, unexpected error.")
@@ -107,9 +114,29 @@ trait FsbService extends CurrentSchemeStatusHelper {
           newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluation.get)
           _ <- fsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)
           _ <- maybeMarkAsFailedAll(appId, newCurrentSchemeStatus)
+          _ <- maybeNotifyOnFailNeedNewFsb(appId, newCurrentSchemeStatus)
         } yield ()
     } else {
       throw new Exception(s"Unexpected result in FSB scheme fsbEvaluation (${firstResidualInEvaluation.get})")
+    }
+  }
+
+
+  private def maybeNotifyOnFailNeedNewFsb(
+    appId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
+    if (firstResidualPreference(newCurrentSchemeStatus).nonEmpty) {
+      retrieveCandidateDetails(appId).flatMap { case (app, cd) =>
+        emailClient.notifyCandidateOnFinalFailure(cd.email, app.name)
+      }
+    } else {
+      Future.successful(())
+    }
+  }
+
+  private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
+    applicationRepo.find(applicationId).flatMap {
+      case Some(app) => contactDetailsRepo.find(app.userId).map { cd => (app, cd) }
+      case None => sys.error(s"Can't find application $applicationId")
     }
   }
 

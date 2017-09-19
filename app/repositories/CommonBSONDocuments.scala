@@ -127,8 +127,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key),
             sdipFSFailed = getProgress(FailedSdipFsTestType.progressStatus),
             sdipFSFailedNotified = getProgress(FailedSdipFsTestType.notificationProgress),
-            sdipFSSuccessful = getProgress(SuccessfulSdipFsTestType.progressStatus),
-            sdipFSSuccessfulNotified = getProgress(SuccessfulSdipFsTestType.notificationProgress)
+            sdipFSSuccessful = getProgress(SuccessfulSdipFsTestType.progressStatus)
           ),
           phase2ProgressResponse = Phase2ProgressResponse(
             phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),

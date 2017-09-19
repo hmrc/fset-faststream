@@ -21,6 +21,7 @@ import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FsbService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -34,6 +35,7 @@ trait EvaluateFsbJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingSc
   val config: EvaluateFsbJobConfig.type = EvaluateFsbJobConfig
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    implicit val hc = HeaderCarrier()
     Logger.debug(s"EvaluateFsbJob starting")
     fsbService.nextFsbCandidateReadyForEvaluation.flatMap { appIdOpt =>
       appIdOpt.map { appId =>

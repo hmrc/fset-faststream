@@ -24,6 +24,7 @@ import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
+import services.AuditService
 import services.assessor.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -32,15 +33,19 @@ import scala.concurrent.Future
 
 object AssessorController extends AssessorController {
   val assessorService = AssessorService
+  val auditService = AuditService
 }
 
 trait AssessorController extends BaseController {
-
   val assessorService: AssessorService
+  val auditService: AuditService
 
   def saveAssessor(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Assessor] { assessor =>
-      assessorService.saveAssessor(userId, assessor).map(_ => Ok).recover {
+      assessorService.saveAssessor(userId, assessor).map { _ =>
+        auditService.logEvent("AssessorSaved", Map("assessor" -> assessor.toString))
+        Ok
+      }.recover {
         case e: OptimisticLockException => Conflict(e.getMessage)
         case e: CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException => FailedDependency(e.getMessage)
       }
@@ -103,7 +108,10 @@ trait AssessorController extends BaseController {
 
   def removeAssessor(userId: UniqueIdentifier): Action[AnyContent] = Action.async { implicit request =>
     assessorService.remove(userId).map {
-      _ => Ok
+      _ => {
+        auditService.logEvent("AssessorRemoved", Map("userId" -> userId.toString()))
+        Ok
+      }
     }.recover {
       case e: CannotRemoveAssessorWhenFutureAllocationExistsException => Conflict(e.getMessage())
       case e: AssessorNotFoundException => NotFound(e.getMessage)

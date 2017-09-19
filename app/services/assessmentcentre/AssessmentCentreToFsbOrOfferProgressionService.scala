@@ -131,15 +131,10 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
         withErrLogging("Failed while progressing to fsb or job offer") {
           for {
             currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
-            _ = Logger.warn(s"APP = ${application.applicationId} foo")
             firstResidual = firstResidualPreference(currentSchemeStatus)
-            _ = Logger.warn(s"APP = ${application.applicationId} bar")
             applicationStatus <- applicationRepo.findStatus(application.applicationId)
-            _ = Logger.warn(s"APP = ${application.applicationId} gah")
             _ <- maybeArchiveOldFsbStatuses(application, applicationStatus.latestProgressStatus.get)
-            _ = Logger.warn(s"APP = ${application.applicationId} yey")
             _ <- maybeProgressToFsbOrJobOffer(application, applicationStatus.latestProgressStatus.get, firstResidual)
-            _ = Logger.warn(s"APP = ${application.applicationId} rar")
           } yield ()
         }
       )

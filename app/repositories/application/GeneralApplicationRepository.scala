@@ -149,6 +149,8 @@ trait GeneralApplicationRepository {
 
   def getLatestProgressStatuses: Future[List[String]]
 
+  def countByStatus(applicationStatus: ApplicationStatus): Future[Int]
+
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
 
   def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int]
@@ -1007,6 +1009,12 @@ class GeneralApplicationMongoRepository(
         }
       }
     }
+  }
+
+  override def countByStatus(applicationStatus: ApplicationStatus): Future[Int] = {
+    val query = Json.obj("applicationStatus" -> applicationStatus.toString)
+
+    collection.count(Some(query))
   }
 
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = {
