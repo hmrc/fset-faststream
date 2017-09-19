@@ -181,9 +181,8 @@ trait AssessmentScoresController extends BaseController {
             "resetAnalysisExercise" -> resetExercisesRequest.analysis.toString,
             "resetGroupExercise" -> resetExercisesRequest.group.toString,
             "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString
-//            UserIdForAudit -> resetExercisesRequest.scoresExercise.updatedBy.toString()
           )
-          auditService.logEvent(AssessmentScoresOneExerciseSaved, auditDetails)
+          auditService.logEvent("AssessmentScoresReset", auditDetails)
           Ok
         }.recover {
           case other: Throwable =>
