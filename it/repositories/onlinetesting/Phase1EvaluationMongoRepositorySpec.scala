@@ -164,7 +164,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result must not be empty
     }
 
-    "do not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated to Green for phase1" in {
+    "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated to Green for phase1" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
@@ -178,10 +178,10 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result mustBe empty
+      result must not be empty
     }
 
-    "do not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated to Red for phase1" in {
+    "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated to Red for phase1" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
@@ -195,7 +195,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result mustBe empty
+      result must not be empty
     }
 
     "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is evaluated to Amber for phase1" in {
