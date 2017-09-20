@@ -173,4 +173,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def countByStatus(applicationStatus: ApplicationStatus) = ???
 
   override def count(implicit ec : scala.concurrent.ExecutionContext): Future[Int] = ???
+
+  override def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]) = ???
 }

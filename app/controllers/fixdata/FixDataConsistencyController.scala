@@ -17,8 +17,7 @@
 package controllers.fixdata
 
 import model.Exceptions.NotFoundException
-import model.command.{ FastPassEvaluation, FastPassPromotion, ProcessedFastPassCandidate }
-import play.api.libs.json.Json
+import model.command.FastPassPromotion
 import play.api.mvc.Action
 import services.application.ApplicationService
 import services.fastpass.FastPassService
@@ -69,4 +68,11 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
+  def rollbackCandidateToPhase2(applicationId: String) = Action.async {
+    applicationService.rollbackCandidate(applicationId).map { _ =>
+      Ok(s"Successfully rolled back $applicationId")
+    }.recover { case _ =>
+      InternalServerError(s"Unable to rollback $applicationId")
+    }
+  }
 }
