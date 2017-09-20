@@ -74,8 +74,7 @@ trait EventsController extends BaseController {
     }
   }
 
-  def getEvents(eventTypeParam: String, venueParam: String,
-    description: Option[String] = None): Action[AnyContent] = Action.async { implicit request =>
+  def getEvents(eventTypeParam: String, venueParam: String, description: Option[String] = None) = Action.async { implicit request =>
     locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
       eventsService.getEvents(EventType.withName(eventTypeParam.toUpperCase), venue, description).map { events =>
         if (events.isEmpty) {
@@ -121,7 +120,9 @@ trait EventsController extends BaseController {
     }
   }
 
-  def getEventsWithAllocationsSummary(venueName: String, eventType: EventType,
+  def getEventsWithAllocationsSummary(
+    venueName: String,
+    eventType: EventType,
     description: Option[String] = None): Action[AnyContent] = Action.async { implicit request =>
     locationsAndVenuesRepository.venue(venueName).flatMap { venue =>
       eventsService.getEventsWithAllocationsSummary(venue, eventType, description).map { eventsWithAllocations =>

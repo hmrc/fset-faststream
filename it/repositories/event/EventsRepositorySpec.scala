@@ -65,7 +65,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     "filter FSB in NEWCASTLE_LONGBENTON " in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEvents(Some(EventType.FSB), Some(EventExamples.VenueNewcastle)).futureValue
-      result.size mustBe 1
+      result.size mustBe 2
       result.head.venue mustBe EventExamples.VenueNewcastle
     }
 
@@ -98,12 +98,12 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     "filter FSAC in ALL_VENUES" in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueAll)).futureValue
-      result.size mustBe 3
+      result.size mustBe 2
     }
 
     "filter FSB subtype in ALL_VENUES" in {
       repository.save(EventExamples.EventsNew).futureValue
-      val result = repository.getEvents(Some(EventType.FSAC), Some(EventExamples.VenueAll), description = Some("DFS FSB")).futureValue
+      val result = repository.getEvents(Some(EventType.FSB), Some(EventExamples.VenueAll), description = Some("EAC")).futureValue
       result.size mustBe 1
     }
 
