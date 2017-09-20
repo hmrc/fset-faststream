@@ -40,4 +40,6 @@ class AssessmentScoresRepositoryInMemoryRepository extends AssessmentScoresRepos
     newVersion: Option[String]): Future[Unit] = ???
 
   def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = ???
+
+  def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit] = ???
 }
