@@ -79,13 +79,15 @@ GET         /report/duplicate-applications                               control
 GET         /report/assessor-allocation                                  controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                 controllers.ReportingController.candidateAcceptanceReport()
 
-GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
-GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
-DELETE      /diagnostic/application/:applicationId/eTray                 controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
-DELETE      /diagnostic/application/:applicationId/progress/:progress    controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
-DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
-PUT         /diagnostic/application/:applicationId/fastPassPromotion     controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-phase2    controllers.fixdata.FixDataConsistencyController.rollbackCandidateToPhase2(applicationId: String)
+GET         /diagnostic/user/:userId                                                    controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
+GET         /diagnostic/all-users                                                       controllers.DiagnosticReportController.getAllApplications
+DELETE      /diagnostic/application/:applicationId/eTray                                controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
+DELETE      /diagnostic/application/:applicationId/progress/:progress                   controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
+DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
+PUT         /diagnostic/application/:applicationId/fastPassPromotion                    controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase2                   controllers.fixdata.FixDataConsistencyController.rollbackCandidateToPhase2(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-phase1-failed-status        controllers.fixdata.FixDataConsistencyController.rollbackPhase1FailedNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-phase2-failed-status        controllers.fixdata.FixDataConsistencyController.rollbackPhase2FailedNotified(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
