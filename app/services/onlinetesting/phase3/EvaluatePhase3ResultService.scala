@@ -27,7 +27,7 @@ import play.api.Logger
 import repositories._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.onlinetesting.ApplicationStatusCalculator
+import services.onlinetesting.{ApplicationStatusCalculator, CurrentSchemeStatusHelper}
 
 import scala.concurrent.Future
 
@@ -64,6 +64,13 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
       case _ => throw new IllegalStateException(s"Illegal number of phase3 active tests with results " +
         s"for this application: ${application.applicationId}")
     }
-    savePassMarkEvaluation(application, schemeResults, passmark)
+
+    CurrentSchemeStatusHelper.getSdipResults(application).map { sdip =>
+      if (application.isSdipFaststream) {
+        Logger.debug(s"Phase3 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
+          s"read from current scheme status: $sdip")
+      }
+      savePassMarkEvaluation(application, schemeResults ++ sdip , passmark)
+    }
   }
 }
