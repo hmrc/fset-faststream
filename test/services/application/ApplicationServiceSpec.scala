@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.application
 
 import model.Commands.PhoneNumber
 import model.Exceptions.{ LastSchemeWithdrawException, PassMarkEvaluationNotFound }
