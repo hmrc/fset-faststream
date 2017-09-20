@@ -334,7 +334,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       .flatMap(_.getAs[BSONDocument]("callbacks")).flatMap(_.getAs[List[BSONDocument]]("reviewed"))
 
     val reviewed = reviewedDocOpt.map (_.map(ReviewedCallbackRequest.bsonHandler.read))
-    val latestReviewedOpt = reviewed.flatMap(getLatestReviewed)
+    val latestReviewedOpt = reviewed.flatMap(getFirstReviewed)
 
     latestReviewedOpt.map { latestReviewed =>
       VideoInterviewTestResult(
