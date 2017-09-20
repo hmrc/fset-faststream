@@ -68,7 +68,7 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
-  def rollbackCandidateToPhase1(applicationId: String) = Action.async {
+  def rollbackCandidateToPhase2(applicationId: String) = Action.async {
     applicationService.rollbackCandidate(applicationId).map { _ =>
       Ok(s"Successfully rolled back $applicationId")
     }.recover { case _ =>
