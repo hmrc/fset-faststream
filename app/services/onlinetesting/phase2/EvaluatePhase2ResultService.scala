@@ -25,6 +25,7 @@ import repositories._
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.onlinetesting.CurrentSchemeStatusHelper
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EvaluatePhase2ResultService extends EvaluatePhase2ResultService {
