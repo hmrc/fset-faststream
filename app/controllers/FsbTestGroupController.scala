@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.EvaluationResults
+import model.{ EvaluationResults, SchemeId }
 import model.Exceptions.{ AlreadyEvaluatedForSchemeException, SchemeNotFoundException }
 import model.exchange.FsbEvaluationResults
 import play.api.libs.json.{ JsValue, Json }
@@ -36,17 +36,12 @@ trait FsbTestGroupController extends BaseController {
   val fsbService: FsbService
   val eventsService: EventsService
 
-  def save(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def savePerScheme(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[FsbEvaluationResults] { fsbEvaluationResults =>
       val greenRedResults = fsbEvaluationResults.applicationResults.map { applicationResult =>
         applicationResult.copy(result = EvaluationResults.Result.fromPassFail(applicationResult.result).toString)
       }
-
-      eventsService.findSchemeByEvent(eventId).flatMap { scheme =>
-        fsbService.saveResults(scheme.id, greenRedResults)
-      }.map { result =>
-        Ok
-      }.recover {
+      fsbService.saveResults(fsbEvaluationResults.schemeId, greenRedResults).map { _ => Ok }.recover {
         case ex: AlreadyEvaluatedForSchemeException => BadRequest(ex.message)
         case ex: SchemeNotFoundException => UnprocessableEntity(ex.message)
       }
