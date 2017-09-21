@@ -22,20 +22,21 @@ import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
 import model.exchange._
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue, _ }
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
-import testkit.MockitoImplicits._
 import play.api.libs.json.Json
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
-import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
+import services.allocation.AssessorAllocationService
 import services.events.EventsService
+import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+
 
 class EventsControllerSpec extends UnitWithAppSpec {
 
@@ -51,29 +52,36 @@ class EventsControllerSpec extends UnitWithAppSpec {
       val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
     }
+  }
 
+  "getEvents" must {
     "return OK with all events" in new TestFixture {
-      when(mockEventsService.getEvents(any[EventType.EventType], any[Venue])).thenReturnAsync(List(MockEvent))
-
-      val res = controller.getEvents("FSAC","LONDON_FSAC")(FakeRequest())
-      status(res) mustBe OK
+      when(mockEventsService.getEvents(any[EventType.EventType], any[Venue], any())).thenReturnAsync(List(event))
+      status(controller.getEvents("FSAC", venue.name)(FakeRequest())) mustBe OK
     }
 
-     "return 400 for invalid event" in new TestFixture {
-       status(controller.getEvents("blah","LONDON_FSAC")(FakeRequest())) mustBe BAD_REQUEST
+    "return OK when get events with description" in new TestFixture {
+      when(mockEventsService.getEvents(eqTo(EventType.FSB), eqTo(venue), eqTo(Some("EAC")))).thenReturnAsync(List(event))
+      status(controller.getEvents("FSB", venue.name, Some("EAC"))(FakeRequest())) mustBe OK
     }
 
-     "return 400 for invalid venue type" in new TestFixture {
-       when(mockLocationsWithVenuesRepo.venue("blah")).thenReturn(Future.failed(UnknownVenueException("")))
-       status(controller.getEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
+    "return 400 for invalid event" in new TestFixture {
+      status(controller.getEvents("blah", venue.name)(FakeRequest())) mustBe BAD_REQUEST
     }
 
+    "return 400 for invalid venue type" in new TestFixture {
+      when(mockLocationsWithVenuesRepo.venue("blah")).thenReturn(Future.failed(UnknownVenueException("")))
+      status(controller.getEvents("FSAC", "blah")(FakeRequest())) mustBe BAD_REQUEST
+    }
+  }
+
+  "getEvent" should {
     "return 200 for an event for an id" in new TestFixture {
-      when(mockEventsService.getEvent(any[String])).thenReturnAsync(MockEvent)
+      when(mockEventsService.getEvent(any[String])).thenReturnAsync(event)
 
       val result = controller.getEvent("id")(FakeRequest())
       status(result) mustBe OK
-      contentAsJson(result) mustBe Json.toJson(MockEvent)
+      contentAsJson(result) mustBe Json.toJson(event)
     }
 
     "return a 404 if no event is found" in new TestFixture {
@@ -81,6 +89,22 @@ class EventsControllerSpec extends UnitWithAppSpec {
       val result = controller.getEvent("id")(FakeRequest())
 
       status(result) mustBe NOT_FOUND
+    }
+  }
+
+  "getEventsWithAllocationsSummary" should {
+    "return OK" in new TestFixture {
+      when(mockEventsService.getEventsWithAllocationsSummary(venue, EventType.FSAC, None)).thenReturnAsync(
+        List(eventWithAllocationsSummaryWithDescription))
+      status(controller.getEventsWithAllocationsSummary(venue.name, EventType.FSAC)(FakeRequest())) mustBe OK
+    }
+  }
+
+  "getEventsWithAllocationsSummaryWithDescription" should {
+    "return OK" in new TestFixture {
+      when(mockEventsService.getEventsWithAllocationsSummary(venue, EventType.FSB, Some("EAC"))).thenReturnAsync(
+        List(eventWithAllocationsSummaryWithDescription))
+      status(controller.getEventsWithAllocationsSummaryWithDescription(venue.name, EventType.FSB, "EAC")(FakeRequest())) mustBe OK
     }
   }
 
@@ -104,14 +128,6 @@ class EventsControllerSpec extends UnitWithAppSpec {
     val mockAssessorAllocationService = mock[AssessorAllocationService]
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
-    val MockVenue = Venue("London FSAC", "Bush House")
-    val MockLocation = Location("London")
-
-    when(mockLocationsWithVenuesRepo.location(any[String])).thenReturnAsync(MockLocation)
-    when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturnAsync(MockVenue)
-
-    val MockEvent = new Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
-            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, DateTime.now, Map.empty, List.empty)
 
     val controller = new EventsController {
       val eventsService = mockEventsService
@@ -119,6 +135,18 @@ class EventsControllerSpec extends UnitWithAppSpec {
       val locationsAndVenuesRepository: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
       val applicationRepository = mockAppRepo
     }
+
+    val venue = Venue("London FSAC", "Bush House")
+    val location = Location("London")
+
+    when(mockLocationsWithVenuesRepo.location(any[String])).thenReturnAsync(location)
+    when(mockLocationsWithVenuesRepo.venue(eqTo(venue.name))).thenReturnAsync(venue)
+
+
+    val event = new Event("id", EventType.FSAC, "description", location, venue,
+            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, DateTime.now, Map.empty, List.empty)
+    val eventWithAllocationsSummaryWithDescription = new EventWithAllocationsSummary(LocalDate.now, event, Nil, Nil)
+
   }
 
 }

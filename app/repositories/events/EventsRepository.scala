@@ -38,11 +38,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Event]]
-  def count(implicit ec : scala.concurrent.ExecutionContext): Future[Int]
+  def count(implicit ec: scala.concurrent.ExecutionContext): Future[Int]
   def remove(id: String): Future[Unit]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
-    location: Option[Location] = None, skills: Seq[SkillType] = Nil): Future[List[Event]]
+    location: Option[Location] = None, skills: Seq[SkillType] = Nil, description: Option[String] = None): Future[List[Event]]
   def getEventsById(eventIds: Seq[String], eventType: Option[EventType] = None): Future[List[Event]]
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
@@ -78,19 +78,31 @@ class EventsMongoRepository(implicit mongo: () => DB)
   }
 
   def getEvents(eventType: Option[EventType] = None, venueType: Option[Venue] = None,
-    location: Option[Location] = None, skills: Seq[SkillType] = Nil
+    location: Option[Location] = None, skills: Seq[SkillType] = Nil, description: Option[String] = None
   ): Future[List[Event]] = {
-    val query = List(
-      buildEventTypeFilter(eventType),
-      venueType.filterNot(_.name == MicroserviceAppConfig.AllVenues.name).map { v => BSONDocument("venue.name" -> v.name) },
-      location.map { locationVal => BSONDocument("location" -> locationVal) },
+    def buildVenueTypeFilter(venueType: Option[Venue]) =
+      venueType.filterNot(_.name == MicroserviceAppConfig.AllVenues.name).map { v => BSONDocument("venue.name" -> v.name) }
 
+    def buildLocationFilter(location: Option[Location]) = location.map { locationVal => BSONDocument("location" -> locationVal) }
+
+    def buildSkillsFilter(skills: Seq[SkillType]) = {
       if (skills.nonEmpty) {
         Some(BSONDocument("$or" -> BSONArray(
           skills.map(s => BSONDocument(s"skillRequirements.$s" -> BSONDocument("$gte" -> 1)))
         )))
-      } else { None }
+      } else {
+        None
+      }
+    }
 
+    def buildDescriptionFilter(description: Option[String]) = description.map { descriptionVal => BSONDocument("description" -> descriptionVal) }
+
+    val query = List(
+      buildEventTypeFilter(eventType),
+      buildVenueTypeFilter(venueType),
+      buildLocationFilter(location),
+      buildSkillsFilter(skills),
+      buildDescriptionFilter(description)
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query).cursor[Event]().collect[List]()
