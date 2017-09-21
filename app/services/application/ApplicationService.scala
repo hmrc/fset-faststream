@@ -216,6 +216,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def rollbackCandidate(applicationId: String): Future[Unit] = {
     val statuses = List(
       ProgressStatuses.PHASE2_TESTS_FAILED,
+      ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
       ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
       ProgressStatuses.PHASE2_TESTS_RESULTS_READY
     )
