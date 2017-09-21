@@ -60,7 +60,8 @@ case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   sdipFSFailed: Boolean = false,
   sdipFSFailedNotified: Boolean = false,
   sdipFSSuccessful: Boolean = false,
-  sdipFSSuccessfulNotified: Boolean = false
+  sdipFSSuccessfulNotified: Boolean = false,
+  phase1TestsFailedSdipNotFailed: Boolean = false
 )
 
 case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
@@ -75,7 +76,8 @@ case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
   phase2TestsResultsReceived: Boolean = false,
   phase2TestsPassed: Boolean = false,
   phase2TestsFailed: Boolean = false,
-  phase2TestsFailedNotified: Boolean = false
+  phase2TestsFailedNotified: Boolean = false,
+  phase2TestsFailedSdipNotFailed: Boolean = false
 )
 
 case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
@@ -89,7 +91,8 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
   phase3TestsPassed: Boolean = false,
   phase3TestsFailed: Boolean = false,
   phase3TestsFailedNotified: Boolean = false,
-  phase3TestsSuccessNotified: Boolean = false
+  phase3TestsSuccessNotified: Boolean = false,
+  phase3TestsFailedSdipNotFailed: Boolean = false
 )
 
 case class SiftProgressResponse(
@@ -128,7 +131,6 @@ case class ProgressResponse(
   assessmentCentre: AssessmentCentre = AssessmentCentre(),
   fsb: Fsb = Fsb()
 )
-
 
 object ProgressResponse {
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]

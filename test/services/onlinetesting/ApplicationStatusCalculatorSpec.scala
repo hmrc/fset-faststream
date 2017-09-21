@@ -18,7 +18,7 @@ package services.onlinetesting
 
 import model.EvaluationResults._
 import model.ProgressStatuses._
-import model.SchemeId.{ apply => _, _ }
+import model.SchemeId.{ apply => _ }
 import model.persisted.SchemeEvaluationResult
 import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeId }
 import services.BaseServiceSpec
@@ -39,15 +39,36 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
       newStatus mustBe Some(PHASE1_TESTS_FAILED)
     }
 
-    "fail application for all faststream Reds and SDIP green" in {
+    "not fail application for all faststream Reds and SDIP green" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
         List(red, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE1)
-      newStatus mustBe Some(PHASE1_TESTS_FAILED)
+      newStatus mustBe Some(PHASE1_TESTS_FAILED_SDIP_NOT_FAILED)
+    }
+
+    "not fail application for all faststream Reds and SDIP amber" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
+        List(red, SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString)), Phase.PHASE1)
+      newStatus mustBe Some(PHASE1_TESTS_FAILED_SDIP_NOT_FAILED)
+    }
+  }
+
+  "determine SDIP with Faststream phase 2 application status" must {
+    "not fail application for all faststream Reds and SDIP green" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE2_TESTS,
+        List(red, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE2)
+      newStatus mustBe Some(PHASE2_TESTS_FAILED_SDIP_NOT_FAILED)
+    }
+  }
+
+  "determine SDIP with Faststream phase 3 application status" must {
+    "not fail application for all faststream Reds and SDIP green" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
+        List(red, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE3)
+      newStatus mustBe Some(PHASE3_TESTS_FAILED_SDIP_NOT_FAILED)
     }
   }
 
   "determine SDIP phase 1 application status" must {
-
     "promote the application for all Greens" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Sdip, ApplicationStatus.PHASE1_TESTS,
         List(green), Phase.PHASE1)
@@ -79,7 +100,6 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   }
 
   "determine EDIP phase 1 application status" must {
-
     "promote the application for all Greens" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS,
         List(green), Phase.PHASE1)
