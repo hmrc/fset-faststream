@@ -18,6 +18,7 @@ package services.application
 
 import common.FutureEx
 import connectors.ExchangeObjects
+import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses.ProgressStatus
@@ -220,8 +221,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     )
 
     for {
-      _ <- appRepository.updateStatus(applicationId, ApplicationStatus.PHASE2_TESTS)
-      _ <- appRepository.removeProgressStatuses(applicationId, statuses)
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statuses)
       phase1TestProfileOpt <- phase1TestRepository.getTestGroup(applicationId)
 
       phase1Result = phase1TestProfileOpt.flatMap(_.evaluation.map(_.result))
@@ -241,6 +241,31 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       }
       newTestGroup = phase2TestGroup.copy(tests = cubiksTests)
       _ <- phase2TestRepository.saveTestGroup(applicationId, newTestGroup)
+    } yield ()
+  }
+
+  def rollbackPhase1FailedNotified(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE1_TESTS_FAILED,
+      ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
+    rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE1_TESTS, statuses)
+  }
+
+  def rollbackPhase2FailedNotified(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE2_TESTS_FAILED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
+    rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statuses)
+  }
+
+  private def rollbackAppAndProgressStatus(applicationId: String,
+                                           applicationStatus: ApplicationStatus,
+                                           statuses: List[ProgressStatuses.ProgressStatus]) = {
+    for {
+      _ <- appRepository.updateStatus(applicationId, applicationStatus)
+      _ <- appRepository.removeProgressStatuses(applicationId, statuses)
     } yield ()
   }
 
