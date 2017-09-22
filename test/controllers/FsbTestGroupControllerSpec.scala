@@ -38,20 +38,13 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
 
   "save fsb event evaluation result" should {
     "return Ok when save is successful" in {
-      val scheme = Scheme(id = "Commercial", code = "CFS", name = "Commercial",
-        civilServantEligible = true,
-        Some(Degree(required = "Degree_22", specificRequirement = false)),
-        siftRequirement = None,
-        siftEvaluationRequired = true, None, None, None)
-
       val applicationResults = List(
         ApplicationResult("applicationId1", "Pass"),
         ApplicationResult("applicationId2", "Pass")
       )
       val fsbEvaluationResults = FsbEvaluationResults(SchemeId("DiplomaticService"), applicationResults)
 
-      when(mockEventsService.findSchemeByEvent("eventId")).thenReturnAsync(scheme)
-      when(mockFsbTestGroupService.saveResults(eqTo(scheme.id), any[List[ApplicationResult]])).thenReturnAsync(List.empty)
+      when(mockFsbTestGroupService.saveResults(eqTo(fsbEvaluationResults.schemeId), any[List[ApplicationResult]])).thenReturnAsync(List.empty)
 
       val response = controller.savePerScheme()(fakeRequest(fsbEvaluationResults))
 

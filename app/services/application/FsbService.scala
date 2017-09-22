@@ -89,12 +89,15 @@ trait FsbService extends CurrentSchemeStatusHelper {
     import SchemeIds._
     val r = schemeId match {
       case DiplomaticServiceEconomists =>
-        val res = Seq(results.find(r => List(DiplomaticServiceEconomists, DiplomaticService).contains(r.schemeId)),
-        results.find(_.schemeId == DiplomaticService)).flatten
+        val res = Seq(
+          results.find(r => List(DiplomaticServiceEconomists, GovernmentEconomicsService).contains(r.schemeId)),
+          results.find(_.schemeId == DiplomaticService)
+        ).flatten
+        Logger.info(s">>>>>>> Results for GES-DS: $res")
         require(res.size == 2 || res.exists(_.result == Red.toString), s"$DiplomaticServiceEconomists require EAC && FCO test results")
         res
       case GovernmentEconomicsService =>
-        results.find(r => List(DiplomaticServiceEconomists, DiplomaticService).contains(r.schemeId)).toSeq
+        results.find(r => List(DiplomaticServiceEconomists, GovernmentEconomicsService).contains(r.schemeId)).toSeq
       case _ =>
         results.find(_.schemeId == schemeId).toSeq
     }
