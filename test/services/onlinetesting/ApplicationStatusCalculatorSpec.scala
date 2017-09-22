@@ -66,6 +66,13 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
         List(red, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE3)
       newStatus mustBe Some(PHASE3_TESTS_FAILED_SDIP_NOT_FAILED)
     }
+
+    "put the application in PHASE3_TESTS_PASSED_WITH_AMBER when there are greens but SDIP is amber" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
+        List(red, green, SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString)), Phase.PHASE3)
+      newStatus mustBe Some(PHASE3_TESTS_PASSED_WITH_AMBER)
+    }
+
   }
 
   "determine SDIP phase 1 application status" must {
