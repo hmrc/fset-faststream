@@ -211,7 +211,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val EligibleForJobOfferNotified = ELIGIBLE_FOR_JOB_OFFER_NOTIFIED.toString.toLowerCase()
 
   val SiftEntered = "sift_entered"
-  val SiftReady = "ready_for_sifting"
+  val SiftReady = "sift_ready"
   val SiftCompleted = "sift_completed"
   val SiftFailed = "failed_at_sift"
   val SiftFailedNotified = FAILED_AT_SIFT_NOTIFIED.toString.toLowerCase()
