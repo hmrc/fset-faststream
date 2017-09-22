@@ -52,6 +52,7 @@ trait ApplicationStatusCalculator {
       case Amber | Green if fsOverallResult.contains(PHASE1_TESTS_FAILED) => Some(PHASE1_TESTS_FAILED_SDIP_NOT_FAILED)
       case Amber | Green if fsOverallResult.contains(PHASE2_TESTS_FAILED) => Some(PHASE2_TESTS_FAILED_SDIP_NOT_FAILED)
       case Amber | Green if fsOverallResult.contains(PHASE3_TESTS_FAILED) => Some(PHASE3_TESTS_FAILED_SDIP_NOT_FAILED)
+      case Amber if fsOverallResult.contains(PHASE3_TESTS_PASSED) => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
       case _ => fsOverallResult
     }
   }
