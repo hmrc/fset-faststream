@@ -48,14 +48,12 @@ trait ApplicationStatusCalculator {
     val fsOverallResult = faststreamCalc(phase, originalAppStatus, fsResults)
 
     val sdipResult = evaluatedSchemes.filter(_.schemeId == SchemeId(sdip)).map(s => Result(s.result)).head
-
-    val overallResult = sdipResult match {
+    sdipResult match {
       case Amber | Green if fsOverallResult.contains(PHASE1_TESTS_FAILED) => Some(PHASE1_TESTS_FAILED_SDIP_NOT_FAILED)
       case Amber | Green if fsOverallResult.contains(PHASE2_TESTS_FAILED) => Some(PHASE2_TESTS_FAILED_SDIP_NOT_FAILED)
       case Amber | Green if fsOverallResult.contains(PHASE3_TESTS_FAILED) => Some(PHASE3_TESTS_FAILED_SDIP_NOT_FAILED)
       case _ => fsOverallResult
     }
-    overallResult
   }
 
   private def edipSdipCalc(phase: Phase, originalAppStatus: ApplicationStatus,
