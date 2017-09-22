@@ -29,7 +29,7 @@ import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.{ FsbMongoRepository, FsbRepository }
 import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
-import services.application.SchemeIds.{ DiplomaticService, DiplomaticServiceEconomists, GovernmentEconomicsService }
+import services.application.SchemeIds._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -90,14 +90,14 @@ trait FsbService extends CurrentSchemeStatusHelper {
     val r = schemeId match {
       case DiplomaticServiceEconomists =>
         val res = Seq(
-          results.find(r => List(DiplomaticServiceEconomists, GovernmentEconomicsService).contains(r.schemeId)),
+          results.find(r => EacSchemes.contains(r.schemeId)),
           results.find(_.schemeId == DiplomaticService)
         ).flatten
         Logger.info(s">>>>>>> Results for GES-DS: $res")
         require(res.size == 2 || res.exists(_.result == Red.toString), s"$DiplomaticServiceEconomists require EAC && FCO test results")
         res
       case GovernmentEconomicsService =>
-        results.find(r => List(DiplomaticServiceEconomists, GovernmentEconomicsService).contains(r.schemeId)).toSeq
+        results.find(r => EacSchemes.contains(r.schemeId)).toSeq
       case _ =>
         results.find(_.schemeId == schemeId).toSeq
     }
@@ -110,7 +110,6 @@ trait FsbService extends CurrentSchemeStatusHelper {
     }
   }
 
-  // scalastyle:off
   private def canEvaluateNextWithExistingResults(
     currentSchemeStatus: Seq[SchemeEvaluationResult],
     newFirstScheme: Option[SchemeEvaluationResult],
@@ -120,16 +119,13 @@ trait FsbService extends CurrentSchemeStatusHelper {
       currentSchemeStatus.map(_.schemeId).takeWhile(_ != newFirstScheme.get).contains(id)
     }
     newFirstScheme.map(_.schemeId) match {
-      case Some(DiplomaticService) if schemeWasEvaluatedBefore(DiplomaticServiceEconomists)
-        && fsbEvaluation.exists(_.schemeId == DiplomaticService) => true
-      case Some(GovernmentEconomicsService) if schemeWasEvaluatedBefore(DiplomaticServiceEconomists)
-        && fsbEvaluation.exists(r => List(DiplomaticServiceEconomists, GovernmentEconomicsService).contains(r.schemeId)) => true
+      case Some(DiplomaticService) if fsbEvaluation.exists(_.schemeId == DiplomaticService) => true
+      case Some(GovernmentEconomicsService) if fsbEvaluation.exists(r => EacSchemes.contains(r.schemeId)) => true
       case Some(DiplomaticServiceEconomists) if schemeWasEvaluatedBefore(GovernmentEconomicsService) => true
       case Some(DiplomaticServiceEconomists) if schemeWasEvaluatedBefore(DiplomaticService) => true
       case _ => false
     }
   }
-  // scalastyle:on
 
   private def passOrFailFsb(appId: String,
     fsbEvaluation: Option[Seq[SchemeEvaluationResult]],
@@ -143,6 +139,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
 
     if (firstResidualInEvaluation.result == Green.toString) {
       for {
+        // TODO: there are cases where we have both FSB_FAILED and FSB_PASSED statuses. Should previous FSB_FAILED be removed here?
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
         // There are no notifications before going to eligible but we want audit trail to show we've passed
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
@@ -234,4 +231,6 @@ object SchemeIds {
   val DiplomaticServiceEconomists = SchemeId("DiplomaticServiceEconomists") // EAC_DS // GES_DS
   val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService") // EAC // GES
   val DiplomaticService = SchemeId("DiplomaticService") // FCO
+
+  val EacSchemes = List(DiplomaticServiceEconomists, GovernmentEconomicsService)
 }
