@@ -210,7 +210,15 @@ trait FsbService extends CurrentSchemeStatusHelper {
     val maybeSchemeId = mayBeFsbType.flatMap { fsb =>
       Try(schemeRepo.getSchemeForFsb(fsb)).toOption
     }.map(_.id)
-    findByApplicationIdsAndScheme(applicationIds, maybeSchemeId)
+    val maybeSchemeIds = maybeSchemeId match {
+      case None => List(None)
+      case Some(schemeId) if schemeId == DiplomaticServiceEconomists => List(Some(DiplomaticService), Some(GovernmentEconomicsService))
+      case Some(schemeId) => List(Some(schemeId))
+    }
+
+    Future.sequence(maybeSchemeIds.map { maybeSId =>
+      findByApplicationIdsAndScheme(applicationIds, maybeSId)
+    }).map(_.flatten)
   }
 
   def findByApplicationIdsAndScheme(applicationIds: List[String], mayBeSchemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
