@@ -40,9 +40,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   }
 
   "phase1 evaluation process" should {
-
     "give pass results when all schemes are passed" in new TestFixture {
-
         applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn (
           PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
           SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
@@ -55,21 +53,18 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     "give pass results when at-least one scheme is passed" in new TestFixture {
-
       applicationEvaluation("application-1", 20.002, 20.06,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn (
         PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Green)
     }
 
     "give fail results when none of the schemes are passed" in new TestFixture {
-
       applicationEvaluation("application-1", 20, 20,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn (
         PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
         SchemeId("DiplomaticServiceEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
     }
 
     "leave applicants in amber when all the schemes are in amber" in new TestFixture {
-
       applicationEvaluation("application-1", 40, 40,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn (
         PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
         SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
@@ -79,14 +74,12 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     "leave applicants in amber when at-least one of the scheme is amber and none of the schemes in green" in new TestFixture {
-
       applicationEvaluation("application-1", 30, 80,SchemeId("Commercial"), SchemeId("European")) mustResultIn (
         PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
         SchemeId("Commercial") -> Amber, SchemeId("European") -> Red)
     }
 
     "give pass results for gis candidates" in new TestFixture {
-
       gisApplicationEvaluation("application-1", 25,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn (
         PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Amber, SchemeId("DigitalAndTechnology") -> Green)
@@ -112,13 +105,10 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         applicationReEvaluationWithOverridingPassmarks(
           (SchemeId("Finance"), 25.011, 25.014, 25.011, 25.014)
         ) mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED), SchemeId("Finance") -> Green)
-
       }
-
     }
 
     "re-evaluate to red applicants in amber when failmarks are increased" in new TestFixture {
-
       {
         applicationEvaluation("application-1", 40, 40,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
         mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
@@ -140,11 +130,9 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         ) mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED), SchemeId("Finance") -> Red)
 
       }
-
     }
 
     "re-evaluate to amber applicants in amber when passmarks and failmarks are changed but within the amber range" in new TestFixture {
-
       {
         applicationEvaluation("application-1", 40, 40,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
         mustResultIn (PHASE1_TESTS,  Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
@@ -165,7 +153,6 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         ) mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
 
       }
-
     }
 
     "evaluate sdip scheme to Green for SdipFaststream candidate" in new TestFixture {
@@ -199,10 +186,9 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Red)
     }
 
-
     "re-evaluate sdip scheme to Red for SdipFaststream candidate after changing passmarks" in new TestFixture {
       applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
-        (ApplicationRoute.SdipFaststream)
+        ApplicationRoute.SdipFaststream
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
 
@@ -214,7 +200,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     "re-evaluate sdip scheme to Green for SdipFaststream candidate after changing passmarks" in new TestFixture {
       applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
-        (ApplicationRoute.SdipFaststream)
+        ApplicationRoute.SdipFaststream
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
 
@@ -224,8 +210,8 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     "do not evaluate sdip scheme for SdipFaststream candidate until there are sdip passmarks" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
-        (ApplicationRoute.SdipFaststream)
+      applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
+        ApplicationRoute.SdipFaststream
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
 
@@ -233,7 +219,6 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Green)
     }
-
 
     "progress candidate to PHASE1_TESTS_PASSED with faststream schemes in RED and sdip in GREEN " +
       "when candidate is in sdipFaststream route and only sdip scheme score is passing the passmarks" in new TestFixture {
@@ -245,7 +230,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
       applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 60, 60,
         SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
-      mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_NOT_FAILED),
+      mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Green)
     }
   }
