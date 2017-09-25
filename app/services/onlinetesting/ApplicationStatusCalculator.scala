@@ -41,6 +41,7 @@ trait ApplicationStatusCalculator {
     case _ => None
   }
 
+  //scalastyle:off cyclomatic.complexity
   private def sdipFaststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     evaluatedSchemes: List[SchemeEvaluationResult]): Option[ProgressStatus] = {
     val sdip = "Sdip"
@@ -49,13 +50,17 @@ trait ApplicationStatusCalculator {
 
     val sdipResult = evaluatedSchemes.filter(_.schemeId == SchemeId(sdip)).map(s => Result(s.result)).head
     sdipResult match {
-      case Amber | Green if fsOverallResult.contains(PHASE1_TESTS_FAILED) => Some(PHASE1_TESTS_FAILED_SDIP_NOT_FAILED)
-      case Amber | Green if fsOverallResult.contains(PHASE2_TESTS_FAILED) => Some(PHASE2_TESTS_FAILED_SDIP_NOT_FAILED)
-      case Amber | Green if fsOverallResult.contains(PHASE3_TESTS_FAILED) => Some(PHASE3_TESTS_FAILED_SDIP_NOT_FAILED)
+      case Amber if fsOverallResult.contains(PHASE1_TESTS_FAILED) => Some(PHASE1_TESTS_FAILED_SDIP_AMBER)
+      case Green if fsOverallResult.contains(PHASE1_TESTS_FAILED) => Some(PHASE1_TESTS_PASSED)
+      case Amber if fsOverallResult.contains(PHASE2_TESTS_FAILED) => Some(PHASE2_TESTS_FAILED_SDIP_AMBER)
+      case Green if fsOverallResult.contains(PHASE2_TESTS_FAILED) => Some(PHASE2_TESTS_PASSED)
+      case Amber if fsOverallResult.contains(PHASE3_TESTS_FAILED) => Some(PHASE3_TESTS_FAILED_SDIP_AMBER)
+      case Green if fsOverallResult.contains(PHASE3_TESTS_FAILED) => Some(PHASE3_TESTS_PASSED)
       case Amber if fsOverallResult.contains(PHASE3_TESTS_PASSED) => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
       case _ => fsOverallResult
     }
   }
+  //scalastyle:on
 
   private def edipSdipCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     results: List[Result]): Option[ProgressStatus] = (phase, originalAppStatus) match {

@@ -53,7 +53,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase1ProgressResponse.sdipFSSuccessfulNotified, 182, SdipFaststreamPassedNotified),
     (progress.phase1ProgressResponse.sdipFSFailed, 191, SdipFaststreamFailed),
     (progress.phase1ProgressResponse.sdipFSFailedNotified, 192, SdipFaststreamFailedNotified),
-    (progress.phase1ProgressResponse.phase1TestsFailedSdipNotFailed, 196, Phase1TestsFailedSdipNotFailed),
+    (progress.phase1ProgressResponse.phase1TestsFailedSdipNotFailed, 196, Phase1TestsFailedSdipAmber),
 
     (progress.phase2ProgressResponse.phase2TestsInvited, 200, Phase2TestsInvited),
     (progress.phase2ProgressResponse.phase2TestsFirstReminder, 210, Phase2TestsFirstReminder),
@@ -66,7 +66,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase2ProgressResponse.phase2TestsPassed, 280, Phase2TestsPassed),
     (progress.phase2ProgressResponse.phase2TestsFailed, 290, Phase2TestsFailed),
     (progress.phase2ProgressResponse.phase2TestsFailedNotified, 295, Phase2TestsFailedNotified),
-    (progress.phase2ProgressResponse.phase2TestsFailedSdipNotFailed, 296, Phase2TestsFailedSdipNotFailed),
+    (progress.phase2ProgressResponse.phase2TestsFailedSdipNotFailed, 296, Phase2TestsFailedSdipAmber),
 
     (progress.phase3ProgressResponse.phase3TestsInvited, 305, Phase3TestsInvited),
     (progress.phase3ProgressResponse.phase3TestsFirstReminder, 310, Phase3TestsFirstReminder),
@@ -80,7 +80,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 385, Phase3TestsPassedNotified),
     (progress.phase3ProgressResponse.phase3TestsFailed, 390, Phase3TestsFailed),
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
-    (progress.phase3ProgressResponse.phase3TestsFailedSdipNotFailed, 396, Phase3TestsFailedSdipNotFailed),
+    (progress.phase3ProgressResponse.phase3TestsFailedSdipNotFailed, 396, Phase3TestsFailedSdipAmber),
 
     (progress.siftProgressResponse.siftEntered, 400, SiftEntered),
     (progress.siftProgressResponse.siftReady, 403, SiftReady),
@@ -169,7 +169,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase1TestsFailed = "phase1_tests_failed"
   val Phase1TestsFailedNotified = "phase1_tests_failed_notified"
   val Phase1TestsPassedNotified = "phase1_tests_passed_notified"
-  val Phase1TestsFailedSdipNotFailed = "phase1_tests_failed_sdip_not_failed"
+  val Phase1TestsFailedSdipAmber = "phase1_tests_failed_sdip_amber"
 
   val Phase2TestsInvited = "phase2_tests_invited"
   val Phase2TestsFirstReminder = "phase2_tests_first_reminder"
@@ -182,7 +182,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase2TestsPassed = "phase2_tests_passed"
   val Phase2TestsFailed = "phase2_tests_failed"
   val Phase2TestsFailedNotified = "phase2_tests_failed_notified"
-  val Phase2TestsFailedSdipNotFailed = "phase2_tests_failed_sdip_not_failed"
+  val Phase2TestsFailedSdipAmber = "phase2_tests_failed_sdip_amber"
 
   val Phase3TestsInvited = "phase3_tests_invited"
   val Phase3TestsFirstReminder = "phase3_tests_first_reminder"
@@ -196,7 +196,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailed = "phase3_tests_failed"
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsPassedNotified = "phase3_tests_passed_notified"
-  val Phase3TestsFailedSdipNotFailed = "phase3_tests_failed_sdip_not_failed"
+  val Phase3TestsFailedSdipAmber = "phase3_tests_failed_sdip_amber"
 
   val AssessmentCentreAwaitingAllocation = "assessment_centre_awaiting_allocation"
   val AssessmentCentreAllocationConfirmed = "assessment_centre_allocation_confirmed"
