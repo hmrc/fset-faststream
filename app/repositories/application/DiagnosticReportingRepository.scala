@@ -47,7 +47,13 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
     "testGroups.PHASE1.tests.testUrl" -> 0,
     "testGroups.PHASE2.tests.reportLinkURL" -> 0,
     "testGroups.PHASE2.tests.testUrl" -> 0,
-    "testGroups.PHASE3.tests.callbacks" -> 0
+    "testGroups.PHASE3.tests.callbacks.viewBrandedVideo" -> 0,
+    "testGroups.PHASE3.tests.callbacks.setupProcess" -> 0,
+    "testGroups.PHASE3.tests.callbacks.viewPracticeQuestion" -> 0,
+    "testGroups.PHASE3.tests.callbacks.question" -> 0,
+    "testGroups.PHASE3.tests.callbacks.finalCallback" -> 0,
+    "testGroups.PHASE3.tests.callbacks.finished" -> 0,
+    "testGroups.PHASE3.tests.callbacks.reviewed.reviews" -> 0
   )
 
   def findByApplicationId(userId: String): Future[List[JsObject]] = {

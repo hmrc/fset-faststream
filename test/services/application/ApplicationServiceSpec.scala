@@ -39,6 +39,7 @@ import testkit.{ ExtendedTimeout, UnitSpec }
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import repositories.onlinetesting.Phase2TestRepository
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.stc.StcEventServiceFixture
@@ -282,6 +283,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val mediaRepoMock: MediaRepository = mock[MediaRepository]
     val evalPhase1ResultMock: EvaluatePhase1ResultService = mock[EvaluatePhase1ResultService]
     val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
+    val phase2TestRepositoryMock: Phase2TestRepository = mock[Phase2TestRepository]
     val mockSchemeRepo = new SchemeRepository {
       override lazy val nonSiftableSchemeIds = Seq(SchemeId("Generalist"), SchemeId("HumanResources"))
       override lazy val nonSiftableAndNoEvaluationSchemeIds = Seq(SchemeId("Edip"), SchemeId("HousesOfParliament"),
@@ -301,6 +303,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val schemesRepo = mockSchemeRepo
       val evaluateP1ResultService = evalPhase1ResultMock
       val evaluateP3ResultService = evalPhase3ResultMock
+      val phase2TestRepository = phase2TestRepositoryMock
     }
 
     implicit val hc = HeaderCarrier()

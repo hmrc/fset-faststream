@@ -38,17 +38,22 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
   Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] {
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
-    Logger.debug(s"Evaluating phase1 appId=${application.applicationId}")
-
-    val activeTests = application.activeCubiksTests
-    require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
-    val sjqTestOpt = findFirstSjqTest(activeTests)
-    val bqTestOpt = findFirstBqTest(activeTests)
-
-    if (evaluateSdipOnly(application)) {
-      updatePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+    if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
+      Logger.info(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
+      Future.successful(())
     } else {
-      savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+      Logger.debug(s"Evaluating Phase1 appId=${application.applicationId}")
+
+      val activeTests = application.activeCubiksTests
+      require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
+      val sjqTestOpt = findFirstSjqTest(activeTests)
+      val bqTestOpt = findFirstBqTest(activeTests)
+
+      if (evaluateSdipOnly(application)) {
+        updatePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+      } else {
+        savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+      }
     }
   }
 
@@ -56,10 +61,9 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
                               (implicit application: ApplicationReadyForEvaluation,passmark: Phase1PassMarkSettings) =
     (sjqTestOpt, bqTestOpt) match {
       case (Some(sjqTest), None) if application.isGis && sjqTest.testResult.isDefined =>
-        evaluateForGis(getSchemesToEvaluate(application), sjqTest.testResult.get, passmark, application.applicationRoute)
+        evaluateForGis(getSchemesToEvaluate(application), sjqTest.testResult.get, passmark)
       case (Some(sjqTest), Some(bqTest)) if application.nonGis && sjqTest.testResult.isDefined && bqTest.testResult.isDefined =>
-        evaluateForNonGis(
-          getSchemesToEvaluate(application), sjqTest.testResult.get, bqTest.testResult.get, passmark, application.applicationRoute)
+        evaluateForNonGis(getSchemesToEvaluate(application), sjqTest.testResult.get, bqTest.testResult.get, passmark)
       case _ =>
         throw new IllegalStateException(s"Illegal number of active tests with results for this application: ${application.applicationId}")
   }

@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package model
+package model.persisted
 
-object SelectedSchemesExamples {
-  val TwoSchemes = SelectedSchemes(List(SchemeId("DigitalAndTechnology"), SchemeId("Commercial")), orderAgreed = true, eligible = true)
+import play.api.libs.json.{ Json, OFormat }
+import reactivemongo.bson.Macros
 
-  val siftableSchemes = SelectedSchemes(List(SchemeId("Commercial"), SchemeId("Finance")), orderAgreed = true, eligible = true)
+case class ApplicationIdsAndStatus(applicationId: String,
+                                   userId: String,
+                                   applicationStatus: String,
+                                   progressStatus: Option[String])
+
+object ApplicationIdsAndStatus {
+  implicit val format: OFormat[ApplicationIdsAndStatus] = Json.format[ApplicationIdsAndStatus]
+  implicit val handler = Macros.handler[ApplicationIdsAndStatus]
 }

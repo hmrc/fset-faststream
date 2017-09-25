@@ -17,14 +17,14 @@
 package controllers.fixdata
 
 import model.Exceptions.NotFoundException
-import model.command.{ FastPassEvaluation, FastPassPromotion, ProcessedFastPassCandidate }
-import play.api.libs.json.Json
-import play.api.mvc.Action
+import model.command.FastPassPromotion
+import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
 import services.fastpass.FastPassService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object FixDataConsistencyController extends FixDataConsistencyController {
   override val applicationService = ApplicationService
@@ -69,4 +69,23 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
+  def rollbackCandidateToPhase2(applicationId: String): Action[AnyContent] = Action.async {
+    rollbackApplicationState(applicationId, applicationService.rollbackCandidateToPhase2Completed)
+  }
+
+  def rollbackPhase1FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
+    rollbackApplicationState(applicationId, applicationService.rollbackPhase1FailedNotified)
+  }
+
+  def rollbackPhase2FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
+    rollbackApplicationState(applicationId, applicationService.rollbackPhase2FailedNotified)
+  }
+
+  def rollbackApplicationState(applicationId: String, operator: String => Future[Unit]): Future[Result] = {
+    operator(applicationId).map { _ =>
+      Ok(s"Successfully rolled back $applicationId")
+    }.recover { case _ =>
+      InternalServerError(s"Unable to rollback $applicationId")
+    }
+  }
 }

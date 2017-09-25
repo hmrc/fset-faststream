@@ -89,7 +89,7 @@ class ApplicationSiftMongoRepository(
 
     val eligibleForSiftQuery = BSONDocument("$or" -> BSONArray(
       fsQuery(ApplicationRoute.Faststream),
-      fsQuery(ApplicationRoute.SdipFaststream),
+      // fsQuery(ApplicationRoute.SdipFaststream), // FSET-1803. Disable sdipfaststream in sift temporarily
       xdipQuery(ApplicationRoute.Edip),
       xdipQuery(ApplicationRoute.Sdip)
     ))

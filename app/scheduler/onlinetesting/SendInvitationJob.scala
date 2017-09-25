@@ -40,7 +40,7 @@ object SendPhase2InvitationJob extends SendInvitationJob {
 
 object SendPhase3InvitationJob extends SendInvitationJob {
   val onlineTestingService = Phase3TestService
-  val config = SendPhase2InvitationJobConfig
+  val config = SendPhase3InvitationJobConfig
 }
 
 trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {

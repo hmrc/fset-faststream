@@ -62,6 +62,8 @@ trait ReportingRepository {
   def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]]
 
   def candidatesForTimeToOfferReport: Future[List[TimeToOfferPartialItem]]
+
+  def preSubmittedApplications(frameworkId: String): Future[List[ApplicationIdsAndStatus]]
 }
 
 class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
@@ -437,6 +439,36 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     }
   }
   //scalastyle:on method.length
+
+  override def preSubmittedApplications(frameworkId: String): Future[List[ApplicationIdsAndStatus]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("frameworkId" -> frameworkId),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument(s"progress-status.${ProgressStatuses.CREATED}" -> true),
+        BSONDocument(s"applicationStatus" -> ApplicationStatus.IN_PROGRESS),
+        BSONDocument(s"applicationStatus" -> ApplicationStatus.CREATED)
+      ))
+    ))
+
+    val projection = BSONDocument(
+      "_id" -> false,
+      "applicationId" -> true,
+      "userId" -> true,
+      "applicationStatus" -> true,
+      "progress-status" -> "2"
+    )
+
+    collection.find(query, projection)
+      .cursor[BSONDocument]().collect[List]()
+      .map(_.map{ document =>
+        val applicationId = document.getAs[String]("applicationId").get
+        val userId = document.getAs[String]("userId").get
+        val applicationStatus = document.getAs[String]("applicationStatus").get
+        val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
+        val latestProgressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses))
+        ApplicationIdsAndStatus(applicationId, userId, applicationStatus, latestProgressStatus)
+      })
+  }
 
   private def toUserApplicationProfile(document: BSONDocument) = {
     val applicationId = document.getAs[String]("applicationId").get

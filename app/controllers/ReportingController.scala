@@ -16,21 +16,20 @@
 
 package controllers
 
-import config.LocationsAndVenuesConfig
-import connectors.{AuthProviderClient, ExchangeObjects}
+import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.EvaluationResults.Green
-import model.{ Candidate, SiftRequirement ,UniqueIdentifier }
-import model.exchange.AssessorAvailability
+import model.Exceptions.PersonalDetailsNotFound
+import model.{ SiftRequirement, UniqueIdentifier }
 import model.persisted.ContactDetailsWithId
-import model.persisted.eventschedules.{ Event, Location }
+import model.persisted.eventschedules.Event
 import model.report._
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Request}
-import repositories.application.{GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository}
+import play.api.mvc.{ Action, AnyContent }
+import repositories.application.{ ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
-import repositories.events.{EventsMongoRepository, EventsRepository}
-import repositories.{QuestionnaireRepository, _}
+import repositories.events.EventsRepository
+import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.collection.breakOut
@@ -133,7 +132,9 @@ trait ReportingController extends BaseController {
           s"${allocation.allocatedAs.toString} (${allocation.status.toString})"
         ).orElse {
           val availabilities = theAssessor.availability.filter(_.date == event.date)
-          if (availabilities.isEmpty) { None } else {
+          if (availabilities.isEmpty) {
+            None
+          } else {
             Some(availabilities.map(_.location.name).mkString(", "))
           }
         }
@@ -196,6 +197,22 @@ trait ReportingController extends BaseController {
     for {
       candidates <- candidatesFut
     } yield Ok(Json.toJson(candidates))
+  }
+
+  def preSubmittedCandidatesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+    val reportItemsFut = reportingRepository.preSubmittedApplications(frameworkId).flatMap { applications =>
+      authProviderClient.findByUserIds(applications.map(_.userId)).flatMap { authDetails =>
+        Future.sequence(applications.map { application =>
+          val user = authDetails.find(_.userId == application.userId)
+            .getOrElse(throw new Exception(s"Unable to find auth details for user ${application.userId}"))
+          personalDetailsRepository.find(application.applicationId).map { pd =>
+            PreSubmittedReportItem(user, Some(pd.preferredName), application)
+          }.recover { case _: PersonalDetailsNotFound => PreSubmittedReportItem(user, None, application)}
+        })
+      }
+    }
+
+    reportItemsFut.map(items => Ok(Json.toJson(items)))
   }
 
   def candidateDeferralReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>

@@ -167,6 +167,30 @@ trait AssessmentScoresController extends BaseController {
         InternalServerError(other.getMessage)
     }
   }
+
+  def resetExercises(applicationId: UniqueIdentifier) = Action.async(parse.json) {
+    implicit request =>
+      withJsonBody[ResetExercisesRequest] { resetExercisesRequest =>
+        val withAnalysis = if (resetExercisesRequest.analysis) List("analysisExercise") else List.empty[String]
+        val withGroup = if (resetExercisesRequest.group) withAnalysis ++ List("groupExercise") else withAnalysis
+        val exercisesToRemove = if (resetExercisesRequest.leadership) withGroup ++ List("leadershipExercise") else withGroup
+
+        repository.resetExercise(applicationId, exercisesToRemove).map { _ =>
+          val auditDetails = Map(
+            "applicationId" -> applicationId.toString(),
+            "resetAnalysisExercise" -> resetExercisesRequest.analysis.toString,
+            "resetGroupExercise" -> resetExercisesRequest.group.toString,
+            "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString
+          )
+          auditService.logEvent("AssessmentScoresReset", auditDetails)
+          Ok
+        }.recover {
+          case other: Throwable =>
+            Logger.error(s"Exception when calling resetExercises with applicationId $applicationId: $other")
+            InternalServerError(other.getMessage)
+        }
+      }
+  }
 }
 
 object AssessorAssessmentScoresController extends AssessmentScoresController {

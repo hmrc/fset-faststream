@@ -80,14 +80,15 @@ trait EventsService {
 
   def delete(id: String): Future[Unit] = eventsRepo.remove(id)
 
-  def getEvents(eventType: EventType, venue: Venue): Future[List[Event]] = {
-    eventsRepo.getEvents(Some(eventType), Some(venue))
+  def getEvents(eventType: EventType, venue: Venue, description: Option[String] = None): Future[List[Event]] = {
+    eventsRepo.getEvents(Some(eventType), Some(venue), description = description)
   }
 
   def getEvents(ids: List[String]): Future[List[Event]] = eventsRepo.getEventsById(ids)
 
-  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType): Future[List[EventWithAllocationsSummary]] = {
-    getEvents(eventType, venue).flatMap { events =>
+  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType,
+    description: Option[String] = None): Future[List[EventWithAllocationsSummary]] = {
+    getEvents(eventType, venue, description = description).flatMap { events =>
       val res = events.map { event =>
         assessorAllocationService.getAllocations(event.id).flatMap { allocations =>
           val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)

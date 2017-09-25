@@ -154,6 +154,8 @@ trait GeneralApplicationRepository {
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
 
   def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int]
+
+  def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -1030,5 +1032,13 @@ class GeneralApplicationMongoRepository(
       }
       case _ => Nil
     }
+  }
+
+  def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val updateBSON = BSONDocument("$set" -> currentSchemeStatusBSON(results))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"Saving currentSchemeStatus for $applicationId")
+    collection.update(query, updateBSON).map(validator)
   }
 }
