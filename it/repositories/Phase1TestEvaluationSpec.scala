@@ -7,6 +7,8 @@ import model.EvaluationResults._
 import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeId }
 import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds }
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
+import model.ProgressStatuses
+import model.ProgressStatuses.ProgressStatus
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.scalatest.prop._
@@ -42,101 +44,210 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give pass results when all schemes are passed" in new TestFixture {
 
         applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn (
-          PHASE1_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
+          PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+          SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
 
         applicationEvaluation("application-2", 79.999, 78.08,SchemeId("HousesOfParliament")) mustResultIn (
-          PHASE1_TESTS_PASSED, SchemeId("HousesOfParliament") -> Green)
+          PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED), SchemeId("HousesOfParliament") -> Green)
 
         applicationEvaluation("application-3", 30, 30,SchemeId("Generalist")) mustResultIn (
-          PHASE1_TESTS_PASSED, SchemeId("Generalist") -> Green)
+          PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED), SchemeId("Generalist") -> Green)
     }
 
     "give pass results when at-least one scheme is passed" in new TestFixture {
 
       applicationEvaluation("application-1", 20.002, 20.06,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn (
-        PHASE1_TESTS_PASSED, SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Green)
+        PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Green)
     }
 
     "give fail results when none of the schemes are passed" in new TestFixture {
 
       applicationEvaluation("application-1", 20, 20,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn (
-        PHASE1_TESTS_FAILED, SchemeId("DiplomaticServiceEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
+        PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
+        SchemeId("DiplomaticServiceEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
     }
 
     "leave applicants in amber when all the schemes are in amber" in new TestFixture {
 
       applicationEvaluation("application-1", 40, 40,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn (
-        PHASE1_TESTS, SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+        PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
+        SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
       applicationEvaluation("application-2", 25.015, 25.015, SchemeId("Finance")) mustResultIn (
-        PHASE1_TESTS, SchemeId("Finance") -> Amber)
+        PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
     }
 
     "leave applicants in amber when at-least one of the scheme is amber and none of the schemes in green" in new TestFixture {
 
       applicationEvaluation("application-1", 30, 80,SchemeId("Commercial"), SchemeId("European")) mustResultIn (
-        PHASE1_TESTS, SchemeId("Commercial") -> Amber, SchemeId("European") -> Red)
+        PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
+        SchemeId("Commercial") -> Amber, SchemeId("European") -> Red)
     }
 
     "give pass results for gis candidates" in new TestFixture {
 
       gisApplicationEvaluation("application-1", 25,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn (
-        PHASE1_TESTS_PASSED, SchemeId("Commercial") -> Amber, SchemeId("DigitalAndTechnology") -> Green)
+        PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        SchemeId("Commercial") -> Amber, SchemeId("DigitalAndTechnology") -> Green)
     }
 
-    "re-evaluate applicants in amber" in new TestFixture {
-
+    "re-evaluate to green applicants in amber when passmarks are decreased" in new TestFixture {
       {
         applicationEvaluation("application-1", 40, 40,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
-          mustResultIn (PHASE1_TESTS, SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+          mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
+            SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
-        applicationReEvaluationWithSettings(
-          (SchemeId("DiplomaticServiceEconomics"), 40, 40, 40, 40),
-          (SchemeId("DiplomaticServiceEuropean"), 40, 40, 40, 40)
-        ) mustResultIn (PHASE1_TESTS_PASSED, SchemeId("DiplomaticServiceEconomics") -> Green, SchemeId("DiplomaticServiceEuropean") -> Green)
+        applicationReEvaluationWithOverridingPassmarks(
+          (SchemeId("DiplomaticServiceEconomics"), 30, 30, 30, 30),
+          (SchemeId("DiplomaticServiceEuropean"), 30, 30, 30, 30))
+        mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+          SchemeId("DiplomaticServiceEconomics") -> Green, SchemeId("DiplomaticServiceEuropean") -> Green)
       }
 
       {
         applicationEvaluation("application-2", 25.015, 25.015, SchemeId("Finance")) mustResultIn (
-          PHASE1_TESTS, SchemeId("Finance") -> Amber)
+          PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
 
-        applicationReEvaluationWithSettings(
-          (SchemeId("Finance"), 25.015, 25.015, 25.015, 25.015)
-        ) mustResultIn (PHASE1_TESTS_PASSED, SchemeId("Finance") -> Green)
+        applicationReEvaluationWithOverridingPassmarks(
+          (SchemeId("Finance"), 25.011, 25.014, 25.011, 25.014)
+        ) mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED), SchemeId("Finance") -> Green)
 
       }
 
     }
 
-    "evaluate sdip scheme to Red for SdipFaststream candidate" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
-        (ApplicationRoute.SdipFaststream)
-      mustResultIn (PHASE1_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
+    "re-evaluate to red applicants in amber when failmarks are increased" in new TestFixture {
 
-      applicationReEvaluationWithSettings(
-        (SchemeId("Sdip"), 90.00, 90.00, 90.00, 90.00)
-      ) mustResultIn (PHASE1_TESTS_PASSED,  SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Red)
+      {
+        applicationEvaluation("application-1", 40, 40,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
+        mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
+          SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+
+        applicationReEvaluationWithOverridingPassmarks(
+          (SchemeId("DiplomaticServiceEconomics"), 41, 42, 41, 42),
+          (SchemeId("DiplomaticServiceEuropean"), 41, 42, 41, 42)
+        ) mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
+          SchemeId("DiplomaticServiceEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
+      }
+
+      {
+        applicationEvaluation("application-2", 25.015, 25.015, SchemeId("Finance")) mustResultIn (
+          PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
+
+        applicationReEvaluationWithOverridingPassmarks(
+          (SchemeId("Finance"), 26.015, 27.015, 26.015, 27.015)
+        ) mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED), SchemeId("Finance") -> Red)
+
+      }
+
+    }
+
+    "re-evaluate to amber applicants in amber when passmarks and failmarks are changed but within the amber range" in new TestFixture {
+
+      {
+        applicationEvaluation("application-1", 40, 40,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
+        mustResultIn (PHASE1_TESTS,  Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
+          SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+
+        applicationReEvaluationWithOverridingPassmarks(
+          (SchemeId("DiplomaticServiceEconomics"), 38, 42, 38, 42), (SchemeId("DiplomaticServiceEuropean"), 38, 42, 38, 42)
+        ) mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
+          SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+      }
+
+      {
+        applicationEvaluation("application-2", 25.015, 25.015, SchemeId("Finance")) mustResultIn (
+          PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
+
+        applicationReEvaluationWithOverridingPassmarks(
+          (SchemeId("Finance"), 24.015, 27.015, 24.015, 27.015)
+        ) mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
+
+      }
+
     }
 
     "evaluate sdip scheme to Green for SdipFaststream candidate" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
-        (ApplicationRoute.SdipFaststream)
-      mustResultIn (PHASE1_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
+      val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable, (SchemeId("Sdip"), 30.00, 70.00, 30.00, 70.00))
+      phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationReEvaluationWithSettings( (SchemeId("Sdip"), 80.00, 80.00, 80.00, 80.00) )
-      mustResultIn (PHASE1_TESTS_PASSED,  SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Green)
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 80, 80,SchemeId("Commercial"),
+        SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
+      mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Green)
     }
 
-    "do not evaluate sdip scheme for SdipFaststream candidate when no pass marks set" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
-        (ApplicationRoute.SdipFaststream)
-      mustResultIn (PHASE1_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
+    "evaluate sdip scheme to Amber for SdipFaststream candidate" in new TestFixture {
+      val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable, (SchemeId("Sdip"), 30.00, 70.00, 30.00, 70.00),
+        (SchemeId("DigitalAndTechnology"), 30.00, 70.00, 30.00, 70.00))
+      phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationReEvaluationWithSettings(
-        (SchemeId("Finance"), 90.00, 90.00, 90.00, 90.00)
-      ) mustResultIn (PHASE1_TESTS_PASSED,  SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 40, 40,SchemeId("Commercial"),
+        SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
+      mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
+        SchemeId("Commercial") -> Amber, SchemeId("DigitalAndTechnology") -> Amber, SchemeId("Sdip") -> Amber)
     }
 
+    "evaluate sdip scheme to Red for SdipFaststream candidate" in new TestFixture {
+      val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable, (SchemeId("Sdip"), 30.00, 70.00, 30.00, 70.00))
+      phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
+
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 20, 20,SchemeId("Commercial"),
+        SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
+      mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
+        SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Red)
+    }
+
+
+    "re-evaluate sdip scheme to Red for SdipFaststream candidate after changing passmarks" in new TestFixture {
+      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
+        (ApplicationRoute.SdipFaststream)
+      mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
+
+      applicationReEvaluationWithOverridingPassmarks(
+        (SchemeId("Sdip"), 90.00, 90.00, 90.00, 90.00)
+      ) mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Red)
+    }
+
+    "re-evaluate sdip scheme to Green for SdipFaststream candidate after changing passmarks" in new TestFixture {
+      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
+        (ApplicationRoute.SdipFaststream)
+      mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
+
+      applicationReEvaluationWithOverridingPassmarks( (SchemeId("Sdip"), 80.00, 80.00, 80.00, 80.00) )
+      mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Green)
+    }
+
+    "do not evaluate sdip scheme for SdipFaststream candidate until there are sdip passmarks" in new TestFixture {
+      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
+        (ApplicationRoute.SdipFaststream)
+      mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
+
+      applicationReEvaluationWithOverridingPassmarks( (SchemeId("Sdip"), 40.00, 40.00, 40.00, 40.00) )
+      mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Green)
+    }
+
+
+    "progress candidate to PHASE1_TESTS_PASSED with faststream schemes in RED and sdip in GREEN " +
+      "when candidate is in sdipFaststream route and only sdip scheme score is passing the passmarks" in new TestFixture {
+      val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable,
+        (SchemeId("Sdip"), 30.00, 50.00, 30.00, 50.00),
+        (SchemeId("Commercial"), 75.00, 75.00, 75.00, 75.00),
+        (SchemeId("DigitalAndTechnology"), 75.00, 75.00, 75.00, 75.00))
+      phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
+
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 60, 60,
+        SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
+      mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_NOT_FAILED),
+        SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Green)
+    }
   }
 
   trait TestFixture {
@@ -162,6 +273,9 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       (SchemeId("ProjectDelivery"),                       30.0,                    70.0,                   30.0,                   70.0),
       (SchemeId("ScienceAndEngineering"),                 69.00,                   69.00,                  78.99,                  78.99)
     )
+
+    val phase1PassMarkSettingWithSdipTable =
+      getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable, (SchemeId("Finance"), 90.00, 90.00, 90.00, 90.00))
     // format: ON
 
     var phase1PassMarkSettings: Phase1PassMarkSettings = _
@@ -176,18 +290,25 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       this
     }
 
-    def applicationEvaluation(applicationId:String, sjqScore: Double, bjqScore: Double, selectedSchemes: SchemeId*)
-                             (implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
+    def applicationEvaluationWithPassMarks(passmarks: Phase1PassMarkSettings, applicationId:String, sjqScore: Double, bjqScore: Double,
+      selectedSchemes: SchemeId*)(implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(applicationId, sjqScore, Some(bjqScore),
         isGis = false, applicationRoute = applicationRoute)(selectedSchemes: _*)
-      phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
+      phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, passmarks).futureValue
       this
     }
 
-    def mustResultIn(expApplicationStatus: ApplicationStatus.ApplicationStatus, expSchemeResults: (SchemeId , Result)*): TestFixture = {
+    def applicationEvaluation(applicationId: String, sjqScore: Double, bjqScore: Double, selectedSchemes: SchemeId*)
+      (implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, applicationId, sjqScore, bjqScore, selectedSchemes:_*)
+    }
+
+    def mustResultIn(expApplicationStatus: ApplicationStatus, expProgressStatus: Option[ProgressStatus],
+      expSchemeResults: (SchemeId , Result)*): TestFixture = {
       passMarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation(applicationReadyForEvaluation.applicationId).futureValue
-      val applicationStatus = ApplicationStatus.withName(
-        applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue.status)
+      val applicationDetails = applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue
+      val applicationStatus = ApplicationStatus.withName(applicationDetails.status)
+      val progressStatus = applicationDetails.latestProgressStatus
 
       val schemeResults = passMarkEvaluation.result.map {
         SchemeEvaluationResult.unapply(_).map {
@@ -196,21 +317,28 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
       phase1PassMarkSettings.version mustBe passMarkEvaluation.passmarkVersion
       applicationStatus mustBe expApplicationStatus
+      progressStatus mustBe expProgressStatus
       schemeResults.size mustBe expSchemeResults.size
       schemeResults must contain theSameElementsAs expSchemeResults
       applicationReadyForEvaluation = applicationReadyForEvaluation.copy(applicationStatus = expApplicationStatus)
       this
     }
 
-    def applicationReEvaluationWithSettings(newSchemeSettings: (SchemeId, Double, Double, Double, Double)*): TestFixture = {
-      val schemePassMarkSettings = phase1PassMarkSettingsTable.filterNot(schemeSetting =>
+    def getPassMarkSettingWithNewSettings(
+      phase1PassMarkSettingsTable: TableFor5[SchemeId, Double, Double, Double, Double],
+      newSchemeSettings: (SchemeId, Double, Double, Double, Double)*) = {
+      phase1PassMarkSettingsTable.filterNot(schemeSetting =>
         newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
+    }
+
+    def applicationReEvaluationWithOverridingPassmarks(newSchemeSettings: (SchemeId, Double, Double, Double, Double)*): TestFixture = {
+      val schemePassMarkSettings = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable, newSchemeSettings:_*)
       phase1PassMarkSettings = createPhase1PassMarkSettings(schemePassMarkSettings).futureValue
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
       this
     }
 
-    private def createPhase1PassMarkSettings(phase1PassMarkSettingsTable:
+    def createPhase1PassMarkSettings(phase1PassMarkSettingsTable:
                                              TableFor5[SchemeId, Double, Double, Double, Double]): Future[Phase1PassMarkSettings] = {
       val schemeThresholds = phase1PassMarkSettingsTable.map {
         fields => Phase1PassMark(fields._1,
