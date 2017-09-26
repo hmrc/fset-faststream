@@ -31,7 +31,7 @@ object EventExamples {
   val LocationLondon = Location("London")
   val LocationNewcastle = Location("Newcastle")
 
-  val e1 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSAC, description = "PDFS FSB",
+  val e1 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSAC, description = "",
     location = LocationLondon, venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
     attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
     createdAt = DateTime.now, skillRequirements = Map(), sessions = List())
@@ -54,7 +54,7 @@ object EventExamples {
 
   val EventsNew = List(
     e1,
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "GCFS FSB", location = LocationLondon,
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
       createdAt = DateTime.now, skillRequirements = Map(), sessions = List()),
@@ -69,7 +69,7 @@ object EventExamples {
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
       createdAt = DateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1), sessions = List()),
 
-    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "DFS FSB", location = LocationNewcastle,
+    Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSB, description = "EAC", location = LocationNewcastle,
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
       createdAt = DateTime.now, skillRequirements = Map(SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())

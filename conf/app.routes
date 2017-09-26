@@ -70,6 +70,7 @@ GET         /report/diversity/:frameworkId                               control
 GET         /report/time-to-offer/:frameworkId                           controllers.ReportingController.timeToOfferReport(frameworkId: String)
 GET         /report/adjustments/:frameworkId                             controllers.ReportingController.adjustmentReport(frameworkId: String)
 GET         /report/candidate-progress/:frameworkId                      controllers.ReportingController.candidateProgressReport(frameworkId: String)
+GET         /report/pre-submitted-candidates/:frameworkId                controllers.ReportingController.preSubmittedCandidatesReport(frameworkId: String)
 GET         /report/online-test-pass-mark/:frameworkId                   controllers.ReportingController.onlineTestPassMarkReport(frameworkId: String)
 GET         /report/candidate-deferral/:frameworkId                      controllers.ReportingController.candidateDeferralReport(frameworkId: String)
 GET         /report/internship/:frameworkId                              controllers.ReportingController.internshipReport(frameworkId: String)
@@ -79,12 +80,15 @@ GET         /report/duplicate-applications                               control
 GET         /report/assessor-allocation                                  controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                 controllers.ReportingController.candidateAcceptanceReport()
 
-GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
-GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
-DELETE      /diagnostic/application/:applicationId/eTray                 controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
-DELETE      /diagnostic/application/:applicationId/progress/:progress    controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
-DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
-PUT         /diagnostic/application/:applicationId/fastPassPromotion     controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
+GET         /diagnostic/user/:userId                                                    controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
+GET         /diagnostic/all-users                                                       controllers.DiagnosticReportController.getAllApplications
+DELETE      /diagnostic/application/:applicationId/eTray                                controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
+DELETE      /diagnostic/application/:applicationId/progress/:progress                   controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
+DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
+PUT         /diagnostic/application/:applicationId/fastPassPromotion                    controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase2                   controllers.fixdata.FixDataConsistencyController.rollbackCandidateToPhase2(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-phase1-failed-status        controllers.fixdata.FixDataConsistencyController.rollbackPhase1FailedNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-phase2-failed-status        controllers.fixdata.FixDataConsistencyController.rollbackPhase2FailedNotified(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
@@ -141,9 +145,10 @@ GET         /events/:eventId/delete                                      control
 GET         /events/:eventId/users/:userId/allocation                    controllers.EventsController.getAssessorAllocation(eventId: String, userId: String)
 GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
 POST        /events/:eventId/update                                      controllers.EventsController.updateEvent(eventId: String)
-GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String)
+GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String, description: Option[String] = None)
 PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
-GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType)
+GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType, description: Option[String] = None)
+GET         /events-with-allocations-summary/:venueName/:eventType/:description       controllers.EventsController.getEventsWithAllocationsSummaryWithDescription(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType, description: String)
 GET         /events-structure/add-new-attributes                         controllers.EventsController.addNewAttributes()
 
 # candidate allocations
@@ -175,6 +180,7 @@ GET         /assessment-scores/assessor/with-candidate-summary/application/:appl
 GET         /assessment-scores/assessor/with-candidate-summary/event/:eventId                 controllers.AssessorAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
 GET         /assessment-scores/assessor/:applicationId                                        controllers.AssessorAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
 GET         /assessment-scores/assessor                                                       controllers.AssessorAssessmentScoresController.findAll
+POST        /assessment-scores/assessor/reset-exercises/:applicationId                        controllers.AssessorAssessmentScoresController.resetExercises(applicationId: model.UniqueIdentifier)
 
 # reviewer assessment scores
 POST        /assessment-scores/reviewer/save-exercise                                         controllers.ReviewerAssessmentScoresController.saveExercise()

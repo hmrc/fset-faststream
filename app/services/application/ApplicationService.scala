@@ -18,6 +18,7 @@ package services.application
 
 import common.FutureEx
 import connectors.ExchangeObjects
+import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses.ProgressStatus
@@ -33,6 +34,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.onlinetesting.Phase2TestRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
@@ -55,6 +57,7 @@ object ApplicationService extends ApplicationService {
   val evaluateP1ResultService = EvaluatePhase1ResultService
   val evaluateP3ResultService = EvaluatePhase3ResultService
   val schemesRepo = SchemeYamlRepository
+  val phase2TestRepository = repositories.phase2TestRepository
 }
 
 trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
@@ -67,6 +70,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings]
   def evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
   def schemesRepo: SchemeRepository
+  def phase2TestRepository: Phase2TestRepository
 
   val Candidate_Role = "Candidate"
 
@@ -207,6 +211,61 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
           case _ => evaluateP3ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
         }
       }
+  }
+
+  def rollbackCandidateToPhase2Completed(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.PHASE2_TESTS_FAILED,
+      ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_READY
+    )
+
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statuses)
+      phase1TestProfileOpt <- phase1TestRepository.getTestGroup(applicationId)
+
+      phase1Result = phase1TestProfileOpt.flatMap(_.evaluation.map(_.result))
+        .getOrElse(throw new Exception(s"Unable to find PHASE1 testGroup/results for $applicationId"))
+
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, phase1Result)
+      phase2TestGroupOpt <- phase2TestRepository.getTestGroup(applicationId)
+
+      phase2TestGroup = phase2TestGroupOpt.getOrElse(throw new Exception(s"Unable to find PHASE2 testGroup for $applicationId"))
+      cubiksTests = phase2TestGroup.tests.map { ct =>
+        if(ct.usedForResults) {
+          ct.copy(resultsReadyToDownload = false, testResult = None,
+            reportId = None, reportLinkURL = None, reportStatus = None)
+        } else {
+          ct
+        }
+      }
+      newTestGroup = phase2TestGroup.copy(tests = cubiksTests)
+      _ <- phase2TestRepository.saveTestGroup(applicationId, newTestGroup)
+    } yield ()
+  }
+
+  def rollbackPhase1FailedNotified(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE1_TESTS_FAILED)
+    rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE1_TESTS, statuses)
+  }
+
+  def rollbackPhase2FailedNotified(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE2_TESTS_FAILED)
+    rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statuses)
+  }
+
+  private def rollbackAppAndProgressStatus(applicationId: String,
+                                           applicationStatus: ApplicationStatus,
+                                           statuses: List[ProgressStatuses.ProgressStatus]) = {
+    for {
+      _ <- appRepository.updateStatus(applicationId, applicationStatus)
+      _ <- appRepository.removeProgressStatuses(applicationId, statuses)
+    } yield ()
   }
 
   private def getSdipFaststreamSchemes(applicationId: String): Future[List[SchemeId]] = for {
