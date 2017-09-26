@@ -114,7 +114,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     val etrayTest = getEtrayTest.copy(cubiksUserId = 3, testResult = Some(TestResult("Ready", "norm", Some(etray), None, None, None)))
     val phase1Tests = List(sjqTest, bqTest)
     insertApplication(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(List(etrayTest)))
-    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None)
+    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE2_TESTS, applicationRoute, isGis = false,
       List(etrayTest), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
@@ -125,7 +125,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
-    phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None)
+    phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None).futureValue
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, applicationRoute, isGis = false,
       Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
   }

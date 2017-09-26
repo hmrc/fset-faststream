@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// TODO MIGUEL: Remove this
 package services.onlinetesting.phase1
 
 import model.EvaluationResults._
@@ -24,7 +25,7 @@ import model.persisted.SchemeEvaluationResult
 import org.scalatest.prop.TableDrivenPropertyChecks
 import services.BaseServiceSpec
 
-class Phase1TestEvaluationSpec extends BaseServiceSpec with TableDrivenPropertyChecks {
+class BakPhase1TestEvaluationSpec extends BaseServiceSpec with TableDrivenPropertyChecks {
   val evaluation = new Phase1TestEvaluation {}
 
   val CurrentPassmarkWithAmbers = Phase1PassMarkSettingsExamples.passmark.copy(schemes = List(
