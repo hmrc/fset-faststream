@@ -29,7 +29,7 @@ import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.{ FsbMongoRepository, FsbRepository }
 import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
-import services.application.SchemeIds._
+import services.application.DSSchemeIds._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -86,7 +86,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
   }
 
   private def getResultsForScheme(schemeId: SchemeId, results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
-    import SchemeIds._
+    import DSSchemeIds._
     val r = schemeId match {
       case DiplomaticServiceEconomists =>
         val res = Seq(
@@ -227,10 +227,10 @@ trait FsbService extends CurrentSchemeStatusHelper {
 
 }
 
-object SchemeIds {
-  val DiplomaticServiceEconomists = SchemeId("DiplomaticServiceEconomists") // EAC_DS // GES_DS
-  val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService") // EAC // GES
-  val DiplomaticService = SchemeId("DiplomaticService") // FCO
+object DSSchemeIds {
+  val DiplomaticServiceEconomists = SchemeId("DiplomaticServiceEconomists") // EAC_DS -> GES_DS
+  val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService") // EAC -> GES
+  val DiplomaticService = SchemeId("DiplomaticService") // FCO -> DS
 
   val EacSchemes = List(DiplomaticServiceEconomists, GovernmentEconomicsService)
 }
