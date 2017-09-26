@@ -41,6 +41,7 @@ trait ApplicationStatusCalculator {
     case _ => None
   }
 
+  //scalastyle:off cyclomatic.complexity
   private def sdipFaststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     evaluatedSchemes: List[SchemeEvaluationResult]): Option[ProgressStatus] = {
     val sdip = "Sdip"
@@ -71,9 +72,11 @@ trait ApplicationStatusCalculator {
       case Amber | Green if fsOverallResult.contains(PHASE2_TESTS_FAILED) => phase2SdipFaststreamNotFailed(sdipResult)
       case Amber | Green if fsOverallResult.contains(PHASE3_TESTS_FAILED) => phase3SdipFaststreamNotFailed(sdipResult)
       case Amber if fsOverallResult.contains(PHASE3_TESTS_PASSED) => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
+      case Green if fsOverallResult.isEmpty && phase == PHASE3 => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
       case _ => fsOverallResult
     }
   }
+  //scalastyle:on
 
   private def edipSdipCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     results: List[Result]): Option[ProgressStatus] = (phase, originalAppStatus) match {

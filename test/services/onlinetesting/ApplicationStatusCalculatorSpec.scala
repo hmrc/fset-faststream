@@ -67,13 +67,19 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   }
 
   "determine SDIP with Faststream phase 3 application status" must {
-    "promote the application with all faststream Reds and SDIP green" in {
+    "promote the application with all faststream reds and SDIP green" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
         List(red, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE3)
       newStatus mustBe Some(PHASE3_TESTS_PASSED)
     }
 
-    "not fail application for all faststream Reds and SDIP amber" in {
+    "promote the application with faststream greens and reds and SDIP red" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
+        List(red, green, SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)), Phase.PHASE3)
+      newStatus mustBe Some(PHASE3_TESTS_PASSED)
+    }
+
+    "not fail application for all faststream reds and SDIP amber" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
         List(red, SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString)), Phase.PHASE3)
       newStatus mustBe Some(PHASE3_TESTS_FAILED_SDIP_AMBER)
@@ -83,6 +89,24 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
         List(red, green, SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString)), Phase.PHASE3)
       newStatus mustBe Some(PHASE3_TESTS_PASSED_WITH_AMBER)
+    }
+
+    "put the application in PHASE3_TESTS_PASSED_WITH_AMBER when faststream schemes are amber but SDIP is green" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
+        List(amber, amber, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE3)
+      newStatus mustBe Some(PHASE3_TESTS_PASSED_WITH_AMBER)
+    }
+
+    "not update the application when faststream schemes are amber and SDIP is red" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
+        List(amber, amber, SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)), Phase.PHASE3)
+      newStatus mustBe None
+    }
+
+    "fail the application when faststream schemes are red and SDIP is red" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
+        List(red, red, SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)), Phase.PHASE3)
+      newStatus mustBe Some(PHASE3_TESTS_FAILED)
     }
   }
 
