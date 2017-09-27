@@ -90,7 +90,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "civil-service-experience-details" -> "1",
       "applicationId" -> "1",
       "progress-status" -> "2",
-      "fsac-indicator.assessmentCentre" -> 1
+      "fsac-indicator.assessmentCentre" -> 1,
+      "currentSchemeStatus" -> "1"
     )
     reportQueryWithProjectionsBSON[CandidateProgressReportItem](query, projection)
   }
