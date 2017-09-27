@@ -93,7 +93,7 @@ trait ReactiveRepositoryHelpers {
         ()
       } else if (result.n == 0 && ignoreNotFound) {
         val msg = s"Failed to find record whilst $actionDesc for id: $id"
-        Logger.warn(msg)
+        Logger.info(msg)
       } else if (result.n == 0) {
         throw notFound
       } else if (result.n > 1) {
