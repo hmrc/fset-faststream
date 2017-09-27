@@ -52,7 +52,6 @@ class ReviewerAssessmentScoresControllerSpec extends AssessmentScoresControllerS
   override val assessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
 }
 
-
 trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
   val userIdForAudit: String
@@ -101,7 +100,6 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSaved), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
     }
   }
-
 
   "submit final feedback" should {
     "save final feedback, send AssessmentScoresOneExerciseSubmitted and AssessmentScoresAllExercisesSubmitted" +
@@ -195,6 +193,78 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     }
   }
 
+  "resetExercises" should {
+
+    def toResetExercisesAuditDetails(resetExercisesRequest: ResetExercisesRequest) =
+      Map(
+        "applicationId" -> resetExercisesRequest.applicationId.toString,
+        "resetAnalysisExercise" -> resetExercisesRequest.analysis.toString,
+        "resetGroupExercise" -> resetExercisesRequest.group.toString,
+        "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString
+      )
+
+    "reset all exercises and return OK when all are specified" in new TestFixture {
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(analysisExercise, groupExercise, leadershipExercise)))
+        .thenReturnAsync()
+      val resetExercisesRequest = ResetExercisesRequest(appId, analysis = true, group = true, leadership = true)
+      val request = fakeRequest(resetExercisesRequest)
+      val response = controller.resetExercises(appId)(request)
+      status(response) mustBe OK
+
+      val auditDetails = toResetExercisesAuditDetails(resetExercisesRequest)
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresResetLogEvent),
+        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+    }
+
+    "reset analysis exercise only and return OK when analysis is specified" in new TestFixture {
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(analysisExercise)))
+        .thenReturnAsync()
+      val resetExercisesRequest = ResetExercisesRequest(appId, analysis = true, group = false, leadership = false)
+      val request = fakeRequest(resetExercisesRequest)
+      val response = controller.resetExercises(appId)(request)
+      status(response) mustBe OK
+
+      val auditDetails = toResetExercisesAuditDetails(resetExercisesRequest)
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresResetLogEvent),
+        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+    }
+
+    "reset group exercise only and return OK when group is specified" in new TestFixture {
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(groupExercise)))
+        .thenReturnAsync()
+      val resetExercisesRequest = ResetExercisesRequest(appId, analysis = false, group = true, leadership = false)
+      val request = fakeRequest(resetExercisesRequest)
+      val response = controller.resetExercises(appId)(request)
+      status(response) mustBe OK
+
+      val auditDetails = toResetExercisesAuditDetails(resetExercisesRequest)
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresResetLogEvent),
+        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+    }
+
+    "reset leadership exercise only and return OK when leadership is specified" in new TestFixture {
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(leadershipExercise)))
+        .thenReturnAsync()
+      val resetExercisesRequest = ResetExercisesRequest(appId, analysis = false, group = false, leadership = true)
+      val request = fakeRequest(resetExercisesRequest)
+      val response = controller.resetExercises(appId)(request)
+      status(response) mustBe OK
+
+      val auditDetails = toResetExercisesAuditDetails(resetExercisesRequest)
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresResetLogEvent),
+        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+    }
+
+    "return INTERNAL_SERVER_ERROR if an exception is thrown" in new TestFixture {
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(analysisExercise)))
+        .thenReturn(Future.failed(new Exception("BOOM")))
+      val resetExercisesRequest = ResetExercisesRequest(appId, analysis = true, group = false, leadership = false)
+      val request = fakeRequest(resetExercisesRequest)
+      val response = controller.resetExercises(appId)(request)
+      status(response) mustBe INTERNAL_SERVER_ERROR
+    }
+  }
+
   trait TestFixture extends TestFixtureBase {
     val mockService = mock[AssessmentScoresService]
     val mockAssessmentScoresRepository = mock[AssessmentScoresRepository]
@@ -202,6 +272,10 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     val appId = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.applicationId
     val sessionId = UniqueIdentifier.randomUniqueIdentifier
     val eventId = UniqueIdentifier.randomUniqueIdentifier
+    val analysisExercise = "analysisExercise"
+    val groupExercise = "groupExercise"
+    val leadershipExercise = "leadershipExercise"
+    val assessmentScoresResetLogEvent = "AssessmentScoresReset"
 
     def controller = new AssessmentScoresController {
       override val service = mockService
