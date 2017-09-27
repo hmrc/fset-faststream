@@ -3,6 +3,7 @@ package repositories
 import config.{ LaunchpadGatewayConfig, Phase2TestsConfig, Phase3TestsConfig }
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
+import model.Exceptions.PassMarkEvaluationNotFound
 import model.SchemeId._
 import model.exchange.passmarksettings._
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
@@ -28,14 +29,14 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   }
 
   "phase3 evaluation process" should {
-    "throw IllegalArgumentException if we require all score to be present and one score is missing" in new TestFixture {
+    "not save any information to the database if we require all scores to be present and one score is missing" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"),
           Green.toString), SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
-        intercept[IllegalArgumentException] {
-          applicationEvaluation("application-1", None, true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn(
-            PHASE3_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
-        }
+
+          applicationEvaluation("application-1", None, true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"))
+
+          phase3EvaluationRepo.getPassMarkEvaluation("application-1").failed.futureValue mustBe a[PassMarkEvaluationNotFound]
       }
     }
     "give fail results when all schemes are red and one score is empty and we disable verification that checks " +
