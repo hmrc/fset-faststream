@@ -34,7 +34,7 @@ import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories.{ BaseBSONReader, CommonBSONDocuments, CurrentSchemeStatusHelper }
 
-trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
+trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader with CurrentSchemeStatusHelper {
 
   implicit val toCandidateProgressReportItem: BSONDocumentReader[CandidateProgressReportItem] = bsonReader {
     (doc: BSONDocument) => {
@@ -81,7 +81,16 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val fsacIndicatorDoc = doc.getAs[BSONDocument]("fsac-indicator")
       val assessmentCentre = fsacIndicatorDoc.flatMap(_.getAs[String]("assessmentCentre"))
 
-      CandidateProgressReportItem(userId, applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
+      val currentSchemeStatus = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").get
+
+      val latestProgress = ProgressStatusesReportLabels.progressStatusNameInReports(progress) match {
+        case progressStatus if progressStatus.startsWith("FSB_") =>
+          // Append name of scheme for FSB statuses, as they're reused so are uninformative on their own
+          progressStatus + "_" + firstResidualPreference(currentSchemeStatus).get.schemeId
+        case progressStatus => progressStatus
+      }
+
+      CandidateProgressReportItem(userId, applicationId, Some(latestProgress),
         schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, phoneAdjustments, gis, civilServant,
         fastTrack, edipReportColumn, sdipPrevious, sdip, fastPassCertificate, assessmentCentre, applicationRoute)
     }
