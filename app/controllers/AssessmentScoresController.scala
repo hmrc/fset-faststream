@@ -221,4 +221,9 @@ object ReviewerAssessmentScoresController extends AssessmentScoresController {
   val AssessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
   val AssessmentScoresAllExercisesSubmitted = "ReviewerAssessmentScoresAllExercisesSubmitted"
   val UserIdForAudit = "assessorId"
+
+  override def resetExercises(applicationId: UniqueIdentifier) = Action.async(parse.json) {
+    implicit request =>
+      throw new UnsupportedOperationException("This method is only applicable for an assessor")
+  }
 }
