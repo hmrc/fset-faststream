@@ -48,19 +48,19 @@ trait ApplicationStatusCalculator {
     val fsResults = evaluatedSchemes.filterNot(_.schemeId == SchemeId(sdip)).map(s => Result(s.result))
     val fsOverallResult = faststreamCalc(phase, originalAppStatus, fsResults)
 
-    def phase1SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
+    def toResultWhenPhase1SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
       result match {
         case Amber => Some(PHASE1_TESTS_FAILED_SDIP_AMBER)
         case _ => Some(PHASE1_TESTS_PASSED)
       }
 
-    def phase2SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
+    def toResultWhenPhase2SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
       result match {
         case Amber => Some(PHASE2_TESTS_FAILED_SDIP_AMBER)
         case _ => Some(PHASE2_TESTS_PASSED)
       }
 
-    def phase3SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
+    def toResultWhenPhase3SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
       result match {
         case Amber => Some(PHASE3_TESTS_FAILED_SDIP_AMBER)
         case _ => Some(PHASE3_TESTS_PASSED)
@@ -68,9 +68,9 @@ trait ApplicationStatusCalculator {
 
     val sdipResult = evaluatedSchemes.filter(_.schemeId == SchemeId(sdip)).map(s => Result(s.result)).head
     sdipResult match {
-      case Amber | Green if fsOverallResult.contains(PHASE1_TESTS_FAILED) => phase1SdipFaststreamNotFailed(sdipResult)
-      case Amber | Green if fsOverallResult.contains(PHASE2_TESTS_FAILED) => phase2SdipFaststreamNotFailed(sdipResult)
-      case Amber | Green if fsOverallResult.contains(PHASE3_TESTS_FAILED) => phase3SdipFaststreamNotFailed(sdipResult)
+      case Amber | Green if fsOverallResult.contains(PHASE1_TESTS_FAILED) => toResultWhenPhase1SdipFaststreamNotFailed(sdipResult)
+      case Amber | Green if fsOverallResult.contains(PHASE2_TESTS_FAILED) => toResultWhenPhase2SdipFaststreamNotFailed(sdipResult)
+      case Amber | Green if fsOverallResult.contains(PHASE3_TESTS_FAILED) => toResultWhenPhase3SdipFaststreamNotFailed(sdipResult)
       case Amber if fsOverallResult.contains(PHASE3_TESTS_PASSED) => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
       case Green if fsOverallResult.isEmpty && phase == PHASE3 => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
       case _ => fsOverallResult

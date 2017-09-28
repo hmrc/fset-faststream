@@ -53,7 +53,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase1ProgressResponse.sdipFSSuccessfulNotified, 182, SdipFaststreamPassedNotified),
     (progress.phase1ProgressResponse.sdipFSFailed, 191, SdipFaststreamFailed),
     (progress.phase1ProgressResponse.sdipFSFailedNotified, 192, SdipFaststreamFailedNotified),
-    (progress.phase1ProgressResponse.phase1TestsFailedSdipNotFailed, 196, Phase1TestsFailedSdipAmber),
+    (progress.phase1ProgressResponse.phase1TestsFailedSdipAmber, 196, Phase1TestsFailedSdipAmber),
 
     (progress.phase2ProgressResponse.phase2TestsInvited, 200, Phase2TestsInvited),
     (progress.phase2ProgressResponse.phase2TestsFirstReminder, 210, Phase2TestsFirstReminder),
@@ -66,7 +66,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase2ProgressResponse.phase2TestsPassed, 280, Phase2TestsPassed),
     (progress.phase2ProgressResponse.phase2TestsFailed, 290, Phase2TestsFailed),
     (progress.phase2ProgressResponse.phase2TestsFailedNotified, 295, Phase2TestsFailedNotified),
-    (progress.phase2ProgressResponse.phase2TestsFailedSdipNotFailed, 296, Phase2TestsFailedSdipAmber),
+    (progress.phase2ProgressResponse.phase2TestsFailedSdipAmber, 296, Phase2TestsFailedSdipAmber),
 
     (progress.phase3ProgressResponse.phase3TestsInvited, 305, Phase3TestsInvited),
     (progress.phase3ProgressResponse.phase3TestsFirstReminder, 310, Phase3TestsFirstReminder),
@@ -80,7 +80,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 385, Phase3TestsPassedNotified),
     (progress.phase3ProgressResponse.phase3TestsFailed, 390, Phase3TestsFailed),
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
-    (progress.phase3ProgressResponse.phase3TestsFailedSdipNotFailed, 396, Phase3TestsFailedSdipAmber),
+    (progress.phase3ProgressResponse.phase3TestsFailedSdipAmber, 396, Phase3TestsFailedSdipAmber),
 
     (progress.siftProgressResponse.siftEntered, 400, SiftEntered),
     (progress.siftProgressResponse.siftReady, 403, SiftReady),

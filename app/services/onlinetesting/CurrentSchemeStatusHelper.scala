@@ -36,12 +36,7 @@ trait CurrentSchemeStatusHelper {
       for {
         currentSchemeStatus <- applicationRepository.getCurrentSchemeStatus(application.applicationId)
       } yield {
-        val sdipResultOpt = currentSchemeStatus.find(_.schemeId == SchemeId("Sdip"))
-
-        sdipResultOpt match {
-          case Some(r) => List(r)
-          case _ => Nil
-        }
+        currentSchemeStatus.find(_.schemeId == SchemeId("Sdip")).toList
       }
     } else {
       Future.successful(Nil)
