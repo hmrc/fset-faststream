@@ -16,6 +16,7 @@
 
 package repositories.sift
 
+import config.MicroserviceAppConfig
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
@@ -87,12 +88,21 @@ class ApplicationSiftMongoRepository(
       "applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED
     )
 
-    val eligibleForSiftQuery = BSONDocument("$or" -> BSONArray(
-      fsQuery(ApplicationRoute.Faststream),
-      // fsQuery(ApplicationRoute.SdipFaststream), // FSET-1803. Disable sdipfaststream in sift temporarily
-      xdipQuery(ApplicationRoute.Edip),
-      xdipQuery(ApplicationRoute.Sdip)
-    ))
+    lazy val eligibleForSiftQuery =
+      if (MicroserviceAppConfig.disableSdipFaststreamForSift) { // FSET-1803. Disable sdipfaststream in sift temporarily
+        BSONDocument("$or" -> BSONArray(
+          fsQuery(ApplicationRoute.Faststream),
+          xdipQuery(ApplicationRoute.Edip),
+          xdipQuery(ApplicationRoute.Sdip)
+        ))
+      } else {
+        BSONDocument("$or" -> BSONArray(
+          fsQuery(ApplicationRoute.Faststream),
+          fsQuery(ApplicationRoute.SdipFaststream),
+          xdipQuery(ApplicationRoute.Edip),
+          xdipQuery(ApplicationRoute.Sdip)
+        ))
+      }
 
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
       _.map { document => applicationForSiftBsonReads(document) }
