@@ -1,16 +1,15 @@
-package repositories
+package services.onlinetesting.phase3
 
 import config.{ LaunchpadGatewayConfig, Phase2TestsConfig, Phase3TestsConfig }
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
 import model.Exceptions.PassMarkEvaluationNotFound
-import model.SchemeId._
 import model.exchange.passmarksettings._
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationStatus, Phase, SchemeId }
 import org.joda.time.DateTime
 import org.scalatest.prop._
-import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
