@@ -19,7 +19,7 @@ package services.application
 import connectors.EmailClient
 import model.EvaluationResults.{ Green, Red }
 import model.persisted.{ ContactDetails, FsbTestGroup, SchemeEvaluationResult }
-import model.{ Address, Candidate, ProgressStatuses, UniqueIdentifier }
+import model._
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -60,7 +60,10 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "fail to evaluate scheme GES_DS if FCO results where not submitted" in new TestFixture {
-      val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString))
+      val curSchemeStatus = List(
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString)
+      )
       val res = FsbTestGroup(List(SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString)))
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(res))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
@@ -116,9 +119,10 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(mockApplicationRepo, times(2)).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)
     }
 
-    "evaluate scheme GES_DS as failed, and then GES as failed, but finally DS passed - yay" in new TestFixture {
+    "evaluate scheme GES_DS as failed, and then GES as failed, but finally DS passed" in new TestFixture {
       val curSchemeStatus = List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
       )
@@ -134,6 +138,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockFsbRepo.updateCurrentSchemeStatus(uid.toString(),
         List(
           SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Red.toString),
+          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
           SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString),
           SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
         )
@@ -144,6 +149,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockFsbRepo.updateCurrentSchemeStatus(uid.toString(),
         List(
           SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Red.toString),
+          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
           SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Red.toString),
           SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
         )
@@ -155,7 +161,6 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       service.evaluateFsbCandidate(uid)(hc).futureValue
       verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER)
     }
-
   }
 
   trait TestFixture {
