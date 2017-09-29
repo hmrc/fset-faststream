@@ -23,8 +23,6 @@ import org.joda.time.DateTime
 object Phase2TestExamples {
   val testResult = TestResult("Ready", "norm", tScore = Some(12.5), percentile = None, raw = None, sten = None)
 
-//  def createTestResult(tScore: Double) = TestResult("Ready", "norm", Some(tScore), None, None, None)
-
   def firstTest(implicit now: DateTime) = CubiksTest(17815, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
     testResult = Some(testResult))
 }
