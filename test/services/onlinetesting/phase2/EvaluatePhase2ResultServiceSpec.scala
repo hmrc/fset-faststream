@@ -136,7 +136,7 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
     val service = new EvaluatePhase2ResultService {
       val evaluationRepository = mockPhase2EvaluationRepository
       val passMarkSettingsRepo = mockPhase2PassMarkSettingsRepository
-      val applicationRepository = mockApplicationRepository
+      val generalAppRepository = mockApplicationRepository
       val phase = Phase.PHASE2
     }
 

@@ -25,6 +25,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val phase = Phase.PHASE3
     val phase3TestsConfigMock = mock[Phase2TestsConfig]
     val launchpadGWConfig = LaunchpadGatewayConfig(url = "", phase3Tests = Phase3TestsConfig(7, 7, "", Map.empty, 3, verifyAllScoresArePresent))
+    val generalAppRepository = applicationRepository
   }
 
   "phase3 evaluation process" should {

@@ -37,7 +37,7 @@ object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
   val evaluationRepository: OnlineTestEvaluationRepository
     = repositories.faststreamPhase3EvaluationRepository
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
-  val applicationRepository = repositories.applicationRepository
+  val generalAppRepository = repositories.applicationRepository
   val launchpadGWConfig = launchpadGatewayConfig
   val phase = Phase.PHASE3
 }
