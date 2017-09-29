@@ -93,31 +93,32 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
           List(SchemeEvaluationResult(SchemeId("European"), Green.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-1", Some(40), true,SchemeId("European")) mustResultIn(
+        applicationEvaluation("application-1", Some(40), true, SchemeId("European")) mustResultIn(
           PHASE3_TESTS, SchemeId("European") -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("European"), Amber.toString),
           SchemeEvaluationResult(SchemeId("ScienceAndEngineering"), Amber.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-2", Some(80), true,SchemeId("European"), SchemeId("ScienceAndEngineering")) mustResultIn(
+        applicationEvaluation("application-2", Some(80), true, SchemeId("European"), SchemeId("ScienceAndEngineering")) mustResultIn(
           PHASE3_TESTS, SchemeId("European") -> Amber, SchemeId("ScienceAndEngineering") -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
           List(SchemeEvaluationResult(SchemeId("European"), Green.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-3", Some(50), true,SchemeId("European")) mustResultIn(
+        applicationEvaluation("application-3", Some(50), true, SchemeId("European")) mustResultIn(
           PHASE3_TESTS, SchemeId("European") -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("European"), Amber.toString),
           SchemeEvaluationResult(SchemeId("ProjectDelivery"), Amber.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-4", Some(50), true,SchemeId("European"), SchemeId("ProjectDelivery")) mustResultIn(
+
+        applicationEvaluation("application-4", Some(50), true, SchemeId("European"), SchemeId("ProjectDelivery")) mustResultIn(
           PHASE3_TESTS, SchemeId("European") -> Amber, SchemeId("ProjectDelivery") -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"),
           Green.toString), SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-5", Some(50), true,SchemeId("HumanResources"), SchemeId("ProjectDelivery")) mustResultIn(
+        applicationEvaluation("application-5", Some(50), true, SchemeId("HumanResources"), SchemeId("ProjectDelivery")) mustResultIn(
           PHASE3_TESTS_PASSED_WITH_AMBER, SchemeId("HumanResources") -> Green, SchemeId("ProjectDelivery") -> Amber)
       }
     }
