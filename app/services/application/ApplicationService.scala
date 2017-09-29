@@ -19,7 +19,7 @@ package services.application
 import common.FutureEx
 import connectors.ExchangeObjects
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.Green
+import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses.ProgressStatus
 import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
@@ -28,13 +28,16 @@ import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
 import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
 import model._
+import model.exchange.SchemeEvaluationResultWithFailureDetails
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.onlinetesting.Phase2TestRepository
+import repositories.fsb.FsbRepository
+import repositories.onlinetesting._
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
@@ -44,6 +47,7 @@ import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+import scala.collection.immutable.ListMap
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
@@ -58,8 +62,15 @@ object ApplicationService extends ApplicationService {
   val evaluateP3ResultService = EvaluatePhase3ResultService
   val schemesRepo = SchemeYamlRepository
   val phase2TestRepository = repositories.phase2TestRepository
+  val phase1EvaluationRepository = faststreamPhase1EvaluationRepository
+  val phase2EvaluationRepository = faststreamPhase2EvaluationRepository
+  val phase3EvaluationRepository = faststreamPhase3EvaluationRepository
+  val fsacRepo = assessmentCentreRepository
+  val fsbRepo = fsbRepository
+
 }
 
+// scalastyle:off number.of.methods
 trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   def appRepository: GeneralApplicationRepository
@@ -71,6 +82,11 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
   def schemesRepo: SchemeRepository
   def phase2TestRepository: Phase2TestRepository
+  def phase1EvaluationRepository: Phase1EvaluationMongoRepository
+  def phase2EvaluationRepository: Phase2EvaluationMongoRepository
+  def phase3EvaluationRepository: Phase3EvaluationMongoRepository
+  def fsacRepo: AssessmentCentreRepository
+  def fsbRepo: FsbRepository
 
   val Candidate_Role = "Candidate"
 
@@ -298,4 +314,49 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         None
     }.toList
   }
+
+  def currentSchemeStatusWithFailureDetails(applicationId: String): Future[Seq[SchemeEvaluationResultWithFailureDetails]] = {
+
+    def getOnlineTestEvaluation(repository: OnlineTestEvaluationRepository) =
+      repository.getPassMarkEvaluation(applicationId).map(_.result).recoverWith { case _ => Future.successful(Nil) }
+
+    for {
+      phase1Evaluation <- getOnlineTestEvaluation(phase1EvaluationRepository)
+      phase2Evaluation <- getOnlineTestEvaluation(phase2EvaluationRepository)
+      phase3Evaluation <- getOnlineTestEvaluation(phase3EvaluationRepository)
+      fsacEvaluation <- assessmentCentreRepository.getFsacEvaluatedSchemes(applicationId).map(_.getOrElse(Nil).toList)
+      fsbEvaluation <- fsbRepository.findByApplicationId(applicationId).map(_.map(_.evaluation.result).getOrElse(Nil))
+      evaluations = ListMap(
+        "online tests" -> phase1Evaluation,
+        "e-tray" -> phase2Evaluation,
+        "video interview" -> phase3Evaluation,
+        "assessment centre" -> fsacEvaluation,
+        "final selection board" -> fsbEvaluation
+      )
+      currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+      redResults = extractFirstRedResults(evaluations)
+    } yield for {
+      result <- currentSchemeStatus
+    } yield {
+      redResults.find(_.schemeId == result.schemeId).getOrElse(
+        SchemeEvaluationResultWithFailureDetails(result)
+      )
+    }
+  }
+
+  private def extractFirstRedResults(
+    evaluations: ListMap[String, Seq[SchemeEvaluationResult]]
+  ): Seq[SchemeEvaluationResultWithFailureDetails] = {
+    evaluations.foldLeft(List[SchemeEvaluationResultWithFailureDetails]()) { case (redsSoFar, (description, results)) =>
+      redsSoFar ++
+        results
+          .filter(_.result == Red.toString)
+          .filterNot(result => redsSoFar.exists(_.schemeId == result.schemeId)).map { result =>
+          SchemeEvaluationResultWithFailureDetails(
+            result, description
+          )
+        }
+    }
+  }
 }
+// scalastyle:on

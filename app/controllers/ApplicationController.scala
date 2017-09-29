@@ -19,11 +19,15 @@ package controllers
 import java.nio.file.Files
 
 import akka.stream.scaladsl.Source
-import model.Exceptions.{ApplicationNotFound, CannotUpdateFSACIndicator, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound}
-import model.{CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses}
+import model.EvaluationResults.Red
+import model.Exceptions.{ ApplicationNotFound, CannotUpdateFSACIndicator, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
+import model.exchange.SchemeEvaluationResultWithFailureDetails
+import model.persisted.SchemeEvaluationResult
+import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadMongoRepository
@@ -35,6 +39,7 @@ import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.personaldetails.PersonalDetailsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -109,11 +114,9 @@ trait ApplicationController extends BaseController {
   }
 
   def getCurrentSchemeStatus(applicationId: String) = Action.async { implicit request =>
-    appRepository.getCurrentSchemeStatus(applicationId).map { schemeStatus =>
-      Ok(Json.toJson(schemeStatus))
-    } recover {
-      case _: PassMarkEvaluationNotFound => NotFound(s"No evaluation results found for applicationId: $applicationId")
-    }
+      applicationService.currentSchemeStatusWithFailureDetails(applicationId).map { currentSchemeStatus =>
+        Ok(Json.toJson(currentSchemeStatus))
+      }
   }
 
   def considerForSdip(applicationId: String) = Action.async { implicit request =>
