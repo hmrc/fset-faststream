@@ -37,12 +37,13 @@ object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
   val evaluationRepository: OnlineTestEvaluationRepository
     = repositories.faststreamPhase3EvaluationRepository
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
+  val applicationRepository = repositories.applicationRepository
   val launchpadGWConfig = launchpadGatewayConfig
   val phase = Phase.PHASE3
 }
 
 trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
-  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator {
+  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper {
 
   val launchpadGWConfig: LaunchpadGatewayConfig
 
@@ -69,7 +70,7 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
           s"for this application: ${application.applicationId}")
       }
 
-      CurrentSchemeStatusHelper.getSdipResults(application).map { sdip =>
+      getSdipResults(application).flatMap { sdip =>
         if (application.isSdipFaststream) {
           Logger.debug(s"Phase3 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
             s"read from current scheme status: $sdip")

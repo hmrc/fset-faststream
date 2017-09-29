@@ -16,14 +16,19 @@
 
 package model.persisted
 
-
 import model.{ ApplicationRoute, ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples }
 import org.joda.time.DateTime
 
 object ApplicationPhase1EvaluationExamples {
   def faststreamApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
-    ApplicationRoute.Faststream, isGis = false, Phase1TestProfileExamples.profile.activeTests, None, None, SelectedSchemesExamples.TwoSchemes)
+    ApplicationRoute.Faststream, isGis = false, activeCubiksTests = Phase1TestProfileExamples.profile.activeTests,
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 
   def edipApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
-    ApplicationRoute.Edip, isGis = false, Phase1TestProfileExamples.profile.activeTests, None, None, SelectedSchemesExamples.TwoSchemes)
+    ApplicationRoute.Edip, isGis = false, activeCubiksTests = Phase1TestProfileExamples.profile.activeTests,
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+
+  def sdipFaststreamApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
+    ApplicationRoute.SdipFaststream, isGis = false, activeCubiksTests = Phase1TestProfileExamples.profile.activeTests,
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 }

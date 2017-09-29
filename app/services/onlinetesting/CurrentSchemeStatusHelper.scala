@@ -23,10 +23,6 @@ import repositories.application.GeneralApplicationRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object CurrentSchemeStatusHelper extends CurrentSchemeStatusHelper {
-  val applicationRepository = repositories.applicationRepository
-}
-
 trait CurrentSchemeStatusHelper {
 
   val applicationRepository: GeneralApplicationRepository

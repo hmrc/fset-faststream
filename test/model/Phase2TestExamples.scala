@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package model.exchange.passmarksettings
+package model
 
-import java.util.UUID
-
-import model.SchemeId
+import model.persisted.CubiksTest
+import model.persisted.TestResult
 import org.joda.time.DateTime
 
-object Phase2PassMarkSettingsExamples {
-  def passmark(implicit now: DateTime) = Phase2PassMarkSettings(List(), "version", now, "userId")
+object Phase2TestExamples {
+  val testResult = TestResult("Ready", "norm", tScore = Some(12.5), percentile = None, raw = None, sten = None)
 
-  def passMarkSettings(schemes: List[(SchemeId, Double, Double)])(implicit now: DateTime) =
-    Phase2PassMarkSettings(schemes.map { case (s, fail, pass) => createPhase2PassMark(s, fail, pass) },
-      UUID.randomUUID().toString, now, "userId")
+//  def createTestResult(tScore: Double) = TestResult("Ready", "norm", Some(tScore), None, None, None)
 
-  def createPhase2PassMark(schemeName: SchemeId, fail: Double, pass: Double) = {
-    Phase2PassMark(schemeName, Phase2PassMarkThresholds(PassMarkThreshold(fail, pass)))
-  }
+  def firstTest(implicit now: DateTime) = CubiksTest(17815, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
+    testResult = Some(testResult))
 }
