@@ -17,7 +17,7 @@
 package services.fastpass
 
 import connectors.OnlineTestEmailClient
-import model.{ CivilServiceExperienceDetails, ProgressStatuses, SelectedSchemesExamples }
+import model._
 import model.command.PersonalDetailsExamples._
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -65,6 +65,43 @@ class FastPassServiceSpec extends UnitSpec {
         eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
 
+    }
+
+    "promote candidates with non-siftable schemes to FSAC" in new TextFixtureWithMockResponses {
+      val schemes = SelectedSchemes(List(SchemeId("Generalist"), SchemeId("HumanResources")), orderAgreed = true, eligible = true)
+      when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
+
+      val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
+
+      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+      verify(schemePreferencesServiceMock).find(appId)
+      verify(schemesRepositoryMock).siftableSchemeIds
+      verify(personalDetailsServiceMock).find(appId, userId)
+      verify(cdRepositoryMock).find(userId)
+      verify(emailClientMock).sendEmailWithName(
+        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+      verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+    }
+
+    "promote candidates with siftable schemes to SIFT_ENTERED" in new TextFixtureWithMockResponses {
+      val schemes = SelectedSchemes(
+        List(SchemeId("Generalist"), SchemeId("HumanResources"), SchemeId("DigitalAndTechnology")), orderAgreed = true, eligible = true)
+      when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
+
+      val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
+
+      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED)
+      verify(schemePreferencesServiceMock).find(appId)
+      verify(schemesRepositoryMock).siftableSchemeIds
+      verify(personalDetailsServiceMock).find(appId, userId)
+      verify(cdRepositoryMock).find(userId)
+      verify(emailClientMock).sendEmailWithName(
+        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+      verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
     "process correctly a rejected fast pass candidate" in new TextFixtureWithMockResponses {
