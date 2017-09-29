@@ -53,7 +53,7 @@ trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2
         s"for this application: ${application.applicationId}")
     }
 
-    CurrentSchemeStatusHelper.getSdipResults(application).map { sdip =>
+    CurrentSchemeStatusHelper.getSdipResults(application).flatMap { sdip =>
       if (application.isSdipFaststream) {
         Logger.debug(s"Phase2 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
           s"read from current scheme status: $sdip")
