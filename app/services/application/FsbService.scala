@@ -139,7 +139,6 @@ trait FsbService extends CurrentSchemeStatusHelper {
 
     if (firstResidualInEvaluation.result == Green.toString) {
       for {
-        // TODO: there are cases where we have both FSB_FAILED and FSB_PASSED statuses. Should previous FSB_FAILED be removed here?
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
         // There are no notifications before going to eligible but we want audit trail to show we've passed
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)

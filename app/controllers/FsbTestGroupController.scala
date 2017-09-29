@@ -38,10 +38,13 @@ trait FsbTestGroupController extends BaseController {
 
   def savePerScheme(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[FsbEvaluationResults] { fsbEvaluationResults =>
-      val greenRedResults = fsbEvaluationResults.applicationResults.map { applicationResult =>
+      val recordedResults = fsbEvaluationResults.copy(
+        applicationResults = fsbEvaluationResults.applicationResults.filterNot(_.result == "DidNotAttend")
+      )
+      val greenRedResults = recordedResults.applicationResults.map { applicationResult =>
         applicationResult.copy(result = EvaluationResults.Result.fromPassFail(applicationResult.result).toString)
       }
-      fsbService.saveResults(fsbEvaluationResults.schemeId, greenRedResults).map { _ => Ok }.recover {
+      fsbService.saveResults(recordedResults.schemeId, greenRedResults).map { _ => Ok }.recover {
         case ex: AlreadyEvaluatedForSchemeException => BadRequest(ex.message)
         case ex: SchemeNotFoundException => UnprocessableEntity(ex.message)
       }
