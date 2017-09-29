@@ -31,11 +31,12 @@ import scala.concurrent.Future
 object EvaluatePhase2ResultService extends EvaluatePhase2ResultService {
   val evaluationRepository = repositories.faststreamPhase2EvaluationRepository
   val passMarkSettingsRepo = phase2PassMarkSettingsRepository
+  val generalAppRepository = repositories.applicationRepository
   val phase = Phase.PHASE2
 }
 
 trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestEvaluation
-  with PassMarkSettingsService[Phase2PassMarkSettings] {
+  with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper {
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
@@ -53,7 +54,7 @@ trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2
         s"for this application: ${application.applicationId}")
     }
 
-    CurrentSchemeStatusHelper.getSdipResults(application).flatMap { sdip =>
+    getSdipResults(application).flatMap { sdip =>
       if (application.isSdipFaststream) {
         Logger.debug(s"Phase2 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
           s"read from current scheme status: $sdip")

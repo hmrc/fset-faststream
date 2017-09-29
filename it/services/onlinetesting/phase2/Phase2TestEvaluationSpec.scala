@@ -32,6 +32,8 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val gatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo = phase2PassMarkSettingRepo
     val phase2TestsConfigMock = mock[Phase2TestsConfig]
+    val generalAppRepository = applicationRepository
+
     val phase = Phase.PHASE2
     when(gatewayConfig.phase2Tests).thenReturn(phase2TestsConfigMock)
   }

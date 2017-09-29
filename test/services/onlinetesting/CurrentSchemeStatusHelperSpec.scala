@@ -50,7 +50,7 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
     val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
 
     val helper = new CurrentSchemeStatusHelper {
-      override val applicationRepository: GeneralApplicationRepository = mockAppRepo
+      override val generalAppRepository: GeneralApplicationRepository = mockAppRepo
     }
 
     val application = ApplicationReadyForEvaluation(
