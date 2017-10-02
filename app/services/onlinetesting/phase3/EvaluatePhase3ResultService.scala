@@ -19,6 +19,7 @@ package services.onlinetesting.phase3
 import _root_.services.passmarksettings.PassMarkSettingsService
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig.launchpadGatewayConfig
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import model.Phase
 import model.exchange.passmarksettings.Phase3PassMarkSettings
@@ -27,20 +28,22 @@ import play.api.Logger
 import repositories._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.onlinetesting.ApplicationStatusCalculator
+import services.onlinetesting.{ApplicationStatusCalculator, CurrentSchemeStatusHelper}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
   val evaluationRepository: OnlineTestEvaluationRepository
     = repositories.faststreamPhase3EvaluationRepository
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
+  val generalAppRepository = repositories.applicationRepository
   val launchpadGWConfig = launchpadGatewayConfig
   val phase = Phase.PHASE3
 }
 
 trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
-  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator {
+  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper {
 
   val launchpadGWConfig: LaunchpadGatewayConfig
 
@@ -52,18 +55,28 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
     require(application.prevPhaseEvaluation.isDefined, "Phase2 results required to evaluate Phase3")
 
     val optLatestReviewed = optLaunchpadTest.map(_.callbacks.reviewed).flatMap(getLatestReviewed)
-    if (launchpadGWConfig.phase3Tests.verifyAllScoresArePresent) {
-      require(optLatestReviewed.exists(_.allQuestionsReviewed),
-        s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId}")
-    }
 
-    val schemeResults = (optLatestReviewed, application.prevPhaseEvaluation) match {
-      case (Some(launchpadReview), Some(prevPhaseEvaluation)) =>
-        evaluate(application.preferences.schemes, launchpadReview, prevPhaseEvaluation.result, passmark)
+    val allQuestionsReviewed = optLatestReviewed.exists(_.allQuestionsReviewed)
 
-      case _ => throw new IllegalStateException(s"Illegal number of phase3 active tests with results " +
-        s"for this application: ${application.applicationId}")
+    if (launchpadGWConfig.phase3Tests.verifyAllScoresArePresent && !allQuestionsReviewed) {
+      Logger.info(s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId}")
+      Future.successful(())
+    } else {
+      val schemeResults = (optLatestReviewed, application.prevPhaseEvaluation) match {
+        case (Some(launchpadReview), Some(prevPhaseEvaluation)) =>
+          evaluate(application.preferences.schemes, launchpadReview, prevPhaseEvaluation.result, passmark)
+
+        case _ => throw new IllegalStateException(s"Illegal number of phase3 active tests with results " +
+          s"for this application: ${application.applicationId}")
+      }
+
+      getSdipResults(application).flatMap { sdip =>
+        if (application.isSdipFaststream) {
+          Logger.debug(s"Phase3 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
+            s"read from current scheme status: $sdip")
+        }
+        savePassMarkEvaluation(application, schemeResults ++ sdip, passmark)
+      }
     }
-    savePassMarkEvaluation(application, schemeResults, passmark)
   }
 }

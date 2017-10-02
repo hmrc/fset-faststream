@@ -19,8 +19,8 @@ package services.onlinetesting.phase1
 import _root_.services.passmarksettings.PassMarkSettingsService
 import config.MicroserviceAppConfig._
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest }
-import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeId }
+import model.persisted.{ApplicationReadyForEvaluation, CubiksTest}
+import model.{Phase, SchemeId}
 import play.api.Logger
 import repositories._
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
@@ -42,18 +42,14 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
       Logger.info(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
     } else {
-      Logger.debug(s"Evaluating Phase1 appId=${application.applicationId}")
+      Logger.info(s"**** Evaluating Phase1 appId=${application.applicationId}")
 
       val activeTests = application.activeCubiksTests
       require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
       val sjqTestOpt = findFirstSjqTest(activeTests)
       val bqTestOpt = findFirstBqTest(activeTests)
 
-      if (evaluateSdipOnly(application)) {
-        updatePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
-      } else {
-        savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
-      }
+      savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
     }
   }
 
@@ -68,16 +64,6 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
         throw new IllegalStateException(s"Illegal number of active tests with results for this application: ${application.applicationId}")
   }
 
-  private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation) = {
-    if (evaluateSdipOnly(application)) {
-      application.preferences.schemes.filter(_ == SchemeId("Sdip"))
-    } else {
-      application.preferences.schemes
-    }
-  }
-
-  private def evaluateSdipOnly(application: ApplicationReadyForEvaluation) = {
-    application.applicationRoute == ApplicationRoute.SdipFaststream &&
-      application.applicationStatus != ApplicationStatus.PHASE1_TESTS
-  }
+  private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation) =
+    application.preferences.schemes
 }

@@ -70,7 +70,7 @@ class AssessorMongoRepository(implicit mongo: () => DB)
       BSONDocument("skills" -> BSONDocument("$in" -> skills)),
       BSONDocument("availability" ->
         BSONDocument("$elemMatch" -> BSONDocument(
-          "location" -> BSONDocument("$in" -> BSONArray(location, "Home")),
+          "location.name" -> BSONDocument("$in" -> BSONArray(location.name, "Home")),
           "date" -> date
         )))
     ))

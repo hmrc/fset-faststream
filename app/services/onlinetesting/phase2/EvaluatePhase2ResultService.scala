@@ -23,17 +23,20 @@ import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
 import repositories._
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
+import services.onlinetesting.CurrentSchemeStatusHelper
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EvaluatePhase2ResultService extends EvaluatePhase2ResultService {
   val evaluationRepository = repositories.faststreamPhase2EvaluationRepository
   val passMarkSettingsRepo = phase2PassMarkSettingsRepository
+  val generalAppRepository = repositories.applicationRepository
   val phase = Phase.PHASE2
 }
 
 trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestEvaluation
-  with PassMarkSettingsService[Phase2PassMarkSettings] {
+  with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper {
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
@@ -50,6 +53,13 @@ trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2
       case _ => throw new IllegalStateException(s"Illegal number of phase2 active tests with results " +
         s"for this application: ${application.applicationId}")
     }
-    savePassMarkEvaluation(application, schemeResults, passmark)
+
+    getSdipResults(application).flatMap { sdip =>
+      if (application.isSdipFaststream) {
+        Logger.debug(s"Phase2 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
+          s"read from current scheme status: $sdip")
+      }
+      savePassMarkEvaluation(application, schemeResults ++ sdip , passmark)
+    }
   }
 }

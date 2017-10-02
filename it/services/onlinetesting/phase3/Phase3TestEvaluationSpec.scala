@@ -1,15 +1,15 @@
-package repositories
+package services.onlinetesting.phase3
 
 import config.{ LaunchpadGatewayConfig, Phase2TestsConfig, Phase3TestsConfig }
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
-import model.SchemeId._
+import model.Exceptions.PassMarkEvaluationNotFound
 import model.exchange.passmarksettings._
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationStatus, Phase, SchemeId }
 import org.joda.time.DateTime
 import org.scalatest.prop._
-import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
@@ -25,17 +25,18 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val phase = Phase.PHASE3
     val phase3TestsConfigMock = mock[Phase2TestsConfig]
     val launchpadGWConfig = LaunchpadGatewayConfig(url = "", phase3Tests = Phase3TestsConfig(7, 7, "", Map.empty, 3, verifyAllScoresArePresent))
+    val generalAppRepository = applicationRepository
   }
 
   "phase3 evaluation process" should {
-    "throw IllegalArgumentException if we require all score to be present and one score is missing" in new TestFixture {
+    "not save any information to the database if we require all scores to be present and one score is missing" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"),
           Green.toString), SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
-        intercept[IllegalArgumentException] {
-          applicationEvaluation("application-1", None, true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn(
-            PHASE3_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
-        }
+
+          applicationEvaluation("application-1", None, true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"))
+
+          phase3EvaluationRepo.getPassMarkEvaluation("application-1").failed.futureValue mustBe a[PassMarkEvaluationNotFound]
       }
     }
     "give fail results when all schemes are red and one score is empty and we disable verification that checks " +
@@ -93,31 +94,32 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
           List(SchemeEvaluationResult(SchemeId("European"), Green.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-1", Some(40), true,SchemeId("European")) mustResultIn(
+        applicationEvaluation("application-1", Some(40), true, SchemeId("European")) mustResultIn(
           PHASE3_TESTS, SchemeId("European") -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("European"), Amber.toString),
           SchemeEvaluationResult(SchemeId("ScienceAndEngineering"), Amber.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-2", Some(80), true,SchemeId("European"), SchemeId("ScienceAndEngineering")) mustResultIn(
+        applicationEvaluation("application-2", Some(80), true, SchemeId("European"), SchemeId("ScienceAndEngineering")) mustResultIn(
           PHASE3_TESTS, SchemeId("European") -> Amber, SchemeId("ScienceAndEngineering") -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
           List(SchemeEvaluationResult(SchemeId("European"), Green.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-3", Some(50), true,SchemeId("European")) mustResultIn(
+        applicationEvaluation("application-3", Some(50), true, SchemeId("European")) mustResultIn(
           PHASE3_TESTS, SchemeId("European") -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("European"), Amber.toString),
           SchemeEvaluationResult(SchemeId("ProjectDelivery"), Amber.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-4", Some(50), true,SchemeId("European"), SchemeId("ProjectDelivery")) mustResultIn(
+
+        applicationEvaluation("application-4", Some(50), true, SchemeId("European"), SchemeId("ProjectDelivery")) mustResultIn(
           PHASE3_TESTS, SchemeId("European") -> Amber, SchemeId("ProjectDelivery") -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"),
           Green.toString), SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-5", Some(50), true,SchemeId("HumanResources"), SchemeId("ProjectDelivery")) mustResultIn(
+        applicationEvaluation("application-5", Some(50), true, SchemeId("HumanResources"), SchemeId("ProjectDelivery")) mustResultIn(
           PHASE3_TESTS_PASSED_WITH_AMBER, SchemeId("HumanResources") -> Green, SchemeId("ProjectDelivery") -> Amber)
       }
     }

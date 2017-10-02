@@ -248,16 +248,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def rollbackPhase1FailedNotified(applicationId: String): Future[Unit] = {
     val statuses = List(
       ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
-      ProgressStatuses.PHASE1_TESTS_FAILED,
-      ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
+      ProgressStatuses.PHASE1_TESTS_FAILED)
     rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE1_TESTS, statuses)
   }
 
   def rollbackPhase2FailedNotified(applicationId: String): Future[Unit] = {
     val statuses = List(
       ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
-      ProgressStatuses.PHASE2_TESTS_FAILED,
-      ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
+      ProgressStatuses.PHASE2_TESTS_FAILED)
     rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statuses)
   }
 
