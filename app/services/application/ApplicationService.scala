@@ -324,8 +324,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       phase1Evaluation <- getOnlineTestEvaluation(phase1EvaluationRepository)
       phase2Evaluation <- getOnlineTestEvaluation(phase2EvaluationRepository)
       phase3Evaluation <- getOnlineTestEvaluation(phase3EvaluationRepository)
-      fsacEvaluation <- assessmentCentreRepository.getFsacEvaluatedSchemes(applicationId).map(_.getOrElse(Nil).toList)
-      fsbEvaluation <- fsbRepository.findByApplicationId(applicationId).map(_.map(_.evaluation.result).getOrElse(Nil))
+      fsacEvaluation <- fsacRepo.getFsacEvaluatedSchemes(applicationId).map(_.getOrElse(Nil).toList)
+      fsbEvaluation <- fsbRepo.findByApplicationId(applicationId).map(_.map(_.evaluation.result).getOrElse(Nil))
       evaluations = ListMap(
         "online tests" -> phase1Evaluation,
         "e-tray" -> phase2Evaluation,

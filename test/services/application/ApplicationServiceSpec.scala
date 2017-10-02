@@ -17,13 +17,14 @@
 package services
 
 import model.Commands.PhoneNumber
+import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.{ LastSchemeWithdrawException, PassMarkEvaluationNotFound }
 import model.ProgressStatuses.ProgressStatus
 import model.command.{ ApplicationStatusDetails, ProgressResponse, WithdrawApplication, WithdrawScheme }
 import model._
 import model.stc.AuditEvents
 import org.joda.time.DateTime
-import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.{ ContactDetails, FsbTestGroup, PassmarkEvaluation, SchemeEvaluationResult }
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -39,7 +40,9 @@ import testkit.{ ExtendedTimeout, UnitSpec }
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import repositories.onlinetesting.Phase2TestRepository
+import repositories.assessmentcentre.AssessmentCentreRepository
+import repositories.fsb.FsbRepository
+import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase2EvaluationMongoRepository, Phase2TestRepository, Phase3EvaluationMongoRepository }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.stc.StcEventServiceFixture
@@ -274,6 +277,159 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
+  "current scheme status with failure details" must {
+    "return no failure reasons when all schemes are green" in new TestFixture {
+
+      List(phase1EvaluationRepositoryMock, phase2EvaluationRepositoryMock, phase3EvaluationRepositoryMock).foreach { repo =>
+        when(repo.getPassMarkEvaluation(any[String]())).thenReturnAsync(
+          PassmarkEvaluation(
+            "version-1",
+            None,
+            List(
+              SchemeEvaluationResult("Business", Green.toString),
+              SchemeEvaluationResult("Commercial", Green.toString),
+              SchemeEvaluationResult("Finance", Green.toString)
+            ),
+            "resultVersion-1",
+            None
+          )
+        )
+      }
+
+      when(fsacRepoMock.getFsacEvaluatedSchemes(any[String]())).thenReturnAsync(
+        Some(Seq(
+          SchemeEvaluationResult("Business", Green.toString),
+          SchemeEvaluationResult("Commercial", Green.toString),
+          SchemeEvaluationResult("Finance", Green.toString)
+        ))
+      )
+
+      when(fsbRepoMock.findByApplicationId(any[String]())).thenReturnAsync(
+        Some(FsbTestGroup(
+          List(
+            SchemeEvaluationResult("Business", Green.toString),
+            SchemeEvaluationResult("Commercial", Green.toString),
+            SchemeEvaluationResult("Finance", Green.toString)
+          )
+        ))
+      )
+
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult("Business", Green.toString),
+          SchemeEvaluationResult("Commercial", Green.toString),
+          SchemeEvaluationResult("Finance", Green.toString)
+        )
+      )
+
+      whenReady(underTest.currentSchemeStatusWithFailureDetails("application-1")) { ready =>
+        ready.forall(_.failedAt.isEmpty) mustBe true
+        ready.forall(_.result == Green.toString) mustBe true
+      }
+    }
+
+    "return a failure reason against all red schemes when one is failed" in new TestFixture {
+      List(phase1EvaluationRepositoryMock, phase2EvaluationRepositoryMock, phase3EvaluationRepositoryMock).foreach { repo =>
+        when(repo.getPassMarkEvaluation(any[String]())).thenReturnAsync(
+          PassmarkEvaluation(
+            "version-1",
+            None,
+            List(
+              SchemeEvaluationResult("Business", Green.toString),
+              SchemeEvaluationResult("Commercial", Green.toString),
+              SchemeEvaluationResult("Finance", Green.toString)
+            ),
+            "resultVersion-1",
+            None
+          )
+        )
+      }
+
+      when(fsacRepoMock.getFsacEvaluatedSchemes(any[String]())).thenReturnAsync(
+        Some(Seq(
+          SchemeEvaluationResult("Business", Green.toString),
+          SchemeEvaluationResult("Commercial", Green.toString),
+          SchemeEvaluationResult("Finance", Red.toString)
+        ))
+      )
+
+      when(fsbRepoMock.findByApplicationId(any[String]())).thenReturnAsync(
+        Some(FsbTestGroup(
+          List(
+            SchemeEvaluationResult("Business", Green.toString),
+            SchemeEvaluationResult("Commercial", Green.toString),
+            SchemeEvaluationResult("Finance", Red.toString)
+          )
+        ))
+      )
+
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult("Business", Green.toString),
+          SchemeEvaluationResult("Commercial", Green.toString),
+          SchemeEvaluationResult("Finance", Red.toString)
+        )
+      )
+
+      whenReady(underTest.currentSchemeStatusWithFailureDetails("application-1")) { ready =>
+        ready.count(_.failedAt.isDefined) mustBe 1
+        ready.find(_.failedAt.isDefined).get.failedAt mustBe Some("assessment centre")
+      }
+    }
+
+    "return all failure reasons when all schemes are red" in new TestFixture {
+      List(phase1EvaluationRepositoryMock, phase2EvaluationRepositoryMock, phase3EvaluationRepositoryMock).foreach { repo =>
+        when(repo.getPassMarkEvaluation(any[String]())).thenReturnAsync(
+          PassmarkEvaluation(
+            "version-1",
+            None,
+            List(
+              SchemeEvaluationResult("Business", Green.toString),
+              SchemeEvaluationResult("Commercial", Green.toString),
+              SchemeEvaluationResult("Finance", Red.toString)
+            ),
+            "resultVersion-1",
+            None
+          )
+        )
+      }
+
+      when(fsacRepoMock.getFsacEvaluatedSchemes(any[String]())).thenReturnAsync(
+        Some(Seq(
+          SchemeEvaluationResult("Business", Green.toString),
+          SchemeEvaluationResult("Commercial", Red.toString),
+          SchemeEvaluationResult("Finance", Red.toString)
+        ))
+      )
+
+      when(fsbRepoMock.findByApplicationId(any[String]())).thenReturnAsync(
+        Some(FsbTestGroup(
+          List(
+            SchemeEvaluationResult("Business", Red.toString),
+            SchemeEvaluationResult("Commercial", Red.toString),
+            SchemeEvaluationResult("Finance", Red.toString)
+          )
+        ))
+      )
+
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult("Business", Red.toString),
+          SchemeEvaluationResult("Commercial", Red.toString),
+          SchemeEvaluationResult("Finance", Red.toString)
+        )
+      )
+
+      whenReady(underTest.currentSchemeStatusWithFailureDetails("application-1")) { ready =>
+        ready.forall(_.failedAt.isDefined) mustBe true
+        ready.find(_.schemeId == SchemeId("Business")).get.failedAt.get mustBe "final selection board"
+        ready.find(_.schemeId == SchemeId("Commercial")).get.failedAt.get mustBe "assessment centre"
+        ready.find(_.schemeId == SchemeId("Finance")).get.failedAt.get mustBe "online tests"
+      }
+    }
+  }
+
+
   trait TestFixture {
 
     val appRepositoryMock: GeneralApplicationRepository = mock[GeneralApplicationRepository]
@@ -284,6 +440,11 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val evalPhase1ResultMock: EvaluatePhase1ResultService = mock[EvaluatePhase1ResultService]
     val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
     val phase2TestRepositoryMock: Phase2TestRepository = mock[Phase2TestRepository]
+    val fsacRepoMock = mock[AssessmentCentreRepository]
+    val fsbRepoMock = mock[FsbRepository]
+    val phase1EvaluationRepositoryMock = mock[Phase1EvaluationMongoRepository]
+    val phase2EvaluationRepositoryMock = mock[Phase2EvaluationMongoRepository]
+    val phase3EvaluationRepositoryMock = mock[Phase3EvaluationMongoRepository]
     val mockSchemeRepo = new SchemeRepository {
       override lazy val nonSiftableSchemeIds = Seq(SchemeId("Generalist"), SchemeId("HumanResources"))
       override lazy val nonSiftableAndNoEvaluationSchemeIds = Seq(SchemeId("Edip"), SchemeId("HousesOfParliament"),
@@ -304,6 +465,11 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val evaluateP1ResultService = evalPhase1ResultMock
       val evaluateP3ResultService = evalPhase3ResultMock
       val phase2TestRepository = phase2TestRepositoryMock
+      val fsacRepo = fsacRepoMock
+      val fsbRepo = fsbRepoMock
+      val phase1EvaluationRepository = phase1EvaluationRepositoryMock
+      val phase2EvaluationRepository = phase2EvaluationRepositoryMock
+      val phase3EvaluationRepository = phase3EvaluationRepositoryMock
     }
 
     implicit val hc = HeaderCarrier()
