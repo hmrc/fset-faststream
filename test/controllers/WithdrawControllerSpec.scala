@@ -26,7 +26,7 @@ import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseExcep
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.{ Scheme, SchemeId }
 import connectors.exchange.sift.SiftAnswersStatus
-import connectors.exchange.{ AssistanceDetailsExamples, EventsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
+import connectors.exchange._
 import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples, SiftClient }
 import forms.WithdrawApplicationFormExamples
 import models.ApplicationData.ApplicationStatus
@@ -143,7 +143,7 @@ class WithdrawControllerSpec extends BaseControllerSpec {
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
       when(mockApplicationClient.getCurrentSchemeStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturnAsync(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))
+        .thenReturnAsync(List(SchemeEvaluationResultWithFailureDetails(SchemeId("DiplomaticService"), SchemeStatus.Green)))
       when(mockUserService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any[Request[_]]))
         .thenReturn(Future.successful(CachedData(ActiveCandidate.user, Some(CreatedApplication.copy(userId = ActiveCandidate.user.userID)))))
 

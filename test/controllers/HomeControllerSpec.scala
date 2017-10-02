@@ -23,7 +23,7 @@ import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExample
 import connectors.exchange.referencedata.SchemeId
 import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound }
 import connectors.exchange.sift.SiftAnswersStatus
-import connectors.exchange.{ AssistanceDetailsExamples, EventsExamples, SchemeEvaluationResult }
+import connectors.exchange.{ AssistanceDetailsExamples, EventsExamples, SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails }
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
 import models._
@@ -464,7 +464,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
       when(mockSiftClient.getSiftAnswersStatus(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(Some(SiftAnswersStatus.DRAFT))
       when(mockApplicationClient.getCurrentSchemeStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturnAsync(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))
+        .thenReturnAsync(List(SchemeEvaluationResultWithFailureDetails(SchemeId("DiplomaticService"), SchemeStatus.Green)))
       when(mockUserService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any[Request[_]]))
         .thenReturn(Future.successful(CachedData(ActiveCandidate.user, Some(CreatedApplication.copy(userId = ActiveCandidate.user.userID)))))
 
