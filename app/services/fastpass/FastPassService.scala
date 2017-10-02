@@ -91,7 +91,7 @@ trait FastPassService extends EventSink {
     val res = for {
       preferences <- schemePreferencesService.find(applicationId)
     } yield {
-      val hasSiftableScheme = schemesRepository.siftableSchemeIds.intersect(preferences.schemes).isEmpty
+      val hasSiftableScheme = schemesRepository.siftableSchemeIds.intersect(preferences.schemes).nonEmpty
       if(hasSiftableScheme) {
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_ENTERED)
       } else {
