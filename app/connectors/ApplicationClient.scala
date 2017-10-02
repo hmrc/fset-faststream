@@ -207,9 +207,9 @@ trait ApplicationClient {
     }
   }
 
-  def getCurrentSchemeStatus(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Seq[SchemeEvaluationResult]] = {
+  def getCurrentSchemeStatus(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Seq[SchemeEvaluationResultWithFailureDetails]] = {
     http.GET(s"${url.host}${url.base}/application/$appId/currentSchemeStatus").map { response =>
-      response.json.as[Seq[SchemeEvaluationResult]]
+      response.json.as[Seq[SchemeEvaluationResultWithFailureDetails]]
     }
   }
 
