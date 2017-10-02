@@ -23,6 +23,7 @@ import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import repositories._
 
+import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -46,7 +47,7 @@ trait MetricsController extends BaseController {
     applicationRepo.count.flatMap { allApplications =>
       applicationRepo.countByStatus(ApplicationStatus.CREATED).flatMap { createdCount =>
         applicationRepo.getLatestProgressStatuses.map { list =>
-          val listWithCounts = list.groupBy(identity).mapValues(_.size)
+          val listWithCounts = SortedMap[String, Int]() ++ list.groupBy(identity).mapValues(_.size)
           Ok(Json.toJson(
             listWithCounts ++
               Map("TOTAL_APPLICATION_COUNT" -> allApplications) ++
