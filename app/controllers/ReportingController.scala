@@ -202,19 +202,22 @@ trait ReportingController extends BaseController {
   }
 
   def preSubmittedCandidatesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
-    val reportItemsFut = reportingRepository.preSubmittedApplications(frameworkId).flatMap { applications =>
-      authProviderClient.findByUserIds(applications.map(_.userId)).flatMap { authDetails =>
-        Future.sequence(applications.map { application =>
-          val user = authDetails.find(_.userId == application.userId)
-            .getOrElse(throw new Exception(s"Unable to find auth details for user ${application.userId}"))
-          personalDetailsRepository.find(application.applicationId).map { pd =>
-            PreSubmittedReportItem(user, Some(pd.preferredName), application)
-          }.recover { case _: PersonalDetailsNotFound => PreSubmittedReportItem(user, None, application)}
-        })
-      }
+    val reportItemsFut = reportingRepository.preSubmittedApplications(frameworkId).flatMap { allApplications =>
+      val batchedApplications = allApplications.grouped(500)
+      Future.sequence(batchedApplications.map { applications =>
+        authProviderClient.findByUserIds(applications.map(_.userId)).flatMap { authDetails =>
+          Future.sequence(applications.map { application =>
+            val user = authDetails.find(_.userId == application.userId)
+              .getOrElse(throw new Exception(s"Unable to find auth details for user ${application.userId}"))
+            personalDetailsRepository.find(application.applicationId).map { pd =>
+              PreSubmittedReportItem(user, Some(pd.preferredName), application)
+            }.recover { case _: PersonalDetailsNotFound => PreSubmittedReportItem(user, None, application)}
+          })
+        }
+      })
     }
 
-    reportItemsFut.map(items => Ok(Json.toJson(items)))
+    reportItemsFut.map(items => Ok(Json.toJson(items.flatten.toList)))
   }
 
   def candidateDeferralReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
