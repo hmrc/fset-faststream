@@ -68,6 +68,10 @@ object PersonalDetailsForm {
     requestParams.getOrElse("applicationRoute", ApplicationRoute.Faststream.toString) == ApplicationRoute.Faststream.toString
   }
 
+  val isSdipFastStream = (requestParams: Map[String, String]) => {
+    requestParams.getOrElse("applicationRoute", ApplicationRoute.SdipFaststream.toString) == ApplicationRoute.SdipFaststream.toString
+  }
+
   val isSdip = (requestParams: Map[String, String]) =>
     requestParams.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
 
@@ -79,7 +83,7 @@ object PersonalDetailsForm {
 
   def fastPassFormFormatter(ignoreValidations: Boolean) = new Formatter[Option[FastPassForm.Data]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[FastPassForm.Data]] = {
-      (ignoreValidations, isFastStream(data)) match {
+      (ignoreValidations, isFastStream(data) || isSdipFastStream(data)) match {
         case (false, true) => FastPassForm.form.mapping.bind(data).right.map(Some(_))
         case _ => Right(None)
       }

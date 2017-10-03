@@ -166,7 +166,6 @@ object Mappings {
       .verifying(emptyErrorKey, paramVal => paramVal == true.toString || paramVal == false.toString)
   }
 
-
   object BooleanMapping {
     type BooleanMapping = Option[Boolean]
 

@@ -16,9 +16,7 @@
 
 package forms
 
-import controllers.UnitSpec
 import forms.FastPassForm.{ form => fastPassForm, _ }
-import org.scalatestplus.play.PlaySpec
 import testkit.UnitWithAppSpec
 
 class FastPassFormSpec extends UnitWithAppSpec {
@@ -100,6 +98,17 @@ class FastPassFormSpec extends UnitWithAppSpec {
       form.hasGlobalErrors mustBe false
       form.value.get mustBe Data("true", Some("DiversityInternship"), Some(Seq("SDIPCurrentYear")), Some(false))
     }
+
+    "be valid for sdip faststream candidate who specifies applicable and civil service experience only" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
+        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
+        "applicationRoute" -> "SdipFaststream"
+         ))
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
+      form.value.get mustBe Data(applicable = "true", civilServiceExperienceType = Some("DiversityInternship"),
+        internshipTypes = None, fastPassReceived = None, certificateNumber = None)
+    }
   }
 
   "FastPass form" should {
@@ -131,6 +140,14 @@ class FastPassFormSpec extends UnitWithAppSpec {
         "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
         "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear",
         "civilServiceExperienceDetails.fastPassReceived" -> "true"))
+      form.hasErrors mustBe true
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid for sdip faststream candidate if civil service experience is not specified" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
+        "applicationRoute" -> "SdipFaststream"
+         ))
       form.hasErrors mustBe true
       form.hasGlobalErrors mustBe false
     }

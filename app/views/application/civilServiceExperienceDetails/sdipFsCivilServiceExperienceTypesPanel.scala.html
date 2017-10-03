@@ -1,0 +1,15 @@
+@(form: Form[_root_.forms.PersonalDetailsForm.Data])(implicit messages: Messages)
+
+@import forms.FastPassForm
+@import views.html.widgets.radioGroupWithTogglePanels
+
+<div id="civilServiceExperienceDetails_applicable-panel-yes" class="toggle-content">
+    @radioGroupWithTogglePanels(form("civilServiceExperienceDetails.civilServiceExperienceType"), FastPassForm.SdipFsCivilServiceExperienceTypes,
+        'id -> "civilServiceExperienceDetails.civilServiceExperienceType",
+        '_label -> "Which of these applies?") {
+        @civilServantsContent()
+        @fastTrackContent()
+        <div id="civilServiceExperienceDetails_civilServiceExperienceType_DiversityInternship-panel" class="toggle-content" aria-hidden="true">
+        </div>
+    }
+</div>

@@ -109,6 +109,7 @@ error.certificateNumber.required = Enter your 7-digit certificate number
 civilServiceExperienceType.CivilServant = I''m currently a civil servant
 civilServiceExperienceType.CivilServantViaFastTrack = I''m currently a civil servant via the Fast Track
 civilServiceExperienceType.DiversityInternship = I''ve completed SDIP or EDIP
+civilServiceExperienceType.EdipInternship = I''ve completed EDIP
 internshipType.EDIP = Early Diversity Internship Programme
 internshipType.SDIPPreviousYear = Summer Diversity Internship Programme (previous years)
 internshipType.SDIPCurrentYear = Summer Diversity Internship Programme 2017 (this year)

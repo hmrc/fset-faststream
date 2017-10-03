@@ -156,7 +156,6 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
       } yield ()
     case _ => Future.successful(())
   }
-
 }
 
 trait PersonalDetailsToExchangeConverter {
