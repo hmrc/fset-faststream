@@ -107,6 +107,7 @@ trait ReportingController extends BaseController {
       "\"" + ret + "\""
     }.mkString(",")
 
+  // scalastyle:off method.length
   def assessorAllocationReport: Action[AnyContent] = Action.async { implicit request =>
 
     import common.Joda._
@@ -132,10 +133,10 @@ trait ReportingController extends BaseController {
           s"${allocation.allocatedAs.toString} (${allocation.status.toString})"
         ).orElse {
           val availabilities = theAssessor.availability.filter(_.date == event.date)
-          if (availabilities.isEmpty) {
-            None
-          } else {
+          if (availabilities.nonEmpty && theAssessor.skills.intersect(event.skillRequirements.keys.toSeq).nonEmpty) {
             Some(availabilities.map(_.location.name).mkString(", "))
+          } else {
+            None
           }
         }
       }
@@ -160,6 +161,7 @@ trait ReportingController extends BaseController {
       }
     }
   }
+  // scalastyle:on
 
   private def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],
     contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
