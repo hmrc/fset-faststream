@@ -19,11 +19,11 @@ package controllers
 import java.nio.file.Files
 
 import akka.stream.scaladsl.Source
-import model.Exceptions.{ApplicationNotFound, CannotUpdateFSACIndicator, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound}
-import model.{CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses}
+import model.Exceptions.{ ApplicationNotFound, CannotUpdateFSACIndicator, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
+import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadMongoRepository
@@ -109,11 +109,9 @@ trait ApplicationController extends BaseController {
   }
 
   def getCurrentSchemeStatus(applicationId: String) = Action.async { implicit request =>
-    appRepository.getCurrentSchemeStatus(applicationId).map { schemeStatus =>
-      Ok(Json.toJson(schemeStatus))
-    } recover {
-      case _: PassMarkEvaluationNotFound => NotFound(s"No evaluation results found for applicationId: $applicationId")
-    }
+      applicationService.currentSchemeStatusWithFailureDetails(applicationId).map { currentSchemeStatus =>
+        Ok(Json.toJson(currentSchemeStatus))
+      }
   }
 
   def considerForSdip(applicationId: String) = Action.async { implicit request =>
