@@ -89,7 +89,7 @@ trait AssessorAllocationService extends EventSink {
           allocationForUser.allocatedAs.displayText,
           eventDetails.eventType.toString,
           eventDetails.location.name,
-          eventDetails.startTime.toString("ha")
+          eventDetails.startTime.toString("h:ma")
         )
       }
     }.map(_ => ())
@@ -105,7 +105,7 @@ trait AssessorAllocationService extends EventSink {
           allocationForUser.allocatedAs.displayText,
           eventDetails.eventType.toString,
           eventDetails.location.name,
-          eventDetails.startTime.toString("ha")
+          eventDetails.startTime.toString("h:ma")
         )
       }
     }.map(_ => ())
