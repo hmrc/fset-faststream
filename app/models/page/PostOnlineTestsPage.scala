@@ -16,19 +16,19 @@
 
 package models.page
 
-import connectors.exchange.SchemeEvaluationResult
+import connectors.exchange.{ SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails }
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.Scheme
 import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import helpers.{CachedUserWithSchemeData, Timezones}
-import models.{CachedData, SchemeStatus}
+import helpers.{ CachedUserWithSchemeData, Timezones }
+import models.{ CachedData, SchemeStatus }
 import models.events.EventType
 import models.page.DashboardPage.Flags
-import models.page.DashboardPage.Flags.{ProgressActive, ProgressInactiveDisabled}
-import org.joda.time.{DateTime, LocalTime}
+import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
+import org.joda.time.{ DateTime, LocalTime }
 import play.twirl.api.Html
-import security.{RoleUtils, Roles}
+import security.{ RoleUtils, Roles }
 
 object PostOnlineTestsStage extends Enumeration {
   type PostOnlineTestsStage = Value
@@ -99,10 +99,10 @@ case class PostOnlineTestsPage(
 
     val zippedData = userDataWithSchemes.rawSchemesStatus.zipWithIndex
 
-    val firstAmber: Option[(SchemeEvaluationResult, Int)] =
+    val firstAmber: Option[(SchemeEvaluationResultWithFailureDetails, Int)] =
       zippedData.find{ case (evaluationResult, _) => evaluationResult.result == SchemeStatus.Amber.toString }
 
-    val firstGreen: Option[(SchemeEvaluationResult, Int)] =
+    val firstGreen: Option[(SchemeEvaluationResultWithFailureDetails, Int)] =
       zippedData.find{ case (evaluationResult, _) => evaluationResult.result == SchemeStatus.Green.toString }
 
     (firstAmber, firstGreen) match {

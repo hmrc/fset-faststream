@@ -16,7 +16,7 @@
 
 package helpers
 
-import connectors.exchange.SchemeEvaluationResult
+import connectors.exchange.{ SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails }
 import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import connectors.exchange.sift.SiftAnswersStatus
@@ -36,20 +36,15 @@ class CachedUserWithSchemeData(
   val user: CachedUser,
   val application: ApplicationData,
   val allSchemes: Seq[Scheme],
-  val rawSchemesStatus: Seq[SchemeEvaluationResult]
+  val rawSchemesStatus: Seq[SchemeEvaluationResultWithFailureDetails]
 ) {
 
   lazy val currentSchemesStatus = rawSchemesStatus flatMap { schemeResult =>
     allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
 
-      val (status, failedAt) = schemeResult.result match {
-        case "Red" => (SchemeStatus.Red, Some("online tests"))
-        case "Green" => (SchemeStatus.Green, None)
-        case "Amber" => (SchemeStatus.Amber, None)
-        case "Withdrawn" => (SchemeStatus.Withdrawn, None)
-      }
+      val status = SchemeStatus.Status(schemeResult.result)
 
-      CurrentSchemeStatus(scheme, status, failedAt)
+      CurrentSchemeStatus(scheme, status, schemeResult.failedAt)
     }
   }
 
@@ -79,7 +74,7 @@ object CachedUserWithSchemeData {
     user: CachedUser,
     application: ApplicationData,
     allSchemes: Seq[Scheme],
-    rawSchemesStatus: Seq[SchemeEvaluationResult]): CachedUserWithSchemeData =
+    rawSchemesStatus: Seq[SchemeEvaluationResultWithFailureDetails]): CachedUserWithSchemeData =
       new CachedUserWithSchemeData(user, application, allSchemes, rawSchemesStatus
   )
 }
