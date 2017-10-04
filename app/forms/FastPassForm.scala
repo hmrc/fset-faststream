@@ -18,6 +18,7 @@ package forms
 
 import play.api.data.Forms._
 import Mappings._
+import models.ApplicationRoute
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
@@ -147,7 +148,7 @@ object FastPassForm {
 
     def civilServiceExperienceTypeParam = param(civilServiceExperienceType).getOrElse("")
 
-    def isSdipFaststream = request.get("applicationRoute").contains("SdipFaststream")
+    def isSdipFaststream = request.get("applicationRoute").contains(ApplicationRoute.SdipFaststream.toString)
 
     def internshipTypesParam = request.filterKeys(_.contains(internshipTypes)).values.toSeq
 
