@@ -2,6 +2,7 @@
 
 @import views.html.application.personalDetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
+@import views.html.application.civilServiceExperienceDetails.sdipFsCivilServiceExperienceDetailsPanel
 @import views.html.application.edipExperienceDetails.edipExperienceDetailsPanel
 @import views.html.widgets.{ applicationRoute, applicationStatus, pageProgress, saveAndContinueButton }
 @import security.Roles.EditPersonalDetailsAndContinueRole
@@ -24,7 +25,11 @@
         @nameAndDateOfBirth(details)
         @contactDetails(details, isLastSection = optCachedData.exists(cachedData => isEdip(optCachedData)))
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) && isFaststream(optCachedData)){
-            @civilServiceExperienceDetailsPanel(details)
+            @if(optCachedData.exists(cachedData => isSdipFaststream(cachedData))) {
+                @sdipFsCivilServiceExperienceDetailsPanel(details)
+            } else {
+                @civilServiceExperienceDetailsPanel(details)
+            }
         }
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
                 isSdip(optCachedData)) {

@@ -18,6 +18,7 @@ package forms
 
 import play.api.data.Forms._
 import Mappings._
+import models.ApplicationRoute
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
@@ -40,6 +41,12 @@ object FastPassForm {
     CivilServant -> Messages("civilServiceExperienceType.CivilServant"),
     CivilServantViaFastTrack -> Messages("civilServiceExperienceType.CivilServantViaFastTrack"),
     DiversityInternship -> Messages("civilServiceExperienceType.DiversityInternship")
+  )
+
+  val SdipFsCivilServiceExperienceTypes = Seq(
+    CivilServant -> Messages("civilServiceExperienceType.CivilServant"),
+    CivilServantViaFastTrack -> Messages("civilServiceExperienceType.CivilServantViaFastTrack"),
+    DiversityInternship -> Messages("civilServiceExperienceType.EdipInternship")
   )
 
   val InternshipTypes = Seq(
@@ -87,7 +94,7 @@ object FastPassForm {
 
   def internshipTypesFormatter = new Formatter[Option[Seq[String]]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[Seq[String]]] = {
-      bindOptionalParam(request.isDiversityInternshipSelected, request.isValidInternshipTypesSelected,
+      bindOptionalParam(request.isDiversityInternshipSelected && !request.isSdipFaststream, request.isValidInternshipTypesSelected,
         internshipTypeRequiredMsg)(key, request.internshipTypesParam)
     }
 
@@ -126,7 +133,6 @@ object FastPassForm {
       case (false, _) => Right(None)
     }
 
-
   private def optionalParamToMap[T](key: String, optValue: Option[T]) = {
     optValue match {
       case None => Map.empty[String, String]
@@ -141,6 +147,8 @@ object FastPassForm {
     def fastPassApplicableParam = param(applicable).getOrElse("")
 
     def civilServiceExperienceTypeParam = param(civilServiceExperienceType).getOrElse("")
+
+    def isSdipFaststream = request.get("applicationRoute").contains(ApplicationRoute.SdipFaststream.toString)
 
     def internshipTypesParam = request.filterKeys(_.contains(internshipTypes)).values.toSeq
 

@@ -96,7 +96,6 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     }
   }
 
-
   "present and continue" should {
     "load personal details page for the new user and generate submit link for continue the journey" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
