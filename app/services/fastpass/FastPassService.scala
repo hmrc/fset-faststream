@@ -17,7 +17,8 @@
 package services.fastpass
 
 import connectors.{ CSREmailClient, OnlineTestEmailClient }
-import model.{ CivilServiceExperienceDetails, ProgressStatuses }
+import model.persisted.SchemeEvaluationResult
+import model.{ CivilServiceExperienceDetails, EvaluationResults, ProgressStatuses, SelectedSchemes }
 import model.stc.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
 import model.stc.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
 import play.api.mvc.RequestHeader
@@ -52,7 +53,7 @@ object FastPassService extends FastPassService {
 
 }
 
-trait FastPassService extends EventSink {
+trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
 
   val appRepo: GeneralApplicationRepository
   val personalDetailsService: PersonalDetailsService
@@ -101,6 +102,13 @@ trait FastPassService extends EventSink {
     res.flatMap(identity)
   }
 
+  def createCurrentSchemeStatus(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit] = {
+    val results = selectedSchemes.schemes.map { schemeId =>
+      SchemeEvaluationResult(schemeId, EvaluationResults.Green.toString)
+    }
+    appRepo.updateCurrentSchemeStatus(applicationId, results)
+  }
+
   private def acceptFastPassCandidate(userId: String, applicationId: String, actionTriggeredBy: String)
                                      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
 
@@ -112,6 +120,8 @@ trait FastPassService extends EventSink {
       personalDetail <- personalDetailsFut
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
       _ <- autoProgressToSiftOrFSAC(applicationId)
+      preferences <- schemePreferencesService.find(applicationId)
+      _ <- createCurrentSchemeStatus(applicationId, preferences)
       _ <- eventSink(model.stc.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
       _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = true)
       _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)

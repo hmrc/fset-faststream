@@ -20,8 +20,9 @@ import connectors.OnlineTestEmailClient
 import model._
 import model.command.PersonalDetailsExamples._
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
+import model.persisted.SchemeEvaluationResult
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito._
+import org.mockito.Mockito.{ atLeast => atLeastTimes, _}
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
@@ -57,7 +58,7 @@ class FastPassServiceSpec extends UnitSpec {
 
       verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
       verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      verify(schemePreferencesServiceMock).find(appId)
+      verify(schemePreferencesServiceMock, atLeastTimes(2)).find(appId)
       verify(schemesRepositoryMock).siftableSchemeIds
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
@@ -76,7 +77,7 @@ class FastPassServiceSpec extends UnitSpec {
       verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
       verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
       verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
-      verify(schemePreferencesServiceMock).find(appId)
+      verify(schemePreferencesServiceMock, atLeastTimes(2)).find(appId)
       verify(schemesRepositoryMock).siftableSchemeIds
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
@@ -95,7 +96,7 @@ class FastPassServiceSpec extends UnitSpec {
       verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
       verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
       verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED)
-      verify(schemePreferencesServiceMock).find(appId)
+      verify(schemePreferencesServiceMock, atLeastTimes(2)).find(appId)
       verify(schemesRepositoryMock).siftableSchemeIds
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
@@ -132,19 +133,15 @@ class FastPassServiceSpec extends UnitSpec {
       when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
       when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceError)
 
-      play.api.Logger.error("\n\n\n\n")
-      play.api.Logger.error(s"\n${underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue}")
-
-
       val result = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue
 
       result mustBe error
 
-      verifyDataStoreEvents(2,
+      verifyDataStoreEvents(1,
         List("ApplicationReadyForExport")
       )
 
-      verifyAuditEvents(2,
+      verifyAuditEvents(1,
         List("ApplicationReadyForExport")
       )
     }
@@ -220,5 +217,6 @@ class FastPassServiceSpec extends UnitSpec {
     when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(serviceFutureResponse)
     when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(selectedSchemes))
     when(schemesRepositoryMock.siftableSchemeIds).thenReturn(siftableSchemes)
+    when(appRepoMock.updateCurrentSchemeStatus(any[String], any[Seq[SchemeEvaluationResult]])).thenReturn(Future.successful(unit))
   }
 }
