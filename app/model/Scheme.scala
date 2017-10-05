@@ -82,7 +82,10 @@ case class Scheme(
 object Scheme {
 
   val Sdip = "Sdip"
+  val SdipId = SchemeId(Sdip)
   val Edip = "Edip"
+  val EdipId = SchemeId(Edip)
+
   implicit val schemeFormat: OFormat[Scheme] = Json.format[Scheme]
 
   // scalastyle:off parameter.number
