@@ -117,9 +117,9 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }) flatMap identity
   }
 
-  private def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], siftableSchemes: Set[SchemeId]) = {
-    //  siftedSchemes may contain Sdip if it's been sifted before FS schemes, but we want to ignore it.
-    if (siftableSchemes subsetOf siftedSchemes) {
+  private def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], candidatesSiftableSchemes: Set[SchemeId]) = {
+    //  siftedSchemes may contain Sdip if it's been sifted before FS schemes, but we want to ignore it. (see schemeFilter)
+    if (candidatesSiftableSchemes subsetOf siftedSchemes) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
     } else {
       BSONDocument.empty

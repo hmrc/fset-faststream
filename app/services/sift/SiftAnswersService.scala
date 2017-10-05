@@ -17,7 +17,7 @@
 package services.sift
 
 import model.ProgressStatuses.ProgressStatus
-import model.{ EvaluationResults, ProgressStatuses, SchemeId, SiftRequirement }
+import model._
 import repositories.application.GeneralApplicationRepository
 import repositories.{ SchemeRepository, SchemeYamlRepository }
 import repositories.sift.SiftAnswersRepository
@@ -78,19 +78,25 @@ trait SiftAnswersService {
       schemesPassedRequiringSift = schemeRepository.schemes.filter( s =>
         schemesPassedAndWithdrawn.contains(s.id) && s.siftRequirement.contains(SiftRequirement.FORM)
       ).map(_.id).toSet
-      schemesPassedWithoutRequirement = schemeRepository.schemes.filter( s =>
+      schemesPassedNotRequiringSift = schemeRepository.schemes.filter( s =>
         schemesPassed.contains(s.id) && !s.siftEvaluationRequired
       ).map(_.id).toSet
       _ <- siftAnswersRepo.submitAnswers(applicationId, schemesPassedRequiringSift)
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
-      _ <- maybeMoveToCompleted(applicationId, schemesPassed, schemesPassedWithoutRequirement)
+      _ <- maybeMoveToCompleted(applicationId, schemesPassed, schemesPassedNotRequiringSift)
     } yield {}
   }
 
   private def maybeMoveToCompleted(applicationId: String, passedSchemes: Set[SchemeId],
-                                   passedSchemesWithoutRequirement: Set[SchemeId]): Future[Unit] = {
-    val canBeMoved = (passedSchemes.size == passedSchemesWithoutRequirement.size) &&
-      passedSchemes == passedSchemesWithoutRequirement
+                                   passedSchemesNotRequiringSift: Set[SchemeId]): Future[Unit] = {
+
+    val allPassedSchemesDoNotRequireSift = passedSchemes.size == passedSchemesNotRequiringSift.size &&
+      passedSchemes == passedSchemesNotRequiringSift
+    // Sdip gets sifted later, candidates can proceed to fsac
+    val onlySdipRequiresSift = passedSchemes.contains(Scheme.SdipId) && ((passedSchemes - Scheme.SdipId) subsetOf passedSchemesNotRequiringSift)
+
+    val canBeMoved = allPassedSchemesDoNotRequireSift || onlySdipRequiresSift
+
     if(canBeMoved) {
       appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED)
     } else {

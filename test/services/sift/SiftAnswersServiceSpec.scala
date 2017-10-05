@@ -17,6 +17,7 @@
 package services.sift
 
 import model.EvaluationResults.{ Green, Withdrawn }
+import model.ProgressStatuses.{ SIFT_COMPLETED, SIFT_READY }
 import model.persisted.SchemeEvaluationResult
 import model.{ Scheme, SchemeId, SiftRequirement }
 import repositories.SchemeRepository
@@ -33,6 +34,15 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
   val HoP = Scheme(SchemeId("HousesOfParliament"), "HoP", "Houses of Parliament", civilServantEligible = false,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
+  val Generalist = Scheme(SchemeId("Generalist"), "GFS", "Generalist", civilServantEligible = false,
+    degree = None, siftEvaluationRequired = false, siftRequirement = None,
+    fsbType = None, schemeGuide = None, schemeQuestion = None)
+  val HumanResources = Scheme(SchemeId("HumanResources"), "HR", "Human Resources", civilServantEligible = false,
+    degree = None, siftEvaluationRequired = false, siftRequirement = None,
+    fsbType = None, schemeGuide = None, schemeQuestion = None)
+  val Sdip = Scheme(SchemeId("Sdip"), "Sdip", "Sdip", civilServantEligible = false,
+    degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
+    fsbType = None, schemeGuide = None, schemeQuestion = None)
 
 
   trait TestFixture {
@@ -40,7 +50,7 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockSiftAnswersRepo = mock[SiftAnswersRepository]
     val mockSchemeRepo = new SchemeRepository {
-      override lazy val schemes = DaT :: HoP :: Nil
+      override lazy val schemes = DaT :: HoP :: Generalist :: HumanResources :: Sdip :: Nil
     }
     val service = new SiftAnswersService {
       def appRepo = mockAppRepo
@@ -50,7 +60,7 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
   }
 
   "Submitting sift answers" must {
-    "update sift status and progress status" in new TestFixture {
+    "update sift status and progress status to ready" in new TestFixture {
       val currentSchemeStatus = Seq(
         SchemeEvaluationResult(DaT.id, Green.toString),
         SchemeEvaluationResult(HoP.id, Withdrawn.toString)
@@ -58,7 +68,40 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
       (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
-      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, *).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).once().returningAsync
+
+      whenReady(service.submitAnswers(AppId)) { result =>
+        result mustBe unit
+      }
+    }
+
+    "update sift status and progress status to completed when no schemes are siftable" in new TestFixture {
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(Generalist.id, Green.toString),
+        SchemeEvaluationResult(HumanResources.id, Green.toString)
+      )
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
+      (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).once().returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_COMPLETED).once().returningAsync
+
+      whenReady(service.submitAnswers(AppId)) { result =>
+        result mustBe unit
+      }
+    }
+
+    "update sift status and progress status to completed when only sdip is siftable" in new TestFixture {
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(Generalist.id, Green.toString),
+        SchemeEvaluationResult(HumanResources.id, Green.toString),
+        SchemeEvaluationResult(Sdip.id, Green.toString)
+      )
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
+      (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).once().returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_COMPLETED).once().returningAsync
 
       whenReady(service.submitAnswers(AppId)) { result =>
         result mustBe unit
