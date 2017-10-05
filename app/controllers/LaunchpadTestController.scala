@@ -54,23 +54,4 @@ abstract class LaunchpadTestController(applicationClient: ApplicationClient) ext
         Ok(views.html.application.onlineTests.phase3TestsComplete())
       }
   }
-
-  /*
-   * TODO
-  def completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
-    implicit user =>
-      applicationClient.completeTestByToken(token).map { _ =>
-        Ok(views.html.application.onlineTests.sjqComplete_continuePhase1Tests())
-      }
-  }*/
-
-  /*
-   * TODO
-  private def startLaunchpadTest(cubiksTests: Iterable[CubiksTest])(implicit hc: HeaderCarrier) = {
-    cubiksTests.find(!_.completed).map { testToStart =>
-      applicationClient.startTest(testToStart.cubiksUserId)
-      Future.successful(Redirect(testToStart.testUrl))
-    }.getOrElse(Future.successful(NotFound))
-  }
-  */
 }

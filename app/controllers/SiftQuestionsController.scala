@@ -108,7 +108,7 @@ abstract class SiftQuestionsController(
         form => {
           for {
             schemes <- candidateCurrentSiftableSchemes(user.application.applicationId)
-            _ <- siftClient.updateSchemeSpecificAnswer(user.application.applicationId,schemeId, SchemeSpecificAnswer.apply(form.rawText))
+            _ <- siftClient.updateSchemeSpecificAnswer(user.application.applicationId, schemeId, SchemeSpecificAnswer.apply(form.rawText))
           } yield {
             continueOrReturn(
               getNextStep(schemeId, schemes),
