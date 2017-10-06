@@ -269,7 +269,7 @@ trait CandidateAllocationService extends EventSink {
   )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     val eventDate = event.date.toString(dateFormat)
-    val localTime = event.sessions.find(_.id == sessionId).map(_.startTime).getOrElse(event.startTime)
+    val localTime = event.sessions.find(_.id == sessionId.toString).map(_.startTime).getOrElse(event.startTime)
     val eventTime = localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
     val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
     val eventGuideUrl = eventGuide(event).getOrElse("")
