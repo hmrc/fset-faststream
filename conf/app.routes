@@ -16,6 +16,7 @@ PUT         /partner-graduate-programmes/:applicationId                  control
 PUT         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.update(userId: String, applicationId: String)
 GET         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.find(userId: String, applicationId: String)
 
+GET         /application/find/:applicationId                             controllers.ApplicationController.findByApplicationId(applicationId: String)
 PUT         /application/create                                          controllers.ApplicationController.createApplication
 GET         /application/progress/:applicationId                         controllers.ApplicationController.applicationProgress(applicationId: String)
 GET         /application/status/:applicationId                           controllers.ApplicationController.findApplicationStatusDetails(applicationId: String)
