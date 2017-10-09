@@ -29,6 +29,7 @@ import model.persisted.eventschedules.{ Event, EventType }
 import model.persisted.{ ContactDetails, PersonalDetails }
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
 import model.stc.StcEventTypes.StcEvents
+import org.joda.time.LocalDate
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -271,7 +272,14 @@ trait CandidateAllocationService extends EventSink {
     val eventDate = event.date.toString(dateFormat)
     val localTime = event.sessions.find(_.id == sessionId.toString).map(_.startTime).getOrElse(event.startTime)
     val eventTime = localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
-    val deadlineDateTime = event.date.minusDays(10).toString(dateFormat)
+
+    val tenBeforeEventDate = event.date.minusDays(10)
+    val deadlineDateTime = if (tenBeforeEventDate.isBefore(LocalDate.now())) {
+      LocalDate.now().plusDays(1).toString(dateFormat)
+    } else {
+      tenBeforeEventDate.toString(dateFormat)
+    }
+
     val eventGuideUrl = eventGuide(event).getOrElse("")
 
     applicationRepo.find(candidateAllocation.id).flatMap {
