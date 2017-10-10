@@ -275,6 +275,18 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statuses)
   }
 
+  def rollbackToSubmittedFromOnlineTestsExpired(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.PHASE1_TESTS_INVITED,
+      ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE1_TESTS_EXPIRED
+    )
+    rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statuses)
+  }
+
+  def convertToFastStreamRouteWithFastpass(applicationId: String, fastPass: Int)
+
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,
                                            statuses: List[ProgressStatuses.ProgressStatus]) = {
