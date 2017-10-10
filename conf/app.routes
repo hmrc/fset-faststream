@@ -166,7 +166,7 @@ GET         /candidate-allocations/sessions/findByApplicationId                 
 GET         /candidate-allocations/add-new-attributes                                        controllers.CandidateAllocationController.addNewAttributes()
 
 
-POST          /assessments/fsb-events/:eventId/sessions/:sessionId/results                controllers.FsbTestGroupController.save(eventId: String, sessionId: String)
+POST          /assessments/fsb-scheme/results                                             controllers.FsbTestGroupController.savePerScheme()
 GET           /assessments/fsb-events/results                                             controllers.FsbTestGroupController.find(applicationIds: List[String], fsbType: Option[String])
 
 # Day aggregate events
