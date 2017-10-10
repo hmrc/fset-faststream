@@ -165,7 +165,6 @@ trait FsbService extends CurrentSchemeStatusHelper {
     appId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
     if (firstResidualPreference(newCurrentSchemeStatus).nonEmpty) {
       retrieveCandidateDetails(appId).flatMap { case (app, cd) =>
-        print(s"\n INVOKE NOTIFY ${cd.email} , ${app.name}")
         emailClient.notifyCandidateOnFinalFailure(cd.email, app.name)
       }
     } else {
