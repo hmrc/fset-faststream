@@ -145,7 +145,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   ) = {
     val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
-    val candidatesSiftableSchemes = schemeRepo.siftableAndNoEvaluationSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
+    val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
     val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
     Seq(currentSchemeStatusBSON(newSchemeStatus),

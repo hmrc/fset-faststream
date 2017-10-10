@@ -137,8 +137,18 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
     def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult], latestProgressStatus: Option[ProgressStatus]) = {
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
-      val shouldProgressToFSAC = !latestProgressStatus.contains(ProgressStatuses.SIFT_ENTERED) &&
-        (greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet)
+
+      val onlyNonSiftableSchemesLeft = greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet
+
+      // siftable schemes but no evaluation requirement and form filled in (SIFT_READY)
+      val onlyNoSiftEvaluationRequiredSchemesWithFormFilled = latestProgressStatus.contains(ProgressStatuses.SIFT_READY) &&
+        (greenSchemes subsetOf schemesRepo.noSiftEvaluationRequiredSchemeIds.toSet)
+
+      val canProgressSdipFaststreamCandidate = greenSchemes.contains(SchemeId("Sdip")) && schemeStatus.size > 1 &&
+        latestProgressStatus.contains(ProgressStatuses.SIFT_READY)
+
+      val shouldProgressToFSAC = onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled ||
+        canProgressSdipFaststreamCandidate
 
       if (shouldProgressToFSAC) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map { _ =>
