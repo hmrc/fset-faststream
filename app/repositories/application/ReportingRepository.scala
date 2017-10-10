@@ -251,7 +251,9 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
           BSONArray(
             BSONDocument("$or" ->
               BSONArray(
-                BSONDocument("applicationRoute" -> "Faststream"),
+                BSONDocument("applicationRoute" -> BSONDocument("$in" ->
+                  Seq(ApplicationRoute.Faststream.toString, ApplicationRoute.SdipFaststream.toString))
+                ),
                 BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
               )
             ),
