@@ -19,6 +19,8 @@ package controllers
 import java.nio.file.Files
 
 import akka.stream.scaladsl.Source
+import connectors.exchange.UserIdResponse
+import controllers.ApplicationController.CandidateNotFound
 import model.Exceptions.{ ApplicationNotFound, CannotUpdateFSACIndicator, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
 import play.api.libs.json.Json
@@ -46,6 +48,8 @@ object ApplicationController extends ApplicationController {
   val assessmentCentreService = AssessmentCentreService
   val uploadRepository = fileUploadRepository
   val personalDetailsService = PersonalDetailsService
+
+  case class CandidateNotFound(msg: String) extends Exception(msg)
 }
 
 trait ApplicationController extends BaseController {
@@ -63,6 +67,12 @@ trait ApplicationController extends BaseController {
         auditService.logEvent("ApplicationCreated")
         Ok(Json.toJson(result))
       }
+    }
+  }
+
+  def findByApplicationId(applicationId: String) = Action.async { implicit request =>
+    appRepository.find(applicationId).map { app =>
+      Ok(Json.toJson(UserIdResponse(app.map(_.userId).getOrElse(throw CandidateNotFound(applicationId)))))
     }
   }
 
