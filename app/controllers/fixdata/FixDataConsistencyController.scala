@@ -69,16 +69,16 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
-  def rollbackCandidateToPhase2(applicationId: String): Action[AnyContent] = Action.async {
-    rollbackApplicationState(applicationId, applicationService.rollbackCandidateToPhase2Completed)
+  def rollbackToPhase2CompletedFromPhase2Failed(applicationId: String): Action[AnyContent] = Action.async {
+    rollbackApplicationState(applicationId, applicationService.rollbackCandidateToPhase2CompletedFromPhase2Failed)
   }
 
-  def rollbackPhase1FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
-    rollbackApplicationState(applicationId, applicationService.rollbackPhase1FailedNotified)
+  def rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
+    rollbackApplicationState(applicationId, applicationService.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified)
   }
 
-  def rollbackPhase2FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
-    rollbackApplicationState(applicationId, applicationService.rollbackPhase2FailedNotified)
+  def rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
+    rollbackApplicationState(applicationId, applicationService.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified)
   }
 
   def rollbackApplicationState(applicationId: String, operator: String => Future[Unit]): Future[Result] = {

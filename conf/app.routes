@@ -87,9 +87,9 @@ DELETE      /diagnostic/application/:applicationId/eTray                        
 DELETE      /diagnostic/application/:applicationId/progress/:progress                   controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
 DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
 PUT         /diagnostic/application/:applicationId/fastPassPromotion                    controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-phase2                   controllers.fixdata.FixDataConsistencyController.rollbackCandidateToPhase2(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-phase1-failed-status        controllers.fixdata.FixDataConsistencyController.rollbackPhase1FailedNotified(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-phase2-failed-status        controllers.fixdata.FixDataConsistencyController.rollbackPhase2FailedNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase2-completed-from-phase2-failed                   controllers.fixdata.FixDataConsistencyController.rollbackToPhase2CompletedFromPhase2Failed(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase1-results-received-from-phase1-failed        controllers.fixdata.FixDataConsistencyController.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase2-results-received-from-phase2-failed        controllers.fixdata.FixDataConsistencyController.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
