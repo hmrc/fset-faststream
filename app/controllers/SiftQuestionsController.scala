@@ -24,7 +24,7 @@ import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
 import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
-import helpers.{ CachedUserWithSchemeData, CurrentSchemeStatus }
+import helpers.CachedUserWithSchemeData
 import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
 import security.Roles.{ PreviewSchemeSpecificQuestionsRole, SchemeSpecificQuestionsRole }
 
@@ -34,7 +34,7 @@ import play.api.Play.current
 import play.api.mvc.{ Action, AnyContent, Result }
 import security.{ SecurityEnvironment, SilhouetteComponent }
 import helpers.NotificationType._
-import models.UniqueIdentifier
+import models.{ SchemeStatus, UniqueIdentifier }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient) {
@@ -179,8 +179,9 @@ abstract class SiftQuestionsController(
 
   private def candidateCurrentSiftableSchemes(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     applicationClient.getCurrentSchemeStatus(applicationId).flatMap { schemes =>
+      val resultIsGreen: (String => Boolean) = (schemeRes: String) => schemeRes == SchemeStatus.Green.toString
       Future.traverse(schemes.collect {
-        case scheme if scheme.result != "Red" => scheme.schemeId
+        case scheme if resultIsGreen(scheme.result) => scheme.schemeId
       }) { schemeId =>
         schemeMetadata(schemeId)
       }.map(_.collect { case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id})

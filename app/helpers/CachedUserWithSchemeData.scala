@@ -51,8 +51,9 @@ class CachedUserWithSchemeData(
   lazy val successfulSchemes = currentSchemesStatus.filter(_.status == SchemeStatus.Green)
   lazy val failedSchemes = currentSchemesStatus.filter(_.status == SchemeStatus.Red)
   lazy val withdrawnSchemes = currentSchemesStatus.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme}
+  // I think we should get rid of this filter
   lazy val successfulAndWithdrawnSchemes = currentSchemesStatus.filterNot(_.status == SchemeStatus.Red)
-  lazy val schemesForSiftForms = successfulAndWithdrawnSchemes.collect {
+  lazy val schemesForSiftForms = successfulSchemes.collect {
     case s if s.scheme.siftRequirement.contains(SiftRequirement.FORM) => s.scheme
   }
 
@@ -60,8 +61,8 @@ class CachedUserWithSchemeData(
   lazy val noFailedSchemes = failedSchemes.size
   lazy val noWithdrawnSchemes = withdrawnSchemes.size
 
-  lazy val hasFormRequirement = successfulAndWithdrawnSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
-  lazy val hasNumericRequirement = successfulAndWithdrawnSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
+  lazy val hasFormRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
+  lazy val hasNumericRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   lazy val isNumericOnly = !hasFormRequirement && hasNumericRequirement
   lazy val requiresAssessmentCentre = !(RoleUtils.isSdip(toCachedData) || RoleUtils.isEdip(toCachedData))
 
