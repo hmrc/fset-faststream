@@ -29,6 +29,7 @@ import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.{ FsbMongoRepository, FsbRepository }
 import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
+import services.application.DSSchemeIds._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -84,6 +85,48 @@ trait FsbService extends CurrentSchemeStatusHelper {
     }
   }
 
+  private def getResultsForScheme(schemeId: SchemeId, results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
+    import DSSchemeIds._
+    val r = schemeId match {
+      case DiplomaticServiceEconomists =>
+        val res = Seq(
+          results.find(r => EacSchemes.contains(r.schemeId)),
+          results.find(_.schemeId == DiplomaticService)
+        ).flatten
+        Logger.info(s">>>>>>> Results for GES-DS: $res")
+        require(res.size == 2 || res.exists(_.result == Red.toString), s"$DiplomaticServiceEconomists require EAC && FCO test results")
+        res
+      case GovernmentEconomicsService =>
+        results.find(r => EacSchemes.contains(r.schemeId)).toSeq
+      case _ =>
+        results.find(_.schemeId == schemeId).toSeq
+    }
+    if (r.forall(_.result == Green.toString)) {
+      SchemeEvaluationResult(schemeId, Green.toString)
+    } else if (r.exists(_.result == Red.toString)) {
+      SchemeEvaluationResult(schemeId, Red.toString)
+    } else {
+      throw new Exception(s"Unexpected result in FSB scheme $schemeId fsbEvaluation ($r)")
+    }
+  }
+
+  private def canEvaluateNextWithExistingResults(
+    currentSchemeStatus: Seq[SchemeEvaluationResult],
+    newFirstScheme: Option[SchemeEvaluationResult],
+    fsbEvaluation: Seq[SchemeEvaluationResult]
+  ): Boolean = {
+    def schemeWasEvaluatedBefore(id: SchemeId): Boolean = {
+      currentSchemeStatus.map(_.schemeId).takeWhile(_ != newFirstScheme.get).contains(id)
+    }
+    newFirstScheme.map(_.schemeId) match {
+      case Some(DiplomaticService) if fsbEvaluation.exists(_.schemeId == DiplomaticService) => true
+      case Some(GovernmentEconomicsService) if fsbEvaluation.exists(r => EacSchemes.contains(r.schemeId)) => true
+      case Some(DiplomaticServiceEconomists) if schemeWasEvaluatedBefore(GovernmentEconomicsService) => true
+      case Some(DiplomaticServiceEconomists) if schemeWasEvaluatedBefore(DiplomaticService) => true
+      case _ => false
+    }
+  }
+
   private def passOrFailFsb(appId: String,
     fsbEvaluation: Option[Seq[SchemeEvaluationResult]],
     firstResidualPreferenceOpt: Option[SchemeEvaluationResult],
@@ -92,35 +135,31 @@ trait FsbService extends CurrentSchemeStatusHelper {
     require(fsbEvaluation.isDefined, "Evaluation for scheme must be defined to reach this stage, unexpected error.")
     require(firstResidualPreferenceOpt.isDefined, "First residual preference must be defined to reach this stage, unexpected error.")
 
-    val firstResidualPreference = firstResidualPreferenceOpt.get
+    val firstResidualInEvaluation = getResultsForScheme(firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)
 
-    val firstResidualInEvaluation = fsbEvaluation.get.find(_.schemeId == firstResidualPreference.schemeId)
-
-    require(firstResidualInEvaluation.isDefined,
-      "First residual preference must be present in FSB fsbEvaluation for pass/fail, unexpected error.")
-
-    val firstResidualInEval = firstResidualInEvaluation.get
-
-    if (firstResidualInEval.result == Green.toString) {
+    if (firstResidualInEvaluation.result == Green.toString) {
       for {
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
         // There are no notifications before going to eligible but we want audit trail to show we've passed
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
       } yield ()
 
-    } else if (firstResidualInEvaluation.get.result == Red.toString) {
-        for {
-          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)
-          newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluation.get)
-          _ <- fsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)
-          _ <- maybeMarkAsFailedAll(appId, newCurrentSchemeStatus)
-          _ <- maybeNotifyOnFailNeedNewFsb(appId, newCurrentSchemeStatus)
-        } yield ()
     } else {
-      throw new Exception(s"Unexpected result in FSB scheme fsbEvaluation (${firstResidualInEvaluation.get})")
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED).flatMap { _ =>
+        val newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluation.get ++ Seq(firstResidualInEvaluation))
+        val newFirstPreference = firstResidualPreference(newCurrentSchemeStatus)
+        fsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus).flatMap { _ =>
+          if (canEvaluateNextWithExistingResults(currentSchemeStatus, newFirstPreference, fsbEvaluation.get)) {
+            passOrFailFsb(appId, fsbEvaluation, newFirstPreference, newCurrentSchemeStatus)
+          } else {
+            maybeMarkAsFailedAll(appId, newFirstPreference).flatMap(_ =>
+              maybeNotifyOnFailNeedNewFsb(appId, newCurrentSchemeStatus)
+            )
+          }
+        }
+      }
     }
   }
-
 
   private def maybeNotifyOnFailNeedNewFsb(
     appId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -140,8 +179,8 @@ trait FsbService extends CurrentSchemeStatusHelper {
     }
   }
 
-  private def maybeMarkAsFailedAll(appId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
-    if (firstResidualPreference(newCurrentSchemeStatus).isEmpty) {
+  private def maybeMarkAsFailedAll(appId: String, newFirstResidualPreference: Option[SchemeEvaluationResult]): Future[Unit] = {
+    if (newFirstResidualPreference.isEmpty) {
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_AND_FSACS_FAILED)
     } else {
       Future.successful(())
@@ -169,11 +208,27 @@ trait FsbService extends CurrentSchemeStatusHelper {
     val maybeSchemeId = mayBeFsbType.flatMap { fsb =>
       Try(schemeRepo.getSchemeForFsb(fsb)).toOption
     }.map(_.id)
-    findByApplicationIdsAndScheme(applicationIds, maybeSchemeId)
+    val maybeSchemeIds = maybeSchemeId match {
+      case None => List(None)
+      case Some(schemeId) if schemeId == DiplomaticServiceEconomists => List(Some(DiplomaticService), Some(GovernmentEconomicsService))
+      case Some(schemeId) => List(Some(schemeId))
+    }
+
+    Future.sequence(maybeSchemeIds.map { maybeSId =>
+      findByApplicationIdsAndScheme(applicationIds, maybeSId)
+    }).map(_.flatten)
   }
 
   def findByApplicationIdsAndScheme(applicationIds: List[String], mayBeSchemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
     fsbRepo.findByApplicationIds(applicationIds, mayBeSchemeId)
   }
 
+}
+
+object DSSchemeIds {
+  val DiplomaticServiceEconomists = SchemeId("DiplomaticServiceEconomists") // EAC_DS -> GES_DS
+  val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService") // EAC -> GES
+  val DiplomaticService = SchemeId("DiplomaticService") // FCO -> DS
+
+  val EacSchemes = List(DiplomaticServiceEconomists, GovernmentEconomicsService)
 }

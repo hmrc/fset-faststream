@@ -26,7 +26,6 @@ import resource._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
-
 object SchemeConfigProtocol extends DefaultYamlProtocol {
   implicit object SiftRequirementFormat extends YamlFormat[SiftRequirement.Value] {
     def read(value: YamlValue): SiftRequirement.Value = value match {
@@ -76,11 +75,11 @@ trait SchemeRepository {
 
   def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id }
 
-  def siftableAndNoEvaluationSchemeIds: Seq[SchemeId] = schemes.collect {
+  def siftableAndEvaluationRequiredSchemeIds: Seq[SchemeId] = schemes.collect {
     case s if s.siftRequirement.isDefined && s.siftEvaluationRequired => s.id
   }
 
-  def nonSiftableAndNoEvaluationSchemeIds: Seq[SchemeId] = schemes.collect {
+  def noSiftEvaluationRequiredSchemeIds: Seq[SchemeId] = schemes.collect {
     case s if !s.siftEvaluationRequired => s.id
   }
 
