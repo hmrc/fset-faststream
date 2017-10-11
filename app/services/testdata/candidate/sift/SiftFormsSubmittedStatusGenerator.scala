@@ -16,6 +16,7 @@
 
 package services.testdata.candidate.sift
 
+import common.FutureEx
 import model.{ ApplicationStatus, EvaluationResults, SiftRequirement }
 import model.command.ApplicationForSift
 import model.exchange.sift.GeneralQuestionsAnswers
@@ -51,15 +52,19 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
 
   def generateSchemeAnswers = SchemeSpecificAnswer(DataFaker.loremIpsum)
 
-  def saveSchemeAnswers(appId: String, p3: TestGroupResponse): Future[List[Unit]] = p3.schemeResult.map { sr =>
-    Future.traverse(sr.result) { result =>
-      schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
-        if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
-          siftService.addSchemeSpecificAnswer(appId, result.schemeId, generateSchemeAnswers)
-        } else { Future() }
-      }.getOrElse( Future() )
+  def saveSchemeAnswers(appId: String, p3: TestGroupResponse): Future[List[Unit]] = {
+    p3.schemeResult.map { sr =>
+      FutureEx.traverseSerial(sr.result) { result =>
+          schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
+            if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
+              siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
+            } else {
+              Future()
+            }
+          }.getOrElse(Future())
+        }
+      }.getOrElse(Future.successful(Nil))
     }
-  }.getOrElse(Future.successful(Nil))
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
