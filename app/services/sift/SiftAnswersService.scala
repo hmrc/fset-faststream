@@ -74,9 +74,8 @@ trait SiftAnswersService {
     for {
       currentSchemeStatus <- appRepo.getCurrentSchemeStatus(applicationId)
       schemesPassed = currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
-      schemesPassedAndWithdrawn = currentSchemeStatus.filterNot(_.result == EvaluationResults.Red.toString).map(_.schemeId).toSet
       schemesPassedRequiringSift = schemeRepository.schemes.filter( s =>
-        schemesPassedAndWithdrawn.contains(s.id) && s.siftRequirement.contains(SiftRequirement.FORM)
+        schemesPassed.contains(s.id) && s.siftRequirement.contains(SiftRequirement.FORM)
       ).map(_.id).toSet
       schemesPassedNotRequiringSift = schemeRepository.schemes.filter( s =>
         schemesPassed.contains(s.id) && !s.siftEvaluationRequired
