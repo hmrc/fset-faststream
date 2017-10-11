@@ -84,16 +84,9 @@ trait FixDataConsistencyController extends BaseController {
   def rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int): Action[AnyContent] = Action.async {
 
     for {
-      _ <- applicationService.convertToFastStreamRouteWithFastpass(applicationId, fastPass)
-      _ <- rollbackApplicationState(applicationId, applicationService.rollbackToSubmittedFromOnlineTestsExpired)
-    } yield ()
-
-    // Set applicationRoute
-
-    // Add fastpass details
-
-    // Remove testGroups
-
+      _ <- applicationService.convertToFastStreamRouteWithFastpassFromOnlineTestsExpired(applicationId, fastPass)
+      response <- rollbackApplicationState(applicationId, applicationService.rollbackToSubmittedFromOnlineTestsExpired)
+    } yield response
   }
 
   def rollbackApplicationState(applicationId: String, operator: String => Future[Unit]): Future[Result] = {
