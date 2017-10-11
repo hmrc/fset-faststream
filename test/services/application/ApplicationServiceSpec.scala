@@ -29,15 +29,17 @@ import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.fsb.FsbRepository
-import repositories.onlinetesting._
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.{ MediaRepository, SchemeRepository }
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import repositories.assessmentcentre.AssessmentCentreRepository
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
+import repositories.fsb.FsbRepository
+import repositories.onlinetesting._
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.stc.StcEventServiceFixture
@@ -623,12 +625,16 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val mediaRepoMock: MediaRepository = mock[MediaRepository]
     val evalPhase1ResultMock: EvaluatePhase1ResultService = mock[EvaluatePhase1ResultService]
     val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
+    val phase1TestRepositoryMock: Phase1TestRepository = mock[Phase1TestRepository]
     val phase2TestRepositoryMock: Phase2TestRepository = mock[Phase2TestRepository]
     val fsacRepoMock = mock[AssessmentCentreRepository]
     val fsbRepoMock = mock[FsbRepository]
     val phase1EvaluationRepositoryMock = mock[Phase1EvaluationMongoRepository]
     val phase2EvaluationRepositoryMock = mock[Phase2EvaluationMongoRepository]
     val phase3EvaluationRepositoryMock = mock[Phase3EvaluationMongoRepository]
+
+    val civilServiceExperienceRepositoryMock = mock[CivilServiceExperienceDetailsRepository]
+
     val business = "Business"
     val commercial = "Commercial"
     val digitalAndTechnology = "DigitalAndTechnology"
@@ -643,6 +649,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val projectDelivery = "ProjectDelivery"
     val scienceAndEngineering = "ScienceAndEngineering"
     val sdip = "Sdip"
+
     val mockSchemeRepo = new SchemeRepository {
       override lazy val siftableSchemeIds = Seq(SchemeId(commercial), SchemeId(digitalAndTechnology), SchemeId(diplomaticService))
       override lazy val noSiftEvaluationRequiredSchemeIds = Seq(SchemeId(digitalAndTechnology), SchemeId(edip), SchemeId(generalist),
@@ -662,12 +669,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val schemesRepo = mockSchemeRepo
       val evaluateP1ResultService = evalPhase1ResultMock
       val evaluateP3ResultService = evalPhase3ResultMock
+      val phase1TestRepo = phase1TestRepositoryMock
       val phase2TestRepository = phase2TestRepositoryMock
       val fsacRepo = fsacRepoMock
       val fsbRepo = fsbRepoMock
       val phase1EvaluationRepository = phase1EvaluationRepositoryMock
       val phase2EvaluationRepository = phase2EvaluationRepositoryMock
       val phase3EvaluationRepository = phase3EvaluationRepositoryMock
+      val civilServiceExperienceDetailsRepo = civilServiceExperienceRepositoryMock
     }
 
     implicit val hc = HeaderCarrier()
