@@ -18,7 +18,6 @@ package services.assessmentcentre
 
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{AssessmentEvaluationResult, CompetencyAverageResult, Green}
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED, ProgressStatus}
 import model._
@@ -27,7 +26,6 @@ import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.Logger
-import reactivemongo.bson.BSONDocument
 import repositories.{AssessmentScoresRepository, CurrentSchemeStatusHelper}
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
