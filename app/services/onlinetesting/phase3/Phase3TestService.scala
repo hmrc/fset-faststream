@@ -312,8 +312,6 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
             for {
               _ <- testRepository.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
               updated <- testRepository.getTestGroupByToken(launchpadInviteId)
-              // Launchpad only: If a user has completed unexpire them
-              _ <- removeExpiryStatus(updated.applicationId)
               _ <- testRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
             } yield {
               AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
@@ -360,8 +358,6 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       _ =>
         for {
           testGroup <- testRepository.getTestGroupByToken(launchpadInviteId)
-          // Launchpad only: If results have been sent for a user, unexpire them
-          _ <- removeExpiryStatus(testGroup.applicationId)
           _ <- testRepository.updateProgressStatus(testGroup.applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
         } yield {
           AuditEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::

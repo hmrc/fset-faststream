@@ -454,6 +454,22 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
   }
 
+  "remove test group" should {
+    val date = DateTime.now().plusHours(22)
+    val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
+
+    "remove the test group" in {
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
+      phase1TestRepo.insertOrUpdateTestGroup("appId", testProfile).futureValue
+
+      phase1TestRepo.getTestGroup("appId").futureValue mustBe defined
+
+      phase1TestRepo.removeTestGroup("appId").futureValue
+
+      phase1TestRepo.getTestGroup("appId").futureValue mustNot be(defined)
+    }
+  }
+
   "Progress status" should {
     "update progress status to PHASE1_TESTS_STARTED" in {
       createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue

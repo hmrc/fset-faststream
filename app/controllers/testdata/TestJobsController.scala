@@ -20,6 +20,7 @@ import play.api.mvc.{ Action, AnyContent }
 import scheduler.assessment.EvaluateAssessmentScoreJob
 import scheduler.onlinetesting.{ EvaluatePhase1ResultJob, EvaluatePhase2ResultJob, EvaluatePhase3ResultJob }
 import scheduler._
+import scheduler.fsb.EvaluateFsbJob
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -67,6 +68,12 @@ class TestJobsController extends BaseController {
   def evaluateAssessmentScoresCandidate: Action[AnyContent] = Action.async { implicit request =>
     EvaluateAssessmentScoreJob.tryExecute().map { _ =>
       Ok("Evaluate assessment score job started")
+    }
+  }
+
+  def evaluateFsbResults = Action.async { implicit request =>
+    EvaluateFsbJob.tryExecute().map { _ =>
+      Ok("Evaluate FSB Results Job started")
     }
   }
 

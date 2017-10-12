@@ -35,6 +35,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import repositories.onlinetesting._
@@ -61,13 +62,14 @@ object ApplicationService extends ApplicationService {
   val evaluateP1ResultService = EvaluatePhase1ResultService
   val evaluateP3ResultService = EvaluatePhase3ResultService
   val schemesRepo = SchemeYamlRepository
+  val phase1TestRepo = repositories.phase1TestRepository
   val phase2TestRepository = repositories.phase2TestRepository
   val phase1EvaluationRepository = faststreamPhase1EvaluationRepository
   val phase2EvaluationRepository = faststreamPhase2EvaluationRepository
   val phase3EvaluationRepository = faststreamPhase3EvaluationRepository
   val fsacRepo = assessmentCentreRepository
   val fsbRepo = fsbRepository
-
+  val civilServiceExperienceDetailsRepo = civilServiceExperienceDetailsRepository
 }
 
 // scalastyle:off number.of.methods
@@ -81,12 +83,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings]
   def evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
   def schemesRepo: SchemeRepository
+  def phase1TestRepo: Phase1TestRepository
   def phase2TestRepository: Phase2TestRepository
   def phase1EvaluationRepository: Phase1EvaluationMongoRepository
   def phase2EvaluationRepository: Phase2EvaluationMongoRepository
   def phase3EvaluationRepository: Phase3EvaluationMongoRepository
   def fsacRepo: AssessmentCentreRepository
   def fsbRepo: FsbRepository
+  def civilServiceExperienceDetailsRepo: CivilServiceExperienceDetailsRepository
 
   val Candidate_Role = "Candidate"
 
@@ -106,7 +110,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
             withdrawFromScheme(applicationId, withdrawScheme)
           }
       }
-    }) flatMap  identity
+    }) flatMap identity
 
   }
 
@@ -299,6 +303,27 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
       ProgressStatuses.PHASE2_TESTS_FAILED)
     rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statuses)
+  }
+
+  def rollbackToSubmittedFromOnlineTestsExpired(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.PHASE1_TESTS_INVITED,
+      ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE1_TESTS_STARTED,
+      ProgressStatuses.PHASE1_TESTS_EXPIRED
+    )
+    rollbackAppAndProgressStatus(applicationId, ApplicationStatus.SUBMITTED, statuses)
+  }
+
+  def convertToFastStreamRouteWithFastpassFromOnlineTestsExpired(applicationId: String, fastPass: Int): Future[Unit] = {
+    for {
+      _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream, ApplicationRoute.Faststream)
+      _ <- civilServiceExperienceDetailsRepo.update(applicationId, CivilServiceExperienceDetails(
+        applicable = true, Some(CivilServiceExperienceType.DiversityInternship), Some(Seq(InternshipType.SDIPCurrentYear)),
+        Some(true), Some(false), certificateNumber = Some(fastPass.toString)))
+      _ <- phase1TestRepo.removeTestGroup(applicationId)
+    } yield ()
   }
 
   private def rollbackAppAndProgressStatus(applicationId: String,

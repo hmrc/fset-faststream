@@ -16,6 +16,7 @@
 
 package model.exchange
 
+import model.SchemeId
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
@@ -26,7 +27,7 @@ object ApplicationResult {
   implicit val bsonHandler = Macros.handler[ApplicationResult]
 }
 
-case class FsbEvaluationResults(applicationResults: List[ApplicationResult])
+case class FsbEvaluationResults(schemeId: SchemeId, applicationResults: List[ApplicationResult])
 
 object FsbEvaluationResults {
   implicit val format = Json.format[FsbEvaluationResults]

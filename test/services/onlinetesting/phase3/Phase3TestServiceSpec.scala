@@ -318,11 +318,11 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyAuditEvents(1, "VideoInterviewCompleted")
     }
 
-    "change progress to completed if there are all tests completed and remove expired, if it was set" in new Phase3TestServiceFixture {
+    "change progress to completed if there are all tests completed and DO NOT remove expired, if it was set" in new Phase3TestServiceFixture {
       phase3TestServiceWithExpiredTestGroup.markAsCompleted(testInviteId).futureValue
 
       verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)
-      verify(appRepositoryMock).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
+      verify(appRepositoryMock, times(0)).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
 
       verifyDataStoreEvents(1, "VideoInterviewCompleted")
       verifyAuditEvents(1, "VideoInterviewCompleted")
@@ -339,11 +339,11 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyAuditEvents(1, "VideoInterviewResultsReceived")
     }
 
-    "change progress to results received when any result set arrives and unexpire the testgroup if expired" in new Phase3TestServiceFixture {
+    "change progress to results received when any result set arrives and DO NOT unexpire the testgroup if expired" in new Phase3TestServiceFixture {
       phase3TestServiceWithExpiredTestGroup.markAsResultsReceived(testInviteId).futureValue
 
       verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
-      verify(appRepositoryMock).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
+      verify(appRepositoryMock, times(0)).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
 
       verifyDataStoreEvents(1, "VideoInterviewResultsReceived")
       verifyAuditEvents(1, "VideoInterviewResultsReceived")

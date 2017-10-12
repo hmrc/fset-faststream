@@ -45,6 +45,9 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
 
   def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
+  // Caution - for administrative fixes only (dataconsistency)
+  def removeTestGroup(applicationId: String): Future[Unit]
+
   def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds]]
 
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
@@ -146,6 +149,17 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
+
+    collection.update(query, update) map validator
+  }
+
+  // Caution - for administrative fixes only (dataconsistency)
+  def removeTestGroup(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val update = BSONDocument("$unset" -> BSONDocument(s"testGroups.$phaseName" -> ""))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing test group")
 
     collection.update(query, update) map validator
   }
