@@ -240,7 +240,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
       Logger.warn("========= Starting gets for uid = " + userId)
 
-      val personalDetails = doc.getAs[PersonalDetails]("personal-details").get
+      val personalDetails = doc.getAs[PersonalDetails]("personal-details").getOrElse(
+        throw new Exception(s"Error parsing personal details for $userId")
+      )
 
       Logger.warn("========= Starting get 1")
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
@@ -250,7 +252,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
       Logger.warn("========= Starting get 2")
-      val currentSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").get
+      val currentSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(
+        throw new Exception(s"Error parsing current scheme status for $userId")
+      )
 
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
