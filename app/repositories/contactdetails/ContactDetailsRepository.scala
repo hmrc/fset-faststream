@@ -139,12 +139,12 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
-      val root = doc.getAs[BSONDocument]("contact-details").get
-      val outsideUk = root.getAs[Boolean]("outsideUk").get
-      val address = root.getAs[Address]("address").get
+      val root = doc.getAs[BSONDocument]("contact-details").getOrElse(throw new Exception(s"Contact details not found for $id"))
+      val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(throw new Exception(s"Outside UK not found for $id"))
+      val address = root.getAs[Address]("address").getOrElse(throw new Exception(s"Address not found for $id"))
       val postCode = root.getAs[PostCode]("postCode")
       val phone = root.getAs[PhoneNumber]("phone")
-      val email = root.getAs[String]("email").get
+      val email = root.getAs[String]("email").getOrElse(throw new Exception(s"Email not found for $id"))
 
       ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
     })
