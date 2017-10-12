@@ -238,14 +238,18 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
       val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
+      Logger.warn("========= Starting gets")
+
       val personalDetails = doc.getAs[PersonalDetails]("personal-details").get
 
+      Logger.warn("========= Starting get 1")
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
       val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
       val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
       val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
+      Logger.warn("========= Starting get 2")
       val currentSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").get
 
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
