@@ -320,24 +320,19 @@ trait ReportingController extends BaseController {
     val reports =
       for {
         applications <- reportingRepository.numericTestExtractReport.map(_.filter { app =>
-          Logger.warn("=== Processing uid = " + app.userId)
           val successfulSchemesSoFarIds = app.currentSchemeStatus.collect {
             case evalResult if evalResult.result == Green.toString => evalResult.schemeId
           }
           successfulSchemesSoFarIds.exists(numericTestSchemeIds.contains)
         })
-        _ = Logger.warn("=== Getting contact details for user ids...")
         contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId))
           .map(
             _.map(x => x.userId -> x)(breakOut): Map[String, ContactDetailsWithId]
           )
-        _ = Logger.warn("=== Got contact details for user ids.")
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield for {
         a <- applications
-        _ = Logger.warn("=== Getting contact details for user = " + a.userId)
         c <- contactDetails.get(a.userId)
-        _ = Logger.warn("=== Getting questionnare details for application = " + a.applicationId)
         q <- questionnaires.get(a.applicationId)
       } yield NumericTestExtractReportItem(a, c, q)
 

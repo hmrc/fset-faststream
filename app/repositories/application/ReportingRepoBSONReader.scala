@@ -241,32 +241,21 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
       val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
-      Logger.warn("========= Starting gets for uid = " + userId)
-
       val personalDetails = doc.getAs[PersonalDetails]("personal-details").getOrElse(
         throw new Exception(s"Error parsing personal details for $userId")
       )
 
-      Logger.warn("========= Starting get 1 for uid = " + userId)
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
       val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
       val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
       val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
-      Logger.warn("========= Starting get 2 for uid = " + userId)
-      val cssDebug = doc.getAs[BSONArray]("currentSchemeStatus").getOrElse(BSONDocument("No CSS" -> true))
-      Logger.warn("========= Starting get 3 for uid = " + userId + ", css = " + Json.toJson(cssDebug))
-
       val currentSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(
         throw new Exception(s"Error parsing current scheme status for $userId")
       )
 
-      Logger.warn("========= Starting get 4 for uid = " + userId)
-
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
-
-      Logger.warn("========= Starting get 5 for uid = " + userId)
 
       ApplicationForNumericTestExtractReport(
         userId,
