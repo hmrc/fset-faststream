@@ -238,7 +238,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
       val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
-      Logger.warn("========= Starting gets")
+      Logger.warn("========= Starting gets for uid = " + userId)
 
       val personalDetails = doc.getAs[PersonalDetails]("personal-details").get
 
