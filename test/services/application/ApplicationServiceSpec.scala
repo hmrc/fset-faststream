@@ -660,8 +660,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
     }
 
-    "not progress to FSAC allocation if I am an sdip faststream candidate with one other scheme and I am currently awaiting " +
-      "allocation to an assessment centre and I withdraw from the other scheme" in new TestFixture {
+    "rollback sdip faststream candidate who is awaiting allocation to an assessment centre after withdrawing from " +
+      "all fast stream schemes and just leaving sdip" in new TestFixture {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required
@@ -675,6 +675,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION), None, None))
+      when(appRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]])).thenReturnAsync()
 
       val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
 
@@ -683,8 +684,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
         any[Seq[SchemeEvaluationResult]]
       )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo("appId"),
-        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock).removeProgressStatuses(eqTo("appId"),
+        eqTo(List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)))
     }
 
     "throw an exception when withdrawing from the last scheme" in new TestFixture {
