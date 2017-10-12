@@ -303,7 +303,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream, ApplicationRoute.Faststream)
       _ <- civilServiceExperienceDetailsRepo.update(applicationId, CivilServiceExperienceDetails(
         applicable = true, Some(CivilServiceExperienceType.DiversityInternship), Some(Seq(InternshipType.SDIPCurrentYear)),
-        Some(true), Some(false), certificateNumber = Some(fastPass.toString)))
+        Some(true), None, certificateNumber = Some(fastPass.toString)))
       _ <- phase1TestRepo.removeTestGroup(applicationId)
     } yield ()
   }
