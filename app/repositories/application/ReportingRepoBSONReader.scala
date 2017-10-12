@@ -255,7 +255,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
       Logger.warn("========= Starting get 2 for uid = " + userId)
-      val cssDebug = doc.getAs[BSONDocument]("currentSchemeStatus").getOrElse(BSONDocument("No CSS" -> true))
+      val cssDebug = doc.getAs[BSONArray]("currentSchemeStatus").getOrElse(BSONDocument("No CSS" -> true))
       Logger.warn("========= Starting get 3 for uid = " + userId + ", css = " + Json.toJson(cssDebug))
 
       val currentSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(
