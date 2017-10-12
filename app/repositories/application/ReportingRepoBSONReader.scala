@@ -31,6 +31,7 @@ import model.command._
 import model.persisted._
 import model.report._
 import play.api.Logger
+import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories.{ BaseBSONReader, CommonBSONDocuments, CurrentSchemeStatusHelper }
 
@@ -232,6 +233,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   implicit val toApplicationForNumericTestExtractReport: BSONDocumentReader[ApplicationForNumericTestExtractReport] = bsonReader {
     (doc: BSONDocument) => {
+      import reactivemongo.json._
+
       val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
@@ -244,17 +247,22 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         throw new Exception(s"Error parsing personal details for $userId")
       )
 
-      Logger.warn("========= Starting get 1")
+      Logger.warn("========= Starting get 1 for uid = " + userId)
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
       val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
       val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
       val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
-      Logger.warn("========= Starting get 2")
+      Logger.warn("========= Starting get 2 for uid = " + userId)
+      val cssDebug = doc.getAs[BSONDocument]("currentSchemeStatus").getOrElse(BSONDocument("No CSS" -> true))
+      Logger.warn("========= Starting get 3 for uid = " + userId + ", css = " + Json.toJson(cssDebug))
+
       val currentSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(
         throw new Exception(s"Error parsing current scheme status for $userId")
       )
+
+      Logger.warn("========= Starting get 4 for uid = " + userId)
 
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
