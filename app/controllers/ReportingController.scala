@@ -23,6 +23,7 @@ import model.{ SiftRequirement, UniqueIdentifier }
 import model.persisted.ContactDetailsWithId
 import model.persisted.eventschedules.Event
 import model.report._
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories.application.{ ReportingMongoRepository, ReportingRepository }
@@ -324,14 +325,18 @@ trait ReportingController extends BaseController {
           }
           successfulSchemesSoFarIds.exists(numericTestSchemeIds.contains)
         })
+        _ = Logger.warn("=== Getting contact details for user ids...")
         contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId))
           .map(
             _.map(x => x.userId -> x)(breakOut): Map[String, ContactDetailsWithId]
           )
+        _ = Logger.warn("=== Got contact details for user ids.")
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield for {
         a <- applications
+        _ = Logger.warn("=== Getting contact details for user = " + a.userId)
         c <- contactDetails.get(a.userId)
+        _ = Logger.warn("=== Getting questionnare details for application = " + a.applicationId)
         q <- questionnaires.get(a.applicationId)
       } yield NumericTestExtractReportItem(a, c, q)
 
