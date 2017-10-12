@@ -266,6 +266,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
+      Logger.warn("========= Starting get 5 for uid = " + userId)
+
       ApplicationForNumericTestExtractReport(
         userId,
         applicationId,
@@ -315,22 +317,24 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult, videoInterviewResults, None)
   }
 
-  private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]) = {
-    val phase1Doc = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1))
-    val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
+  private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]): (Option[TestResult], Option[TestResult]) = {
+    testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1)).map { phase1Doc =>
+      val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc)
 
-    val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
-    val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
+      val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
+      val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
 
-    def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
-      phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
-        phase1Test.testResult.map { tr => toTestResult(tr) }
+      def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
+        phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
+          phase1Test.testResult.map { tr => toTestResult(tr) }
+        }
       }
-    }
-    (getTestResult(phase1TestProfile, behaviouralScheduleId), getTestResult(phase1TestProfile, situationalScheduleId))
+
+      (getTestResult(phase1TestProfile, behaviouralScheduleId), getTestResult(phase1TestProfile, situationalScheduleId))
+    }.getOrElse((None, None))
   }
 
-  private[application] def toPhase2TestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]) = {
+  private[application] def toPhase2TestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]): Option[TestResult] = {
     val phase2DocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE2))
     phase2DocOpt.flatMap { phase2Doc =>
       val phase2TestProfile = Phase2TestGroup.bsonHandler.read(phase2Doc)

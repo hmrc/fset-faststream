@@ -320,6 +320,7 @@ trait ReportingController extends BaseController {
     val reports =
       for {
         applications <- reportingRepository.numericTestExtractReport.map(_.filter { app =>
+          Logger.warn("=== Processing uid = " + app.userId)
           val successfulSchemesSoFarIds = app.currentSchemeStatus.collect {
             case evalResult if evalResult.result == Green.toString => evalResult.schemeId
           }
