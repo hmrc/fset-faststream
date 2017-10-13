@@ -133,7 +133,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       }
   }
 
-  //scalastyle:off
+  //scalastyle:off method.length cyclomatic.complexity
   private def withdrawFromScheme(applicationId: String, withdrawRequest: WithdrawScheme) = {
 
     def buildLatestSchemeStatus(current: Seq[SchemeEvaluationResult], withdrawal: WithdrawScheme)  = {
