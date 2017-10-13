@@ -87,7 +87,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
       _ <- RegisteredStatusGenerator.createUser(
         1,
         "test_qac@mailinator.com", "CSR Test", "QAC", Some("TestServiceManager"),
-        List(AuthProviderClient.QacRole)
+        List(AuthProviderClient.AssessorRole)
       )
       _ <- RegisteredStatusGenerator.createUser(
         1,
