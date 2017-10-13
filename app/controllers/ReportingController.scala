@@ -152,7 +152,7 @@ trait ReportingController extends BaseController {
     }
 
     sortedEventsFut.flatMap { events =>
-      val orderedDates = events.map(event => s"${event.date} (${event.eventType.toString})").mkString(",")
+      val orderedDates = events.map(event => s""""${event.date} (${event.eventType.toString}, ${event.location.name})"""").mkString(",")
       val headers = List(
         s"Name,Role,Skills,Sift schemes,Email,Phone,Internal/External,$orderedDates"
       )

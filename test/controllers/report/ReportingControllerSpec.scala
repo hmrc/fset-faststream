@@ -299,7 +299,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       result must have length 2
 
       val expectedHeaders = s"Name,Role,Skills,Sift schemes,Email,Phone," +
-        s"Internal/External,${EventExamples.e1.date.toString} (FSAC),${EventExamples.e2.date.toString} (FSB)"
+        s"""Internal/External,"${EventExamples.e1.date.toString} (FSAC, London)","${EventExamples.e2.date.toString} (FSB, London)""""
 
       result.head mustBe expectedHeaders
 
