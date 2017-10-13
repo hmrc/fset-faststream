@@ -89,7 +89,6 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
   "next assessment candidate" should {
     "return an assessment candidate score with application Id" in new ReturnPassMarksFixture {
-
       val commercialScheme = SchemeId("Commercial")
       (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
         .expects(*)
@@ -112,7 +111,6 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     }
 
     "withdrawn schemes should be not be evaluated" in new ReturnPassMarksFixture {
-
       val commercialScheme = SchemeId("Commercial")
       val datScheme = SchemeId("DigitalAndTechnology")
       val currentSchemeStatus = List(
@@ -136,6 +134,33 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       result must not be empty
       result.get.passmark mustBe passMarkSettings
       result.get.schemes mustBe List(commercialScheme)
+      result.get.scores.applicationId mustBe applicationId
+    }
+
+    "sdip scheme should be not be evaluated for sdip faststream candidates" in new ReturnPassMarksFixture {
+      val sdipScheme = SchemeId("Sdip")
+      val datScheme = SchemeId("DigitalAndTechnology")
+      val currentSchemeStatus = List(
+        SchemeEvaluationResult(schemeId = sdipScheme, result = Green.toString),
+        SchemeEvaluationResult(schemeId = datScheme, result = Green.toString)
+      )
+      (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
+        .expects(*)
+        .returning(Future.successful(Some(applicationId)))
+
+      (mockAssessmentScoresRepo.find _)
+        .expects(*)
+        .returning(Future.successful(Some(AssessmentScoresAllExercises(applicationId))))
+
+      (mockAppRepo.getCurrentSchemeStatus _)
+        .expects(*)
+        .returning(Future.successful(currentSchemeStatus))
+
+      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+
+      result must not be empty
+      result.get.passmark mustBe passMarkSettings
+      result.get.schemes mustBe List(datScheme)
       result.get.scores.applicationId mustBe applicationId
     }
 
