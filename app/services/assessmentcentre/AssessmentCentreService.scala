@@ -126,8 +126,8 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     val evaluationResult = evaluationEngine.evaluate(assessmentPassMarksSchemesAndScores, config)
     Logger.debug(s"$logPrefix evaluation result = $evaluationResult")
 
-    Logger.debug(s"$logPrefix now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}" +
-      s"")
+    Logger.debug(s"$logPrefix now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+
     val applicationId = assessmentPassMarksSchemesAndScores.scores.applicationId
     val evaluation = AssessmentPassMarkEvaluation(applicationId, assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
     for {
