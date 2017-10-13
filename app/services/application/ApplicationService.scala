@@ -300,7 +300,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   def convertToFastStreamRouteWithFastpassFromOnlineTestsExpired(applicationId: String, fastPass: Int): Future[Unit] = {
     for {
-      _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream, ApplicationRoute.Faststream)
+      // _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream, ApplicationRoute.Faststream)
       _ <- civilServiceExperienceDetailsRepo.update(applicationId, CivilServiceExperienceDetails(
         applicable = true, Some(CivilServiceExperienceType.DiversityInternship), Some(Seq(InternshipType.SDIPCurrentYear)),
         Some(true), None, certificateNumber = Some(fastPass.toString)))
