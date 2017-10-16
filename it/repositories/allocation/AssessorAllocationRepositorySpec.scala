@@ -38,6 +38,16 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
       repository.findAll().futureValue must contain theSameElementsAs allocations
     }
 
+    "find assessor allocations" in {
+      val moreAllocations = Seq(
+        AssessorAllocation("assessorId1", "eventId2", AllocationStatuses.UNCONFIRMED, SkillType.ASSESSOR, "version1")
+      )
+
+      repository.save(allocations ++ moreAllocations).futureValue
+      val res = repository.findAllocations(Seq("assessorId1", "assessorId3")).futureValue
+      res.size mustBe 3
+    }
+
     "correctly retrieve single document" in {
       repository.save(allocations).futureValue
       allocations.foreach { allocation =>
