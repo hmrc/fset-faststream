@@ -26,7 +26,6 @@ import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-
 class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
 
   "final success notified" must {
@@ -45,7 +44,7 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
         .returningAsync
 
       (mockFinalOutcomeRepo.firstResidualPreference _)
-        .expects(App1.currentSchemeStatus)
+        .expects(App1.currentSchemeStatus, false)
         .returning(Option(App1.currentSchemeStatus.head))
 
       ( mockFinalOutcomeRepo.progressToJobOfferNotified _ )
@@ -55,7 +54,6 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
       service.progressApplicationsToFinalSuccessNotified(Seq(App1)).futureValue
     }
   }
-
 
   "final failure notified" must {
     "progress candidate" in new TestFixture {
@@ -79,7 +77,6 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
       service.progressApplicationsToFinalFailureNotified(Seq(App1)).futureValue
     }
   }
-
 
   trait TestFixture {
 
@@ -108,5 +105,4 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
       override def emailClient: EmailClient = mockEmailClient
     }
   }
-
 }

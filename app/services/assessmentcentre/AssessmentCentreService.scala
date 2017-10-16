@@ -18,20 +18,20 @@ package services.assessmentcentre
 
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import model.EvaluationResults.{AssessmentEvaluationResult, CompetencyAverageResult, Green}
-import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED, ProgressStatus}
+import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult, Green }
+import model.ProgressStatuses._
 import model._
 import model.command.ApplicationForProgression
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
+import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import play.api.Logger
-import repositories.{AssessmentScoresRepository, CurrentSchemeStatusHelper}
+import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.{AssessmentCentrePassMarkSettingsService, PassMarkSettingsService}
+import services.passmarksettings.{ AssessmentCentrePassMarkSettingsService, PassMarkSettingsService }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -112,7 +112,9 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
         Logger.debug(s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
         val schemesToEvaluate = filterSchemesToEvaluate(currentSchemeStatusList)
 
-        Logger.debug(s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - current scheme status excluding RED = $schemesToEvaluate")
+        val msg = s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - current scheme status excluding Red, " +
+          s"Withdrawn and Sdip = $schemesToEvaluate"
+        Logger.debug(msg)
         AssessmentPassMarksSchemesAndScores(passmark, schemesToEvaluate, scores)
       }
     }
@@ -136,7 +138,8 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
       mergedEvaluation = mergeSchemes(evaluationResult.schemesEvaluation, evaluatedSchemes, evaluation)
       _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(mergedEvaluation, currentSchemeStatus)
       applicationStatus <- applicationRepo.findStatus(applicationId.toString())
-      _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus)
+      _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus,
+        applicationStatus.applicationRoute == ApplicationRoute.SdipFaststream)
     } yield {
       Logger.debug(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
@@ -161,19 +164,27 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   }
 
   private def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,
-    latestProgressStatusOpt: Option[ProgressStatus], results: Seq[SchemeEvaluationResult]): Future[Unit] = {
+    latestProgressStatusOpt: Option[ProgressStatus], results: Seq[SchemeEvaluationResult], isSdipFaststream: Boolean): Future[Unit] = {
 
     latestProgressStatusOpt.map { latestProgressStatus =>
       if (latestProgressStatus == ASSESSMENT_CENTRE_SCORES_ACCEPTED) {
-        firstResidualPreference(results) match {
+        firstResidualPreference(results, isSdipFaststream) match {
           // First residual preference is green
           case Some(evaluationResult) if evaluationResult.result == Green.toString =>
             Logger.debug(s"$logPrefix First residual preference (${evaluationResult.schemeId.toString()}) is green, moving candidate to passed")
             applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
           // No greens or ambers (i.e. all red or withdrawn)
           case None =>
-            Logger.debug(s"$logPrefix There is no first non-red residual preference, moving candidate to failed")
-            applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
+            if (isSdipFaststream) {
+              val msg = s"$logPrefix Sdip faststream candidate has failed or withdrawn from all faststream schemes, " +
+                s"moving candidate to ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, applicationId = $applicationId"
+              Logger.debug(msg)
+              applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED_SDIP_GREEN)
+            } else {
+              Logger.debug(s"$logPrefix There is no first non-red/withdrawn residual preference, moving candidate to failed")
+              applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
+
+            }
           case _ =>
             Logger.debug(s"$logPrefix Residual preferences are amber or red (but not all red), candidate status has not been changed")
             Future.successful(())

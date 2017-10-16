@@ -28,6 +28,7 @@ case class AssessmentCentre(
   awaitingReevaluation: Boolean = false,
   passed: Boolean = false,
   failed: Boolean = false,
+  failedSdipGreen: Boolean = false,
   failedNotified: Boolean = false
 )
 

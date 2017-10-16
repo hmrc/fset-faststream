@@ -96,6 +96,7 @@ trait ProgressStatusesReportLabels {
     (progress.assessmentCentre.failedToAttend, 435, AssessmentCentreFailedToAttend),
     (progress.assessmentCentre.awaitingReevaluation, 438, AssessmentCentreAwaitingReevaluation),
     (progress.assessmentCentre.failed, 440, AssessmentCentreFailedProgress),
+    (progress.assessmentCentre.failedSdipGreen, 445, AssessmentCentreFailedSdipGreenProgress),
     (progress.assessmentCentre.failedNotified, 450, AssessmentCentreFailedNotifiedProgress),
     (progress.assessmentCentre.passed, 460, AssessmentCentrePassedProgress),
     (progress.fsb.awaitingAllocation, 480, FsbAwaitingAllocation),
@@ -232,5 +233,6 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val OnlineTestFailedProgress = "online_test_failed"
   val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toString.toLowerCase()
   val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toString.toLowerCase()
+  val AssessmentCentreFailedSdipGreenProgress = ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString.toLowerCase()
   val AssessmentCentreFailedNotifiedProgress = ASSESSMENT_CENTRE_FAILED_NOTIFIED.toString.toLowerCase()
 }

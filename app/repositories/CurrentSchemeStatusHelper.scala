@@ -79,16 +79,22 @@ trait CurrentSchemeStatusHelper {
       """.stripMargin)
   }
 
-  def firstResidualPreference(results: Seq[SchemeEvaluationResult]): Option[SchemeEvaluationResult] = {
+  def firstResidualPreference(results: Seq[SchemeEvaluationResult], ignoreSdip: Boolean = false): Option[SchemeEvaluationResult] = {
     val resultsWithIndex = results.zipWithIndex
 
-    val amberOrGreenPreferences = resultsWithIndex.filterNot { case (result, idx) =>
+    val amberOrGreenPreferences = if (ignoreSdip) {
+      resultsWithIndex.filterNot { case (result, idx) =>
+        result.result == Red.toString || result.result == Withdrawn.toString || result.schemeId == SchemeId("Sdip")
+      }
+    } else {
+      resultsWithIndex.filterNot { case (result, idx) =>
         result.result == Red.toString || result.result == Withdrawn.toString
+      }
     }
 
     amberOrGreenPreferences match {
       case Nil => None
-      case list => Some(list.minBy(_._2)._1)
+      case list => Some(list.minBy{ case (result, id) => id }._1)
     }
   }
 }
