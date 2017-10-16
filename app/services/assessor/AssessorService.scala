@@ -188,7 +188,7 @@ trait AssessorService {
     }
   }
 
-  def findAllocations(assessorId: String, status: Option[AllocationStatus] = None): Future[Seq[AllocationWithEvent]] = {
+  def findAssessorAllocations(assessorId: String, status: Option[AllocationStatus] = None): Future[Seq[AllocationWithEvent]] = {
     assessorAllocationRepo.find(assessorId, status).flatMap { allocations =>
       FutureEx.traverseSerial(allocations) { allocation =>
         eventsService.getEvent(allocation.eventId).map { event =>
@@ -203,6 +203,27 @@ trait AssessorService {
             event.eventType,
             allocation.status,
             AssessorSkill.SkillMap(allocation.allocatedAs)
+          )
+        }
+      }
+    }
+  }
+
+  def findAllocations(assessorIds: Seq[String], status: Option[AllocationStatus] = None): Future[Seq[AllocationWithEvent]] = {
+    assessorAllocationRepo.findAllocations(assessorIds, status).flatMap{ allocations =>
+      FutureEx.traverseSerial(allocations) { alloc =>
+        eventsService.getEvent(alloc.eventId).map { event =>
+          AllocationWithEvent(
+            alloc.id,
+            event.id,
+            event.date,
+            event.startTime,
+            event.endTime,
+            event.venue,
+            event.location,
+            event.eventType,
+            alloc.status,
+            AssessorSkill.SkillMap(alloc.allocatedAs)
           )
         }
       }

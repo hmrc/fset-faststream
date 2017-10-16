@@ -33,6 +33,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait AssessorAllocationRepository {
   def save(allocations: Seq[AssessorAllocation]): Future[Unit]
   def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]]
+  def findAllocations(assessorIds: Seq[String], status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]]
   def find(id: String, eventId: String): Future[Option[AssessorAllocation]]
   def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[AssessorAllocation]]
   def delete(allocations: Seq[AssessorAllocation]): Future[Unit]
@@ -55,6 +56,14 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
       status.map(s => BSONDocument("status" -> s))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
+    collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq]()
+  }
+
+  def findAllocations(assessorIds: Seq[String], status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]] = {
+    val query = List(
+      Some(BSONDocument("id" -> BSONDocument("$in" -> assessorIds))),
+      status.map(s => BSONDocument("status" -> s))
+    ).flatten.fold(BSONDocument.empty)(_ ++ _)
     collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq]()
   }
 

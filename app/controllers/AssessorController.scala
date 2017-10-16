@@ -90,8 +90,13 @@ trait AssessorController extends BaseController {
     assessorService.findAvailabilitiesForLocationAndDate(locationName, date, skills).map { a => Ok(Json.toJson(a)) }
   }
 
-  def findAllocations(assessorId: String, status: Option[AllocationStatus]): Action[AnyContent] = Action.async { implicit request =>
-    assessorService.findAllocations(assessorId, status).map(allocations => Ok(Json.toJson(allocations)))
+  def findAssessorAllocations(assessorId: String, status: Option[AllocationStatus]): Action[AnyContent] = Action.async { implicit request =>
+    assessorService.findAssessorAllocations(assessorId, status).map(allocations => Ok(Json.toJson(allocations)))
+  }
+
+  def findAllocations(assessorIds: List[String], status: Option[AllocationStatus]): Action[AnyContent] = Action.async { implicit request =>
+    val res = assessorService.findAllocations(assessorIds, status)
+    res.map(r => Ok(Json.toJson(r)))
   }
 
   def updateAllocationStatuses(assessorId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
