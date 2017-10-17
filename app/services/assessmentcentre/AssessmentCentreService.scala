@@ -183,7 +183,6 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
             } else {
               Logger.debug(s"$logPrefix There is no first non-red/withdrawn residual preference, moving candidate to failed")
               applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
-
             }
           case _ =>
             Logger.debug(s"$logPrefix Residual preferences are amber or red (but not all red), candidate status has not been changed")
