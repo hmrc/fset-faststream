@@ -175,7 +175,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
             applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
           // No greens or ambers (i.e. all red or withdrawn)
           case None =>
-            if (isSdipFaststream) {
+            if (isSdipFaststream && results.contains(SchemeEvaluationResult(SchemeId(Scheme.Sdip), Green.toString))) {
               val msg = s"$logPrefix Sdip faststream candidate has failed or withdrawn from all faststream schemes, " +
                 s"moving candidate to ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, applicationId = $applicationId"
               Logger.debug(msg)
