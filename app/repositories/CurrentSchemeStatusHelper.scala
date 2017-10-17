@@ -17,7 +17,7 @@
 package repositories
 
 import model.EvaluationResults._
-import model.SchemeId
+import model.{ Scheme, SchemeId }
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
 
@@ -82,25 +82,17 @@ trait CurrentSchemeStatusHelper {
   def firstResidualPreference(results: Seq[SchemeEvaluationResult], ignoreSdip: Boolean = false): Option[SchemeEvaluationResult] = {
     val resultsWithIndex = results.zipWithIndex
 
-    val excludeFunction = if(ignoreSdip) {
-      val excludeRedWithdrawnSdip: ((SchemeEvaluationResult, Int)) => Boolean = {
-        case (result, idx) =>
-          result.result == Red.toString || result.result == Withdrawn.toString || result.schemeId == SchemeId("Sdip")
+    val amberOrGreenPreferences = resultsWithIndex.filterNot { case (result, _) =>
+      if (ignoreSdip) {
+        result.result == Red.toString || result.result == Withdrawn.toString || result.schemeId == SchemeId(Scheme.Sdip)
+      } else {
+        result.result == Red.toString || result.result == Withdrawn.toString
       }
-      excludeRedWithdrawnSdip
-    } else {
-      val excludeRedWithdrawn: ((SchemeEvaluationResult, Int)) => Boolean = {
-        case (result, idx) =>
-          result.result == Red.toString || result.result == Withdrawn.toString
-      }
-      excludeRedWithdrawn
     }
-
-    val amberOrGreenPreferences = resultsWithIndex.filterNot(excludeFunction)
 
     amberOrGreenPreferences match {
       case Nil => None
-      case list => Some(list.minBy{ case (result, id) => id }._1)
+      case list => Some(list.minBy { case (result, id) => id }._1)
     }
   }
 }
