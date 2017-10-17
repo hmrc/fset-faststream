@@ -316,6 +316,13 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     rollbackAppAndProgressStatus(applicationId, ApplicationStatus.SUBMITTED, statuses)
   }
 
+  def rollbackToInProgressFromFastPassAccepted(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.FAST_PASS_ACCEPTED
+    )
+    rollbackAppAndProgressStatus(applicationId, ApplicationStatus.IN_PROGRESS, statuses)
+  }
+
   def convertToFastStreamRouteWithFastpassFromOnlineTestsExpired(applicationId: String, fastPass: Int): Future[Unit] = {
     for {
       _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream, ApplicationRoute.Faststream)
