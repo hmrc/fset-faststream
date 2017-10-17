@@ -98,7 +98,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
       schemeList.filterNot( schemeEvaluationResult =>
         schemeEvaluationResult.result == model.EvaluationResults.Red.toString ||
         schemeEvaluationResult.result == model.EvaluationResults.Withdrawn.toString ||
-        schemeEvaluationResult.schemeId == SchemeId("Sdip")
+        schemeEvaluationResult.schemeId == SchemeId(Scheme.Sdip)
       ).map(_.schemeId)
     }
 
