@@ -88,6 +88,12 @@ trait FixDataConsistencyController extends BaseController {
     } yield response
   }
 
+  def rollbackToInProgressFromFastPassAccepted(applicationId: String): Action[AnyContent] = Action.async {
+    for {
+      response <- rollbackApplicationState(applicationId, applicationService.rollbackToInProgressFromFastPassAccepted)
+    } yield response
+  }
+
   def rollbackApplicationState(applicationId: String, operator: String => Future[Unit]): Future[Result] = {
     operator(applicationId).map { _ =>
       Ok(s"Successfully rolled back $applicationId")
