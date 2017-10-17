@@ -112,6 +112,7 @@ POST        /phase1-test-group/extend/:applicationId                     control
 POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
 POST        /phase3-test-group/extend/:applicationId                     controllers.Phase3TestGroupController.extend(applicationId: String)
 GET         /phase3-test-group/:applicationId                            controllers.Phase3TestGroupController.getTestGroup(applicationId: String)
+GET         /phase3-test-group/unexpireCompleted/:applicationId          controllers.Phase3TestGroupController.unexpireCompleted(applicationId: String)
 
 PUT         /launchpad/:inviteId/markAsStarted                           controllers.LaunchpadTestsController.markAsStarted(inviteId: String)
 PUT         /launchpad/:inviteId/markAsComplete                          controllers.LaunchpadTestsController.markAsComplete(inviteId: String)
