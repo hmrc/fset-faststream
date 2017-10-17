@@ -92,7 +92,7 @@ trait CurrentSchemeStatusHelper {
 
     amberOrGreenPreferences match {
       case Nil => None
-      case list => Some(list.minBy { case (result, id) => id }._1)
+      case list => Some(list.minBy { case (_, id) => id }._1)
     }
   }
 }
