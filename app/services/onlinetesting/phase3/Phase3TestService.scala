@@ -325,17 +325,6 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  private def removeExpiryStatus(applicationId: String): Future[Unit] = {
-    for {
-      progress <- appRepository.findProgress(applicationId)
-      actionFut <- if (progress.phase3ProgressResponse.phase3TestsExpired) {
-        appRepository.removeProgressStatuses(applicationId, ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
-      } else {
-        Future.successful(())
-      }
-    } yield actionFut
-  }
-
   def addResetEventMayBe(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       testGroup <- testRepository.getTestGroupByToken(launchpadInviteId)
@@ -364,6 +353,16 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
             DataStoreEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
             Nil
         }
+    }
+  }
+
+  def removeExpiredStatus(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
+    } yield {
+      AuditEvents.VideoInterviewUnexpired(
+        "applicationId" -> applicationId
+      ) :: Nil
     }
   }
 

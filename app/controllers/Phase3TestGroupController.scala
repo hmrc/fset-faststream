@@ -48,4 +48,8 @@ trait Phase3TestGroupController extends BaseController {
         extension.actionTriggeredBy) map ( _ => Ok )
     }
   }
+
+  def unexpireCompleted(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    phase3TestService.removeExpiredStatus(applicationId).map(_ => Ok)
+  }
 }
