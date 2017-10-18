@@ -40,6 +40,7 @@ import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.fsb.FsbRepository
 import repositories.onlinetesting._
+import repositories.sift.ApplicationSiftRepository
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.stc.StcEventServiceFixture
@@ -726,6 +727,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         )
       }
 
+      when(siftRepoMock.getSiftEvaluations(any[String])).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(business, Green.toString),
+          SchemeEvaluationResult(commercial, Green.toString),
+          SchemeEvaluationResult(finance, Green.toString)
+        )
+      )
+
       when(fsacRepoMock.getFsacEvaluatedSchemes(any[String]())).thenReturnAsync(
         Some(Seq(
           SchemeEvaluationResult(business, Green.toString),
@@ -775,6 +784,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         )
       }
 
+      when(siftRepoMock.getSiftEvaluations(any[String])).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(business, Green.toString),
+          SchemeEvaluationResult(commercial, Green.toString),
+          SchemeEvaluationResult(finance, Green.toString)
+        )
+      )
+
       when(fsacRepoMock.getFsacEvaluatedSchemes(any[String]())).thenReturnAsync(
         Some(Seq(
           SchemeEvaluationResult(business, Green.toString),
@@ -815,6 +832,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
             None,
             List(
               SchemeEvaluationResult(business, Green.toString),
+              SchemeEvaluationResult(governmentOperationalResearchService, Green.toString),
               SchemeEvaluationResult(commercial, Green.toString),
               SchemeEvaluationResult(finance, Red.toString)
             ),
@@ -824,9 +842,19 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         )
       }
 
+      when(siftRepoMock.getSiftEvaluations(any[String])).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(business, Green.toString),
+          SchemeEvaluationResult(governmentOperationalResearchService, Red.toString),
+          SchemeEvaluationResult(commercial, Green.toString),
+          SchemeEvaluationResult(finance, Red.toString)
+        )
+      )
+
       when(fsacRepoMock.getFsacEvaluatedSchemes(any[String]())).thenReturnAsync(
         Some(Seq(
           SchemeEvaluationResult(business, Green.toString),
+          SchemeEvaluationResult(governmentOperationalResearchService, Red.toString),
           SchemeEvaluationResult(commercial, Red.toString),
           SchemeEvaluationResult(finance, Red.toString)
         ))
@@ -836,6 +864,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         Some(FsbTestGroup(
           List(
             SchemeEvaluationResult(business, Red.toString),
+            SchemeEvaluationResult(governmentOperationalResearchService, Red.toString),
             SchemeEvaluationResult(commercial, Red.toString),
             SchemeEvaluationResult(finance, Red.toString)
           )
@@ -845,6 +874,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(
         Seq(
           SchemeEvaluationResult(business, Red.toString),
+          SchemeEvaluationResult(governmentOperationalResearchService, Red.toString),
           SchemeEvaluationResult(commercial, Red.toString),
           SchemeEvaluationResult(finance, Red.toString)
         )
@@ -853,6 +883,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       whenReady(underTest.currentSchemeStatusWithFailureDetails("application-1")) { ready =>
         ready.forall(_.failedAt.isDefined) mustBe true
         ready.find(_.schemeId == SchemeId(business)).get.failedAt.get mustBe "final selection board"
+        ready.find(_.schemeId == SchemeId(governmentOperationalResearchService)).get.failedAt.get mustBe "sift stage"
         ready.find(_.schemeId == SchemeId(commercial)).get.failedAt.get mustBe "assessment centre"
         ready.find(_.schemeId == SchemeId(finance)).get.failedAt.get mustBe "online tests"
       }
@@ -870,6 +901,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
     val phase1TestRepositoryMock: Phase1TestRepository = mock[Phase1TestRepository]
     val phase2TestRepositoryMock: Phase2TestRepository = mock[Phase2TestRepository]
+    val siftRepoMock = mock[ApplicationSiftRepository]
     val fsacRepoMock = mock[AssessmentCentreRepository]
     val fsbRepoMock = mock[FsbRepository]
     val phase1EvaluationRepositoryMock = mock[Phase1EvaluationMongoRepository]
@@ -914,6 +946,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val evaluateP3ResultService = evalPhase3ResultMock
       val phase1TestRepo = phase1TestRepositoryMock
       val phase2TestRepository = phase2TestRepositoryMock
+      val appSiftRepository = siftRepoMock
       val fsacRepo = fsacRepoMock
       val fsbRepo = fsbRepoMock
       val phase1EvaluationRepository = phase1EvaluationRepositoryMock
