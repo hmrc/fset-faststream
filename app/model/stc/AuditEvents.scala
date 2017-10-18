@@ -59,6 +59,7 @@ object AuditEvents {
   case class VideoInterviewInvitationEmailSent(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
   case class VideoInterviewRegistrationAndInviteComplete(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
   case class VideoInterviewExtended(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
+  case class VideoInterviewUnexpired(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
   case class VideoInterviewReset(applicationId: String) extends AuditEventWithAppId(applicationId)
   case class VideoInterviewStarted(applicationId: String) extends AuditEventWithAppId(applicationId)
   case class VideoInterviewCompleted(applicationId: String) extends AuditEventWithAppId(applicationId)
