@@ -71,6 +71,12 @@ class TestJobsController extends BaseController {
     }
   }
 
+  def progressCandidatesToFsbOrOfferJob: Action[AnyContent] = Action.async { implicit request =>
+    ProgressToFsbOrOfferJob.tryExecute().map { _ =>
+      Ok("Progress to fsb or offer job started")
+    }
+  }
+
   def evaluateAssessmentScoresCandidate: Action[AnyContent] = Action.async { implicit request =>
     EvaluateAssessmentScoreJob.tryExecute().map { _ =>
       Ok("Evaluate assessment score job started")
