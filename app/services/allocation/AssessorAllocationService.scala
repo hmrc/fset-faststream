@@ -87,6 +87,7 @@ trait AssessorAllocationService extends EventSink {
           contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
           eventDetails.date.toString("d MMMM YYYY"),
           allocationForUser.allocatedAs.displayText,
+          allocationForUser.allocatedAs.name.toString,
           eventDetails.eventType.toString,
           eventDetails.location.name,
           eventDetails.startTime.toString("h:ma")
