@@ -18,7 +18,7 @@ package controllers.testdata
 
 import play.api.mvc.{ Action, AnyContent }
 import scheduler.assessment.EvaluateAssessmentScoreJob
-import scheduler.onlinetesting.{ EvaluatePhase1ResultJob, EvaluatePhase2ResultJob, EvaluatePhase3ResultJob }
+import scheduler.onlinetesting.{ EvaluatePhase1ResultJob, EvaluatePhase2ResultJob, EvaluatePhase3ResultJob, SuccessPhase1TestJob }
 import scheduler._
 import scheduler.fsb.EvaluateFsbJob
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -44,6 +44,12 @@ class TestJobsController extends BaseController {
   def evaluatePhase3VideoInterviewCandidate: Action[AnyContent] = Action.async { implicit request =>
     EvaluatePhase3ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 3 result job started")
+    }
+  }
+
+  def processSuccessPhase1TestJob: Action[AnyContent] = Action.async { implicit request =>
+    SuccessPhase1TestJob.tryExecute().map { _ =>
+      Ok("Success phase 1 test job started")
     }
   }
 

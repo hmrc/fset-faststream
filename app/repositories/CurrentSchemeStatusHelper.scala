@@ -17,7 +17,7 @@
 package repositories
 
 import model.EvaluationResults._
-import model.SchemeId
+import model.{ Scheme, SchemeId }
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
 
@@ -79,16 +79,20 @@ trait CurrentSchemeStatusHelper {
       """.stripMargin)
   }
 
-  def firstResidualPreference(results: Seq[SchemeEvaluationResult]): Option[SchemeEvaluationResult] = {
+  def firstResidualPreference(results: Seq[SchemeEvaluationResult], ignoreSdip: Boolean = false): Option[SchemeEvaluationResult] = {
     val resultsWithIndex = results.zipWithIndex
 
-    val amberOrGreenPreferences = resultsWithIndex.filterNot { case (result, idx) =>
+    val amberOrGreenPreferences = resultsWithIndex.filterNot { case (result, _) =>
+      if (ignoreSdip) {
+        result.result == Red.toString || result.result == Withdrawn.toString || result.schemeId == SchemeId(Scheme.Sdip)
+      } else {
         result.result == Red.toString || result.result == Withdrawn.toString
+      }
     }
 
     amberOrGreenPreferences match {
       case Nil => None
-      case list => Some(list.minBy(_._2)._1)
+      case list => Some(list.minBy { case (_, id) => id }._1)
     }
   }
 }
