@@ -232,13 +232,15 @@ trait EmailClient extends WSHttp {
         "eventType" -> eventType, "eventVenue" -> eventVenue, "eventGuideUrl" -> eventGuideUrl))
   }
 
-  def sendAssessorAllocatedToEvent(to: String, name: String, eventDate: String, eventRole: String, eventName: String,
-                                   eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  // scalastyle:off parameter.number
+  def sendAssessorAllocatedToEvent(to: String, name: String, eventDate: String, eventRole: String, eventRoleKey: String,
+              eventName: String, eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_event_assessor_allocated",
-      Map("name" -> name, "eventDate" -> eventDate, "eventRole" -> eventRole, "eventName" -> eventName, "eventLocation" -> eventLocation,
-        "eventStartTime" -> eventStartTime)
+      Map("name" -> name, "eventDate" -> eventDate, "eventRole" -> eventRole, "eventRoleKey" -> eventRoleKey,
+        "eventName" -> eventName, "eventLocation" -> eventLocation, "eventStartTime" -> eventStartTime)
     )
   }
+  // scalastyle:on
 
   def sendAssessorUnAllocatedFromEvent(to: String, name: String, eventDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_event_assessor_unallocated",

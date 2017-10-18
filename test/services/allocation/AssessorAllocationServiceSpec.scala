@@ -56,7 +56,7 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
       verify(mockAllocationRepository).save(any[Seq[persisted.AssessorAllocation]])
       verify(mockAllocationRepository, times(0)).delete(any[Seq[persisted.AssessorAllocation]])
       verify(mockEmailClient).sendAssessorAllocatedToEvent(
-        any[String], any[String](), any[String], any[String], any[String], any[String], any[String]
+        any[String], any[String](), any[String], any[String], any[String], any[String], any[String], any[String]
       )(any[HeaderCarrier])
     }
 
@@ -84,7 +84,7 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec {
       verify(mockEmailClient).sendAssessorUnAllocatedFromEvent(
         any[String], any[String], any[String])(any[HeaderCarrier])
       verify(mockEmailClient).sendAssessorAllocatedToEvent(
-        any[String], any[String], any[String], any[String], any[String], any[String], any[String]
+        any[String], any[String], any[String], any[String], any[String], any[String], any[String], any[String]
       )(any[HeaderCarrier])
     }
 
