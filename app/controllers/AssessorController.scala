@@ -16,9 +16,10 @@
 
 package controllers
 
+import connectors.exchange.AssessorAllocationRequest
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions._
-import model.{ SerialUpdateResult, UniqueIdentifier }
+import model.{ AllocationStatuses, UniqueIdentifier }
 import model.exchange._
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
@@ -94,9 +95,11 @@ trait AssessorController extends BaseController {
     assessorService.findAssessorAllocations(assessorId, status).map(allocations => Ok(Json.toJson(allocations)))
   }
 
-  def findAllocations(assessorIds: List[String], status: Option[AllocationStatus]): Action[AnyContent] = Action.async { implicit request =>
-    val res = assessorService.findAllocations(assessorIds, status)
-    res.map(r => Ok(Json.toJson(r)))
+  def findAllocations(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[AssessorAllocationRequest] { reqBody =>
+      val res = assessorService.findAllocations(reqBody.assessorIds, reqBody.status.map(AllocationStatuses.withName))
+      res.map(r => Ok(Json.toJson(r)))
+    }
   }
 
   def updateAllocationStatuses(assessorId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
