@@ -45,7 +45,7 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
       val expected = SerialUpdateResult(failures = Nil, successes = applications)
       (mockApplicationSiftService.nextApplicationsReadyForSiftStage _).expects(10).returningAsync(applications)
       (mockApplicationSiftService.progressApplicationToSiftStage _).expects(applications).returningAsync(expected)
-      (mockApplicationSiftService.progressStatusForSiftStage(_: ApplicationForSift)).expects(*).returning(ProgressStatuses.SIFT_ENTERED)
+      (mockApplicationSiftService.progressStatusForSiftStage(_: Seq[SchemeId])).expects(*).returning(ProgressStatuses.SIFT_ENTERED)
       (mockApplicationSiftService.sendSiftEnteredNotification(_: String)(_: HeaderCarrier)).expects("applicationId", *).returningAsync
       TestProgressToSiftJob.tryExecute().futureValue mustBe unit
     }
@@ -55,7 +55,7 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
       val expected = SerialUpdateResult(failures = Nil, successes = applications)
       (mockApplicationSiftService.nextApplicationsReadyForSiftStage _).expects(10).returningAsync(applications)
       (mockApplicationSiftService.progressApplicationToSiftStage _).expects(applications).returningAsync(expected)
-      (mockApplicationSiftService.progressStatusForSiftStage(_: ApplicationForSift)).expects(*).returning(ProgressStatuses.SIFT_READY)
+      (mockApplicationSiftService.progressStatusForSiftStage(_: Seq[SchemeId])).expects(*).returning(ProgressStatuses.SIFT_READY)
       TestProgressToSiftJob.tryExecute().futureValue mustBe unit
     }
 
@@ -66,7 +66,7 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
       val expected = SerialUpdateResult(failures = Nil, successes = applications)
       (mockApplicationSiftService.nextApplicationsReadyForSiftStage _).expects(10).returningAsync(applications)
       (mockApplicationSiftService.progressApplicationToSiftStage _).expects(applications).returningAsync(expected)
-      (mockApplicationSiftService.progressStatusForSiftStage(_: ApplicationForSift)).expects(*).returning(ProgressStatuses.SIFT_ENTERED)
+      (mockApplicationSiftService.progressStatusForSiftStage(_: Seq[SchemeId])).expects(*).returning(ProgressStatuses.SIFT_ENTERED)
       (mockApplicationSiftService.sendSiftEnteredNotification(_: String)(_: HeaderCarrier)).expects("applicationId", *).returningAsync
       TestProgressToSiftJob.tryExecute().futureValue mustBe unit
     }
