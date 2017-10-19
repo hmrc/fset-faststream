@@ -100,4 +100,10 @@ class TestJobsController extends BaseController {
       Ok("FSB overall failure job started")
     }
   }
+
+  def notifyOnFinalFailure: Action[AnyContent] = Action.async { implicit request =>
+    NotifyOnFinalFailureJob.tryExecute().map { _ =>
+      Ok("Notify on final failure job started")
+    }
+  }
 }

@@ -177,8 +177,9 @@ trait CommonBSONDocuments extends BaseBSONReader {
             awaitingReevaluation = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
             passed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
             failed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key),
+            failedNotified = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key),
             failedSdipGreen = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.key),
-            failedNotified = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key)
+            failedSdipGreenNotified = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED.key)
           ),
           fsb = Fsb(
             getProgress(ProgressStatuses.FSB_AWAITING_ALLOCATION.key),
