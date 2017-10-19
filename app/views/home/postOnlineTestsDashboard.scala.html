@@ -93,16 +93,9 @@
                 how far you've got through this competitive process.</p>
             <p>Please try again next year, alternatively you can see what other
                 <a href="https://civilservicejobs.service.gov.uk/">jobs are available in the Civil Service</a>.</p>
-            <ul class="list-text">
-                <li>
-                    <h3 class="bold-small">1st preference</h3>
-                    @page.userDataWithSchemes.successfulSchemes.headOption.map { schemeResult =>
-                    <p>@{schemeResult.scheme.name}
-                        <br>(unsuccessful at the assessment centre)</p>
-                    }
-                </li>
-            </ul>
-            @renderViewAssessmentFeedback
+            @if(page.fsacStage != PostOnlineTestsStage.OTHER) {
+                @renderViewAssessmentFeedback
+            }
         </div>
         @unsuccessfulSchemes
         @withdrawnSchemes
