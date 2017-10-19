@@ -55,6 +55,22 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       result must contain(secondAssessor)
     }
 
+    "save and find assessors by ids" in {
+      val secondAssessor = AssessorWithAvailabilities.copy(userId = "456")
+      val thirdAssessor = AssessorWithAvailabilities.copy(userId = "789")
+      List(
+        AssessorWithAvailabilities,
+        secondAssessor,
+        thirdAssessor
+      ).foreach { assessor =>
+        repository.save(assessor).futureValue
+      }
+      val ids = AssessorWithAvailabilities.userId :: secondAssessor.userId :: Nil
+      val result = repository.findByIds(ids).futureValue
+
+      result.size mustBe 2
+    }
+
     "save assessor and add availabilities" in {
       repository.save(AssessorWithAvailabilities).futureValue
 

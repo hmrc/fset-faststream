@@ -32,6 +32,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 trait AssessorRepository {
   def find(userId: String): Future[Option[Assessor]]
+  def findByIds(userIds: Seq[String]): Future[Seq[Assessor]]
   def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Assessor]]
   def save(settings: Assessor): Future[Unit]
   def countSubmittedAvailability: Future[Int]
@@ -52,6 +53,11 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     )
 
     collection.find(query).one[Assessor]
+  }
+
+  def findByIds(userIds: Seq[String]): Future[Seq[Assessor]] = {
+    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+    collection.find(query).cursor[Assessor]().collect[Seq]()
   }
 
   def save(assessor: Assessor): Future[Unit] = {
