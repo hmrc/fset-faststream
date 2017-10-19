@@ -328,6 +328,8 @@ object RoleUtils {
 
   def isAwaitingAllocation(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.awaitingAllocation)
 
+  def isAllocatedToAssessmentCentre(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.allocationConfirmed) || user.application.exists(_.progress.assessmentCentre.allocationUnconfirmed)
+
   def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.failedToAttend)
 
   def isFaststream(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Faststream
