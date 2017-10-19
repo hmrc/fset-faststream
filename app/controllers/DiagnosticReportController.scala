@@ -46,8 +46,8 @@ trait DiagnosticReportController extends BaseController {
       assessorScores <- assessorAssessmentCentreScoresRepo.find(UniqueIdentifier(applicationId))
       reviewerScores <- reviewerAssessmentCentreScoresRepo.find(UniqueIdentifier(applicationId))
     } yield {
-      val assessorScoresJson = assessorScores.map(s => Json.toJson(s).as[JsObject])
-      val reviewerScoresJson = reviewerScores.map(s => Json.toJson(s).as[JsObject])
+      val assessorScoresJson = assessorScores.map(s => JsObject(Map("assessorScores" -> Json.toJson(s).as[JsObject])))
+      val reviewerScoresJson = reviewerScores.map(s => JsObject(Map("reviewerScores" -> Json.toJson(s).as[JsObject])))
 
       val allJson = Seq(assessorScoresJson, reviewerScoresJson).flatten.foldLeft(application) { (a, v) =>
         a :+ v
