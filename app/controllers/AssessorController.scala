@@ -16,7 +16,7 @@
 
 package controllers
 
-import connectors.exchange.AssessorAllocationRequest
+import connectors.exchange.{ AssessorAllocationRequest, FindAssessorsByIdsRequest }
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions._
 import model.{ AllocationStatuses, UniqueIdentifier }
@@ -66,6 +66,14 @@ trait AssessorController extends BaseController {
       Ok(Json.toJson(assessor))
     } recover {
       case e: AssessorNotFoundException => NotFound(s"Cannot find assessor userId: ${e.userId}")
+    }
+  }
+
+  def findAssessorsByIds(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[FindAssessorsByIdsRequest] { req =>
+      assessorService.findAssessorsByIds(req.userIds).map { assessors =>
+        Ok(Json.toJson(assessors))
+      }
     }
   }
 

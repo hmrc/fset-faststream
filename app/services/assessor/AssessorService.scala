@@ -188,6 +188,10 @@ trait AssessorService {
     }
   }
 
+  def findAssessorsByIds(userIds: Seq[String]): Future[Seq[model.exchange.Assessor]] = {
+    assessorRepository.findByIds(userIds).map(_.map(a => model.exchange.Assessor(a)))
+  }
+
   def findAssessorAllocations(assessorId: String, status: Option[AllocationStatus] = None): Future[Seq[AllocationWithEvent]] = {
     assessorAllocationRepo.find(assessorId, status).flatMap { allocations =>
       FutureEx.traverseSerial(allocations) { allocation =>
