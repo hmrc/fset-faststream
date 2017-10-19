@@ -41,6 +41,7 @@ import repositories.fsb.FsbRepository
 import repositories.onlinetesting._
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
+import repositories.sift.ApplicationSiftRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.stc.{ EventSink, StcEventService }
@@ -67,6 +68,7 @@ object ApplicationService extends ApplicationService {
   val phase1EvaluationRepository = faststreamPhase1EvaluationRepository
   val phase2EvaluationRepository = faststreamPhase2EvaluationRepository
   val phase3EvaluationRepository = faststreamPhase3EvaluationRepository
+  val appSiftRepository = applicationSiftRepository
   val fsacRepo = assessmentCentreRepository
   val fsbRepo = fsbRepository
   val civilServiceExperienceDetailsRepo = civilServiceExperienceDetailsRepository
@@ -88,6 +90,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def phase1EvaluationRepository: Phase1EvaluationMongoRepository
   def phase2EvaluationRepository: Phase2EvaluationMongoRepository
   def phase3EvaluationRepository: Phase3EvaluationMongoRepository
+  def appSiftRepository: ApplicationSiftRepository
   def fsacRepo: AssessmentCentreRepository
   def fsbRepo: FsbRepository
   def civilServiceExperienceDetailsRepo: CivilServiceExperienceDetailsRepository
@@ -382,12 +385,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       phase1Evaluation <- getOnlineTestEvaluation(phase1EvaluationRepository)
       phase2Evaluation <- getOnlineTestEvaluation(phase2EvaluationRepository)
       phase3Evaluation <- getOnlineTestEvaluation(phase3EvaluationRepository)
+      siftEvaluation <- appSiftRepository.getSiftEvaluations(applicationId)
       fsacEvaluation <- fsacRepo.getFsacEvaluatedSchemes(applicationId).map(_.getOrElse(Nil).toList)
       fsbEvaluation <- fsbRepo.findByApplicationId(applicationId).map(_.map(_.evaluation.result).getOrElse(Nil))
       evaluations = ListMap(
         "online tests" -> phase1Evaluation,
         "e-tray" -> phase2Evaluation,
         "video interview" -> phase3Evaluation,
+        "sift stage" -> siftEvaluation,
         "assessment centre" -> fsacEvaluation,
         "final selection board" -> fsbEvaluation
       )
