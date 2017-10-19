@@ -28,6 +28,7 @@ case class AssessmentCentre(
   awaitingReevaluation: Boolean = false,
   passed: Boolean = false,
   failed: Boolean = false,
+  failedSdipGreen: Boolean = false,
   failedNotified: Boolean = false
 )
 
@@ -56,7 +57,8 @@ case class Phase1ProgressResponse(
   phase1TestsFailed: Boolean = false,
   sdipFSFailed: Boolean = false,
   sdipFSFailedNotified: Boolean = false,
-  sdipFSSuccessful: Boolean = false
+  sdipFSSuccessful: Boolean = false,
+  phase1TestsFailedSdipAmber: Boolean = false
 )
 
 case class Phase2ProgressResponse(
@@ -69,7 +71,8 @@ case class Phase2ProgressResponse(
   phase2TestsResultsReady: Boolean = false,
   phase2TestsResultsReceived: Boolean = false,
   phase2TestsPassed: Boolean = false,
-  phase2TestsFailed: Boolean = false
+  phase2TestsFailed: Boolean = false,
+  phase2TestsFailedSdipAmber: Boolean = false
 )
 
 case class Phase3ProgressResponse(
@@ -81,7 +84,8 @@ case class Phase3ProgressResponse(
   phase3TestsExpired: Boolean = false,
   phase3TestsResultsReceived: Boolean = false,
   phase3TestsPassed: Boolean = false,
-  phase3TestsFailed: Boolean = false
+  phase3TestsFailed: Boolean = false,
+  phase3TestsFailedSdipAmber: Boolean = false
 )
 
 case class SiftProgressResponse(
