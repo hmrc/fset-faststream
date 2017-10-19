@@ -17,7 +17,6 @@
 @import views.html.home.fastPassRejectedInfo
 @import views.html.home.withdrawSection
 @import views.html.home.withdrawInformation
-@import views.html.template.fastPassAccepted
 @import models.ConsiderMeForSdipHelper._
 
 @(usr: CachedData, dashboardPage: DashboardPage,
@@ -73,8 +72,6 @@
         <p class="subtitle">@dashboardPage.fullName</p>
     </div>
 
-    @if(!dashboardPage.isFastPassApproved) {
-
     @displayLeadInformation
 
     <section class="section-border">
@@ -120,13 +117,21 @@
             </li>
             <li class="text second-step @activateByStep(dashboardPage.secondStepVisibility)">
                 <h2 class="heading-medium">2. Take the online tests</h2>
-                @if(dashboardPage.assessmentStageStatus == ASSESSMENT_FAST_PASS_CERTIFICATE) {
-                    <div data-sdip>
-                        <p id="fast-pass-msg">We need to check and verify your certificate number before
-                            you can progress as a Fast Pass candidate.</p>
-                    </div>
-                } else {
-                    @onlineTestProgress(usr, dashboardPage, assistanceDetails, adjustments)
+                @dashboardPage.assessmentStageStatus match {
+                    case ASSESSMENT_FAST_PASS_CERTIFICATE => {
+                        <div data-sdip>
+                            <p id="fast-pass-msg">We need to check and verify your certificate number before
+                                you can progress as a Fast Pass candidate.</p>
+                        </div>
+                    }
+                    case ASSESSMENT_FAST_PASS_APPROVED => {
+                        <div data-sdip>
+                            <p id="fast-pass-msg"><i class='fa fa-check the-icon'></i>We have approved your Fast Pass.</p>
+                        </div>
+                    }
+                    case _ => {
+                        @onlineTestProgress(usr, dashboardPage, assistanceDetails, adjustments)
+                    }
                 }
             </li>
             <li class="text third-step @activateByStep(dashboardPage.thirdStepVisibility)">
@@ -157,8 +162,5 @@
             </li>
         </ol>
     </section>
-    } else {
-        @fastPassAccepted(dashboardPage)
-    }
     @withdrawSection(usr)
 }

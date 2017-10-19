@@ -106,6 +106,8 @@ object DashboardPage {
 
     sealed trait AssessmentStageStatus
 
+    case object ASSESSMENT_FAST_PASS_APPROVED extends AssessmentStageStatus
+
     case object ASSESSMENT_FAST_PASS_CERTIFICATE extends AssessmentStageStatus
 
     case object ASSESSMENT_STATUS_UNKNOWN extends AssessmentStageStatus
@@ -187,7 +189,9 @@ object DashboardPage {
   private def getAssessmentInProgressStatus(user: CachedData)
   (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
 
-    if(RoleUtils.hasReceivedFastPass(user)) {
+    if (RoleUtils.hasFastPassBeenApproved(user)) {
+      ASSESSMENT_FAST_PASS_APPROVED
+    } else if (RoleUtils.hasReceivedFastPass(user)) {
       ASSESSMENT_FAST_PASS_CERTIFICATE
     } else {
       ASSESSMENT_STATUS_UNKNOWN
