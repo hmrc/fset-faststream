@@ -52,7 +52,7 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
   }
 
   private def isSiftEnteredStatus(application: ApplicationForSift): Boolean = {
-    siftService.progressStatusForSiftStage(application) == ProgressStatuses.SIFT_ENTERED
+    siftService.progressStatusForSiftStage(application.currentSchemeStatus.map(_.schemeId)) == ProgressStatuses.SIFT_ENTERED
   }
 
 }

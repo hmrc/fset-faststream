@@ -17,6 +17,7 @@
 package services.fastpass
 
 import connectors.{ CSREmailClient, OnlineTestEmailClient }
+import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import model.{ CivilServiceExperienceDetails, EvaluationResults, ProgressStatuses, SelectedSchemes }
 import model.stc.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
@@ -29,6 +30,7 @@ import repositories.contactdetails.ContactDetailsRepository
 import services.stc.{ EventSink, StcEventService }
 import services.personaldetails.PersonalDetailsService
 import services.scheme.SchemePreferencesService
+import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -43,6 +45,7 @@ object FastPassService extends FastPassService {
   override val csedRepository = civilServiceExperienceDetailsRepository
   override val schemePreferencesService = SchemePreferencesService
   override val schemesRepository = SchemeYamlRepository
+  override val applicationSiftService = ApplicationSiftService
 
   override val fastPassDetails = CivilServiceExperienceDetails(
     applicable = true,
@@ -63,6 +66,7 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
   val csedRepository: CivilServiceExperienceDetailsRepository
   val schemePreferencesService: SchemePreferencesService
   val schemesRepository: SchemeRepository
+  val applicationSiftService: ApplicationSiftService
 
   val fastPassDetails: CivilServiceExperienceDetails
 
@@ -93,8 +97,9 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
       preferences <- schemePreferencesService.find(applicationId)
     } yield {
       val hasSiftableScheme = schemesRepository.siftableSchemeIds.intersect(preferences.schemes).nonEmpty
-      if(hasSiftableScheme) {
-        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_ENTERED)
+      if (hasSiftableScheme) {
+        val siftStatus = applicationSiftService.progressStatusForSiftStage(preferences.schemes)
+        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, siftStatus)
       } else {
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       }

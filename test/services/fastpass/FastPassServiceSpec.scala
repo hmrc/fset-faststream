@@ -17,12 +17,13 @@
 package services.fastpass
 
 import connectors.OnlineTestEmailClient
+import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.PersonalDetailsExamples._
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
 import model.persisted.SchemeEvaluationResult
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito.{ atLeast => atLeastTimes, _}
+import org.mockito.Mockito.{ atLeast => atLeastTimes, _ }
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
@@ -30,6 +31,7 @@ import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsR
 import repositories.contactdetails.ContactDetailsRepository
 import services.personaldetails.PersonalDetailsService
 import services.scheme.SchemePreferencesService
+import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -90,6 +92,7 @@ class FastPassServiceSpec extends UnitSpec {
       val schemes = SelectedSchemes(
         List(SchemeId("Generalist"), SchemeId("HumanResources"), SchemeId("DigitalAndTechnology")), orderAgreed = true, eligible = true)
       when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
+      when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
       val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
 
@@ -177,6 +180,7 @@ class FastPassServiceSpec extends UnitSpec {
     val csedRepositoryMock = mock[CivilServiceExperienceDetailsRepository]
     val schemePreferencesServiceMock = mock[SchemePreferencesService]
     val schemesRepositoryMock = mock[SchemeRepository]
+    val applicationSiftServiceMock = mock[ApplicationSiftService]
     val accepted = true
     val rejected = false
     val userId = "user123"
@@ -199,6 +203,7 @@ class FastPassServiceSpec extends UnitSpec {
       val csedRepository = csedRepositoryMock
       val schemePreferencesService = schemePreferencesServiceMock
       val schemesRepository = schemesRepositoryMock
+      val applicationSiftService = applicationSiftServiceMock
       override val fastPassDetails = CivilServiceExperienceDetails(
         applicable = true,
         fastPassReceived = Some(true),
