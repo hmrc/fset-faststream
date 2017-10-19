@@ -72,7 +72,7 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
   def processFastPassCandidate(userId: String, applicationId: String, accepted: Boolean, actionTriggeredBy: String)
                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
     if (accepted) { acceptFastPassCandidate(userId, applicationId, actionTriggeredBy) }
-    else {rejectFastPassCandidate(userId, applicationId, actionTriggeredBy)}
+    else { rejectFastPassCandidate(userId, applicationId, actionTriggeredBy) }
   }
 
   def promoteToFastPassCandidate(applicationId: String, actionTriggeredBy: String)
