@@ -91,7 +91,7 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
       }
     }
 
-    "update sift status and progress status to completed when only sdip is siftable" in new TestFixture {
+    "do not update sift status to SIFT_COMPLETED when sdip is the only siftable scheme and it has not yet been sifted" in new TestFixture {
       val currentSchemeStatus = Seq(
         SchemeEvaluationResult(Generalist.id, Green.toString),
         SchemeEvaluationResult(HumanResources.id, Green.toString),
@@ -101,13 +101,11 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
       (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).once().returningAsync
-      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_COMPLETED).once().returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_COMPLETED).never().returningAsync
 
       whenReady(service.submitAnswers(AppId)) { result =>
         result mustBe unit
       }
     }
-
   }
-
 }
