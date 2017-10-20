@@ -103,6 +103,29 @@
 </section>
 }
 
+@finalFaststreamFailureGreenSdip = {
+    <section class="section-border">
+        <section class="text" data-successtop>
+            <div id="unsuccessfulNormal">
+                <p>Unfortunately, you've been unsuccessful for the Fast Stream this year. Thank you for
+                    all the effort you've put in so far.</p>
+                <p>We appreciate this will be disappointing. You should be proud of
+                    how far you've got through this competitive process.</p>
+
+                <p>
+                    You are still in the running for the Summer Diversity Internship Programme and will be contacted soon.
+                </p>
+
+                @if(page.fsacStage != PostOnlineTestsStage.OTHER) {
+                    @renderViewAssessmentFeedback
+                }
+            </div>
+            @unsuccessfulSchemes
+            @withdrawnSchemes
+        </section>
+    </section>
+}
+
 @failedToAttend = {
 <section class="section-border">
     <section class="text" data-successtop>
@@ -151,6 +174,7 @@
 @page match {
     case _ if page.isFinalSuccess => { @finalSuccess }
     case _ if page.isFinalFailure => { @finalFailure }
+    case _ if page.isFailedFaststreamGreenSdip => { @finalFaststreamFailureGreenSdip }
     case _ if page.fsacStage == PostOnlineTestsStage.FAILED_TO_ATTEND || page.fsbStage == PostOnlineTestsStage.FAILED_TO_ATTEND => { @failedToAttend }
     case _ if page.fsbStage ==  PostOnlineTestsStage.FSB_FAILED => {
         <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(page.userDataWithSchemes.toCachedData)){disabled}" id="mainProgressPage">

@@ -33,7 +33,7 @@ import security.{ RoleUtils, Roles }
 object PostOnlineTestsStage extends Enumeration {
   type PostOnlineTestsStage = Value
   val FAILED_TO_ATTEND, CONFIRMED_FOR_EVENT, UPLOAD_EXERCISES, ALLOCATED_TO_EVENT, EVENT_ATTENDED, OTHER = Value
-  val ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_FAILED, FSB_FAILED = Value
+  val ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, FSB_FAILED = Value
 }
 
 case class PostOnlineTestsPage(
@@ -51,6 +51,7 @@ case class PostOnlineTestsPage(
       case a if a.failedToAttend => FAILED_TO_ATTEND
       case a if a.passed => ASSESSMENT_CENTRE_PASSED
       case a if a.failed || a.failedNotified => ASSESSMENT_CENTRE_FAILED
+      case a if a.failedSdipGreen => ASSESSMENT_CENTRE_FAILED_SDIP_GREEN
       case _ if hasAnalysisExercise => EVENT_ATTENDED
       case a if a.allocationConfirmed & assessmentCentreStarted => UPLOAD_EXERCISES
       case a if a.allocationConfirmed => CONFIRMED_FOR_EVENT
@@ -71,6 +72,8 @@ case class PostOnlineTestsPage(
   def isFinalSuccess = RoleUtils.isEligibleForJobOffer(userDataWithSchemes.toCachedData)
 
   def isFinalFailure = RoleUtils.isFastStreamFailed(userDataWithSchemes.toCachedData)
+
+  def isFailedFaststreamGreenSdip = RoleUtils.isFastStreamFailedGreenSdip(userDataWithSchemes.toCachedData)
 
   def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 

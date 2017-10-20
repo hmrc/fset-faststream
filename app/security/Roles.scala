@@ -365,7 +365,9 @@ object RoleUtils {
 
   def isFailedAtSift(implicit user: CachedData): Boolean = user.application.exists(_.progress.siftProgress.failedAtSift)
 
-  def isFastStreamFailed(implicit  user: CachedData): Boolean = isFailedAtSift || isAllFsbFailed || isAssessmentCentreFailed
+  def isFastStreamFailed(implicit user: CachedData): Boolean = isFailedAtSift || isAllFsbFailed || isAssessmentCentreFailed
+
+  def isFastStreamFailedGreenSdip(implicit user: CachedData): Boolean = user.application.exists(_.progress.assessmentCentre.failedSdipGreen)
 
   def isFaststream(implicit user: Option[CachedData]): Boolean = user.forall(u => isFaststream(u))
 
