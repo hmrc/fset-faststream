@@ -32,13 +32,14 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 trait FinalOutcomeRepository extends CurrentSchemeStatusHelper {
   def nextApplicationForFinalFailureNotification(batchSize: Int): Future[Seq[ApplicationForProgression]]
 
   def nextApplicationForFinalSuccessNotification(batchSize: Int): Future[Seq[ApplicationForProgression]]
 
   def progressToFinalFailureNotified(application: ApplicationForProgression): Future[Unit]
+
+  def progressToAssessmentCentreFailedSdipGreenNotified(application: ApplicationForProgression): Future[Unit]
 
   def progressToJobOfferNotified(application: ApplicationForProgression): Future[Unit]
 }
@@ -48,33 +49,38 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     ReactiveMongoFormats.objectIdFormats) with FinalOutcomeRepository with RandomSelection
   with ReactiveRepositoryHelpers with CommonBSONDocuments {
 
+  private case class FinalState(failed: ProgressStatuses.ProgressStatus, notified: ProgressStatuses.ProgressStatus,
+    currentSchemeStatusQuery: BSONDocument)
 
-  case class FinalState(failed: ProgressStatuses.ProgressStatus, notified: ProgressStatuses.ProgressStatus)
+  val allRedOrWithdrawnQuery = BSONDocument(
+    "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
+  )
+
+  val doNothingQuery = BSONDocument()
 
   private val FailedStatuses = Seq(
-    FinalState(ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED),
-    FinalState(ALL_FSBS_AND_FSACS_FAILED, ALL_FSBS_AND_FSACS_FAILED_NOTIFIED),
-    FinalState(FAILED_AT_SIFT, FAILED_AT_SIFT_NOTIFIED)
+    FinalState(ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED, allRedOrWithdrawnQuery),
+    FinalState(ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED, doNothingQuery),
+    FinalState(ALL_FSBS_AND_FSACS_FAILED, ALL_FSBS_AND_FSACS_FAILED_NOTIFIED, allRedOrWithdrawnQuery),
+    FinalState(FAILED_AT_SIFT, FAILED_AT_SIFT_NOTIFIED, allRedOrWithdrawnQuery)
   )
 
   def nextApplicationForFinalFailureNotification(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
-    val queryStatus = BSONDocument("$or" -> BSONArray(
+    val query = BSONDocument("$or" -> BSONArray(
       FailedStatuses.map { status =>
-        BSONDocument(
-          "applicationStatus" -> status.failed.applicationStatus,
-          s"progress-status.${status.failed}" -> true,
-          s"progress-status.${status.notified}" -> BSONDocument("$ne" -> true)
-
-        )
+        BSONDocument("$and" -> BSONArray(
+          BSONDocument(
+            "applicationStatus" -> status.failed.applicationStatus,
+            s"progress-status.${status.failed}" -> true,
+            s"progress-status.${status.notified}" -> BSONDocument("$ne" -> true)
+          ),
+          status.currentSchemeStatusQuery
+        ))
       }
     ))
-    val queryAllRed = BSONDocument(
-      "currentSchemeStatus.result" -> Red.toString,
-      "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
-    )
-    val query = BSONDocument("$and" -> BSONArray(queryStatus, queryAllRed))
+
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
   }
 
@@ -100,6 +106,15 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     collection.update(query, BSONDocument("$set" -> applicationStatusBSON(finalNotifiedState.notified))) map validator
   }
 
+  def progressToAssessmentCentreFailedSdipGreenNotified(application: ApplicationForProgression): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> application.applicationId)
+    val notifiedState = ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED
+    val msg = s"progressing candidate to $notifiedState"
+    val validator = singleUpdateValidator(application.applicationId, actionDesc = msg)
+
+    collection.update(query, BSONDocument("$set" -> applicationStatusBSON(notifiedState))) map validator
+  }
+
   def progressToJobOfferNotified(application: ApplicationForProgression): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to job offer notified")
@@ -108,5 +123,4 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
       applicationStatusBSON(ELIGIBLE_FOR_JOB_OFFER_NOTIFIED)
     )) map validator
   }
-
 }

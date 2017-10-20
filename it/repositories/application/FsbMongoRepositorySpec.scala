@@ -16,12 +16,11 @@
 
 package repositories.application
 
-import config.MicroserviceAppConfig.cubiksGatewayConfig
-import factories.{ DateTimeFactory, UUIDFactory }
+import factories.UUIDFactory
 import model.EvaluationResults.{ Green, Red }
 import model.command.ApplicationForProgression
-import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
 import model.persisted._
+import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
@@ -81,7 +80,6 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with C
       }
       exception.getMessage must include(s"Fsb evaluation already done for application $applicationId for scheme $scheme")
     }
-
   }
 
   "findByApplicationId" must {
@@ -145,7 +143,6 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with C
 
       result must contain theSameElementsAs expectedResult
     }
-
   }
 
   //private def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
@@ -155,5 +152,5 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with C
     applicationRepository.collection.insert(BSONDocument("applicationId" -> applicationId, "userId" -> generateUUID())).futureValue
     applicationId
   }
-
 }
+

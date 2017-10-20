@@ -71,6 +71,12 @@ class TestJobsController extends BaseController {
     }
   }
 
+  def progressCandidatesToFsbOrOfferJob: Action[AnyContent] = Action.async { implicit request =>
+    ProgressToFsbOrOfferJob.tryExecute().map { _ =>
+      Ok("Progress to fsb or offer job started")
+    }
+  }
+
   def evaluateAssessmentScoresCandidate: Action[AnyContent] = Action.async { implicit request =>
     EvaluateAssessmentScoreJob.tryExecute().map { _ =>
       Ok("Evaluate assessment score job started")
@@ -92,6 +98,12 @@ class TestJobsController extends BaseController {
   def allFailedAtFsb: Action[AnyContent] = Action.async { implicit request =>
     FsbOverallFailureJob.tryExecute().map { _ =>
       Ok("FSB overall failure job started")
+    }
+  }
+
+  def notifyOnFinalFailure: Action[AnyContent] = Action.async { implicit request =>
+    NotifyOnFinalFailureJob.tryExecute().map { _ =>
+      Ok("Notify on final failure job started")
     }
   }
 }
