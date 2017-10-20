@@ -126,8 +126,9 @@ object ProgressStatuses {
   case object ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_PASSED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
-  case object ASSESSMENT_CENTRE_FAILED_SDIP_GREEN extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+  case object ASSESSMENT_CENTRE_FAILED_SDIP_GREEN extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+  case object ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
 
   // FSB statuses are specially archived. If you're changing these also consult hard coded lists
   // in AssessmentCentretoFsbOrOfferProgressionService

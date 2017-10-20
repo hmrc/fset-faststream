@@ -19,7 +19,7 @@ package services.application
 import common.FutureEx
 import connectors.{ CSREmailClient, EmailClient }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, FSB_FAILED }
-import model.SerialUpdateResult
+import model.{ ProgressStatuses, SerialUpdateResult }
 import model.command.ApplicationForProgression
 import repositories.application.{ FinalOutcomeRepository, GeneralApplicationRepository }
 import repositories.contactdetails.ContactDetailsRepository
@@ -28,15 +28,12 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 object FinalOutcomeService extends FinalOutcomeService {
 
   val contactDetailsRepo = repositories.faststreamContactDetailsRepository
   val applicationRepo = repositories.applicationRepository
   val finalOutcomeRepo = repositories.finalOutcomeRepository
   val emailClient = CSREmailClient
-
-
 }
 
 trait FinalOutcomeService {
@@ -81,11 +78,20 @@ trait FinalOutcomeService {
           for {
             (candidate, contactDetails) <- retrieveCandidateDetails(app.applicationId)
             _ <- emailClient.notifyCandidateOnFinalFailure(contactDetails.email, candidate.name)
-            _ <- finalOutcomeRepo.progressToFinalFailureNotified(app)
+            progressStatuses <- applicationRepo.getLatestProgressStatuses
+            _ = progressToNotified(app, progressStatuses)
           } yield ()
         }
       )
     }.map(SerialUpdateResult.fromEither)
+  }
+
+  private def progressToNotified(app: ApplicationForProgression, progressStatuses: List[String]): Future[Unit] = {
+    if (progressStatuses.head == ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString) {
+      finalOutcomeRepo.progressToAssessmentCentreFailedSdipGreenNotified(app)
+    } else {
+      finalOutcomeRepo.progressToFinalFailureNotified(app)
+    }
   }
 
   private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
@@ -94,5 +100,4 @@ trait FinalOutcomeService {
       case None => sys.error(s"Can't find application $applicationId")
     }
   }
-
 }

@@ -17,6 +17,7 @@
 package services.application
 
 import connectors.EmailClient
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN }
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.{ ContactDetails, SchemeEvaluationResult }
@@ -31,7 +32,7 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
   "final success notified" must {
     "progress candidate" in new TestFixture {
 
-      ( mockAplicationRepo.find(_: String) )
+      ( mockApplicationRepo.find(_: String) )
         .expects(App1.applicationId)
         .returningAsync(Option(C1))
 
@@ -56,9 +57,9 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
   }
 
   "final failure notified" must {
-    "progress candidate" in new TestFixture {
+    "progress candidate to final state" in new TestFixture {
 
-      ( mockAplicationRepo.find(_: String) )
+      ( mockApplicationRepo.find(_: String) )
         .expects(App1.applicationId)
         .returningAsync(Option(C1))
 
@@ -70,7 +71,36 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
         .expects(Cd1.email, C1.name, hc)
         .returningAsync
 
+      (mockApplicationRepo.getLatestProgressStatuses _)
+        .expects()
+        .returningAsync(List(ASSESSMENT_CENTRE_FAILED.toString))
+
       ( mockFinalOutcomeRepo.progressToFinalFailureNotified _ )
+        .expects(App1)
+        .returningAsync
+
+      service.progressApplicationsToFinalFailureNotified(Seq(App1)).futureValue
+    }
+
+    "progress candidate to non-final state (assessment centre failed sdip green)" in new TestFixture {
+
+      ( mockApplicationRepo.find(_: String) )
+        .expects(App1.applicationId)
+        .returningAsync(Option(C1))
+
+      ( mockContactDetailsRepo.find _ )
+        .expects(C1.userId)
+        .returningAsync(Cd1)
+
+      ( mockEmailClient.notifyCandidateOnFinalFailure(_: String, _: String)(_: HeaderCarrier) )
+        .expects(Cd1.email, C1.name, hc)
+        .returningAsync
+
+      (mockApplicationRepo.getLatestProgressStatuses _)
+        .expects()
+        .returningAsync(List(ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString))
+
+      ( mockFinalOutcomeRepo.progressToAssessmentCentreFailedSdipGreenNotified _ )
         .expects(App1)
         .returningAsync
 
@@ -91,14 +121,14 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
     val Cd1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
 
     val mockContactDetailsRepo = mock[ContactDetailsRepository]
-    val mockAplicationRepo = mock[GeneralApplicationRepository]
+    val mockApplicationRepo = mock[GeneralApplicationRepository]
     val mockFinalOutcomeRepo = mock[FinalOutcomeRepository]
     val mockEmailClient = mock[EmailClient]
 
     val service = new FinalOutcomeService {
       override def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
 
-      override def applicationRepo: GeneralApplicationRepository = mockAplicationRepo
+      override def applicationRepo: GeneralApplicationRepository = mockApplicationRepo
 
       override def finalOutcomeRepo: FinalOutcomeRepository = mockFinalOutcomeRepo
 
