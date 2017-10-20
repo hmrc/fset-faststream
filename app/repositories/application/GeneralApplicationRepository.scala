@@ -64,6 +64,8 @@ trait GeneralApplicationRepository {
 
   def find(applicationId: String): Future[Option[Candidate]]
 
+  def findAllFileInfo: Future[List[CandidateFileInfo]]
+
   def find(applicationIds: Seq[String]): Future[List[Candidate]]
 
   def findProgress(applicationId: String): Future[ProgressResponse]
@@ -181,6 +183,24 @@ class GeneralApplicationMongoRepository(
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
         ApplicationResponse(applicationId, CREATED, route, userId, p, None, None)
+      }
+    }
+  }
+
+  def findAllFileInfo: Future[List[CandidateFileInfo]] = {
+    val query = BSONDocument("testGroups.FSAC.tests.analysisExercise" -> BSONDocument("$exists" -> true))
+    val projection = BSONDocument("_id" -> 0, "applicationId" -> 1, "testGroups.FSAC.tests.analysisExercise" -> 1)
+    bsonCollection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docs =>
+      docs.map { doc =>
+        val testGroups = doc.getAs[BSONDocument]("testGroups")
+        val fsac = testGroups.flatMap(_.getAs[BSONDocument]("FSAC"))
+        val tests = fsac.flatMap(_.getAs[BSONDocument]("tests"))
+        val analysisExercise = tests.flatMap(_.getAs[BSONDocument]("analysisExercise"))
+
+        CandidateFileInfo(
+          doc.getAs[String]("applicationId").get,
+          analysisExercise.flatMap(_.getAs[String]("fileId")).get
+        )
       }
     }
   }
