@@ -88,7 +88,8 @@ trait FinalOutcomeService {
   }
 
   private def progressToNotified(app: ApplicationForProgression, progressStatuses: List[(String, DateTime)]): Future[Unit] = {
-    progressStatuses.last match {
+    val sorted = progressStatuses.sortBy{ case (_, dt) => dt}(Ordering.fromLessThan(_ isBefore _))
+    sorted.last match {
       case (progressStatus, _) if progressStatus == ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString =>
         finalOutcomeRepo.progressToAssessmentCentreFailedSdipGreenNotified(app)
       case _ => finalOutcomeRepo.progressToFinalFailureNotified(app)

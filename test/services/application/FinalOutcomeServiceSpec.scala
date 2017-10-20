@@ -17,7 +17,7 @@
 package services.application
 
 import connectors.EmailClient
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN }
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.{ ContactDetails, SchemeEvaluationResult }
@@ -99,7 +99,10 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
 
       ( mockApplicationRepo.getProgressStatusTimestamps(_: String) )
         .expects(App1.applicationId)
-        .returningAsync(List((ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString, DateTime.now())))
+        .returningAsync(List(
+          (ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString, DateTime.now().minusMinutes(1)),
+          (ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString, DateTime.now())
+        ))
 
       ( mockFinalOutcomeRepo.progressToAssessmentCentreFailedSdipGreenNotified _ )
         .expects(App1)
