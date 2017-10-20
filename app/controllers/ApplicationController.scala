@@ -23,7 +23,7 @@ import connectors.exchange.UserIdResponse
 import controllers.ApplicationController.CandidateNotFound
 import model.Exceptions.{ ApplicationNotFound, CannotUpdateFSACIndicator, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsObject, Json }
 import play.api.libs.streams.Streams
 import play.api.mvc.{ Action, AnyContent }
 import repositories._
@@ -171,6 +171,23 @@ trait ApplicationController extends BaseController {
 
         Ok.chunked(source).as(file.contentType)
       }
+  }
+
+  def analysisExerciseStatistics: Action[AnyContent] = Action.async {
+    implicit request =>
+      val result = for {
+        allFileInfo <- fileUploadRepository.retrieveAllIdsAndSizes
+        allApplicationFiles <- applicationRepo.findAllFileInfo
+      } yield {
+        allApplicationFiles.map { applicationFile =>
+          val matchingFileInfo = allFileInfo.find(_.id == applicationFile.analysisExerciseId)
+            .map(fileInfo => Json.toJson(fileInfo).as[JsObject]).getOrElse(Json.obj("notFoundMatch" -> true))
+
+            Json.toJson(applicationFile).as[JsObject].deepMerge(matchingFileInfo)
+        }
+      }
+
+      result.map(_.foldLeft(Json.arr())((a,b) => a.:+(b))).map(Ok(_))
   }
 
   def hasAnalysisExercise(applicationId: String): Action[AnyContent] = Action.async {

@@ -49,6 +49,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
               frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = ???
 
+  override def findAllFileInfo: Future[List[CandidateFileInfo]] = ???
+  
   override def find(applicationId: String): Future[Option[Candidate]] = ???
 
   override def create(userId: String, frameworkId: String, applicationRoute:ApplicationRoute): Future[ApplicationResponse] = {
