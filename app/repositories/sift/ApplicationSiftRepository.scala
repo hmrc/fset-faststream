@@ -141,10 +141,17 @@ class ApplicationSiftMongoRepository(
     settableFields: Seq[BSONDocument] = Nil
   ): Future[Unit] = {
 
-    val update = BSONDocument(
-      "$addToSet" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result),
-      "$set" -> settableFields.foldLeft(BSONDocument.empty) { (acc, doc) => acc ++ doc }
-    )
+    val saveEvaluationResultsDoc = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result)
+    val saveSettableFieldsDoc = settableFields.foldLeft(BSONDocument.empty) { (acc, doc) => acc ++ doc }
+
+    val update = if (saveSettableFieldsDoc.isEmpty) {
+      BSONDocument("$addToSet" -> saveEvaluationResultsDoc)
+    } else {
+      BSONDocument(
+        "$addToSet" -> saveEvaluationResultsDoc,
+        "$set" -> saveSettableFieldsDoc
+      )
+    }
 
     val predicate = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
