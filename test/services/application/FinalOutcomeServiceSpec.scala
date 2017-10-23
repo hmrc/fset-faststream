@@ -17,10 +17,11 @@
 package services.application
 
 import connectors.EmailClient
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN }
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.{ ContactDetails, SchemeEvaluationResult }
+import org.joda.time.DateTime
 import repositories.application.{ FinalOutcomeRepository, GeneralApplicationRepository }
 import repositories.contactdetails.ContactDetailsRepository
 import testkit.ScalaMockImplicits._
@@ -71,9 +72,9 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
         .expects(Cd1.email, C1.name, hc)
         .returningAsync
 
-      (mockApplicationRepo.getLatestProgressStatuses _)
-        .expects()
-        .returningAsync(List(ASSESSMENT_CENTRE_FAILED.toString))
+      ( mockApplicationRepo.getProgressStatusTimestamps(_: String) )
+        .expects(App1.applicationId)
+        .returningAsync(List((ASSESSMENT_CENTRE_FAILED.toString, DateTime.now)))
 
       ( mockFinalOutcomeRepo.progressToFinalFailureNotified _ )
         .expects(App1)
@@ -96,9 +97,12 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
         .expects(Cd1.email, C1.name, hc)
         .returningAsync
 
-      (mockApplicationRepo.getLatestProgressStatuses _)
-        .expects()
-        .returningAsync(List(ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString))
+      ( mockApplicationRepo.getProgressStatusTimestamps(_: String) )
+        .expects(App1.applicationId)
+        .returningAsync(List(
+          (ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString, DateTime.now().minusMinutes(1)),
+          (ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString, DateTime.now())
+        ))
 
       ( mockFinalOutcomeRepo.progressToAssessmentCentreFailedSdipGreenNotified _ )
         .expects(App1)

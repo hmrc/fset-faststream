@@ -19,8 +19,8 @@ package repositories.fileupload
 import java.io.ByteArrayInputStream
 import java.util.UUID
 
-import model.persisted.fileupload.FileUpload
-import org.joda.time.DateTime
+import model.persisted.fileupload.{ FileUpload, FileUploadInfo }
+import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.api.gridfs.{ DefaultFileToSave, GridFS }
 import reactivemongo.api.{ BSONSerializationPack, DB, DefaultDB }
 import reactivemongo.bson.BSONDocument
@@ -63,6 +63,19 @@ class FileUploadMongoRepository(implicit mongo: () => DB) extends FileUploadRepo
         body
       )
       case _ => throw FileUploadNotFoundException(s"No file upload found with id $fileId")
+    }
+  }
+
+  def retrieveAllIdsAndSizes: Future[List[FileUploadInfo]] = {
+    gridFS.find(BSONDocument()).collect[List]().map { fileList =>
+      fileList.map { file =>
+        FileUploadInfo(
+          file.filename.get,
+          file.contentType.get,
+          new DateTime(file.uploadDate.get, DateTimeZone.UTC).toString,
+          file.length
+        )
+      }
     }
   }
 }
