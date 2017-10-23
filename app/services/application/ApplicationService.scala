@@ -136,7 +136,6 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       }
   }
 
-  //scalastyle:off method.length cyclomatic.complexity
   private def withdrawFromScheme(applicationId: String, withdrawRequest: WithdrawScheme) = {
 
     def buildLatestSchemeStatus(current: Seq[SchemeEvaluationResult], withdrawal: WithdrawScheme)  = {
@@ -149,20 +148,11 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       // we only have generalist or human resources
       val onlyNonSiftableSchemesLeft = greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet
 
-      // only schemes with no evaluation requirement and form filled in (SIFT_READY) This set of schemes all require you
-      // to fill in a form
+      // only schemes with no evaluation requirement and form filled in (SIFT_READY) This set of schemes all require you to fill in a form
       val onlyNoSiftEvaluationRequiredSchemesWithFormFilled = latestProgressStatus.contains(ProgressStatuses.SIFT_READY) &&
         (greenSchemes subsetOf schemesRepo.noSiftEvaluationRequiredSchemeIds.toSet)
 
-      // can only progress to FSAC if I am a sdip faststream candidate still in the running for sdip plus at least
-      // 1 fast stream scheme and that faststream scheme is a scheme that does not need evaluation and I have filled
-      // in the sdip form and submitted (SIFT_READY)
-      val canProgressSdipFaststreamCandidate = greenSchemes.contains(SchemeId("Sdip")) && greenSchemes.size > 1 &&
-        latestProgressStatus.contains(ProgressStatuses.SIFT_READY) &&
-        (greenSchemes.filterNot(s => s == SchemeId("Sdip")) subsetOf schemesRepo.noSiftEvaluationRequiredSchemeIds.toSet)
-
-      val shouldProgressToFSAC = onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled ||
-        canProgressSdipFaststreamCandidate
+      val shouldProgressToFSAC = onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled
 
       // sdip faststream candidate who is awaiting allocation to an assessment centre and has withdrawn from
       // all fast stream schemes and only has sdip left
@@ -170,8 +160,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         latestProgressStatus.contains(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
 
       if (shouldRollbackSdipFaststreamCandidate) {
-        appRepository.removeProgressStatuses(applicationId,
-          List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+        appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
       } else if (shouldProgressToFSAC) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map { _ =>
           AuditEvents.AutoProgressedToFSAC(Map("applicationId" -> applicationId, "reason" -> "last siftable scheme withdrawn")) :: Nil
@@ -191,7 +180,6 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       Nil
     }
   }
-  //scalastyle:on
 
   def considerForSdip(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
