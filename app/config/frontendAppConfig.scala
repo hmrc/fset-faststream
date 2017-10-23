@@ -69,6 +69,7 @@ trait AppConfig {
   val faststreamConfig: FaststreamConfig
   val applicationRoutesFrontend: Map[ApplicationRoute, ApplicationRouteState]
   val addressLookupConfig: AddressLookupConfig
+  val fsacGuideUrl: String
 }
 
 object FrontendAppConfig extends AppConfig with ServicesConfig {
@@ -92,6 +93,8 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   override lazy val faststreamConfig = configuration.underlying.as[FaststreamConfig]("microservice.services.faststream")
 
   override lazy val addressLookupConfig = configuration.underlying.as[AddressLookupConfig]("microservice.services.address-lookup")
+
+  override lazy val fsacGuideUrl = configuration.underlying.as[String]("microservice.fsacGuideUrl")
 
   override lazy val applicationRoutesFrontend = Map(
     Faststream -> loadAppRouteConfig("faststream"),

@@ -16,6 +16,7 @@
 
 package models.page
 
+import config.FrontendAppConfig
 import connectors.exchange.{ SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails }
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.Scheme
@@ -44,6 +45,8 @@ case class PostOnlineTestsPage(
   schemes: List[Scheme]
 ) {
   import PostOnlineTestsStage._
+
+  lazy val fsacGuideUrl: String = FrontendAppConfig.fsacGuideUrl
 
   // scalastyle:off cyclomatic.complexity
   def fsacStage: PostOnlineTestsStage =

@@ -16,6 +16,7 @@
 
 package models.page
 
+import config.FrontendAppConfig
 import models.page.DashboardPage.Flags._
 import models.{ CachedData, Progress }
 import org.joda.time.LocalDate
@@ -46,7 +47,9 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   phase2TestsPage: Option[Phase2TestsPage],
   phase3TestsPage: Option[Phase3TestsPage],
   assessmentStageStatus: AssessmentStageStatus
-)
+) {
+  lazy val fsacGuideUrl: String = FrontendAppConfig.fsacGuideUrl
+}
 
 object DashboardPage {
 
