@@ -21,6 +21,7 @@ import connectors.{ CSREmailClient, EmailClient }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, FSB_FAILED }
 import model.{ ProgressStatuses, SerialUpdateResult }
 import model.command.ApplicationForProgression
+import org.joda.time.DateTime
 import repositories.application.{ FinalOutcomeRepository, GeneralApplicationRepository }
 import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -78,7 +79,7 @@ trait FinalOutcomeService {
           for {
             (candidate, contactDetails) <- retrieveCandidateDetails(app.applicationId)
             _ <- emailClient.notifyCandidateOnFinalFailure(contactDetails.email, candidate.name)
-            progressStatuses <- applicationRepo.getLatestProgressStatuses
+            progressStatuses <- applicationRepo.getProgressStatusTimestamps(app.applicationId)
             _ = progressToNotified(app, progressStatuses)
           } yield ()
         }
@@ -86,11 +87,12 @@ trait FinalOutcomeService {
     }.map(SerialUpdateResult.fromEither)
   }
 
-  private def progressToNotified(app: ApplicationForProgression, progressStatuses: List[String]): Future[Unit] = {
-    if (progressStatuses.head == ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString) {
-      finalOutcomeRepo.progressToAssessmentCentreFailedSdipGreenNotified(app)
-    } else {
-      finalOutcomeRepo.progressToFinalFailureNotified(app)
+  private def progressToNotified(app: ApplicationForProgression, progressStatuses: List[(String, DateTime)]): Future[Unit] = {
+    val sorted = progressStatuses.sortBy{ case (_, dt) => dt}(Ordering.fromLessThan(_ isBefore _))
+    sorted.last match {
+      case (progressStatus, _) if progressStatus == ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString =>
+        finalOutcomeRepo.progressToAssessmentCentreFailedSdipGreenNotified(app)
+      case _ => finalOutcomeRepo.progressToFinalFailureNotified(app)
     }
   }
 
