@@ -23,12 +23,16 @@ import model.EvaluationResults.{ Red, Withdrawn }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
+import org.joda.time.DateTime
+import play.api.Logger
+import play.api.libs.json.Json
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
+import services.sift.ApplicationSiftService.FixStuckUser
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -42,6 +46,9 @@ object ApplicationSiftService extends ApplicationSiftService {
   val schemeRepo = SchemeYamlRepository
   val dateTimeFactory = DateTimeFactory
   val emailClient = CSREmailClient
+
+  case class FixStuckUser(applicationId: String, timeEnteredSift: DateTime,
+    currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult])
 }
 
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
@@ -145,7 +152,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
     (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
-  ) = {
+  ): Seq[BSONDocument] = {
     val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
     val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
@@ -160,5 +167,35 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
         case _ => acc :+ doc
       }
     }
+  }
+
+  def fixStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],
+    currentSiftEvaluation: Seq[SchemeEvaluationResult]): BSONDocument = {
+
+    val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
+    val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
+    val siftedSchemes = currentSiftEvaluation.map(_.schemeId).distinct
+
+    Logger.warn("========== Sifted = " + siftedSchemes.toSet)
+    Logger.warn("========== Candidates Siftable Sifted = " + candidatesSiftableSchemes.toSet)
+
+    maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
+  }
+
+  def fixFindUsersInSiftReadyWhoShouldHaveBeenCompleted: Future[List[FixStuckUser]] = {
+    import reactivemongo.json.BSONFormats._
+
+    applicationSiftRepo.findAllUsersInSiftReady.map(_.map { potentialStuckUser =>
+      val result = fixStuckUsersCalculateCorrectProgressStatus(
+        potentialStuckUser.currentSchemeStatus,
+        potentialStuckUser.currentSiftEvaluation
+      )
+
+      Logger.warn("== CSS = " + potentialStuckUser.currentSchemeStatus)
+      Logger.warn("== CSE = " + potentialStuckUser.currentSiftEvaluation)
+
+      Logger.warn(s"=== ${potentialStuckUser.applicationId} / ${Json.toJson(result)}")
+    })
+    Future.successful(Nil)
   }
 }

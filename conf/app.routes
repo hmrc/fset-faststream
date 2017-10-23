@@ -93,6 +93,7 @@ GET         /diagnostic/application/:applicationId/rollback-to-phase1-results-re
 GET         /diagnostic/application/:applicationId/rollback-to-phase2-results-received-from-phase2-failed        controllers.fixdata.FixDataConsistencyController.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-submitted-with-fast-pass-from-online-tests-expired controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean)
 GET         /diagnostic/application/:applicationId/rollback-to-in-progress-from-fast-pass-accepted controllers.fixdata.FixDataConsistencyController.rollbackToInProgressFromFastPassAccepted(applicationId: String)
+GET         /diagnostic/sift/findCandidatesStuckInSiftReady              controllers.fixdata.FixDataConsistencyController.fixUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

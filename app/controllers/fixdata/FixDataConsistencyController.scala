@@ -21,6 +21,7 @@ import model.command.FastPassPromotion
 import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
 import services.fastpass.FastPassService
+import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,11 +30,13 @@ import scala.concurrent.Future
 object FixDataConsistencyController extends FixDataConsistencyController {
   override val applicationService = ApplicationService
   override val fastPassService = FastPassService
+  override val siftService = ApplicationSiftService
 }
 
 trait FixDataConsistencyController extends BaseController {
   val applicationService: ApplicationService
   val fastPassService: FastPassService
+  val siftService: ApplicationSiftService
 
   def removeETray(appId: String) = Action.async { implicit request =>
     applicationService.fixDataByRemovingETray(appId).map { _ =>
@@ -101,5 +104,9 @@ trait FixDataConsistencyController extends BaseController {
     }.recover { case _ =>
       InternalServerError(s"Unable to rollback $applicationId")
     }
+  }
+
+  def fixUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes(): Action[AnyContent] = Action.async {
+    siftService.fixFindUsersInSiftReadyWhoShouldHaveBeenCompleted.map(_ => Ok)
   }
 }
