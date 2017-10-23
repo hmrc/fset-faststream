@@ -16,7 +16,6 @@
 
 package services.sift
 
-import model.ProgressStatuses.ProgressStatus
 import model._
 import repositories.application.GeneralApplicationRepository
 import repositories.{ SchemeRepository, SchemeYamlRepository }
@@ -88,15 +87,10 @@ trait SiftAnswersService {
 
   private def maybeMoveToCompleted(applicationId: String, passedSchemes: Set[SchemeId],
                                    passedSchemesNotRequiringSift: Set[SchemeId]): Future[Unit] = {
-
     val allPassedSchemesDoNotRequireSift = passedSchemes.size == passedSchemesNotRequiringSift.size &&
       passedSchemes == passedSchemesNotRequiringSift
-    // Sdip gets sifted later, candidates can proceed to fsac
-    val onlySdipRequiresSift = passedSchemes.contains(Scheme.SdipId) && ((passedSchemes - Scheme.SdipId) subsetOf passedSchemesNotRequiringSift)
 
-    val canBeMoved = allPassedSchemesDoNotRequireSift || onlySdipRequiresSift
-
-    if(canBeMoved) {
+    if(allPassedSchemesDoNotRequireSift) {
       appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED)
     } else {
       Future.successful(())

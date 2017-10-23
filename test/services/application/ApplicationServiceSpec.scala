@@ -473,8 +473,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
     }
 
-    "not progress to FSAC allocation if I am a sdip faststream candidate with 1 other scheme which requires a numeric test " +
-      "and evaluation and I have completed the form (SIFT_READY) and I then withdraw from sdip" in new TestFixture {
+    "progress to FSAC allocation if I am a sdip faststream candidate with 1 other scheme which requires a numeric test " +
+      "and evaluation and I have completed the form and been sifted (SIFT_COMPLETED) and I then withdraw from sdip" in new TestFixture {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(sdip), "Green"),      // form to be filled in, evaluation required
@@ -486,173 +486,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_COMPLETED), None, None))
 
       val withdraw = WithdrawScheme(SchemeId(sdip), "reason", "Candidate")
-
-      underTest.withdraw("appId", withdraw).futureValue
-
-      verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
-        any[Seq[SchemeEvaluationResult]]
-      )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo("appId"),
-        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-    }
-
-    "not progress to FSAC allocation if I am a sdip faststream candidate with 1 other scheme which requires a form to be filled in " +
-      "but no evaluation and I have not completed the form (SIFT_ENTERED) and I then withdraw from sdip" in new TestFixture {
-      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId(sdip), "Green"),                // Form to be filled in, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // Form to be filled in, no evaluation required
-      ))
-      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
-      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
-        any[Seq[SchemeEvaluationResult]]
-      )).thenReturnAsync()
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
-
-      val withdraw = WithdrawScheme(SchemeId(sdip), "reason", "Candidate")
-
-      underTest.withdraw("appId", withdraw).futureValue
-
-      verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
-        any[Seq[SchemeEvaluationResult]]
-      )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo("appId"),
-        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-    }
-
-    "progress to FSAC allocation if I am an sdip faststream candidate with the two non-sift schemes and a siftable scheme " +
-      "and I have completed the sdip form (SIFT_READY) and I withdraw from the siftable scheme" in new TestFixture {
-      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId(sdip), "Green"),           // form to be filled in, evaluation required
-        SchemeEvaluationResult(SchemeId(generalist), "Green"),     // no sift requirement, no evaluation required
-        SchemeEvaluationResult(SchemeId(humanResources), "Green"), // no sift requirement, no evaluation required
-        SchemeEvaluationResult(SchemeId(commercial), "Green")      // numeric test, evaluation required
-      ))
-      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
-      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
-          any[Seq[SchemeEvaluationResult]]
-      )).thenReturnAsync()
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
-
-      val withdraw = WithdrawScheme(SchemeId(commercial), "reason", "Candidate")
-
-      underTest.withdraw("appId", withdraw).futureValue
-
-      verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
-        any[Seq[SchemeEvaluationResult]]
-      )
-      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo("appId"),
-        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-    }
-
-    "not progress to FSAC allocation if I am an sdip faststream candidate with the two non-sift schemes and a siftable scheme " +
-      "and I have not completed the sdip form (SIFT_ENTERED) and I withdraw from the siftable scheme" in new TestFixture {
-      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId(sdip), "Green"),           // form to be filled in, evaluation required
-        SchemeEvaluationResult(SchemeId(generalist), "Green"),     // no sift requirement, no evaluation required
-        SchemeEvaluationResult(SchemeId(humanResources), "Green"), // no sift requirement, no evaluation required
-        SchemeEvaluationResult(SchemeId(commercial), "Green")      // numeric test, evaluation required
-      ))
-      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
-      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
-          any[Seq[SchemeEvaluationResult]]
-      )).thenReturnAsync()
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
-
-      val withdraw = WithdrawScheme(SchemeId(commercial), "reason", "Candidate")
-
-      underTest.withdraw("appId", withdraw).futureValue
-
-      verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
-        any[Seq[SchemeEvaluationResult]]
-      )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo("appId"),
-        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-    }
-
-    "progress to FSAC allocation if I am an sdip faststream candidate with two other schemes (one numeric test, with evaluation " +
-      "and the other form, no evaluation) and I have completed the sdip form (SIFT_READY) and I withdraw from the scheme that " +
-      "requires evaluation" in new TestFixture {
-      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required
-        SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
-      ))
-      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
-      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
-          any[Seq[SchemeEvaluationResult]]
-      )).thenReturnAsync()
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
-
-      val withdraw = WithdrawScheme(SchemeId(commercial), "reason", "Candidate")
-
-      underTest.withdraw("appId", withdraw).futureValue
-
-      verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
-        any[Seq[SchemeEvaluationResult]]
-      )
-      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo("appId"),
-        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-    }
-
-    "not progress to FSAC allocation if I am an sdip faststream candidate with two other schemes (one numeric test, with evaluation " +
-      "and the other form, no evaluation) and I have completed the sdip form (SIFT_READY) and I withdraw from the scheme that " +
-      "requires no evaluation and am left with the scheme that requires evaluation" in new TestFixture {
-      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required
-        SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
-      ))
-      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
-      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
-          any[Seq[SchemeEvaluationResult]]
-      )).thenReturnAsync()
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
-
-      val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
-
-      underTest.withdraw("appId", withdraw).futureValue
-
-      verify(appRepositoryMock).withdrawScheme(eqTo("appId"), eqTo(withdraw),
-        any[Seq[SchemeEvaluationResult]]
-      )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo("appId"),
-        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-    }
-
-    "not progress to FSAC allocation if I am an sdip faststream candidate with one other scheme and I have completed " +
-      "the sdip form (SIFT_READY) and I withdraw from the other scheme, leaving just sdip" in new TestFixture {
-      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
-      ))
-      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
-      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
-          any[Seq[SchemeEvaluationResult]]
-      )).thenReturnAsync()
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
-
-      val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
 
       underTest.withdraw("appId", withdraw).futureValue
 
@@ -688,7 +524,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         any[Seq[SchemeEvaluationResult]]
       )
       verify(appRepositoryMock).removeProgressStatuses(eqTo("appId"),
-        eqTo(List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)))
+        eqTo(List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)))
     }
 
     "throw an exception when withdrawing from the last scheme" in new TestFixture {

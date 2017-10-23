@@ -20,9 +20,9 @@ import config.MicroserviceAppConfig
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{ Amber, Green, Red, Withdrawn }
-import model._
+import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.ApplicationNotFound
+import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.api.DB
@@ -32,8 +32,8 @@ import repositories.{ CollectionNames, CurrentSchemeStatusHelper, RandomSelectio
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait ApplicationSiftRepository {
 
@@ -141,10 +141,17 @@ class ApplicationSiftMongoRepository(
     settableFields: Seq[BSONDocument] = Nil
   ): Future[Unit] = {
 
-    val update = BSONDocument(
-      "$addToSet" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result),
-      "$set" -> settableFields.foldLeft(BSONDocument(s"testGroups.$phaseName.evaluation.passmarkVersion" -> "2")) { (acc, doc) => acc ++ doc }
-    )
+    val saveEvaluationResultsDoc = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result)
+    val saveSettableFieldsDoc = settableFields.foldLeft(BSONDocument.empty) { (acc, doc) => acc ++ doc }
+
+    val update = if (saveSettableFieldsDoc.isEmpty) {
+      BSONDocument("$addToSet" -> saveEvaluationResultsDoc)
+    } else {
+      BSONDocument(
+        "$addToSet" -> saveEvaluationResultsDoc,
+        "$set" -> saveSettableFieldsDoc
+      )
+    }
 
     val predicate = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
@@ -156,7 +163,6 @@ class ApplicationSiftMongoRepository(
 
     collection.update(predicate, update) map validator
   }
-
 
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
     val predicate = BSONDocument("applicationId" -> applicationId)
