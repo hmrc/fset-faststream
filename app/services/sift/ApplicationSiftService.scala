@@ -136,10 +136,12 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
-    case s if s.result != Withdrawn.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
+    case s if s.result != Withdrawn.toString && s.result != Red.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
   }
 
-  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = { case s if s.result != Withdrawn.toString => s.schemeId }
+  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
+    case s if s.result != Withdrawn.toString && s.result != Red.toString => s.schemeId
+  }
 
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
     (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
