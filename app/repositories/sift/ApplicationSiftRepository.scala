@@ -187,7 +187,6 @@ class ApplicationSiftMongoRepository(
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]] = {
     import BSONDateTimeHandler._
 
-
     val query = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT,
       s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> true),
       s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false),
@@ -224,7 +223,6 @@ class ApplicationSiftMongoRepository(
         siftEvaluation
       )
     })
-
   }
 }
 

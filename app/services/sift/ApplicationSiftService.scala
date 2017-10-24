@@ -24,9 +24,6 @@ import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import model.sift.FixStuckUser
-import org.joda.time.DateTime
-import play.api.Logger
-import play.api.libs.json.Json
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
@@ -172,9 +169,6 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
     val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
     val siftedSchemes = currentSiftEvaluation.map(_.schemeId).distinct
-
-    Logger.warn("========== Sifted = " + siftedSchemes.toSet)
-    Logger.warn("========== Candidates Siftable Sifted = " + candidatesSiftableSchemes.toSet)
 
     maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
   }
