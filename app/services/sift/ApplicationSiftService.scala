@@ -186,6 +186,14 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId: String): Future[Unit] = {
-    ???
+    (for {
+      usersToFix <- findUsersInSiftReadyWhoShouldHaveBeenCompleted
+    } yield {
+      if (usersToFix.exists { case (user, shouldBeMovedDecision) => user.applicationId == applicationId && shouldBeMovedDecision }) {
+        applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED)
+      } else {
+        throw new Exception(s"Application ID $applicationId is not available for fixing")
+      }
+    }).flatMap(identity)
   }
 }
