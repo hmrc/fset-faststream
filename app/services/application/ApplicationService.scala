@@ -156,11 +156,13 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
       // sdip faststream candidate who is awaiting allocation to an assessment centre and has withdrawn from
       // all fast stream schemes and only has sdip left
-      val shouldRollbackSdipFaststreamCandidate = greenSchemes == Set(SchemeId("Sdip")) && schemeStatus.size > 1 &&
+      val shouldProgressSdipFaststreamCandidateToFsb = greenSchemes == Set(Scheme.SdipId) && schemeStatus.size > 1 &&
         latestProgressStatus.contains(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
 
-      if (shouldRollbackSdipFaststreamCandidate) {
-        appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      if (shouldProgressSdipFaststreamCandidateToFsb) {
+        appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FSB_AWAITING_ALLOCATION).map { _ =>
+          AuditEvents.AutoProgressedToFSB(Map("applicationId" -> applicationId, "reason" -> "last fast stream scheme withdrawn")) :: Nil
+        }
       } else if (shouldProgressToFSAC) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map { _ =>
           AuditEvents.AutoProgressedToFSAC(Map("applicationId" -> applicationId, "reason" -> "last siftable scheme withdrawn")) :: Nil
