@@ -25,10 +25,12 @@ import model.Exceptions.ApplicationNotFound
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
+import model.sift.FixStuckUser
+import org.joda.time.DateTime
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
-import repositories.{ CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
+import repositories.{ BSONDateTimeHandler, CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -48,6 +50,7 @@ trait ApplicationSiftRepository {
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
+  def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
 
 }
 
@@ -180,4 +183,46 @@ class ApplicationSiftMongoRepository(
     val validator = singleUpdateValidator(applicationId, action)
     collection.update(predicate, update) map validator
   }
+
+  def findAllUsersInSiftReady: Future[Seq[FixStuckUser]] = {
+    import BSONDateTimeHandler._
+
+    val query = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT,
+      s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> true),
+      s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false),
+      s"testGroups.$phaseName" -> BSONDocument("$exists" -> true)
+    )
+
+    val projection = BSONDocument(
+      "_id" -> 0,
+      "applicationId" -> 1,
+      s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> 1,
+      s"progress-status.${ProgressStatuses.SIFT_READY}" -> 1,
+      s"testGroups.$phaseName" -> 1,
+      "currentSchemeStatus" -> 1
+    )
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+      val siftEvaluation = doc.getAs[BSONDocument]("testGroups")
+        .flatMap { _.getAs[BSONDocument](phaseName) }
+        .flatMap { _.getAs[BSONDocument]("evaluation") }
+        .flatMap { _.getAs[Seq[SchemeEvaluationResult]]("result") }.getOrElse(Nil)
+
+      val progressStatuses = doc.getAs[BSONDocument]("progress-status")
+      val firstSiftTime = progressStatuses.flatMap { obj =>
+        obj.getAs[DateTime](ProgressStatuses.SIFT_ENTERED).orElse(obj.getAs[DateTime](ProgressStatuses.SIFT_READY))
+      }.getOrElse(DateTime.now())
+
+      val css = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").get
+      val applicationId = doc.getAs[String]("applicationId").get
+
+      FixStuckUser(
+        applicationId,
+        firstSiftTime,
+        css,
+        siftEvaluation
+      )
+    })
+  }
 }
+
