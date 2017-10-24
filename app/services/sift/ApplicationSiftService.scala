@@ -23,6 +23,7 @@ import model.EvaluationResults.{ Red, Withdrawn }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
+import model.sift.FixStuckUser
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
@@ -32,7 +33,6 @@ import repositories.application.{ GeneralApplicationMongoRepository, GeneralAppl
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
-import services.sift.ApplicationSiftService.FixStuckUser
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -46,9 +46,6 @@ object ApplicationSiftService extends ApplicationSiftService {
   val schemeRepo = SchemeYamlRepository
   val dateTimeFactory = DateTimeFactory
   val emailClient = CSREmailClient
-
-  case class FixStuckUser(applicationId: String, timeEnteredSift: DateTime,
-    currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult])
 }
 
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
@@ -182,8 +179,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
   }
 
-  def fixFindUsersInSiftReadyWhoShouldHaveBeenCompleted: Future[List[FixStuckUser]] = {
-    import reactivemongo.json.BSONFormats._
+  def fixFindUsersInSiftReadyWhoShouldHaveBeenCompleted: Future[Seq[(FixStuckUser, Boolean)]] = {
 
     applicationSiftRepo.findAllUsersInSiftReady.map(_.map { potentialStuckUser =>
       val result = fixStuckUsersCalculateCorrectProgressStatus(
@@ -191,11 +187,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
         potentialStuckUser.currentSiftEvaluation
       )
 
-      Logger.warn("== CSS = " + potentialStuckUser.currentSchemeStatus)
-      Logger.warn("== CSE = " + potentialStuckUser.currentSiftEvaluation)
-
-      Logger.warn(s"=== ${potentialStuckUser.applicationId} / ${Json.toJson(result)}")
+      (potentialStuckUser, !result.isEmpty)
     })
-    Future.successful(Nil)
   }
 }

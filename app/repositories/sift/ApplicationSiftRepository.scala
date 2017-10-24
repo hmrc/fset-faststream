@@ -25,12 +25,12 @@ import model.Exceptions.ApplicationNotFound
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
+import model.sift.FixStuckUser
 import org.joda.time.DateTime
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{ BSONDateTimeHandler, CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
-import services.sift.ApplicationSiftService.FixStuckUser
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
