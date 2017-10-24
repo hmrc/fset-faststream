@@ -9,6 +9,7 @@ import model.command.ApplicationForSift
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.TableDrivenPropertyChecks
+import reactivemongo.bson.BSONDocument
 import repositories.onlinetesting.Phase2EvaluationMongoRepositorySpec.phase2TestWithResult
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.{ MockitoSugar, MongoRepositorySpec }
@@ -110,11 +111,9 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val candidate = candidates.head
       candidate.applicationId mustBe Some("appId1")
     }
-
   }
 
   "siftCandidate" must {
-
     def candidates = Table(
       ("appId", "unit", "scheme"),
       ("appId1", createSiftEligibleCandidates("appId1"), Commercial),
@@ -124,7 +123,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     "sift candidate as Passed" in {
       forAll(candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
-        repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green")).futureValue
+        repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green"),
+          Seq(BSONDocument(s"testGroups.SIFT.evaluation.dummy" -> "test"))).futureValue
         val candidatesForSift = repository.findApplicationsReadyForSchemeSift(scheme).futureValue
         play.api.Logger.error(s"\n\n$candidatesForSift - $scheme")
         candidatesForSift.size mustBe 0

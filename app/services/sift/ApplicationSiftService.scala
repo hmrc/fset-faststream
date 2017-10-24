@@ -23,6 +23,7 @@ import model.EvaluationResults.{ Red, Withdrawn }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
+import model.sift.FixStuckUser
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
@@ -136,14 +137,16 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
-    case s if s.result != Withdrawn.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
+    case s if s.result != Withdrawn.toString && s.result != Red.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
   }
 
-  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = { case s if s.result != Withdrawn.toString => s.schemeId }
+  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
+    case s if s.result != Withdrawn.toString && s.result != Red.toString => s.schemeId
+  }
 
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
     (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
-  ) = {
+  ): Seq[BSONDocument] = {
     val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
     val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
@@ -158,5 +161,27 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
         case _ => acc :+ doc
       }
     }
+  }
+
+  def findStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],
+    currentSiftEvaluation: Seq[SchemeEvaluationResult]): BSONDocument = {
+
+    val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
+    val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
+    val siftedSchemes = currentSiftEvaluation.map(_.schemeId).distinct
+
+    maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
+  }
+
+  def findUsersInSiftReadyWhoShouldHaveBeenCompleted: Future[Seq[(FixStuckUser, Boolean)]] = {
+
+    applicationSiftRepo.findAllUsersInSiftReady.map(_.map { potentialStuckUser =>
+      val result = findStuckUsersCalculateCorrectProgressStatus(
+        potentialStuckUser.currentSchemeStatus,
+        potentialStuckUser.currentSiftEvaluation
+      )
+
+      (potentialStuckUser, !result.isEmpty)
+    })
   }
 }
