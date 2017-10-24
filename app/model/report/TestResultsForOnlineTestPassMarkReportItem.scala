@@ -26,7 +26,8 @@ case class TestResultsForOnlineTestPassMarkReportItem(
                                                       situational: Option[TestResult],
                                                       etray: Option[TestResult],
                                                       videoInterview: Option[VideoInterviewTestResult],
-                                                      fsac: Option[AssessmentScoresAllExercises]
+                                                      fsac: Option[AssessmentScoresAllExercises],
+                                                      sift: Option[SiftPhaseReportItem]
                                                      )
 
 object TestResultsForOnlineTestPassMarkReportItem {
