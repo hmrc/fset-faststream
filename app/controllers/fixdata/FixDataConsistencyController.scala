@@ -106,8 +106,8 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
-  def fixUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes(): Action[AnyContent] = Action.async {
-    siftService.fixFindUsersInSiftReadyWhoShouldHaveBeenCompleted.map(resultList =>
+  def findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes(): Action[AnyContent] = Action.async {
+    siftService.findUsersInSiftReadyWhoShouldHaveBeenCompleted.map(resultList =>
         Ok((Seq("applicationId, timeEnteredSift, shouldBeCompleted") ++ resultList.map { case(user, result) =>
           s"${user.applicationId},${user.timeEnteredSift},$result"
         }).mkString("\n"))

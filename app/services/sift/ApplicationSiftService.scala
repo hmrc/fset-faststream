@@ -163,7 +163,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
-  def fixStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],
+  def findStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],
     currentSiftEvaluation: Seq[SchemeEvaluationResult]): BSONDocument = {
 
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
@@ -173,10 +173,10 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
   }
 
-  def fixFindUsersInSiftReadyWhoShouldHaveBeenCompleted: Future[Seq[(FixStuckUser, Boolean)]] = {
+  def findUsersInSiftReadyWhoShouldHaveBeenCompleted: Future[Seq[(FixStuckUser, Boolean)]] = {
 
     applicationSiftRepo.findAllUsersInSiftReady.map(_.map { potentialStuckUser =>
-      val result = fixStuckUsersCalculateCorrectProgressStatus(
+      val result = findStuckUsersCalculateCorrectProgressStatus(
         potentialStuckUser.currentSchemeStatus,
         potentialStuckUser.currentSiftEvaluation
       )
