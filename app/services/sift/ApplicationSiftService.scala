@@ -184,4 +184,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       (potentialStuckUser, !result.isEmpty)
     })
   }
+
+  def fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId: String): Future[Unit] = {
+    ???
+  }
 }
