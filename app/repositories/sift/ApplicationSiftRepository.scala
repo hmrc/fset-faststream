@@ -210,7 +210,7 @@ class ApplicationSiftMongoRepository(
 
       val progressStatuses = doc.getAs[BSONDocument]("progress-status")
       val firstSiftTime = progressStatuses.flatMap { obj =>
-        obj.getAs[DateTime](ProgressStatuses.SIFT_ENTERED).orElse(obj.getAs[DateTime](ProgressStatuses.SIFT_READY))
+        obj.getAs[DateTime](ProgressStatuses.SIFT_ENTERED.toString).orElse(obj.getAs[DateTime](ProgressStatuses.SIFT_READY.toString))
       }.getOrElse(DateTime.now())
 
       val css = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").get
