@@ -19,6 +19,8 @@ package services.evaluation
 import model.EvaluationResults.CompetencyAverageResult
 import model.assessmentscores.AssessmentScoresAllExercises
 
+object AssessmentScoreCalculator extends AssessmentScoreCalculator
+
 trait AssessmentScoreCalculator {
 
   def countAverage(scores: AssessmentScoresAllExercises): CompetencyAverageResult = {

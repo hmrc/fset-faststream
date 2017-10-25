@@ -27,6 +27,7 @@ case class TestResultsForOnlineTestPassMarkReportItem(
                                                       etray: Option[TestResult],
                                                       videoInterview: Option[VideoInterviewTestResult],
                                                       fsac: Option[AssessmentScoresAllExercises],
+                                                      overallFsacScore: Option[Double],
                                                       sift: Option[SiftPhaseReportItem]
                                                      )
 
