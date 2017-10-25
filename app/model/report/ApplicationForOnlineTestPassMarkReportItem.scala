@@ -38,8 +38,9 @@ object ApplicationForOnlineTestPassMarkReportItem {
 
   // If you add a custom apply() to a case class companion object then Json.reads and Json.writes fail
   def create(a: ApplicationForOnlineTestPassMarkReport,
-             fr: Option[AssessmentScoresAllExercises],
-             sr: Option[SiftPhaseReportItem]): ApplicationForOnlineTestPassMarkReportItem = {
+             fsacResults: Option[AssessmentScoresAllExercises],
+             overallScoreOpt: Option[Double],
+             siftResults: Option[SiftPhaseReportItem]): ApplicationForOnlineTestPassMarkReportItem = {
     ApplicationForOnlineTestPassMarkReportItem(
       progress = a.progress,
       applicationRoute = a.applicationRoute,
@@ -48,7 +49,7 @@ object ApplicationForOnlineTestPassMarkReportItem {
       gis = a.gis,
       onlineAdjustments = a.onlineAdjustments,
       assessmentCentreAdjustments = a.assessmentCentreAdjustments,
-      testResults = a.testResults.copy(fsac = fr, sift = sr),
+      testResults = a.testResults.copy(fsac = fsacResults, overallFsacScore = overallScoreOpt, sift = siftResults),
       currentSchemeStatus = a.currentSchemeStatus
     )
   }

@@ -31,6 +31,7 @@ import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
 import repositories.sift.ApplicationSiftRepository
 import repositories.{ QuestionnaireRepository, _ }
+import services.evaluation.AssessmentScoreCalculator
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.collection.breakOut
@@ -306,10 +307,11 @@ trait ReportingController extends BaseController {
         for {
           application <- applications
           appId = UniqueIdentifier(application.applicationId)
-          fr = fsacResults.find(_.applicationId == appId)
-          sr = siftResults.find(_.applicationId == application.applicationId)
+          fsac = fsacResults.find(_.applicationId == appId)
+          overallFsacScoreOpt = fsac.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
+          sift = siftResults.find(_.applicationId == application.applicationId)
           q <- questionnaires.get(application.applicationId)
-        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(application, fr, sr), q)
+        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(application, fsac, overallFsacScoreOpt, sift), q)
       }
     reports.map { list =>
       Ok(Json.toJson(list))

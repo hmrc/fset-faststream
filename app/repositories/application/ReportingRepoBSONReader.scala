@@ -308,7 +308,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       situationalTestResult,
       etrayTestResult,
       videoInterviewResults,
-      None, None)
+      None, None, None)
   }
 
   private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]): (Option[TestResult], Option[TestResult]) = {
