@@ -152,13 +152,13 @@ abstract class HomeController(
             document.contentType match {
               case Some(contentType) if validMSWordContentTypes.contains(contentType) =>
                 Logger.warn(s"File upload accepted for applicationid $applicationId (Size: ${document.ref.file.length()})")
-                applicationClient.uploadAnalysisExercise(cachedData.application.applicationId, contentType,
+                applicationClient.uploadAnalysisExercise(applicationId, contentType,
                   getAllBytesInFile(document.ref.file.toPath)).map { result =>
                   Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
                 }.recover {
                   case _: CandidateAlreadyHasAnAnalysisExerciseException =>
                     Logger.warn(s"A duplicate written analysis exercise submission was attempted " +
-                      s"(applicationId = ${cachedData.application.applicationId})")
+                      s"(applicationId = $applicationId)")
                     Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error"))
                 }
               case Some(contentType) =>
@@ -170,7 +170,7 @@ abstract class HomeController(
         }
       }.getOrElse {
         Logger.info(s"A malformed file request was submitted as a written analysis exercise " +
-          s"(applicationId = ${cachedData.application.applicationId})")
+          s"(applicationId = $applicationId)")
         Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error")))
       }
   }
