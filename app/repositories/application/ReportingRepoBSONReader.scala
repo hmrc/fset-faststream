@@ -303,7 +303,12 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     val etrayTestResult = toPhase2TestResults(applicationId, testGroupsDoc)
     val videoInterviewResults = toPhase3TestResults(testGroupsDoc)
 
-    TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult, videoInterviewResults, None)
+    TestResultsForOnlineTestPassMarkReportItem(
+      behaviouralTestResult,
+      situationalTestResult,
+      etrayTestResult,
+      videoInterviewResults,
+      None, None)
   }
 
   private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]): (Option[TestResult], Option[TestResult]) = {

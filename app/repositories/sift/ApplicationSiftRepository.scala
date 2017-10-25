@@ -27,6 +27,7 @@ import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import model.sift.FixStuckUser
 import org.joda.time.DateTime
+import model.report.SiftPhaseReportItem
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
@@ -47,6 +48,7 @@ trait ApplicationSiftRepository {
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]]
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
+  def findAllResults: Future[Seq[SiftPhaseReportItem]]
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
@@ -138,6 +140,27 @@ class ApplicationSiftMongoRepository(
       notSiftedOnScheme
     ))
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
+  }
+
+  def findAllResults: Future[Seq[SiftPhaseReportItem]] = {
+    val query = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> BSONDocument("$exists" -> true))
+    val projection = BSONDocument(
+      "_id" -> 0,
+      "applicationId" -> 1,
+      s"testGroups.$phaseName.evaluation.result" -> 1
+    )
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[Seq]().map {
+      _.map { doc =>
+        val appId = doc.getAs[String]("applicationId").get
+        val phaseDoc = doc.getAs[BSONDocument](s"testGroups")
+          .flatMap(_.getAs[BSONDocument](phaseName))
+          .flatMap(_.getAs[BSONDocument]("evaluation"))
+          .flatMap(_.getAs[Seq[SchemeEvaluationResult]]("result"))
+
+        SiftPhaseReportItem(appId, phaseDoc)
+      }
+    }
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult,

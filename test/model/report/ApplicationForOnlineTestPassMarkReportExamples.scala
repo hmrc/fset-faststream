@@ -16,6 +16,7 @@
 
 package model.report
 
+import factories.UUIDFactory
 import model.persisted.{ ApplicationForOnlineTestPassMarkReport, SchemeEvaluationResult }
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
 import model.{ ApplicationRoute, EvaluationResults, SchemeId }
@@ -27,14 +28,14 @@ object ApplicationForOnlineTestPassMarkReportExamples {
   lazy val application2 = newApplicationForOnlineTestPassMarkReport(TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
 
   lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReport(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None))
   lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReport(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None))
 
   def newApplicationForOnlineTestPassMarkReport(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
     ApplicationForOnlineTestPassMarkReport(
       rnd("UserId"),
-      rnd("AppId"),
+      UUIDFactory.generateUUID(),
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
       List(SchemeId("Commercial"), SchemeId("DigitalAndTechnology")),

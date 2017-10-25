@@ -20,16 +20,16 @@ import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.EvaluationResults.Green
 import model.Exceptions.{ NotFoundException, UnexpectedException }
 import model.{ SiftRequirement, UniqueIdentifier }
-import model.persisted.ContactDetailsWithId
+import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
 import model.persisted.eventschedules.Event
 import model.report._
-import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories.application.{ ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
+import repositories.sift.ApplicationSiftRepository
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -46,6 +46,7 @@ object ReportingController extends ReportingController {
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
   val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
+  val applicationSiftRepository = repositories.applicationSiftRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
   val schemeRepo: SchemeRepository = SchemeYamlRepository
   val authProviderClient: AuthProviderClient = AuthProviderClient
@@ -62,6 +63,7 @@ trait ReportingController extends BaseController {
   val questionnaireRepository: QuestionnaireRepository
   val assessmentScoresRepository: AssessmentScoresRepository
   val mediaRepository: MediaRepository
+  val applicationSiftRepository: ApplicationSiftRepository
   val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
   val schemeRepo: SchemeRepository
   val authProviderClient: AuthProviderClient
@@ -297,14 +299,17 @@ trait ReportingController extends BaseController {
     val reports =
       for {
         applications <- reportingRepository.onlineTestPassMarkReport
+        siftResults <- applicationSiftRepository.findAllResults
         fsacResults <- assessmentScoresRepository.findAll
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield {
         for {
-          a <- applications
-          fr = fsacResults.find(_.applicationId == UniqueIdentifier(a.applicationId))
-          q <- questionnaires.get(a.applicationId)
-        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(a, fr), q)
+          application <- applications
+          appId = UniqueIdentifier(application.applicationId)
+          fr = fsacResults.find(_.applicationId == appId)
+          sr = siftResults.find(_.applicationId == application.applicationId)
+          q <- questionnaires.get(application.applicationId)
+        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(application, fr, sr), q)
       }
     reports.map { list =>
       Ok(Json.toJson(list))
