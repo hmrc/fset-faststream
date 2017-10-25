@@ -66,6 +66,7 @@ abstract class HomeController(
   )
 
   private lazy val maxAnalysisExerciseFileSizeInBytes = 4096 * 1024
+  private lazy val minAnalysisExerciseFileSizeInBytes = 1024
 
   def present(implicit displaySdipEligibilityInfo: Boolean = false): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>
@@ -137,23 +138,31 @@ abstract class HomeController(
 
   def submitAnalysisExercise(): Action[AnyContent] = CSRSecureAppAction(AssessmentCentreRole) { implicit request =>
     implicit cachedData =>
+      val applicationId = cachedData.application.applicationId
+
       request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
         multiPartRequest.file("analysisExerciseFile").map {
           case document if document.ref.file.length() > maxAnalysisExerciseFileSizeInBytes =>
+            Logger.warn(s"File upload rejected as too large for applicationId $applicationId (Size: ${document.ref.file.length()})")
             Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooBig")))
+          case document if document.ref.file.length() < minAnalysisExerciseFileSizeInBytes =>
+            Logger.warn(s"File upload rejected as too small for applicationId $applicationId (Size: ${document.ref.file.length()})")
+            Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooSmall")))
           case document =>
             document.contentType match {
               case Some(contentType) if validMSWordContentTypes.contains(contentType) =>
-                applicationClient.uploadAnalysisExercise(cachedData.application.applicationId, contentType,
+                Logger.warn(s"File upload accepted for applicationId $applicationId (Size: ${document.ref.file.length()})")
+                applicationClient.uploadAnalysisExercise(applicationId, contentType,
                   getAllBytesInFile(document.ref.file.toPath)).map { result =>
                   Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
                 }.recover {
                   case _: CandidateAlreadyHasAnAnalysisExerciseException =>
                     Logger.warn(s"A duplicate written analysis exercise submission was attempted " +
-                      s"(applicationId = ${cachedData.application.applicationId})")
+                      s"(applicationId = $applicationId)")
                     Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error"))
                 }
               case Some(contentType) =>
+                Logger.warn(s"File upload rejected as wrong content type for applicationId $applicationId (Size: ${document.ref.file.length()})")
                 Future.successful(
                   Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.wrongContentType"))
                 )
@@ -161,7 +170,7 @@ abstract class HomeController(
         }
       }.getOrElse {
         Logger.info(s"A malformed file request was submitted as a written analysis exercise " +
-          s"(applicationId = ${cachedData.application.applicationId})")
+          s"(applicationId = $applicationId)")
         Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error")))
       }
   }
