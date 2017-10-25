@@ -96,6 +96,14 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
+  private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
+    case s if s.result != Withdrawn.toString && s.result != Red.toString => s.schemeId
+  }
+
+  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
+    case s if s.result != Withdrawn.toString && s.result != Red.toString => s.schemeId
+  }
+
   def sendSiftEnteredNotification(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     applicationRepo.find(applicationId).flatMap {
       case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
@@ -119,31 +127,6 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }) flatMap identity
   }
 
-  private def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], candidatesSiftableSchemes: Set[SchemeId]) = {
-    //  siftedSchemes may contain Sdip if it's been sifted before FS schemes, but we want to ignore it. (see schemeFilter)
-    if (candidatesSiftableSchemes subsetOf siftedSchemes) {
-      progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
-    } else {
-      BSONDocument.empty
-    }
-  }
-
-  private def maybeFailSdip(result: SchemeEvaluationResult) = {
-    if (Scheme.isSdip(result.schemeId) && result.result == Red.toString) {
-      progressStatusOnlyBSON(ProgressStatuses.SDIP_FAILED_AT_SIFT)
-    } else {
-      BSONDocument.empty
-    }
-  }
-
-  private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
-    case s if s.result != Withdrawn.toString && s.result != Red.toString && !Scheme.isSdip(s.schemeId) => s.schemeId
-  }
-
-  private def schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
-    case s if s.result != Withdrawn.toString && s.result != Red.toString => s.schemeId
-  }
-
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
     (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
   ): Seq[BSONDocument] = {
@@ -160,6 +143,22 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
         case _ @BSONDocument.empty => acc
         case _ => acc :+ doc
       }
+    }
+  }
+
+  private def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], candidatesSiftableSchemes: Set[SchemeId]) = {
+    if (candidatesSiftableSchemes subsetOf siftedSchemes) {
+      progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
+    } else {
+      BSONDocument.empty
+    }
+  }
+
+  private def maybeFailSdip(result: SchemeEvaluationResult) = {
+    if (Scheme.isSdip(result.schemeId) && result.result == Red.toString) {
+      progressStatusOnlyBSON(ProgressStatuses.SDIP_FAILED_AT_SIFT)
+    } else {
+      BSONDocument.empty
     }
   }
 
