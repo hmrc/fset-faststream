@@ -143,7 +143,7 @@ class ApplicationSiftMongoRepository(
   }
 
   def findAllResults: Future[Seq[SiftPhaseReportItem]] = {
-    val query = BSONDocument.empty
+    val query = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> BSONDocument("$exists" -> true))
     val projection = BSONDocument(
       "_id" -> 0,
       "applicationId" -> 1,
