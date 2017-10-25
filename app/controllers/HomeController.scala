@@ -143,15 +143,15 @@ abstract class HomeController(
       request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
         multiPartRequest.file("analysisExerciseFile").map {
           case document if document.ref.file.length() > maxAnalysisExerciseFileSizeInBytes =>
-            Logger.warn(s"File upload rejected as too large for applicationid $applicationId (Size: ${document.ref.file.length()})")
+            Logger.warn(s"File upload rejected as too large for applicationId $applicationId (Size: ${document.ref.file.length()})")
             Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooBig")))
           case document if document.ref.file.length() < minAnalysisExerciseFileSizeInBytes =>
-            Logger.warn(s"File upload rejected as too small for applicationid $applicationId (Size: ${document.ref.file.length()})")
+            Logger.warn(s"File upload rejected as too small for applicationId $applicationId (Size: ${document.ref.file.length()})")
             Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooSmall")))
           case document =>
             document.contentType match {
               case Some(contentType) if validMSWordContentTypes.contains(contentType) =>
-                Logger.warn(s"File upload accepted for applicationid $applicationId (Size: ${document.ref.file.length()})")
+                Logger.warn(s"File upload accepted for applicationId $applicationId (Size: ${document.ref.file.length()})")
                 applicationClient.uploadAnalysisExercise(applicationId, contentType,
                   getAllBytesInFile(document.ref.file.toPath)).map { result =>
                   Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
@@ -162,7 +162,7 @@ abstract class HomeController(
                     Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error"))
                 }
               case Some(contentType) =>
-                Logger.warn(s"File upload rejected as wrong content type for applicationid $applicationId (Size: ${document.ref.file.length()})")
+                Logger.warn(s"File upload rejected as wrong content type for applicationId $applicationId (Size: ${document.ref.file.length()})")
                 Future.successful(
                   Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.wrongContentType"))
                 )

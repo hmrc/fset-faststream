@@ -271,7 +271,7 @@ dashboard.final.results.SdipFaststream=Congratulations, you''ve been successful 
 
 assessmentCentre.analysisExercise.upload.error=There was a problem uploading your analysis exercise. You can try again or speak to an assessor.
 assessmentCentre.analysisExercise.upload.tooBig=Your analysis exercise must be less than 4MB
-assessmentCentre.analysisExercise.upload.tooSmall=Your analysis exercise was empty, please check and try again.
+assessmentCentre.analysisExercise.upload.tooSmall=Your analysis exercise appeared to be empty. You can try again or speak to an assessor.
 assessmentCentre.analysisExercise.upload.wrongContentType=Your analysis exercise must be in the .doc or .docx format
 assessmentCentre.analysisExercise.upload.success=You''ve successfully submitted your analysis exercise.
 
