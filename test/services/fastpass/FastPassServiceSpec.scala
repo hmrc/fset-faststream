@@ -83,6 +83,7 @@ class FastPassServiceSpec extends UnitSpec {
       verify(schemesRepositoryMock).siftableSchemeIds
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
+      verify(applicationSiftServiceMock, never()).sendSiftEnteredNotification(appId)
       verify(emailClientMock).sendEmailWithName(
         eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
@@ -103,6 +104,28 @@ class FastPassServiceSpec extends UnitSpec {
       verify(schemesRepositoryMock).siftableSchemeIds
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
+      verify(emailClientMock).sendEmailWithName(
+        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+      verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+    }
+
+    "promote candidates with NUMERIC_TEST only schemes to SIFT_READY and do not send SIFT_ENTERED email" in new TextFixtureWithMockResponses {
+      val schemes = SelectedSchemes(
+        List(SchemeId("Finance"), SchemeId("Commercial"), SchemeId("Generalist")), orderAgreed = true, eligible = true)
+      when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
+      when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_READY)
+      when(applicationSiftServiceMock.sendSiftEnteredNotification(appId)).thenReturn(Future.successful(unit))
+
+      val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
+
+      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_READY)
+      verify(schemePreferencesServiceMock, atLeastTimes(2)).find(appId)
+      verify(schemesRepositoryMock).siftableSchemeIds
+      verify(personalDetailsServiceMock).find(appId, userId)
+      verify(cdRepositoryMock).find(userId)
+      verify(applicationSiftServiceMock, never()).sendSiftEnteredNotification(appId)
       verify(emailClientMock).sendEmailWithName(
         eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
@@ -223,5 +246,6 @@ class FastPassServiceSpec extends UnitSpec {
     when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(selectedSchemes))
     when(schemesRepositoryMock.siftableSchemeIds).thenReturn(siftableSchemes)
     when(appRepoMock.updateCurrentSchemeStatus(any[String], any[Seq[SchemeEvaluationResult]])).thenReturn(Future.successful(unit))
+    when(applicationSiftServiceMock.sendSiftEnteredNotification(appId)).thenReturn(Future.successful(unit))
   }
 }
