@@ -113,4 +113,8 @@ trait FixDataConsistencyController extends BaseController {
         }).mkString("\n"))
       )
   }
+
+  def fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String): Action[AnyContent] = Action.async {
+    siftService.fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId).map(_ => Ok)
+  }
 }
