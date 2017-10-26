@@ -334,6 +334,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   def removeSdipSchemeFromFaststreamUser(applicationId: String): Future[Unit] = {
     for {
+      applicationRoute <- appRepository.getApplicationRoute(applicationId)
+      _ = if (applicationRoute != ApplicationRoute.Faststream) {
+        throw new Exception(s"Application route for $applicationId must be faststream")
+      }
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
       currentSchemeStatusWithoutSdip = currentSchemeStatus.filterNot(_.schemeId == Scheme.SdipId)
       schemePreferences <- schemePrefsRepository.find(applicationId)
