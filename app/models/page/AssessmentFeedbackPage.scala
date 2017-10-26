@@ -26,7 +26,9 @@ case class AssessmentFeedbackPage(
   finalFeedback: String,
   evaluatedAverageResults: CompetencyAverageResult,
   candidateName: String
-)
+) {
+  def formatScore(score: Double): String = "%.2f".format(score)
+}
 
 case object AssessmentFeedbackPage {
   def apply(assessmentScores: AssessmentScoresAllExercises, evaluatedAverageResults: CompetencyAverageResult,
