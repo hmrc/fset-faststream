@@ -36,23 +36,45 @@ class CachedUserWithSchemeData(
   val user: CachedUser,
   val application: ApplicationData,
   val allSchemes: Seq[Scheme],
+  val siftEvaluation: Option[Seq[SchemeEvaluationResult]],
+  val phase3Evaluation: Option[Seq[SchemeEvaluationResult]],
   val rawSchemesStatus: Seq[SchemeEvaluationResultWithFailureDetails]
 ) {
 
   lazy val currentSchemesStatus = rawSchemesStatus flatMap { schemeResult =>
-    allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
+      allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
+        val status = SchemeStatus.Status(schemeResult.result)
+        CurrentSchemeStatus(scheme, status, schemeResult.failedAt)
+      }
+    }
 
-      val status = SchemeStatus.Status(schemeResult.result)
+  lazy val successfulSchemes = {
+    // If any ambers exist this candidate is being evaluated for the next stage
+    // Check withdrawals
+    if (currentSchemesStatus.exists(_.status == SchemeStatus.Amber)) {
+      // In AC show their SIFT or VIDEO results (or green if fast pass)
+      if (application.progress.assessmentCentre.scoresAccepted && !application.progress.assessmentCentre.failed
+        && !application.progress.assessmentCentre.passed) {
+        siftEvaluation.map(siftEval => siftEval.filter(_.result == SchemeStatus.Green.toString)).orElse {
+          phase3Evaluation.map(phase3Eval => phase3Eval.filter(_.result == SchemeStatus.Green.toString)).orElse(None)
+        }
 
-      CurrentSchemeStatus(scheme, status, schemeResult.failedAt)
+      } else if (application.progress.siftProgress.siftCompleted && !application.progress.siftProgress.failedAtSift) {
+        currentSchemesStatus.filter(_.status == SchemeStatus.Green)
+      }
+    } else {
+      currentSchemesStatus.filter(_.status == SchemeStatus.Green)
     }
   }
 
-  lazy val successfulSchemes = currentSchemesStatus.filter(_.status == SchemeStatus.Green)
+  // TODO: Same as successful schemes, show old failures if in progress SIFT or AC
+  // TODO: Check withdrawals
+  // TODO: Import failedAt from CSS
   lazy val failedSchemes = currentSchemesStatus.filter(_.status == SchemeStatus.Red)
+
+  // TODO: Merge withdrawals from CSS over the top of an old status, if necessary
   lazy val withdrawnSchemes = currentSchemesStatus.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme}
-  // I think we should get rid of this filter
-  lazy val successfulAndWithdrawnSchemes = currentSchemesStatus.filterNot(_.status == SchemeStatus.Red)
+
   lazy val schemesForSiftForms = successfulSchemes.collect {
     case s if s.scheme.siftRequirement.contains(SiftRequirement.FORM) => s.scheme
   }
