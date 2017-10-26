@@ -332,6 +332,17 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def removeSdipSchemeFromFaststreamUser(applicationId: String): Future[Unit] = {
+    for {
+      currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+      currentSchemeStatusWithoutSdip = currentSchemeStatus.filterNot(_.schemeId == Scheme.SdipId)
+      schemePreferences <- schemePrefsRepository.find(applicationId)
+      schemePreferencesWithoutSdip = schemePreferences.copy(schemes = schemePreferences.schemes.filterNot(_ == Scheme.SdipId))
+      _ <- schemePrefsRepository.save(applicationId, schemePreferencesWithoutSdip)
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, currentSchemeStatusWithoutSdip)
+    } yield ()
+  }
+
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,
                                            statuses: List[ProgressStatuses.ProgressStatus]) = {

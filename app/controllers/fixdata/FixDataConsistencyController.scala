@@ -98,6 +98,12 @@ trait FixDataConsistencyController extends BaseController {
     } yield response
   }
 
+  def removeSdipSchemeFromFaststreamUser(applicationId: String): Action[AnyContent] = Action.async {
+    for {
+      _ <- applicationService.removeSdipSchemeFromFaststreamUser(applicationId)
+    } yield Ok
+  }
+
   def rollbackApplicationState(applicationId: String, operator: String => Future[Unit]): Future[Result] = {
     operator(applicationId).map { _ =>
       Ok(s"Successfully rolled back $applicationId")
