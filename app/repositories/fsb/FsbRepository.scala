@@ -109,6 +109,11 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
         "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
         s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED}" -> true
       ),
+      BSONDocument(
+        "applicationRoute" -> ApplicationRoute.SdipFaststream,
+        "applicationStatus" -> ApplicationStatus.SIFT,
+        s"progress-status.${ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN}" -> true
+      ),
       xdipQuery(ApplicationRoute.Sdip),
       xdipQuery(ApplicationRoute.Edip)
     ))
