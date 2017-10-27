@@ -530,6 +530,63 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         eqTo(ProgressStatuses.FSB_AWAITING_ALLOCATION))
     }
 
+    "progress sdip faststream candidate to fsb awaiting allocation who has been sifted in for sdip but has not yet been invited to an " +
+      "assessment centre after withdrawing from all fast stream schemes (or being sifted with a fail) and just leaving sdip" in new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required
+        SchemeEvaluationResult(SchemeId(commercial), "Red"),            // numeric test, evaluation required (already been sifted with a fail)
+        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any[Seq[SchemeEvaluationResult]]
+      )).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.SIFT_COMPLETED), None, None))
+
+      val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
+        any[Seq[SchemeEvaluationResult]]
+      )
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.FSB_AWAITING_ALLOCATION))
+    }
+
+    "not progress sdip faststream candidate out of sift who has been sifted in for all schemes that require a sift but who also has" +
+      "a scheme that does not require a sift. He withdraws from that one, leaving the 2 schemes sifted with a pass. In this scenario" +
+      "the candidate will be picked up by the assessment centre scheduled job and moved to " +
+      "ASSESSMENT_CENTRE_AWAITING_INVITATION" in new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required (sifted with a pass)
+        SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required (sifted with a pass)
+        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any[Seq[SchemeEvaluationResult]]
+      )).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.SIFT_COMPLETED), None, None))
+
+      val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
+        any[Seq[SchemeEvaluationResult]]
+      )
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
+    }
+
     "throw an exception when withdrawing from the last scheme" in new TestFixture {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
