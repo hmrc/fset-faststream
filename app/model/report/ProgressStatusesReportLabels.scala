@@ -88,6 +88,7 @@ trait ProgressStatusesReportLabels {
     (progress.siftProgressResponse.failedAtSiftNotified, 405, SiftFailedNotified),
     (progress.siftProgressResponse.sdipFailedAtSift, 406, SdipSiftFailed),
     (progress.siftProgressResponse.siftCompleted, 407, SiftCompleted),
+    (progress.siftProgressResponse.siftFaststreamFailedSdipGreen, 410, SiftFaststreamFailedSdipGreen),
     (progress.assessmentCentre.awaitingAllocation, 420, AssessmentCentreAwaitingAllocation),
     (progress.assessmentCentre.allocationUnconfirmed, 423, AssessmentCentreAllocationUnconfirmed),
     (progress.assessmentCentre.allocationConfirmed, 426, AssessmentCentreAllocationConfirmed),
@@ -227,6 +228,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val SiftFailed = "failed_at_sift"
   val SiftFailedNotified = FAILED_AT_SIFT_NOTIFIED.toString.toLowerCase()
   val SdipSiftFailed = "sdip_failed_at_sift"
+  val SiftFaststreamFailedSdipGreen = SIFT_FASTSTREAM_FAILED_SDIP_GREEN.toString.toLowerCase()
   val ApplicationArchived = "application_archived"
   val FastPassAccepted = "fast_pass_accepted"
 

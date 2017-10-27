@@ -216,6 +216,64 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }
 
+    "sift and update progress status for an SdipFaststream candidate whose SDIP has been sifted and whose fast stream " +
+      "schemes are Red or Withdrawn, all require a sift and have been sifted" in new SiftUpdateTest {
+      (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
+      ))
+
+      (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.SdipFaststream)
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
+      ))
+
+      override val schemeSiftResult = SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
+      val expectedUpdateBson = Seq(
+        currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
+          SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString) ::
+          schemeSiftResult :: Nil: _*),
+        progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED),
+        progressStatusUpdateBson(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN)
+      )
+      (mockSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
+
+      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+    }
+
+    "sift and update progress status for an SdipFaststream candidate whose SDIP has been sifted and whose fast stream " +
+      "schemes which require a sift are Red or Withdrawn and have been sifted, but also has a fast stream scheme that " +
+      "does not require a sift" in new SiftUpdateTest {
+      (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
+      ))
+
+      (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.SdipFaststream)
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString)
+      ))
+
+      override val schemeSiftResult = SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
+      val expectedUpdateBson = Seq(
+        currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
+          SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString) ::
+          schemeSiftResult ::
+          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString) :: Nil: _*),
+        progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)
+      )
+      (mockSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
+
+      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+    }
+
     "sift a candidate with remaining schemes to sift" in new SiftUpdateTest {
       (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
