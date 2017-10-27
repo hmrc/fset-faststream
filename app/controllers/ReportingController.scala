@@ -19,8 +19,8 @@ package controllers
 import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.EvaluationResults.Green
 import model.Exceptions.{ NotFoundException, UnexpectedException }
-import model.{ SiftRequirement, UniqueIdentifier }
-import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
+import model.{ ApplicationStatus, SiftRequirement, UniqueIdentifier }
+import model.persisted.ContactDetailsWithId
 import model.persisted.eventschedules.Event
 import model.report._
 import play.api.libs.json.Json
@@ -349,10 +349,16 @@ trait ReportingController extends BaseController {
   def candidateAcceptanceReport(): Action[AnyContent] = Action.async { implicit request =>
 
     val headers = Seq("Candidate email, allocation date, event type, event description, location, venue")
-    candidateAllocationRepo.allAllocationUnconfirmed.flatMap { candidateAllocations =>
+    candidateAllocationRepo.allAllocationUnconfirmed.flatMap { allAllocations =>
       for {
+        candidates <- applicationRepository.find(allAllocations.map(_.id))
+        candidateAllocations = allAllocations.filterNot { alloc =>
+          val status = candidates.find(c => c.applicationId.get == alloc.id)
+            .getOrElse(throw UnexpectedException(s"Unable to find application ${alloc.id}"))
+            .applicationStatus.getOrElse(throw UnexpectedException(s"Application ${alloc.id} has no application status"))
+          status == ApplicationStatus.WITHDRAWN.toString
+        }
         events <- eventsRepository.getEventsById(candidateAllocations.map(_.eventId))
-        candidates <- applicationRepository.find(candidateAllocations.map(_.id))
         contactDetails <- contactDetailsRepository.findByUserIds(candidates.map(_.userId))
       } yield {
         val eventMap: Map[String, Event] = events.map(e => e.id -> e)(breakOut)
