@@ -154,10 +154,11 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
       val shouldProgressToFSAC = onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled
 
-      // sdip faststream candidate who is awaiting allocation to an assessment centre and has withdrawn from
-      // all fast stream schemes and only has sdip left
+      // sdip faststream candidate who is awaiting allocation to an assessment centre or is in sift completed (not yet picked
+      // up by the assessment centre invite job) and has withdrawn from all fast stream schemes (or been sifted out) and only has sdip left
       val shouldProgressSdipFaststreamCandidateToFsb = greenSchemes == Set(Scheme.SdipId) && schemeStatus.size > 1 &&
-        latestProgressStatus.contains(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+        (latestProgressStatus.contains(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION) ||
+        latestProgressStatus.contains(ProgressStatuses.SIFT_COMPLETED))
 
       if (shouldProgressSdipFaststreamCandidateToFsb) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FSB_AWAITING_ALLOCATION).map { _ =>
