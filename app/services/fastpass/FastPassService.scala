@@ -17,9 +17,8 @@
 package services.fastpass
 
 import connectors.{ CSREmailClient, OnlineTestEmailClient }
-import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
-import model.{ CivilServiceExperienceDetails, EvaluationResults, ProgressStatuses, SelectedSchemes }
+import model._
 import model.stc.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
 import model.stc.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
 import play.api.mvc.RequestHeader
@@ -92,14 +91,24 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
-  private def autoProgressToSiftOrFSAC(applicationId: String): Future[Unit] = {
+  private def autoProgressToSiftOrFSAC(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    def notifySiftEntered(siftStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
+      if(siftStatus == ProgressStatuses.SIFT_ENTERED) {
+        applicationSiftService.sendSiftEnteredNotification(applicationId)
+      } else {
+        Future.successful(())
+      }
+    }
+
     val res = for {
       preferences <- schemePreferencesService.find(applicationId)
     } yield {
       val hasSiftableScheme = schemesRepository.siftableSchemeIds.intersect(preferences.schemes).nonEmpty
       if (hasSiftableScheme) {
         val siftStatus = applicationSiftService.progressStatusForSiftStage(preferences.schemes)
-        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, siftStatus)
+        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, siftStatus).flatMap { _ =>
+          notifySiftEntered(siftStatus).map(_ => ())
+        }
       } else {
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       }
@@ -124,13 +133,13 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
       email <- emailFut
       personalDetail <- personalDetailsFut
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      _ <- autoProgressToSiftOrFSAC(applicationId)
       preferences <- schemePreferencesService.find(applicationId)
       _ <- createCurrentSchemeStatus(applicationId, preferences)
       _ <- eventSink(model.stc.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
       _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = true)
       _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
       _ <- emailClient.sendEmailWithName(email, personalDetail.preferredName, acceptedTemplate)
+      _ <- autoProgressToSiftOrFSAC(applicationId)
       _ <- eventSink(FastPassUserAcceptedEmailSent(
         Map("email" -> email, "name" -> personalDetail.preferredName, "template" -> acceptedTemplate)) :: Nil)
     } yield (personalDetail.firstName, personalDetail.lastName)
