@@ -214,11 +214,11 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     assessmentCentreRepo.getTests(applicationId)
   }
 
-  def updateAnalysisTest(applicationId: String, fileId: String): Future[Unit] = {
+  def updateAnalysisTest(applicationId: String, fileId: String, isAdminUpdate: Boolean = false): Future[Unit] = {
     for {
       tests <- getTests(applicationId)
       hasSubmissions = tests.analysisExercise.isDefined
-      _ <- if (!hasSubmissions) {
+      _ <- if (!hasSubmissions || isAdminUpdate) {
                 assessmentCentreRepo.updateTests(applicationId, tests.copy(analysisExercise = Some(AnalysisExercise(fileId))))
             } else { throw CandidateAlreadyHasAnAnalysisExerciseException(s"App Id: $applicationId, File Id: $fileId") }
     } yield ()
