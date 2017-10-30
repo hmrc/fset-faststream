@@ -162,6 +162,10 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
+  def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
+   applicationSiftRepo.getSiftEvaluations(applicationId)
+  }
+
   def findStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],
     currentSiftEvaluation: Seq[SchemeEvaluationResult]): BSONDocument = {
 

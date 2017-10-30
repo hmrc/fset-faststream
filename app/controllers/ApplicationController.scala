@@ -35,6 +35,7 @@ import services.assessmentcentre.AssessmentCentreService
 import services.assessmentcentre.AssessmentCentreService._
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.personaldetails.PersonalDetailsService
+import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,6 +46,7 @@ object ApplicationController extends ApplicationController {
   val auditService = AuditService
   val applicationService = ApplicationService
   val passmarkService = EvaluatePhase3ResultService
+  val siftService = ApplicationSiftService
   val assessmentCentreService = AssessmentCentreService
   val uploadRepository = fileUploadRepository
   val personalDetailsService = PersonalDetailsService
@@ -57,6 +59,7 @@ trait ApplicationController extends BaseController {
   val auditService: AuditService
   val applicationService: ApplicationService
   val passmarkService: EvaluatePhase3ResultService
+  val siftService: ApplicationSiftService
   val assessmentCentreService: AssessmentCentreService
   val uploadRepository: FileUploadMongoRepository
   val personalDetailsService: PersonalDetailsService
@@ -114,7 +117,15 @@ trait ApplicationController extends BaseController {
     passmarkService.getPassmarkEvaluation(applicationId).map { passmarks =>
       Ok(Json.toJson(passmarks.result))
     } recover {
-      case _: PassMarkEvaluationNotFound => NotFound(s"No evaluation results found for applicationId: $applicationId")
+      case _: PassMarkEvaluationNotFound => NotFound(s"No phase3 evaluation results found for applicationId: $applicationId")
+    }
+  }
+
+  def getSiftResults(applicationId: String) = Action.async { implicit request =>
+    siftService.getSiftEvaluations(applicationId).map { passmarks =>
+      Ok(Json.toJson(passmarks))
+    } recover {
+      case _: PassMarkEvaluationNotFound => NotFound(s"No sift evaluation results found for applicationId: $applicationId")
     }
   }
 
