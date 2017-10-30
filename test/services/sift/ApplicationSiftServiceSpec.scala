@@ -129,11 +129,32 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     }
 
     "progress candidate to SIFT_READY (eligible to be sifted) when the candidate is only in the running for schemes " +
-      "requiring a numeric test" in new TestFixture {
+      "requiring a numeric test and form based schemes are failed" in new TestFixture {
       val applicationToProgressToSift = List(
         ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
             SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
+          )
+        )
+      )
+
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
+
+      whenReady(service.progressApplicationToSiftStage(applicationToProgressToSift)) { results =>
+
+        val failedApplications = Nil
+        val passedApplications = Seq(applicationToProgressToSift.head)
+        results mustBe SerialUpdateResult(failedApplications, passedApplications)
+      }
+    }
+
+    "progress candidate to SIFT_READY (eligible to be sifted) when the candidate is still in the running for schemes " +
+      "requiring a numeric test and Generalist and form based schemes are failed" in new TestFixture {
+      val applicationToProgressToSift = List(
+        ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString),
+            SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString)
           )
         )
       )
