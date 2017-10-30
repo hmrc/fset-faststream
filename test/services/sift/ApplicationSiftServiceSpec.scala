@@ -128,6 +128,26 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       }
     }
 
+    "progress candidate to SIFT_READY (eligible to be sifted) when the candidate is only in the running for schemes " +
+      "requiring a numeric test" in new TestFixture {
+      val applicationToProgressToSift = List(
+        ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
+          )
+        )
+      )
+
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
+
+      whenReady(service.progressApplicationToSiftStage(applicationToProgressToSift)) { results =>
+
+        val failedApplications = Nil
+        val passedApplications = Seq(applicationToProgressToSift.head)
+        results mustBe SerialUpdateResult(failedApplications, passedApplications)
+      }
+    }
+
     "find relevant applications for scheme sifting" in new TestFixture {
       val candidates = Seq(Candidate("userId1", Some("appId1"), Some(""), Some(""), Some(""), Some(""), Some(LocalDate.now), Some(Address("")),
         Some("E1 7UA"), Some("UK"), Some(ApplicationRoute.Faststream), Some("")))

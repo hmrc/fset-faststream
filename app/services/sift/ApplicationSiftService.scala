@@ -75,7 +75,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application,
         applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId,
-          progressStatusForSiftStage(application.currentSchemeStatus.map(_.schemeId)))
+          progressStatusForSiftStage(application.currentSchemeStatus.collect { case s if s.result == Green.toString => s.schemeId } ))
       )
     }
 
