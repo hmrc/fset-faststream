@@ -1,16 +1,13 @@
 package repositories.fileupload
 
-import model.Exceptions.EventNotFoundException
-import model.persisted.EventExamples
-import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
-import play.api.libs.iteratee.{ Enumerator, Iteratee }
+import play.api.libs.iteratee.Iteratee
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class FileUploadRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.FILE_UPLOAD
-  lazy val repository = repositories.fileUploadRepository
+  lazy val repository: FileUploadMongoRepository = repositories.fileUploadRepository
 
   "add" must {
     "store a file with contentType" in {

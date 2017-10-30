@@ -32,6 +32,8 @@ POST        /application/status                                          control
 POST        /application/uploadAnalysisExercise                          controllers.ApplicationController.uploadAnalysisExercise(applicationId: String, contentType: String)
 GET         /application/downloadAnalysisExercise                        controllers.ApplicationController.downloadAnalysisExercise(applicationId: String)
 GET         /application/hasAnalysisExercise                             controllers.ApplicationController.hasAnalysisExercise(applicationId: String)
+GET         /application/retrieve-analysis-exercise-info/:applicationId  controllers.ApplicationController.retrieveAnalysisExerciseInfo(applicationId: String)
+GET         /application/retrieve-analysis-exercise-meta-data/:fileId    controllers.ApplicationController.analysisExerciseMetaData(fileId: String)
 GET         /applications/analysisExerciseStatistics                     controllers.ApplicationController.analysisExerciseStatistics
 
 GET         /application/:applicationId/phase3/results                   controllers.ApplicationController.getPhase3Results(applicationId: String)

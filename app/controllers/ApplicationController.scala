@@ -200,6 +200,20 @@ trait ApplicationController extends BaseController {
       }
   }
 
+  def retrieveAnalysisExerciseInfo(applicationId: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      for {
+        assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
+        analysis = assessmentCentreTests.analysisExercise
+      } yield {
+        Ok(Json.toJson(analysis))
+      }
+  }
+
+  def analysisExerciseMetaData(fileId: String): Action[AnyContent] = Action.async { implicit request =>
+    fileUploadRepository.retrieveMetaData(fileId).map(f => Ok(Json.toJson(f)))
+  }
+
   case class ApplicationStatus(applicationId: String, progressStatus: String)
   object ApplicationStatus {
     implicit val applicationStatusFormat = play.api.libs.json.Json.format[ApplicationStatus]

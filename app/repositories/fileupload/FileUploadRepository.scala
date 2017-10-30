@@ -78,4 +78,17 @@ class FileUploadMongoRepository(implicit mongo: () => DB) extends FileUploadRepo
       }
     }
   }
+
+  def retrieveMetaData(fileId: String): Future[Option[FileUploadInfo]] = {
+    gridFS.find(BSONDocument("filename" -> fileId)).headOption.map {
+      _.map { file =>
+        FileUploadInfo(
+          file.filename.get,
+          file.contentType.get,
+          new DateTime(file.uploadDate.get, DateTimeZone.UTC).toString,
+          file.length
+        )
+      }
+    }
+  }
 }
