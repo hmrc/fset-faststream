@@ -21,16 +21,16 @@ import mocks.application.DocumentRootInMemoryRepository
 import model.EvaluationResults.Green
 import model.Exceptions.CannotUpdateFSACIndicator
 import model.command.WithdrawApplication
-import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
-import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
-import model.{ApplicationRoute, SchemeId}
+import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.{ ApplicationRoute, SchemeId }
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest, Helpers}
+import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
@@ -38,6 +38,7 @@ import services.application.ApplicationService
 import services.assessmentcentre.AssessmentCentreService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.personaldetails.PersonalDetailsService
+import services.sift.ApplicationSiftService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -198,10 +199,12 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     val mockAssessmentCentreService = mock[AssessmentCentreService]
     val mockFileUploadRepository = mock[FileUploadMongoRepository]
     val mockPersonalDetailsService = mock[PersonalDetailsService]
+    val mockApplicationSiftService = mock[ApplicationSiftService]
 
     object TestApplicationController extends ApplicationController {
       override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
       override val auditService: AuditService = mockAuditService
+      override val siftService: ApplicationSiftService = mockApplicationSiftService
       override val applicationService: ApplicationService = mockApplicationService
       override val passmarkService: EvaluatePhase3ResultService = mockPassmarkService
       override val assessmentCentreService: AssessmentCentreService = mockAssessmentCentreService
