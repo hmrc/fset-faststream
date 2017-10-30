@@ -17,14 +17,9 @@
 package helpers
 
 import connectors.exchange.{ SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails }
-import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
-import connectors.exchange.sift.SiftAnswersStatus
 import models._
 import security.RoleUtils
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 case class CurrentSchemeStatus(
   scheme: Scheme,
@@ -142,7 +137,7 @@ class CachedUserWithSchemeData(
     case s if s.scheme.siftRequirement.contains(SiftRequirement.FORM) => s.scheme
   }
 
-  lazy val numberOfSuccessfulSchemesFordisplay = successfulSchemesForDisplay.size
+  lazy val numberOfSuccessfulSchemesForDisplay = successfulSchemesForDisplay.size
   lazy val numberOfFailedSchemesForDisplay = failedSchemesForDisplay.size
   lazy val numberOfWithdrawnSchemes = withdrawnSchemes.size
 
