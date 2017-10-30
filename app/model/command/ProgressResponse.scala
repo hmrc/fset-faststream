@@ -103,7 +103,8 @@ case class SiftProgressResponse(
   siftCompleted: Boolean = false,
   sdipFailedAtSift: Boolean = false,
   failedAtSift: Boolean = false,
-  failedAtSiftNotified: Boolean = false
+  failedAtSiftNotified: Boolean = false,
+  siftFaststreamFailedSdipGreen: Boolean = false
 )
 
 case class JobOfferProgressResponse(
