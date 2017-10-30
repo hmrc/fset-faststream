@@ -48,11 +48,13 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResultWithFailureDetails(SchemeId("DigitalAndTechnology"), SchemeStatus.Red.toString) ::
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
       Nil
-      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application, Schemes.AllSchemes, phase3Results)
+      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application, Schemes.AllSchemes,
+        None, None, phase3Results)
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
-      page.userDataWithSchemes.successfulSchemesForDisplay mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
+      page.userDataWithSchemes.successfulSchemesForDisplay mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green,
+        failedAtStage = None) :: Nil
 
       page.userDataWithSchemes.failedSchemesForDisplay mustBe CurrentSchemeStatus(Schemes.Commercial, SchemeStatus.Red,
         failedAtStage = None) :: CurrentSchemeStatus(Schemes.DaT, SchemeStatus.Red, failedAtStage = None) :: Nil
@@ -68,7 +70,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         progress = userDataWithApp.application.progress.copy(
         assessmentCentre = userDataWithApp.application.progress.assessmentCentre.copy(allocationUnconfirmed = true)
       ))
-      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, app, Schemes.AllSchemes, Seq.empty)
+      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, app, Schemes.AllSchemes, None, None, Seq.empty)
 
       val allocation = CandidateAllocationWithEvent(
         cachedUserMetadata.application.applicationId.toString,
@@ -87,7 +89,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Red.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
-        Schemes.AllSchemes, phase3ResultsAllRed)
+        Schemes.AllSchemes, None, None, phase3ResultsAllRed)
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
@@ -100,7 +102,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
-        Schemes.AllSchemes, phase3ResultsOneGreen)
+        Schemes.AllSchemes, None, None, phase3ResultsOneGreen)
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
@@ -113,7 +115,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
-        Schemes.AllSchemes, schemeResults)
+        Schemes.AllSchemes, None, None, schemeResults)
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
@@ -126,7 +128,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
-        Schemes.AllSchemes, schemeResults)
+        Schemes.AllSchemes, None, None, schemeResults)
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
@@ -139,7 +141,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Red.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
-        Schemes.AllSchemes, schemeResults)
+        Schemes.AllSchemes, None, None, schemeResults)
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
@@ -152,7 +154,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Amber.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
-        Schemes.AllSchemes, schemeResults)
+        Schemes.AllSchemes, None, None, schemeResults)
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
@@ -165,7 +167,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Red.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
-        Schemes.AllSchemes, schemeResults)
+        Schemes.AllSchemes, None, None, schemeResults)
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
@@ -178,7 +180,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         progress = userDataWithApp.application.progress.copy(
           assessmentCentre = userDataWithApp.application.progress.assessmentCentre.copy(failed = true)
         ))
-      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userApp, Schemes.AllSchemes, schemeResults)
+      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userApp, Schemes.AllSchemes, None, None,
+        schemeResults)
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = true, List.empty)
 
       page.isFinalFailure mustBe true

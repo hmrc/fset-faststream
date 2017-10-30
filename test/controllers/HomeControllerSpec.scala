@@ -109,6 +109,8 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
       when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
           .thenReturnAsync(None)
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
@@ -135,6 +137,8 @@ class HomeControllerSpec extends BaseControllerSpec {
 
 
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
       when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
         .thenReturn(Future.successful(ActiveCandidate))
       val withdrawnSiftApp = CachedDataWithApp(ActiveCandidate.user,
@@ -175,6 +179,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display edip final results page for withdrawn application" in new EdipAndSdipTestFixture {
+
       val result = controller(edipWithdrawnPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
@@ -505,6 +510,9 @@ class HomeControllerSpec extends BaseControllerSpec {
       val newAccountsEnabled = true
       val applicationsSubmitEnabled = true
       val applicationsStartDate = None }
+
+    when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+    when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
 
     when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
