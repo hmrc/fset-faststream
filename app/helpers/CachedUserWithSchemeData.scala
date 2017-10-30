@@ -42,11 +42,11 @@ class CachedUserWithSchemeData(
 ) {
 
   lazy val currentSchemesStatus = rawSchemesStatus flatMap { schemeResult =>
-      allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
-        val status = SchemeStatus.Status(schemeResult.result)
-        CurrentSchemeStatus(scheme, status, schemeResult.failedAt)
-      }
+    allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
+      val status = SchemeStatus.Status(schemeResult.result)
+      CurrentSchemeStatus(scheme, status, schemeResult.failedAt)
     }
+  }
 
   private def formatEvaluationResultsToCurrentSchemeStatuses(evaluationResults: Seq[SchemeEvaluationResult]) = {
     evaluationResults.flatMap { schemeResult =>
@@ -63,7 +63,7 @@ class CachedUserWithSchemeData(
   }
 
   private def filterWithdrawnAndFailed(schemesList: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
-      schemesList.filterNot(schemeResult => withdrawnSchemes.exists(_.id == schemeResult.schemeId))
+    schemesList.filterNot(schemeResult => withdrawnSchemes.exists(_.id == schemeResult.schemeId))
       .filterNot(schemeResult => failedSchemes.exists(_.scheme.id == schemeResult.schemeId))
   }
 
@@ -74,14 +74,14 @@ class CachedUserWithSchemeData(
   private val ambersInCurrentSchemeStatus = currentSchemesStatus.filterNot(_.scheme.id == Scheme.SdipId).exists(_.status == SchemeStatus.Amber)
 
   private val assessmentCentreInProgress = application.progress.assessmentCentre.scoresAccepted &&
-                                           !application.progress.assessmentCentre.failed &&
-                                           !application.progress.assessmentCentre.passed
+    !application.progress.assessmentCentre.failed &&
+    !application.progress.assessmentCentre.passed
 
   private val siftInProgress = !application.progress.assessmentCentre.allocationConfirmed &&
-                               !application.progress.assessmentCentre.allocationUnconfirmed &&
-                               !application.progress.assessmentCentre.awaitingAllocation &&
-                               application.progress.siftProgress.siftCompleted &&
-                               !application.progress.siftProgress.failedAtSift
+    !application.progress.assessmentCentre.allocationUnconfirmed &&
+    !application.progress.assessmentCentre.awaitingAllocation &&
+    application.progress.siftProgress.siftCompleted &&
+    !application.progress.siftProgress.failedAtSift
 
   private val greensAtSiftOpt = siftEvaluation.map(siftEval => siftEval.filter(_.result == SchemeStatus.Green.toString))
   private val redsAtSiftOpt = siftEvaluation.map(siftEval => siftEval.filter(_.result == SchemeStatus.Red.toString))
@@ -102,13 +102,13 @@ class CachedUserWithSchemeData(
 
     // If any ambers exist this candidate is being evaluated for the next stage
     if (ambersInCurrentSchemeStatus && assessmentCentreInProgress) {
-        // In AC show SIFT or VIDEO results (or green if fast pass)
-        val lastNonAmberEval = greensAtSiftOpt.orElse(greensAtPhase3Opt).getOrElse(rawSchemeStatusAllGreen)
-        filterAndFormat(lastNonAmberEval)
+      // In AC show SIFT or VIDEO results (or green if fast pass)
+      val lastNonAmberEval = greensAtSiftOpt.orElse(greensAtPhase3Opt).getOrElse(rawSchemeStatusAllGreen)
+      filterAndFormat(lastNonAmberEval)
     } else if (ambersInCurrentSchemeStatus && siftInProgress) {
-        // In SIFT show video results (or green if fast pass)
-        val lastNonAmberEval = greensAtPhase3Opt.getOrElse(rawSchemeStatusAllGreen)
-        filterAndFormat(lastNonAmberEval)
+      // In SIFT show video results (or green if fast pass)
+      val lastNonAmberEval = greensAtPhase3Opt.getOrElse(rawSchemeStatusAllGreen)
+      filterAndFormat(lastNonAmberEval)
     } else {
       currentSchemesStatus.filter(_.status == SchemeStatus.Green)
     }
@@ -134,7 +134,7 @@ class CachedUserWithSchemeData(
     }
   }
 
-  lazy val withdrawnSchemes = currentSchemesStatus.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme}
+  lazy val withdrawnSchemes = currentSchemesStatus.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme }
 
   lazy val schemesForSiftForms = successfulSchemes.collect {
     case s if s.scheme.siftRequirement.contains(SiftRequirement.FORM) => s.scheme
@@ -161,5 +161,5 @@ object CachedUserWithSchemeData {
     phase3Evaluation: Option[Seq[SchemeEvaluationResult]],
     siftEvaluation: Option[Seq[SchemeEvaluationResult]],
     rawSchemesStatus: Seq[SchemeEvaluationResultWithFailureDetails]): CachedUserWithSchemeData =
-      new CachedUserWithSchemeData(user, application, allSchemes, phase3Evaluation, siftEvaluation, rawSchemesStatus)
+    new CachedUserWithSchemeData(user, application, allSchemes, phase3Evaluation, siftEvaluation, rawSchemesStatus)
 }
