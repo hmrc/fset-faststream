@@ -348,7 +348,7 @@ trait ReportingController extends BaseController {
 
   def candidateAcceptanceReport(): Action[AnyContent] = Action.async { implicit request =>
 
-    val headers = Seq("Candidate email, allocation date, event type, event description, location, venue")
+    val headers = Seq("Candidate email, allocation date, event date, event type, event description, location, venue")
     candidateAllocationRepo.allAllocationUnconfirmed.flatMap { allAllocations =>
       for {
         candidates <- applicationRepository.find(allAllocations.map(_.id))
@@ -367,7 +367,7 @@ trait ReportingController extends BaseController {
 
         val report = headers ++ candidateAllocations.map { allocation =>
           val e = eventMap(allocation.eventId)
-          makeRow(List(Some(cdMap(allocation.id).email), Some(allocation.createdAt.toString), Some(e.eventType.toString),
+          makeRow(List(Some(cdMap(allocation.id).email), Some(allocation.createdAt.toString), Some(e.date.toString), Some(e.eventType.toString),
             Some(e.description), Some(e.location.name), Some(e.venue.name)):_*
           )
         }
@@ -375,6 +375,5 @@ trait ReportingController extends BaseController {
       }
     }
   }
-
 
 }
