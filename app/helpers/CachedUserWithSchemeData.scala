@@ -36,8 +36,8 @@ class CachedUserWithSchemeData(
   val user: CachedUser,
   val application: ApplicationData,
   val allSchemes: Seq[Scheme],
-  val siftEvaluation: Option[Seq[SchemeEvaluationResult]],
   val phase3Evaluation: Option[Seq[SchemeEvaluationResult]],
+  val siftEvaluation: Option[Seq[SchemeEvaluationResult]],
   val rawSchemesStatus: Seq[SchemeEvaluationResultWithFailureDetails]
 ) {
 
@@ -48,31 +48,92 @@ class CachedUserWithSchemeData(
       }
     }
 
-  lazy val successfulSchemes = {
-    // If any ambers exist this candidate is being evaluated for the next stage
-    // Check withdrawals
-    if (currentSchemesStatus.exists(_.status == SchemeStatus.Amber)) {
-      // In AC show their SIFT or VIDEO results (or green if fast pass)
-      if (application.progress.assessmentCentre.scoresAccepted && !application.progress.assessmentCentre.failed
-        && !application.progress.assessmentCentre.passed) {
-        siftEvaluation.map(siftEval => siftEval.filter(_.result == SchemeStatus.Green.toString)).orElse {
-          phase3Evaluation.map(phase3Eval => phase3Eval.filter(_.result == SchemeStatus.Green.toString)).orElse(None)
+  private def formatEvaluationResultsToCurrentSchemeStatuses(evaluationResults: Seq[SchemeEvaluationResult]) = {
+    evaluationResults.flatMap { schemeResult =>
+      allSchemes.find(_.id == schemeResult.schemeId).map { scheme =>
+        val schemeStatus = SchemeStatus.Status(schemeResult.result)
+        val failedAt = if (schemeStatus == SchemeStatus.Red) {
+          currentSchemesStatus.find(_.scheme == scheme).map(_.failedAtStage).getOrElse(None)
+        } else {
+          None
         }
-
-      } else if (application.progress.siftProgress.siftCompleted && !application.progress.siftProgress.failedAtSift) {
-        currentSchemesStatus.filter(_.status == SchemeStatus.Green)
+        CurrentSchemeStatus(scheme, schemeStatus, failedAt)
       }
+    }
+  }
+
+  private def filterWithdrawnAndFailed(schemesList: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
+      schemesList.filterNot(schemeResult => withdrawnSchemes.exists(_.id == schemeResult.schemeId))
+      .filterNot(schemeResult => failedSchemes.exists(_.scheme.id == schemeResult.schemeId))
+  }
+
+  private def filterWithdrawn(schemesList: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
+    schemesList.filterNot(schemeResult => withdrawnSchemes.exists(_.id == schemeResult.schemeId))
+  }
+
+  private val ambersInCurrentSchemeStatus = currentSchemesStatus.filterNot(_.scheme.id == Scheme.SdipId).exists(_.status == SchemeStatus.Amber)
+
+  private val assessmentCentreInProgress = application.progress.assessmentCentre.scoresAccepted &&
+                                           !application.progress.assessmentCentre.failed &&
+                                           !application.progress.assessmentCentre.passed
+
+  private val siftInProgress = !application.progress.assessmentCentre.allocationConfirmed &&
+                               !application.progress.assessmentCentre.allocationUnconfirmed &&
+                               !application.progress.assessmentCentre.awaitingAllocation &&
+                               application.progress.siftProgress.siftCompleted &&
+                               !application.progress.siftProgress.failedAtSift
+
+  private val greensAtSiftOpt = siftEvaluation.map(siftEval => siftEval.filter(_.result == SchemeStatus.Green.toString))
+  private val redsAtSiftOpt = siftEvaluation.map(siftEval => siftEval.filter(_.result == SchemeStatus.Red.toString))
+
+  private val greensAtPhase3Opt = phase3Evaluation.map(phase3Eval => phase3Eval.filter(_.result == SchemeStatus.Green.toString))
+  private val redsAtPhase3Opt = phase3Evaluation.map(phase3Eval => phase3Eval.filter(_.result == SchemeStatus.Red.toString))
+
+  private val rawSchemeStatusAllGreen = rawSchemesStatus.map(schemeResult =>
+    SchemeEvaluationResult(schemeResult.schemeId, SchemeStatus.Green.toString)
+  )
+
+  lazy val successfulSchemes: Seq[CurrentSchemeStatus] = {
+
+    def filterAndFormat(evaluationResults: Seq[SchemeEvaluationResult]): Seq[CurrentSchemeStatus] = {
+      val filteredEval = filterWithdrawnAndFailed(evaluationResults)
+      formatEvaluationResultsToCurrentSchemeStatuses(filteredEval)
+    }
+
+    // If any ambers exist this candidate is being evaluated for the next stage
+    if (ambersInCurrentSchemeStatus && assessmentCentreInProgress) {
+        // In AC show SIFT or VIDEO results (or green if fast pass)
+        val lastNonAmberEval = greensAtSiftOpt.orElse(greensAtPhase3Opt).getOrElse(rawSchemeStatusAllGreen)
+        filterAndFormat(lastNonAmberEval)
+    } else if (ambersInCurrentSchemeStatus && siftInProgress) {
+        // In SIFT show video results (or green if fast pass)
+        val lastNonAmberEval = greensAtPhase3Opt.getOrElse(rawSchemeStatusAllGreen)
+        filterAndFormat(lastNonAmberEval)
     } else {
       currentSchemesStatus.filter(_.status == SchemeStatus.Green)
     }
   }
 
-  // TODO: Same as successful schemes, show old failures if in progress SIFT or AC
-  // TODO: Check withdrawals
-  // TODO: Import failedAt from CSS
-  lazy val failedSchemes = currentSchemesStatus.filter(_.status == SchemeStatus.Red)
+  lazy val failedSchemes: Seq[CurrentSchemeStatus] = {
 
-  // TODO: Merge withdrawals from CSS over the top of an old status, if necessary
+    def filterAndFormat(evaluationResults: Seq[SchemeEvaluationResult]) = {
+      val filteredEval = filterWithdrawn(evaluationResults)
+      formatEvaluationResultsToCurrentSchemeStatuses(filteredEval)
+    }
+
+    if (ambersInCurrentSchemeStatus && assessmentCentreInProgress) {
+      // In AC show SIFT or VIDEO failures (or assume no failures if fast pass)
+      val lastNonAmberEval = redsAtSiftOpt.orElse(redsAtPhase3Opt).getOrElse(Nil)
+      filterAndFormat(lastNonAmberEval)
+    } else if (ambersInCurrentSchemeStatus && siftInProgress) {
+      // In SIFT show video failures (or assume no failures if fast pass)
+      val lastNonAmberEval = redsAtPhase3Opt.getOrElse(Nil)
+      filterAndFormat(lastNonAmberEval)
+    } else {
+      currentSchemesStatus.filter(_.status == SchemeStatus.Red)
+    }
+  }
+
   lazy val withdrawnSchemes = currentSchemesStatus.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme}
 
   lazy val schemesForSiftForms = successfulSchemes.collect {
@@ -97,7 +158,8 @@ object CachedUserWithSchemeData {
     user: CachedUser,
     application: ApplicationData,
     allSchemes: Seq[Scheme],
+    phase3Evaluation: Option[Seq[SchemeEvaluationResult]],
+    siftEvaluation: Option[Seq[SchemeEvaluationResult]],
     rawSchemesStatus: Seq[SchemeEvaluationResultWithFailureDetails]): CachedUserWithSchemeData =
-      new CachedUserWithSchemeData(user, application, allSchemes, rawSchemesStatus
-  )
+      new CachedUserWithSchemeData(user, application, allSchemes, phase3Evaluation, siftEvaluation, rawSchemesStatus)
 }
