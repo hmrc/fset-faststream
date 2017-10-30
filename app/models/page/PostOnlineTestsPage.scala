@@ -99,7 +99,7 @@ case class PostOnlineTestsPage(
     }
   }.getOrElse("")
 
-  def allSchemesFailed: Boolean = userDataWithSchemes.noFailedSchemes == userDataWithSchemes.rawSchemesStatus.length
+  def allSchemesFailed: Boolean = userDataWithSchemes.numberOfFailedSchemesForDisplay == userDataWithSchemes.rawSchemesStatus.length
 
   def firstResidualPreferencePassed: Boolean = {
 

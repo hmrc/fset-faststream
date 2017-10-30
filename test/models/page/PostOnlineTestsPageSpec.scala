@@ -52,9 +52,9 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
-      page.userDataWithSchemes.successfulSchemes mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
+      page.userDataWithSchemes.successfulSchemesForDisplay mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green, failedAtStage = None) :: Nil
 
-      page.userDataWithSchemes.failedSchemes mustBe CurrentSchemeStatus(Schemes.Commercial, SchemeStatus.Red,
+      page.userDataWithSchemes.failedSchemesForDisplay mustBe CurrentSchemeStatus(Schemes.Commercial, SchemeStatus.Red,
         failedAtStage = None) :: CurrentSchemeStatus(Schemes.DaT, SchemeStatus.Red, failedAtStage = None) :: Nil
 
       page.userDataWithSchemes.withdrawnSchemes mustBe Nil

@@ -64,7 +64,7 @@ class CachedUserWithSchemeData(
 
   private def filterWithdrawnAndFailed(schemesList: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
     schemesList.filterNot(schemeResult => withdrawnSchemes.exists(_.id == schemeResult.schemeId))
-      .filterNot(schemeResult => failedSchemes.exists(_.scheme.id == schemeResult.schemeId))
+      .filterNot(schemeResult => failedSchemesForDisplay.exists(_.scheme.id == schemeResult.schemeId))
   }
 
   private def filterWithdrawn(schemesList: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
@@ -93,7 +93,7 @@ class CachedUserWithSchemeData(
     SchemeEvaluationResult(schemeResult.schemeId, SchemeStatus.Green.toString)
   )
 
-  lazy val successfulSchemes: Seq[CurrentSchemeStatus] = {
+  lazy val successfulSchemesForDisplay: Seq[CurrentSchemeStatus] = {
 
     def filterAndFormat(evaluationResults: Seq[SchemeEvaluationResult]): Seq[CurrentSchemeStatus] = {
       val filteredEval = filterWithdrawnAndFailed(evaluationResults)
@@ -114,7 +114,7 @@ class CachedUserWithSchemeData(
     }
   }
 
-  lazy val failedSchemes: Seq[CurrentSchemeStatus] = {
+  lazy val failedSchemesForDisplay: Seq[CurrentSchemeStatus] = {
 
     def filterAndFormat(evaluationResults: Seq[SchemeEvaluationResult]) = {
       val filteredEval = filterWithdrawn(evaluationResults)
@@ -136,14 +136,16 @@ class CachedUserWithSchemeData(
 
   lazy val withdrawnSchemes = currentSchemesStatus.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme }
 
+  lazy val successfulSchemes = currentSchemesStatus.filter(_.status == SchemeStatus.Green)
+
   lazy val schemesForSiftForms = successfulSchemes.collect {
     case s if s.scheme.siftRequirement.contains(SiftRequirement.FORM) => s.scheme
   }
 
-  lazy val noSuccessfulSchemes = successfulSchemes.size
-  lazy val noFailedSchemes = failedSchemes.size
-  lazy val noWithdrawnSchemes = withdrawnSchemes.size
-
+  lazy val numberOfSuccessfulSchemesFordisplay = successfulSchemesForDisplay.size
+  lazy val numberOfFailedSchemesForDisplay = failedSchemesForDisplay.size
+  lazy val numberOfWithdrawnSchemes = withdrawnSchemes.size
+  
   lazy val hasFormRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
   lazy val hasNumericRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   lazy val isNumericOnly = !hasFormRequirement && hasNumericRequirement
