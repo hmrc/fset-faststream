@@ -73,7 +73,15 @@ object Phase1SuccessTestType
 
 object Phase3SuccessTestType
   extends SuccessTestType(ApplicationStatus.PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_NOTIFIED,
-    ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, "fset_faststream_app_online_phase3_test_success")
+    ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, "fset_faststream_app_online_phase3_test_success") {
+  override val applicationRoutes = List(ApplicationRoute.Faststream)
+}
+
+object Phase3SuccessSdipFsTestType
+  extends SuccessTestType(ApplicationStatus.PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_NOTIFIED,
+    ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, "fset_faststream_app_online_phase3_test_success_sdipfs") {
+  override val applicationRoutes = List(ApplicationRoute.SdipFaststream)
+}
 
 object FailedSdipFsTestType
   extends FailedTestTypeSdipFs("fset_faststream_app_online_sdip_fs_test_failed", ApplicationRoute.SdipFaststream)
