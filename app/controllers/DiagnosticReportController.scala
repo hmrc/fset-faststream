@@ -36,7 +36,7 @@ object DiagnosticReportController extends DiagnosticReportController {
   val assessorAssessmentCentreScoresRepo: AssessorAssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
   val reviewerAssessmentCentreScoresRepo: ReviewerAssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
   val authProvider: AuthProviderClient = AuthProviderClient
-  val assessorsService: AssessorService = AssessorService
+  val assessorService: AssessorService = AssessorService
 }
 
 trait DiagnosticReportController extends BaseController {
@@ -45,7 +45,7 @@ trait DiagnosticReportController extends BaseController {
   def assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
   def reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
   def authProvider: AuthProviderClient
-  def assessorsService: AssessorService
+  def assessorService: AssessorService
 
   def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
 
@@ -70,8 +70,8 @@ trait DiagnosticReportController extends BaseController {
   def getAssessorDiagnosticDetail(userId: String): Action[AnyContent] = Action.async { implicit request =>
     authProvider.findByUserIds(Seq(userId)).flatMap { users =>
       users.headOption.map { user =>
-        assessorsService.findAssessor(userId).flatMap { assessor =>
-          assessorsService.findAssessorAllocations(userId).map { allocations =>
+        assessorService.findAssessor(userId).flatMap { assessor =>
+          assessorService.findAssessorAllocations(userId).map { allocations =>
               AssessorDiagnosticReport(
                 user.userId,
                 user.roles,

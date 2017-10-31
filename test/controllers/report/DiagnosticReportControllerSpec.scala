@@ -41,7 +41,7 @@ class DiagnosticReportControllerSpec extends UnitWithAppSpec {
   val mockAssessorScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
   val mockReviewerScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
   val mockAuthProvider: AuthProviderClient = mock[AuthProviderClient]
-  val mockAssessorsService: AssessorService = mock[AssessorService]
+  val mockAssessorService: AssessorService = mock[AssessorService]
 
   "Get application by id" should {
     "return all non-sensitive information about the user application" in new TestFixture {
@@ -79,7 +79,7 @@ class DiagnosticReportControllerSpec extends UnitWithAppSpec {
       val reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository = mockReviewerScoresRepo
 
       val authProvider: AuthProviderClient = mockAuthProvider
-      val assessorsService: AssessorService = mockAssessorsService
+      val assessorService: AssessorService = mockAssessorService
     }
 
     def createGetUserByIdRequest(userId: String): FakeRequest[String] = {
