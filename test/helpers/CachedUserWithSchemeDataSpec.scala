@@ -87,7 +87,7 @@ class CachedUserWithSchemeDataSpec extends WordSpec with Matchers {
 
     "Display no failures when candidate is fastpass (has no test results) and " +
       "was not sifted and has ambers at assessment centre" in new TestFixture {
-
+      sutFastPassWithFormAndNumericRequiredSchemes.failedSchemesForDisplay shouldBe Nil
     }
 
     "Display current scheme status fails when no ambers are present" in new TestFixture {
