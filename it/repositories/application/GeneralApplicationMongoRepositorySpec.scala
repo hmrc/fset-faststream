@@ -414,7 +414,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "find a candidate that needs to be notified of successful phase3 test results" in new NewApplication {
       val appStatus = ApplicationStatus.PHASE3_TESTS_PASSED
-      val appRoute = None
+      val appRoute = Some(ApplicationRoute.Faststream)
       createApplication()
 
       val applicationResponse = repository.findTestForNotification(Phase3SuccessTestType).futureValue
