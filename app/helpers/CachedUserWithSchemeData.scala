@@ -100,10 +100,10 @@ class CachedUserWithSchemeData(
       // In AC show SIFT or VIDEO results (or green if fast pass)
       val lastNonAmberEval = greensAtSiftOpt.orElse(greensAtPhase3Opt).getOrElse(rawSchemeStatusAllGreen)
       filterAndFormat(lastNonAmberEval)
-    } else if (ambersInCurrentSchemeStatus && siftInProgress) {
+    } else if (siftInProgress) {
       // In SIFT show video results (or green if fast pass)
-      val lastNonAmberEval = greensAtPhase3Opt.getOrElse(rawSchemeStatusAllGreen)
-      filterAndFormat(lastNonAmberEval)
+      val lastEval = greensAtPhase3Opt.getOrElse(rawSchemeStatusAllGreen)
+      filterAndFormat(lastEval)
     } else {
       currentSchemesStatus.filter(_.status == SchemeStatus.Green)
     }
@@ -120,10 +120,10 @@ class CachedUserWithSchemeData(
       // In AC show SIFT or VIDEO failures (or assume no failures if fast pass)
       val lastNonAmberEval = redsAtSiftOpt.orElse(redsAtPhase3Opt).getOrElse(Nil)
       filterAndFormat(lastNonAmberEval)
-    } else if (ambersInCurrentSchemeStatus && siftInProgress) {
+    } else if (siftInProgress) {
       // In SIFT show video failures (or assume no failures if fast pass)
-      val lastNonAmberEval = redsAtPhase3Opt.getOrElse(Nil)
-      filterAndFormat(lastNonAmberEval)
+      val lastEval = redsAtPhase3Opt.getOrElse(Nil)
+      filterAndFormat(lastEval)
     } else {
       currentSchemesStatus.filter(_.status == SchemeStatus.Red)
     }
