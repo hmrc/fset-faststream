@@ -163,7 +163,11 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
-  // we need to consider that all faststream schemes have been sifted with a fail or the candidate has withdrawn from them
+  def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
+    applicationSiftRepo.getSiftEvaluations(applicationId)
+  }
+
+  // we need to consider that all siftable schemes have been sifted with a fail or the candidate has withdrawn from them
   // and sdip has been sifted with a pass
   private def maybeSetSdipFaststreamProgressStatus(newSchemeStatus: Seq[SchemeEvaluationResult], siftedSchemes: Seq[SchemeId]) = {
 
