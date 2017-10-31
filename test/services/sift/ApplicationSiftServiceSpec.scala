@@ -128,6 +128,47 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       }
     }
 
+    "progress candidate to SIFT_READY (eligible to be sifted) when the candidate is only in the running for schemes " +
+      "requiring a numeric test and form based schemes are failed" in new TestFixture {
+      val applicationToProgressToSift = List(
+        ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
+          )
+        )
+      )
+
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
+
+      whenReady(service.progressApplicationToSiftStage(applicationToProgressToSift)) { results =>
+
+        val failedApplications = Nil
+        val passedApplications = Seq(applicationToProgressToSift.head)
+        results mustBe SerialUpdateResult(failedApplications, passedApplications)
+      }
+    }
+
+    "progress candidate to SIFT_READY (eligible to be sifted) when the candidate is still in the running for schemes " +
+      "requiring a numeric test and Generalist and form based schemes are failed" in new TestFixture {
+      val applicationToProgressToSift = List(
+        ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
+          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString),
+            SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString)
+          )
+        )
+      )
+
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
+
+      whenReady(service.progressApplicationToSiftStage(applicationToProgressToSift)) { results =>
+
+        val failedApplications = Nil
+        val passedApplications = Seq(applicationToProgressToSift.head)
+        results mustBe SerialUpdateResult(failedApplications, passedApplications)
+      }
+    }
+
     "find relevant applications for scheme sifting" in new TestFixture {
       val candidates = Seq(Candidate("userId1", Some("appId1"), Some(""), Some(""), Some(""), Some(""), Some(LocalDate.now), Some(Address("")),
         Some("E1 7UA"), Some("UK"), Some(ApplicationRoute.Faststream), Some("")))
@@ -235,6 +276,31 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
           SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString) ::
+          schemeSiftResult :: Nil: _*),
+        progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED),
+        progressStatusUpdateBson(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN)
+      )
+      (mockSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
+
+      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+    }
+
+    "sift and update progress status for an SdipFaststream candidate whose SDIP has been sifted and whose fast stream " +
+      "schemes are Withdrawn and have not been sifted" in new SiftUpdateTest {
+      (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
+
+      (mockAppRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.SdipFaststream)
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
+      ))
+
+      override val schemeSiftResult = SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
+      val expectedUpdateBson = Seq(
+        currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
+          SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Withdrawn.toString) ::
           schemeSiftResult :: Nil: _*),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED),
         progressStatusUpdateBson(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN)
