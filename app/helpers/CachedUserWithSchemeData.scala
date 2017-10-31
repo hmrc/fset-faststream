@@ -19,6 +19,7 @@ package helpers
 import connectors.exchange.{ SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails }
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import models._
+import play.api.Logger
 import security.RoleUtils
 
 case class CurrentSchemeStatus(
@@ -94,6 +95,9 @@ class CachedUserWithSchemeData(
       val filteredEval = filterWithdrawnAndFailed(evaluationResults)
       formatEvaluationResultsToCurrentSchemeStatuses(filteredEval)
     }
+
+    Logger.warn(s"==== AICSS = $ambersInCurrentSchemeStatus, ACIP = $assessmentCentreInProgress, SiftGreen = ${greensAtSiftOpt.isDefined}, " +
+      s"P3Green = ${greensAtPhase3Opt.isDefined}, Raw Scheme = $rawSchemeStatusAllGreen")
 
     // If any ambers exist this candidate is being evaluated for the next stage
     if (ambersInCurrentSchemeStatus && assessmentCentreInProgress) {
