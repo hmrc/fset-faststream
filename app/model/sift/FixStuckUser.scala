@@ -23,6 +23,6 @@ import play.api.libs.json.Json
 case class FixStuckUser(applicationId: String, timeEnteredSift: DateTime,
     currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult])
 
-  object FixStuckUser {
-    implicit val fixStuckUserFormat = Json.format[FixStuckUser]
-  }
+object FixStuckUser {
+  implicit val fixStuckUserFormat = Json.format[FixStuckUser]
+}

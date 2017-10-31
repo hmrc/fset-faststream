@@ -25,7 +25,7 @@ import model.Exceptions.ApplicationNotFound
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
-import model.sift.FixStuckUser
+import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
 import model.report.SiftPhaseReportItem
 import reactivemongo.api.DB
@@ -53,7 +53,7 @@ trait ApplicationSiftRepository {
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
-
+  def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
 }
 
 class ApplicationSiftMongoRepository(
@@ -245,6 +245,27 @@ class ApplicationSiftMongoRepository(
         css,
         siftEvaluation
       )
+    })
+  }
+
+  def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]] = {
+
+    val query = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT,
+      s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> BSONDocument("$exists" -> true),
+      s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)
+    )
+
+    val projection = BSONDocument(
+      "_id" -> 0,
+      "applicationId" -> 1,
+      "currentSchemeStatus" -> 1
+    )
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+      val css = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").get
+      val applicationId = doc.getAs[String]("applicationId").get
+
+      FixUserStuckInSiftEntered(applicationId, css)
     })
   }
 }

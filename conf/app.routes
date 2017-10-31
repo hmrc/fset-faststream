@@ -96,6 +96,9 @@ GET         /diagnostic/application/:applicationId/rollback-to-in-progress-from-
 GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-faststream-user controllers.fixdata.FixDataConsistencyController.removeSdipSchemeFromFaststreamUser(applicationId: String)
 GET         /diagnostic/sift/findCandidatesStuckInSiftReady              controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes
 GET         /diagnostic/sift/fixCandidateStuckInSiftReady                controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String)
+GET         /diagnostic/sift/findCandidatesStuckInSiftEntered            controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReady
+GET         /diagnostic/sift/fixCandidatesStuckInSiftEntered             controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReady(applicationId: String)
+
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
