@@ -72,7 +72,7 @@ class CachedUserWithSchemeData(
     !application.progress.assessmentCentre.failed &&
     !application.progress.assessmentCentre.passed
 
-  private val siftInProgress = !application.progress.assessmentCentre.allocationConfirmed &&
+  private val siftCompleted = !application.progress.assessmentCentre.allocationConfirmed &&
     !application.progress.assessmentCentre.allocationUnconfirmed &&
     !application.progress.assessmentCentre.awaitingAllocation &&
     application.progress.siftProgress.siftCompleted &&
@@ -100,7 +100,7 @@ class CachedUserWithSchemeData(
       // In AC show SIFT or VIDEO results (or green if fast pass)
       val lastNonAmberEval = greensAtSiftOpt.orElse(greensAtPhase3Opt).getOrElse(rawSchemeStatusAllGreen)
       filterAndFormat(lastNonAmberEval)
-    } else if (siftInProgress) {
+    } else if (siftCompleted) {
       // In SIFT show video results (or green if fast pass)
       val lastEval = greensAtPhase3Opt.getOrElse(rawSchemeStatusAllGreen)
       filterAndFormat(lastEval)
@@ -120,7 +120,7 @@ class CachedUserWithSchemeData(
       // In AC show SIFT or VIDEO failures (or assume no failures if fast pass)
       val lastNonAmberEval = redsAtSiftOpt.orElse(redsAtPhase3Opt).getOrElse(Nil)
       filterAndFormat(lastNonAmberEval)
-    } else if (siftInProgress) {
+    } else if (siftCompleted) {
       // In SIFT show video failures (or assume no failures if fast pass)
       val lastEval = redsAtPhase3Opt.getOrElse(Nil)
       filterAndFormat(lastEval)
