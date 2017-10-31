@@ -252,7 +252,8 @@ class ApplicationSiftMongoRepository(
 
     val query = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT,
       s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> BSONDocument("$exists" -> true),
-      s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)
+      s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false),
+      s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false)
     )
 
     val projection = BSONDocument(
