@@ -30,40 +30,59 @@ import org.scalatest.{ Matchers, WordSpec }
 class CachedUserWithSchemeDataSpec extends WordSpec with Matchers {
 
   "Successful schemes for display" should {
-    "Display sift greens when candidate was sifted and has ambers at assessment centre" in new TestFixture {
-      sutWithFormAndNumericRequiredSchemes.successfulSchemesForDisplay.map(_.scheme.id) should contain theSameElementsAs Seq(
+    "Display sift greens when candidate was sifted and has ambers at assessment centre and take account of withdrawals" in new TestFixture {
+      sutSiftedWithFormAndNumericRequiredSchemes.successfulSchemesForDisplay.map(_.scheme.id) should contain theSameElementsAs Seq(
         Commercial.id,
         Finance.id,
         Generalist.id,
         Dip.id,
-        GovOps.id,
         GovStats.id
       )
     }
 
-    "Display PHASE3 greens when candidate was not sifted and has ambers at assessment centre" in new TestFixture {
-
+    "Display PHASE3 greens when candidate was not sifted and " +
+      "has ambers at assessment centre and take account of withdrawals" in new TestFixture {
+      sutNoSiftWithFormAndNumericRequiredSchemes.successfulSchemesForDisplay.map(_.scheme.id) should contain theSameElementsAs Seq(
+          Commercial.id,
+          Finance.id,
+          Dip.id,
+          GovEconomics.id,
+          GovStats.id
+      )
     }
 
     "Display all greens when candidate is fastpass (has no test results) and " +
-      "was not sifted and has ambers at assessment centre" in new TestFixture {
-
+      "was not sifted and has ambers at assessment centre and take account of withdrawals" in new TestFixture {
+      sutFastPassWithFormAndNumericRequiredSchemes.successfulSchemesForDisplay.map(_.scheme.id) should contain theSameElementsAs Seq(
+          Commercial.id,
+          Finance.id,
+          Generalist.id,
+          Dip.id,
+          GovEconomics.id,
+          GovStats.id
+      )
     }
 
     "Display current scheme status greens when no ambers are present" in new TestFixture {
-
+      sutWithNoFormRequiredSchemes.successfulSchemesForDisplay.map(_.scheme.id) should contain theSameElementsAs Seq(
+        Commercial.id,
+        Finance.id
+      )
     }
   }
 
   "Failed schemes for display" should {
-    "Display sift fails when candidate was sifted and has ambers at assessment centre" in new TestFixture {
-      sutWithFormAndNumericRequiredSchemes.failedSchemesForDisplay.map(_.scheme.id) should contain theSameElementsAs Seq(
+    "Display sift fails when candidate was sifted and has ambers at assessment centre and take account of withdrawals" in new TestFixture {
+      sutSiftedWithFormAndNumericRequiredSchemes.failedSchemesForDisplay.map(_.scheme.id) should contain theSameElementsAs Seq(
         GovEconomics.id
       )
     }
 
-    "Display PHASE3 fails when candidate was not sifted and has ambers at assessment centre" in new TestFixture {
-
+    "Display PHASE3 fails when candidate was not sifted and " +
+      "has ambers at assessment centre and take account of withdrawals" in new TestFixture {
+      sutNoSiftWithFormAndNumericRequiredSchemes.failedSchemesForDisplay.map(_.scheme.id) should contain theSameElementsAs Seq(
+        Generalist.id
+      )
     }
 
     "Display no failures when candidate is fastpass (has no test results) and " +
@@ -72,19 +91,21 @@ class CachedUserWithSchemeDataSpec extends WordSpec with Matchers {
     }
 
     "Display current scheme status fails when no ambers are present" in new TestFixture {
-
+      sutWithNoFormRequiredSchemes.failedSchemesForDisplay.map(_.scheme.id) should contain theSameElementsAs Seq(
+        Generalist.id
+      )
     }
   }
 
   "Withdrawn schemes" should {
     "Display withdrawn schemes from the current scheme status" in new TestFixture {
-      sutWithFormAndNumericRequiredSchemes.withdrawnSchemes should contain theSameElementsAs Seq(GovOps)
+      sutSiftedWithFormAndNumericRequiredSchemes.withdrawnSchemes should contain theSameElementsAs Seq(GovOps)
     }
   }
 
   "Successful schemes" should {
     "Display successful schemes from the current scheme status" in new TestFixture {
-      sutWithFormAndNumericRequiredSchemes.successfulSchemes.map(_.scheme) should contain theSameElementsAs Seq(
+      sutSiftedWithFormAndNumericRequiredSchemes.successfulSchemes.map(_.scheme) should contain theSameElementsAs Seq(
         Dip,
         Finance
       )
@@ -93,19 +114,21 @@ class CachedUserWithSchemeDataSpec extends WordSpec with Matchers {
 
   "Schemes for sift forms" should {
     "Display schemes from the current scheme status greens that require forms" in new TestFixture {
-      sutWithFormAndNumericRequiredSchemes.schemesForSiftForms should contain theSameElementsAs Seq(ReferenceDataExamples.Schemes.Dip)
+      sutSiftedWithFormAndNumericRequiredSchemes.schemesForSiftForms should contain theSameElementsAs Seq(ReferenceDataExamples.Schemes.Dip)
     }
   }
 
   "Number of schemes for display" should {
     "Display counts for display success/failure schemes" in new TestFixture {
-
+      sutSiftedWithFormAndNumericRequiredSchemes.numberOfSuccessfulSchemesForDisplay shouldBe 5
+      sutSiftedWithFormAndNumericRequiredSchemes.numberOfFailedSchemesForDisplay shouldBe 1
+      sutSiftedWithFormAndNumericRequiredSchemes.numberOfWithdrawnSchemes shouldBe 1
     }
   }
 
   "Has form requirement" should {
     "Return true if any current scheme status successful schemes need form sift" in new TestFixture {
-      sutWithFormAndNumericRequiredSchemes.hasFormRequirement shouldBe true
+      sutSiftedWithFormAndNumericRequiredSchemes.hasFormRequirement shouldBe true
     }
 
     "Return false if no current scheme status successful schemes need form sift" in new TestFixture {
@@ -115,7 +138,7 @@ class CachedUserWithSchemeDataSpec extends WordSpec with Matchers {
 
   "Has numeric requirement" should {
     "Return true if any current scheme status successful schemes need numeric sift" in new TestFixture {
-      sutWithFormAndNumericRequiredSchemes.hasNumericRequirement shouldBe true
+      sutSiftedWithFormAndNumericRequiredSchemes.hasNumericRequirement shouldBe true
     }
 
     "Return false if any current scheme status successful schemes need numeric sift" in new TestFixture {
@@ -167,8 +190,8 @@ class CachedUserWithSchemeDataSpec extends WordSpec with Matchers {
       )
     }
 
-    val sutWithFormAndNumericRequiredSchemes: CachedUserWithSchemeData = buildCachedUserWithSchemeData(
-      Seq(
+    val sutSiftedWithFormAndNumericRequiredSchemes: CachedUserWithSchemeData = buildCachedUserWithSchemeData(
+      currentSchemes = Seq(
         SchemeEvaluationResultWithFailureDetails(
           Commercial.id, Red.toString, Some("assessment centre")
         ),
@@ -191,8 +214,8 @@ class CachedUserWithSchemeDataSpec extends WordSpec with Matchers {
           GovStats.id, Amber.toString, None
         )
       ),
-      None,
-      Some(Seq(
+      phase3Evaluation = None,
+      siftEvaluation = Some(Seq(
         SchemeEvaluationResult(
           Commercial.id, Green.toString
         ),
@@ -217,8 +240,84 @@ class CachedUserWithSchemeDataSpec extends WordSpec with Matchers {
       ))
     )
 
+    val sutNoSiftWithFormAndNumericRequiredSchemes: CachedUserWithSchemeData = buildCachedUserWithSchemeData(
+      currentSchemes = Seq(
+        SchemeEvaluationResultWithFailureDetails(
+          Commercial.id, Red.toString, Some("assessment centre")
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          Finance.id, Green.toString, None
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          Generalist.id, Red.toString, Some("video interview")
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          Dip.id, Green.toString, None
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          GovOps.id, Withdrawn.toString, None
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          GovEconomics.id, Red.toString, Some("sift")
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          GovStats.id, Amber.toString, None
+        )
+      ),
+      phase3Evaluation = Some(Seq(
+        SchemeEvaluationResult(
+          Commercial.id, Green.toString
+        ),
+        SchemeEvaluationResult(
+          Finance.id, Green.toString
+        ),
+        SchemeEvaluationResult(
+          Generalist.id, Red.toString
+        ),
+        SchemeEvaluationResult(
+          Dip.id, Green.toString
+        ),
+        SchemeEvaluationResult(
+          GovOps.id, Green.toString
+        ),
+        SchemeEvaluationResult(
+          GovEconomics.id, Green.toString
+        ),
+        SchemeEvaluationResult(
+          GovStats.id, Green.toString
+        )
+      )),
+      siftEvaluation = None
+    )
+
+    val sutFastPassWithFormAndNumericRequiredSchemes: CachedUserWithSchemeData = buildCachedUserWithSchemeData(
+      currentSchemes = Seq(
+        SchemeEvaluationResultWithFailureDetails(
+          Commercial.id, Red.toString, Some("assessment centre")
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          Finance.id, Green.toString, None
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          Generalist.id, Red.toString, Some("video interview")
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          Dip.id, Green.toString, None
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          GovOps.id, Withdrawn.toString, None
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          GovEconomics.id, Red.toString, Some("sift")
+        ),
+        SchemeEvaluationResultWithFailureDetails(
+          GovStats.id, Amber.toString, None
+        )
+      )
+    )
+
     val sutWithNoFormRequiredSchemes: CachedUserWithSchemeData = buildCachedUserWithSchemeData(
-      Seq(
+      currentSchemes = Seq(
         SchemeEvaluationResultWithFailureDetails(
           Commercial.id, Green.toString, None
         ),
@@ -232,7 +331,7 @@ class CachedUserWithSchemeDataSpec extends WordSpec with Matchers {
     )
 
     val sutWithNoNumericRequiredSchemes: CachedUserWithSchemeData = buildCachedUserWithSchemeData(
-      Seq(
+      currentSchemes = Seq(
         SchemeEvaluationResultWithFailureDetails(
           Generalist.id, Red.toString, Some("video interview")
         ),
