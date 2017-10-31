@@ -207,6 +207,14 @@ trait ApplicationClient {
     }
   }
 
+  def getSiftResults(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[List[SchemeEvaluationResult]]] = {
+    http.GET(s"$apiBaseUrl/application/$appId/sift/results").map { response =>
+      Some(response.json.as[List[SchemeEvaluationResult]])
+    } recover {
+      case _: NotFoundException => None
+    }
+  }
+
   def getCurrentSchemeStatus(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Seq[SchemeEvaluationResultWithFailureDetails]] = {
     http.GET(s"${url.host}${url.base}/application/$appId/currentSchemeStatus").map { response =>
       response.json.as[Seq[SchemeEvaluationResultWithFailureDetails]]

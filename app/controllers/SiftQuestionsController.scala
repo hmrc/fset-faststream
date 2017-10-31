@@ -153,7 +153,7 @@ abstract class SiftQuestionsController(
         allSchemes <- referenceDataClient.allSchemes()
         schemeStatus <- applicationClient.getCurrentSchemeStatus(user.application.applicationId)
         answers <- siftClient.getSiftAnswers(user.application.applicationId) recoverWith noSiftAnswersRecovery
-        userMetadata = CachedUserWithSchemeData(user.user, user.application, allSchemes, schemeStatus)
+        userMetadata = CachedUserWithSchemeData(user.user, user.application, allSchemes, None, None, schemeStatus)
         filteredAnswers = removeWithdrawnAnswers(answers, userMetadata)
         enrichedAnswers <- enrichSchemeAnswersAddingMissingSiftSchemes(filteredAnswers, userMetadata)
       } yield {

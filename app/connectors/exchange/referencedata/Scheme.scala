@@ -76,4 +76,7 @@ object Scheme {
     Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, siftEvaluationRequired,
       fsbType, schemeGuide, schemeQuestion)
   // scalastyle:on
+
+  val Sdip = "Sdip"
+  val SdipId = SchemeId(Sdip)
 }

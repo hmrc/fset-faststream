@@ -74,7 +74,7 @@ abstract class HomeController(
         for {
         page <- cachedData.application.map { implicit application =>
           cachedData match {
-            case _ if !(isSiftEntered || isSiftReady || isPhase3TestsPassed || isAllocatedToAssessmentCentre) => {
+            case _ if !isSiftEntered && !isSiftReady && !isPhase3TestsPassed && !isAllocatedToAssessmentCentre => {
               dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
             }
             case _ => displayPostOnlineTestsPage
@@ -121,10 +121,12 @@ abstract class HomeController(
       siftAnswersStatus <- siftClient.getSiftAnswersStatus(application.applicationId)
       allocationWithEvents <- applicationClient.candidateAllocationEventWithSession(application.applicationId)
       hasWrittenAnalysisExercise <- applicationClient.hasAnalysisExercise(application.applicationId)
+      phase3Evaluation <- applicationClient.getPhase3Results(application.applicationId)
+      siftEvaluation <- applicationClient.getSiftResults(application.applicationId)
       schemes <- refDataClient.allSchemes()
     } yield {
       val page = PostOnlineTestsPage(
-        CachedUserWithSchemeData(cachedData.user, application, allSchemes, schemeStatus),
+        CachedUserWithSchemeData(cachedData.user, application, allSchemes, phase3Evaluation, siftEvaluation, schemeStatus),
         allocationWithEvents,
         siftAnswersStatus,
         hasWrittenAnalysisExercise,
