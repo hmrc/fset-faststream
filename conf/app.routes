@@ -97,7 +97,7 @@ GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-fasts
 GET         /diagnostic/sift/findCandidatesStuckInSiftReady              controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes
 GET         /diagnostic/sift/fixCandidateStuckInSiftReady                controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String)
 GET         /diagnostic/sift/findCandidatesStuckInSiftEntered            controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReady
-GET         /diagnostic/sift/fixCandidatesStuckInSiftEntered             controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReady(applicationId: String)
+GET         /diagnostic/sift/fixCandidateStuckInSiftEntered              controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReady(applicationId: String)
 
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)

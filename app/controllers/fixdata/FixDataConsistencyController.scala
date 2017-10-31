@@ -127,7 +127,7 @@ trait FixDataConsistencyController extends BaseController {
   def findUsersStuckInSiftEnteredWhoShouldBeInSiftReady(): Action[AnyContent] = Action.async {
     siftService.findUsersInSiftEnteredWhoShouldBeInSiftReady.map(resultList =>
       if (resultList.isEmpty) {
-        Ok
+        Ok("No candidates found")
       } else {
         Ok((Seq("applicationId,currentSchemeStatus") ++ resultList.map { user =>
           s"${user.applicationId},${user.currentSchemeStatus}"
