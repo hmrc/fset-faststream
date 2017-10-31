@@ -100,10 +100,10 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument("applicationStatus" -> thisApplicationStatus),
       BSONDocument("$and" -> BSONArray(
         BSONDocument(s"progress-status.${FailedSdipFsTestType.progressStatus}" -> BSONDocument("$ne" -> true)),
         BSONDocument(s"progress-status.${SuccessfulSdipFsTestType.progressStatus}" -> BSONDocument("$ne" -> true))
-
       )),
       BSONDocument("testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" ->
         BSONDocument("schemeId" -> SchemeId("Sdip"),
