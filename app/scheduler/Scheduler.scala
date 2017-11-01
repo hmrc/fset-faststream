@@ -51,6 +51,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(FailedSdipFsTestJobConfig, FailedSdipFsTestJob),
     maybeInitScheduler(SuccessPhase1TestJobConfig, SuccessPhase1TestJob),
     maybeInitScheduler(SuccessPhase3TestJobConfig, SuccessPhase3TestJob),
+    maybeInitScheduler(SuccessPhase3SdipFsTestJobConfig, SuccessPhase3SdipFsTestJob),
     maybeInitScheduler(RetrievePhase1ResultsJobConfig, RetrievePhase1ResultsJob),
     maybeInitScheduler(RetrievePhase2ResultsJobConfig, RetrievePhase2ResultsJob),
     maybeInitScheduler(EvaluatePhase1ResultJobConfig, EvaluatePhase1ResultJob),
