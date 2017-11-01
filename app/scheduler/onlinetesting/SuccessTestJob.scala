@@ -39,6 +39,12 @@ object SuccessPhase3TestJob extends SuccessTestJob {
   val config = SuccessPhase3TestJobConfig
 }
 
+object SuccessPhase3SdipFsTestJob extends SuccessTestJob {
+  override val service = Phase3TestService
+  override val successType: SuccessTestType = Phase3SuccessSdipFsTestType
+  val config = SuccessPhase3TestJobConfig
+}
+
 trait SuccessTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: OnlineTestService
   val successType: SuccessTestType
@@ -58,4 +64,9 @@ object SuccessPhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
 object SuccessPhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
   configPrefix = "scheduling.online-testing.success-phase3-test-job",
   name = "SuccessPhase3TestJob"
+)
+
+object SuccessPhase3SdipFsTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.success-phase3-sdipfs-test-job",
+  name = "SuccessPhase3SdipFsTestJob"
 )
