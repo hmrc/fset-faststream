@@ -221,11 +221,13 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
     def includeUser(potentialStuckUser: FixUserStuckInSiftEntered): Boolean = {
       //  we include the candidate if their green schemes are either numeric_test or generalist / human resources
+      // and there must be at least one numeric_test
       val greenSchemes = potentialStuckUser.currentSchemeStatus.filter( s => s.result == Green.toString)
       val allSchemesApplicable = greenSchemes.forall { s =>
         schemeRepo.nonSiftableSchemeIds.contains(s.schemeId) || schemeRepo.numericTestSiftRequirementSchemeIds.contains(s.schemeId)
       }
-      allSchemesApplicable
+      val atLeastOneNumericTestScheme = greenSchemes.exists( s => schemeRepo.numericTestSiftRequirementSchemeIds.contains(s.schemeId) )
+      allSchemesApplicable && atLeastOneNumericTestScheme
     }
     applicationSiftRepo.findAllUsersInSiftEntered.map( _.filter ( potentialStuckUser => includeUser(potentialStuckUser) ))
   }

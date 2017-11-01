@@ -22,6 +22,7 @@ import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ApplicationForSift
 import model.persisted.{ ContactDetailsExamples, SchemeEvaluationResult }
+import model.sift.FixUserStuckInSiftEntered
 import org.joda.time.LocalDate
 import reactivemongo.bson.BSONDocument
 import repositories.{ BSONDateTimeHandler, SchemeRepository }
@@ -415,6 +416,45 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         .expects(contactDetails.email, candidate.name, *).returningAsync
 
       whenReady(service.sendSiftEnteredNotification(appId)(new HeaderCarrier())) { result => result mustBe unit }
+    }
+  }
+
+  "findUsersInSiftEnteredWhoShouldBeInSiftReady" must {
+    "return no candidates if the candidates have no numeric test schemes" in new TestFixture {
+      (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
+        FixUserStuckInSiftEntered("app1", Seq(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString)))
+      ))
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReady) { result => result mustBe Nil }
+    }
+
+    "return no candidates if the candidates have no green numeric test schemes" in new TestFixture {
+      (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
+        FixUserStuckInSiftEntered("app1", Seq(
+          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+        ))
+      ))
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReady) { result => result mustBe Nil }
+    }
+
+    "return candidates if the candidates have at least one green numeric test scheme" in new TestFixture {
+      val oneCandidate = FixUserStuckInSiftEntered("app1", Seq(
+        SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+      ))
+
+      (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReady) { result => result mustBe Seq(oneCandidate) }
+    }
+
+    "return candidates if the candidates only have one green numeric test scheme" in new TestFixture {
+      val oneCandidate = FixUserStuckInSiftEntered("app1", Seq(
+        SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Red.toString),
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+      ))
+
+      (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReady) { result => result mustBe Seq(oneCandidate) }
     }
   }
 }
