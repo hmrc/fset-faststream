@@ -17,6 +17,7 @@
 package controllers.report
 
 import config.TestFixtureBase
+import connectors.AuthProviderClient
 import controllers.DiagnosticReportController
 import factories.UUIDFactory
 import model.Exceptions.ApplicationNotFound
@@ -29,15 +30,18 @@ import repositories.AssessmentScoresMongoRepository
 import repositories.application.DiagnosticReportingRepository
 import testkit.UnitWithAppSpec
 import org.mockito.ArgumentMatchers.any
+import services.assessor.AssessorService
 import testkit.MockitoImplicits.OngoingStubbingExtension
 
 import scala.concurrent.Future
 
 class DiagnosticReportControllerSpec extends UnitWithAppSpec {
 
-  val mockdiagnosticReportRepository = mock[DiagnosticReportingRepository]
-  val mockAssessorScoresRepo = mock[AssessmentScoresMongoRepository]
-  val mockReviewerScoresRepo = mock[AssessmentScoresMongoRepository]
+  val mockdiagnosticReportRepository: DiagnosticReportingRepository = mock[DiagnosticReportingRepository]
+  val mockAssessorScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
+  val mockReviewerScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
+  val mockAuthProvider: AuthProviderClient = mock[AuthProviderClient]
+  val mockAssessorService: AssessorService = mock[AssessorService]
 
   "Get application by id" should {
     "return all non-sensitive information about the user application" in new TestFixture {
@@ -70,17 +74,20 @@ class DiagnosticReportControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     object TestableDiagnosticReportingController extends DiagnosticReportController {
-      val drRepository = mockdiagnosticReportRepository
+      val drRepository: DiagnosticReportingRepository = mockdiagnosticReportRepository
       val assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository = mockAssessorScoresRepo
       val reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository = mockReviewerScoresRepo
+
+      val authProvider: AuthProviderClient = mockAuthProvider
+      val assessorService: AssessorService = mockAssessorService
     }
 
-    def createGetUserByIdRequest(userId: String) = {
+    def createGetUserByIdRequest(userId: String): FakeRequest[String] = {
       FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getApplicationByUserId(userId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    def createGetAllUsersRequest = {
+    def createGetAllUsersRequest: FakeRequest[String] = {
       FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getAllApplications().url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }

@@ -17,20 +17,26 @@
 package controllers
 
 import akka.stream.scaladsl.Source
+import connectors.AuthProviderClient
+import connectors.exchange.AssessorDiagnosticReport
+import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
 import play.api.libs.json.{ JsObject, Json }
 import play.api.libs.streams.Streams
-import play.api.mvc.Action
+import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.DiagnosticReportingRepository
+import services.assessor.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object DiagnosticReportController extends DiagnosticReportController {
   val drRepository: DiagnosticReportingRepository = diagnosticReportRepository
-  val assessorAssessmentCentreScoresRepo = repositories.assessorAssessmentScoresRepository
-  val reviewerAssessmentCentreScoresRepo = repositories.reviewerAssessmentScoresRepository
+  val assessorAssessmentCentreScoresRepo: AssessorAssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
+  val reviewerAssessmentCentreScoresRepo: ReviewerAssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
+  val authProvider: AuthProviderClient = AuthProviderClient
+  val assessorService: AssessorService = AssessorService
 }
 
 trait DiagnosticReportController extends BaseController {
@@ -38,8 +44,10 @@ trait DiagnosticReportController extends BaseController {
   def drRepository: DiagnosticReportingRepository
   def assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
   def reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
+  def authProvider: AuthProviderClient
+  def assessorService: AssessorService
 
-  def getApplicationByUserId(applicationId: String) = Action.async { implicit request =>
+  def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
 
     (for {
       application <- drRepository.findByApplicationId(applicationId)
@@ -57,6 +65,23 @@ trait DiagnosticReportController extends BaseController {
     }).recover {
       case _ => NotFound
     }
+  }
+
+  def getAssessorDiagnosticDetail(userId: String): Action[AnyContent] = Action.async { implicit request =>
+    authProvider.findByUserIds(Seq(userId)).flatMap { users =>
+      users.headOption.map { user =>
+        assessorService.findAssessor(userId).flatMap { assessor =>
+          assessorService.findAssessorAllocations(userId).map { allocations =>
+              AssessorDiagnosticReport(
+                user.userId,
+                user.roles,
+                assessor,
+                allocations
+              )
+          }
+        }
+      }.getOrElse(throw new NotFoundException(s"User with id $userId not found."))
+    }.map( report => Ok(Json.toJson(report)))
   }
 
   def getAllApplications = Action { implicit request =>
