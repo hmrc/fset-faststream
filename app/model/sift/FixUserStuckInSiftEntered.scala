@@ -17,12 +17,10 @@
 package model.sift
 
 import model.persisted.SchemeEvaluationResult
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class FixStuckUser(applicationId: String, timeEnteredSift: DateTime,
-    currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult])
+case class FixUserStuckInSiftEntered(applicationId: String, currentSchemeStatus: Seq[SchemeEvaluationResult])
 
-object FixStuckUser {
-  implicit val fixStuckUserFormat = Json.format[FixStuckUser]
+object FixUserStuckInSiftEntered {
+  implicit val fixUserStuckInSiftEnteredFormat = Json.format[FixUserStuckInSiftEntered]
 }

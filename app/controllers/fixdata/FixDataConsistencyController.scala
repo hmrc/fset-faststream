@@ -123,4 +123,20 @@ trait FixDataConsistencyController extends BaseController {
   def fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String): Action[AnyContent] = Action.async {
     siftService.fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId).map(_ => Ok)
   }
+
+  def findUsersStuckInSiftEnteredWhoShouldBeInSiftReady(): Action[AnyContent] = Action.async {
+    siftService.findUsersInSiftEnteredWhoShouldBeInSiftReady.map(resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("applicationId,currentSchemeStatus") ++ resultList.map { user =>
+          s"${user.applicationId},${user.currentSchemeStatus}"
+        }).mkString("\n"))
+      }
+    )
+  }
+
+  def fixUserStuckInSiftEnteredWhoShouldBeInSiftReady(applicationId: String): Action[AnyContent] = Action.async {
+    siftService.fixUserInSiftEnteredWhoShouldBeInSiftReady(applicationId).map(_ => Ok)
+  }
 }

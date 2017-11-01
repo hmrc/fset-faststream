@@ -160,8 +160,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         result mustBe defined
         result.get mustBe ApplicationForSift("appId", "appId", ApplicationStatus.SIFT, schemeStatus)
       }
-
     }
+
     "ignore candidates who are not all red at the end of sift" in {
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),

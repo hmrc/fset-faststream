@@ -23,7 +23,7 @@ import model.EvaluationResults.{ Green, Red, Withdrawn }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
-import model.sift.FixStuckUser
+import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
@@ -215,6 +215,31 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     } yield {
       if (usersToFix.exists { case (user, shouldBeMoved) => user.applicationId == applicationId && shouldBeMoved }) {
         applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED)
+      } else {
+        throw new Exception(s"Application ID $applicationId is not available for fixing")
+      }
+    }).flatMap(identity)
+  }
+
+  def findUsersInSiftEnteredWhoShouldBeInSiftReady: Future[Seq[FixUserStuckInSiftEntered]] = {
+
+    def includeUser(potentialStuckUser: FixUserStuckInSiftEntered): Boolean = {
+      //  we include the candidate if their green schemes are either numeric_test or generalist / human resources
+      val greenSchemes = potentialStuckUser.currentSchemeStatus.filter( s => s.result == Green.toString)
+      val allSchemesApplicable = greenSchemes.forall { s =>
+        schemeRepo.nonSiftableSchemeIds.contains(s.schemeId) || schemeRepo.numericTestSiftRequirementSchemeIds.contains(s.schemeId)
+      }
+      allSchemesApplicable
+    }
+    applicationSiftRepo.findAllUsersInSiftEntered.map( _.filter ( potentialStuckUser => includeUser(potentialStuckUser) ))
+  }
+
+  def fixUserInSiftEnteredWhoShouldBeInSiftReady(applicationId: String): Future[Unit] = {
+    (for {
+      usersToFix <- findUsersInSiftEnteredWhoShouldBeInSiftReady
+    } yield {
+      if (usersToFix.exists { user => user.applicationId == applicationId }) {
+        applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
       } else {
         throw new Exception(s"Application ID $applicationId is not available for fixing")
       }

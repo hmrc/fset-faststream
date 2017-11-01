@@ -85,6 +85,10 @@ trait SchemeRepository {
 
   def nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id }
 
+  def numericTestSiftRequirementSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if s.siftRequirement.contains(SiftRequirement.NUMERIC_TEST) && s.siftEvaluationRequired => s.id
+  }
+
   def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
 }
 
