@@ -171,6 +171,22 @@ trait ApplicationController extends BaseController {
       }
   }
 
+  def updateAnalysisExercise(applicationId: String,
+                             contentType: String,
+                             updatedBy: String) = Action.async(parse.temporaryFile) {
+    implicit request =>
+      for {
+        assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
+        oldFileId = assessmentCentreTests.analysisExercise.map(_.fileId).getOrElse("NONE")
+        newFileId <- uploadRepository.add(contentType, Files.readAllBytes(request.body.file.toPath))
+        _ <- assessmentCentreService.updateAnalysisTest(applicationId, newFileId, isAdminUpdate = true)
+        auditDetails = Map("applicationId" -> applicationId, "oldFileId" -> oldFileId, "newFileId" -> newFileId, "updatedBy" -> updatedBy)
+        _ = auditService.logEvent("Analysis exercise updated", auditDetails)
+      } yield {
+        Ok
+      }
+  }
+
   def downloadAnalysisExercise(applicationId: String) = Action.async {
     implicit request =>
       for {
@@ -209,6 +225,20 @@ trait ApplicationController extends BaseController {
       } yield {
         Ok(Json.toJson(analysis.nonEmpty))
       }
+  }
+
+  def retrieveAnalysisExerciseInfo(applicationId: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      for {
+        assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
+        analysis = assessmentCentreTests.analysisExercise
+      } yield {
+        Ok(Json.toJson(analysis))
+      }
+  }
+
+  def analysisExerciseFileMetadata(fileId: String): Action[AnyContent] = Action.async { implicit request =>
+    fileUploadRepository.retrieveMetaData(fileId).map(f => Ok(Json.toJson(f)))
   }
 
   case class ApplicationStatus(applicationId: String, progressStatus: String)
