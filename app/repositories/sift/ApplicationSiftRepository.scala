@@ -21,7 +21,7 @@ import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
-import model.Exceptions.ApplicationNotFound
+import model.Exceptions.{ ApplicationNotFound, PassMarkEvaluationNotFound }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
@@ -199,7 +199,7 @@ class ApplicationSiftMongoRepository(
         .flatMap { _.getAs[BSONDocument](phaseName) }
         .flatMap { _.getAs[BSONDocument]("evaluation") }
         .flatMap { _.getAs[Seq[SchemeEvaluationResult]]("result") }
-    }.getOrElse(Nil))
+    }.getOrElse(throw PassMarkEvaluationNotFound(s"Sift evaluation not found for $applicationId")))
   }
 
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit] = {

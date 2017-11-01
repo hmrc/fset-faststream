@@ -113,7 +113,7 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def getPhase3Results(applicationId: String) = Action.async { implicit request =>
+  def getPhase3Results(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     passmarkService.getPassmarkEvaluation(applicationId).map { passmarks =>
       Ok(Json.toJson(passmarks.result))
     } recover {
@@ -121,7 +121,7 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def getSiftResults(applicationId: String) = Action.async { implicit request =>
+  def getSiftResults(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     siftService.getSiftEvaluations(applicationId).map { passmarks =>
       Ok(Json.toJson(passmarks))
     } recover {
