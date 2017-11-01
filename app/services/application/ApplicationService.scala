@@ -390,14 +390,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   def currentSchemeStatusWithFailureDetails(applicationId: String): Future[Seq[SchemeEvaluationResultWithFailureDetails]] = {
 
-    def getOnlineTestEvaluation(repository: OnlineTestEvaluationRepository) =
-      repository.getPassMarkEvaluation(applicationId).map(_.result).recoverWith { case _ => Future.successful(Nil) }
+    def getOnlineTestEvaluation(repository: OnlineTestEvaluationRepository): Future[List[SchemeEvaluationResult]] =
+      repository.getPassMarkEvaluation(applicationId).map(_.result).recover { case _ => Nil }
 
     for {
       phase1Evaluation <- getOnlineTestEvaluation(phase1EvaluationRepository)
       phase2Evaluation <- getOnlineTestEvaluation(phase2EvaluationRepository)
       phase3Evaluation <- getOnlineTestEvaluation(phase3EvaluationRepository)
-      siftEvaluation <- appSiftRepository.getSiftEvaluations(applicationId)
+      siftEvaluation <- appSiftRepository.getSiftEvaluations(applicationId).recover { case _ => Nil }
       fsacEvaluation <- fsacRepo.getFsacEvaluatedSchemes(applicationId).map(_.getOrElse(Nil).toList)
       fsbEvaluation <- fsbRepo.findByApplicationId(applicationId).map(_.map(_.evaluation.result).getOrElse(Nil))
       evaluations = ListMap(

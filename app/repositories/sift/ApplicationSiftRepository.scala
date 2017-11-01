@@ -194,12 +194,12 @@ class ApplicationSiftMongoRepository(
     val predicate = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("_id" -> 0, s"testGroups.$phaseName.evaluation.result" -> 1)
 
-    collection.find(predicate, projection).one[BSONDocument].map(_.flatMap { doc =>
-      doc.getAs[BSONDocument]("testGroups")
+    collection.find(predicate, projection).one[BSONDocument].map(
+       _.flatMap { _.getAs[BSONDocument]("testGroups") }
         .flatMap { _.getAs[BSONDocument](phaseName) }
         .flatMap { _.getAs[BSONDocument]("evaluation") }
         .flatMap { _.getAs[Seq[SchemeEvaluationResult]]("result") }
-    }.getOrElse(throw PassMarkEvaluationNotFound(s"Sift evaluation not found for $applicationId")))
+    .getOrElse(throw PassMarkEvaluationNotFound(s"Sift evaluation not found for $applicationId")))
   }
 
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit] = {

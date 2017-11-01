@@ -118,7 +118,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   ): Future[Unit] = {
     (for {
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
-      currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId)
+      currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId).recover { case _ => Nil }
     } yield {
 
       val settableFields = updateBuilder(currentSchemeStatus, currentSiftEvaluation)
