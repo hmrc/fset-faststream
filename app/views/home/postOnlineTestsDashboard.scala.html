@@ -169,7 +169,7 @@
 
     @commonSectionPostOnlineTests(page.userDataWithSchemes.toCachedData)
 
-    @sdipFaststreamBanner(page.userDataWithSchemes.toCachedData)
+    @sdipFaststreamBanner(page.userDataWithSchemes.toCachedData, page.isOnlySdipGreen)
 
 @page match {
     case _ if page.isFinalSuccess => { @finalSuccess }
