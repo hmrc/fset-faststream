@@ -124,8 +124,8 @@ trait FixDataConsistencyController extends BaseController {
     siftService.fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId).map(_ => Ok)
   }
 
-  def findUsersStuckInSiftEnteredWhoShouldBeInSiftReady(): Action[AnyContent] = Action.async {
-    siftService.findUsersInSiftEnteredWhoShouldBeInSiftReady.map(resultList =>
+  def findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase(): Action[AnyContent] = Action.async {
+    siftService.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase.map(resultList =>
       if (resultList.isEmpty) {
         Ok("No candidates found")
       } else {
@@ -136,7 +136,25 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
-  def fixUserStuckInSiftEnteredWhoShouldBeInSiftReady(applicationId: String): Action[AnyContent] = Action.async {
-    siftService.fixUserInSiftEnteredWhoShouldBeInSiftReady(applicationId).map(_ => Ok)
+  def fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase(applicationId: String): Action[AnyContent] =
+    Action.async {
+    siftService.fixUserInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase(applicationId).map(_ => Ok)
   }
+
+  def findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(): Action[AnyContent] = Action.async {
+    siftService.findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes.map(resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("applicationId,currentSchemeStatus") ++ resultList.map { user =>
+          s"${user.applicationId},${user.currentSchemeStatus}"
+        }).mkString("\n"))
+      }
+    )
+  }
+
+  def fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String): Action[AnyContent] =
+    Action.async {
+      siftService.fixUserInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId).map(_ => Ok)
+    }
 }

@@ -424,7 +424,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString)))
       ))
-      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReady) { result => result mustBe Nil }
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase) { result => result mustBe Nil }
     }
 
     "return no candidates if the candidates have no green numeric test schemes" in new TestFixture {
@@ -434,7 +434,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
           SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
         ))
       ))
-      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReady) { result => result mustBe Nil }
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase) { result => result mustBe Nil }
     }
 
     "return candidates if the candidates have at least one green numeric test scheme" in new TestFixture {
@@ -444,7 +444,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       ))
 
       (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
-      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReady) { result => result mustBe Seq(oneCandidate) }
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase) { result =>
+        result mustBe Seq(oneCandidate) }
     }
 
     "return candidates if the candidates only have one green numeric test scheme" in new TestFixture {
@@ -454,7 +455,44 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       ))
 
       (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
-      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReady) { result => result mustBe Seq(oneCandidate) }
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase) { result =>
+        result mustBe Seq(oneCandidate) }
+    }
+  }
+
+  "findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes" must {
+    "return candidates if the candidates still have numeric test schemes and have withdrawn from all form schemes" in new TestFixture {
+      val oneCandidate = FixUserStuckInSiftEntered("app1", Seq(
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+      ))
+
+      (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes) { result =>
+        result mustBe Seq(oneCandidate) }
+    }
+
+    "return no candidates if the candidates have no green numeric test schemes" in new TestFixture {
+      (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
+        FixUserStuckInSiftEntered("app1", Seq(
+          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Withdrawn.toString),
+          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+        ))
+      ))
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes) { result =>
+        result mustBe Nil }
+    }
+
+    "return no candidates if the candidates have no withdrawn schemes" in new TestFixture {
+      (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
+        FixUserStuckInSiftEntered("app1", Seq(
+          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Red.toString),
+          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+        ))
+      ))
+      whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes) { result => result mustBe Nil }
     }
   }
 }

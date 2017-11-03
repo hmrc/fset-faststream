@@ -89,6 +89,10 @@ trait SchemeRepository {
     case s if s.siftRequirement.contains(SiftRequirement.NUMERIC_TEST) && s.siftEvaluationRequired => s.id
   }
 
+  def formMustBeFilledInSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id
+  }
+
   def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
 }
 
