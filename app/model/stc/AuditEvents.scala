@@ -77,6 +77,5 @@ object AuditEvents {
 
   case class AutoProgressedToFSAC(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class AutoProgressedToFSB(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
-
 }
 // scalastyle:on number.of.methods

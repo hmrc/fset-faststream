@@ -136,6 +136,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       }
   }
 
+  //scalastyle:off method.length
   private def withdrawFromScheme(applicationId: String, withdrawRequest: WithdrawScheme) = {
 
     def buildLatestSchemeStatus(current: Seq[SchemeEvaluationResult], withdrawal: WithdrawScheme)  = {
@@ -171,18 +172,36 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       } else { Future.successful(Nil) }
     }
 
+    // move the candidate to SIFT_READY if the candidate is in SIFT_ENTERED and withdraws from all schemes requiring a
+    // form to be filled in and is still in the running for schemes that require a sift
+    def maybeProgressToSiftReady(schemeStatus: Seq[SchemeEvaluationResult], latestProgressStatus: Option[ProgressStatus]) = {
+      val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
+
+      val atLeastOneNumericTestScheme = greenSchemes.exists( s => schemesRepo.numericTestSiftRequirementSchemeIds.contains(s) )
+
+      val shouldProgressCandidate = latestProgressStatus.contains(ProgressStatuses.SIFT_ENTERED) &&
+        (greenSchemes subsetOf (schemesRepo.noSiftEvaluationRequiredSchemeIds ++ schemesRepo.numericTestSiftRequirementSchemeIds).toSet) &&
+        atLeastOneNumericTestScheme
+
+      if (shouldProgressCandidate) {
+        appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY).map { _ => }
+      } else { Future.successful(()) }
+    }
+
     for {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
       latestSchemeStatus = buildLatestSchemeStatus(currentSchemeStatus, withdrawRequest)
       appStatuses <- appRepository.findStatus(applicationId)
       _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, latestSchemeStatus)
       _ <- maybeProgressToFSAC(latestSchemeStatus, appStatuses.latestProgressStatus)
+      _ <- maybeProgressToSiftReady(latestSchemeStatus, appStatuses.latestProgressStatus)
     } yield {
       DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
         AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
       Nil
     }
   }
+  //scalastyle:on
 
   def considerForSdip(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {

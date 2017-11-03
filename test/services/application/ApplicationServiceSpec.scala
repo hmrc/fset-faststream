@@ -69,7 +69,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyNoMoreInteractions(underTest.auditEventHandlerMock)
     }
 
-    "don't fix anything if no issues is detected" in new TestFixture {
+    "don't fix anything if no issues are detected" in new TestFixture {
       when(appRepositoryMock.getApplicationsToFix(FixBatch(PassToPhase2, 1))).thenReturn(getApplicationsToFixEmpty)
 
       underTest.fix(FixBatch(PassToPhase2, 1) :: Nil)(hc, rh).futureValue
@@ -78,7 +78,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyZeroInteractions(underTest.auditEventHandlerMock)
     }
 
-    "proceeds with the others searches if one of them fails" in new TestFixture {
+    "proceed with the other searches if one of them fails" in new TestFixture {
       when(appRepositoryMock.getApplicationsToFix(FixBatch(PassToPhase2, 1))).thenReturn(getApplicationsToFixSuccess1)
       when(appRepositoryMock.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1))).thenReturn(failure)
       when(appRepositoryMock.fix(candidate3, FixBatch(PassToPhase2, 1))).thenReturn(Future.successful(Some(candidate3)))
@@ -438,7 +438,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
       val withdraw = WithdrawScheme(SchemeId(sdip), "reason", "Candidate")
 
@@ -464,7 +464,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream, Some(ProgressStatuses.SIFT_READY), None, None))
 
       val withdraw = WithdrawScheme(SchemeId(sdip), "reason", "Candidate")
 
@@ -490,7 +490,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_COMPLETED), None, None))
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream, Some(ProgressStatuses.SIFT_COMPLETED), None, None))
 
       val withdraw = WithdrawScheme(SchemeId(sdip), "reason", "Candidate")
 
@@ -516,7 +516,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream,
           Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION), None, None))
 
       val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
@@ -544,7 +544,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream,
           Some(ProgressStatuses.SIFT_COMPLETED), None, None))
 
       val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
@@ -574,7 +574,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream,
           Some(ProgressStatuses.SIFT_COMPLETED), None, None))
 
       val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
@@ -585,6 +585,117 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         any[Seq[SchemeEvaluationResult]]
       )
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
+    }
+
+    "progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from all form based schemes but is still in the running for " +
+      "numeric schemes and schemes that require no sift" in  new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId(generalist), "Green"),          // nothing required
+        SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
+        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any[Seq[SchemeEvaluationResult]]
+      )).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.SIFT_ENTERED), None, None))
+
+      val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
+        any[Seq[SchemeEvaluationResult]]
+      )
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+    }
+
+    "progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from all form based schemes but is still in the running for " +
+      "only numeric schemes" in  new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
+        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any[Seq[SchemeEvaluationResult]]
+      )).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.SIFT_ENTERED), None, None))
+
+      val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
+        any[Seq[SchemeEvaluationResult]]
+      )
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+    }
+
+    "not progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from all form based schemes and is only in the running " +
+      "for schemes that require no sift" in  new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId(generalist), "Green"),          // numeric test, evaluation required
+        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any[Seq[SchemeEvaluationResult]]
+      )).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.SIFT_ENTERED), None, None))
+
+      val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
+        any[Seq[SchemeEvaluationResult]]
+      )
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+    }
+
+    "not progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from a form based scheme but is still in the running " +
+      "for others as well as numeric schemes and schemes that require no sift" in  new TestFixture {
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId(generalist), "Green"),          // nothing required
+        SchemeEvaluationResult(SchemeId(diplomaticService), "Green"),   // form to be filled in, evaluation required
+        SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
+        SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any[Seq[SchemeEvaluationResult]]
+      )).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.SIFT_ENTERED), None, None))
+
+      val withdraw = WithdrawScheme(SchemeId(digitalAndTechnology), "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
+        any[Seq[SchemeEvaluationResult]]
+      )
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
     "throw an exception when withdrawing from the last scheme" in new TestFixture {
@@ -828,6 +939,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         SchemeId(scienceAndEngineering)
       )
       override lazy val nonSiftableSchemeIds = Seq(SchemeId(generalist), SchemeId(humanResources))
+      override lazy val numericTestSiftRequirementSchemeIds = Seq(SchemeId(commercial), SchemeId(finance))
     }
 
     val underTest = new ApplicationService with StcEventServiceFixture {

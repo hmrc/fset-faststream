@@ -221,7 +221,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }).flatMap(identity)
   }
 
-  def findUsersInSiftEnteredWhoShouldBeInSiftReady: Future[Seq[FixUserStuckInSiftEntered]] = {
+  def findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase: Future[Seq[FixUserStuckInSiftEntered]] = {
 
     def includeUser(potentialStuckUser: FixUserStuckInSiftEntered): Boolean = {
       //  we include the candidate if their green schemes are either numeric_test or generalist / human resources
@@ -236,9 +236,49 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.findAllUsersInSiftEntered.map( _.filter ( potentialStuckUser => includeUser(potentialStuckUser) ))
   }
 
-  def fixUserInSiftEnteredWhoShouldBeInSiftReady(applicationId: String): Future[Unit] = {
+  def fixUserInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId: String): Future[Unit] = {
     (for {
-      usersToFix <- findUsersInSiftEnteredWhoShouldBeInSiftReady
+      usersToFix <- findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase
+    } yield {
+      if (usersToFix.exists { user => user.applicationId == applicationId }) {
+        applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
+      } else {
+        throw new Exception(s"Application ID $applicationId is not available for fixing")
+      }
+    }).flatMap(identity)
+  }
+
+  // candidates who are in sift_entered who have withdrawn from all form based schemes and are still in the running
+  // for at least one numeric scheme
+  def findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes: Future[Seq[FixUserStuckInSiftEntered]] = {
+
+    def includeUser(potentialStuckUser: FixUserStuckInSiftEntered): Boolean = {
+      //  we include the candidate if their green schemes are either numeric_test or generalist / human resources
+      // and there must be at least one numeric_test and they have form based schemes, which are all withdrawn
+      val greenSchemes = potentialStuckUser.currentSchemeStatus.filter( s => s.result == Green.toString)
+
+      // remaining green schemes require a numeric test or generalist / human resources
+      val allSchemesApplicable = greenSchemes.forall { s =>
+        schemeRepo.nonSiftableSchemeIds.contains(s.schemeId) || schemeRepo.numericTestSiftRequirementSchemeIds.contains(s.schemeId)
+      }
+
+      // the candidate must still be in the running for at least one numeric test scheme
+      val atLeastOneNumericTestScheme = greenSchemes.exists( s => schemeRepo.numericTestSiftRequirementSchemeIds.contains(s.schemeId) )
+
+      // must have form based schemes and be withdrawn from all of them
+      val usersFormBasedSchemes = potentialStuckUser.currentSchemeStatus.filter { s =>
+        schemeRepo.formMustBeFilledInSchemeIds.contains(s.schemeId)
+      }
+      val hasFormBasedSchemesAndAllWithdrawn = usersFormBasedSchemes.nonEmpty && usersFormBasedSchemes.forall( _.result == Withdrawn.toString )
+
+      allSchemesApplicable && atLeastOneNumericTestScheme && hasFormBasedSchemesAndAllWithdrawn
+    }
+    applicationSiftRepo.findAllUsersInSiftEntered.map( _.filter ( potentialStuckUser => includeUser(potentialStuckUser) ))
+  }
+
+  def fixUserInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String): Future[Unit] = {
+    (for {
+      usersToFix <- findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes
     } yield {
       if (usersToFix.exists { user => user.applicationId == applicationId }) {
         applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
