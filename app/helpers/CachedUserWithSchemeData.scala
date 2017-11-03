@@ -47,7 +47,7 @@ class CachedUserWithSchemeData(
   private val rawSchemeStatusAllGreen = rawSchemesStatus.map(schemeResult =>
     SchemeEvaluationResult(schemeResult.schemeId, SchemeStatus.Green.toString)
   )
-
+  
   lazy val successfulSchemesForDisplay: Seq[CurrentSchemeStatus] = currentSchemesStatus.filter(schemeStatus =>
     schemeStatus.status == SchemeStatus.Green || schemeStatus.status == SchemeStatus.Amber
   )
@@ -69,7 +69,7 @@ class CachedUserWithSchemeData(
   lazy val hasFormRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
   lazy val hasNumericRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   lazy val isNumericOnly = !hasFormRequirement && hasNumericRequirement
-  lazy val requiresAssessmentCentre = !(RoleUtils.isSdip(toCachedData) || RoleUtils.isEdip(toCachedData))
+  lazy val requiresAssessmentCentre = !RoleUtils.isSdip(toCachedData) && !RoleUtils.isEdip(toCachedData)
 
   def toCachedData: CachedData = CachedData(this.user, Some(this.application))
 

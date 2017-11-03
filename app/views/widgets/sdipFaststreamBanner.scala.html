@@ -1,4 +1,4 @@
-@(cachedUserData: CachedData)(implicit request: Request[_])
+@(cachedUserData: CachedData, isOnlySdipGreen: Boolean = false)(implicit request: Request[_])
 
 @import security.RoleUtils._
 
@@ -10,11 +10,22 @@
         </div>
     </div>
 }
+
 @displaySdipFaststreamSuccessfulBanner = {
     <div class="panel-success standard-panel" id="sdipFsSuccessBanner">
         <div class="text">
             <p>You've passed the online exercises for the Summer Diversity Internship
                 Programme (SDIP). We will process any of your Fast Stream scheme preferences first. You'll be contacted if you have reached the next stage.
+            </p>
+        </div>
+    </div>
+}
+
+@displaySdipFaststreamOnlySdipSuccessfulAfterPhase3Banner = {
+    <div class="panel-success standard-panel" id="sdipFsSuccessBanner">
+        <div class="text">
+            <p>You've passed the online exercises for the Summer Diversity Internship
+                Programme (SDIP). You'll need to complete the extra information section below before being invited to the Telephone Interview.
             </p>
         </div>
     </div>
@@ -33,14 +44,10 @@
 
 @isSdipResultAvailable = @{isSdipFaststreamFailed(cachedUserData) || isSdipFaststreamSuccessful(cachedUserData)}
 
-@if(isSdipFaststreamFailed(cachedUserData)) {
-    @displaySdipFaststreamFailedBanner
-}
-
-@if(isSdipFaststreamSuccessful(cachedUserData)) {
-    @displaySdipFaststreamSuccessfulBanner
-}
-
-@if(!isSdipResultAvailable && isSdipFaststream(cachedUserData)) {
-    @displaySdipFaststreamBanner
+@cachedUserData match {
+    case _ if isOnlySdipGreen => { @displaySdipFaststreamOnlySdipSuccessfulAfterPhase3Banner }
+    case cud if isSdipFaststreamFailed(cud) => { @displaySdipFaststreamFailedBanner }
+    case cud if isSdipFaststreamSuccessful(cud) => { @displaySdipFaststreamSuccessfulBanner }
+    case cud if !isSdipResultAvailable && isSdipFaststream(cud) => { @displaySdipFaststreamBanner }
+    case _ => { }
 }
