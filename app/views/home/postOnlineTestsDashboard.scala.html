@@ -68,7 +68,7 @@
             <p>You've passed all the required stages. We are delighted to be able
                 to offer you a role on the Civil Service Fast Stream, for your
                 chosen scheme:</p>
-            @page.userDataWithSchemes.successfulSchemesForDisplay.headOption.map { schemeResult =>
+            @page.userDataWithSchemes.greenAndAmberSchemesForDisplay.headOption.map { schemeResult =>
                 <h2 class="heading-medium">@{schemeResult.scheme.name}</h2>
             }
 
@@ -143,7 +143,7 @@
             <ul class="list-text">
                 <li>
                     <h3 class="bold-small">1st preference</h3>
-                    @page.userDataWithSchemes.successfulSchemesForDisplay.headOption.map { schemeResult =>
+                    @page.userDataWithSchemes.greenAndAmberSchemesForDisplay.headOption.map { schemeResult =>
                     <p>@{schemeResult.scheme.name}
                         <br>(unsuccessful at the assessment centre)</p>
                     }
@@ -157,7 +157,7 @@
 }
 
 @firstScheme = {
-    @for((schemeResult, index) <- page.userDataWithSchemes.successfulSchemesForDisplay.zipWithIndex) {
+    @for((schemeResult, index) <- page.userDataWithSchemes.greenAndAmberSchemesForDisplay.zipWithIndex) {
         <section>
             <h3 class="bold-small">@getOrder(index + 1) preference</h3>
             <p>@{schemeResult.scheme.name}</p>

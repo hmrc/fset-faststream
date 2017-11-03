@@ -47,8 +47,8 @@ class CachedUserWithSchemeData(
   private val rawSchemeStatusAllGreen = rawSchemesStatus.map(schemeResult =>
     SchemeEvaluationResult(schemeResult.schemeId, SchemeStatus.Green.toString)
   )
-  
-  lazy val successfulSchemesForDisplay: Seq[CurrentSchemeStatus] = currentSchemesStatus.filter(schemeStatus =>
+
+  lazy val greenAndAmberSchemesForDisplay: Seq[CurrentSchemeStatus] = currentSchemesStatus.filter(schemeStatus =>
     schemeStatus.status == SchemeStatus.Green || schemeStatus.status == SchemeStatus.Amber
   )
 
@@ -62,7 +62,7 @@ class CachedUserWithSchemeData(
     case s if s.scheme.siftRequirement.contains(SiftRequirement.FORM) => s.scheme
   }
 
-  lazy val numberOfSuccessfulSchemesForDisplay = successfulSchemesForDisplay.size
+  lazy val numberOfSuccessfulSchemesForDisplay = greenAndAmberSchemesForDisplay.size
   lazy val numberOfFailedSchemesForDisplay = failedSchemesForDisplay.size
   lazy val numberOfWithdrawnSchemes = withdrawnSchemes.size
 

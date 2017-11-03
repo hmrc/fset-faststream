@@ -53,7 +53,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
 
-      page.userDataWithSchemes.successfulSchemesForDisplay mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green,
+      page.userDataWithSchemes.greenAndAmberSchemesForDisplay mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green,
         failedAtStage = None) :: Nil
 
       page.userDataWithSchemes.failedSchemesForDisplay mustBe CurrentSchemeStatus(Schemes.Commercial, SchemeStatus.Red,
