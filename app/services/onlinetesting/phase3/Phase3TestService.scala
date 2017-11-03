@@ -241,7 +241,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
           phase3TestGroupContent.tests.find(_.interviewId == interviewId).map {
             launchpadTest =>
               if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isDefined) {
-                retakeApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
+                retakeApplicant(application, interviewId, candidateId, expirationDate.toLocalDate).map {
                   retakeResponse =>
                     InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
                 }
