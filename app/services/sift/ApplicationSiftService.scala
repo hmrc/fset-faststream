@@ -236,7 +236,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.findAllUsersInSiftEntered.map( _.filter ( potentialStuckUser => includeUser(potentialStuckUser) ))
   }
 
-  def fixUserInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase(applicationId: String): Future[Unit] = {
+  def fixUserInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId: String): Future[Unit] = {
     (for {
       usersToFix <- findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase
     } yield {

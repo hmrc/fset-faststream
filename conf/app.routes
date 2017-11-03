@@ -101,9 +101,9 @@ GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-fasts
 GET         /diagnostic/sift/findCandidatesStuckInSiftReady              controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes
 GET         /diagnostic/sift/fixCandidateStuckInSiftReady                controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String)
 GET         /diagnostic/sift/findCandidatesStuckInSiftEnteredWhoHaveFailedFormBasedSchemesInVideoPhase controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase
-GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredWhoHaveFailedFormBasedSchemesInVideoPhase controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase(applicationId: String)
-GET         /diagnostic/sift/findCandidatesStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes
-GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String)
+GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredWhoHasFailedFormBasedSchemesInVideoPhase    controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId: String)
+GET         /diagnostic/sift/findCandidatesStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes   controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes
+GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes     controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

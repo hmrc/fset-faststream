@@ -419,7 +419,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     }
   }
 
-  "findUsersInSiftEnteredWhoShouldBeInSiftReady" must {
+  "findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase" must {
     "return no candidates if the candidates have no numeric test schemes" in new TestFixture {
       (mockSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString)))
