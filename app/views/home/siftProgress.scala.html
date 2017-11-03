@@ -181,16 +181,14 @@
             <li class="first-step">
                 @renderExtraInfo
             </li>
-            @if(page.userDataWithSchemes.requiresAssessmentCentre) {
-                <li class="second-step">
-                    @renderAssessmentCentre
-                </li>
-            }
-        } else {
-            <li class="first-step">
+        }
+
+        @if(page.userDataWithSchemes.requiresAssessmentCentre && !page.isOnlySdipGreen) {
+            <li class="second-step">
             @renderAssessmentCentre
             </li>
         }
+
         <li class="fourth-step @activateByStep(page.fourthStepVisibility)">
             <div class="inner-block-padr">
                 <h2 class="heading-medium ">Final stage</h2>

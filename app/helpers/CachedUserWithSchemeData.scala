@@ -96,9 +96,6 @@ class CachedUserWithSchemeData(
       formatEvaluationResultsToCurrentSchemeStatuses(filteredEval)
     }
 
-    Logger.warn(s"==== AICSS = $ambersInCurrentSchemeStatus, ACIP = $assessmentCentreInProgress, SiftGreen = ${greensAtSiftOpt.isDefined}, " +
-      s"P3Green = ${greensAtPhase3Opt.isDefined}, Raw Scheme = $rawSchemeStatusAllGreen")
-
     // If any ambers exist this candidate is being evaluated for the next stage
     if (ambersInCurrentSchemeStatus && assessmentCentreInProgress) {
       // In AC show SIFT or VIDEO results (or green if fast pass)
@@ -148,7 +145,7 @@ class CachedUserWithSchemeData(
   lazy val hasFormRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.FORM))
   lazy val hasNumericRequirement = successfulSchemes.exists(_.scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST))
   lazy val isNumericOnly = !hasFormRequirement && hasNumericRequirement
-  lazy val requiresAssessmentCentre = !(RoleUtils.isSdip(toCachedData) || RoleUtils.isEdip(toCachedData))
+  lazy val requiresAssessmentCentre = !RoleUtils.isSdip(toCachedData) && !RoleUtils.isEdip(toCachedData)
 
   def toCachedData: CachedData = CachedData(this.user, Some(this.application))
 
