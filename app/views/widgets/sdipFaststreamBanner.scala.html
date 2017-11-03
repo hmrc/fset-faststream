@@ -49,4 +49,5 @@
     case cud if isSdipFaststreamFailed(cud) => { @displaySdipFaststreamFailedBanner }
     case cud if isSdipFaststreamSuccessful(cud) => { @displaySdipFaststreamSuccessfulBanner }
     case cud if !isSdipResultAvailable && isSdipFaststream(cud) => { @displaySdipFaststreamBanner }
+    case _ => { }
 }
