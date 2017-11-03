@@ -124,7 +124,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
 
-      content must include("Congratulations, you're through to the next stage for 1 of your")
+      content must include("Your current schemes are detailed below:")
       content mustNot include("Your application has been withdrawn.")
     }
 
@@ -157,7 +157,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
 
       content must include("Your application has been withdrawn.")
-      content must include("Congratulations, you're through to the next stage for 1 of your")
+      content must include("Your current schemes are detailed below:")
     }
 
     "display edip final results page" in new EdipAndSdipTestFixture {
