@@ -289,7 +289,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         RetakeApplicantRequest(
           testInterviewId,
           testLaunchpadCandidateId,
-          phase3TestGroupNotCompleted.expirationDate.toLocalDate //,
+          testTestGroup.expirationDate.toLocalDate
         )
       ))
       verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
