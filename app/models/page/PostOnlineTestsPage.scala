@@ -23,7 +23,7 @@ import connectors.exchange.referencedata.Scheme
 import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
 import helpers.{ CachedUserWithSchemeData, Timezones }
-import models.{ CachedData, SchemeStatus }
+import models.{ ApplicationRoute, CachedData, SchemeStatus }
 import models.events.EventType
 import models.page.DashboardPage.Flags
 import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
@@ -48,7 +48,8 @@ case class PostOnlineTestsPage(
 
   lazy val fsacGuideUrl: String = FrontendAppConfig.fsacGuideUrl
 
-  val isOnlySdipGreen: Boolean = userDataWithSchemes.currentSchemesStatus.forall(schemeStatus => schemeStatus.status == SchemeStatus.Red ||
+  val isOnlySdipGreen: Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
+    userDataWithSchemes.currentSchemesStatus.forall(schemeStatus => schemeStatus.status == SchemeStatus.Red ||
     (schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Green))
 
   // scalastyle:off cyclomatic.complexity
