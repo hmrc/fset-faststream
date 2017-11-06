@@ -354,7 +354,10 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
   }
 
   override def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]] = {
-    val query = BSONDocument("personal-details" -> BSONDocument("$exists" -> true))
+    val query = BSONDocument(
+      "personal-details" -> BSONDocument("$exists" -> true),
+      "progress-status.SUBMITTED" -> BSONDocument("$exists" -> true)
+    )
     val projection = BSONDocument(
       "applicationId" -> 1,
       "userId" -> "1",
@@ -480,10 +483,10 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val firstName = personalDetailsDoc.getAs[String]("firstName").get
     val lastName = personalDetailsDoc.getAs[String]("lastName").get
     val dob = personalDetailsDoc.getAs[LocalDate]("dateOfBirth").get
-    val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
-    val latestProgressStatus = ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses)
+    val candidateProgressResponse = toProgressResponse(applicationId).read(document)
+    val latestProgressStatus = ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressResponse)
 
-    UserApplicationProfile(userId, latestProgressStatus, firstName, lastName, dob)
+    UserApplicationProfile(userId, candidateProgressResponse, latestProgressStatus, firstName, lastName, dob)
   }
 
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {

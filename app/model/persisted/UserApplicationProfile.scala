@@ -16,10 +16,12 @@
 
 package model.persisted
 
+import model.command.ProgressResponse
 import org.joda.time.LocalDate
 import reactivemongo.bson.Macros
 
 case class UserApplicationProfile(userId: String,
+                                  progress: ProgressResponse,
                                   latestProgressStatus: String,
                                   firstName: String,
                                   lastName: String,

@@ -49,52 +49,55 @@ trait DuplicateDetectionService {
 
     for {
       allCandidates <- reportingRepository.candidatesForDuplicateDetectionReport
-      candidatesEmails <- cdRepository.findEmails.map(toUserIdToEmailMap)
+      userIdToEmailReference <- cdRepository.findEmails.map(toUserIdToEmailMap)
+      source = allCandidates
+      population = allCandidates
     } yield {
-      val finishedApplications = allCandidates.filter(_.latestProgressStatus == ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED)
-      Logger.debug(s"Detect duplications from ${allCandidates.length} candidates")
-      Logger.debug(s"Detect duplications for ${finishedApplications.length} finished candidates")
-      findDuplicates(finishedApplications, allCandidates, candidatesEmails)
+      Logger.debug(s"Detect duplications from ${source.length} candidates")
+      Logger.debug(s"Detect duplications in ${population.length} candidates")
+      findDuplicates(source, population, userIdToEmailReference)
     }
   }
 
   private def findDuplicates(source: List[UserApplicationProfile], population: List[UserApplicationProfile],
-                             userIdsToEmails: Map[String, String]) = {
+                             userIdToEmailReference: Map[String, String]) = {
     def normalise(s: String) = s.trim.toLowerCase()
-    def takeThreeFields(u: UserApplicationProfile) = (normalise(u.firstName), normalise(u.lastName), u.dateOfBirth)
+    def takeFirstNameLastNameAndDOB(u: UserApplicationProfile) = (normalise(u.firstName), normalise(u.lastName), u.dateOfBirth)
     def takeFirstNameAndLastName(u: UserApplicationProfile) = (normalise(u.firstName), normalise(u.lastName))
-    def takeFirstNameAndDoB(u: UserApplicationProfile) = (normalise(u.firstName), u.dateOfBirth)
-    def takeLastNameAndDob(u: UserApplicationProfile) = (normalise(u.lastName), u.dateOfBirth)
+    def takeFirstNameAndDOB(u: UserApplicationProfile) = (normalise(u.firstName), u.dateOfBirth)
+    def takeLastNameAndDOB(u: UserApplicationProfile) = (normalise(u.lastName), u.dateOfBirth)
 
-    val threeFieldsMap = population groupBy takeThreeFields
-    val firstNameLastNameMap = population groupBy takeFirstNameAndLastName
-    val firstNameDoBMap = population groupBy takeFirstNameAndDoB
-    val lastNameDoBMap = population groupBy takeLastNameAndDob
+    val firstNameLastNameDOBMap = population.groupBy(takeFirstNameLastNameAndDOB)
+    val firstNameLastNameMap = population.groupBy(takeFirstNameAndLastName)
+    val firstNameDOBMap = population.groupBy(takeFirstNameAndDOB)
+    val lastNameDOBMap = population.groupBy(takeLastNameAndDOB)
 
-    source.flatMap { s =>
-      // "s" (source candidate) will be part of the list because it matches with itself in all fields
-      val duplicatesInThreeFields = threeFieldsMap.getOrElse(takeThreeFields(s), Nil)
+    source.flatMap { sourceCandidate =>
+      // source candidate will be part of the list because it matches with itself in all fields
+      val duplicatesInThreeFields = firstNameLastNameDOBMap.getOrElse(takeFirstNameLastNameAndDOB(sourceCandidate), Nil)
 
       val duplicatesFirstNameLastName = firstNameLastNameMap
-        .getOrElse(takeFirstNameAndLastName(s), Nil)
-        .filterNot(duplicatesInThreeFields.contains(_))
-      val duplicatesFirstNameDoB = firstNameDoBMap
-        .getOrElse(takeFirstNameAndDoB(s), Nil)
-        .filterNot(duplicatesInThreeFields.contains(_))
-      val duplicatesDoBLastName = lastNameDoBMap
-        .getOrElse(takeLastNameAndDob(s), Nil)
+        .getOrElse(takeFirstNameAndLastName(sourceCandidate), Nil)
         .filterNot(duplicatesInThreeFields.contains(_))
 
-      // "s" (source candidate) matches with itself in more than 2 fields. Therefore, it will not be part of any
+      val duplicatesFirstNameDOB = firstNameDOBMap
+        .getOrElse(takeFirstNameAndDOB(sourceCandidate), Nil)
+        .filterNot(duplicatesInThreeFields.contains(_))
+
+      val duplicatesDOBLastName = lastNameDOBMap
+        .getOrElse(takeLastNameAndDOB(sourceCandidate), Nil)
+        .filterNot(duplicatesInThreeFields.contains(_))
+
+      // source candidate matches with itself in more than 2 fields. Therefore, it will not be part of any
       // duplicates*InTwoFields lists. It needs to be added "manually" as the head to be present in the final report.
-      val duplicatesInTwoFields = s ::
+      val duplicatesInTwoFields = sourceCandidate ::
         duplicatesFirstNameLastName ++
-          duplicatesFirstNameDoB ++
-          duplicatesDoBLastName
+          duplicatesFirstNameDOB ++
+          duplicatesDOBLastName
 
       List(
-        selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, duplicatesInThreeFields, userIdsToEmails),
-        selectDuplicatesOnlyOpt(MediumProbabilityMatchGroup, duplicatesInTwoFields, userIdsToEmails)
+        selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, duplicatesInThreeFields, userIdToEmailReference),
+        selectDuplicatesOnlyOpt(MediumProbabilityMatchGroup, duplicatesInTwoFields, userIdToEmailReference)
       ).flatten
     }
   }
