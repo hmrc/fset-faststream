@@ -17,6 +17,7 @@
 package security
 
 import controllers.routes
+import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus._
 import models.{ ApplicationRoute, CachedData, CachedDataWithApp, Progress }
 import play.api.i18n.Lang
@@ -319,6 +320,11 @@ object RoleUtils {
   def isPhase3TestsFailed(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsFailed)
 
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
+
+  def isInPhase3PassedOrNotified(implicit user: CachedData) = user.application.exists(cachedData =>
+      cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED ||
+      cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
+  )
 
   def isSiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftEntered)
 

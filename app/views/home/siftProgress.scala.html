@@ -177,11 +177,15 @@
 
  <section class="text">
     <ol class="step-by-step-coloured" id="nextStepsList">
-        @if(page.userDataWithSchemes.hasFormRequirement || page.userDataWithSchemes.hasNumericRequirement) {
-            <li class="first-step">
-                @renderExtraInfo
-            </li>
-        }
+        <li class="first-step">
+            @if(isInPhase3PassedOrNotified(page.userDataWithSchemes.toCachedData)) {
+                <p>Depending on your chosen schemes, you may need to answer some additional questions.</p>
+            } else {
+                @if(page.userDataWithSchemes.hasFormRequirement || page.userDataWithSchemes.hasNumericRequirement) {
+                    @renderExtraInfo
+                }
+            }
+        </li>
 
         @if(page.userDataWithSchemes.requiresAssessmentCentre && !page.isOnlySdipGreen) {
             <li class="second-step">
