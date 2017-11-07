@@ -89,7 +89,7 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
     }
 
     def maybeArchiveOldFsbStatuses(application: ApplicationForProgression,
-      latestProgressStatus: ProgressStatus) = {
+      latestProgressStatus: ProgressStatus, firstResidualOpt: Option[SchemeEvaluationResult]) = {
 
       def calculateFsbStatusesToArchive(progressTimestamps: Map[String, DateTime]): List[(ProgressStatus, DateTime)] = {
 
@@ -109,7 +109,8 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
         schemesInPreferenceOrder.filter(fsbEvaluation.results.map(_.schemeId).contains).last
       }
 
-      if (latestProgressStatus == FSB_FAILED) {
+      if (latestProgressStatus == FSB_FAILED && firstResidualOpt.exists(firstResidual => firstResidual.result == Green.toString &&
+        fsbRequiredSchemeIds.contains(firstResidual.schemeId))) {
         for {
           progressStatusTimestamps <- applicationRepo.getProgressStatusTimestamps(application.applicationId)
           fsbStatusesToArchive = calculateFsbStatusesToArchive(progressStatusTimestamps.toMap)
@@ -120,6 +121,7 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
             fsbStatusesToArchive.map(x => x._1 + "_" + lastSchemeFailedAtFsb -> x._2)
           )
           _ <- applicationRepo.removeProgressStatuses(application.applicationId, fsbStatusesToArchive.map(_._1))
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.FSB_AWAITING_ALLOCATION)
         } yield ()
       } else {
         Future.successful(())
@@ -133,7 +135,7 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
             currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
             firstResidual = firstResidualPreference(currentSchemeStatus)
             applicationStatus <- applicationRepo.findStatus(application.applicationId)
-            _ <- maybeArchiveOldFsbStatuses(application, applicationStatus.latestProgressStatus.get)
+            _ <- maybeArchiveOldFsbStatuses(application, applicationStatus.latestProgressStatus.get, firstResidual)
             _ <- maybeProgressToFsbOrJobOffer(application, applicationStatus.latestProgressStatus.get, firstResidual)
           } yield ()
         }
