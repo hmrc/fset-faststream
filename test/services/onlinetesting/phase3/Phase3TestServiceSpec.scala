@@ -38,9 +38,9 @@ import services.AuditService
 import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.stc.StcEventServiceFixture
 import testkit.{ ExtendedTimeout, UnitSpec }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 

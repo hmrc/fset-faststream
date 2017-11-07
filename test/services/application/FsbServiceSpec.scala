@@ -28,10 +28,10 @@ import repositories.{ SchemeRepository, SchemeYamlRepository }
 import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import uk.gov.hmrc.http.HeaderCarrier
 
 class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
 

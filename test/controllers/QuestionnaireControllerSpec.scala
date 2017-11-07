@@ -29,10 +29,10 @@ import repositories.QuestionnaireRepository
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 import testkit.MockitoImplicits._
 
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
 

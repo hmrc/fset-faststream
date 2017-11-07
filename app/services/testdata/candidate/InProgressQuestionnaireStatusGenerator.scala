@@ -23,10 +23,10 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import services.testdata.faker.DataFaker._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object InProgressQuestionnaireStatusGenerator extends InProgressQuestionnaireStatusGenerator {
   override val previousStatusGenerator = InProgressAssistanceDetailsStatusGenerator

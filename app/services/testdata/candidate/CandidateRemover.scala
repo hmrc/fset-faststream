@@ -20,10 +20,10 @@ import connectors.AuthProviderClient
 import play.api.mvc.RequestHeader
 import repositories.MongoDbConnection
 import repositories.testdata.{ ApplicationRemovalMongoRepository, ApplicationRemovalRepository }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait CandidateRemover {
   val appRemovalRepo: ApplicationRemovalRepository

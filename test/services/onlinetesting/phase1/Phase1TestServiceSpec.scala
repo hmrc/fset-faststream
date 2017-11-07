@@ -41,10 +41,10 @@ import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.stc.{ StcEventService, StcEventServiceFixture }
 import testkit.{ ExtendedTimeout, UnitWithAppSpec }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.TimeUnit
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
   with PrivateMethodTester {

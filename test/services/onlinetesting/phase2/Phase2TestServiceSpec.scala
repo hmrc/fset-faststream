@@ -46,11 +46,11 @@ import services.onlinetesting.Exceptions.CannotResetPhase2Tests
 import services.onlinetesting.phase3.Phase3TestService
 import services.stc.StcEventServiceFixture
 import testkit.{ ExtendedTimeout, UnitSpec }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 

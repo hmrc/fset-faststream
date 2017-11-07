@@ -19,9 +19,9 @@ package services.testdata.candidate
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait BaseGenerator {
   def generate(generationId: Int, generatorConfig: CreateCandidateData)

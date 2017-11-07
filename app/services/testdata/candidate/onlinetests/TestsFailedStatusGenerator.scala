@@ -29,10 +29,10 @@ import services.testdata.candidate.fsb.FsbResultEnteredStatusGenerator
 import services.testdata.candidate.onlinetests.phase1.Phase1TestsResultsReceivedStatusGenerator
 import services.testdata.candidate.onlinetests.phase2.Phase2TestsResultsReceivedStatusGenerator
 import services.testdata.candidate.onlinetests.phase3.Phase3TestsResultsReceivedStatusGenerator
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestsFailedStatusGenerator extends TestsFailedStatusGenerator {
   val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator

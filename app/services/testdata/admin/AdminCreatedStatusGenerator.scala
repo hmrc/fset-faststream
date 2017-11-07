@@ -20,9 +20,9 @@ import connectors.AuthProviderClient
 import model.exchange.testdata.CreateAdminResponse.{ AssessorResponse, CreateAdminResponse }
 import model.testdata.CreateAdminData.CreateAdminData
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object AdminCreatedStatusGenerator extends AdminCreatedStatusGenerator {
   override val authProviderClient = AuthProviderClient

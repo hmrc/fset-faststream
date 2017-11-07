@@ -26,10 +26,10 @@ import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker.Random
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase3TestsResultsReceivedStatusGenerator extends Phase3TestsResultsReceivedStatusGenerator {
   val previousStatusGenerator = Phase3TestsCompletedStatusGenerator

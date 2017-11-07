@@ -27,9 +27,10 @@ import play.api.mvc.Action
 import play.api.mvc.Results._
 import play.api.test.Helpers._
 import testkit.{ ShortTimeout, UnitSpec }
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, _ }
+import uk.gov.hmrc.play.http._
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse }
 
 class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
 
@@ -130,7 +131,7 @@ class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
 
     def mockPost[T] = {
       when(
-        mockWSHttp.POST(anyString(), any[T], any())(any[Writes[T]], any[HttpReads[HttpResponse]], any[HeaderCarrier])
+        mockWSHttp.POST(anyString(), any[T], any())(any[Writes[T]], any[HttpReads[HttpResponse]], any[HeaderCarrier], any[ExecutionContext])
       )
     }
   }

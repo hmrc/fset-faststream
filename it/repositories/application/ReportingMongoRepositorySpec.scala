@@ -32,7 +32,7 @@ import reactivemongo.bson.BSONDocument
 import repositories.CollectionNames
 import _root_.services.testdata.candidate.CandidateStatusGeneratorFactory
 import testkit.MongoRepositorySpec
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Await
 

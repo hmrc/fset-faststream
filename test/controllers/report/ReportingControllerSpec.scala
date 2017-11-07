@@ -41,10 +41,10 @@ import repositories.events.EventsRepository
 import repositories.sift.ApplicationSiftRepository
 import testkit.UnitWithAppSpec
 import testkit.MockitoImplicits._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class ReportingControllerSpec extends UnitWithAppSpec {
 

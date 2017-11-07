@@ -22,9 +22,9 @@ import model.testdata.CreateCandidateData.{ CreateCandidateData, PersonalData }
 import play.api.mvc.RequestHeader
 import services.personaldetails.PersonalDetailsService
 import services.testdata.faker.DataFaker.Random
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.HeaderCarrier
 
 object InProgressPersonalDetailsStatusGenerator extends InProgressPersonalDetailsStatusGenerator {
   override val previousStatusGenerator = CreatedStatusGenerator

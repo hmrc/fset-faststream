@@ -23,10 +23,10 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import services.testdata.candidate.assessmentcentre.AssessmentCentreAwaitingAllocationStatusGenerator
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.HeaderCarrier
 
 object FsbAwaitingAllocationStatusGenerator extends FsbAwaitingAllocationStatusGenerator {
   override val previousStatusGenerator: BaseGenerator = AssessmentCentreAwaitingAllocationStatusGenerator

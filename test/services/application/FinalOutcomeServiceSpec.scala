@@ -26,7 +26,7 @@ import repositories.application.{ FinalOutcomeRepository, GeneralApplicationRepo
 import repositories.contactdetails.ContactDetailsRepository
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
 

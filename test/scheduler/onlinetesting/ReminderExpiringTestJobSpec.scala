@@ -22,10 +22,10 @@ import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import services.onlinetesting.OnlineTestService
 import testkit.{ ShortTimeout, UnitWithAppSpec }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 /*
 Test only one type of reminder as the difference is only in the kind of reminder notice they

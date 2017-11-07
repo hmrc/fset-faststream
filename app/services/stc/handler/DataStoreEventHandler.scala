@@ -20,9 +20,9 @@ import model.stc.DataStoreEvent
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.stc.StcEventRepository
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object DataStoreEventHandler extends DataStoreEventHandler {
   val eventRepository: StcEventRepository = repositories.stcEventMongoRepository

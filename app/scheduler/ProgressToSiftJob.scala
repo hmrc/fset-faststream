@@ -22,9 +22,9 @@ import model.command.ApplicationForSift
 import scheduler.clustering.SingleInstanceScheduledJob
 import ProgressToSiftJobConfig.conf
 import services.sift.ApplicationSiftService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object ProgressToSiftJob extends ProgressToSiftJob {
   val siftService = ApplicationSiftService

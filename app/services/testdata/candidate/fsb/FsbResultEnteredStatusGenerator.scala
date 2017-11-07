@@ -26,10 +26,10 @@ import play.api.mvc.RequestHeader
 import services.application.FsbService
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
 import services.testdata.faker.DataFaker
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object FsbResultEnteredStatusGenerator extends FsbResultEnteredStatusGenerator {
   override val previousStatusGenerator: BaseGenerator = FsbAllocationConfirmedStatusGenerator

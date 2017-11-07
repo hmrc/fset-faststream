@@ -31,9 +31,9 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 

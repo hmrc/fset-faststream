@@ -26,10 +26,10 @@ import repositories.application.GeneralApplicationRepository
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.{ AssessmentScoresRepository, CandidateAllocationMongoRepository }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait AssessmentScoresService {
   val applicationRepository: GeneralApplicationRepository

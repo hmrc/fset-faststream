@@ -29,9 +29,9 @@ import play.api.mvc.RequestHeader
 import repositories._
 import services.testdata.admin.AssessorCreatedStatusGenerator
 import services.testdata.faker.DataFaker._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object RegisteredStatusGenerator extends RegisteredStatusGenerator {
   override val authProviderClient = AuthProviderClient

@@ -28,10 +28,10 @@ import play.api.test.Helpers._
 import services.AuditService
 import services.personaldetails.PersonalDetailsService
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 import play.api.libs.json.Json
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class PersonalDetailsControllerSpec extends UnitWithAppSpec {
   val mockCandidateDetailsService = mock[PersonalDetailsService]
