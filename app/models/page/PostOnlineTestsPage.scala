@@ -30,6 +30,7 @@ import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisable
 import org.joda.time.{ DateTime, LocalTime }
 import play.twirl.api.Html
 import security.{ RoleUtils, Roles }
+import com.github.nscala_time.time.OrderingImplicits._
 
 import scala.util.Try
 
@@ -123,7 +124,6 @@ case class PostOnlineTestsPage(
       case _ => false
     }
   }
-
   val fsacAllocation = allocationsWithEvent.find(_.event.eventType == EventType.FSAC)
   val fsbAllocation = Try(allocationsWithEvent.filter(_.event.eventType == EventType.FSB).maxBy(_.event.date)).toOption
 
