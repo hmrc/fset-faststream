@@ -24,12 +24,14 @@ import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
 import helpers.{ CachedUserWithSchemeData, Timezones }
 import models.{ ApplicationRoute, CachedData, SchemeStatus }
-import models.events.EventType
+import models.events.{ AllocationStatuses, EventType }
 import models.page.DashboardPage.Flags
 import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
 import org.joda.time.{ DateTime, LocalTime }
 import play.twirl.api.Html
 import security.{ RoleUtils, Roles }
+
+import scala.util.Try
 
 object PostOnlineTestsStage extends Enumeration {
   type PostOnlineTestsStage = Value
@@ -123,7 +125,7 @@ case class PostOnlineTestsPage(
   }
 
   val fsacAllocation = allocationsWithEvent.find(_.event.eventType == EventType.FSAC)
-  val fsbAllocation = allocationsWithEvent.find(_.event.eventType != EventType.FSAC)
+  val fsbAllocation = Try(allocationsWithEvent.filter(_.event.eventType == EventType.FSB).maxBy(_.event.date)).toOption
 
   val assessmentCentreStartDateAndTime: String = eventStartDateAndTime(fsacAllocation)
   val fsbStartDateAndTime: String = eventStartDateAndTime(fsbAllocation)
