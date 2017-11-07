@@ -46,9 +46,9 @@ import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 

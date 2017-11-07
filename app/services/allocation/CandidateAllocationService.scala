@@ -38,10 +38,10 @@ import repositories.{ CandidateAllocationMongoRepository, CandidateAllocationRep
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object CandidateAllocationService extends CandidateAllocationService {
   val candidateAllocationRepo: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository

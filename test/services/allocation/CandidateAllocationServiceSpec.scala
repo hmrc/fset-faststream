@@ -35,13 +35,13 @@ import repositories.application.GeneralApplicationRepository
 import services.BaseServiceSpec
 import services.events.EventsService
 import services.stc.StcEventService
-import uk.gov.hmrc.play.http.HeaderCarrier
 import testkit.MockitoImplicits._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class CandidateAllocationServiceSpec extends BaseServiceSpec {
   "Allocate candidate" must {

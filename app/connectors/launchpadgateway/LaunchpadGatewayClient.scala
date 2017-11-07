@@ -23,10 +23,10 @@ import model.Exceptions.ConnectorException
 import play.api.http.Status._
 import play.api.libs.json.Reads
 import _root_.services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, Upstream4xxResponse }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, Upstream4xxResponse }
 
 object LaunchpadGatewayClient extends LaunchpadGatewayClient {
   val http: WSHttp = WSHttp

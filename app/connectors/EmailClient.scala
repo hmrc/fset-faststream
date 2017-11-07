@@ -22,11 +22,11 @@ import config.{ EmailConfig, WSHttp }
 import connectors.ExchangeObjects._
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalDateTime }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.TimeUnit
+import uk.gov.hmrc.http.HeaderCarrier
 
 object CSREmailClient extends CSREmailClient {
   val emailConfig: EmailConfig = config.MicroserviceAppConfig.emailConfig

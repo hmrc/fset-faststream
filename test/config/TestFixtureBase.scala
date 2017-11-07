@@ -20,9 +20,9 @@ import org.scalatest.mock.MockitoSugar
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import services.AuditService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.util.Random
+import uk.gov.hmrc.http.HeaderCarrier
 
 abstract class TestFixtureBase extends MockitoSugar {
   implicit val hc = HeaderCarrier()

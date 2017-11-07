@@ -22,7 +22,7 @@ import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.audit.AuditExtensions.auditHeaderCarrier
 import uk.gov.hmrc.play.audit.EventKeys
 import uk.gov.hmrc.play.audit.model.{ Audit, DataEvent, EventTypes }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait AuditService {
   private[services] val appName: String

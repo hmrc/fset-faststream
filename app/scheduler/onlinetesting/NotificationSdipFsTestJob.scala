@@ -22,9 +22,9 @@ import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase1.Phase1TestService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object FailedSdipFsTestJob extends NotificationSdipFsTestJob {
   override val service = Phase1TestService

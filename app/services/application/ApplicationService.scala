@@ -47,11 +47,11 @@ import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.stc.{ EventSink, StcEventService }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.immutable.ListMap
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository

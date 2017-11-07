@@ -26,10 +26,10 @@ import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands._
 import play.api.http.Status._
 import play.api.libs.iteratee.Iteratee
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait CubiksGatewayClient {
   val http: WSHttp

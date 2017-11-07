@@ -20,9 +20,9 @@ import connectors.{ CSREmailClient, EmailClient }
 import model.stc.{ EmailEvent, EmailEvents }
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object EmailEventHandler extends EmailEventHandler {
   val emailClient: EmailClient = CSREmailClient

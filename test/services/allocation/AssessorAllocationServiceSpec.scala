@@ -34,7 +34,7 @@ import services.stc.StcEventService
 
 import scala.concurrent.Future
 import testkit.MockitoImplicits._
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AssessorAllocationServiceSpec extends BaseServiceSpec {
 

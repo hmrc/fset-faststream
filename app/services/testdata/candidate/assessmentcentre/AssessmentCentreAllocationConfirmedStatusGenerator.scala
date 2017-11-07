@@ -28,10 +28,10 @@ import repositories.application.GeneralApplicationRepository
 import services.allocation.CandidateAllocationService
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
 import services.testdata.event.EventGenerator
-import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object AssessmentCentreAllocationConfirmedStatusGenerator extends AssessmentCentreAllocationConfirmedStatusGenerator {
   override val previousStatusGenerator: BaseGenerator = AssessmentCentreAwaitingAllocationStatusGenerator

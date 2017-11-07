@@ -22,7 +22,7 @@ import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import testkit.UnitSpec
 import uk.gov.hmrc.play.audit.model.{ Audit, DataEvent }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AuditServiceSpec extends UnitSpec {
   val auditMock = mock[Audit]

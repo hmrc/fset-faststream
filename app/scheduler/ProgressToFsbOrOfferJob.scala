@@ -21,9 +21,9 @@ import play.api.Logger
 import scheduler.ProgressToFsbOrOfferJobConfig.conf
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.assessmentcentre.AssessmentCentreToFsbOrOfferProgressionService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object ProgressToFsbOrOfferJob extends ProgressToFsbOrOfferJob {
   val assessmentCentreToFsbOrOfferService = AssessmentCentreToFsbOrOfferProgressionService

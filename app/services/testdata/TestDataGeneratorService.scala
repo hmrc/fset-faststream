@@ -36,7 +36,6 @@ import services.testdata.allocation.{ AssessorAllocationGenerator, CandidateAllo
 import services.testdata.candidate.{ BaseGenerator, CandidateRemover, RegisteredStatusGenerator }
 import services.testdata.event.EventGenerator
 import services.testdata.faker.DataFaker._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.collection.parallel.immutable.ParRange
@@ -44,6 +43,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 object TestDataGeneratorService extends TestDataGeneratorService {
 }

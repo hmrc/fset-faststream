@@ -24,10 +24,10 @@ import model.command.ApplicationForProgression
 import org.joda.time.DateTime
 import repositories.application.{ FinalOutcomeRepository, GeneralApplicationRepository }
 import repositories.contactdetails.ContactDetailsRepository
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object FinalOutcomeService extends FinalOutcomeService {
 

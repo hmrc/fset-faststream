@@ -23,10 +23,10 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationMongoRepository
 import repositories._
 import services.testdata.candidate.ConstructiveGenerator
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestsPassedNotifiedStatusGenerator extends TestsPassedNotifiedStatusGenerator {
   val previousStatusGenerator = Phase1TestsPassedStatusGenerator

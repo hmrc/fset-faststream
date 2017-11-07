@@ -21,11 +21,11 @@ import model.stc.{ AuditEvent, DataStoreEvent, EmailEvent }
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import services.stc.handler.{ AuditEventHandler, DataStoreEventHandler, EmailEventHandler }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.language.implicitConversions
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object StcEventService extends StcEventService {
   val dataStoreEventHandler: DataStoreEventHandler = DataStoreEventHandler

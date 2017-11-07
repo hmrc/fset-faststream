@@ -28,9 +28,9 @@ import play.api.mvc.RequestHeader
 import services.stc.handler._
 import testkit.UnitSpec
 import testkit.MockitoImplicits._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.JavaConversions._
+import uk.gov.hmrc.http.HeaderCarrier
 
 class StcEventServiceSpec extends UnitSpec with StcEventServiceFixture {
 

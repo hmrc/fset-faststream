@@ -22,9 +22,9 @@ import model.persisted.assessor.AssessorStatus
 import model.testdata.CreateAdminData.{ AssessorData, CreateAdminData }
 import play.api.mvc.RequestHeader
 import services.assessor.AssessorService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object AssessorCreatedStatusGenerator extends AssessorCreatedStatusGenerator {
   override val previousStatusGenerator: AdminUserBaseGenerator = AdminCreatedStatusGenerator

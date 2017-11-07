@@ -23,7 +23,7 @@ import model.{ ProgressStatuses, SchemeId, SerialUpdateResult }
 import services.sift.ApplicationSiftService
 import testkit.ScalaMockUnitWithAppSpec
 import testkit.ScalaMockImplicits._
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 

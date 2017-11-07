@@ -23,9 +23,9 @@ import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase3.Phase3TestService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SuccessPhase1TestJob extends SuccessTestJob {
   override val service = Phase1TestService

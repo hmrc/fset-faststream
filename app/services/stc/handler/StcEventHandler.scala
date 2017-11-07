@@ -18,9 +18,9 @@ package services.stc.handler
 
 import model.stc.StcEventTypes.StcEventType
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait StcEventHandler[T <: StcEventType] {
 

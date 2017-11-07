@@ -29,9 +29,9 @@ import play.api.test.Helpers._
 import services.stc.StcEventService
 import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
 
