@@ -374,7 +374,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
   //scalastyle:off method.length
   override def successfulCandidatesReport: Future[List[SuccessfulCandidatePartialItem]] = {
     def getDate(doc: BSONDocument, status: ProgressStatus): Option[DateTime] = {
-      doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](status))
+      doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](status.key))
     }
 
     def getLegacyDate(doc: BSONDocument, status: ProgressStatus): Option[DateTime] = {
