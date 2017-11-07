@@ -20,6 +20,7 @@ import org.joda.time.DateTime
 import play.api.libs.json.{ Json, OFormat }
 
 case class SuccessfulCandidatePartialItem(userId: String,
+                                          applicationId: String,
                                           applicationRoute: String,
                                           fullName: Option[String],
                                           preferredName: Option[String],

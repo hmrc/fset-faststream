@@ -16,12 +16,16 @@
 
 package model.report
 
-import model.persisted.ContactDetailsWithId
+import model.assessmentscores.AssessmentScoresAllExercises
+import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
 import play.api.libs.json.{ Json, OFormat }
 
 case class SuccessfulCandidateReportItem(candidate: SuccessfulCandidatePartialItem,
                                          contactDetails: Option[ContactDetailsWithId],
-                                         applicationInfo: DiversityReportItem)
+                                         applicationInfo: DiversityReportItem,
+                                         onlineTestsReport: Option[ApplicationForOnlineTestPassMarkReport],
+                                         siftResultReport: Option[SiftPhaseReportItem],
+                                         fsacResultReport: Option[AssessmentScoresAllExercises])
 
 object SuccessfulCandidateReportItem {
   implicit val format: OFormat[SuccessfulCandidateReportItem] = Json.format[SuccessfulCandidateReportItem]

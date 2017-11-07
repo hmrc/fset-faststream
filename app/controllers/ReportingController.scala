@@ -275,6 +275,9 @@ trait ReportingController extends BaseController {
       questionnairesByAppId <- questionnaireRepository.findAllForDiversityReport
       mediasByUserId <- mediaRepository.findAll()
       candidatesByUserId <- contactDetailsRepository.findAll.map(_.groupBy(_.userId).mapValues(_.head))
+      applicationsForOnlineTest <- reportingRepository.onlineTestPassMarkReport
+      siftResults <- applicationSiftRepository.findAllResults
+      fsacResults <- assessmentScoresRepository.findAll
     } yield {
       successfulApplications.map { successfulCandidatePartialItem =>
         val userId = successfulCandidatePartialItem.userId
@@ -287,7 +290,18 @@ trait ReportingController extends BaseController {
           mediasByUserId.get(userId).map(m => MediaReportItem(m.media))
         )
 
-        SuccessfulCandidateReportItem(successfulCandidatePartialItem, contactDetails, diversityReportItem)
+        val onlineTestResults = applicationsForOnlineTest.find(_.userId == userId)
+        val siftResult = siftResults.find(_.applicationId == appId)
+        val fsacResult = fsacResults.find(_.applicationId.toString() == appId)
+
+        SuccessfulCandidateReportItem(
+          successfulCandidatePartialItem,
+          contactDetails,
+          diversityReportItem,
+          onlineTestResults,
+          siftResult,
+          fsacResult
+        )
       }
     }
     reports.map { list =>

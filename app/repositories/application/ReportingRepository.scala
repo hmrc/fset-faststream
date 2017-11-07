@@ -388,12 +388,14 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("userId" -> BSONDocument("$exists" -> true)),
+        BSONDocument("applicationId" -> BSONDocument("$exists" -> true)),
         BSONDocument(s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED}" -> true)
       )
     )
 
     val projection = BSONDocument(
       "userId" -> true,
+      "applicationId" -> true,
       "applicationRoute" -> true,
       "personal-details" -> true,
       "progress-status" -> true,
@@ -408,6 +410,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     collection.find(query, projection).cursor[BSONDocument]().collect[List]().map {
       _.map { doc =>
         val userId = doc.getAs[String]("userId").get
+        val appId = doc.getAs[String]("applicationId").get
         val applicationRoute = doc.getAs[String]("applicationRoute").get
         val personalDetailsDoc = doc.getAs[BSONDocument]("personal-details")
         val fullName = for {
@@ -425,6 +428,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
 
         SuccessfulCandidatePartialItem(
           userId,
+          appId,
           applicationRoute,
           fullName,
           preferredName,
