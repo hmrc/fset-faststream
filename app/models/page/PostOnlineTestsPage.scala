@@ -126,7 +126,7 @@ case class PostOnlineTestsPage(
   }
   val fsacAllocation = allocationsWithEvent.find(_.event.eventType == EventType.FSAC)
   val fsbAllocation = Try(allocationsWithEvent.filter(_.event.eventType == EventType.FSB).maxBy { allocation =>
-    new DateTime(allocation.event.date).withTime(allocation.event.sessions.head.startTime)
+    allocation.event.date.toDateTime(allocation.event.sessions.head.startTime)
   }).toOption
 
   val assessmentCentreStartDateAndTime: String = eventStartDateAndTime(fsacAllocation)
