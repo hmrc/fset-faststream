@@ -27,7 +27,3 @@ case class UserApplicationProfile(userId: String,
                                   lastName: String,
                                   dateOfBirth: LocalDate)
 
-object UserApplicationProfile {
-  import repositories.BSONLocalDateHandler
-  implicit val userApplicationProfileHandler = Macros.handler[UserApplicationProfile]
-}
