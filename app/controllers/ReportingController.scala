@@ -268,27 +268,26 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def timeToOfferReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def successfulCandidatesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports = for {
-      applicationsForTimeToOffer <- reportingRepository.candidatesForTimeToOfferReport
+      successfulApplications <- reportingRepository.successfulCandidatesReport
       appsByUserId <- reportingRepository.diversityReport(frameworkId).map(_.groupBy(_.userId).mapValues(_.head))
       questionnairesByAppId <- questionnaireRepository.findAllForDiversityReport
       mediasByUserId <- mediaRepository.findAll()
       candidatesByUserId <- contactDetailsRepository.findAll.map(_.groupBy(_.userId).mapValues(_.head))
     } yield {
-      applicationsForTimeToOffer.map { appTimeToOffer =>
-        val userId = appTimeToOffer.userId
+      successfulApplications.map { successfulCandidatePartialItem =>
+        val userId = successfulCandidatePartialItem.userId
         val application = appsByUserId(userId)
         val appId = application.applicationId
         val contactDetails = candidatesByUserId.get(userId)
-        val email = contactDetails.map(_.email)
         val diversityReportItem = DiversityReportItem(
           ApplicationForDiversityReportItem.create(application),
           questionnairesByAppId.get(appId),
           mediasByUserId.get(userId).map(m => MediaReportItem(m.media))
         )
 
-        TimeToOfferItem(appTimeToOffer, email, diversityReportItem)
+        SuccessfulCandidateReportItem(successfulCandidatePartialItem, contactDetails, diversityReportItem)
       }
     }
     reports.map { list =>

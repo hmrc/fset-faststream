@@ -19,6 +19,7 @@ package repositories.application
 import factories.DateTimeFactory
 import model.ApplicationStatus._
 import model.Commands._
+import model.ProgressStatuses.ProgressStatus
 import model.command._
 import model.persisted._
 import model.report._
@@ -61,7 +62,7 @@ trait ReportingRepository {
 
   def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]]
 
-  def candidatesForTimeToOfferReport: Future[List[TimeToOfferPartialItem]]
+  def successfulCandidatesReport: Future[List[SuccessfulCandidatePartialItem]]
 
   def preSubmittedApplications(frameworkId: String): Future[List[ApplicationIdsAndStatus]]
 }
@@ -371,12 +372,12 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
   }
 
   //scalastyle:off method.length
-  override def candidatesForTimeToOfferReport: Future[List[TimeToOfferPartialItem]] = {
-    def getDate(doc: BSONDocument, status: ApplicationStatus): Option[DateTime] = {
+  override def successfulCandidatesReport: Future[List[SuccessfulCandidatePartialItem]] = {
+    def getDate(doc: BSONDocument, status: ProgressStatus): Option[DateTime] = {
       doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](status))
     }
 
-    def getLegacyDate(doc: BSONDocument, status: ApplicationStatus): Option[DateTime] = {
+    def getLegacyDate(doc: BSONDocument, status: ProgressStatus): Option[DateTime] = {
       doc.getAs[BSONDocument]("progress-status-dates").flatMap { legacyDates =>
         legacyDates.getAs[String](status.toString.toLowerCase).map { legacyDateString =>
           DateTime.parse(legacyDateString, DateTimeFormat.forPattern("YYYY-MM-dd"))
@@ -387,17 +388,13 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("userId" -> BSONDocument("$exists" -> true)),
-        BSONDocument("$or" ->
-          BSONArray(
-            BSONDocument(s"progress-status.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> true),
-            BSONDocument(s"progress-status.${ApplicationStatus.PHASE1_TESTS_PASSED}" -> true)
-          )
-        )
+        BSONDocument(s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED}" -> true)
       )
     )
 
     val projection = BSONDocument(
       "userId" -> true,
+      "applicationRoute" -> true,
       "personal-details" -> true,
       "progress-status" -> true,
       "progress-status-dates" -> true,
@@ -411,30 +408,28 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     collection.find(query, projection).cursor[BSONDocument]().collect[List]().map {
       _.map { doc =>
         val userId = doc.getAs[String]("userId").get
+        val applicationRoute = doc.getAs[String]("applicationRoute").get
         val personalDetailsDoc = doc.getAs[BSONDocument]("personal-details")
         val fullName = for {
           first <- personalDetailsDoc.flatMap(_.getAs[String]("firstName"))
           last <- personalDetailsDoc.flatMap(_.getAs[String]("lastName"))
-        } yield first + " " + last
+        } yield s"$first $last"
 
         val preferredName = personalDetailsDoc.flatMap(_.getAs[String]("preferredName"))
-        val maybeSubmittedTimestamp = getDate(doc, ApplicationStatus.SUBMITTED).orElse(getLegacyDate(doc, ApplicationStatus.SUBMITTED))
-        val maybeExportedTimestamp = getDate(doc, ApplicationStatus.PHASE3_TESTS_PASSED).orElse(
-          getLegacyDate(doc, ApplicationStatus.PHASE3_TESTS_PASSED)
-        )
-        val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.PHASE1_TESTS_PASSED).orElse(
-          getLegacyDate(doc, ApplicationStatus.PHASE1_TESTS_PASSED)
+        val maybeSubmittedTimestamp = getDate(doc, ProgressStatuses.SUBMITTED).orElse(getLegacyDate(doc, ProgressStatuses.SUBMITTED))
+        val maybeEligibleForOfferTimestamp = getDate(doc, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED).orElse(
+          getLegacyDate(doc, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED)
         )
         val fsacIndicatorDoc = doc.getAs[BSONDocument]("fsac-indicator")
         val assessmentCentre = fsacIndicatorDoc.flatMap(_.getAs[String]("assessmentCentre"))
 
-        TimeToOfferPartialItem(
+        SuccessfulCandidatePartialItem(
           userId,
+          applicationRoute,
           fullName,
           preferredName,
           maybeSubmittedTimestamp,
-          maybeExportedTimestamp,
-          maybeUpdateExportedTimestamp,
+          maybeEligibleForOfferTimestamp,
           assessmentCentre
         )
       }

@@ -16,12 +16,13 @@
 
 package model.report
 
-import play.api.libs.json.Json
+import model.persisted.ContactDetailsWithId
+import play.api.libs.json.{ Json, OFormat }
 
-case class TimeToOfferItem(timeToOffer: TimeToOfferPartialItem,
-                           email: Option[String],
-                           applicationInfo: DiversityReportItem)
+case class SuccessfulCandidateReportItem(candidate: SuccessfulCandidatePartialItem,
+                                         contactDetails: Option[ContactDetailsWithId],
+                                         applicationInfo: DiversityReportItem)
 
-object TimeToOfferItem {
-  implicit val timeToOfferItemFormat = Json.format[TimeToOfferItem]
+object SuccessfulCandidateReportItem {
+  implicit val format: OFormat[SuccessfulCandidateReportItem] = Json.format[SuccessfulCandidateReportItem]
 }
