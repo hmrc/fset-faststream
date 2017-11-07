@@ -109,7 +109,8 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
         schemesInPreferenceOrder.filter(fsbEvaluation.results.map(_.schemeId).contains).last
       }
 
-      if (latestProgressStatus == FSB_FAILED && firstResidualOpt.exists(_.result == Green.toString)) {
+      if (latestProgressStatus == FSB_FAILED && firstResidualOpt.exists(firstResidual => firstResidual.result == Green.toString &&
+        fsbRequiredSchemeIds.contains(firstResidual.schemeId))) {
         for {
           progressStatusTimestamps <- applicationRepo.getProgressStatusTimestamps(application.applicationId)
           fsbStatusesToArchive = calculateFsbStatusesToArchive(progressStatusTimestamps.toMap)
