@@ -69,9 +69,7 @@ trait DuplicateDetectionService {
       // Use email with everything before the first plus for duplicate finding
       if (email.contains("+")) {
         val atAndAfter = email.substring(email.indexOf("@"))
-        val toRet = email.substring(0, email.indexOf("+")) + atAndAfter
-        Logger.warn("=== Transformed email == " + toRet)
-        toRet
+        email.substring(0, email.indexOf("+")) + atAndAfter
       } else {
         email
       }
@@ -87,10 +85,10 @@ trait DuplicateDetectionService {
       normalise(user.lastName))
     def takeTransformedEmailFirstNameAndDOB(user: UserApplicationProfile) = (normalise(emailWithRemovedPostPlusSignIfPresent(user.userId)),
       normalise(user.firstName),
-      normalise(user.lastName))
+      user.dateOfBirth)
     def takeTransformedEmailLastNameAndDOB(user: UserApplicationProfile) = (normalise(emailWithRemovedPostPlusSignIfPresent(user.userId)),
-      normalise(user.firstName),
-      normalise(user.lastName))
+      normalise(user.lastName),
+      user.dateOfBirth)
 
     val firstNameLastNameDOBMap = population.groupBy(takeFirstNameLastNameAndDOB)
     val firstNameLastNameMap = population.groupBy(takeFirstNameAndLastName)
@@ -101,6 +99,7 @@ trait DuplicateDetectionService {
     val transformedEmailsFirstNameDOB = population.groupBy(takeTransformedEmailFirstNameAndDOB)
     val transformedEmailsLastNameDOB = population.groupBy(takeTransformedEmailLastNameAndDOB)
 
+    Logger.warn("=== TFLNDOB = " + transformedEmailsLastNameDOB)
 
     source.flatMap { sourceCandidate =>
       // source candidate will be part of the list because it matches with itself in all fields
@@ -109,44 +108,45 @@ trait DuplicateDetectionService {
 
       val duplicatesInEmailsFirstNameLastName = transformedEmailsFirstnameLastName
         .getOrElse(takeTransformedEmailFirstNameAndLastName(sourceCandidate), Nil)
-        .filterNot(duplicatesInFirstNameLastNameDOB.contains(_))
+        .filterNot(duplicatesInFirstNameLastNameDOB.contains)
         .filterNot(_.userId == sourceCandidate.userId)
 
       val duplicatesInEmailsFirstNameDOB = transformedEmailsFirstNameDOB
         .getOrElse(takeTransformedEmailFirstNameAndDOB(sourceCandidate), Nil)
-        .filterNot(duplicatesInFirstNameLastNameDOB.contains(_))
-        .filterNot(duplicatesInEmailsFirstNameLastName.contains(_))
+        .filterNot(duplicatesInFirstNameLastNameDOB.contains)
+        .filterNot(duplicatesInEmailsFirstNameLastName.contains)
         .filterNot(_.userId == sourceCandidate.userId)
 
       val duplicatesInEmailsLastNameDOB = transformedEmailsLastNameDOB
         .getOrElse(takeTransformedEmailLastNameAndDOB(sourceCandidate), Nil)
-        .filterNot(duplicatesInFirstNameLastNameDOB.contains(_))
-        .filterNot(duplicatesInEmailsFirstNameLastName.contains(_))
-        .filterNot(duplicatesInEmailsFirstNameDOB.contains(_))
+        .filterNot(duplicatesInFirstNameLastNameDOB.contains)
+        .filterNot(duplicatesInEmailsFirstNameLastName.contains)
+        .filterNot(duplicatesInEmailsFirstNameDOB.contains)
         .filterNot(_.userId == sourceCandidate.userId)
 
-      val strongMatches = duplicatesInFirstNameLastNameDOB ++ duplicatesInEmailsFirstNameLastName ++ duplicatesInEmailsFirstNameDOB ++
+      val threeFieldMatches = duplicatesInFirstNameLastNameDOB ++ duplicatesInEmailsFirstNameLastName ++ duplicatesInEmailsFirstNameDOB ++
       duplicatesInEmailsLastNameDOB
 
       val duplicatesFirstNameLastName = firstNameLastNameMap
         .getOrElse(takeFirstNameAndLastName(sourceCandidate), Nil)
-        .filterNot(strongMatches.contains(_))
+        .filterNot(threeFieldMatches.contains)
+        .filterNot(_.userId == sourceCandidate.userId)
 
       val duplicatesFirstNameDOB = firstNameDOBMap
         .getOrElse(takeFirstNameAndDOB(sourceCandidate), Nil)
-        .filterNot(strongMatches.contains(_))
+        .filterNot(threeFieldMatches.contains)
+        .filterNot(_.userId == sourceCandidate.userId)
 
       val duplicatesDOBLastName = lastNameDOBMap
         .getOrElse(takeLastNameAndDOB(sourceCandidate), Nil)
-        .filterNot(strongMatches.contains(_))
+        .filterNot(threeFieldMatches.contains)
+        .filterNot(_.userId == sourceCandidate.userId)
 
-      val duplicatesInThreeFields = sourceCandidate ::
-        duplicatesInFirstNameLastNameDOB ++
-        duplicatesInEmailsFirstNameLastName ++
-        duplicatesInEmailsFirstNameDOB ++
-        duplicatesInEmailsLastNameDOB
+      val highProbabilityDuplicates = sourceCandidate ::
+        threeFieldMatches
 
       Logger.warn(s"""
+                      Original email = ${userIdToEmailReference.get(sourceCandidate.userId).get}
                       Transformed email = ${emailWithRemovedPostPlusSignIfPresent(sourceCandidate.userId)}
                      DIFNLNDOB = $duplicatesInFirstNameLastNameDOB
                      |DIEFNLN = $duplicatesInEmailsFirstNameLastName
@@ -160,15 +160,15 @@ trait DuplicateDetectionService {
 
       // source candidate matches with itself in more than 2 fields. Therefore, it will not be part of any
       // duplicates*InTwoFields lists. It needs to be added "manually" as the head to be present in the final report.
-      val duplicatesInTwoFields = sourceCandidate ::
+      val mediumProbabilityDuplicates = sourceCandidate ::
         duplicatesFirstNameLastName ++
           duplicatesFirstNameDOB ++
           duplicatesDOBLastName
 
-      Logger.warn(s"Candidate = ${sourceCandidate.userId}, DI3F = ${duplicatesInThreeFields.size}, DI2F = ${duplicatesInTwoFields.size}")
+      Logger.warn(s"Candidate = ${sourceCandidate.userId}, DI3F = ${highProbabilityDuplicates.size}, DI2F = ${mediumProbabilityDuplicates.size}")
       List(
-        selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, duplicatesInThreeFields, userIdToEmailReference),
-        selectDuplicatesOnlyOpt(MediumProbabilityMatchGroup, duplicatesInTwoFields, userIdToEmailReference)
+        selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, highProbabilityDuplicates, userIdToEmailReference),
+        selectDuplicatesOnlyOpt(MediumProbabilityMatchGroup, mediumProbabilityDuplicates, userIdToEmailReference)
       ).flatten
     }
   }
