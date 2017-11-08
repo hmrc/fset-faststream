@@ -99,8 +99,6 @@ trait DuplicateDetectionService {
     val transformedEmailsFirstNameDOB = population.groupBy(takeTransformedEmailFirstNameAndDOB)
     val transformedEmailsLastNameDOB = population.groupBy(takeTransformedEmailLastNameAndDOB)
 
-    Logger.warn("=== TFLNDOB = " + transformedEmailsLastNameDOB)
-
     source.flatMap { sourceCandidate =>
       // source candidate will be part of the list because it matches with itself in all fields
       val duplicatesInFirstNameLastNameDOB = firstNameLastNameDOBMap.getOrElse(takeFirstNameLastNameAndDOB(sourceCandidate), Nil)
@@ -145,27 +143,13 @@ trait DuplicateDetectionService {
       val highProbabilityDuplicates = sourceCandidate ::
         threeFieldMatches
 
-      Logger.warn(s"""
-                      Original email = ${userIdToEmailReference.get(sourceCandidate.userId).get}
-                      Transformed email = ${emailWithRemovedPostPlusSignIfPresent(sourceCandidate.userId)}
-                     DIFNLNDOB = $duplicatesInFirstNameLastNameDOB
-                     |DIEFNLN = $duplicatesInEmailsFirstNameLastName
-                     |DIEFNDOB = $duplicatesInEmailsFirstNameDOB
-                     |DIELNDOB = $duplicatesInEmailsLastNameDOB
-                     |-----------
-                     |DFNLN = $duplicatesFirstNameLastName
-                     |DFNDOB = $duplicatesFirstNameDOB
-                     |DOBLN = $duplicatesDOBLastName
-                     |""".stripMargin)
-
       // source candidate matches with itself in more than 2 fields. Therefore, it will not be part of any
       // duplicates*InTwoFields lists. It needs to be added "manually" as the head to be present in the final report.
       val mediumProbabilityDuplicates = sourceCandidate ::
         duplicatesFirstNameLastName ++
           duplicatesFirstNameDOB ++
           duplicatesDOBLastName
-
-      Logger.warn(s"Candidate = ${sourceCandidate.userId}, DI3F = ${highProbabilityDuplicates.size}, DI2F = ${mediumProbabilityDuplicates.size}")
+      
       List(
         selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, highProbabilityDuplicates, userIdToEmailReference),
         selectDuplicatesOnlyOpt(MediumProbabilityMatchGroup, mediumProbabilityDuplicates, userIdToEmailReference)
