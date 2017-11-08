@@ -30,6 +30,7 @@ import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
 import repositories.sift.ApplicationSiftRepository
 import repositories._
+import repositories.fsb.FsbRepository
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -110,6 +111,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     val mockAssessmentScoresRepository = mock[AssessmentScoresRepository]
     val mockCandidateAllocationRepo = mock[CandidateAllocationRepository]
     val mockApplicationSiftRepo = mock[ApplicationSiftRepository]
+    val mockFsbRepo = mock[FsbRepository]
 
     val controller = new ReportingController {
       val reportingRepository = mockReportRepository
@@ -125,6 +127,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       val schemeRepo = mockSchemeYamlRepository
       val candidateAllocationRepo = mockCandidateAllocationRepo
       val applicationSiftRepository = mockApplicationSiftRepo
+      val fsbRepository: FsbRepository = mockFsbRepo
     }
 
     lazy val testResults = Map(

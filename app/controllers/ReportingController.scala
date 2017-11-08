@@ -29,6 +29,7 @@ import repositories.application.{ ReportingMongoRepository, ReportingRepository 
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
+import repositories.fsb.FsbRepository
 import repositories.sift.ApplicationSiftRepository
 import repositories.{ QuestionnaireRepository, _ }
 import services.evaluation.AssessmentScoreCalculator
@@ -52,6 +53,7 @@ object ReportingController extends ReportingController {
   val schemeRepo: SchemeRepository = SchemeYamlRepository
   val authProviderClient: AuthProviderClient = AuthProviderClient
   val candidateAllocationRepo = repositories.candidateAllocationRepository
+  val fsbRepository = repositories.fsbRepository
 }
 
 trait ReportingController extends BaseController {
@@ -69,6 +71,7 @@ trait ReportingController extends BaseController {
   val schemeRepo: SchemeRepository
   val authProviderClient: AuthProviderClient
   val candidateAllocationRepo: CandidateAllocationRepository
+  val fsbRepository: FsbRepository
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     for {
@@ -274,16 +277,17 @@ trait ReportingController extends BaseController {
       appsByUserId <- reportingRepository.diversityReport(frameworkId).map(_.groupBy(_.userId).mapValues(_.head))
       questionnairesByAppId <- questionnaireRepository.findAllForDiversityReport
       mediasByUserId <- mediaRepository.findAll()
-      candidatesByUserId <- contactDetailsRepository.findAll.map(_.groupBy(_.userId).mapValues(_.head))
+      candidatesContactDetails <- contactDetailsRepository.findAll
       applicationsForOnlineTest <- reportingRepository.onlineTestPassMarkReport
       siftResults <- applicationSiftRepository.findAllResults
       fsacResults <- assessmentScoresRepository.findAll
+      fsbResults <- fsbRepository.findByApplicationIds(successfulApplications.map(_.applicationId), None)
     } yield {
       successfulApplications.map { successfulCandidatePartialItem =>
         val userId = successfulCandidatePartialItem.userId
         val application = appsByUserId(userId)
         val appId = application.applicationId
-        val contactDetails = candidatesByUserId.get(userId)
+        val contactDetails = candidatesContactDetails.find(_.userId == userId)
         val diversityReportItem = DiversityReportItem(
           ApplicationForDiversityReportItem.create(application),
           questionnairesByAppId.get(appId),
@@ -293,6 +297,8 @@ trait ReportingController extends BaseController {
         val onlineTestResults = applicationsForOnlineTest.find(_.userId == userId)
         val siftResult = siftResults.find(_.applicationId == appId)
         val fsacResult = fsacResults.find(_.applicationId.toString() == appId)
+        val overallFsacScoreOpt = fsacResult.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
+        val fsbResult = FsbReportItem(appId, fsbResults.find(_.applicationId == appId).map(_.results))
 
         SuccessfulCandidateReportItem(
           successfulCandidatePartialItem,
@@ -300,7 +306,8 @@ trait ReportingController extends BaseController {
           diversityReportItem,
           onlineTestResults,
           siftResult,
-          fsacResult
+          overallFsacScoreOpt,
+          fsbResult
         )
       }
     }
