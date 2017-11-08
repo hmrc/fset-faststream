@@ -100,7 +100,6 @@ trait DuplicateDetectionService {
     val transformedEmailsLastNameDOB = population.groupBy(takeTransformedEmailLastNameAndDOB)
 
     source.flatMap { sourceCandidate =>
-      // source candidate will be part of the list because it matches with itself in all fields
       val duplicatesInFirstNameLastNameDOB = firstNameLastNameDOBMap.getOrElse(takeFirstNameLastNameAndDOB(sourceCandidate), Nil)
         .filterNot(_.userId == sourceCandidate.userId)
 
@@ -149,7 +148,7 @@ trait DuplicateDetectionService {
         duplicatesFirstNameLastName ++
           duplicatesFirstNameDOB ++
           duplicatesDOBLastName
-      
+
       List(
         selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, highProbabilityDuplicates, userIdToEmailReference),
         selectDuplicatesOnlyOpt(MediumProbabilityMatchGroup, mediumProbabilityDuplicates, userIdToEmailReference)
