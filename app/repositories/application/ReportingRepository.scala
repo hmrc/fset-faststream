@@ -17,6 +17,7 @@
 package repositories.application
 
 import factories.DateTimeFactory
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Commands._
 import model.command._
@@ -360,6 +361,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     )
     val projection = BSONDocument(
       "applicationId" -> 1,
+      "applicationRoute" -> 1,
       "userId" -> "1",
       "progress-status" -> "1",
       "personal-details.firstName" -> "1",
@@ -479,6 +481,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val applicationId = document.getAs[String]("applicationId").get
     val userId = document.getAs[String]("userId").get
 
+    val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").get
     val personalDetailsDoc = document.getAs[BSONDocument]("personal-details").get
     val firstName = personalDetailsDoc.getAs[String]("firstName").get
     val lastName = personalDetailsDoc.getAs[String]("lastName").get
@@ -486,7 +489,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val candidateProgressResponse = toProgressResponse(applicationId).read(document)
     val latestProgressStatus = ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressResponse)
 
-    UserApplicationProfile(userId, candidateProgressResponse, latestProgressStatus, firstName, lastName, dob)
+    UserApplicationProfile(userId, candidateProgressResponse, latestProgressStatus, firstName, lastName, dob, applicationRoute)
   }
 
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
