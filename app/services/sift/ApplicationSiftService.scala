@@ -289,10 +289,26 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def fixUserSiftedWithAFailByMistake(applicationId: String): Future[Unit] = {
-    for {
+    def updateCurrentSchemeStatus(currentSchemeStatus: Seq[SchemeEvaluationResult]) = {
+      val governmentEconomicsServiceSchemeId = SchemeId("GovernmentEconomicsService")
+      val updated = currentSchemeStatus.map { r =>
+        if (r.schemeId == governmentEconomicsServiceSchemeId) {
+          SchemeEvaluationResult(governmentEconomicsServiceSchemeId, Green.toString)
+        } else {
+          r
+        }
+      }
+      updated
+    }
+
+    (for {
       _ <- applicationSiftRepo.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId)
       _ <- applicationRepo.removeProgressStatuses(applicationId,
         List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
-    } yield {}
+      currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
+    } yield {
+      val updatedCurrentSchemeStatus = updateCurrentSchemeStatus(currentSchemeStatus)
+      applicationRepo.updateCurrentSchemeStatus(applicationId, updatedCurrentSchemeStatus)
+    }).flatMap(identity)
   }
 }
