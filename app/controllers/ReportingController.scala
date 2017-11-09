@@ -279,7 +279,7 @@ trait ReportingController extends BaseController {
       appsByUserId <- reportingRepository.diversityReport(frameworkId).map(_.groupBy(_.userId).mapValues(_.head))
       questionnairesByAppId <- questionnaireRepository.findAllForDiversityReport
       mediasByUserId <- mediaRepository.findAll()
-      candidatesContactDetails <- contactDetailsRepository.findAll
+      candidatesContactDetails <- contactDetailsRepository.findByUserIds(appsByUserId.keySet.toList)
       applicationsForOnlineTest <- reportingRepository.onlineTestPassMarkReport
       siftResults <- applicationSiftRepository.findAllResults
       fsacResults <- assessmentScoresRepository.findAll
