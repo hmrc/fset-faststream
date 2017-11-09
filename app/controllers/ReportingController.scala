@@ -25,7 +25,7 @@ import model.persisted.eventschedules.Event
 import model.report._
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import repositories.application.{ ReportingMongoRepository, ReportingRepository }
+import repositories.application.{ GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
@@ -54,6 +54,7 @@ object ReportingController extends ReportingController {
   val authProviderClient: AuthProviderClient = AuthProviderClient
   val candidateAllocationRepo = repositories.candidateAllocationRepository
   val fsbRepository = repositories.fsbRepository
+  val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
 }
 
 trait ReportingController extends BaseController {
@@ -72,6 +73,7 @@ trait ReportingController extends BaseController {
   val authProviderClient: AuthProviderClient
   val candidateAllocationRepo: CandidateAllocationRepository
   val fsbRepository: FsbRepository
+  val applicationRepository: GeneralApplicationRepository
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     for {
@@ -283,7 +285,7 @@ trait ReportingController extends BaseController {
       fsacResults <- assessmentScoresRepository.findAll
       fsbResults <- fsbRepository.findByApplicationIds(successfulApplications.map(_.applicationId), None)
     } yield {
-      successfulApplications.map { successfulCandidatePartialItem =>
+      Future.sequence(successfulApplications.map { successfulCandidatePartialItem =>
         val userId = successfulCandidatePartialItem.userId
         val application = appsByUserId(userId)
         val appId = application.applicationId
@@ -300,18 +302,22 @@ trait ReportingController extends BaseController {
         val overallFsacScoreOpt = fsacResult.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
         val fsbResult = FsbReportItem(appId, fsbResults.find(_.applicationId == appId).map(_.results))
 
-        SuccessfulCandidateReportItem(
-          successfulCandidatePartialItem,
-          contactDetails,
-          diversityReportItem,
-          onlineTestResults,
-          siftResult,
-          overallFsacScoreOpt,
-          fsbResult
-        )
-      }
+        applicationRepository.getCurrentSchemeStatus(appId).map { currentSchemeStatus =>
+          SuccessfulCandidateReportItem(
+            successfulCandidatePartialItem,
+            contactDetails,
+            diversityReportItem,
+            onlineTestResults,
+            siftResult,
+            overallFsacScoreOpt,
+            fsbResult,
+            currentSchemeStatus
+          )
+        }
+      })
     }
-    reports.map { list =>
+
+    reports.flatMap(identity).map { list =>
       Ok(Json.toJson(list))
     }
   }

@@ -16,7 +16,7 @@
 
 package model.report
 
-import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
+import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId, SchemeEvaluationResult }
 import play.api.libs.json.{ Json, OFormat }
 
 case class SuccessfulCandidateReportItem(candidate: SuccessfulCandidatePartialItem,
@@ -25,7 +25,8 @@ case class SuccessfulCandidateReportItem(candidate: SuccessfulCandidatePartialIt
                                          onlineTestsReport: Option[ApplicationForOnlineTestPassMarkReport],
                                          siftResultReport: Option[SiftPhaseReportItem],
                                          overallFsacScore: Option[Double],
-                                         fsbResult: FsbReportItem)
+                                         fsbResult: FsbReportItem,
+                                         currentSchemeStatus: Seq[SchemeEvaluationResult])
 
 object SuccessfulCandidateReportItem {
   implicit val format: OFormat[SuccessfulCandidateReportItem] = Json.format[SuccessfulCandidateReportItem]

@@ -25,7 +25,7 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.application.ReportingRepository
+import repositories.application.{ GeneralApplicationRepository, ReportingRepository }
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
 import repositories.sift.ApplicationSiftRepository
@@ -112,6 +112,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     val mockCandidateAllocationRepo = mock[CandidateAllocationRepository]
     val mockApplicationSiftRepo = mock[ApplicationSiftRepository]
     val mockFsbRepo = mock[FsbRepository]
+    val mockAppRepo = mock[GeneralApplicationRepository]
 
     val controller = new ReportingController {
       val reportingRepository = mockReportRepository
@@ -128,6 +129,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       val candidateAllocationRepo = mockCandidateAllocationRepo
       val applicationSiftRepository = mockApplicationSiftRepo
       val fsbRepository: FsbRepository = mockFsbRepo
+      val applicationRepository = mockAppRepo
     }
 
     lazy val testResults = Map(
