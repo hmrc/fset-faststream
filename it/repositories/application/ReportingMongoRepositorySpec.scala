@@ -18,7 +18,7 @@ package repositories.application
 
 import _root_.services.testdata.TestDataGeneratorService
 import factories.{ ITDateTimeFactoryMock, UUIDFactory }
-import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
+import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model._
 import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
 import services.GBTimeZoneService
@@ -307,16 +307,19 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
 
     "return all candidates with personal-details" in {
-      val user1 = UserApplicationProfile("1", PHASE3_TESTS_PASSED_NOTIFIED.key.toLowerCase, "first1", "last1",
-        factories.DateTimeFactory.nowLocalDate)
-      val user2 = UserApplicationProfile("2", SUBMITTED.key.toLowerCase, "first2", "last2",
-        factories.DateTimeFactory.nowLocalDate)
+      val user1 = UserApplicationProfile("1", ProgressResponse("1", submitted = true), SUBMITTED.key, "first1", "last1",
+        factories.DateTimeFactory.nowLocalDate, ApplicationRoute.Faststream)
+      val user2 = UserApplicationProfile("2", ProgressResponse("2", submitted = true), SUBMITTED.key, "first2", "last2",
+        factories.DateTimeFactory.nowLocalDate, ApplicationRoute.Faststream)
       create(user1)
       create(user2)
-      createWithoutPersonalDetails("3", PHASE3_TESTS_INVITED.key)
+      createWithoutPersonalDetails("3", PREVIEW.key)
 
       val candidates = repository.candidatesForDuplicateDetectionReport.futureValue
-      candidates must contain theSameElementsAs List(user1, user2)
+      candidates must contain theSameElementsAs List(
+        user1.copy(latestProgressStatus = SUBMITTED.key.toLowerCase),
+        user2.copy(latestProgressStatus = SUBMITTED.key.toLowerCase)
+      )
     }
   }
 
@@ -326,6 +329,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     repository.collection.insert(BSONDocument(
       "applicationId" -> application.userId,
+      "applicationRoute" -> ApplicationRoute.Faststream,
       "userId" -> application.userId,
       "frameworkId" -> FrameworkId,
       "progress-status" -> BSONDocument(application.latestProgressStatus -> true),
