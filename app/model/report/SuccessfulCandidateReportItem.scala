@@ -25,7 +25,7 @@ case class SuccessfulCandidateReportItem(candidate: SuccessfulCandidatePartialIt
                                          onlineTestsReport: Option[ApplicationForOnlineTestPassMarkReport],
                                          siftResultReport: Option[SiftPhaseReportItem],
                                          overallFsacScore: Option[Double],
-                                         fsbResult: FsbReportItem,
+                                         fsbResult: Option[FsbReportItem],
                                          currentSchemeStatus: Seq[SchemeEvaluationResult])
 
 object SuccessfulCandidateReportItem {

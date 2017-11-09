@@ -300,7 +300,7 @@ trait ReportingController extends BaseController {
         val siftResult = siftResults.find(_.applicationId == appId)
         val fsacResult = fsacResults.find(_.applicationId.toString() == appId)
         val overallFsacScoreOpt = fsacResult.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
-        val fsbResult = FsbReportItem(appId, fsbResults.find(_.applicationId == appId).map(_.results))
+        val fsbResult = Option(FsbReportItem(appId, fsbResults.find(_.applicationId == appId).map(_.results)))
 
         applicationRepository.getCurrentSchemeStatus(appId).map { currentSchemeStatus =>
           SuccessfulCandidateReportItem(
