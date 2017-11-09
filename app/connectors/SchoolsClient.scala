@@ -19,9 +19,9 @@ package connectors
 import config.CSRHttp
 import connectors.SchoolsClient.SchoolsNotFound
 import connectors.exchange.School
-import uk.gov.hmrc.play.http.{ HeaderCarrier, NotFoundException }
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 
 trait SchoolsClient {
 

@@ -27,12 +27,12 @@ import play.api.mvc._
 import security.QuestionnaireRoles._
 import security.Roles.{ CsrAuthorization, PreviewApplicationRole, SubmitApplicationRole }
 import security.{ SecurityEnvironment, SilhouetteComponent }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import uk.gov.hmrc.http.HeaderCarrier
 
 object QuestionnaireController extends QuestionnaireController(ApplicationClient) {
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette

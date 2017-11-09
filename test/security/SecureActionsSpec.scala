@@ -29,10 +29,10 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import security.Roles.NoRole
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class SecureActionsSpec extends UnitWithAppSpec {
 

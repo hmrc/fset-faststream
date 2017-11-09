@@ -19,10 +19,10 @@ package connectors.addresslookup
 import java.net.URLEncoder
 
 import config.CSRHttp
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 /**
   * The following client has been take from taken from https://github.com/hmrc/address-reputation-store. The project has

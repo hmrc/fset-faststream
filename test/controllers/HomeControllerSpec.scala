@@ -38,7 +38,6 @@ import play.api.test.Helpers._
 import security.{ SilhouetteComponent, UserCacheService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 import testkit.MockitoImplicits._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import java.io.File
@@ -47,6 +46,7 @@ import java.nio.file.Path
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import models.events.{ AllocationStatuses, EventType }
 import play.api.test.{ FakeHeaders, FakeRequest }
+import uk.gov.hmrc.http.HeaderCarrier
 
 class HomeControllerSpec extends BaseControllerSpec {
 

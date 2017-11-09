@@ -35,7 +35,7 @@ import play.api.mvc.{ Action, AnyContent, Result }
 import security.{ SecurityEnvironment, SilhouetteComponent }
 import helpers.NotificationType._
 import models.{ SchemeStatus, UniqueIdentifier }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient) {
   val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend

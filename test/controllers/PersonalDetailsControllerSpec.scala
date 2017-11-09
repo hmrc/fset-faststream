@@ -31,9 +31,9 @@ import play.api.mvc.Request
 import play.api.test.Helpers._
 import security.{ SilhouetteComponent, UserCacheService, UserService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class PersonalDetailsControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]

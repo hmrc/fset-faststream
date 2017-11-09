@@ -24,7 +24,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import security.Roles.EditPersonalDetailsAndContinueRole
 import security.{ SecurityEnvironment, SilhouetteComponent }
-import uk.gov.hmrc.play.http.BadRequestException
+import uk.gov.hmrc.http.BadRequestException
 
 abstract class AddressLookupController(addressLookupClient: AddressLookupClient,
   applicationClient: ApplicationClient

@@ -20,10 +20,11 @@ import config.{ CSRHttp, FrontendAppConfig }
 import connectors.exchange._
 import connectors.UserManagementClient._
 import models.UniqueIdentifier
-import uk.gov.hmrc.play.http.{ HeaderCarrier, _ }
+import uk.gov.hmrc.play.http._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, LockedException, NotFoundException, Upstream4xxResponse }
 
 trait UserManagementClient {
 

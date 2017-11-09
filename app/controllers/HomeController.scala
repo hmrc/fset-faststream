@@ -37,11 +37,11 @@ import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
 import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
 import security.Roles._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import uk.gov.hmrc.http.HeaderCarrier
 
 object HomeController extends HomeController(
   ApplicationClient,

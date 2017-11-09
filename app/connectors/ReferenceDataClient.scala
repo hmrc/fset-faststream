@@ -16,16 +16,16 @@
 
 package connectors
 
-import config.CSRHttp
+import config.{ CSRHttp, WSHttp }
 import connectors.exchange.referencedata.{ ReferenceData, Scheme }
 import play.api.libs.json.OFormat
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.ws.WSHttp
+//import uk.gov.hmrc.play.http.ws.WSHttp
 import play.api.http.Status.OK
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.HeaderCarrier
 
 object ReferenceDataClient extends ReferenceDataClient {
   val http: CSRHttp = CSRHttp
