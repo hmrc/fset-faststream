@@ -36,16 +36,16 @@ trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob[BasicJobConf
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.debug(s"EvaluateAssessmentScoreJob starting")
-    applicationAssessmentService.nextAssessmentCandidateReadyForEvaluation.flatMap { candidateResultsOpt =>
-      candidateResultsOpt.map { candidateResults =>
-        if (candidateResults.schemes.isEmpty) {
+    applicationAssessmentService.nextAssessmentCandidatesReadyForEvaluation(config.batchSize).map { candidateResults =>
+      candidateResults.map { candidateResult =>
+        if (candidateResult.schemes.isEmpty) {
           Logger.debug(s"EvaluateAssessmentScoreJob - no non-RED schemes found so will not evaluate this candidate")
           Future.successful(())
         } else {
-          Logger.debug(s"EvaluateAssessmentScoreJob found a candidate - now evaluating...")
-          applicationAssessmentService.evaluateAssessmentCandidate(candidateResults, minimumCompetencyLevelConfig)
+          Logger.debug(s"EvaluateAssessmentScoreJob found candidate - now evaluating...")
+          applicationAssessmentService.evaluateAssessmentCandidate(candidateResult, minimumCompetencyLevelConfig)
         }
-      }.getOrElse(Future.successful(()))
+      }
     }
   }
 }
@@ -53,7 +53,9 @@ trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob[BasicJobConf
 object EvaluateAssessmentScoreJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
   configPrefix = "scheduling.evaluate-assessment-score-job",
   name = "EvaluateAssessmentScoreJob"
-)
+) {
+  val batchSize: Int = conf.batchSize.getOrElse(1)
+}
 
 trait MinimumCompetencyLevelConfig {
   val minimumCompetencyLevelConfig = config.MicroserviceAppConfig.assessmentEvaluationMinimumCompetencyLevelConfig

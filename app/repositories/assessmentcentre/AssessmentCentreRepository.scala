@@ -17,9 +17,8 @@
 package repositories.assessmentcentre
 
 import factories.DateTimeFactory
-import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{ CompetencyAverageResult, Green }
+import model.EvaluationResults.CompetencyAverageResult
 import model._
 import model.command.{ ApplicationForProgression, ApplicationForSift }
 import model.persisted.SchemeEvaluationResult
@@ -49,7 +48,7 @@ trait AssessmentCentreRepository {
   def progressToAssessmentCentre(application: ApplicationForProgression, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
-  def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[UniqueIdentifier]]
+  def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[UniqueIdentifier]]
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
@@ -99,8 +98,9 @@ class AssessmentCentreMongoRepository (
     })
   }
 
-  override def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[UniqueIdentifier]] = {
-
+  override def nextApplicationReadyForAssessmentScoreEvaluation(
+    currentPassmarkVersion: String,
+    batchSize: Int): Future[List[UniqueIdentifier]] = {
     val query =
       BSONDocument("$or" ->
         BSONArray(
@@ -126,8 +126,7 @@ class AssessmentCentreMongoRepository (
         )
       )
 
-    selectOneRandom[BSONDocument](query).map(_.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get)
-    )
+    selectRandom[BSONDocument](query, batchSize).map(docs => docs.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get))
   }
 
   override def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,

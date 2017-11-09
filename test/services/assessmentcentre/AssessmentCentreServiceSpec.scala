@@ -91,8 +91,8 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     "return an assessment candidate score with application Id" in new ReturnPassMarksFixture {
       val commercialScheme = SchemeId(commercial)
       (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
-        .expects(*)
-        .returning(Future.successful(Some(applicationId)))
+        .expects(*, *)
+        .returning(Future.successful(List(applicationId)))
 
       (mockAssessmentScoresRepo.find _)
         .expects(*)
@@ -102,12 +102,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(*)
         .returning(Future.successful(List(SchemeEvaluationResult(schemeId = commercialScheme, result = Green.toString))))
 
-      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+      val results = service.nextAssessmentCandidatesReadyForEvaluation(batchSize).futureValue
 
-      result must not be empty
-      result.get.passmark mustBe passMarkSettings
-      result.get.schemes mustBe List(commercialScheme)
-      result.get.scores.applicationId mustBe applicationId
+      results must not be empty
+      results.foreach { result =>
+        result.passmark mustBe passMarkSettings
+        result.schemes mustBe List(commercialScheme)
+        result.scores.applicationId mustBe applicationId
+      }
     }
 
     "withdrawn schemes should be not be evaluated" in new ReturnPassMarksFixture {
@@ -118,8 +120,8 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         SchemeEvaluationResult(schemeId = datScheme, result = Withdrawn.toString)
       )
       (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
-        .expects(*)
-        .returning(Future.successful(Some(applicationId)))
+        .expects(*, *)
+        .returning(Future.successful(List(applicationId)))
 
       (mockAssessmentScoresRepo.find _)
         .expects(*)
@@ -129,12 +131,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(*)
         .returning(Future.successful(currentSchemeStatus))
 
-      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+      val results = service.nextAssessmentCandidatesReadyForEvaluation(batchSize).futureValue
 
-      result must not be empty
-      result.get.passmark mustBe passMarkSettings
-      result.get.schemes mustBe List(commercialScheme)
-      result.get.scores.applicationId mustBe applicationId
+      results must not be empty
+      results.foreach { result =>
+        result.passmark mustBe passMarkSettings
+        result.schemes mustBe List(commercialScheme)
+        result.scores.applicationId mustBe applicationId
+      }
     }
 
     "sdip scheme should be not be evaluated for sdip faststream candidates" in new ReturnPassMarksFixture {
@@ -145,8 +149,8 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         SchemeEvaluationResult(schemeId = datScheme, result = Green.toString)
       )
       (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
-        .expects(*)
-        .returning(Future.successful(Some(applicationId)))
+        .expects(*, *)
+        .returning(Future.successful(List(applicationId)))
 
       (mockAssessmentScoresRepo.find _)
         .expects(*)
@@ -156,12 +160,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(*)
         .returning(Future.successful(currentSchemeStatus))
 
-      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+      val results = service.nextAssessmentCandidatesReadyForEvaluation(batchSize).futureValue
 
-      result must not be empty
-      result.get.passmark mustBe passMarkSettings
-      result.get.schemes mustBe List(datScheme)
-      result.get.scores.applicationId mustBe applicationId
+      results must not be empty
+      results.foreach { result =>
+        result.passmark mustBe passMarkSettings
+        result.schemes mustBe List(datScheme)
+        result.scores.applicationId mustBe applicationId
+      }
     }
 
     "return none if there is no passmark settings set" in new TestFixture {
@@ -169,17 +175,16 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
         .returning(Future.successful(None))
 
-
-      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+      val result = service.nextAssessmentCandidatesReadyForEvaluation(batchSize).futureValue
       result mustBe empty
     }
 
     "return none if there is no application ready for assessment score evaluation" in new ReturnPassMarksFixture {
       (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
-        .expects(*)
-        .returning(Future.successful(None))
+        .expects(*, *)
+        .returning(Future.successful(Nil))
 
-      val result = service.nextAssessmentCandidateReadyForEvaluation.futureValue
+      val result = service.nextAssessmentCandidatesReadyForEvaluation(batchSize).futureValue
       result mustBe empty
     }
   }
@@ -459,6 +464,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     val digitalAndTechnology = "DigitalAndTechnology"
     val diplomaticService = "DiplomaticService"
     val sdip = "Sdip"
+    val batchSize = 1
 
     val service = new AssessmentCentreService {
       val applicationRepo: GeneralApplicationRepository = mockAppRepo
