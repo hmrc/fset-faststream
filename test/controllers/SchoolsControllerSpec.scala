@@ -25,9 +25,9 @@ import org.mockito.Mockito._
 import play.api.test.Helpers._
 import security.SilhouetteComponent
 import testkit.{ BaseControllerSpec, TestableSecureActions }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class SchoolsControllerSpec extends BaseControllerSpec {
 

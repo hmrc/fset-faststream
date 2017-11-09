@@ -45,9 +45,9 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 import security.{ SilhouetteComponent, UserCacheService }
 import testkit.MockitoImplicits._
 import testkit.{ BaseControllerSpec, TestableSecureActions }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class WithdrawControllerSpec extends BaseControllerSpec {
 

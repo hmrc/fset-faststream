@@ -29,12 +29,12 @@ import org.joda.time.LocalDate
 import play.api.data.Form
 import play.api.mvc.{ Request, Result }
 import security.Roles.{ EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import security.SilhouetteComponent
+import uk.gov.hmrc.http.HeaderCarrier
 
 object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, UserManagementClient) {
   lazy val silhouette = SilhouetteComponent.silhouette

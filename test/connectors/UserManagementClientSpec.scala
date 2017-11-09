@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import config.CSRHttp
 import connectors.UserManagementClient.EmailTakenException
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 class UserManagementClientSpec extends UnitWithAppSpec with ConnectorSpec {
   implicit val hc = HeaderCarrier()

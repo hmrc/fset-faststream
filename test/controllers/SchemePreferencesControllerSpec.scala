@@ -29,10 +29,10 @@ import org.mockito.Mockito._
 import play.api.test.Helpers._
 import security.{ SilhouetteComponent, UserCacheService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
-import uk.gov.hmrc.play.http.HeaderCarrier
 import testkit.MockitoImplicits._
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class SchemePreferencesControllerSpec extends BaseControllerSpec {
 

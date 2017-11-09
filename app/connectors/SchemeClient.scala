@@ -21,9 +21,9 @@ import connectors.SchemeClient.{ CannotUpdateSchemePreferences, SchemePreference
 import connectors.exchange.SelectedSchemes
 import models.UniqueIdentifier
 import play.api.http.Status._
-import uk.gov.hmrc.play.http.{ BadRequestException, HeaderCarrier, HttpResponse, NotFoundException }
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier, HttpResponse, NotFoundException }
 
 trait SchemeClient {
 

@@ -27,10 +27,10 @@ import org.joda.time.DateTime
 import play.api.mvc.{ Action, AnyContent, Result }
 import security.Roles.CsrAuthorization
 import security.{ SecureActions, SecurityEnvironment }
-import uk.gov.hmrc.play.http.SessionKeys
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.SessionKeys
 
 // scalastyle:off method.name
 trait TestableCSRSecureAction extends SecureActions {

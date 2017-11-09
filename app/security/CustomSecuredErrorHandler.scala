@@ -25,7 +25,6 @@ import models.{ CachedData, SecurityUser }
 import play.api.i18n.{ I18nSupport, Lang, MessagesApi }
 import play.api.mvc.{ RequestHeader, Result }
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 

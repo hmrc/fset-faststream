@@ -27,31 +27,36 @@ import connectors.{ ApplicationClient, UserManagementClient }
 import helpers.WSBinaryPost
 import play.api.Play
 import play.api.Play.current
-import play.api.libs.ws.WS
+import uk.gov.hmrc.http.hooks.HttpHooks
+import uk.gov.hmrc.http.{ HttpDelete, HttpGet, HttpPost, HttpPut }
+//import play.api.libs.ws.WS
 import play.api.mvc.Results.{ Forbidden, NotImplemented, Redirect }
 import play.api.mvc.{ Call, RequestHeader, Result }
 import security.{ CsrCredentialsProvider, UserCacheService }
-import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.config.{ AppName, RunMode, ServicesConfig }
-import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
 import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.whitelist.AkamaiWhitelistFilter
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import uk.gov.hmrc.play.frontend.config.LoadAuditingConfig
+import uk.gov.hmrc.play.frontend.filters.MicroserviceFilterSupport
 
 object FrontendAuditConnector extends AuditConnector {
   override lazy val auditingConfig = LoadAuditingConfig("auditing")
 }
 
-object CSRHttp extends CSRHttp
+trait WSHttp extends HttpGet with WSGet
+  with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete with HttpHooks with AppName
 
 trait CSRHttp extends WSHttp with WSBinaryPost {
   override val hooks = NoneRequired
-  val wS = WS
+  //val wS = WS
 }
+
+object CSRHttp extends CSRHttp
 
 object CaseInSensitiveFingerPrintGenerator extends  FingerprintGenerator {
   import play.api.http.HeaderNames._

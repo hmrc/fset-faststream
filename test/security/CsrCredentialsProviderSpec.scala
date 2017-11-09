@@ -25,9 +25,9 @@ import connectors.exchange.UserResponse
 import controllers.UnitSpec
 import models.{ CachedUser, UniqueIdentifier }
 import org.scalatest.time.{ Seconds, Span }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class CsrCredentialsProviderSpec extends UnitSpec {
 

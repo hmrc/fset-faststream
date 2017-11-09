@@ -16,12 +16,12 @@
 
 package helpers
 
-import uk.gov.hmrc.play.http.hooks.HttpHooks
-import uk.gov.hmrc.play.http.logging.ConnectionTracing
+import uk.gov.hmrc.http.hooks.HttpHooks
+import uk.gov.hmrc.http.logging.ConnectionTracing
 import uk.gov.hmrc.play.http.ws.{ WSHttpResponse, WSRequest }
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpReads, HttpResponse, HttpVerb }
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, HttpVerb }
 
 // scalastyle:off
 

@@ -22,11 +22,11 @@ import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
 import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole }
 import security.SilhouetteComponent
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import uk.gov.hmrc.http.HeaderCarrier
 
 object CubiksTestController extends CubiksTestController(ApplicationClient) {
   val http = CSRHttp

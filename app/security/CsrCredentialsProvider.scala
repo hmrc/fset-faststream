@@ -21,10 +21,10 @@ import com.mohiva.play.silhouette.api.util.Credentials
 import connectors.UserManagementClient
 import connectors.UserManagementClient.{ AccountLockedOutException, InvalidCredentialsException, InvalidRoleException }
 import models.CachedUser
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 sealed trait AccountError
 case object InvalidRole extends AccountError
