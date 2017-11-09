@@ -287,4 +287,12 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       }
     }).flatMap(identity)
   }
+
+  def fixUserSiftedWithAFailByMistake(applicationId: String): Future[Unit] = {
+    for {
+      _ <- applicationSiftRepo.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId)
+      _ <- applicationRepo.removeProgressStatuses(applicationId,
+        List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
+    } yield {}
+  }
 }

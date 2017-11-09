@@ -104,6 +104,7 @@ GET         /diagnostic/sift/findCandidatesStuckInSiftEnteredWhoHaveFailedFormBa
 GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredWhoHasFailedFormBasedSchemesInVideoPhase    controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId: String)
 GET         /diagnostic/sift/findCandidatesStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes   controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes
 GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes     controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String)
+GET         /diagnostic/sift/fixUserSiftedWithAFailByMistake             controllers.fixdata.FixDataConsistencyController.fixUserSiftedWithAFailByMistake(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

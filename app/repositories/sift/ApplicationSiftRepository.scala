@@ -21,7 +21,7 @@ import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
-import model.Exceptions.{ ApplicationNotFound, PassMarkEvaluationNotFound }
+import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
@@ -54,6 +54,7 @@ trait ApplicationSiftRepository {
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
+  def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId: String): Future[Unit]
 }
 
 class ApplicationSiftMongoRepository(
@@ -268,6 +269,27 @@ class ApplicationSiftMongoRepository(
 
       FixUserStuckInSiftEntered(applicationId, css)
     })
+  }
+
+  def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId: String): Future[Unit] = {
+
+    val query = BSONDocument("$and" ->
+      BSONArray(
+        BSONDocument("applicationId" -> applicationId),
+        BSONDocument("applicationStatus" -> ApplicationStatus.FAILED_AT_SIFT)
+      ))
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+        "$unset" -> BSONDocument(s"testGroups.$phaseName" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map{ result =>
+      if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
   }
 }
 
