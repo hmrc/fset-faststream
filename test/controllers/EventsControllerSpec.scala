@@ -33,9 +33,9 @@ import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 
 class EventsControllerSpec extends UnitWithAppSpec {

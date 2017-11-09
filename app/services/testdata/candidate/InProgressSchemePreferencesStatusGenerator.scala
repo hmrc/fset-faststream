@@ -22,10 +22,10 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.schemepreferences.SchemePreferencesRepository
 import services.testdata.faker.DataFaker._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object InProgressSchemePreferencesStatusGenerator extends InProgressSchemePreferencesStatusGenerator {
   override val previousStatusGenerator = InProgressPersonalDetailsStatusGenerator

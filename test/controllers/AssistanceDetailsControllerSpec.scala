@@ -26,10 +26,10 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import services.assistancedetails.AssistanceDetailsService
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
 

@@ -30,10 +30,10 @@ import services.stc.{ EventSink, StcEventService }
 import services.personaldetails.PersonalDetailsService
 import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object FastPassService extends FastPassService {
   override val appRepo = applicationRepository

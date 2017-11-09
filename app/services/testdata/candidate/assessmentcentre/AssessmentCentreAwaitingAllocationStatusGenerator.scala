@@ -26,10 +26,10 @@ import play.api.mvc.RequestHeader
 import services.assessmentcentre.AssessmentCentreService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.sift.SiftCompleteStatusGenerator
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object AssessmentCentreAwaitingAllocationStatusGenerator extends AssessmentCentreAwaitingAllocationStatusGenerator {
   override val previousStatusGenerator = SiftCompleteStatusGenerator

@@ -22,9 +22,9 @@ import org.joda.time.{ DateTime, Duration }
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.AssessorsEventsSummaryJobsService
 import services.assessor.AssessorService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object NotifyAssessorsOfNewEventsJob extends NotifyAssessorsOfNewEventsJob {
   val assessorService: AssessorService = AssessorService

@@ -24,9 +24,9 @@ import repositories.application.GeneralApplicationRepository
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.assessmentcentre.AssessmentCentreAllocationConfirmedStatusGenerator
 import services.testdata.candidate.fsb.FsbResultEnteredStatusGenerator
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestsFailedNotifiedStatusGenerator extends TestsFailedNotifiedStatusGenerator {
   val previousStatusGenerator = Phase1TestsFailedStatusGenerator

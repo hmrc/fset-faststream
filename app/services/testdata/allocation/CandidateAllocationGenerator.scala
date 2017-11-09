@@ -20,10 +20,10 @@ import model.exchange.testdata.CreateCandidateAllocationResponse
 import model.testdata.CreateCandidateAllocationData
 import play.api.mvc.RequestHeader
 import services.allocation.CandidateAllocationService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object CandidateAllocationGenerator extends CandidateAllocationGenerator {
   override val candidateAllocationService: CandidateAllocationService = CandidateAllocationService

@@ -36,12 +36,12 @@ import services.BaseServiceSpec
 import services.assessor.AssessorService
 import services.events.EventsService
 import testkit.MockitoImplicits._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AssessorServiceSpec extends BaseServiceSpec {
 

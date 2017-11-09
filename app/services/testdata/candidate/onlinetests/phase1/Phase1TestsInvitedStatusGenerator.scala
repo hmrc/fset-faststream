@@ -28,9 +28,9 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.testdata.candidate.{ ConstructiveGenerator, SubmittedStatusGenerator }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestsInvitedStatusGenerator extends Phase1TestsInvitedStatusGenerator {
   override val previousStatusGenerator = SubmittedStatusGenerator

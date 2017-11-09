@@ -20,9 +20,9 @@ import model.stc.{ AuditEvent, AuditEventNoRequest, AuditEventWithAppId }
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import services.AuditService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object AuditEventHandler extends AuditEventHandler {
   val auditService: AuditService = AuditService

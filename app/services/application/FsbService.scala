@@ -30,11 +30,11 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.{ FsbMongoRepository, FsbRepository }
 import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import services.application.DSSchemeIds._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
+import uk.gov.hmrc.http.HeaderCarrier
 
 object FsbService extends FsbService {
   override val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository

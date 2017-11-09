@@ -26,6 +26,7 @@ import uk.gov.hmrc.play.http._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException, Upstream4xxResponse }
 
 object AuthProviderClient extends AuthProviderClient {
   sealed class ErrorRetrievingReportException(message: String) extends Exception(message)

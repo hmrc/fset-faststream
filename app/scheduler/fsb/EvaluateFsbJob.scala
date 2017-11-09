@@ -21,9 +21,9 @@ import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FsbService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object EvaluateFsbJob extends EvaluateFsbJob {
   val fsbService: FsbService = FsbService

@@ -30,11 +30,11 @@ import repositories.application.{ GeneralApplicationMongoRepository, GeneralAppl
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 object ApplicationSiftService extends ApplicationSiftService {
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
@@ -285,6 +285,30 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       } else {
         throw new Exception(s"Application ID $applicationId is not available for fixing")
       }
+    }).flatMap(identity)
+  }
+
+  def fixUserSiftedWithAFailByMistake(applicationId: String): Future[Unit] = {
+    def updateCurrentSchemeStatus(currentSchemeStatus: Seq[SchemeEvaluationResult]) = {
+      val governmentEconomicsServiceSchemeId = SchemeId("GovernmentEconomicsService")
+      val updated = currentSchemeStatus.map { r =>
+        if (r.schemeId == governmentEconomicsServiceSchemeId) {
+          SchemeEvaluationResult(governmentEconomicsServiceSchemeId, Green.toString)
+        } else {
+          r
+        }
+      }
+      updated
+    }
+
+    (for {
+      _ <- applicationSiftRepo.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId)
+      _ <- applicationRepo.removeProgressStatuses(applicationId,
+        List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
+      currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
+    } yield {
+      val updatedCurrentSchemeStatus = updateCurrentSchemeStatus(currentSchemeStatus)
+      applicationRepo.updateCurrentSchemeStatus(applicationId, updatedCurrentSchemeStatus)
     }).flatMap(identity)
   }
 }

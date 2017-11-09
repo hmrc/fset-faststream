@@ -20,9 +20,9 @@ import config.ScheduledJobConfig
 import model.EmptyRequestHeader
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.allocation.CandidateAllocationService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object ReminderEventAllocationJob extends ReminderEventAllocationJob {
   override val service = CandidateAllocationService

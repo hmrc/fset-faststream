@@ -24,10 +24,10 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import services.sift.ApplicationSiftService
 import services.testdata.candidate.ConstructiveGenerator
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SiftCompleteStatusGenerator extends SiftCompleteStatusGenerator {
   val previousStatusGenerator = SiftFormsSubmittedStatusGenerator

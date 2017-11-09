@@ -33,10 +33,10 @@ import repositories.AssessmentScoresRepository
 import services.assessmentscores.AssessmentScoresService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AssessorAssessmentScoresControllerSpec extends AssessmentScoresControllerSpec {
   override val userIdForAudit = "assessorId"

@@ -28,10 +28,10 @@ import repositories.{ SchemeRepository, SchemeYamlRepository }
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SiftFormsSubmittedStatusGenerator extends SiftFormsSubmittedStatusGenerator {
   val previousStatusGenerator = SiftEnteredStatusGenerator

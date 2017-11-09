@@ -30,10 +30,10 @@ import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.stc.{ StcEventService, EventSink}
 import services.onlinetesting.Exceptions.TestExtensionException
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object OnlineTestExtensionService extends OnlineTestExtensionService {
   val appRepository = applicationRepository

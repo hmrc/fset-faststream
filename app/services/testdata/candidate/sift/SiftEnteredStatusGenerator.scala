@@ -24,10 +24,10 @@ import play.api.mvc.RequestHeader
 import services.sift.ApplicationSiftService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.Phase3TestsPassedNotifiedStatusGenerator
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SiftEnteredStatusGenerator extends SiftEnteredStatusGenerator {
   override val previousStatusGenerator = Phase3TestsPassedNotifiedStatusGenerator

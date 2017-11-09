@@ -19,9 +19,9 @@ package services.testdata.admin
 import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
 import model.testdata.CreateAdminData.CreateAdminData
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait AdminUserBaseGenerator {
   def generate(generationId: Int, generatorData: CreateAdminData)

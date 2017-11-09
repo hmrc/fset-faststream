@@ -40,11 +40,11 @@ import services.stc.StcEventService
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, NoActiveTestException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.OnlineTestService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.{ Failure, Success, Try }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase2TestService extends Phase2TestService {
 

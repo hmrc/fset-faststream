@@ -27,9 +27,9 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.MediaRepository
 import services.AuditService
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class MediaControllerSpec extends UnitWithAppSpec {
 

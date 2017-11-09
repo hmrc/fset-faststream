@@ -31,9 +31,9 @@ import repositories.onlinetesting.Phase2TestRepository
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker._
 import services.testdata.candidate.onlinetests.Phase1TestsPassedStatusGenerator
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase2TestsInvitedStatusGenerator extends Phase2TestsInvitedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsPassedStatusGenerator

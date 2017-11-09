@@ -24,11 +24,11 @@ object MicroServiceBuild extends Build with MicroService {
 
 private object Versions {
 
-  val microserviceBootstrapVersion  = "5.14.0"
+  val microserviceBootstrapVersion  = "6.12.0"
   val ficus                         = "1.1.2"
   val playHealthVersion             = "2.1.0"
   val playConfigVersion             = "4.2.0"
-  val hmrcScheduler                 = "4.0.0"
+  val hmrcScheduler                 = "4.1.0"
   val hmrcTestVersion               = "2.3.0"
   val playReactivemongoVersion      = "5.2.0"
   val logbackJsonLogger             = "3.1.0"
@@ -46,9 +46,6 @@ private object AppDependencies {
   val compile = Seq(
     "uk.gov.hmrc" %% "play-reactivemongo" % playReactivemongoVersion,
     "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
-    "uk.gov.hmrc" %% "play-health" % playHealthVersion,
-    "uk.gov.hmrc" %% "play-config" % playConfigVersion,
-    "uk.gov.hmrc" %% "logback-json-logger" % logbackJsonLogger,
     "uk.gov.hmrc" %% "play-scheduling" % hmrcScheduler,
     "org.webjars" %% "webjars-play" % "2.3.0",
     "org.webjars" % "bootstrap" % "3.1.1",

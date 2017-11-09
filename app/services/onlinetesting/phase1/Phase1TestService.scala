@@ -36,12 +36,12 @@ import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.stc.StcEventService
 import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Future, Promise }
 import scala.language.postfixOps
 import scala.util.{ Failure, Success, Try }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestService extends Phase1TestService {
   import config.MicroserviceAppConfig._

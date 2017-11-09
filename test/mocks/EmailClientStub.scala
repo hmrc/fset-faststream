@@ -19,10 +19,10 @@ package mocks
 import config.EmailConfig
 import connectors.CSREmailClient
 import org.joda.time.{DateTime, LocalDate}
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.TimeUnit
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object EmailClientStub extends CSREmailClient {
   val emailConfig = EmailConfig(url = "test")

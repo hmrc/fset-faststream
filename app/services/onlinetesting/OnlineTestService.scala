@@ -34,10 +34,10 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.OnlineTestRepository
 import services.AuditService
 import services.stc.EventSink
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
+import uk.gov.hmrc.http.HeaderCarrier
 
 
 trait OnlineTestService extends TimeExtension with EventSink {

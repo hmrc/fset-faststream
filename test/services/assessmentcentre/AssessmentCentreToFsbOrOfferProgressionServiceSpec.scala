@@ -27,9 +27,9 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSpec {
 

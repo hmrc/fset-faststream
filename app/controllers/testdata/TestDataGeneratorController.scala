@@ -42,11 +42,11 @@ import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWit
 import services.testdata._
 import services.testdata.candidate.{ AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory }
 import services.testdata.faker.DataFaker.Random
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object TestDataGeneratorController extends TestDataGeneratorController {
   val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository

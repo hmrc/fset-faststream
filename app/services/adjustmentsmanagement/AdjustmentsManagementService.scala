@@ -27,10 +27,10 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.stc.{ StcEventService, EventSink }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object AdjustmentsManagementService extends AdjustmentsManagementService {
   val appRepository = applicationRepository
