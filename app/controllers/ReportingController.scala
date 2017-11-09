@@ -25,10 +25,11 @@ import model.persisted.eventschedules.Event
 import model.report._
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import repositories.application.{ ReportingMongoRepository, ReportingRepository }
+import repositories.application.{ GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
+import repositories.fsb.FsbRepository
 import repositories.sift.ApplicationSiftRepository
 import repositories.{ QuestionnaireRepository, _ }
 import services.evaluation.AssessmentScoreCalculator
@@ -52,6 +53,8 @@ object ReportingController extends ReportingController {
   val schemeRepo: SchemeRepository = SchemeYamlRepository
   val authProviderClient: AuthProviderClient = AuthProviderClient
   val candidateAllocationRepo = repositories.candidateAllocationRepository
+  val fsbRepository = repositories.fsbRepository
+  val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
 }
 
 trait ReportingController extends BaseController {
@@ -69,6 +72,8 @@ trait ReportingController extends BaseController {
   val schemeRepo: SchemeRepository
   val authProviderClient: AuthProviderClient
   val candidateAllocationRepo: CandidateAllocationRepository
+  val fsbRepository: FsbRepository
+  val applicationRepository: GeneralApplicationRepository
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     for {
@@ -268,30 +273,53 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def timeToOfferReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def successfulCandidatesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports = for {
-      applicationsForTimeToOffer <- reportingRepository.candidatesForTimeToOfferReport
+      successfulApplications <- reportingRepository.successfulCandidatesReport
       appsByUserId <- reportingRepository.diversityReport(frameworkId).map(_.groupBy(_.userId).mapValues(_.head))
-      questionnairesByAppId <- questionnaireRepository.findAllForDiversityReport
+      userIds = successfulApplications.map(_.userId)
+      appIds = successfulApplications.map(_.applicationId)
+      questionnairesByAppId <- questionnaireRepository.findQuestionsByIds(appIds)
       mediasByUserId <- mediaRepository.findAll()
-      candidatesByUserId <- contactDetailsRepository.findAll.map(_.groupBy(_.userId).mapValues(_.head))
+      candidatesContactDetails <- contactDetailsRepository.findByUserIds(userIds)
+      applicationsForOnlineTest <- reportingRepository.onlineTestPassMarkReportByIds(appIds)
+      siftResults <- applicationSiftRepository.findAllResultsByIds(appIds)
+      fsacResults <- assessmentScoresRepository.findAllByIds(appIds)
+      fsbResults <- fsbRepository.findByApplicationIds(successfulApplications.map(_.applicationId), None)
     } yield {
-      applicationsForTimeToOffer.map { appTimeToOffer =>
-        val userId = appTimeToOffer.userId
+      Future.sequence(successfulApplications.map { successfulCandidatePartialItem =>
+        val userId = successfulCandidatePartialItem.userId
         val application = appsByUserId(userId)
         val appId = application.applicationId
-        val contactDetails = candidatesByUserId.get(userId)
-        val email = contactDetails.map(_.email)
+        val contactDetails = candidatesContactDetails.find(_.userId == userId)
         val diversityReportItem = DiversityReportItem(
           ApplicationForDiversityReportItem.create(application),
           questionnairesByAppId.get(appId),
           mediasByUserId.get(userId).map(m => MediaReportItem(m.media))
         )
 
-        TimeToOfferItem(appTimeToOffer, email, diversityReportItem)
-      }
+        val onlineTestResults = applicationsForOnlineTest.find(_.userId == userId)
+        val siftResult = siftResults.find(_.applicationId == appId)
+        val fsacResult = fsacResults.find(_.applicationId.toString() == appId)
+        val overallFsacScoreOpt = fsacResult.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
+        val fsbResult = Option(FsbReportItem(appId, fsbResults.find(_.applicationId == appId).map(_.results)))
+
+        applicationRepository.getCurrentSchemeStatus(appId).map { currentSchemeStatus =>
+          SuccessfulCandidateReportItem(
+            successfulCandidatePartialItem,
+            contactDetails,
+            diversityReportItem,
+            onlineTestResults,
+            siftResult,
+            overallFsacScoreOpt,
+            fsbResult,
+            currentSchemeStatus
+          )
+        }
+      })
     }
-    reports.map { list =>
+
+    reports.flatMap(identity).map { list =>
       Ok(Json.toJson(list))
     }
   }

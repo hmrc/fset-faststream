@@ -16,12 +16,11 @@
 
 package model.report
 
-import play.api.libs.json.Json
+import model.persisted.SchemeEvaluationResult
+import play.api.libs.json.{ Json, OFormat }
 
-case class TimeToOfferItem(timeToOffer: TimeToOfferPartialItem,
-                           email: Option[String],
-                           applicationInfo: DiversityReportItem)
+case class FsbReportItem(applicationId: String, results: Option[Seq[SchemeEvaluationResult]])
 
-object TimeToOfferItem {
-  implicit val timeToOfferItemFormat = Json.format[TimeToOfferItem]
+object FsbReportItem {
+  implicit val format: OFormat[FsbReportItem] = Json.format[FsbReportItem]
 }

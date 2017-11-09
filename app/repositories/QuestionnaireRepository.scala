@@ -35,6 +35,7 @@ trait QuestionnaireRepository {
   def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]]
   def findForOnlineTestPassMarkReport(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]]
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
+  def findQuestionsByIds(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]]
 
 
   val GenderQuestionText = "What is your gender identity?"
@@ -93,6 +94,11 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
 
   override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] = {
     findAllAsReportItem(BSONDocument.empty)
+  }
+
+  override def findQuestionsByIds(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    findAllAsReportItem(query)
   }
 
   protected def findAllAsReportItem(query: BSONDocument): Future[Map[String, QuestionnaireReportItem]] = {

@@ -42,4 +42,6 @@ class AssessmentScoresRepositoryInMemoryRepository extends AssessmentScoresRepos
   def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = ???
 
   def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit] = ???
+
+  override def findAllByIds(applicationIds: Seq[String]): Future[List[AssessmentScoresAllExercises]] = ???
 }

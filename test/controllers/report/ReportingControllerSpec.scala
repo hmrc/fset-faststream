@@ -33,11 +33,12 @@ import org.mockito.Mockito._
 import play.api.libs.json.{ JsArray, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.application.ReportingRepository
+import repositories.application.{ GeneralApplicationRepository, ReportingRepository }
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
+import repositories.fsb.FsbRepository
 import repositories.sift.ApplicationSiftRepository
 import testkit.UnitWithAppSpec
 import testkit.MockitoImplicits._
@@ -344,6 +345,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val mockSchemeRepo = mock[SchemeRepository]
     val mockCandidateAllocationRepo = mock[CandidateAllocationRepository]
     val mockApplicationSiftRepo = mock[ApplicationSiftRepository]
+    val mockFsbRepo = mock[FsbRepository]
+    val mockAppRepo = mock[GeneralApplicationRepository]
 
     class TestableReportingController extends ReportingController {
       override val reportingRepository: ReportingRepository = mockReportingRepository
@@ -359,6 +362,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       override val schemeRepo = mockSchemeRepo
       val candidateAllocationRepo = mockCandidateAllocationRepo
       val applicationSiftRepository = mockApplicationSiftRepo
+      val fsbRepository: FsbRepository = mockFsbRepo
+      val applicationRepository: GeneralApplicationRepository = mockAppRepo
     }
 
     val contactDetailsWithId = ContactDetailsWithId(
