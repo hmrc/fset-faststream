@@ -72,21 +72,21 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     updates.map(SerialUpdateResult.fromEither)
   }
 
-  def nextAssessmentCandidateReadyForEvaluation: Future[Option[AssessmentPassMarksSchemesAndScores]] = {
+  def nextAssessmentCandidatesReadyForEvaluation(batchSize: Int): Future[Seq[AssessmentPassMarksSchemesAndScores]] = {
     passmarkService.getLatestPassMarkSettings.flatMap {
       case Some(passmark) =>
         Logger.debug(s"$logPrefix Assessment evaluation found pass marks - $passmark")
-        assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.version).flatMap {
-          case Some(appId) =>
-            Logger.debug(s"$logPrefix Assessment evaluation found candidate to process - applicationId = $appId")
-            tryToFindEvaluationData(appId, passmark)
-          case None =>
+        assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.version, batchSize).flatMap {
+          case appIds if appIds.nonEmpty =>
+            Logger.debug(s"$logPrefix Assessment evaluation found candidates to process - applicationIds = [${appIds.mkString(",")}]")
+            Future.sequence(appIds.map(appId => tryToFindEvaluationData(appId, passmark))).map(_.flatten)
+          case Nil =>
             Logger.debug(s"$logPrefix Assessment evaluation completed - no candidates found")
-            Future.successful(None)
+            Future.successful(Seq.empty)
         }
       case None =>
         Logger.debug(s"$logPrefix Assessment centre pass marks have not been set")
-        Future.successful(None)
+        Future.successful(Seq.empty)
     }
   }
 
