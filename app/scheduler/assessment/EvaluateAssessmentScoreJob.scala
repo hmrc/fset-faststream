@@ -54,7 +54,7 @@ object EvaluateAssessmentScoreJobConfig extends BasicJobConfig[WaitingScheduledJ
   configPrefix = "scheduling.evaluate-assessment-score-job",
   name = "EvaluateAssessmentScoreJob"
 ) {
-  val batchSize: Int = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
+  val batchSize: Int = conf.batchSize.getOrElse(1)
 }
 
 trait MinimumCompetencyLevelConfig {
