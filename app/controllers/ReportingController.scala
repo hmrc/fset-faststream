@@ -277,12 +277,14 @@ trait ReportingController extends BaseController {
     val reports = for {
       successfulApplications <- reportingRepository.successfulCandidatesReport
       appsByUserId <- reportingRepository.diversityReport(frameworkId).map(_.groupBy(_.userId).mapValues(_.head))
-      questionnairesByAppId <- questionnaireRepository.findAllForDiversityReport
+      userIds = successfulApplications.map(_.userId)
+      appIds = successfulApplications.map(_.applicationId)
+      questionnairesByAppId <- questionnaireRepository.findQuestionsByIds(appIds)
       mediasByUserId <- mediaRepository.findAll()
-      candidatesContactDetails <- contactDetailsRepository.findByUserIds(appsByUserId.keySet.toList)
-      applicationsForOnlineTest <- reportingRepository.onlineTestPassMarkReport
-      siftResults <- applicationSiftRepository.findAllResults
-      fsacResults <- assessmentScoresRepository.findAll
+      candidatesContactDetails <- contactDetailsRepository.findByUserIds(userIds)
+      applicationsForOnlineTest <- reportingRepository.onlineTestPassMarkReportByIds(appIds)
+      siftResults <- applicationSiftRepository.findAllResultsByIds(appIds)
+      fsacResults <- assessmentScoresRepository.findAllByIds(appIds)
       fsbResults <- fsbRepository.findByApplicationIds(successfulApplications.map(_.applicationId), None)
     } yield {
       Future.sequence(successfulApplications.map { successfulCandidatePartialItem =>

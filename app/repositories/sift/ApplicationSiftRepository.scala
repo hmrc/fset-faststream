@@ -49,6 +49,7 @@ trait ApplicationSiftRepository {
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]]
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
   def findAllResults: Future[Seq[SiftPhaseReportItem]]
+  def findAllResultsByIds(applicationIds: Seq[String]): Future[Seq[SiftPhaseReportItem]]
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
@@ -143,7 +144,16 @@ class ApplicationSiftMongoRepository(
   }
 
   def findAllResults: Future[Seq[SiftPhaseReportItem]] = {
-    val query = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> BSONDocument("$exists" -> true))
+    findAllByQuery(BSONDocument.empty)
+  }
+
+  def findAllResultsByIds(applicationIds: Seq[String]): Future[Seq[SiftPhaseReportItem]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    findAllByQuery(query)
+  }
+
+  private def findAllByQuery(extraQuery: BSONDocument): Future[Seq[SiftPhaseReportItem]] = {
+    val query = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> BSONDocument("$exists" -> true)) ++ extraQuery
     val projection = BSONDocument(
       "_id" -> 0,
       "applicationId" -> 1,

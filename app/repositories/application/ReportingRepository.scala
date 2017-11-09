@@ -48,6 +48,8 @@ trait ReportingRepository {
 
   def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]]
 
+  def onlineTestPassMarkReportByIds(applicationIds: Seq[String]): Future[List[ApplicationForOnlineTestPassMarkReport]]
+
   def numericTestExtractReport: Future[List[ApplicationForNumericTestExtractReport]]
 
   def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]]
@@ -220,9 +222,21 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
   }
 
   override def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
-    ))
+    onlineTestPassMarkReportWithQuery(BSONDocument.empty)
+  }
+
+  def onlineTestPassMarkReportByIds(applicationIds: Seq[String]): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    onlineTestPassMarkReportWithQuery(query)
+  }
+
+
+  private def onlineTestPassMarkReportWithQuery(extraQuery: BSONDocument): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+    val query = BSONDocument(
+      "$and" -> BSONArray(
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
+      )
+    ) ++ extraQuery
 
     val projection = BSONDocument(
       "userId" -> "1",
@@ -239,6 +253,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
   }
+
 
   //scalastyle:off method.length
   override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]] = {

@@ -49,6 +49,8 @@ trait AssessmentScoresRepository {
 
   def findAll: Future[List[AssessmentScoresAllExercises]]
 
+  def findAllByIds(applicationIds: Seq[String]): Future[List[AssessmentScoresAllExercises]]
+
   def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit]
 }
 
@@ -148,7 +150,15 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
   }
 
   def findAll: Future[List[AssessmentScoresAllExercises]] = {
-    val query = BSONDocument.empty
+    findByQuery(BSONDocument.empty)
+  }
+
+  def findAllByIds(applicationIds: Seq[String]): Future[List[AssessmentScoresAllExercises]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    findByQuery(query)
+  }
+
+  private def findByQuery(query: BSONDocument): Future[List[AssessmentScoresAllExercises]] = {
     collection.find(query).cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
