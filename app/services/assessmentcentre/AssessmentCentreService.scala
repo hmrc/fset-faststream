@@ -78,7 +78,8 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
         Logger.debug(s"$logPrefix Assessment evaluation found pass marks - $passmark")
         assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.version, batchSize).flatMap {
           case appIds if appIds.nonEmpty =>
-            Logger.debug(s"$logPrefix Assessment evaluation found candidates to process - applicationIds = [${appIds.mkString(",")}]")
+            Logger.debug(
+              s"$logPrefix Assessment evaluation found ${appIds.size} candidates to process - applicationIds = [${appIds.mkString(",")}]")
             Future.sequence(appIds.map(appId => tryToFindEvaluationData(appId, passmark))).map(_.flatten)
           case Nil =>
             Logger.debug(s"$logPrefix Assessment evaluation completed - no candidates found")
