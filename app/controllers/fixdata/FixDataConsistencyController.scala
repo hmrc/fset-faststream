@@ -157,4 +157,9 @@ trait FixDataConsistencyController extends BaseController {
     Action.async {
       siftService.fixUserInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId).map(_ => Ok)
     }
+
+  def fixUserSiftedWithAFailByMistake(applicationId: String): Action[AnyContent] =
+    Action.async {
+      siftService.fixUserSiftedWithAFailByMistake(applicationId).map(_ => Ok(s"Successfully fixed $applicationId"))
+    }
 }
