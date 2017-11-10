@@ -881,6 +881,7 @@ class GeneralApplicationMongoRepository(
       "personal-details.firstName" -> true,
       "personal-details.lastName" -> true,
       "assistance-details.needsSupportAtVenue" -> true,
+      "assistance-details.needsSupportForOnlineAssessment" -> true,
       "progress-status-timestamp" -> true,
       "fsac-indicator" -> true
     )
@@ -928,6 +929,7 @@ class GeneralApplicationMongoRepository(
           "personal-details.firstName" -> true,
           "personal-details.lastName" -> true,
           "assistance-details.needsSupportAtVenue" -> true,
+          "assistance-details.needsSupportForOnlineAssessment" -> true,
           "progress-status-timestamp" -> true,
           "fsac-indicator" -> true
         )
@@ -987,7 +989,10 @@ class GeneralApplicationMongoRepository(
     val personalDetails = doc.getAs[BSONDocument]("personal-details").get
     val firstName = personalDetails.getAs[String]("firstName").get
     val lastName = personalDetails.getAs[String]("lastName").get
-    val needsAdjustment = doc.getAs[BSONDocument]("assistance-details").flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)
+    val needsSupportAtVenue = doc.getAs[BSONDocument]("assistance-details").flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)
+    val needsSupportForOnlineTests = doc.getAs[BSONDocument]("assistance-details")
+      .flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).getOrElse(false)
+    val needsAdjustment = needsSupportAtVenue || needsSupportForOnlineTests
     val dateReady = doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](ApplicationStatus.PHASE3_TESTS_PASSED))
     val fsacIndicator = doc.getAs[model.persisted.FSACIndicator]("fsac-indicator").get
 
