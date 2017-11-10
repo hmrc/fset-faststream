@@ -44,6 +44,7 @@ import repositories.sift.ApplicationSiftRepository
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
@@ -908,6 +909,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val evalPhase1ResultMock: EvaluatePhase1ResultService = mock[EvaluatePhase1ResultService]
     val evalPhase2ResultMock: EvaluatePhase2ResultService = mock[EvaluatePhase2ResultService]
     val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
+    val mockSiftService: ApplicationSiftService = mock[ApplicationSiftService]
     val phase1TestRepositoryMock: Phase1TestRepository = mock[Phase1TestRepository]
     val phase2TestRepositoryMock: Phase2TestRepository = mock[Phase2TestRepository]
     val siftRepoMock = mock[ApplicationSiftRepository]
@@ -955,6 +957,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val evaluateP1ResultService = evalPhase1ResultMock
       val evaluateP2ResultService = evalPhase2ResultMock
       val evaluateP3ResultService = evalPhase3ResultMock
+      val siftService = mockSiftService
       val phase1TestRepo = phase1TestRepositoryMock
       val phase2TestRepository = phase2TestRepositoryMock
       val appSiftRepository = siftRepoMock

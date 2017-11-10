@@ -407,7 +407,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       allAffectedUsers <- findSdipFaststreamFailedFaststreamInvitedToVideoInterview
-      (candidate, contactDetails, _, latestProgressStatus, _, _) = allAffectedUsers.find(_._1.applicationId == applicationId).getOrElse(
+      (candidate, _, _, latestProgressStatus, _, _) = allAffectedUsers.find(_._1.applicationId.get == applicationId).getOrElse(
         throw new Exception("Application not found in affected users")
       )
       _ = if (!latestProgressStatus.startsWith("PHASE2") && !latestProgressStatus.startsWith("PHASE3")) {
