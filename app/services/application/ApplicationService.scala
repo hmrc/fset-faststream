@@ -25,7 +25,7 @@ import model.ProgressStatuses.ProgressStatus
 import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
-import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
+import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
 import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
 import model._
 import model.exchange.SchemeEvaluationResultWithFailureDetails
@@ -46,6 +46,7 @@ import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.stc.{ EventSink, StcEventService }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
+import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 
 import scala.collection.immutable.ListMap
@@ -61,6 +62,7 @@ object ApplicationService extends ApplicationService {
   val mediaRepo = mediaRepository
   val schemePrefsRepository = schemePreferencesRepository
   val evaluateP1ResultService = EvaluatePhase1ResultService
+  val evaluateP2ResultService = EvaluatePhase2ResultService
   val evaluateP3ResultService = EvaluatePhase3ResultService
   val schemesRepo = SchemeYamlRepository
   val phase1TestRepo = repositories.phase1TestRepository
@@ -83,6 +85,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def schemePrefsRepository: SchemePreferencesRepository
   def mediaRepo: MediaRepository
   def evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings]
+  def evaluateP2ResultService: EvaluateOnlineTestResultService[Phase2PassMarkSettings]
   def evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
   def schemesRepo: SchemeRepository
   def phase1TestRepo: Phase1TestRepository
@@ -366,6 +369,37 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- appRepository.updateCurrentSchemeStatus(applicationId, currentSchemeStatusWithoutSdip)
     } yield ()
   }
+
+  // scalastyle:off cyclomatic.complexity
+  def findSdipFaststreamFailedFaststreamInvitedToVideoInterview:
+  Future[Seq[(Candidate, ContactDetails, String, ProgressStatus, PassmarkEvaluation, PassmarkEvaluation)]] = {
+    (for {
+      potentialAffectedUsers <- appRepository.findSdipFaststreamInvitedToVideoInterview
+    } yield for {
+      potentialAffectedUser <- potentialAffectedUsers
+    } yield for {
+      phase1SchemeStatus <- evaluateP1ResultService.getPassmarkEvaluation(potentialAffectedUser.applicationId.get)
+      phase2SchemeStatus <- evaluateP2ResultService.getPassmarkEvaluation(potentialAffectedUser.applicationId.get)
+      applicationDetails <- appRepository.findStatus(potentialAffectedUser.applicationId.get)
+      contactDetails <- cdRepository.find(potentialAffectedUser.userId)
+    } yield {
+      val failedAtOnlineExercises = phase1SchemeStatus.result.forall(schemeResult =>
+        schemeResult.result == Red.toString ||
+          (schemeResult.schemeId == Scheme.SdipId && schemeResult.result == Green.toString))
+      val failedAtEtray = phase2SchemeStatus.result.forall(schemeResult =>
+        schemeResult.result == Red.toString ||
+          (schemeResult.schemeId == Scheme.SdipId && schemeResult.result == Green.toString))
+
+      if (failedAtEtray || failedAtOnlineExercises) {
+        val failedAtStage = if (failedAtOnlineExercises) "online exercises" else "e-tray"
+        Some((potentialAffectedUser, contactDetails, failedAtStage, applicationDetails.latestProgressStatus.get,
+          phase1SchemeStatus, phase2SchemeStatus))
+      } else {
+        None
+      }
+    }).map(Future.sequence(_)).flatMap(identity).map(_.flatten)
+  }
+  // scalastyle:on
 
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,

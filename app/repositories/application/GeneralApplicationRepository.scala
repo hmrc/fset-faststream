@@ -147,6 +147,8 @@ trait GeneralApplicationRepository {
 
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
 
+  def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]]
+
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 
   def getLatestProgressStatuses: Future[List[String]]
@@ -349,6 +351,18 @@ class GeneralApplicationMongoRepository(
         doc.getAs[String]("applicationId").get
       }
     }
+  }
+
+  override def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]] = {
+    val query = BSONDocument(
+      "applicationRoute" -> ApplicationRoute.SdipFaststream,
+      s"progress-status.${ProgressStatuses.PHASE3_TESTS_INVITED}" -> BSONDocument("$exists" -> true)
+    )
+
+    val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
+      "applicationStatus" -> true, "personal-details" -> true)
+
+    bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
   }
 
   override def submit(applicationId: String): Future[Unit] = {

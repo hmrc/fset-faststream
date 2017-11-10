@@ -153,6 +153,29 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
+  def findSdipFaststreamFailedFaststreamInvitedToVideoInterview(): Action[AnyContent] = Action.async {
+    applicationService.findSdipFaststreamFailedFaststreamInvitedToVideoInterview.map { resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("Email,Preferred Name (or first name if no preferred),Application ID,Failed at stage," +
+          "Latest Progress Status,online test results,e-tray results") ++
+          resultList.map { case (user, contactDetails, failedAtStage, latestProgressStatus, onlineTestPassMarks, etrayPassMarks) =>
+            val onlineTestResultsAsString = "[" + onlineTestPassMarks.result.map(schemeResult =>
+              s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
+            ).mkString(", ") + "]"
+
+            val eTrayResultsAsString = "[" + etrayPassMarks.result.map(schemeResult =>
+              s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
+            ).mkString(", ") + "]"
+
+          s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
+            s"$failedAtStage,${latestProgressStatus.toString},$onlineTestResultsAsString,$eTrayResultsAsString"
+        }).mkString("\n"))
+      }
+    }
+  }
+
   def fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String): Action[AnyContent] =
     Action.async {
       siftService.fixUserInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId).map(_ => Ok)
