@@ -138,7 +138,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     "return multiple events by Id with filter on event type" in {
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.getEventsById(EventExamples.EventsNew.map(_.id), Some(EventType.FSB)).futureValue
-      result mustBe EventExamples.EventsNew.filter(_.eventType == EventType.FSB)
+      result must contain theSameElementsAs EventExamples.EventsNew.filter(_.eventType == EventType.FSB)
     }
 
     "return the newly created events since the specified date" in {
