@@ -161,13 +161,13 @@ trait FixDataConsistencyController extends BaseController {
         Ok((Seq("Email,Preferred Name (or first name if no preferred),Application ID,Failed at stage," +
           "Latest Progress Status,online test results,e-tray results") ++
           resultList.map { case (user, contactDetails, failedAtStage, latestProgressStatus, onlineTestPassMarks, etrayPassMarks) =>
-            val onlineTestResultsAsString = "[" + onlineTestPassMarks.result.map(schemeResult =>
+            val onlineTestResultsAsString = "\"[" + onlineTestPassMarks.result.map(schemeResult =>
               s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
-            ).mkString(", ") + "]"
+            ).mkString(", ") + "]\""
 
-            val eTrayResultsAsString = "[" + etrayPassMarks.result.map(schemeResult =>
+            val eTrayResultsAsString = "\"[" + etrayPassMarks.result.map(schemeResult =>
               s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
-            ).mkString(", ") + "]"
+            ).mkString(", ") + "]\""
 
           s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
             s"$failedAtStage,${latestProgressStatus.toString},$onlineTestResultsAsString,$eTrayResultsAsString"
