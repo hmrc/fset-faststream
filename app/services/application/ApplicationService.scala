@@ -21,7 +21,7 @@ import connectors.ExchangeObjects
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
-import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses.{ ProgressStatus, SIFT_ENTERED }
 import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
@@ -48,6 +48,7 @@ import services.stc.{ EventSink, StcEventService }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.sift.ApplicationSiftService
 
 import scala.collection.immutable.ListMap
 import scala.concurrent.{ ExecutionContext, Future }
@@ -64,6 +65,7 @@ object ApplicationService extends ApplicationService {
   val evaluateP1ResultService = EvaluatePhase1ResultService
   val evaluateP2ResultService = EvaluatePhase2ResultService
   val evaluateP3ResultService = EvaluatePhase3ResultService
+  val siftService = ApplicationSiftService
   val schemesRepo = SchemeYamlRepository
   val phase1TestRepo = repositories.phase1TestRepository
   val phase2TestRepository = repositories.phase2TestRepository
@@ -87,6 +89,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings]
   def evaluateP2ResultService: EvaluateOnlineTestResultService[Phase2PassMarkSettings]
   def evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
+  def siftService: ApplicationSiftService
   def schemesRepo: SchemeRepository
   def phase1TestRepo: Phase1TestRepository
   def phase2TestRepository: Phase2TestRepository
@@ -400,6 +403,20 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     }).map(Future.sequence(_)).flatMap(identity).map(_.flatten)
   }
   // scalastyle:on
+
+  def moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    for {
+      allAffectedUsers <- findSdipFaststreamFailedFaststreamInvitedToVideoInterview
+      (candidate, contactDetails, _, latestProgressStatus, _, _) = allAffectedUsers.find(_._1.applicationId == applicationId).getOrElse(
+        throw new Exception("Application not found in affected users")
+      )
+      _ = if (!latestProgressStatus.startsWith("PHASE2") && !latestProgressStatus.startsWith("PHASE3")) {
+        throw new Exception("User must be in a Phase2 or Phase3 progress status")
+      }
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
+      _ <- siftService.sendSiftEnteredNotification(candidate.applicationId.get).map(_ => ())
+    } yield ()
+  }
 
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,

@@ -22,6 +22,7 @@ import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
 import services.fastpass.FastPassService
 import services.sift.ApplicationSiftService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -175,6 +176,16 @@ trait FixDataConsistencyController extends BaseController {
       }
     }
   }
+
+  def moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId).map(_ =>
+        Ok(s"Successfully fixed $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          InternalServerError(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
 
   def fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String): Action[AnyContent] =
     Action.async {
