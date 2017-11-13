@@ -376,15 +376,23 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   // scalastyle:off cyclomatic.complexity
   def findSdipFaststreamFailedFaststreamInvitedToVideoInterview:
   Future[Seq[(Candidate, ContactDetails, String, ProgressStatus, PassmarkEvaluation, PassmarkEvaluation)]] = {
+
+    def liftToOption(passMarkFetch: String => Future[PassmarkEvaluation], applicationId: String): Future[Option[PassmarkEvaluation]] = {
+      passMarkFetch(applicationId).map(Some(_)).recover { case _: PassMarkEvaluationNotFound => None }
+    }
+
     (for {
       potentialAffectedUsers <- appRepository.findSdipFaststreamInvitedToVideoInterview
     } yield for {
       potentialAffectedUser <- potentialAffectedUsers
     } yield for {
-      phase1SchemeStatus <- evaluateP1ResultService.getPassmarkEvaluation(potentialAffectedUser.applicationId.get)
-      phase2SchemeStatus <- evaluateP2ResultService.getPassmarkEvaluation(potentialAffectedUser.applicationId.get)
+      phase1SchemeStatusOpt <- liftToOption(evaluateP1ResultService.getPassmarkEvaluation _, potentialAffectedUser.applicationId.get)
+      phase2SchemeStatusOpt <- liftToOption(evaluateP2ResultService.getPassmarkEvaluation _, potentialAffectedUser.applicationId.get)
       applicationDetails <- appRepository.findStatus(potentialAffectedUser.applicationId.get)
       contactDetails <- cdRepository.find(potentialAffectedUser.userId)
+    } yield for {
+      phase1SchemeStatus <- phase1SchemeStatusOpt
+      phase2SchemeStatus <- phase2SchemeStatusOpt
     } yield {
       val failedAtOnlineExercises = phase1SchemeStatus.result.forall(schemeResult =>
         schemeResult.result == Red.toString ||
@@ -400,7 +408,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       } else {
         None
       }
-    }).map(Future.sequence(_)).flatMap(identity).map(_.flatten)
+    }).map(Future.sequence(_)).flatMap(identity).map(_.map(_.flatten)).map(_.flatten)
   }
   // scalastyle:on
 
