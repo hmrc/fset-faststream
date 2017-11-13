@@ -39,7 +39,7 @@ private object AppDependencies {
     "uk.gov.hmrc"               %% "http-caching-client"                      % "7.0.0",
     "uk.gov.hmrc"               %% "frontend-bootstrap"                       % "8.11.0",
     "uk.gov.hmrc"               %% "play-whitelist-filter"                    % "2.0.0",
-    "uk.gov.hmrc"               %% "url-builder"                              % "1.0.0",
+    "uk.gov.hmrc"               %% "url-builder"                              % "2.1.0",
     "org.apache.httpcomponents" %  "httpclient"                               % "4.5.3",
     "org.apache.httpcomponents" %  "httpcore"                                 % "4.4.5",
     "com.mohiva"                %% "play-silhouette"                          % silhouette,
