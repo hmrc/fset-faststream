@@ -20,7 +20,7 @@ import common.FutureEx
 import connectors.ExchangeObjects
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Green, Red }
-import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
+import model.Exceptions._
 import model.ProgressStatuses.{ ProgressStatus, SIFT_ENTERED }
 import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
@@ -424,6 +424,59 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       _ <- siftService.sendSiftEnteredNotification(candidate.applicationId.get).map(_ => ())
     } yield ()
+  }
+
+  def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String): Future[Unit] = {
+
+    def setToRedExceptSdip(results: Option[List[SchemeEvaluationResult]]): List[SchemeEvaluationResult] = {
+      results.map {
+        _.map { result =>
+          if(result.schemeId != Scheme.SdipId) {
+            result.copy(result = EvaluationResults.Red.toString)
+          } else {
+            result
+          }
+        }
+      }.getOrElse(throw UnexpectedException(s"No evaluation results found"))
+    }
+
+    def updateCurrentSchemeStatus() = {
+      for {
+        currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+        newCurrentSchemeStatus = setToRedExceptSdip(Some(currentSchemeStatus.toList))
+        _ <- appRepository.updateCurrentSchemeStatus(applicationId, newCurrentSchemeStatus)
+      } yield ()
+    }
+
+    def setPhase2Results = {
+      Logger.debug("setPhase2Results = \n\n\n\n")
+      val res = phase1TestRepo.getTestGroup(applicationId).map { phase1TestGroupOpt =>
+        Logger.debug(s"phase1TestGroupOpt = $phase1TestGroupOpt")
+        phase1TestGroupOpt.map { phase1TestProfile =>
+          Logger.debug(s"phase1TestProfile = phase1TestProfile")
+          phase2TestRepository.getTestGroup(applicationId).map { phase2TestGroupOpt =>
+            phase2TestGroupOpt.map { phase2TestGroup =>
+              val newSchemeEvaluationResults = setToRedExceptSdip(phase1TestProfile.evaluation.map(_.result))
+              val maybePassmarkEvaluation = phase2TestGroup.evaluation.map(_.copy(result = newSchemeEvaluationResults))
+              val newPhase2TestGroup = phase2TestGroup.copy(evaluation = maybePassmarkEvaluation)
+              phase2TestRepository.insertOrUpdateTestGroup(applicationId, newPhase2TestGroup).flatMap { _ =>
+                updateCurrentSchemeStatus().map(_ => ())
+              }
+            }.getOrElse(throw UnexpectedException(s"Candidate with app id $applicationId has no test group for PHASE2"))
+          }
+        }.getOrElse(throw UnexpectedException(s"Candidate with app id $applicationId has no test group for PHASE1"))
+      }
+      res.flatMap(identity)
+    }
+
+    appRepository.find(applicationId).map {
+      _.map { candidate =>
+        candidate.applicationStatus match {
+          case Some("PHASE2_TESTS") => setPhase2Results
+          case _ => throw UnexpectedException(s"Candidate with app id $applicationId should be in either PHASE2 or PHASE3")
+        }
+      }
+    }
   }
 
   private def rollbackAppAndProgressStatus(applicationId: String,

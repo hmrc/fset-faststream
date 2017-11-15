@@ -196,4 +196,8 @@ trait FixDataConsistencyController extends BaseController {
     Action.async {
       siftService.fixUserSiftedWithAFailByMistake(applicationId).map(_ => Ok(s"Successfully fixed $applicationId"))
     }
+
+  def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId).map(_ => Ok(s"Successfully fixedddddd $applicationId"))
+  }
 }
