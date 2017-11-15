@@ -23,10 +23,11 @@ import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.GeneralDetails._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
-import connectors.exchange.candidateevents.{CandidateAllocationWithEvent, CandidateAllocations}
+import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
+import connectors.exchange.candidateevents.{ CandidateAllocationWithEvent, CandidateAllocations }
 import connectors.exchange.candidatescores.CompetencyAverageResult
 import models.events.EventType.EventType
-import models.{Adjustments, ApplicationRoute, UniqueIdentifier}
+import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
@@ -44,6 +45,13 @@ trait ApplicationClient {
   import config.FrontendAppConfig.faststreamConfig._
 
   val apiBaseUrl = url.host + url.base
+
+  def afterDeadlineSignupCodeValid(afterDeadlineSubmissionCode: String)(implicit hc: HeaderCarrier): Future[Boolean] = {
+    http.GET(s"$apiBaseUrl/campaign-management/afterDeadlineSignupCodeUnused",
+      Seq("code" -> afterDeadlineSubmissionCode)).map { response =>
+      response.json.as[AfterDeadlineSignupCodeUnused].unused
+    }
+  }
 
   def createApplication(userId: UniqueIdentifier, frameworkId: String,
     applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream)

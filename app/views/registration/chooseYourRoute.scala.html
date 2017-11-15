@@ -17,10 +17,14 @@
 @import models.ApplicationRoute._
 @import controllers.ApplicationRouteState
 
-@(form: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState])(implicit messages: Messages)
+@(form: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState], validAfterDeadlineSubmissionCode: Boolean)(implicit messages: Messages)
 
 @import models.ApplicationRoute
 @import views.html.widgets.{radioBoxVerticalMultiToggle, yesNoQuestion, yesNoRadioWithNestedTogglePanel}
+
+@faststreamOpen = @{ appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled) || validAfterDeadlineSubmissionCode }
+@edipOpen = @{ appRouteConfigMap.get(Edip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled) || validAfterDeadlineSubmissionCode }
+@sdipOpen = @{ appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled) || validAfterDeadlineSubmissionCode }
 
 <section class="section-border clearfix" id="routeElig">
     <div class="text">
@@ -37,7 +41,7 @@
             )
         )
         <div class="toggle-content form-group form-group-compound" id="faststream-elig-describe">
-            @if(appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled)) {
+            @if(faststreamOpen) {
                 <div class="text">
                     <h3 class="heading-medium">Confirm the following statements are true</h3>
                 </div>
@@ -82,7 +86,7 @@
             }
         </div>
         <div class="toggle-content form-group form-group-compound" id="edip-elig-describe">
-            @if(appRouteConfigMap.get(Edip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled)) {
+            @if(edipOpen) {
                 <div class="text">
                     <h2 class="heading-medium">Confirm the following statements are true</h2>
                 </div>
@@ -101,7 +105,7 @@
             }
         </div>
         <div class="toggle-content form-group form-group-compound" id="sdip-elig-describe">
-            @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) {
+            @if(sdipOpen) {
                 <div class="text">
                     <h2 class="heading-medium">Confirm the following statements are true</h2>
                 </div>

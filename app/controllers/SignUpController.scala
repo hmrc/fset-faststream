@@ -26,7 +26,7 @@ import connectors.exchange._
 import helpers.NotificationType._
 import models.{ ApplicationRoute, SecurityUser }
 import play.api.i18n.Messages
-import play.api.mvc.Result
+import play.api.mvc.{ Action, AnyContent, Result }
 import security.{ SignInService, SilhouetteComponent }
 
 import scala.concurrent.Future
@@ -42,26 +42,45 @@ object SignUpController extends SignUpController(ApplicationClient, UserManageme
 abstract class SignUpController(val applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
   extends BaseController with SignInService with CampaignAwareController {
 
-  def present = CSRUserAwareAction { implicit request =>
-    implicit user =>
-      Future.successful(request.identity match {
+  private def isSignupCodeValid(signupCode: Option[String]): Future[Boolean] = signupCode.map(sCode =>
+    applicationClient.afterDeadlineSignupCodeValid(sCode)
+  ).getOrElse(Future.successful(false))
+
+  def present(signupCode: Option[String] = None): Action[AnyContent] = CSRUserAwareAction { implicit request => implicit user =>
+
+    val signupCodeValid: Future[Boolean] = isSignupCodeValid(signupCode)
+
+    signupCodeValid.map { sCodeValid =>
+      request.identity match {
         case Some(_) => Redirect(routes.HomeController.present()).flashing(warning("activation.already"))
-        case None => Ok(views.html.registration.signup(SignUpForm.form, appRouteConfigMap))
-      })
+        case None => Ok(views.html.registration.signup(SignUpForm.form, appRouteConfigMap, None, sCodeValid))
+      }
+    }
   }
 
-  def signUp = CSRUserAwareAction { implicit request =>
+  // scalastyle:off method.length
+  def signUp(signupCode: Option[String]) = CSRUserAwareAction { implicit request =>
     implicit user =>
 
-      def checkAppWindowBeforeProceeding (data: Map[String, String], fn: => Future[Result]) =
-        data.get("applicationRoute").map(ApplicationRoute.withName).map {
-          case appRoute if !isNewAccountsStarted(appRoute) =>
-            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(
-              Messages(s"applicationRoute.$appRoute.notOpen", getApplicationStartDate(appRoute)))))
-          case appRoute if !isNewAccountsEnabled(appRoute) =>
-            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(Messages(s"applicationRoute.$appRoute.closed"))))
-          case _ => fn
-        } getOrElse fn
+      val signupCodeValid: Future[Boolean] = isSignupCodeValid(signupCode)
+
+      def checkAppWindowBeforeProceeding (data: Map[String, String], fn: => Future[Result]): Future[Result] =
+        signupCodeValid.map { sCodeValid =>
+          if (sCodeValid) {
+            fn
+          } else {
+            data.get("applicationRoute").map(ApplicationRoute.withName).map {
+              case appRoute if !isNewAccountsStarted(appRoute) =>
+                Future.successful(Redirect(routes.SignUpController.present(None)).flashing(warning(
+                  Messages(s"applicationRoute.$appRoute.notOpen", getApplicationStartDate(appRoute)))))
+              case appRoute if !isNewAccountsEnabled(appRoute) =>
+                Future.successful(Redirect(routes.SignUpController.present(None)).flashing(
+                  warning(Messages(s"applicationRoute.$appRoute.closed"))
+                ))
+              case _ => fn
+            }.getOrElse(fn)
+          }
+        }.flatMap(identity)
 
       SignUpForm.form.bindFromRequest.fold(
         invalidForm => {
@@ -97,6 +116,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
         }
       )
   }
+  // scalastyle:on
 
   private def extractMediaReferrer(data: SignUpForm.Data): String = {
     if (data.campaignReferrer.contains("Other")) {

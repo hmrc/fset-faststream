@@ -11,7 +11,7 @@ GET         /locked                                                 controllers.
 POST        /locked                                                 controllers.LockAccountController.submit
 
 # Registration and activation
-GET         /signup                                                 controllers.SignUpController.present
+GET         /signup                                                 controllers.SignUpController.present(signupCode: Option[String])
 POST        /signup                                                 controllers.SignUpController.signUp
 
 GET         /activation                                             controllers.ActivationController.present
