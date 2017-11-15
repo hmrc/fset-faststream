@@ -24,6 +24,7 @@ object CollectionNames {
   val ASSESSOR = "assessor18"
   val ASSESSOR_ALLOCATION = "assessor-allocation18"
   val ASSESSOR_EVENTS_SUMMARY_JOBS = "assessor-events-summary-jobs18"
+  val CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE = "campaign-management-after-deadline-code18"
   val CANDIDATE_ALLOCATION = "candidate-allocation18"
   val ASSESSMENT_EVENTS = "assessment-events18"
   val FILE_UPLOAD = "file-upload18"

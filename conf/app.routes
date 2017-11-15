@@ -85,6 +85,9 @@ GET         /report/duplicate-applications                               control
 GET         /report/assessor-allocation                                  controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                 controllers.ReportingController.candidateAcceptanceReport()
 
+GET         /campaign-management/afterDeadlineSignupCodeUnused           controllers.CampaignManagementController.afterDeadlineSignupCodeUnused(code: String)
+GET         /campaign-management/generateAfterDeadlineSignupCode         controllers.CampaignManagementController.generateAfterDeadlineSignupCode(createdByUserId: String,expiryInHours: Int)
+
 GET         /diagnostic/user/:userId                                                    controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
 GET         /diagnostic/assessor/:userId                                                controllers.DiagnosticReportController.getAssessorDiagnosticDetail(userId: String)
 GET         /diagnostic/all-users                                                       controllers.DiagnosticReportController.getAllApplications

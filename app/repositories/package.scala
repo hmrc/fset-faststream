@@ -34,6 +34,7 @@ import model.command.WithdrawApplication
 import play.api.libs.json._
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
+import repositories.campaignmanagement.{ CampaignManagementAfterDeadlineSignupCodeMongoRepository, CampaignManagementAfterDeadlineSignupCodeRepository }
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.events.EventsMongoRepository
@@ -97,6 +98,7 @@ package object repositories {
   lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository
   lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository
   lazy val assessorsEventsSummaryJobsRepository = new AssessorsEventsSummaryJobsMongoRepository()
+  lazy val campaignManagementAfterDeadlineSignupCodeRepository = new CampaignManagementAfterDeadlineSignupCodeMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
