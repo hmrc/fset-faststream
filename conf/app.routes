@@ -107,6 +107,7 @@ GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredAfterWithdrawingFromA
 GET         /diagnostic/sift/fixUserSiftedWithAFailByMistake                                           controllers.fixdata.FixDataConsistencyController.fixUserSiftedWithAFailByMistake(applicationId: String)
 GET         /diagnostic/findSdipFaststreamFailedFaststreamInvitedToVideoInterview                      controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInvitedToVideoInterview
 GET         /diagnostic/moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift                controllers.fixdata.FixDataConsistencyController.moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)
+GET         /diagnostic/application/fixSdipFaststreamCandidateWhoExpiredInOnlineTests                  controllers.fixdata.FixDataConsistencyController.fixSdipFaststreamUserWhoExpiredInOnlineTests(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
