@@ -16,9 +16,10 @@
 
 package model.exchange.campaignmanagement
 
+import org.joda.time.DateTime
 import play.api.libs.json.{ Json, OFormat }
 
-case class AfterDeadlineSignupCodeUnused(unused: Boolean)
+case class AfterDeadlineSignupCodeUnused(unused: Boolean, expires: Option[DateTime])
 
 object AfterDeadlineSignupCodeUnused {
   implicit val afterDeadlineSignupCodeUnusedFormat: OFormat[AfterDeadlineSignupCodeUnused] = Json.format[AfterDeadlineSignupCodeUnused]
