@@ -455,7 +455,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     def updateEvaluationResults(prevPhaseRepo: OnlineTestRepository, nextPhaseRepo: OnlineTestRepository): Future[Unit] = {
       prevPhaseRepo.getTestGroup(applicationId).map { prevPhaseTestGroupOpt =>
         prevPhaseTestGroupOpt.map { prevPhaseTestGroup =>
-          val newSchemeEvaluationResults = setToRedExceptSdip(prevPhaseTestGroup.evaluation.map(_.result)).filterNot(_.schemeId == Scheme.SdipId)
+          val newSchemeEvaluationResults = setToRedExceptSdip(prevPhaseTestGroup.evaluation.map(_.result))
           val newPassmarkEvaluationResult = prevPhaseTestGroup.evaluation
             .map(_.copy(result = newSchemeEvaluationResults))
             .getOrElse(
