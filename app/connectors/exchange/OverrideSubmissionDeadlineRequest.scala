@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package connectors.exchange.campaignmanagement
+package connectors.exchange
 
 import org.joda.time.DateTime
 import play.api.libs.json.{ Json, OFormat }
 
-case class AfterDeadlineSignupCodeUnused(unused: Boolean, expires: Option[DateTime] = None)
+case class OverrideSubmissionDeadlineRequest(submissionDeadline: DateTime)
 
-object AfterDeadlineSignupCodeUnused {
-  implicit val afterDeadlineSignupCodeUnusedFormat: OFormat[AfterDeadlineSignupCodeUnused] = Json.format[AfterDeadlineSignupCodeUnused]
+object OverrideSubmissionDeadlineRequest {
+  implicit val overrideSubmissionDeadlineRequestFormat: OFormat[OverrideSubmissionDeadlineRequest] =
+    Json.format[OverrideSubmissionDeadlineRequest]
 }

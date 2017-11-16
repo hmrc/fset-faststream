@@ -46,10 +46,10 @@ trait ApplicationClient {
 
   val apiBaseUrl = url.host + url.base
 
-  def afterDeadlineSignupCodeValid(afterDeadlineSubmissionCode: String)(implicit hc: HeaderCarrier): Future[Boolean] = {
+  def afterDeadlineSignupCodeUnused(afterDeadlineSignupCode: String)(implicit hc: HeaderCarrier): Future[AfterDeadlineSignupCodeUnused] = {
     http.GET(s"$apiBaseUrl/campaign-management/afterDeadlineSignupCodeUnused",
-      Seq("code" -> afterDeadlineSubmissionCode)).map { response =>
-      response.json.as[AfterDeadlineSignupCodeUnused].unused
+      Seq("code" -> afterDeadlineSignupCode)).map { response =>
+      response.json.as[AfterDeadlineSignupCodeUnused]
     }
   }
 
@@ -61,6 +61,16 @@ trait ApplicationClient {
       response.json.as[ApplicationResponse]
     }
   }
+
+  def overrideSubmissionDeadline(
+                                  application: UniqueIdentifier,
+                                  overrideRequest: OverrideSubmissionDeadlineRequest
+                                )(implicit hc: HeaderCarrier): Future[Unit] =
+    http.PUT(s"$apiBaseUrl/application/overrideSubmissionDeadline/$application", overrideRequest).map { response =>
+      if (response.status != OK) {
+        throw new CannotSubmitOverriddenSubmissionDeadline()
+      }
+    }
 
   def submitApplication(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.PUT(s"$apiBaseUrl/application/submit/$userId/$applicationId", Json.toJson("")).map {
@@ -337,6 +347,8 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class CannotUpdateRecord extends Exception
 
   sealed class CannotSubmit extends Exception
+
+  sealed class CannotSubmitOverriddenSubmissionDeadline extends Exception
 
   sealed class PersonalDetailsNotFound extends Exception
 

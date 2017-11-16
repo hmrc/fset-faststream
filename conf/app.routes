@@ -12,7 +12,7 @@ POST        /locked                                                 controllers.
 
 # Registration and activation
 GET         /signup                                                 controllers.SignUpController.present(signupCode: Option[String])
-POST        /signup                                                 controllers.SignUpController.signUp
+POST        /signup                                                 controllers.SignUpController.signUp(signupCode: Option[String])
 
 GET         /activation                                             controllers.ActivationController.present
 POST        /activation/resend                                      controllers.ActivationController.resendCode
