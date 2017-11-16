@@ -455,17 +455,20 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         phase1TestGroupOpt.map { phase1TestProfile =>
           Logger.debug(s"phase1TestProfile = phase1TestProfile")
           phase2TestRepository.getTestGroup(applicationId).map { phase2TestGroupOpt =>
+            Logger.debug(s"phase2TestGroupOpt = $phase2TestGroupOpt")
             phase2TestGroupOpt.map { phase2TestGroup =>
+              Logger.debug(s"phase2TestGroup = $phase2TestGroup")
               val newSchemeEvaluationResults = setToRedExceptSdip(phase1TestProfile.evaluation.map(_.result))
               val maybePassmarkEvaluation = phase2TestGroup.evaluation.map(_.copy(result = newSchemeEvaluationResults))
               val newPhase2TestGroup = phase2TestGroup.copy(evaluation = maybePassmarkEvaluation)
+              Logger.debug(s"newPhase2TestGroup = $newPhase2TestGroup")
               phase2TestRepository.insertOrUpdateTestGroup(applicationId, newPhase2TestGroup).flatMap { _ =>
                 updateCurrentSchemeStatus().map(_ => ())
               }
             }.getOrElse(throw UnexpectedException(s"Candidate with app id $applicationId has no test group for PHASE2"))
           }
         }.getOrElse(throw UnexpectedException(s"Candidate with app id $applicationId has no test group for PHASE1"))
-      }
+      }.flatMap(identity)
       res.flatMap(identity)
     }
 
