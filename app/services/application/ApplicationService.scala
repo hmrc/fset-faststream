@@ -451,37 +451,27 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       } yield ()
     }
 
-    def updatePhase2EvaluationResults(): Future[Unit] = {
-      phase1TestRepo.getTestGroup(applicationId).map { phase1TestGroupOpt =>
-        phase1TestGroupOpt.map { phase1TestProfile =>
-          val newSchemeEvaluationResults = setToRedExceptSdip(phase1TestProfile.evaluation.map(_.result)).filterNot(_.schemeId == Scheme.SdipId)
-          val newPassmarkEvaluationResult = phase1TestProfile.evaluation
-            .map(_.copy(result = newSchemeEvaluationResults))
-            .getOrElse(throw UnexpectedException("Candidate with app id $applicationId has no evaluation result for PHASE1"))
-          phase2TestRepository.upsertTestGroupEvaluationResult(applicationId, newPassmarkEvaluationResult).map(_ => ())
-        }.getOrElse(throw UnexpectedException(s"Candidate with app id $applicationId has no test group for PHASE1"))
-      }.flatMap(identity)
-    }
 
-    def updatePhase3EvaluationResults(): Future[Unit] = {
-      phase2TestRepository.getTestGroup(applicationId).map { phase2TestGroupOpt =>
-        phase2TestGroupOpt.map { phase2TestGroup =>
-          val newSchemeEvaluationResults = setToRedExceptSdip(phase2TestGroup.evaluation.map(_.result)).filterNot(_.schemeId == Scheme.SdipId)
-          val newPassmarkEvaluationResult = phase2TestGroup.evaluation
+    def updateEvaluationResults(prevPhaseRepo: OnlineTestRepository, nextPhaseRepo: OnlineTestRepository): Future[Unit] = {
+      prevPhaseRepo.getTestGroup(applicationId).map { prevPhaseTestGroupOpt =>
+        prevPhaseTestGroupOpt.map { prevPhaseTestGroup =>
+          val newSchemeEvaluationResults = setToRedExceptSdip(prevPhaseTestGroup.evaluation.map(_.result)).filterNot(_.schemeId == Scheme.SdipId)
+          val newPassmarkEvaluationResult = prevPhaseTestGroup.evaluation
             .map(_.copy(result = newSchemeEvaluationResults))
-            .getOrElse(throw UnexpectedException("Candidate with app id $applicationId has no evaluation result for PHASE2"))
-          phase3TestRepository.upsertTestGroupEvaluationResult(applicationId, newPassmarkEvaluationResult).map(_ => ())
-        }.getOrElse(throw UnexpectedException(s"Candidate with app id $applicationId has no test group for PHASE2"))
-      }.flatMap(identity)
+            .getOrElse(
+              throw UnexpectedException(s"Candidate with app id $applicationId has no evaluation result for ${prevPhaseRepo.phaseName}"))
+          nextPhaseRepo.upsertTestGroupEvaluationResult(applicationId, newPassmarkEvaluationResult).map(_ => ())
+        }.getOrElse(throw UnexpectedException(s"Candidate with app id $applicationId has no test group for ${prevPhaseRepo.phaseName}"))
+      }
     }
 
     appRepository.find(applicationId).map {
       _.map { candidate =>
         candidate.applicationStatus match {
           case Some("PHASE2_TESTS") =>
-            updatePhase2EvaluationResults().flatMap(_ => updateStatuses().map(_ => ()))
+            updateEvaluationResults(phase1TestRepo, phase2TestRepository).flatMap(_ => updateStatuses().map(_ => ()))
           case Some("PHASE3_TESTS") =>
-            updatePhase3EvaluationResults().flatMap(_ => updateStatuses().map(_ => ()))
+            updateEvaluationResults(phase2TestRepository, phase3TestRepository).flatMap(_ => updateStatuses().map(_ => ()))
           case _ => throw UnexpectedException(s"Candidate with app id $applicationId should be in either PHASE2 or PHASE3")
         }
       }
