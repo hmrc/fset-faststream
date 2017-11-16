@@ -440,18 +440,12 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       }.getOrElse(throw UnexpectedException(s"No evaluation results found"))
     }
 
-    def updateCurrentSchemeStatus() = {
-      for {
-        currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
-        newCurrentSchemeStatus = setToRedExceptSdip(Some(currentSchemeStatus.toList))
-        _ <- appRepository.updateCurrentSchemeStatus(applicationId, newCurrentSchemeStatus)
-      } yield ()
-    }
-
     def updateStatuses(): Future[Unit] = {
       for {
         _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_ENTERED)
-        _ <- updateCurrentSchemeStatus()
+        currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+        newCurrentSchemeStatus = setToRedExceptSdip(Some(currentSchemeStatus.toList))
+        _ <- appRepository.updateCurrentSchemeStatus(applicationId, newCurrentSchemeStatus)
       } yield ()
     }
 
