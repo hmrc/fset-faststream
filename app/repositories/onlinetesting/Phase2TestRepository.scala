@@ -48,6 +48,8 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
 
   def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
 
+  def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
+
   def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
 
   def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]]
@@ -125,7 +127,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     updateGroupExpiryTime(applicationId, expirationDate, phaseName)
   }
 
-  override def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup) = {
+  override def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val updateBson = BSONDocument("$set" ->
@@ -135,6 +137,10 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
 
     collection.update(query, updateBson) map validator
+  }
+
+  def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
+    upsertTestGroupEvaluationResult(applicationId, passmarkEvaluation)
   }
 
   override def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup) = {
