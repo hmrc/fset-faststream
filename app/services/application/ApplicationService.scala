@@ -451,9 +451,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     def fixCandidate = {
       for {
         _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_ENTERED)
-      } yield {
-        updateCurrentSchemeStatus()
-      }
+        _ <- updateCurrentSchemeStatus()
+      } yield ()
     }
 
     def setPhase2Results = {
