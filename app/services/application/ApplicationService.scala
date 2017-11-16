@@ -452,7 +452,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     def updatePhase2EvaluationResults(): Future[Unit] = {
       phase1TestRepo.getTestGroup(applicationId).map { phase1TestGroupOpt =>
         phase1TestGroupOpt.map { phase1TestProfile =>
-          val newSchemeEvaluationResults = setToRedExceptSdip(phase1TestProfile.evaluation.map(_.result))
+          val newSchemeEvaluationResults = setToRedExceptSdip(phase1TestProfile.evaluation.map(_.result)).filterNot(_.schemeId == Scheme.SdipId)
           val newPassmarkEvaluationResult = phase1TestProfile.evaluation
             .map(_.copy(result = newSchemeEvaluationResults))
             .getOrElse(throw UnexpectedException("Candidate with app id $applicationId has no evaluation result for PHASE1"))
