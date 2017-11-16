@@ -69,6 +69,7 @@ object ApplicationService extends ApplicationService {
   val schemesRepo = SchemeYamlRepository
   val phase1TestRepo = repositories.phase1TestRepository
   val phase2TestRepository = repositories.phase2TestRepository
+  val phase3TestRepository = repositories.phase3TestRepository
   val phase1EvaluationRepository = faststreamPhase1EvaluationRepository
   val phase2EvaluationRepository = faststreamPhase2EvaluationRepository
   val phase3EvaluationRepository = faststreamPhase3EvaluationRepository
@@ -93,6 +94,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def schemesRepo: SchemeRepository
   def phase1TestRepo: Phase1TestRepository
   def phase2TestRepository: Phase2TestRepository
+  def phase3TestRepository: Phase3TestRepository
   def phase1EvaluationRepository: Phase1EvaluationMongoRepository
   def phase2EvaluationRepository: Phase2EvaluationMongoRepository
   def phase3EvaluationRepository: Phase3EvaluationMongoRepository
@@ -461,11 +463,25 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       }.flatMap(identity)
     }
 
+    def updatePhase3EvaluationResults(): Future[Unit] = {
+      phase2TestRepository.getTestGroup(applicationId).map { phase2TestGroupOpt =>
+        phase2TestGroupOpt.map { phase2TestGroup =>
+          val newSchemeEvaluationResults = setToRedExceptSdip(phase2TestGroup.evaluation.map(_.result)).filterNot(_.schemeId == Scheme.SdipId)
+          val newPassmarkEvaluationResult = phase2TestGroup.evaluation
+            .map(_.copy(result = newSchemeEvaluationResults))
+            .getOrElse(throw UnexpectedException("Candidate with app id $applicationId has no evaluation result for PHASE2"))
+          phase3TestRepository.upsertTestGroupEvaluationResult(applicationId, newPassmarkEvaluationResult).map(_ => ())
+        }.getOrElse(throw UnexpectedException(s"Candidate with app id $applicationId has no test group for PHASE2"))
+      }.flatMap(identity)
+    }
+
     appRepository.find(applicationId).map {
       _.map { candidate =>
         candidate.applicationStatus match {
-          case Some("PHASE2_TESTS") | Some("PHASE3_TESTS") =>
+          case Some("PHASE2_TESTS") =>
             updatePhase2EvaluationResults().flatMap(_ => updateStatuses().map(_ => ()))
+          case Some("PHASE3_TESTS") =>
+            updatePhase3EvaluationResults().flatMap(_ => updateStatuses().map(_ => ()))
           case _ => throw UnexpectedException(s"Candidate with app id $applicationId should be in either PHASE2 or PHASE3")
         }
       }
