@@ -290,6 +290,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val projection = BSONDocument(
       "userId" -> "1",
       "applicationStatus" -> "1",
+      "progress-status" -> "1",
       "applicationId" -> "1",
       "personal-details.firstName" -> "1",
       "personal-details.lastName" -> "1",
@@ -313,6 +314,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
         val userId = document.getAs[String]("userId").getOrElse("")
         val applicationId = document.getAs[String]("applicationId")
         val applicationStatus = document.getAs[String]("applicationStatus")
+        val candidateProgressStatuses = toProgressResponse(applicationId.get).read(document)
+        val latestProgressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses))
         val firstName = extract("firstName")(personalDetails)
         val lastName = extract("lastName")(personalDetails)
         val preferredName = extract("preferredName")(personalDetails)
@@ -342,7 +345,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
           None,
           None,
           gis,
-          applicationStatus,
+          latestProgressStatus,
           needsSupportForOnlineAssessmentDescription,
           needsSupportAtVenueDescription,
           hasDisability,
