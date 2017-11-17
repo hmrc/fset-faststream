@@ -106,7 +106,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SRAC
-  schemeGuide: https://www.faststream.gov.uk/media/1240/srac-guide.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/1286/social-research-final-selection-board-2017.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1262/scheme-questions-gsr.rtf
 - id: GovernmentStatisticalService
   code: GSS
