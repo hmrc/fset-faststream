@@ -34,8 +34,8 @@ object CampaignManagementService extends CampaignManagementService{
 trait CampaignManagementService {
   val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository
 
-  def afterDeadlineSignupCodeUnused(code: String): Future[AfterDeadlineSignupCodeUnused] = {
-    afterDeadlineCodeRepository.isUnusedCode(code).map(storedCodeOpt =>
+  def afterDeadlineSignupCodeUnusedAndValid(code: String): Future[AfterDeadlineSignupCodeUnused] = {
+    afterDeadlineCodeRepository.isUnusedValidCode(code).map(storedCodeOpt =>
       AfterDeadlineSignupCodeUnused(storedCodeOpt.isDefined, storedCodeOpt.map(_.expires))
     )
   }

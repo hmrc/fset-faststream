@@ -31,8 +31,8 @@ trait CampaignManagementController extends BaseController {
 
   val campaignManagementService: CampaignManagementService
 
-  def afterDeadlineSignupCodeUnused(code: String): Action[AnyContent] = Action.async { implicit request =>
-    campaignManagementService.afterDeadlineSignupCodeUnused(code).map(response => Ok(Json.toJson(response)))
+  def afterDeadlineSignupCodeUnusedAndValid(code: String): Action[AnyContent] = Action.async { implicit request =>
+    campaignManagementService.afterDeadlineSignupCodeUnusedAndValid(code).map(response => Ok(Json.toJson(response)))
   }
 
   def generateAfterDeadlineSignupCode(createdByUserId: String, expiryInHours: Int): Action[AnyContent] = Action.async { implicit request =>

@@ -17,6 +17,7 @@
 package repositories.campaignmanagement
 
 import model.persisted.CampaignManagementAfterDeadlineCode
+import org.joda.time.DateTime
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.CollectionNames
@@ -27,7 +28,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait CampaignManagementAfterDeadlineSignupCodeRepository {
-  def isUnusedCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]]
+  def isUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]]
   def save(code: CampaignManagementAfterDeadlineCode): Future[Unit]
 }
 
@@ -36,13 +37,14 @@ class CampaignManagementAfterDeadlineSignupCodeMongoRepository(implicit mongo: (
     mongo, CampaignManagementAfterDeadlineCode.campaignManagementAfterDeadlineCodeFormat,
     ReactiveMongoFormats.objectIdFormats) with CampaignManagementAfterDeadlineSignupCodeRepository {
 
-  def isUnusedCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]] = {
-    collection.find(
-      BSONDocument(
-        "code" -> code,
-        "usedByApplicationId" -> BSONDocument("$exists" -> false)
-      )
-    ).one[CampaignManagementAfterDeadlineCode]
+  def isUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]] = {
+    val query = BSONDocument(
+      "code" -> code,
+      "usedByApplicationId" -> BSONDocument("$exists" -> false),
+      "expires" -> BSONDocument("$gte" -> DateTime.now.getMillis)
+    )
+
+    collection.find(query).one[CampaignManagementAfterDeadlineCode]
   }
 
   def save(code: CampaignManagementAfterDeadlineCode): Future[Unit] = {
