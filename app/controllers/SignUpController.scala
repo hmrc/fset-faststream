@@ -44,14 +44,15 @@ object SignUpController extends SignUpController(ApplicationClient, UserManageme
 abstract class SignUpController(val applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
   extends BaseController with SignInService with CampaignAwareController {
 
-  private def signupCodeUnused(signupCode: Option[String])
+  private def signupCodeUnusedAndValid(signupCode: Option[String])
                                (implicit hc: HeaderCarrier): Future[AfterDeadlineSignupCodeUnused] = signupCode.map(sCode =>
-    applicationClient.afterDeadlineSignupCodeUnused(sCode)
+    applicationClient.afterDeadlineSignupCodeUnusedAndValid(sCode)
   ).getOrElse(Future.successful(AfterDeadlineSignupCodeUnused(unused = false)))
 
   def present(signupCode: Option[String] = None): Action[AnyContent] = CSRUserAwareAction { implicit request => implicit user =>
 
-    val signupCodeValid: Future[Boolean] = signupCodeUnused(signupCode).map(_.unused)
+    val signupCodeValid: Future[Boolean] = signupCodeUnusedAndValid(signupCode).map(_.unused)
+
 
     signupCodeValid.map { sCodeValid =>
       request.identity match {
@@ -65,7 +66,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
   def signUp(signupCode: Option[String]): Action[AnyContent] = CSRUserAwareAction { implicit request =>
     implicit user =>
 
-      val signupCodeUnusedValue: Future[AfterDeadlineSignupCodeUnused] = signupCodeUnused(signupCode)
+      val signupCodeUnusedValue: Future[AfterDeadlineSignupCodeUnused] = signupCodeUnusedAndValid(signupCode)
       val signupCodeValid: Future[Boolean] = signupCodeUnusedValue.map(_.unused)
 
       def checkAppWindowBeforeProceeding (data: Map[String, String], fn: => Future[Result]): Future[Result] =

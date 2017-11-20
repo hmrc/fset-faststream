@@ -46,8 +46,9 @@ trait ApplicationClient {
 
   val apiBaseUrl = url.host + url.base
 
-  def afterDeadlineSignupCodeUnused(afterDeadlineSignupCode: String)(implicit hc: HeaderCarrier): Future[AfterDeadlineSignupCodeUnused] = {
-    http.GET(s"$apiBaseUrl/campaign-management/afterDeadlineSignupCodeUnused",
+  def afterDeadlineSignupCodeUnusedAndValid(afterDeadlineSignupCode: String)(implicit hc: HeaderCarrier)
+  : Future[AfterDeadlineSignupCodeUnused] = {
+    http.GET(s"$apiBaseUrl/campaign-management/afterDeadlineSignupCodeUnusedAndValid",
       Seq("code" -> afterDeadlineSignupCode)).map { response =>
       response.json.as[AfterDeadlineSignupCodeUnused]
     }
