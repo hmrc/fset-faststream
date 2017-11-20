@@ -121,9 +121,9 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
       val (data, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
-      val result = controller(appRouteConfigMap).signUp()(Request)
+      val result = controller(appRouteConfigMap).signUp(None)(Request)
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.SignUpController.present().url))
+      redirectLocation(result) must be(Some(routes.SignUpController.present(None).url))
       flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are now closed"))
     }
 
@@ -137,9 +137,9 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
       val (data, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
-      val result = controller(appRouteConfigMap).signUp()(Request)
+      val result = controller(appRouteConfigMap).signUp(None)(Request)
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.SignUpController.present().url))
+      redirectLocation(result) must be(Some(routes.SignUpController.present(None).url))
       flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are opened from 06 Dec 2016"))
     }
   }
