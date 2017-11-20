@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait CampaignManagementAfterDeadlineSignupCodeRepository {
-  def isUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]]
+  def findUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]]
   def save(code: CampaignManagementAfterDeadlineCode): Future[Unit]
 }
 
@@ -37,7 +37,7 @@ class CampaignManagementAfterDeadlineSignupCodeMongoRepository(implicit mongo: (
     mongo, CampaignManagementAfterDeadlineCode.campaignManagementAfterDeadlineCodeFormat,
     ReactiveMongoFormats.objectIdFormats) with CampaignManagementAfterDeadlineSignupCodeRepository {
 
-  def isUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]] = {
+  def findUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]] = {
     val query = BSONDocument(
       "code" -> code,
       "usedByApplicationId" -> BSONDocument("$exists" -> false),

@@ -18,6 +18,7 @@ package services.campaignmanagement
 
 import java.util.UUID
 
+import factories.UUIDFactory
 import model.exchange.campaignmanagement.{ AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused }
 import model.persisted.CampaignManagementAfterDeadlineCode
 import org.joda.time.DateTime
@@ -29,20 +30,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object CampaignManagementService extends CampaignManagementService{
   val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository = campaignManagementAfterDeadlineSignupCodeRepository
+  val uuidFactory = UUIDFactory
 }
 
 trait CampaignManagementService {
   val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository
+  val uuidFactory: UUIDFactory
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Future[AfterDeadlineSignupCodeUnused] = {
-    afterDeadlineCodeRepository.isUnusedValidCode(code).map(storedCodeOpt =>
+    afterDeadlineCodeRepository.findUnusedValidCode(code).map(storedCodeOpt =>
       AfterDeadlineSignupCodeUnused(storedCodeOpt.isDefined, storedCodeOpt.map(_.expires))
     )
   }
 
   def generateAfterDeadlineSignupCode(createdByUserId: String, expiryInHours: Int): Future[AfterDeadlineSignupCode] = {
     val newCode = CampaignManagementAfterDeadlineCode(
-        UUID.randomUUID().toString,
+        uuidFactory.generateUUID(),
       createdByUserId,
       DateTime.now().plusHours(expiryInHours)
     )
