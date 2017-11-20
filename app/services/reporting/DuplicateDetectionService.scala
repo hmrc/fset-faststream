@@ -29,7 +29,7 @@ import scala.concurrent.Future
 
 case class DuplicateCandidate(email: String, firstName: String, lastName: String, latestProgressStatus: String, applicationRoute: String)
 
-case class DuplicateApplicationGroup(matchType: Int, candidates: List[DuplicateCandidate])
+case class DuplicateApplicationGroup(matchType: Int, candidates: Set[DuplicateCandidate])
 
 object DuplicateDetectionService extends DuplicateDetectionService {
   val reportingRepository: ReportingRepository = repositories.reportingRepository
@@ -56,7 +56,7 @@ trait DuplicateDetectionService {
     } yield {
       Logger.debug(s"Detect duplications from ${source.length} candidates")
       Logger.debug(s"Detect duplications in ${population.length} candidates")
-      findDuplicates(source, population, userIdToEmailReference)
+      findDuplicates(source, population, userIdToEmailReference).groupBy(_.candidates).mapValues(_.head).values.toList
     }
   }
 
@@ -150,14 +150,14 @@ trait DuplicateDetectionService {
           duplicatesDOBLastName
 
       List(
-        selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, highProbabilityDuplicates, userIdToEmailReference),
-        selectDuplicatesOnlyOpt(MediumProbabilityMatchGroup, mediumProbabilityDuplicates, userIdToEmailReference)
+        selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, highProbabilityDuplicates.toSet, userIdToEmailReference),
+        selectDuplicatesOnlyOpt(MediumProbabilityMatchGroup, mediumProbabilityDuplicates.toSet, userIdToEmailReference)
       ).flatten
     }
   }
   // scalastyle:on method.length
 
-  private def selectDuplicatesOnlyOpt(matchGroup: Int, duplicatesGroup: List[UserApplicationProfile],
+  private def selectDuplicatesOnlyOpt(matchGroup: Int, duplicatesGroup: Set[UserApplicationProfile],
                                       userIdsToEmails: Map[String, String]): Option[DuplicateApplicationGroup] = {
     def toDuplicateCandidate(app: UserApplicationProfile) = {
       DuplicateCandidate(
