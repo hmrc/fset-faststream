@@ -20,7 +20,7 @@ import common.FutureEx
 import connectors.ExchangeObjects
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Green, Red }
-import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, NotFoundException, PassMarkEvaluationNotFound }
+import model.Exceptions._
 import model.ProgressStatuses.{ ProgressStatus, SIFT_ENTERED }
 import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
@@ -69,6 +69,7 @@ object ApplicationService extends ApplicationService {
   val schemesRepo = SchemeYamlRepository
   val phase1TestRepo = repositories.phase1TestRepository
   val phase2TestRepository = repositories.phase2TestRepository
+  val phase3TestRepository = repositories.phase3TestRepository
   val phase1EvaluationRepository = faststreamPhase1EvaluationRepository
   val phase2EvaluationRepository = faststreamPhase2EvaluationRepository
   val phase3EvaluationRepository = faststreamPhase3EvaluationRepository
@@ -93,6 +94,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def schemesRepo: SchemeRepository
   def phase1TestRepo: Phase1TestRepository
   def phase2TestRepository: Phase2TestRepository
+  def phase3TestRepository: Phase3TestRepository
   def phase1EvaluationRepository: Phase1EvaluationMongoRepository
   def phase2EvaluationRepository: Phase2EvaluationMongoRepository
   def phase3EvaluationRepository: Phase3EvaluationMongoRepository
@@ -424,6 +426,56 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       _ <- siftService.sendSiftEnteredNotification(candidate.applicationId.get).map(_ => ())
     } yield ()
+  }
+
+  def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String): Future[Unit] = {
+
+    def setToRedExceptSdip(results: Option[List[SchemeEvaluationResult]]): List[SchemeEvaluationResult] = {
+      results.map {
+        _.map { result =>
+          if(result.schemeId != Scheme.SdipId) {
+            result.copy(result = EvaluationResults.Red.toString)
+          } else {
+            result
+          }
+        }
+      }.getOrElse(throw UnexpectedException(s"No evaluation results found"))
+    }
+
+    def updateStatuses(): Future[Unit] = {
+      for {
+        _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_ENTERED)
+        currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+        newCurrentSchemeStatus = setToRedExceptSdip(Some(currentSchemeStatus.toList))
+        _ <- appRepository.updateCurrentSchemeStatus(applicationId, newCurrentSchemeStatus)
+      } yield ()
+    }
+
+
+    def updateEvaluationResults(prevPhaseRepo: OnlineTestRepository, nextPhaseRepo: OnlineTestRepository): Future[Unit] = {
+      prevPhaseRepo.getTestGroup(applicationId).map { prevPhaseTestGroupOpt =>
+        prevPhaseTestGroupOpt.map { prevPhaseTestGroup =>
+          val newSchemeEvaluationResults = setToRedExceptSdip(prevPhaseTestGroup.evaluation.map(_.result))
+          val newPassmarkEvaluationResult = prevPhaseTestGroup.evaluation
+            .map(_.copy(result = newSchemeEvaluationResults))
+            .getOrElse(
+              throw UnexpectedException(s"Candidate with app id $applicationId has no evaluation result for ${prevPhaseRepo.phaseName}"))
+          nextPhaseRepo.upsertTestGroupEvaluationResult(applicationId, newPassmarkEvaluationResult).map(_ => ())
+        }.getOrElse(throw UnexpectedException(s"Candidate with app id $applicationId has no test group for ${prevPhaseRepo.phaseName}"))
+      }
+    }
+
+    appRepository.find(applicationId).map {
+      _.map { candidate =>
+        candidate.applicationStatus match {
+          case Some("PHASE2_TESTS") =>
+            updateEvaluationResults(phase1TestRepo, phase2TestRepository).flatMap(_ => updateStatuses().map(_ => ()))
+          case Some("PHASE3_TESTS") =>
+            updateEvaluationResults(phase2TestRepository, phase3TestRepository).flatMap(_ => updateStatuses().map(_ => ()))
+          case _ => throw UnexpectedException(s"Candidate with app id $applicationId should be in either PHASE2 or PHASE3")
+        }
+      }
+    }
   }
 
   private def rollbackAppAndProgressStatus(applicationId: String,

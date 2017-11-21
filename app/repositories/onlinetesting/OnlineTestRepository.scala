@@ -252,6 +252,13 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.update(query, update) map validator
   }
 
+  def upsertTestGroupEvaluationResult(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument("$set" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> passmarkEvaluation))
+
+    collection.update(query, update).map(_ => ())
+  }
+
   def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
     require(progressStatuses forall (ps =>
