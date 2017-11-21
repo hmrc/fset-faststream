@@ -32,6 +32,29 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
     }
   }
 
+  "mark signup code as used" should {
+    "mark a signup code as used" in {
+      val expiryTime = DateTime.now.plusDays(2)
+
+      val newCode = CampaignManagementAfterDeadlineCode(
+        "1234",
+        "userId1",
+        expiryTime,
+        None
+      )
+
+      val (codeUnusedAndValid, codeStillUnusedAndValid) = (for {
+        _ <- repository.save(newCode)
+        codeUnusedAndValid <- repository.findUnusedValidCode(newCode.code)
+        _ <- repository.markSignupCodeAsUsed(newCode.code, "appId1")
+        codeStillUnusedAndValid <- repository.findUnusedValidCode(newCode.code)
+      } yield (codeUnusedAndValid, codeStillUnusedAndValid)).futureValue
+
+      codeUnusedAndValid mustBe defined
+      codeStillUnusedAndValid mustBe empty
+    }
+  }
+
   "find UnusedValidCode" should {
     "return Some if code is unexpired and unused" in {
       val expiryTime = DateTime.now.plusDays(2)
