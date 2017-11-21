@@ -23,8 +23,8 @@
 @import views.html.widgets.{radioBoxVerticalMultiToggle, yesNoQuestion, yesNoRadioWithNestedTogglePanel}
 
 @faststreamOpen = @{ appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled) || validAfterDeadlineSubmissionCode }
-@edipOpen = @{ appRouteConfigMap.get(Edip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled) || validAfterDeadlineSubmissionCode }
-@sdipOpen = @{ appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled) || validAfterDeadlineSubmissionCode }
+@edipOpen = @{ (appRouteConfigMap.get(Edip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled)) || validAfterDeadlineSubmissionCode }
+@sdipOpen = @{ (appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) || validAfterDeadlineSubmissionCode }
 
 <section class="section-border clearfix" id="routeElig">
     <div class="text">
