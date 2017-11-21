@@ -912,6 +912,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val mockSiftService: ApplicationSiftService = mock[ApplicationSiftService]
     val phase1TestRepositoryMock: Phase1TestRepository = mock[Phase1TestRepository]
     val phase2TestRepositoryMock: Phase2TestRepository = mock[Phase2TestRepository]
+    val phase3TestRepositoryMock: Phase3TestRepository = mock[Phase3TestRepository]
     val siftRepoMock = mock[ApplicationSiftRepository]
     val fsacRepoMock = mock[AssessmentCentreRepository]
     val fsbRepoMock = mock[FsbRepository]
@@ -960,6 +961,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val siftService = mockSiftService
       val phase1TestRepo = phase1TestRepositoryMock
       val phase2TestRepository = phase2TestRepositoryMock
+      val phase3TestRepository = phase3TestRepositoryMock
       val appSiftRepository = siftRepoMock
       val fsacRepo = fsacRepoMock
       val fsbRepo = fsbRepoMock
