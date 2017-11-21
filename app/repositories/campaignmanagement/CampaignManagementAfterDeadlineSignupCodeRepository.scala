@@ -20,7 +20,7 @@ import model.persisted.CampaignManagementAfterDeadlineCode
 import org.joda.time.DateTime
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import repositories.CollectionNames
+import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -29,13 +29,14 @@ import scala.concurrent.Future
 
 trait CampaignManagementAfterDeadlineSignupCodeRepository {
   def findUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]]
+  def markSignupCodeAsUsed(code: String, applicationId: String): Future[Unit]
   def save(code: CampaignManagementAfterDeadlineCode): Future[Unit]
 }
 
 class CampaignManagementAfterDeadlineSignupCodeMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[CampaignManagementAfterDeadlineCode, BSONObjectID](CollectionNames.CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE,
     mongo, CampaignManagementAfterDeadlineCode.campaignManagementAfterDeadlineCodeFormat,
-    ReactiveMongoFormats.objectIdFormats) with CampaignManagementAfterDeadlineSignupCodeRepository {
+    ReactiveMongoFormats.objectIdFormats) with CampaignManagementAfterDeadlineSignupCodeRepository with ReactiveRepositoryHelpers {
 
   def findUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]] = {
     val query = BSONDocument(
@@ -45,6 +46,22 @@ class CampaignManagementAfterDeadlineSignupCodeMongoRepository(implicit mongo: (
     )
 
     collection.find(query).one[CampaignManagementAfterDeadlineCode]
+  }
+
+  def markSignupCodeAsUsed(code: String, applicationId: String): Future[Unit] = {
+    val updateValidator = singleUpdateValidator(applicationId, actionDesc = s"marking signup code $code as used")
+
+    collection.update(
+      BSONDocument(
+        "code" -> code,
+        "usedByApplicationId" -> BSONDocument("$exists" -> false)
+      ),
+      BSONDocument(
+        "$set" -> BSONDocument(
+          "usedByApplicationId" -> applicationId
+        )
+      )
+    ).map(updateValidator)
   }
 
   def save(code: CampaignManagementAfterDeadlineCode): Future[Unit] = {

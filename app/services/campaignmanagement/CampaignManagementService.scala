@@ -43,6 +43,10 @@ trait CampaignManagementService {
     )
   }
 
+  def markSignupCodeAsUsed(code: String, applicationId: String): Future[Unit] = {
+    afterDeadlineCodeRepository.markSignupCodeAsUsed(code, applicationId).map(_ => ())
+  }
+
   def generateAfterDeadlineSignupCode(createdByUserId: String, expiryInHours: Int): Future[AfterDeadlineSignupCode] = {
     val newCode = CampaignManagementAfterDeadlineCode(
         uuidFactory.generateUUID(),
