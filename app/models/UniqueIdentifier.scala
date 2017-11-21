@@ -20,8 +20,8 @@ import java.util.UUID
 
 import play.api.libs.json._
 
-case class UniqueIdentifier(val uuid: UUID) {
-  override def toString = uuid.toString
+case class UniqueIdentifier(uuid: UUID) {
+  override def toString: String = uuid.toString
 }
 
 object UniqueIdentifier {

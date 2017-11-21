@@ -26,6 +26,7 @@ import connectors.exchange._
 import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
 import helpers.NotificationType._
 import models.{ ApplicationRoute, SecurityUser, UniqueIdentifier }
+import play.api.Logger
 import play.api.i18n.Messages
 import play.api.mvc.{ Action, AnyContent, Result }
 import security.{ SignInService, SilhouetteComponent }
@@ -52,7 +53,6 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
   def present(signupCode: Option[String] = None): Action[AnyContent] = CSRUserAwareAction { implicit request => implicit user =>
 
     val signupCodeValid: Future[Boolean] = signupCodeUnusedAndValid(signupCode).map(_.unused)
-
 
     signupCodeValid.map { sCodeValid =>
       request.identity match {
@@ -87,13 +87,18 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
           }
         }.flatMap(identity)
 
-      def overrideSubmissionDeadlineIfSignupCodeValid(applicationId: UniqueIdentifier,
-                                                      sCode: AfterDeadlineSignupCodeUnused) = if (sCode.unused) {
-        applicationClient.overrideSubmissionDeadline(
-          applicationId, OverrideSubmissionDeadlineRequest(sCode.expires.get)
-        )
-      } else {
-        Future.successful(())
+      def overrideSubmissionDeadlineAndMarkUsedIfSignupCodeValid(applicationId: UniqueIdentifier,
+                                                      sCode: AfterDeadlineSignupCodeUnused) = {
+        if (sCode.unused) {
+          for {
+            _ <- applicationClient.overrideSubmissionDeadline(
+              applicationId, OverrideSubmissionDeadlineRequest(sCode.expires.get)
+            )
+            _ <- applicationClient.markSignupCodeAsUsed(signupCode.get, applicationId)
+          } yield ()
+        } else {
+          Future.successful(())
+        }
       }
 
       SignUpForm.form.bindFromRequest.fold(
@@ -114,7 +119,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
               _ <- applicationClient.addReferral(u.userId, extractMediaReferrer(data))
               appResponse <- applicationClient.createApplication(u.userId, FrameworkId, appRoute)
               sCode <- signupCodeUnusedValue
-              _ <- overrideSubmissionDeadlineIfSignupCodeValid(appResponse.applicationId, sCode)
+              _ <- overrideSubmissionDeadlineAndMarkUsedIfSignupCodeValid(appResponse.applicationId, sCode)
             } yield {
               signInUser(
                 u.toCached,

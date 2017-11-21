@@ -73,6 +73,20 @@ trait ApplicationClient {
       }
     }
 
+  def markSignupCodeAsUsed(
+    code: String,
+    applicationId: UniqueIdentifier
+  )(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.GET(s"$apiBaseUrl/application/markSignupCodeAsUsed", Seq(
+      "code" -> code,
+      "applicationId" -> applicationId.toString
+    )).map { response =>
+      if (response.status != OK) {
+        throw new CannotMarkSignupCodeAsUsed(applicationId.toString, code)
+      }
+    }
+  }
+
   def submitApplication(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.PUT(s"$apiBaseUrl/application/submit/$userId/$applicationId", Json.toJson("")).map {
       case x: HttpResponse if x.status == OK => ()
@@ -350,6 +364,8 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class CannotSubmit extends Exception
 
   sealed class CannotSubmitOverriddenSubmissionDeadline extends Exception
+
+  sealed class CannotMarkSignupCodeAsUsed(applicationId: String, code: String) extends Exception
 
   sealed class PersonalDetailsNotFound extends Exception
 
