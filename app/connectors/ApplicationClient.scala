@@ -23,10 +23,11 @@ import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.GeneralDetails._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
-import connectors.exchange.candidateevents.{CandidateAllocationWithEvent, CandidateAllocations}
+import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
+import connectors.exchange.candidateevents.{ CandidateAllocationWithEvent, CandidateAllocations }
 import connectors.exchange.candidatescores.CompetencyAverageResult
 import models.events.EventType.EventType
-import models.{Adjustments, ApplicationRoute, UniqueIdentifier}
+import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
@@ -45,12 +46,44 @@ trait ApplicationClient {
 
   val apiBaseUrl = url.host + url.base
 
+  def afterDeadlineSignupCodeUnusedAndValid(afterDeadlineSignupCode: String)(implicit hc: HeaderCarrier)
+  : Future[AfterDeadlineSignupCodeUnused] = {
+    http.GET(s"$apiBaseUrl/campaign-management/afterDeadlineSignupCodeUnusedAndValid",
+      Seq("code" -> afterDeadlineSignupCode)).map { response =>
+      response.json.as[AfterDeadlineSignupCodeUnused]
+    }
+  }
+
   def createApplication(userId: UniqueIdentifier, frameworkId: String,
     applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream)
     (implicit hc: HeaderCarrier) = {
     http.PUT(s"$apiBaseUrl/application/create", CreateApplicationRequest(userId,
       frameworkId, applicationRoute)).map { response =>
       response.json.as[ApplicationResponse]
+    }
+  }
+
+  def overrideSubmissionDeadline(
+                                  application: UniqueIdentifier,
+                                  overrideRequest: OverrideSubmissionDeadlineRequest
+                                )(implicit hc: HeaderCarrier): Future[Unit] =
+    http.PUT(s"$apiBaseUrl/application/overrideSubmissionDeadline/$application", overrideRequest).map { response =>
+      if (response.status != OK) {
+        throw new CannotSubmitOverriddenSubmissionDeadline()
+      }
+    }
+
+  def markSignupCodeAsUsed(
+    code: String,
+    applicationId: UniqueIdentifier
+  )(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.GET(s"$apiBaseUrl/application/markSignupCodeAsUsed", Seq(
+      "code" -> code,
+      "applicationId" -> applicationId.toString
+    )).map { response =>
+      if (response.status != OK) {
+        throw new CannotMarkSignupCodeAsUsed(applicationId.toString, code)
+      }
     }
   }
 
@@ -329,6 +362,10 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class CannotUpdateRecord extends Exception
 
   sealed class CannotSubmit extends Exception
+
+  sealed class CannotSubmitOverriddenSubmissionDeadline extends Exception
+
+  sealed class CannotMarkSignupCodeAsUsed(applicationId: String, code: String) extends Exception
 
   sealed class PersonalDetailsNotFound extends Exception
 

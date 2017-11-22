@@ -18,7 +18,7 @@
 @import models.ApplicationRoute._
 @import controllers.ApplicationRouteState
 
-@(signUpForm: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState], notification: Option[(helpers.NotificationType, String)] = None)(
+@(signUpForm: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState], notification: Option[(helpers.NotificationType, String)] = None, afterDeadlineSignupCode: Option[String] = None, validAfterDeadlineSignupCode: Boolean = false)(
         implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @import helpers.CSRFieldConstructor._
@@ -30,9 +30,13 @@
 }
 
 @allAppRouteWindowsClosed = @{
-    !appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled) &&
-    !appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled) &&
-    !appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled)
+    if (validAfterDeadlineSignupCode) {
+        false
+    } else {
+        !appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled) &&
+        !appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled) &&
+        !appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled)
+    }
 }
 
 @existingAccountPanel = {
@@ -49,7 +53,7 @@
 
         @existingAccountPanel
 
-        @helper.form(action = routes.SignUpController.signUp(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.SignUpController.signUp(afterDeadlineSignupCode), 'novalidate -> "novalidate") {
             @helper.CSRF.formField
 
             <!-- The following will stop browsers from trying to autofill the username and password fields in the create account page -->
@@ -127,7 +131,7 @@
                 </div>
             </section>
 
-            @chooseYourRoute(signUpForm, appRouteConfigMap)
+            @chooseYourRoute(signUpForm, appRouteConfigMap, validAfterDeadlineSignupCode)
 
             <section class="section-border">
                 <h2 class="heading-large">How did you hear about us?</h2>

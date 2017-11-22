@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package models
+package connectors.exchange.campaignmanagement
 
-import java.util.UUID
+import org.joda.time.DateTime
+import play.api.libs.json.{ Json, OFormat }
 
-import play.api.libs.json._
+case class AfterDeadlineSignupCodeUnused(unused: Boolean, expires: Option[DateTime] = None)
 
-case class UniqueIdentifier(uuid: UUID) {
-  override def toString: String = uuid.toString
-}
-
-object UniqueIdentifier {
-  def apply(value: String): UniqueIdentifier = {
-    UniqueIdentifier(UUID.fromString(value))
-  }
-
-  implicit val uniqueIdentifierFormats: Writes[UniqueIdentifier] = Writes {
-    (identifier: UniqueIdentifier) => JsString(identifier.toString())
-  }
-  implicit val uniqueIdentifierReads: Reads[UniqueIdentifier] = Reads {
-    (jsValue: JsValue) => JsSuccess(UniqueIdentifier(jsValue.as[String]))
-  }
+object AfterDeadlineSignupCodeUnused {
+  implicit val afterDeadlineSignupCodeUnusedFormat: OFormat[AfterDeadlineSignupCodeUnused] = Json.format[AfterDeadlineSignupCodeUnused]
 }

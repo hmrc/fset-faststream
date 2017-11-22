@@ -20,15 +20,21 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import config.{ CSRHttp, SecurityEnvironmentImpl }
+import connectors.exchange.{ ApplicationResponse, OverrideSubmissionDeadlineRequest, ProgressResponse, UserResponse }
+import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
 import connectors.{ ApplicationClient, UserManagementClient }
 import forms.SignupFormGenerator
+import models.ApplicationData.ApplicationStatus
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
-import models.{ CachedDataExample, CachedDataWithApp }
+import models.{ ApplicationRoute, CachedDataExample, CachedDataWithApp, UniqueIdentifier }
+import org.joda.time.DateTime
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserCacheService, UserService }
+import security.{ SilhouetteComponent, UserCacheService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.MockitoImplicits._
 
 class SignUpControllerSpec extends BaseControllerSpec {
 
@@ -108,10 +114,51 @@ class SignUpControllerSpec extends BaseControllerSpec {
       content must include(applicationsClosedPanelId)
       content mustNot include("Create account")
     }
+
+    "prevent any new accounts being created when all application routes are closed and an invalid signup code is supplied" in new TestFixture {
+      val invalidSignupCode = "abcd"
+      when(mockApplicationClient.afterDeadlineSignupCodeUnusedAndValid(any())(any()))
+        .thenReturnAsync(AfterDeadlineSignupCodeUnused(unused = false))
+
+      val appRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = false
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None
+      }
+      val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
+      val result = controller(appRouteConfigMap).present(Some(invalidSignupCode))(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+      content must include(applicationsClosedPanelId)
+      content mustNot include("Create account")
+    }
+
+    "show the signup page when all application routes are closed but the user has a valid signup code" in new TestFixture {
+      val validSignupCode = "abcd"
+      when(mockApplicationClient.afterDeadlineSignupCodeUnusedAndValid(any())(any())).thenReturnAsync(
+        AfterDeadlineSignupCodeUnused(unused = true, expires = Some(DateTime.now.plusDays(2)))
+      )
+
+      val appRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = false
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None
+      }
+
+      val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
+      val result = controller(appRouteConfigMap).present(Some(validSignupCode))(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+      content must include(sdipEligible)
+      content must include(faststreamEligible)
+      content must include(edipEligible)
+    }
   }
 
   "sign up" should {
-    "display fast stream applications closed message " in new TestFixture {
+    "display fast stream applications closed message" in new TestFixture {
       val appRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = false
@@ -121,9 +168,9 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
       val (data, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
-      val result = controller(appRouteConfigMap).signUp()(Request)
+      val result = controller(appRouteConfigMap).signUp(None)(Request)
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.SignUpController.present().url))
+      redirectLocation(result) must be(Some(routes.SignUpController.present(None).url))
       flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are now closed"))
     }
 
@@ -137,9 +184,9 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
       val (data, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
-      val result = controller(appRouteConfigMap).signUp()(Request)
+      val result = controller(appRouteConfigMap).signUp(None)(Request)
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.SignUpController.present().url))
+      redirectLocation(result) must be(Some(routes.SignUpController.present(None).url))
       flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are opened from 06 Dec 2016"))
     }
   }

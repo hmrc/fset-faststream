@@ -23,15 +23,18 @@ import config.CSRHttp
 import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange._
+import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
 import helpers.NotificationType._
-import models.{ ApplicationRoute, SecurityUser }
+import models.{ ApplicationRoute, SecurityUser, UniqueIdentifier }
+import play.api.Logger
 import play.api.i18n.Messages
-import play.api.mvc.Result
+import play.api.mvc.{ Action, AnyContent, Result }
 import security.{ SignInService, SilhouetteComponent }
 
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SignUpController extends SignUpController(ApplicationClient, UserManagementClient) {
   val http = CSRHttp
@@ -42,26 +45,61 @@ object SignUpController extends SignUpController(ApplicationClient, UserManageme
 abstract class SignUpController(val applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
   extends BaseController with SignInService with CampaignAwareController {
 
-  def present = CSRUserAwareAction { implicit request =>
-    implicit user =>
-      Future.successful(request.identity match {
+  private def signupCodeUnusedAndValid(signupCode: Option[String])
+                               (implicit hc: HeaderCarrier): Future[AfterDeadlineSignupCodeUnused] = signupCode.map(sCode =>
+    applicationClient.afterDeadlineSignupCodeUnusedAndValid(sCode)
+  ).getOrElse(Future.successful(AfterDeadlineSignupCodeUnused(unused = false)))
+
+  def present(signupCode: Option[String] = None): Action[AnyContent] = CSRUserAwareAction { implicit request => implicit user =>
+
+    val signupCodeValid: Future[Boolean] = signupCodeUnusedAndValid(signupCode).map(_.unused)
+
+    signupCodeValid.map { sCodeValid =>
+      request.identity match {
         case Some(_) => Redirect(routes.HomeController.present()).flashing(warning("activation.already"))
-        case None => Ok(views.html.registration.signup(SignUpForm.form, appRouteConfigMap))
-      })
+        case None => Ok(views.html.registration.signup(SignUpForm.form, appRouteConfigMap, None, signupCode, sCodeValid))
+      }
+    }
   }
 
-  def signUp = CSRUserAwareAction { implicit request =>
+  // scalastyle:off method.length
+  def signUp(signupCode: Option[String]): Action[AnyContent] = CSRUserAwareAction { implicit request =>
     implicit user =>
 
-      def checkAppWindowBeforeProceeding (data: Map[String, String], fn: => Future[Result]) =
-        data.get("applicationRoute").map(ApplicationRoute.withName).map {
-          case appRoute if !isNewAccountsStarted(appRoute) =>
-            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(
-              Messages(s"applicationRoute.$appRoute.notOpen", getApplicationStartDate(appRoute)))))
-          case appRoute if !isNewAccountsEnabled(appRoute) =>
-            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(Messages(s"applicationRoute.$appRoute.closed"))))
-          case _ => fn
-        } getOrElse fn
+      val signupCodeUnusedValue: Future[AfterDeadlineSignupCodeUnused] = signupCodeUnusedAndValid(signupCode)
+      val signupCodeValid: Future[Boolean] = signupCodeUnusedValue.map(_.unused)
+
+      def checkAppWindowBeforeProceeding (data: Map[String, String], fn: => Future[Result]): Future[Result] =
+        signupCodeValid.map { sCodeValid =>
+          if (sCodeValid) {
+            fn
+          } else {
+            data.get("applicationRoute").map(ApplicationRoute.withName).map {
+              case appRoute if !isNewAccountsStarted(appRoute) =>
+                Future.successful(Redirect(routes.SignUpController.present(None)).flashing(warning(
+                  Messages(s"applicationRoute.$appRoute.notOpen", getApplicationStartDate(appRoute)))))
+              case appRoute if !isNewAccountsEnabled(appRoute) =>
+                Future.successful(Redirect(routes.SignUpController.present(None)).flashing(
+                  warning(Messages(s"applicationRoute.$appRoute.closed"))
+                ))
+              case _ => fn
+            }.getOrElse(fn)
+          }
+        }.flatMap(identity)
+
+      def overrideSubmissionDeadlineAndMarkUsedIfSignupCodeValid(applicationId: UniqueIdentifier,
+                                                      sCode: AfterDeadlineSignupCodeUnused) = {
+        if (sCode.unused) {
+          for {
+            _ <- applicationClient.overrideSubmissionDeadline(
+              applicationId, OverrideSubmissionDeadlineRequest(sCode.expires.get)
+            )
+            _ <- applicationClient.markSignupCodeAsUsed(signupCode.get, applicationId)
+          } yield ()
+        } else {
+          Future.successful(())
+        }
+      }
 
       SignUpForm.form.bindFromRequest.fold(
         invalidForm => {
@@ -76,27 +114,29 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
             case (_, _) => selectedAppRoute
           }
           checkAppWindowBeforeProceeding(SignUpForm.form.fill(data).data, {
-              userManagementClient.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
-                applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
-                  applicationClient.createApplication(u.userId, FrameworkId, appRoute).flatMap { appResponse =>
-                    signInUser(
-                      u.toCached,
-                      redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
-                      env = env
-                    ).map { r =>
-                      env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request))
-                      r
-                    }
-                  }
-                }
-              }.recover {
+            (for {
+              u <- userManagementClient.register(data.email.toLowerCase, data.password, data.firstName, data.lastName)
+              _ <- applicationClient.addReferral(u.userId, extractMediaReferrer(data))
+              appResponse <- applicationClient.createApplication(u.userId, FrameworkId, appRoute)
+              sCode <- signupCodeUnusedValue
+              _ <- overrideSubmissionDeadlineAndMarkUsedIfSignupCodeValid(appResponse.applicationId, sCode)
+            } yield {
+              signInUser(
+                u.toCached,
+                redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
+                env = env
+              ).map { r =>
+                env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request))
+                r
+              }
+            }).flatMap(identity)
+            }).recover {
                 case e: EmailTakenException =>
                   Ok(views.html.registration.signup(SignUpForm.form.fill(data), appRouteConfigMap, Some(danger("user.exists"))))
               }
           })
         }
-      )
-  }
+  // scalastyle:on
 
   private def extractMediaReferrer(data: SignUpForm.Data): String = {
     if (data.campaignReferrer.contains("Other")) {
