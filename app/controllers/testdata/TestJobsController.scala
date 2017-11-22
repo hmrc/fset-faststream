@@ -18,17 +18,26 @@ package controllers.testdata
 
 import play.api.mvc.{ Action, AnyContent }
 import scheduler.assessment.EvaluateAssessmentScoreJob
-import scheduler.onlinetesting.{ EvaluatePhase1ResultJob, EvaluatePhase2ResultJob, EvaluatePhase3ResultJob, SuccessPhase1TestJob }
+import scheduler.onlinetesting._
 import scheduler._
 import scheduler.fsb.EvaluateFsbJob
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object TestJobsController extends TestJobsController
 
 class TestJobsController extends BaseController {
 
+  def expireOnlineTestJob(phase: String): Action[AnyContent] = Action.async { implicit request =>
+    phase.toUpperCase match {
+      case "PHASE1" => ExpirePhase1TestJob.tryExecute().map(_ => Ok(s"$phase expiry job started"))
+      case "PHASE2" => ExpirePhase2TestJob.tryExecute().map(_ => Ok(s"$phase expiry job started"))
+      case "PHASE3" => ExpirePhase3TestJob.tryExecute().map(_ => Ok(s"$phase expiry job started"))
+      case _ => Future.successful(BadRequest(s"No such phase: $phase. Options are [phase1, phase2, phase3]"))
+    }
+  }
   def evaluatePhase1OnlineTestsCandidate: Action[AnyContent] = Action.async { implicit request =>
     EvaluatePhase1ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 1 result job started")
