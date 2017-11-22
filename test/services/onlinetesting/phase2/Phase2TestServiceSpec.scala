@@ -22,6 +22,7 @@ import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments, toString => _ }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.Commands.PostCode
 import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenException, InvalidTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
@@ -44,6 +45,7 @@ import services.AuditService
 import services.stc.StcEventService
 import services.onlinetesting.Exceptions.CannotResetPhase2Tests
 import services.onlinetesting.phase3.Phase3TestService
+import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import testkit.{ ExtendedTimeout, UnitSpec }
 
@@ -191,6 +193,88 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )
     }
   }
+
+  "processNextExpiredTest" should {
+    "do nothing if there are no expired application to process" in new Phase2TestServiceFixture {
+      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(None))
+      phase2TestService.processNextExpiredTest(Phase2ExpirationEvent).futureValue mustBe unit
+    }
+
+    "update progress status and send an email to the user when a Faststream application is expired" in new Phase2TestServiceFixture {
+      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.Faststream))
+      val results = List(SchemeEvaluationResult("Sdip", "Green"))
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent)
+
+      result.futureValue mustBe unit
+
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE2_TESTS_EXPIRED)
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
+      verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
+      verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
+      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
+    }
+
+    "progress SdipFS application to SIFT_ENTERED if Sdip is GREEN and tests have expired" in new Phase2TestServiceFixture {
+      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
+      val results = List(SchemeEvaluationResult("Sdip", "Green"))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
+      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(success)
+      when(otRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(success)
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(success)
+
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent)
+
+      result.futureValue mustBe unit
+
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE2_TESTS_EXPIRED)
+      verify(appRepositoryMock, times(1)).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
+      verify(appRepositoryMock, times(1)).getCurrentSchemeStatus(applicationId)
+      verify(appRepositoryMock, times(1)).updateCurrentSchemeStatus(applicationId, results)
+      verify(siftServiceMock, times(1)).sendSiftEnteredNotification(applicationId)
+      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
+    }
+
+    "not progress SdipFS application to SIFT_ENTERED if Sdip is RED and tests have expired" in new Phase2TestServiceFixture {
+      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
+      val results = List(SchemeEvaluationResult("Sdip", "Red"))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
+      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(success)
+      when(otRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(success)
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(success)
+
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent)
+
+      result.futureValue mustBe unit
+
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE2_TESTS_EXPIRED)
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
+      verify(appRepositoryMock, times(1)).getCurrentSchemeStatus(applicationId)
+      verify(appRepositoryMock, times(1)).updateCurrentSchemeStatus(applicationId, results)
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
+      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
+    }
+  }
+
 
   "mark as started" should {
     "change progress to started" in new Phase2TestServiceFixture {
@@ -820,7 +904,16 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val expirationDate = invitationDate.plusDays(5)
     val expiredDate = now.minusMinutes(1)
     val invigilatedExpirationDate = invitationDate.plusDays(90)
+    val applicationId = "appId"
+    val userId = "userId"
+    val preferredName = "Preferred\tName"
+    val expiredApplication = ExpiringOnlineTest(applicationId, userId, preferredName)
 
+    val postcode : Option[PostCode]= Some("WC2B 4")
+    val emailContactDetails = "emailfjjfjdf@mailinator.com"
+    val contactDetails = ContactDetails(outsideUk = false, Address("Aldwych road"), postcode, Some("UK"), emailContactDetails, "111111")
+
+    val success = Future.successful(unit)
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val otRepositoryMock = mock[Phase2TestRepository]
@@ -830,6 +923,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val tokenFactoryMock = mock[UUIDFactory]
     val eventServiceMock = mock[StcEventService]
     val phase3TestServiceMock = mock[Phase3TestService]
+    val siftServiceMock = mock[ApplicationSiftService]
 
     val tokens = UUIDFactory.generateUUID :: UUIDFactory.generateUUID :: Nil
     val registrations = Registration(123) :: Registration(456) :: Nil
@@ -954,6 +1048,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val actor = ActorSystem()
       val authProvider = authProviderClientMock
       val phase3TestService = phase3TestServiceMock
+      val siftService = siftServiceMock
     }
   }
 }

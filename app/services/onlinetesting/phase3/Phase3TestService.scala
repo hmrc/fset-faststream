@@ -41,6 +41,7 @@ import services.stc.StcEventService
 import services.onlinetesting.Exceptions.NoActiveTestException
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
+import services.sift.ApplicationSiftService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -61,7 +62,7 @@ object Phase3TestService extends Phase3TestService {
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
   val eventService = StcEventService
-
+  val siftService = ApplicationSiftService
 }
 
 //scalastyle:off number.of.methods
