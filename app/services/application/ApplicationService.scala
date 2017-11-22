@@ -478,6 +478,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     }
   }
 
+  def markSiftSchemeAsRed(applicationId: String, schemeId: SchemeId): Future[Unit] = {
+    appSiftRepository.fixSchemeEvaluation(applicationId, SchemeEvaluationResult(schemeId, Red.toString))
+  }
+
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,
                                            statuses: List[ProgressStatuses.ProgressStatus]) = {
