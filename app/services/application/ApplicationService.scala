@@ -21,7 +21,7 @@ import connectors.ExchangeObjects
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions._
-import model.ProgressStatuses.{ ProgressStatus, SIFT_ENTERED }
+import model.ProgressStatuses._
 import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
@@ -482,9 +482,19 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     appSiftRepository.fixSchemeEvaluation(applicationId, SchemeEvaluationResult(schemeId, Red.toString))
   }
 
+  def rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String): Future[Unit] = {
+    for {
+      _ <- appSiftRepository.fixDataByRemovingSiftEvaluation(applicationId)
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.SIFT, List(
+            ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+            SIFT_COMPLETED
+            ))
+    } yield ()
+  }
+
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,
-                                           statuses: List[ProgressStatuses.ProgressStatus]) = {
+                                           statuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     for {
       _ <- appRepository.updateStatus(applicationId, applicationStatus)
       _ <- appRepository.removeProgressStatuses(applicationId, statuses)

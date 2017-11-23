@@ -57,6 +57,7 @@ trait ApplicationSiftRepository {
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
   def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId: String): Future[Unit]
   def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit]
 }
 
 class ApplicationSiftMongoRepository(
@@ -289,6 +290,22 @@ class ApplicationSiftMongoRepository(
         BSONDocument("applicationId" -> applicationId),
         BSONDocument("applicationStatus" -> ApplicationStatus.FAILED_AT_SIFT)
       ))
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+        "$unset" -> BSONDocument(s"testGroups.$phaseName" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map{ result =>
+      if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
+  }
+
+  def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
 
     val updateOp = bsonCollection.updateModifier(
       BSONDocument(

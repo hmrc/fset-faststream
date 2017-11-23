@@ -207,4 +207,10 @@ trait FixDataConsistencyController extends BaseController {
       Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")
     )
   }
+
+  def rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId).map(_ =>
+      Ok(s"Successfully rolled $applicationId back to sift ready")
+    )
+  }
 }
