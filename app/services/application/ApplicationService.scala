@@ -478,8 +478,27 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     }
   }
 
+  private def amendOneSchemeInCurrentSchemeStatus(applicationId: String, currentSchemeStatus: Seq[SchemeEvaluationResult],
+                                                  schemeId: SchemeId, result: String) =
+    applicationRepository.updateCurrentSchemeStatus(applicationId, currentSchemeStatus.map(result =>
+      if (result.schemeId == schemeId) { result.copy(result = Red.toString) } else { result })
+    )
+
   def markSiftSchemeAsRed(applicationId: String, schemeId: SchemeId): Future[Unit] = {
-    appSiftRepository.fixSchemeEvaluation(applicationId, SchemeEvaluationResult(schemeId, Red.toString))
+    for {
+      _ <- appSiftRepository.fixSchemeEvaluation(applicationId, SchemeEvaluationResult(schemeId, Red.toString))
+      currentSchemeStatus <- applicationRepository.getCurrentSchemeStatus(applicationId)
+      _ <- amendOneSchemeInCurrentSchemeStatus(applicationId, currentSchemeStatus, schemeId, Red.toString)
+    } yield ()
+
+  }
+
+  def markSiftSchemeAsGreen(applicationId: String, schemeId: SchemeId): Future[Unit] = {
+    for {
+      _ <- appSiftRepository.fixSchemeEvaluation(applicationId, SchemeEvaluationResult(schemeId, Green.toString))
+      currentSchemeStatus <- applicationRepository.getCurrentSchemeStatus(applicationId)
+      _ <- amendOneSchemeInCurrentSchemeStatus(applicationId, currentSchemeStatus, schemeId, Green.toString)
+    } yield ()
   }
 
   def rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String): Future[Unit] = {
