@@ -45,6 +45,8 @@ GET         /application/:applicationId/sift/results                     control
 GET         /application/:applicationId/fsacEvaluationAverages           controllers.ApplicationController.getFsacEvaluationResultAverages(applicationId: String)
 POST        /application/:userId/:applicationId/:fsacAssessmentCentre    controllers.ApplicationController.updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String)
 
+GET         /application/markSignupCodeAsUsed                            controllers.CampaignManagementController.markSignupCodeAsUsed(code: String, applicationId: String)
+
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
 GET         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
 PUT         /adjustments/comment/:applicationId                          controllers.AdjustmentsManagementController.updateAdjustmentsComment(applicationId: String)
@@ -84,6 +86,9 @@ GET         /report/numeric-test-extract                                 control
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
 GET         /report/assessor-allocation                                  controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                 controllers.ReportingController.candidateAcceptanceReport()
+
+GET         /campaign-management/afterDeadlineSignupCodeUnusedAndValid   controllers.CampaignManagementController.afterDeadlineSignupCodeUnusedAndValid(code: String)
+GET         /campaign-management/generateAfterDeadlineSignupCode         controllers.CampaignManagementController.generateAfterDeadlineSignupCode(createdByUserId: String,expiryInHours: Int)
 
 GET         /diagnostic/user/:userId                                                    controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
 GET         /diagnostic/assessor/:userId                                                controllers.DiagnosticReportController.getAssessorDiagnosticDetail(userId: String)

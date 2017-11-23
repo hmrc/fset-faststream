@@ -22,7 +22,7 @@ import model.assessmentscores._
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
+import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
 import reactivemongo.bson._
 import repositories.application._
 import repositories.onlinetesting._
@@ -34,6 +34,7 @@ import model.command.WithdrawApplication
 import play.api.libs.json._
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
+import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeMongoRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.events.EventsMongoRepository
@@ -97,6 +98,7 @@ package object repositories {
   lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository
   lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository
   lazy val assessorsEventsSummaryJobsRepository = new AssessorsEventsSummaryJobsMongoRepository()
+  lazy val campaignManagementAfterDeadlineSignupCodeRepository = new CampaignManagementAfterDeadlineSignupCodeMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
@@ -131,12 +133,22 @@ package object repositories {
       ("location", Ascending), ("venue", Ascending)), unique = false)),
 
     assessorAllocationRepository.collection.indexesManager.create(Index(
-      Seq("id"-> Ascending, "eventId" -> Ascending),
+      Seq("id" -> Ascending, "eventId" -> Ascending),
       unique = false
     )),
 
     candidateAllocationRepository.collection.indexesManager.create(Index(
-      Seq("id"-> Ascending, "eventId" -> Ascending, "sessionId" -> Ascending),
+      Seq("id" -> Ascending, "eventId" -> Ascending, "sessionId" -> Ascending),
+      unique = false
+    )),
+
+    campaignManagementAfterDeadlineSignupCodeRepository.collection.indexesManager.create(Index(
+      Seq("code" -> Ascending),
+      unique = true
+    )),
+
+    campaignManagementAfterDeadlineSignupCodeRepository.collection.indexesManager.create(Index(
+      Seq("expires" -> Descending),
       unique = false
     ))
   )), 30 seconds)
