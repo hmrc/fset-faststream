@@ -428,7 +428,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
-  def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String): Future[Unit] = {
+  def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     def setToRedExceptSdip(results: Option[List[SchemeEvaluationResult]]): List[SchemeEvaluationResult] = {
       results.map {
@@ -469,9 +469,11 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _.map { candidate =>
         candidate.applicationStatus match {
           case Some("PHASE2_TESTS") =>
-            updateEvaluationResults(phase1TestRepo, phase2TestRepository).flatMap(_ => updateStatuses().map(_ => ()))
+            updateEvaluationResults(phase1TestRepo, phase2TestRepository)
+              .flatMap(_ => updateStatuses().flatMap(_ => siftService.sendSiftEnteredNotification(applicationId).map(_ => ())))
           case Some("PHASE3_TESTS") =>
-            updateEvaluationResults(phase2TestRepository, phase3TestRepository).flatMap(_ => updateStatuses().map(_ => ()))
+            updateEvaluationResults(phase2TestRepository, phase3TestRepository)
+              .flatMap(_ => updateStatuses().flatMap(_ => siftService.sendSiftEnteredNotification(applicationId).map(_ => ())))
           case _ => throw UnexpectedException(s"Candidate with app id $applicationId should be in either PHASE2 or PHASE3")
         }
       }
