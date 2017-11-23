@@ -17,6 +17,7 @@
 package controllers.fixdata
 
 import model.Exceptions.NotFoundException
+import model.SchemeId
 import model.command.FastPassPromotion
 import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
@@ -199,5 +200,17 @@ trait FixDataConsistencyController extends BaseController {
 
   def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId).map(_ => Ok(s"Successfully fixed $applicationId"))
+  }
+
+  def markSiftSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
+    applicationService.markSiftSchemeAsRed(applicationId, schemeId).map(_ =>
+      Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")
+    )
+  }
+
+  def rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId).map(_ =>
+      Ok(s"Successfully rolled $applicationId back to sift ready")
+    )
   }
 }

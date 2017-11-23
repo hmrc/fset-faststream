@@ -56,6 +56,8 @@ trait ApplicationSiftRepository {
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
   def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId: String): Future[Unit]
+  def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit]
 }
 
 class ApplicationSiftMongoRepository(
@@ -300,6 +302,54 @@ class ApplicationSiftMongoRepository(
       if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
       else { () }
     }
+  }
+
+  def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+        "$unset" -> BSONDocument(s"testGroups.$phaseName" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map{ result =>
+      if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
+  }
+
+  def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+
+    val saveEvaluationResultsDoc = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result)
+
+    val removeDoc = BSONDocument(
+      "$pull" -> BSONDocument(s"testGroups.$phaseName.evaluation.result.schemeId" -> result.schemeId.value)
+    )
+    val setDoc = BSONDocument(
+      "$addToSet" -> saveEvaluationResultsDoc
+    )
+
+    val removePredicate = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(
+        s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$in" -> BSONArray(result.schemeId.value))
+      )
+    ))
+    val setPredicate = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(
+        s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
+      )
+    ))
+
+    val validator = singleUpdateValidator(applicationId, s"fixing sift results for ${result.schemeId}", ApplicationNotFound(applicationId))
+
+    Future.sequence(Seq(
+      collection.update(removePredicate, removeDoc) map validator,
+      collection.update(setPredicate, setDoc) map validator
+    )).map(_ => ())
   }
 }
 
