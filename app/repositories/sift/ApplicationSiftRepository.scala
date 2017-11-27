@@ -325,7 +325,7 @@ class ApplicationSiftMongoRepository(
     val saveEvaluationResultsDoc = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result)
 
     val removeDoc = BSONDocument(
-      "$pull" -> BSONDocument(s"testGroups.$phaseName.evaluation.result.schemeId" -> result.schemeId.value)
+      "$pull" -> BSONDocument(s"testGroups.$phaseName.evaluation.result" -> BSONDocument("schemeId" -> result.schemeId.value))
     )
     val setDoc = BSONDocument(
       "$addToSet" -> saveEvaluationResultsDoc
