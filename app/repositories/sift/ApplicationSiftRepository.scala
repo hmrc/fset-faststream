@@ -346,10 +346,10 @@ class ApplicationSiftMongoRepository(
 
     val validator = singleUpdateValidator(applicationId, s"fixing sift results for ${result.schemeId}", ApplicationNotFound(applicationId))
 
-    Future.sequence(Seq(
-      collection.update(removePredicate, removeDoc) map validator,
-      collection.update(setPredicate, setDoc) map validator
-    )).map(_ => ())
+    for {
+      _ <- collection.update(removePredicate, removeDoc) map validator
+      _ <- collection.update(setPredicate, setDoc) map validator
+    } yield ()
   }
 }
 
