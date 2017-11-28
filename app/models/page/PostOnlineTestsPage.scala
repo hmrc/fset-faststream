@@ -52,8 +52,10 @@ case class PostOnlineTestsPage(
   lazy val fsacGuideUrl: String = FrontendAppConfig.fsacGuideUrl
 
   val isOnlySdipGreen: Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
-    userDataWithSchemes.currentSchemesStatus.forall(schemeStatus => schemeStatus.status == SchemeStatus.Red ||
-    (schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Green))
+    userDataWithSchemes.currentSchemesStatus.forall(schemeStatus =>
+      (schemeStatus.scheme.id != Scheme.SdipId && schemeStatus.status == SchemeStatus.Red) ||
+      (schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Green)
+    )
 
   // scalastyle:off cyclomatic.complexity
   def fsacStage: PostOnlineTestsStage =
