@@ -40,6 +40,7 @@ import services.stc.StcEventService
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, NoActiveTestException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.OnlineTestService
+import services.sift.ApplicationSiftService
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -63,6 +64,7 @@ object Phase2TestService extends Phase2TestService {
   val eventService = StcEventService
   val authProvider = AuthProviderClient
   val phase3TestService = Phase3TestService
+  val siftService = ApplicationSiftService
 }
 
 // scalastyle:off number.of.methods

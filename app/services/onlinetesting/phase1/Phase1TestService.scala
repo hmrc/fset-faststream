@@ -23,7 +23,6 @@ import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
 import model.stc.{ AuditEvents, DataStoreEvents }
@@ -36,11 +35,12 @@ import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.stc.StcEventService
 import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
+import services.sift.ApplicationSiftService
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Success }
 import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestService extends Phase1TestService {
@@ -57,6 +57,7 @@ object Phase1TestService extends Phase1TestService {
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
   val eventService = StcEventService
+  val siftService = ApplicationSiftService
 }
 
 trait Phase1TestService extends OnlineTestService with Phase1TestConcern with ResetPhase1Test {

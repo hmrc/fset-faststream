@@ -18,6 +18,7 @@ package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
 import model._
+import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting._
@@ -53,6 +54,7 @@ trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[Sche
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = new HeaderCarrier()
     implicit val rh = EmptyRequestHeader
+    Logger.debug(s"Running online test expiry job for ${expiryTest.phase}")
     onlineTestingService.processNextExpiredTest(expiryTest)
   }
 }
