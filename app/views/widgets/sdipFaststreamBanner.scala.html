@@ -64,6 +64,6 @@
     case Some(page) if page.isOnlySdipGreen => { @displaySdipFaststreamOnlySdipSuccessfulAfterPhase3Banner }
     case Some(page) if page.isSdipFaststreamFailed => { @displaySdipFaststreamFailedBanner }
     case Some(page) if page.isSdipFaststreamSuccessful => { @displaySdipFaststreamSuccessfulBanner }
-    case Some(page) if (page.isSdipFaststreamFailed || page.isSdipFaststreamSuccessful) && isSdipFaststream(cachedUserData) => { @displaySdipFaststreamBanner }
+    case Some(page) if !(page.isSdipFaststreamFailed || page.isSdipFaststreamSuccessful) && isSdipFaststream(cachedUserData) => { @displaySdipFaststreamBanner }
     case _ => { }
 }
