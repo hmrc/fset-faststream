@@ -57,6 +57,18 @@ case class PostOnlineTestsPage(
       (schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Green)
     )
 
+  val isSdipFaststreamFailed: Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
+    userDataWithSchemes.currentSchemesStatus.exists(
+      schemeStatus => schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Red
+    )
+
+  val isSdipFaststreamSuccessful: Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
+    userDataWithSchemes.currentSchemesStatus.exists(
+      schemeStatus => schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Green
+    )
+
+  val sdipFaststreamBannerPage = SdipFaststreamBannerPage(isOnlySdipGreen, isSdipFaststreamFailed, isSdipFaststreamSuccessful)
+
   // scalastyle:off cyclomatic.complexity
   def fsacStage: PostOnlineTestsStage =
     userDataWithSchemes.application.progress.assessmentCentre match {
