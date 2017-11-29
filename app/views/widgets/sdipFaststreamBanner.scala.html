@@ -14,7 +14,9 @@
  * limitations under the License.
  *@
 
-@(cachedUserData: CachedData, isOnlySdipGreen: Boolean = false)(implicit request: Request[_])
+@import models.page.SdipFaststreamBannerPage
+
+@(cachedUserData: CachedData, sdipFaststreamBannerPage: Option[SdipFaststreamBannerPage] = None)(implicit request: Request[_])
 
 @import security.RoleUtils._
 
@@ -58,12 +60,10 @@
     </div>
 }
 
-@isSdipResultAvailable = @{isSdipFaststreamFailed(cachedUserData) || isSdipFaststreamSuccessful(cachedUserData)}
-
-@cachedUserData match {
-    case _ if isOnlySdipGreen => { @displaySdipFaststreamOnlySdipSuccessfulAfterPhase3Banner }
-    case cud if isSdipFaststreamFailed(cud) => { @displaySdipFaststreamFailedBanner }
-    case cud if isSdipFaststreamSuccessful(cud) => { @displaySdipFaststreamSuccessfulBanner }
-    case cud if !isSdipResultAvailable && isSdipFaststream(cud) => { @displaySdipFaststreamBanner }
+@sdipFaststreamBannerPage match {
+    case Some(page) if page.isOnlySdipGreen => { @displaySdipFaststreamOnlySdipSuccessfulAfterPhase3Banner }
+    case Some(page) if page.isSdipFaststreamFailed => { @displaySdipFaststreamFailedBanner }
+    case Some(page) if page.isSdipFaststreamSuccessful => { @displaySdipFaststreamSuccessfulBanner }
+    case Some(page) if (page.isSdipFaststreamFailed || page.isSdipFaststreamSuccessful) && isSdipFaststream(cachedUserData) => { @displaySdipFaststreamBanner }
     case _ => { }
 }
