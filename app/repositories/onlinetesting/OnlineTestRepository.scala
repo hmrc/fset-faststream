@@ -269,7 +269,10 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> resetStatuses))
     ))
 
-    val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
+    val progressesToRemoveQueryPartial: Seq[(String, BSONValue)] = progressStatuses.flatMap(p =>
+        Seq(s"progress-status.$p" -> BSONString(""),
+          s"progress-status-timestamp.$p" -> BSONString(""))
+      )
 
     val updateQuery = BSONDocument(
       "$set" -> BSONDocument("applicationStatus" -> thisApplicationStatus),
