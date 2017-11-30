@@ -17,14 +17,11 @@
 package controllers
 
 import config.TestFixtureBase
-import mocks.application.DocumentRootInMemoryRepository
 import model.EvaluationResults.Green
-import model.Exceptions.CannotUpdateFSACIndicator
-import model.command.WithdrawApplication
-import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
+import model.Exceptions.{ ApplicationNotFound, CannotUpdateFSACIndicator }
+import model.command.{ ProgressResponse, WithdrawApplication }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, SchemeId }
-import org.joda.time.DateTime
+import model.{ ApplicationResponse, ApplicationRoute, SchemeId }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -40,6 +37,7 @@ import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.personaldetails.PersonalDetailsService
 import services.sift.ApplicationSiftService
 import testkit.UnitWithAppSpec
+import testkit.MockitoImplicits._
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -53,6 +51,11 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
   "Create Application" must {
     "create an application" in new TestFixture {
+      when(mockApplicationRepository.create(any(), any(), any())).thenReturnAsync(
+        ApplicationResponse("a1234", "CREATED", ApplicationRoute.Faststream, "1234",
+        ProgressResponse("a1234"), None, None)
+      )
+
       val result = TestApplicationController.createApplication(createApplicationRequest(
         s"""
            |{
@@ -87,6 +90,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
   "Application Progress" must {
     "return the progress of an application" in new TestFixture {
+      when(mockApplicationRepository.findProgress(any())).thenReturnAsync(ProgressResponse(ApplicationId, personalDetails = true))
+
       val result = TestApplicationController.applicationProgress(ApplicationId)(applicationProgressRequest(ApplicationId)).run
       val jsonResponse = contentAsJson(result)
 
@@ -97,6 +102,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
 
     "return a system error when applicationId doesn't exists" in new TestFixture {
+      when(mockApplicationRepository.findProgress(any())).thenReturn(Future.failed(ApplicationNotFound("1111-1234")))
+
       val result = TestApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
 
       status(result) mustBe NOT_FOUND
@@ -105,6 +112,11 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
   "Find application" must {
     "return the application" in new TestFixture {
+      when(mockApplicationRepository.findByUserId(any(), any())).thenReturnAsync(
+        ApplicationResponse(ApplicationId, "CREATED", ApplicationRoute.Faststream, "validUser",
+        ProgressResponse(ApplicationId), None, None)
+      )
+
       val result = TestApplicationController.findApplication(
         "validUser",
         "validFramework"
@@ -119,6 +131,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
 
     "return a system error when application doesn't exists" in new TestFixture {
+      when(mockApplicationRepository.findByUserId(any(), any())).thenReturn(Future.failed(ApplicationNotFound("invalidUser")))
+
       val result = TestApplicationController.findApplication(
         "invalidUser",
         "invalidFramework"
@@ -130,6 +144,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
   "Preview application" must {
     "mark the application as previewed" in new TestFixture {
+      when(mockApplicationRepository.preview(any())).thenReturnAsync()
       val result = TestApplicationController.preview(ApplicationId)(previewApplicationRequest(ApplicationId)(
         s"""
            |{
@@ -156,6 +171,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
 
     "Return a 404 if no results are found for the application Id" in new TestFixture {
+      when(mockApplicationRepository.findProgress(any())).thenReturn(Future.failed(ApplicationNotFound("1111-1234")))
       val result = TestApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
       status(result) mustBe NOT_FOUND
     }
@@ -200,9 +216,10 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     val mockFileUploadRepository = mock[FileUploadMongoRepository]
     val mockPersonalDetailsService = mock[PersonalDetailsService]
     val mockApplicationSiftService = mock[ApplicationSiftService]
+    val mockApplicationRepository = mock[GeneralApplicationRepository]
 
     object TestApplicationController extends ApplicationController {
-      override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
+      override val appRepository: GeneralApplicationRepository = mockApplicationRepository
       override val auditService: AuditService = mockAuditService
       override val siftService: ApplicationSiftService = mockApplicationSiftService
       override val applicationService: ApplicationService = mockApplicationService
