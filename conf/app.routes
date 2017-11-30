@@ -93,6 +93,7 @@ GET         /campaign-management/generateAfterDeadlineSignupCode         control
 GET         /diagnostic/user/:userId                                                    controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
 GET         /diagnostic/assessor/:userId                                                controllers.DiagnosticReportController.getAssessorDiagnosticDetail(userId: String)
 GET         /diagnostic/all-users                                                       controllers.DiagnosticReportController.getAllApplications
+GET         /diagnostic/application/undoFullWithdraw/:newApplicationStatus              controllers.fixdata.FixDataConsistencyController.undoFullWithdraw(applicationId: String, newApplicationStatus: model.ApplicationStatus.ApplicationStatus)
 DELETE      /diagnostic/application/:applicationId/eTray                                controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
 DELETE      /diagnostic/application/:applicationId/progress/:progress                   controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
 DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)

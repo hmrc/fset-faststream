@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import model.{ SchemeId, UniqueIdentifier }
+import model.ApplicationStatus.ApplicationStatus
+import model.{ ApplicationStatus, SchemeId, UniqueIdentifier }
 import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import org.joda.time.LocalDate
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
@@ -58,6 +59,12 @@ package object controllers {
       parse = (value: String) => SchemeId(value),
       serialize = _.value,
       error = (m: String, e: Exception) => "Can't parse %s as SchemeId: %s".format(m, e.getMessage)
+    )
+
+    implicit val applicationStatusPathBinder = new PathBindable.Parsing[ApplicationStatus](
+      parse = (value: String) => ApplicationStatus.withName(value),
+      serialize = _.toString,
+      error = (m: String, e: Exception) => "Can't parse %s as ApplicationStatus: %s".format(m, e.getMessage)
     )
 
     val pathDateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd")

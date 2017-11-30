@@ -16,7 +16,7 @@
 
 package model
 
-import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
+import play.api.libs.json._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 import services.testdata.candidate.ApplicationStatusOnlyForTest
 
