@@ -151,6 +151,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = ???
 
+  def removeWithdrawReason(applicationId: String): Future[Unit] = ???
+
   def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = ???
 
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = ???
