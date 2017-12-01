@@ -513,6 +513,20 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId, newResult: model.EvaluationResults.Result): Future[Unit] = {
+    for {
+      currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+      newCurrentSchemeStatus = currentSchemeStatus.map { schemeResult =>
+        if (schemeResult.schemeId == schemeId) {
+          schemeResult.copy(result = newResult.toString)
+        } else {
+          schemeResult
+        }
+      }
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, newCurrentSchemeStatus)
+    } yield ()
+  }
+
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,
                                            statuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
