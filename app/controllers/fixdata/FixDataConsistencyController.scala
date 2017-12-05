@@ -228,4 +228,12 @@ trait FixDataConsistencyController extends BaseController {
       Ok(s"Successfully rolled $applicationId back to sift ready")
     )
   }
+
+  def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId,
+                                      result: model.EvaluationResults.Result): Action[AnyContent] = Action.async {
+    applicationService.updateCurrentSchemeStatusScheme(applicationId, schemeId, result).map(_ =>
+      Ok(s"Successfully updated CSS for schemeId ${schemeId.toString} to ${result.toString} for $applicationId ")
+    )
+  }
+
 }
