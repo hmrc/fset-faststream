@@ -79,4 +79,7 @@ object Scheme {
 
   val Sdip = "Sdip"
   val SdipId = SchemeId(Sdip)
+
+  val GESDS = "DiplomaticServiceEconomists"
+  val GESDSId = SchemeId(GESDS)
 }

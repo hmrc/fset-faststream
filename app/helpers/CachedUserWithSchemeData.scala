@@ -16,7 +16,7 @@
 
 package helpers
 
-import connectors.exchange.{ SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails }
+import connectors.exchange.{ SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails, SelectedSchemes }
 import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import models._
 import play.api.Logger
@@ -31,6 +31,7 @@ case class CurrentSchemeStatus(
 class CachedUserWithSchemeData(
   val user: CachedUser,
   val application: ApplicationData,
+  val schemePreferences: SelectedSchemes,
   val allSchemes: Seq[Scheme],
   val phase3Evaluation: Option[Seq[SchemeEvaluationResult]],
   val siftEvaluation: Option[Seq[SchemeEvaluationResult]],
@@ -52,7 +53,17 @@ class CachedUserWithSchemeData(
     schemeStatus.status == SchemeStatus.Green || schemeStatus.status == SchemeStatus.Amber
   )
 
-  lazy val failedSchemesForDisplay: Seq[CurrentSchemeStatus] = currentSchemesStatus.filter(_.status == SchemeStatus.Red)
+  lazy val failedSchemesForDisplay: Seq[CurrentSchemeStatus] =
+    currentSchemesStatus
+      .filter(schemeStatus => schemePreferences.schemes.contains(schemeStatus.scheme.id.value))
+      .filter(_.status == SchemeStatus.Red)
+      .map{ schemeStatus => // NOTE: This is a temporary fix for fset-1914!
+        if(schemeStatus.scheme.id == Scheme.GESDSId && schemeStatus.failedAtStage.isEmpty) {
+          schemeStatus.copy(failedAtStage = Some("final selection board"))
+        } else {
+          schemeStatus
+        }
+    }
 
   lazy val withdrawnSchemes = currentSchemesStatus.collect { case s if s.status == SchemeStatus.Withdrawn => s.scheme }
 
@@ -79,9 +90,10 @@ object CachedUserWithSchemeData {
   def apply(
     user: CachedUser,
     application: ApplicationData,
+    schemePreferences: SelectedSchemes,
     allSchemes: Seq[Scheme],
     phase3Evaluation: Option[Seq[SchemeEvaluationResult]],
     siftEvaluation: Option[Seq[SchemeEvaluationResult]],
     rawSchemesStatus: Seq[SchemeEvaluationResultWithFailureDetails]): CachedUserWithSchemeData =
-    new CachedUserWithSchemeData(user, application, allSchemes, phase3Evaluation, siftEvaluation, rawSchemesStatus)
+    new CachedUserWithSchemeData(user, application, schemePreferences, allSchemes, phase3Evaluation, siftEvaluation, rawSchemesStatus)
 }

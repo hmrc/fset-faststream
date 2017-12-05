@@ -56,6 +56,8 @@ object ReferenceDataExamples {
 
     val AllSchemes = Commercial :: DaT :: Dip :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
       GovSocialResearch :: GovStats :: HoP :: HR :: ProjectDelivery :: SciEng :: Edip :: Sdip :: International :: Nil
+
+    val SomeSchemes = Commercial :: DaT :: Dip :: Nil
   }
 
 }

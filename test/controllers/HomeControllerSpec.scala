@@ -19,11 +19,11 @@ package controllers
 import java.time.LocalDateTime
 
 import config.{ CSRHttp, SecurityEnvironmentImpl }
-import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples, SiftClient }
+import connectors._
 import connectors.exchange.referencedata.SchemeId
 import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound }
 import connectors.exchange.sift.SiftAnswersStatus
-import connectors.exchange.{ AssistanceDetailsExamples, EventsExamples, SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails }
+import connectors.exchange._
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
 import models._
@@ -43,6 +43,7 @@ import scala.concurrent.Future
 import java.io.File
 import java.nio.file.Path
 
+import connectors.ReferenceDataExamples.Schemes
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import models.events.{ AllocationStatuses, EventType }
 import play.api.test.{ FakeHeaders, FakeRequest }
@@ -408,6 +409,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     val mockApplicationClient = mock[ApplicationClient]
     val mockRefDataClient = mock[ReferenceDataClient]
     val mockSiftClient = mock[SiftClient]
+    val mockSchemeClient = mock[SchemeClient]
     val mockUserService = mock[UserCacheService]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
@@ -459,14 +461,18 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(fileMock.length()).thenReturn(fileSize)
     }
 
-    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient)
+    class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient, mockSchemeClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
       override lazy val silhouette = SilhouetteComponent.silhouette
       val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
+      val selectedSchemes = SelectedSchemes(Schemes.SomeSchemes.map(_.id.value), orderAgreed = true, eligible = true)
+
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(selectedSchemes)
       when(mockSiftClient.getSiftAnswersStatus(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(Some(SiftAnswersStatus.DRAFT))
       when(mockApplicationClient.getCurrentSchemeStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturnAsync(List(SchemeEvaluationResultWithFailureDetails(SchemeId("DiplomaticService"), SchemeStatus.Green)))
