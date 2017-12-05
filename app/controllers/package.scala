@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import model.EvaluationResults.Result
 import model.{ SchemeId, UniqueIdentifier }
 import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import org.joda.time.LocalDate
@@ -53,6 +54,12 @@ package object controllers {
 
       def unbind(key: String, value: UniqueIdentifier) = stringBinder.unbind(key, value.toString())
     }
+
+    implicit val resultPathBinder = new PathBindable.Parsing[Result](
+      parse = (value: String) => Result(value),
+      serialize = _.toString,
+      error = (m: String, e: Exception) => "Can't parse %s as Result: %s".format(m, e.getMessage)
+    )
 
     implicit val schemeIdPathBinder = new PathBindable.Parsing[SchemeId](
       parse = (value: String) => SchemeId(value),
