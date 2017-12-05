@@ -44,6 +44,7 @@ import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.sift.ApplicationSiftRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
+import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
 import services.stc.{ EventSink, StcEventService }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase2.EvaluatePhase2ResultService
@@ -77,6 +78,10 @@ object ApplicationService extends ApplicationService {
   val fsacRepo = assessmentCentreRepository
   val fsbRepo = fsbRepository
   val civilServiceExperienceDetailsRepo = civilServiceExperienceDetailsRepository
+
+  case class NoChangeInCurrentSchemeStatusException(applicationId: String,
+    currentSchemeStatus: Seq[SchemeEvaluationResult],
+    newSchemeStatus: Seq[SchemeEvaluationResult]) extends Exception(s"$applicationId / $currentSchemeStatus / $newSchemeStatus")
 }
 
 // scalastyle:off number.of.methods
@@ -522,6 +527,9 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         } else {
           schemeResult
         }
+      }
+      _ = if (currentSchemeStatus == newCurrentSchemeStatus) {
+        throw NoChangeInCurrentSchemeStatusException(applicationId, currentSchemeStatus, newCurrentSchemeStatus)
       }
       _ <- appRepository.updateCurrentSchemeStatus(applicationId, newCurrentSchemeStatus)
     } yield ()
