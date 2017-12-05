@@ -19,7 +19,7 @@ package controllers
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import connectors.ApplicationClient.{ SiftAnswersIncomplete, SiftAnswersNotFound }
-import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
+import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient }
 import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
 import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
 import forms.SchemeSpecificQuestionsForm
@@ -37,13 +37,16 @@ import helpers.NotificationType._
 import models.{ SchemeStatus, UniqueIdentifier }
 import uk.gov.hmrc.http.HeaderCarrier
 
-object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient) {
+object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient, SchemeClient) {
   val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }
 
 abstract class SiftQuestionsController(
-  applicationClient: ApplicationClient, siftClient: SiftClient, referenceDataClient: ReferenceDataClient)
+  applicationClient: ApplicationClient,
+  siftClient: SiftClient,
+  referenceDataClient: ReferenceDataClient,
+  schemeClient: SchemeClient)
   extends BaseController with CampaignAwareController {
 
   val GeneralQuestions = "generalQuestions"
@@ -152,8 +155,9 @@ abstract class SiftQuestionsController(
       for {
         allSchemes <- referenceDataClient.allSchemes()
         schemeStatus <- applicationClient.getCurrentSchemeStatus(user.application.applicationId)
+        schemePreferences <- schemeClient.getSchemePreferences(user.application.applicationId)
         answers <- siftClient.getSiftAnswers(user.application.applicationId) recoverWith noSiftAnswersRecovery
-        userMetadata = CachedUserWithSchemeData(user.user, user.application, allSchemes, None, None, schemeStatus)
+        userMetadata = CachedUserWithSchemeData(user.user, user.application, schemePreferences, allSchemes, None, None, schemeStatus)
         filteredAnswers = removeWithdrawnAnswers(answers, userMetadata)
         enrichedAnswers <- enrichSchemeAnswersAddingMissingSiftSchemes(filteredAnswers, userMetadata)
       } yield {

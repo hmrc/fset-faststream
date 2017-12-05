@@ -19,7 +19,7 @@ package controllers
 import java.nio.file.{ Files, Path }
 
 import com.mohiva.play.silhouette.api.Silhouette
-import connectors.{ ApplicationClient, ReferenceDataClient, SiftClient }
+import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient }
 import connectors.ApplicationClient._
 import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
@@ -46,7 +46,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 object HomeController extends HomeController(
   ApplicationClient,
   ReferenceDataClient,
-  SiftClient
+  SiftClient,
+  SchemeClient
 ) {
   val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
   lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
@@ -55,7 +56,8 @@ object HomeController extends HomeController(
 abstract class HomeController(
   applicationClient: ApplicationClient,
   refDataClient: ReferenceDataClient,
-  siftClient: SiftClient
+  siftClient: SiftClient,
+  schemeClient: SchemeClient
 ) extends BaseController with CampaignAwareController {
 
   val Withdrawer = "Candidate"
@@ -123,14 +125,14 @@ abstract class HomeController(
       hasWrittenAnalysisExercise <- applicationClient.hasAnalysisExercise(application.applicationId)
       phase3Evaluation <- applicationClient.getPhase3Results(application.applicationId)
       siftEvaluation <- applicationClient.getSiftResults(application.applicationId)
-      schemes <- refDataClient.allSchemes()
+      schemePreferences <- schemeClient.getSchemePreferences(application.applicationId)
     } yield {
       val page = PostOnlineTestsPage(
-        CachedUserWithSchemeData(cachedData.user, application, allSchemes, phase3Evaluation, siftEvaluation, schemeStatus),
+        CachedUserWithSchemeData(cachedData.user, application, schemePreferences, allSchemes, phase3Evaluation, siftEvaluation, schemeStatus),
         allocationWithEvents,
         siftAnswersStatus,
         hasWrittenAnalysisExercise,
-        schemes
+        allSchemes
       )
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
