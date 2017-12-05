@@ -160,6 +160,8 @@ trait GeneralApplicationRepository {
   def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int]
 
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
+
+  def removeWithdrawReason(applicationId: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -389,6 +391,17 @@ class GeneralApplicationMongoRepository(
     val validator = singleUpdateValidator(applicationId, actionDesc = "withdrawing")
 
     collection.update(query, applicationBSON) map validator
+  }
+
+  override def removeWithdrawReason(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument("$unset" -> BSONDocument(
+      "withdraw" -> ""
+    ))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing withdrawal reason")
+
+    collection.update(query, update) map validator
   }
 
   override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {

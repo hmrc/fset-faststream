@@ -246,6 +246,16 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     }
   }
 
+  def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus): Future[Unit] = {
+    for {
+      application <- appRepository.find(applicationId)
+      _ = application.map(_.applicationStatus.exists(_ == WITHDRAWN)).getOrElse(throw ApplicationNotFound(applicationId))
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.WITHDRAWN))
+      _ <- appRepository.removeWithdrawReason(applicationId)
+      _ <- appRepository.updateStatus(applicationId, newApplicationStatus)
+    } yield ()
+  }
+
   def fixDataByRemovingETray(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     appRepository.fixDataByRemovingETray(appId)
   }

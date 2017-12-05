@@ -16,6 +16,7 @@
 
 package controllers.fixdata
 
+import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.NotFoundException
 import model.SchemeId
 import model.command.FastPassPromotion
@@ -39,6 +40,14 @@ trait FixDataConsistencyController extends BaseController {
   val applicationService: ApplicationService
   val fastPassService: FastPassService
   val siftService: ApplicationSiftService
+
+  def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
+    applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
+      Ok
+    } recover {
+      case _: NotFoundException => NotFound
+    }
+  }
 
   def removeETray(appId: String) = Action.async { implicit request =>
     applicationService.fixDataByRemovingETray(appId).map { _ =>
