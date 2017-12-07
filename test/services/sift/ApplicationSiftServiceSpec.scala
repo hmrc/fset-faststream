@@ -18,6 +18,7 @@ package services.sift
 
 import connectors.EmailClient
 import factories.DateTimeFactoryMock
+import model.Exceptions.PassMarkEvaluationNotFound
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ApplicationForSift
@@ -102,6 +103,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     val schemeSiftResult = SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString)
     val queryBson = BSONDocument("applicationId" -> appId)
     val updateBson = BSONDocument("test" -> "test")
+    (mockSiftRepo.getSiftEvaluations _).expects(appId).anyNumberOfTimes.returning(Future.failed(PassMarkEvaluationNotFound(appId)))
   }
 
   "An ApplicationSiftService.progressApplicationToSift" must {
@@ -182,8 +184,6 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     }
 
     "sift and update progress status for a candidate" in new SiftUpdateTest {
-      (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
-
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(schemeSiftResult),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)

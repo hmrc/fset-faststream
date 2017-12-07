@@ -88,7 +88,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    applicationSiftRepo.getSiftEvaluations(applicationId).flatMap { results =>
+    applicationSiftRepo.getSiftEvaluations(applicationId).map { _ =>
       throw SiftResultsAlreadyExistsException(s"Sift result already exists for appId $applicationId and scheme ${result.schemeId}")
     }.recover {
       case _: PassMarkEvaluationNotFound =>
