@@ -55,4 +55,3 @@ trait WithAppSpec extends GuiceOneAppPerSuite with Results with FutureHelper wit
   def fakeRequest = FakeRequest()
 
 }
-
