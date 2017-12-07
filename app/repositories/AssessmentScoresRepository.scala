@@ -16,7 +16,7 @@
 
 package repositories
 
-import factories.{ DateTimeFactory, UUIDFactory }
+import factories.UUIDFactory
 import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
 import model.assessmentscores._
@@ -91,11 +91,11 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
         versionOpt match {
           case Some(version) =>
             BSONDocument("$or" -> BSONArray(
-              BSONDocument(s"${section}.version" -> BSONDocument("$exists" -> BSONBoolean(false))),
-              BSONDocument(s"${section}.version" -> version)
+              BSONDocument(s"$section.version" -> BSONDocument("$exists" -> BSONBoolean(false))),
+              BSONDocument(s"$section.version" -> version)
             ))
           case None =>
-              BSONDocument(s"${section}.version" -> BSONDocument("$exists" -> BSONBoolean(false)))
+              BSONDocument(s"$section.version" -> BSONDocument("$exists" -> BSONBoolean(false)))
         }
       }
 
@@ -171,7 +171,7 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
     }
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(exercisesToUnset))
-    collection.update(query, unsetDoc) map( s => s )
+    collection.update(query, unsetDoc) map( s => () )
   }
 }
 
