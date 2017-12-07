@@ -198,9 +198,7 @@ class ApplicationSiftMongoRepository(
         s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
       )
     ))
-    val validator = singleUpdateValidator(applicationId, s"sifting for ${result.schemeId}", ApplicationNotFound(applicationId))
-
-    collection.update(predicate, update) map validator
+    collection.update(predicate, update).map(_ => ())
   }
 
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {

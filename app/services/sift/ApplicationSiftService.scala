@@ -20,6 +20,7 @@ import common.FutureEx
 import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
 import model.EvaluationResults.{ Green, Red, Withdrawn }
+import model.Exceptions.{ PassMarkEvaluationNotFound, SiftResultsAlreadyExistsException }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
@@ -87,12 +88,17 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    applicationRepo.getApplicationRoute(applicationId).flatMap { route =>
-      val updateFunction = route match {
-        case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
-        case _ => buildSiftSettableFields(result, schemeFilter) _
-      }
-      siftApplicationForScheme(applicationId, result, updateFunction)
+    applicationSiftRepo.getSiftEvaluations(applicationId).flatMap { results =>
+      throw SiftResultsAlreadyExistsException(s"Sift result already exists for appId $applicationId and scheme ${result.schemeId}")
+    }.recover {
+      case _: PassMarkEvaluationNotFound =>
+        applicationRepo.getApplicationRoute(applicationId).flatMap { route =>
+          val updateFunction = route match {
+            case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
+            case _ => buildSiftSettableFields(result, schemeFilter) _
+          }
+          siftApplicationForScheme(applicationId, result, updateFunction)
+        }
     }
   }
 
@@ -118,7 +124,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   ): Future[Unit] = {
     (for {
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
-      currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId).recover { case _ => Nil }
+      currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId).recover { case _: PassMarkEvaluationNotFound => Nil }
     } yield {
 
       val settableFields = updateBuilder(currentSchemeStatus, currentSiftEvaluation)

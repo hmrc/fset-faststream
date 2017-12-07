@@ -16,6 +16,7 @@
 
 package controllers
 
+import model.Exceptions.{ PassMarkEvaluationNotFound, SiftResultsAlreadyExistsException }
 import model.{ EvaluationResults, SchemeId }
 import model.exchange.ApplicationSifting
 import model.persisted.SchemeEvaluationResult
@@ -41,10 +42,15 @@ trait SiftingController extends BaseController {
   }
 
   def siftCandidateApplication: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[ApplicationSifting] { sift =>
-      siftService.siftApplicationForScheme(sift.applicationId,
-        SchemeEvaluationResult(sift.schemeId, EvaluationResults.Result.fromPassFail(sift.result).toString)
+    withJsonBody[ApplicationSifting] { appForSift =>
+      siftService.siftApplicationForScheme(appForSift.applicationId,
+        SchemeEvaluationResult(appForSift.schemeId, EvaluationResults.Result.fromPassFail(appForSift.result).toString)
       ).map(_ => Ok)
+        .recover {
+          case _: PassMarkEvaluationNotFound => Ok
+          case ex: SiftResultsAlreadyExistsException => Conflict(ex.m)
+          case ex => InternalServerError(ex.getMessage)
+        }
     }
   }
 
