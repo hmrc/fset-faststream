@@ -51,6 +51,7 @@ trait ApplicationSiftRepository {
   def findAllResults: Future[Seq[SiftPhaseReportItem]]
   def findAllResultsByIds(applicationIds: Seq[String]): Future[Seq[SiftPhaseReportItem]]
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]]
+  def siftResultsExists(applicationId: String): Future[Boolean]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
@@ -211,6 +212,10 @@ class ApplicationSiftMongoRepository(
         .flatMap { _.getAs[BSONDocument]("evaluation") }
         .flatMap { _.getAs[Seq[SchemeEvaluationResult]]("result") }
     .getOrElse(throw PassMarkEvaluationNotFound(s"Sift evaluation not found for $applicationId")))
+  }
+
+  def siftResultsExists(applicationId: String): Future[Boolean] = {
+    getSiftEvaluations(applicationId).map(_ => true).recover{ case _ => false }
   }
 
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit] = {

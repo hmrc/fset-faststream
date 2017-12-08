@@ -88,10 +88,10 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    applicationSiftRepo.getSiftEvaluations(applicationId).map { _ =>
-      throw SiftResultsAlreadyExistsException(s"Sift result already exists for appId $applicationId and scheme ${result.schemeId}")
-    }.recover {
-      case _: PassMarkEvaluationNotFound =>
+    applicationSiftRepo.siftResultsExists(applicationId).map { siftResultsExists =>
+      if(siftResultsExists) {
+        throw SiftResultsAlreadyExistsException(s"Sift result already exists for appId $applicationId and scheme ${result.schemeId}")
+      } else {
         applicationRepo.getApplicationRoute(applicationId).flatMap { route =>
           val updateFunction = route match {
             case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
@@ -99,6 +99,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
           }
           siftApplicationForScheme(applicationId, result, updateFunction)
         }
+      }
     }
   }
 
@@ -124,7 +125,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   ): Future[Unit] = {
     (for {
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
-      currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId).recover { case _: PassMarkEvaluationNotFound => Nil }
+      currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId).recover { case _ => Nil }
     } yield {
 
       val settableFields = updateBuilder(currentSchemeStatus, currentSiftEvaluation)
