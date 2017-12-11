@@ -44,6 +44,7 @@ import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.sift.ApplicationSiftRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
+import services.allocation.CandidateAllocationService
 import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
 import services.stc.{ EventSink, StcEventService }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
@@ -78,6 +79,7 @@ object ApplicationService extends ApplicationService {
   val fsacRepo = assessmentCentreRepository
   val fsbRepo = fsbRepository
   val civilServiceExperienceDetailsRepo = civilServiceExperienceDetailsRepository
+  val candidateAllocationService = CandidateAllocationService
 
   case class NoChangeInCurrentSchemeStatusException(applicationId: String,
     currentSchemeStatus: Seq[SchemeEvaluationResult],
@@ -107,6 +109,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def fsacRepo: AssessmentCentreRepository
   def fsbRepo: FsbRepository
   def civilServiceExperienceDetailsRepo: CivilServiceExperienceDetailsRepository
+  def candidateAllocationService: CandidateAllocationService
 
   val Candidate_Role = "Candidate"
 
@@ -130,21 +133,29 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   }
 
+  def removeFromAllEvents(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    candidateAllocationService.allocationsForApplication(applicationId).flatMap { allocations =>
+      candidateAllocationService.unAllocateCandidates(allocations.toList).map(_ => ())
+    }
+  }
+
   private def withdrawableSchemes(currentSchemeStatus: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
     currentSchemeStatus.filterNot(s => s.result == EvaluationResults.Red.toString || s.result == EvaluationResults.Withdrawn.toString)
   }
 
   private def withdrawFromApplication(applicationId: String, withdrawRequest: WithdrawApplication)
-    (candidate: Candidate, cd: ContactDetails) = {
-      appRepository.withdraw(applicationId, withdrawRequest).map { _ =>
-        val commonEventList =
+    (candidate: Candidate, cd: ContactDetails)(implicit hc: HeaderCarrier) = {
+      appRepository.withdraw(applicationId, withdrawRequest).flatMap { _ =>
+        removeFromAllEvents(applicationId).map { _ =>
+          val commonEventList =
             DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
-            AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
-            Nil
-        withdrawRequest.withdrawer match {
-          case Candidate_Role => commonEventList
-          case _ => EmailEvents.ApplicationWithdrawn(cd.email,
-            candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
+              AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
+              Nil
+          withdrawRequest.withdrawer match {
+            case Candidate_Role => commonEventList
+            case _ => EmailEvents.ApplicationWithdrawn(cd.email,
+              candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
+          }
         }
       }
   }
