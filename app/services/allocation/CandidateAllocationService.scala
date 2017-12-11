@@ -80,6 +80,11 @@ trait CandidateAllocationService extends EventSink {
     candidateAllocationRepo.activeAllocationsForSession(eventId, sessionId).map { a => exchange.CandidateAllocations.apply(a) }
   }
 
+  def allocationsForApplication(applicationId: String)
+                               (implicit hc: HeaderCarrier): Future[Seq[model.persisted.CandidateAllocation]] = {
+    candidateAllocationRepo.allocationsForApplication(applicationId)
+  }
+
   def getSessionsForApplication(applicationId: String): Future[Seq[CandidateAllocationWithEvent]] = {
     for {
       allocations <- candidateAllocationRepo.allocationsForApplication(applicationId)
