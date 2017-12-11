@@ -26,14 +26,13 @@ import org.mockito.Mockito._
 import model.persisted.ApplicationForDiversityReportExamples
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.application.{ PreviousYearCandidatesDetailsRepository, ReportingRepository }
-import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
+import repositories.application.PreviousYearCandidatesDetailsRepository
 import repositories.application.{ GeneralApplicationRepository, ReportingRepository }
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
 import repositories.fsb.FsbRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{ AssessmentScoresRepository, AssessorAllocationRepository, AssessorRepository, CandidateAllocationRepository, MediaRepository, QuestionnaireRepository, SchemeRepository, contactdetails }
+import repositories._
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 

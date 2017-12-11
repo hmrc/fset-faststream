@@ -21,48 +21,56 @@ import connectors.AuthProviderClient
 import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
 import model.EvaluationResults.Green
-import model.{ Scheme, _ }
 import model.persisted._
 import model.persisted.assessor.{ Assessor, AssessorStatus }
 import model.persisted.eventschedules.SkillType
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
 import model.report.{ CandidateProgressReportItem, _ }
+import model.{ Scheme, _ }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.{ JsArray, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.application.{ PreviousYearCandidatesDetailsRepository, ReportingRepository }
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.application.{ GeneralApplicationRepository, ReportingRepository }
+import repositories.fsb._
+import repositories.events._
+import repositories.sift._
+import repositories.csv._
 import repositories._
-import repositories.contactdetails.ContactDetailsRepository
-import repositories.csv.FSACIndicatorCSVRepository
-import repositories.events.EventsRepository
-import repositories.fsb.FsbRepository
-import repositories.sift.ApplicationSiftRepository
-import testkit.UnitWithAppSpec
+import contactdetails.ContactDetailsRepository
+import application._
 import testkit.MockitoImplicits._
+import testkit.UnitWithAppSpec
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
-import uk.gov.hmrc.http.HeaderCarrier
 
 class ReportingControllerSpec extends UnitWithAppSpec {
 
   val mockContactDetailsRepository: ContactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
   val reportingRepositoryMock: ReportingRepository = mock[ReportingRepository]
   val authProviderClientMock: AuthProviderClient = mock[AuthProviderClient]
+  val mockQuestionnaireRepository: QuestionnaireRepository = mock[QuestionnaireRepository]
+  val mockMediaRepository: MediaRepository = mock[MediaRepository]
 
   class TestableReportingController extends ReportingController {
     override val reportingRepository: ReportingRepository = reportingRepositoryMock
     override val contactDetailsRepository: contactdetails.ContactDetailsRepository = mockContactDetailsRepository
-    override val questionnaireRepository: QuestionnaireRepository = QuestionnaireInMemoryRepository
-    override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
-    override val mediaRepository: MediaRepository = MediaInMemoryRepository
-    override val indicatorRepository = NorthSouthIndicatorCSVRepository
+    override val questionnaireRepository: QuestionnaireRepository = mockQuestionnaireRepository
+    override val mediaRepository: MediaRepository = mockMediaRepository
     override val prevYearCandidatesDetailsRepository = mock[PreviousYearCandidatesDetailsRepository]
     override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
+    override val assessorRepository: AssessorRepository = mock[AssessorRepository]
+    override val eventsRepository: EventsRepository = mock[EventsRepository]
+    override val assessorAllocationRepository: AssessorAllocationRepository = mock[AssessorAllocationRepository]
+    override val assessmentScoresRepository: AssessmentScoresRepository = mock[AssessmentScoresRepository]
+    override val applicationSiftRepository: ApplicationSiftRepository = mock[ApplicationSiftRepository]
+    override val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
+    override val schemeRepo: SchemeRepository = mock[SchemeRepository]
+    override val candidateAllocationRepo: CandidateAllocationRepository = mock[CandidateAllocationRepository]
+    override val fsbRepository: FsbRepository = mock[FsbRepository]
+    override val applicationRepository: GeneralApplicationRepository = mock[GeneralApplicationRepository]
   }
 
   "Reporting controller create adjustment report" must {
@@ -365,6 +373,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val mockApplicationSiftRepo = mock[ApplicationSiftRepository]
     val mockFsbRepo = mock[FsbRepository]
     val mockAppRepo = mock[GeneralApplicationRepository]
+    val mockPrevYearCandidatesDetailsRepo = mock[PreviousYearCandidatesDetailsRepository]
 
     class TestableReportingController extends ReportingController {
       override val reportingRepository: ReportingRepository = mockReportingRepository
@@ -378,10 +387,11 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       override val assessorRepository = mockAssessorRepository
       override val assessorAllocationRepository = mockAssessorAllocationRepository
       override val schemeRepo = mockSchemeRepo
-      val candidateAllocationRepo = mockCandidateAllocationRepo
-      val applicationSiftRepository = mockApplicationSiftRepo
-      val fsbRepository: FsbRepository = mockFsbRepo
-      val applicationRepository: GeneralApplicationRepository = mockAppRepo
+      override val candidateAllocationRepo = mockCandidateAllocationRepo
+      override val applicationSiftRepository = mockApplicationSiftRepo
+      override val fsbRepository: FsbRepository = mockFsbRepo
+      override val applicationRepository: GeneralApplicationRepository = mockAppRepo
+      override val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsRepository = mockPrevYearCandidatesDetailsRepo
     }
 
     val contactDetailsWithId = ContactDetailsWithId(
@@ -494,8 +504,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
           ApplicationRoute.Edip),
         CandidateProgressReportItem("user4", "app4", Some("submitted"),
-          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
-          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("Newcastle"),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"), Some("No"),
+          Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("Newcastle"),
           ApplicationRoute.Faststream)
       )
     )

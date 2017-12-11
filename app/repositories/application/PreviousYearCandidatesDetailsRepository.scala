@@ -16,20 +16,20 @@
 
 package repositories.application
 
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewSectionReviewerRequest, ReviewedCallbackRequest }
-import model.{ CivilServiceExperienceType, InternshipType, ProgressStatuses, SchemeType }
+import connectors.launchpadgateway.exchangeobjects.in.reviewed._
+import factories.DateTimeFactory
+import model.{ CivilServiceExperienceType, InternshipType, ProgressStatuses }
 import model.CivilServiceExperienceType.CivilServiceExperienceType
 import model.InternshipType.InternshipType
 import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse }
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories.BSONDateTimeHandler
+import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository }
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.collection.JSONCollection
-import repositories.{ CollectionNames, CommonBSONDocuments }
 import reactivemongo.json.ImplicitBSONHandlers._
 import services.reporting.SocioEconomicCalculator
 
@@ -116,7 +116,7 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
 
           val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
           val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
-          val allSchemes: List[String] = SchemeType.values.map(_.toString).toList
+          val allSchemes: List[String] = SchemeYamlRepository.schemes.map(_.id.value).toList
           val schemesYesNoAsString: Option[String] = Option((schemePrefs.map(_ + ": Yes") ::: allSchemes.filterNot(schemePrefs.contains).map(_ + ": No")).mkString(","))
 
           val onlineTestResults = onlineTests(doc)
@@ -228,8 +228,8 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_COMPLETED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString).map(_.toString)),
       statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_PASSED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_SUCCESS_NOTIFIED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.EXPORTED.toString).map(_.toString))
+      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED.toString).map(_.toString))
+      // ,statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.EXPORTED.toString).map(_.toString))
     )
   }
 
@@ -596,4 +596,5 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
       "\"" + ret + "\""
     }.mkString(",")
 
+  override def dateTimeFactory: DateTimeFactory = DateTimeFactory
 }

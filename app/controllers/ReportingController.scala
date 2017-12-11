@@ -17,24 +17,19 @@
 package controllers
 
 import akka.stream.scaladsl.Source
-import connectors.AuthProviderClient
-import model.Commands.{ IsNonSubmitted, PreferencesWithContactDetails }
-import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse }
 import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.EvaluationResults.Green
 import model.Exceptions.{ NotFoundException, UnexpectedException }
-import model.{ ApplicationStatus, SiftRequirement, UniqueIdentifier }
+import model.command.{ CandidateDetailsReportItem, CsvExtract }
 import model.persisted.ContactDetailsWithId
 import model.persisted.eventschedules.Event
 import model.report._
-import play.api.Logger
+import model.{ ApplicationStatus, SiftRequirement, UniqueIdentifier }
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
-import play.api.mvc.{ Action, AnyContent, Request, Result }
-import repositories.application.{ PreviousYearCandidatesDetailsMongoRepository, PreviousYearCandidatesDetailsRepository, ReportingMongoRepository, ReportingRepository }
-import play.api.mvc.{ Action, AnyContent }
-import repositories.application.{ GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository }
+import play.api.mvc.{ Action, AnyContent, Result }
+import repositories.application._
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
@@ -47,6 +42,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import common.Joda._
 
 object ReportingController extends ReportingController {
   val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
@@ -55,7 +51,6 @@ object ReportingController extends ReportingController {
   val assessorAllocationRepository: AssessorAllocationRepository = repositories.assessorAllocationRepository
   val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
-  val assessmentScoresRepository: ApplicationAssessmentScoresMongoRepository = repositories.applicationAssessmentScoresRepository
   val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsMongoRepository = repositories.previousYearCandidatesDetailsRepository
   val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
@@ -70,15 +65,12 @@ object ReportingController extends ReportingController {
 
 trait ReportingController extends BaseController {
 
-  import model.Commands.Implicits._
-
   val reportingRepository: ReportingRepository
   val assessorRepository: AssessorRepository
   val eventsRepository: EventsRepository
   val assessorAllocationRepository: AssessorAllocationRepository
   val contactDetailsRepository: contactdetails.ContactDetailsRepository
   val questionnaireRepository: QuestionnaireRepository
-  val assessmentScoresRepository: ApplicationAssessmentScoresRepository
   val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsRepository
   val assessmentScoresRepository: AssessmentScoresRepository
   val mediaRepository: MediaRepository
@@ -181,8 +173,6 @@ trait ReportingController extends BaseController {
 
   // scalastyle:off method.length
   def assessorAllocationReport: Action[AnyContent] = Action.async { implicit request =>
-
-    import common.Joda._
 
     val sortedEventsFut = eventsRepository.findAll().map(_.sortBy(_.date))
 
