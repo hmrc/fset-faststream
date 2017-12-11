@@ -23,10 +23,9 @@ import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
-import model.events.{ AuditEvents, DataStoreEvents }
+import model.stc.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, TestResult => _, _ }
 import model._
@@ -34,14 +33,15 @@ import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-import services.events.EventService
+import services.stc.StcEventService
 import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import services.sift.ApplicationSiftService
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Success }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestService extends Phase1TestService {
   import config.MicroserviceAppConfig._
@@ -56,7 +56,8 @@ object Phase1TestService extends Phase1TestService {
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
-  val eventService = EventService
+  val eventService = StcEventService
+  val siftService = ApplicationSiftService
 }
 
 trait Phase1TestService extends OnlineTestService with Phase1TestConcern with ResetPhase1Test {
@@ -77,7 +78,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   def progressSdipFaststreamCandidateForSdip(o: Phase1TestGroupWithUserIds): Future[Unit] = {
 
     o.testGroup.evaluation.map { evaluation =>
-      val result = evaluation.result.find(_.scheme == SchemeType.Sdip).getOrElse(
+      val result = evaluation.result.find(_.schemeId == SchemeId("Sdip")).getOrElse(
         throw new IllegalStateException(s"No SDIP results found for application ${o.applicationId}}")
       )
 
@@ -394,6 +395,6 @@ trait ResetPhase1Test {
     (if (testGroup.hasNotStartedYet) List(PHASE1_TESTS_STARTED) else List()) ++
       (if (testGroup.hasNotCompletedYet) List(PHASE1_TESTS_COMPLETED) else List()) ++
       (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_RESULTS_READY) else List()) ++
-      List(PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED)
+      List(PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED, PHASE1_TESTS_FAILED_SDIP_AMBER)
   }
 }

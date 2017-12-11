@@ -16,35 +16,35 @@
 
 package repositories.application
 
-import _root_.services.testdata.{ StatusGeneratorFactory, TestDataGeneratorService }
-import factories.UUIDFactory
-import model.ProgressStatuses.{ EXPORTED, PHASE3_TESTS_INVITED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
-import model.SchemeType.SchemeType
+import _root_.services.testdata.TestDataGeneratorService
+import factories.{ ITDateTimeFactoryMock, UUIDFactory }
+import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model._
 import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
-import model.command.testdata.GeneratorConfig
+import model.command.testdata.CreateCandidateRequest.{ AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest }
 import model.command.{ ProgressResponse, WithdrawApplication }
-import model.exchange.testdata.{ AssistanceDetailsRequest, CreateCandidateInStatusRequest, StatusDataRequest }
 import model.persisted._
+import model.testdata.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
-import repositories.{ CollectionNames, CommonBSONDocuments }
+import repositories.CollectionNames
+import _root_.services.testdata.candidate.CandidateStatusGeneratorFactory
 import testkit.MongoRepositorySpec
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Await
 
-class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
+class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   val frameworkId = "FastStream-2016"
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new ReportingMongoRepository(GBTimeZoneService)
+  def repository = new ReportingMongoRepository(GBTimeZoneService, ITDateTimeFactoryMock)
 
-  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
 
   def testDataRepo = new TestDataMongoRepository()
 
@@ -62,7 +62,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId, appId, Some("submitted"),
-        List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
+        List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
         Some("No"), Some("No"), None, Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"),
         Some("1234567"), None, ApplicationRoute.Faststream)
     }
@@ -76,7 +76,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head must be(CandidateProgressReportItem(userId, appId, Some("registered"),
-        List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None, None, None, ApplicationRoute.Faststream)
+        List.empty[SchemeId], None, None, None, None, None, None, None, None, None, None, None, None, ApplicationRoute.Faststream)
       )
     }
   }
@@ -112,7 +112,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head mustBe ApplicationForDiversityReport(appId, userId, ApplicationRoute.Faststream, Some("registered"),
-        List.empty, None, None, None, None, None)
+        List.empty, None, None, None, None, None, List.empty)
     }
 
     "for an application with all fields" in {
@@ -132,19 +132,25 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must contain theSameElementsAs Seq(
         ApplicationForDiversityReport(appId1, userId1, ApplicationRoute.Faststream, Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))),
+          List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))),
         ApplicationForDiversityReport(
           appId2, userId2, ApplicationRoute.Faststream, Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))),
+          List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))),
         ApplicationForDiversityReport(
           appId3, userId3, ApplicationRoute.Faststream, Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))),
+          List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString)))
       )
     }
   }
@@ -163,91 +169,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     "be false for submitted but not withdrawn progress" in {
       repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = false)) mustBe false
-    }
-  }
-
-
-  "Applications report" must {
-    "return an empty list when there are no applications" in {
-      repository.applicationsReport(frameworkId).futureValue mustBe empty
-    }
-
-    "return a list of non submitted applications when there are only non submitted applications" in {
-      Await.ready({
-        for {
-          _ <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
-          _ <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
-        } yield {
-          Unit
-        }
-      }, timeout)
-
-      val results = repository.applicationsReport(frameworkId).futureValue
-      results must have size 2
-      results.foreach { case (userId, isNonSubmitted, _) =>
-        isNonSubmitted mustBe true
-        userId must startWith("userId")
-      }
-    }
-
-    "return only submitted applications" in {
-      Await.ready({
-        for {
-          app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
-          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.PREVIEW)
-          _ <- applicationRepo.submit(app.applicationId)
-          app2 <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
-          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app2.applicationId, ProgressStatuses.PREVIEW)
-          _ <- applicationRepo.submit(app2.applicationId)
-        } yield {
-          Unit
-        }
-      }, timeout)
-
-      val results = repository.applicationsReport(frameworkId).futureValue
-      results must have size 2
-      results.foreach { case (_, isNonSubmitted, _) =>
-        isNonSubmitted mustBe false
-      }
-    }
-
-    "return only the applications in a specific framework id" in {
-      Await.ready({
-        for {
-          _ <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
-          _ <- applicationRepo.create("userId2", "otherFramework", ApplicationRoute.Faststream)
-        } yield {
-          Unit
-        }
-      }, timeout)
-
-      val results = repository.applicationsReport(frameworkId).futureValue
-      results must have size 1
-    }
-
-    "return a list of non submitted applications with submitted applications" in {
-      Await.ready({
-        for {
-          app1 <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
-          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app1.applicationId, ProgressStatuses.PREVIEW)
-          _ <- applicationRepo.submit(app1.applicationId)
-          _ <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
-          app3 <- applicationRepo.create("userId3", frameworkId, ApplicationRoute.Faststream)
-          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app3.applicationId, ProgressStatuses.PREVIEW)
-          _ <- applicationRepo.submit(app3.applicationId)
-          app4 <- applicationRepo.create("userId4", frameworkId, ApplicationRoute.Faststream)
-          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app4.applicationId, ProgressStatuses.PREVIEW)
-          _ <- applicationRepo.submit(app4.applicationId)
-          _ <- applicationRepo.create("userId5", frameworkId, ApplicationRoute.Faststream)
-        } yield {
-          Unit
-        }
-      }, timeout)
-
-      val results = repository.applicationsReport(frameworkId).futureValue
-      results must have size 5
-      results.filter { case (_, isNonSubmitted, _) => isNonSubmitted } must have size 2
-      results.filter { case (_, isNonSubmitted, _) => !isNonSubmitted } must have size 3
     }
   }
 
@@ -271,7 +192,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     // This test only works when run in isolation, change ignore to in for that
     "return candidate who requested online adjustments" ignore {
-      val request = CreateCandidateInStatusRequest.create("SUBMITTED", None, None).copy(
+      val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         assistanceDetails = Some(AssistanceDetailsRequest(
           hasDisability = Some("Yes"),
           onlineAdjustments = Some(true),
@@ -279,7 +200,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ))
       )
 
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidates(1,
+        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -294,14 +216,15 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     // This test only works when run in isolation, change ignore to in for that
     "return candidate who requested at venue adjustments" ignore {
-      val request = CreateCandidateInStatusRequest.create("SUBMITTED", None, None).copy(
+      val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         assistanceDetails = Some(AssistanceDetailsRequest(
           hasDisability = Some("Yes"),
           assessmentCentreAdjustments = Some(true),
           assessmentCentreAdjustmentsDescription = Some("I need a warm room and no sun light")
         ))
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidates(1,
+        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -316,7 +239,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     // This test only works when run in isolation, change ignore to in for that
     "return faststream candidate who did not requested adjustments but has adjustments confirmed" ignore {
-      val request = CreateCandidateInStatusRequest.create("SUBMITTED", None, None).copy(
+      val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         assistanceDetails = Some(AssistanceDetailsRequest(
           hasDisability = Some("No"),
           assessmentCentreAdjustments = Some(false),
@@ -330,7 +253,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidates(1,
+        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -346,7 +270,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     // This test only works when run in isolation, change ignore to in for that
     "do not return sdip candidate who requested adjustments and has confirmed adjustments" ignore {
-      val request = CreateCandidateInStatusRequest.create("SUBMITTED", None, None).copy(
+      val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         statusData = StatusDataRequest(
           applicationStatus = "SUBMITTED",
           progressStatus = None,
@@ -365,38 +289,14 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
+      testDataGeneratorService.createCandidates(1,
+        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
 
       result mustBe a[List[_]]
       result mustBe empty
-    }
-  }
-
-  "manual assessment centre allocation report" must {
-    "return all candidates that are in awaiting allocation state" in {
-      val testData = new TestDataMongoRepository()
-      testData.createApplications(10, onlyAwaitingAllocation = true).futureValue
-
-      val result = repository.candidatesAwaitingAllocation(frameworkId).futureValue
-      result must have size 10
-    }
-
-    "not return candidates that are initially awaiting allocation but subsequently withdrawn" in {
-      val testData = new TestDataMongoRepository()
-      testData.createApplications(10, onlyAwaitingAllocation = true).futureValue
-
-      val result = repository.candidatesAwaitingAllocation(frameworkId).futureValue
-      result.foreach {
-        c =>
-          val appId = applicationRepo.findByUserId(c.userId, frameworkId).futureValue.applicationId
-          applicationRepo.withdraw(appId, WithdrawApplication("testing", None, "Candidate")).futureValue
-      }
-
-      val updatedResult = repository.candidatesAwaitingAllocation(frameworkId).futureValue
-      updatedResult mustBe empty
     }
   }
 
@@ -407,16 +307,19 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
 
     "return all candidates with personal-details" in {
-      val user1 = UserApplicationProfile("1", EXPORTED.key.toLowerCase, "first1", "last1",
-        factories.DateTimeFactory.nowLocalDate, exportedToParity = true)
-      val user2 = UserApplicationProfile("2", SUBMITTED.key.toLowerCase, "first2", "last2",
-        factories.DateTimeFactory.nowLocalDate, exportedToParity = false)
+      val user1 = UserApplicationProfile("1", ProgressResponse("1", submitted = true), SUBMITTED.key, "first1", "last1",
+        factories.DateTimeFactory.nowLocalDate, ApplicationRoute.Faststream)
+      val user2 = UserApplicationProfile("2", ProgressResponse("2", submitted = true), SUBMITTED.key, "first2", "last2",
+        factories.DateTimeFactory.nowLocalDate, ApplicationRoute.Faststream)
       create(user1)
       create(user2)
-      createWithoutPersonalDetails("3", PHASE3_TESTS_INVITED.key)
+      createWithoutPersonalDetails("3", PREVIEW.key)
 
       val candidates = repository.candidatesForDuplicateDetectionReport.futureValue
-      candidates must contain theSameElementsAs List(user1, user2)
+      candidates must contain theSameElementsAs List(
+        user1.copy(latestProgressStatus = SUBMITTED.key.toLowerCase),
+        user2.copy(latestProgressStatus = SUBMITTED.key.toLowerCase)
+      )
     }
   }
 
@@ -426,6 +329,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     repository.collection.insert(BSONDocument(
       "applicationId" -> application.userId,
+      "applicationRoute" -> ApplicationRoute.Faststream,
       "userId" -> application.userId,
       "frameworkId" -> FrameworkId,
       "progress-status" -> BSONDocument(application.latestProgressStatus -> true),

@@ -51,7 +51,7 @@ case class ReviewedCallbackRequest(
 
   }
 
-  def allQuestionsReviewed = {
+  def allQuestionsReviewed: Boolean = {
     val questions = List(latestReviewer.question1, latestReviewer.question2, latestReviewer.question3, latestReviewer.question4,
       latestReviewer.question5, latestReviewer.question6, latestReviewer.question7, latestReviewer.question8)
     questions.nonEmpty && questions.forall(ques => ques.reviewCriteria1.score.isDefined && ques.reviewCriteria2.score.isDefined)

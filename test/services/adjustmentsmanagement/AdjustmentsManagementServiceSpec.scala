@@ -25,7 +25,7 @@ import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.BaseServiceSpec
-import services.events.EventServiceFixture
+import services.stc.StcEventServiceFixture
 import services.testdata.examples.AdjustmentsExamples._
 import testkit.ShortTimeout
 
@@ -70,7 +70,7 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ShortTimeout
     }
   }
 
-  trait TestFixture extends EventServiceFixture {
+  trait TestFixture extends StcEventServiceFixture {
     val mockAppRepository = mock[GeneralApplicationRepository]
     val mockCdRepository = mock[ContactDetailsRepository]
 

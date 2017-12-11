@@ -18,18 +18,24 @@ package testkit
 
 import akka.stream.Materializer
 import com.kenshoo.play.metrics.PlayModule
-import org.scalatestplus.play.OneAppPerSuite
-import play.api.{ Application, Play }
+import org.scalatest.TestSuite
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{ JsValue, Json, Writes }
 import play.api.mvc.Results
 import play.api.test.{ FakeHeaders, FakeRequest }
+import play.api.{ Application, Play }
 import play.modules.reactivemongo.ReactiveMongoHmrcModule
 
 /**
   * Common base class for all controller tests
   */
-abstract class UnitWithAppSpec extends UnitSpec with OneAppPerSuite with Results with FutureHelper {
+abstract class UnitWithAppSpec extends UnitSpec with WithAppSpec
+
+abstract class ScalaMockUnitWithAppSpec extends ScalaMockUnitSpec with WithAppSpec
+
+trait WithAppSpec extends GuiceOneAppPerSuite with Results with FutureHelper with ScalaFutures { this: TestSuite =>
   val AppId = "AppId"
   val UserId = "UserId"
 

@@ -21,9 +21,9 @@ import model.EmptyRequestHeader
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.ApplicationService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object FixerJob extends FixerJob {
   override val service = ApplicationService

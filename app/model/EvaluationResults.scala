@@ -16,18 +16,54 @@
 
 package model
 
+import model.persisted.SchemeEvaluationResult
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
+
 object EvaluationResults {
+
   sealed trait Result {
-    def toPassmark: String
+    def toReportReadableString: String
+
+    def +(that: Result): Result
   }
+
   case object Green extends Result {
-    def toPassmark: String = "Pass"
+    def toReportReadableString: String = PassFail.Pass.toString
+
+    def +(that: Result): Result = that match {
+      case Green => this
+      case Red => Red
+      case Amber => Amber
+      case Withdrawn => Withdrawn
+    }
   }
+
   case object Amber extends Result {
-    def toPassmark: String = "Amber"
+    def toReportReadableString: String = "Amber"
+
+    def +(that: Result): Result = that match {
+      case Green => Green
+      case Red => Red
+      case Amber => this
+      case Withdrawn => Withdrawn
+    }
   }
+
   case object Red extends Result {
-    def toPassmark: String = "Fail"
+    def toReportReadableString: String = PassFail.Fail.toString
+
+    def +(that: Result): Result = that match {
+      case Withdrawn => Withdrawn
+      case _ => this
+    }
+  }
+
+  //Not an evaluation status but no where else really good to put this.
+  case object Withdrawn extends Result {
+    def toReportReadableString: String = "Withdrawn"
+
+    def +(that: Result): Result = this
   }
 
   object Result {
@@ -35,35 +71,41 @@ object EvaluationResults {
       case "Red" => Red
       case "Green" => Green
       case "Amber" => Amber
+      case "Withdrawn" => Withdrawn
     }
+
+    def fromPassFail(s: String): EvaluationResults.Result = PassFail.withName(s) match {
+      case PassFail.Pass => EvaluationResults.Green
+      case PassFail.Fail => EvaluationResults.Red
+    }
+
   }
 
-  case class RuleCategoryResult(location1Scheme1: Result, location1Scheme2: Option[Result],
-    location2Scheme1: Option[Result], location2Scheme2: Option[Result], alternativeScheme: Option[Result])
+  object PassFail extends Enumeration {
+    val Pass, Fail = Value
+  }
 
-  case class CompetencyAverageResult(leadingAndCommunicatingAverage: Double, collaboratingAndPartneringAverage: Double,
-    deliveringAtPaceAverage: Double, makingEffectiveDecisionsAverage: Double,
-    changingAndImprovingAverage: Double, buildingCapabilityForAllAverage: Double,
-    motivationFitAverage: Double, overallScore: Double) {
+  case class CompetencyAverageResult(
+    analysisAndDecisionMakingAverage: Double,
+    buildingProductiveRelationshipsAverage: Double,
+    leadingAndCommunicatingAverage: Double,
+    strategicApproachToObjectivesAverage: Double,
+    overallScore: Double) {
 
-    def scoresWithWeightOne = List(
-      leadingAndCommunicatingAverage,
-      collaboratingAndPartneringAverage, deliveringAtPaceAverage,
-      makingEffectiveDecisionsAverage, changingAndImprovingAverage, buildingCapabilityForAllAverage
+    def competencyAverageScores = List(
+      analysisAndDecisionMakingAverage, buildingProductiveRelationshipsAverage,
+      leadingAndCommunicatingAverage, strategicApproachToObjectivesAverage
     )
-
-    def scoresWithWeightTwo = List(motivationFitAverage)
-
   }
 
-  @deprecated("Use SchemeEvaluationResult with SchemeType", since = "10/10/2016")
-  case class PerSchemeEvaluation(schemeName: String, result: Result)
+  object CompetencyAverageResult {
+    implicit val competencyAverageResultFormat = Json.format[CompetencyAverageResult]
+    implicit val competencyAverageResultHandler = Macros.handler[CompetencyAverageResult]
+  }
 
-  case class AssessmentRuleCategoryResult(
+  case class AssessmentEvaluationResult(
     passedMinimumCompetencyLevel: Option[Boolean],
-    location1Scheme1: Option[Result], location1Scheme2: Option[Result],
-    location2Scheme1: Option[Result], location2Scheme2: Option[Result], alternativeScheme: Option[Result],
-    competencyAverageResult: Option[CompetencyAverageResult], schemesEvaluation: Option[List[PerSchemeEvaluation]]
-  )
-
+    competencyAverageResult: CompetencyAverageResult,
+    schemesEvaluation: Seq[SchemeEvaluationResult])
 }
+

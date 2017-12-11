@@ -18,27 +18,35 @@ package services.onlinetesting.phase3
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import model.EvaluationResults.Result
-import model.SchemeType._
+import model.SchemeId
 import model.exchange.passmarksettings.Phase3PassMarkSettings
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import play.api.Logger
 import repositories.onlinetesting.Phase3EvaluationMongoRepository
+
 import scala.concurrent.Future
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluate(schemes: List[SchemeType], launchpadTestResult: ReviewedCallbackRequest,
+  def evaluate(schemes: List[SchemeId], launchpadTestResult: ReviewedCallbackRequest,
                phase2SchemesEvaluation: List[SchemeEvaluationResult],
                passmark: Phase3PassMarkSettings): List[SchemeEvaluationResult] = {
+
     for {
       schemeToEvaluate <- schemes
-      schemePassmark <- passmark.schemes find (_.schemeName == schemeToEvaluate)
-      phase2SchemeEvaluation <- phase2SchemesEvaluation.find(_.scheme == schemeToEvaluate)
+      schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
+      phase2SchemeEvaluation <- phase2SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
-      val Phase3Result = evaluateTestResult(schemePassmark.schemeThresholds.videoInterview)(
+      val phase3Result = evaluateTestResult(schemePassmark.schemeThresholds.videoInterview)(
         Some(launchpadTestResult.calculateTotalScore()))
+      Logger.debug(s"processing scheme $schemeToEvaluate, " +
+        s"video score = ${launchpadTestResult.calculateTotalScore()}, " +
+        s"video fail = ${schemePassmark.schemeThresholds.videoInterview.failThreshold}, " +
+        s"video pass = ${schemePassmark.schemeThresholds.videoInterview.passThreshold}, " +
+        s"video result = $phase3Result")
       val phase2Result = Result(phase2SchemeEvaluation.result)
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase2Result, Phase3Result).toString)
+      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase2Result, phase3Result).toString)
     }
   }
 }

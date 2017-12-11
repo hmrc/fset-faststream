@@ -17,7 +17,7 @@
 package controllers
 
 import config.TestFixtureBase
-import mocks.MediaInMemoryRepository
+import model.persisted.Media
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -26,10 +26,11 @@ import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.MediaRepository
 import services.AuditService
+import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class MediaControllerSpec extends UnitWithAppSpec {
 
@@ -45,7 +46,7 @@ class MediaControllerSpec extends UnitWithAppSpec {
         """.stripMargin
       ))
 
-      status(result) must be(201)
+      status(result) mustBe CREATED
       verify(mockAuditService).logEvent(eqTo("CampaignReferrerSaved"))(any[HeaderCarrier], any[RequestHeader])
     }
 
@@ -59,14 +60,18 @@ class MediaControllerSpec extends UnitWithAppSpec {
         """.stripMargin
       ))
 
-      status(result) must be(400)
+      status(result) mustBe BAD_REQUEST
     }
   }
 
   trait TestFixture extends TestFixtureBase {
+    val mockMediaRepo = mock[MediaRepository]
+
     object TestMediaController extends MediaController {
-      override val mRepository: MediaRepository = MediaInMemoryRepository
+      override val mRepository: MediaRepository = mockMediaRepo
       override val auditService: AuditService = mockAuditService
+
+      when(mockMediaRepo.create(any[Media])).thenReturnAsync()
     }
 
     def createMedia(jsonString: String) = {

@@ -16,25 +16,25 @@
 
 package services.adjustmentsmanagement
 
-import model.Commands.Candidate
+import model.Candidate
 import model.Exceptions.ApplicationNotFound
-import model.events.EventTypes.Events
-import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
+import model.stc.StcEventTypes.StcEvents
+import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.persisted.ContactDetails
 import model.{ AdjustmentDetail, Adjustments, AdjustmentsComment }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.events.{ EventService, EventSink }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import services.stc.{ StcEventService, EventSink }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object AdjustmentsManagementService extends AdjustmentsManagementService {
   val appRepository = applicationRepository
-  val eventService = EventService
+  val eventService = StcEventService
   val cdRepository = faststreamContactDetailsRepository
 }
 
@@ -45,7 +45,7 @@ trait AdjustmentsManagementService extends EventSink {
   def confirmAdjustment(applicationId: String, adjustmentInformation: Adjustments)
                        (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    val adjustmentsDataStoreAndAuditEvents: Events =
+    val adjustmentsDataStoreAndAuditEvents: StcEvents =
       DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
       AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
       Nil
@@ -58,7 +58,7 @@ trait AdjustmentsManagementService extends EventSink {
           _ <- appRepository.confirmAdjustments(applicationId, adjustmentInformation)
         } yield {
           val hasNewAdjustments = adjustmentInformation.adjustments.exists(_.nonEmpty)
-          val hasPreviousAdjustments = previousAdjustments.nonEmpty
+          val hasPreviousAdjustments = previousAdjustments.flatMap(_.adjustmentsConfirmed).getOrElse(false)
 
           val events = if (hasNewAdjustments || hasPreviousAdjustments) {
             createEmailEvents(candidate, adjustmentInformation, hasPreviousAdjustments, cd) :: adjustmentsDataStoreAndAuditEvents

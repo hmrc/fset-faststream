@@ -23,11 +23,17 @@ import model.persisted.MediaExamples
 import model.report.{ DiversityReportItem, DiversityReportItemExamples, QuestionnaireReportItemExamples }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import persisted.ApplicationForDiversityReportExamples
+import model.persisted.ApplicationForDiversityReportExamples
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.{ PreviousYearCandidatesDetailsRepository, ReportingRepository }
 import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
+import repositories.application.{ GeneralApplicationRepository, ReportingRepository }
+import repositories.csv.FSACIndicatorCSVRepository
+import repositories.events.EventsRepository
+import repositories.fsb.FsbRepository
+import repositories.sift.ApplicationSiftRepository
+import repositories.{ AssessmentScoresRepository, AssessorAllocationRepository, AssessorRepository, CandidateAllocationRepository, MediaRepository, QuestionnaireRepository, SchemeRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -124,15 +130,32 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
     val mockReportRepository = mock[ReportingRepository]
     val mockQuestionRepository = mock[QuestionnaireRepository]
     val mockMediaRepository = mock[MediaRepository]
+    val mockAssessorAllocationRepository = mock[AssessorAllocationRepository]
+    val mockEventsRepository = mock[EventsRepository]
+    val mockAssessorRepository = mock[AssessorRepository]
+    val mockSchemeRepo = mock[SchemeRepository]
+    val mockCandidateAllocationRepo = mock[CandidateAllocationRepository]
+    val mockApplicationSiftRepo = mock[ApplicationSiftRepository]
+    val mockFsbRepo = mock[FsbRepository]
+    val mockAppRepo = mock[GeneralApplicationRepository]
+
     val controller = new ReportingController {
       val reportingRepository = mockReportRepository
       val contactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
       val questionnaireRepository = mockQuestionRepository
-      val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
+      val assessmentScoresRepository = mock[AssessmentScoresRepository]
       val mediaRepository: MediaRepository = mockMediaRepository
-      val indicatorRepository: NorthSouthIndicatorCSVRepository = mock[NorthSouthIndicatorCSVRepository]
+      val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
       val prevYearCandidatesDetailsRepository = mock[PreviousYearCandidatesDetailsRepository]
       val authProviderClient = mock[AuthProviderClient]
+      val eventsRepository = mockEventsRepository
+      val assessorRepository = mockAssessorRepository
+      val assessorAllocationRepository = mockAssessorAllocationRepository
+      val schemeRepo = mockSchemeRepo
+      val candidateAllocationRepo = mockCandidateAllocationRepo
+      val applicationSiftRepository = mockApplicationSiftRepo
+      val fsbRepository: FsbRepository = mockFsbRepo
+      val applicationRepository = mockAppRepo
     }
 
     val applications = List(ApplicationForDiversityReportExamples.Example1,

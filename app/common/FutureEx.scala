@@ -16,10 +16,13 @@
 
 package common
 
+import play.api.Logger
+
 import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.language.higherKinds
 import scala.util.Try
+
 
 object FutureEx {
   /**
@@ -57,4 +60,23 @@ object FutureEx {
 
     Future.traverse( seq )( f andThen mapValue )
   }
+
+
+  def futureToEither[T](updateReq: T, result: Future[Unit])(implicit ex: ExecutionContext): Future[Either[T, T]] = {
+    result.map { _ => Right(updateReq) }.recover { case _: Exception => Left(updateReq) }
+  }
+
+  def withErrLogging[T](logPrefix: String)(f: Future[T])(implicit ec: ExecutionContext): Future[T] = {
+    f.recoverWith { case ex => Logger.warn(s"$logPrefix: ${ex.getMessage}"); f }
+  }
+
+}
+
+object TryEx {
+   def traverseSerial[A, B, M[X] <: TraversableOnce[X]](in: M[A])(fn: A => Try[B])
+     (implicit cbf: CanBuildFrom[M[A], B, M[B]], executor: ExecutionContext): Try[M[B]] = in.foldLeft(Try(cbf(in))) { (previous, a) =>
+      for { previousResult <- previous
+            newResult <- fn(a)
+      } yield previousResult += newResult
+    }.map(_.result())
 }

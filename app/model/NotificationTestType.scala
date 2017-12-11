@@ -18,7 +18,7 @@ package model
 
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.ApplicationStatus.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED, PHASE3_TESTS_FAILED, READY_FOR_EXPORT }
+import model.ApplicationStatus.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED, PHASE3_TESTS_FAILED }
 import model.ProgressStatuses._
 
 sealed trait NotificationTestType {
@@ -66,14 +66,22 @@ object Phase3FailedTestType
       "fset_faststream_app_online_phase3_test_failed")
 
 object Phase1SuccessTestType
-  extends SuccessTestType(ApplicationStatus.PHASE1_TESTS_PASSED, PHASE1_TESTS_SUCCESS_NOTIFIED,
-    READY_FOR_EXPORT, "fset_faststream_app_online_phase1_test_success") {
+  extends SuccessTestType(ApplicationStatus.PHASE1_TESTS_PASSED, PHASE1_TESTS_PASSED_NOTIFIED,
+    ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED, "fset_faststream_app_online_phase1_test_success") {
   override val applicationRoutes = List(ApplicationRoute.Edip, ApplicationRoute.Sdip)
 }
 
 object Phase3SuccessTestType
-  extends SuccessTestType(ApplicationStatus.PHASE3_TESTS_PASSED, PHASE3_TESTS_SUCCESS_NOTIFIED,
-    READY_FOR_EXPORT, "fset_faststream_app_online_phase3_test_success")
+  extends SuccessTestType(ApplicationStatus.PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_NOTIFIED,
+    ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, "fset_faststream_app_online_phase3_test_success") {
+  override val applicationRoutes = List(ApplicationRoute.Faststream)
+}
+
+object Phase3SuccessSdipFsTestType
+  extends SuccessTestType(ApplicationStatus.PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_NOTIFIED,
+    ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, "fset_faststream_app_online_phase3_test_success_sdipfs") {
+  override val applicationRoutes = List(ApplicationRoute.SdipFaststream)
+}
 
 object FailedSdipFsTestType
   extends FailedTestTypeSdipFs("fset_faststream_app_online_sdip_fs_test_failed", ApplicationRoute.SdipFaststream)

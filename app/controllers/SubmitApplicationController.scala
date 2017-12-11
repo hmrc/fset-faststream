@@ -17,28 +17,28 @@
 package controllers
 
 import model.ApplicationValidator
-import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
+import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import play.api.mvc.{ Action, RequestHeader }
 import repositories.FrameworkRepository.CandidateHighestQualification
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.events.{ EventService, EventSink }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import services.stc.{ StcEventService, EventSink }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SubmitApplicationController extends SubmitApplicationController {
-  override val pdRepository: PersonalDetailsRepository = faststreamPersonalDetailsRepository
+  override val pdRepository: PersonalDetailsRepository = personalDetailsRepository
   override val adRepository: AssistanceDetailsRepository = faststreamAssistanceDetailsRepository
   override val cdRepository = faststreamContactDetailsRepository
   override val frameworkPrefRepository: FrameworkPreferenceMongoRepository = frameworkPreferenceRepository
   override val frameworkRegionsRepository: FrameworkRepository = frameworkRepository
   override val appRepository: GeneralApplicationRepository = applicationRepository
-  override val eventService: EventService = EventService
+  override val eventService: StcEventService = StcEventService
 }
 
 trait SubmitApplicationController extends BaseController with EventSink {

@@ -17,8 +17,7 @@
 package controllers
 
 import factories.UUIDFactory
-import model.Commands.Implicits._
-import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
+import model.exchange.passmarksettings._
 import org.joda.time.DateTime
 import play.api.libs.json.{ Format, Json }
 import play.api.mvc.Action
@@ -52,6 +51,15 @@ object Phase3PassMarkSettingsController extends PassMarkSettingsController[Phase
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase3PassMarkSettingsCreated"
   def upgradeVersion(passMarkSettings:Phase3PassMarkSettings, newVersionUUID: String) =
+    passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
+}
+
+object AssessmentCentrePassMarkSettingsController extends PassMarkSettingsController[AssessmentCentrePassMarkSettings] {
+  val passMarkService = AssessmentCentrePassMarkSettingsService
+  val auditService = AuditService
+  val uuidFactory = UUIDFactory
+  val passMarksCreatedEvent = "AssessmentCentrePassMarkSettingsCreated"
+  def upgradeVersion(passMarkSettings:AssessmentCentrePassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
 

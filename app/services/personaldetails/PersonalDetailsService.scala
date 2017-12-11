@@ -17,12 +17,14 @@
 package services.personaldetails
 
 import model.ApplicationStatus._
-import model.command.PersonalDetails
-import model.persisted.{ ContactDetails, PersonalDetails }
+import model.Exceptions.FSACCSVIndicatorNotFound
+import model.FSACIndicator
+import model.persisted.{ PersonalDetails, ContactDetails }
 import repositories._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
-import repositories.NorthSouthIndicatorCSVRepository.calculateFsacIndicator
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.csv.FSACIndicatorCSVRepository
+import repositories.fsacindicator.FSACIndicatorRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.AuditService
 
@@ -30,9 +32,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object PersonalDetailsService extends PersonalDetailsService {
-  val pdRepository = faststreamPersonalDetailsRepository
+  val pdRepository = personalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val csedRepository = civilServiceExperienceDetailsRepository
+  val fsacIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
+  val fsacIndicatorRepository = repositories.fsacIndicatorRepository
   val auditService = AuditService
 }
 
@@ -40,9 +44,32 @@ trait PersonalDetailsService {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
   val csedRepository: CivilServiceExperienceDetailsRepository
+  val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
+  val fsacIndicatorRepository: FSACIndicatorRepository
   val auditService: AuditService
 
-  def update(applicationId: String, userId: String, personalDetails: model.command.PersonalDetails): Future[Unit] = {
+  def find(applicationId: String, userId: String): Future[model.command.GeneralDetails] = {
+    val personalDetailsFut = pdRepository.find(applicationId)
+    val contactDetailsFut = cdRepository.find(userId)
+    val fsacIndicatorFut = fsacIndicatorRepository.find(applicationId)
+    val civilServiceExperienceDetailsFut = csedRepository.find(applicationId)
+
+    for {
+      personalDetails <- personalDetailsFut
+      contactDetails <- contactDetailsFut
+      fsacIndicator <- fsacIndicatorFut
+      civilServiceExperienceDetails <- civilServiceExperienceDetailsFut
+    } yield model.command.GeneralDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
+      contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
+      Some(FSACIndicator(fsacIndicator)), contactDetails.country, contactDetails.phone, civilServiceExperienceDetails,
+      personalDetails.edipCompleted)
+  }
+
+  def find(applicationId: String): Future[PersonalDetails] = {
+    pdRepository.find(applicationId).map { pd => pd }
+  }
+
+  def update(applicationId: String, userId: String, personalDetails: model.command.GeneralDetails): Future[Unit] = {
     val personalDetailsToPersist = model.persisted.PersonalDetails(personalDetails.firstName,
       personalDetails.lastName, personalDetails.preferredName, personalDetails.dateOfBirth, personalDetails.edipCompleted)
     val contactDetails = ContactDetails(personalDetails.outsideUk, personalDetails.address, personalDetails.postCode,
@@ -54,31 +81,32 @@ trait PersonalDetailsService {
       case None => throw new IllegalArgumentException("Update application status must be set for update operation")
     }
 
-    val contactDetailsFut = cdRepository.update(userId, contactDetails)
-    val civilServiceExperienceDetailsFut = personalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
+    val contactDetailsUpdateFut = cdRepository.update(userId, contactDetails)
+    val fsacIndicator = fsacIndicatorCSVRepository.find(personalDetails.postCode, personalDetails.outsideUk)
+    val fsacIndicatorUpdateFut = fsacIndicator.map { fsacIndicatorVal =>
+       fsacIndicatorRepository.update(applicationId, userId,
+         model.persisted.FSACIndicator(fsacIndicatorVal))
+    }.getOrElse(Future.failed(new FSACCSVIndicatorNotFound(applicationId)))
+    val civilServiceExperienceDetailsUpdateFut = personalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
       csedRepository.update(applicationId, civilServiceExperienceDetails)
     } getOrElse Future.successful(())
 
     for {
       _ <- updatePersonalDetailsFut
-      _ <- contactDetailsFut
-      _ <- civilServiceExperienceDetailsFut
+      _ <- contactDetailsUpdateFut
+      _ <- fsacIndicatorUpdateFut
+      _ <- civilServiceExperienceDetailsUpdateFut
     } yield {}
   }
 
-  def find(applicationId: String, userId: String): Future[model.command.PersonalDetails] = {
-    val personalDetailsFut = pdRepository.find(applicationId)
-    val contactDetailsFut = cdRepository.find(userId)
-    val civilServiceExperienceDetailsFut = csedRepository.find(applicationId)
-
-    for {
-      personalDetails <- personalDetailsFut
-      contactDetails <- contactDetailsFut
-      civilServiceExperienceDetails <- civilServiceExperienceDetailsFut
-    } yield model.command.PersonalDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
-      contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
-      calculateFsacIndicator(contactDetails.postCode, contactDetails.outsideUk),
-      contactDetails.country, contactDetails.phone, civilServiceExperienceDetails, personalDetails.edipCompleted)
+  def updateFsacIndicator(applicationId: String, userId: String, fsacAssessmentCentre: String): Future[Unit] = {
+    val validFsacAssessmentCentres = fsacIndicatorCSVRepository.getAssessmentCentres
+    val msg = s"Invalid FSAC assessment centre supplied when trying to update the FSAC indicator - $fsacAssessmentCentre"
+    if (!validFsacAssessmentCentres.contains(fsacAssessmentCentre)) {
+      Future.failed(new IllegalArgumentException(msg))
+    } else {
+      fsacIndicatorRepository.update(applicationId, userId,
+        model.persisted.FSACIndicator(model.FSACIndicator(fsacAssessmentCentre, fsacAssessmentCentre)))
+    }
   }
-
 }

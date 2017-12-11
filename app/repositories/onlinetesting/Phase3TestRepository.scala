@@ -19,16 +19,16 @@ package repositories.onlinetesting
 import common.Phase3TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
+import model.Exceptions.{ApplicationNotFound, NotFoundException}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted.phase3tests.Phase3TestGroup
-import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
+import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId}
+import model.{ApplicationStatus, ProgressStatuses, ReminderNotice}
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONDocument, _ }
+import reactivemongo.bson.{BSONDocument, _}
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -50,6 +50,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId]
 
   def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit]
+
+  def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
 
   def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime): Future[Unit]
 
@@ -109,6 +111,10 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
 
     collection.update(query, appStatusBSON) map validator
+  }
+
+  def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
+    upsertTestGroupEvaluationResult(applicationId, passmarkEvaluation)
   }
 
   def removeTestGroup(applicationId: String): Future[Unit] = {

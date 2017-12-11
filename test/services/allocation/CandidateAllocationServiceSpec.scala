@@ -16,95 +16,163 @@
 
 package services.allocation
 
-import connectors.CSREmailClient
-import model.Address
-import model.Commands.ApplicationAssessment
-import model.PersistedObjects.{ AllocatedCandidate, PersonalDetailsWithUserId }
-import model.persisted.ContactDetails
-import org.joda.time.{ DateTime, LocalDate }
+import config.EventsConfig
+import connectors.{ AuthProviderClient, EmailClient }
+import connectors.ExchangeObjects.Candidate
+import model.{ AllocationStatuses, CandidateExamples, persisted }
+import model.command.{ CandidateAllocation, CandidateAllocations }
+import model.exchange.candidateevents.CandidateAllocationWithEvent
+import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
+import model.persisted._
+import model.persisted.eventschedules.EventType.EventType
+import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{ when, _ }
+import org.mockito.stubbing.OngoingStubbing
+import repositories.{ CandidateAllocationMongoRepository, SchemeRepository, SchemeYamlRepository }
+import repositories.application.GeneralApplicationRepository
+import services.BaseServiceSpec
+import services.events.EventsService
+import services.stc.StcEventService
+import testkit.MockitoImplicits._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito._
-import org.scalatest.time.{ Seconds, Span }
-import repositories.application.CandidateAllocationRepository
-import repositories.ApplicationAssessmentRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.AuditService
-import testkit.UnitSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
+import repositories.personaldetails.PersonalDetailsRepository
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
-class CandidateAllocationServiceSpec extends UnitSpec {
+class CandidateAllocationServiceSpec extends BaseServiceSpec {
+  "Allocate candidate" must {
+    "save allocation if non already exists" in new TestFixture {
+      val eventId = "E1"
+      val sessionId = "S1"
+      val appId = "app1"
+      val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
 
-  val candidate = AllocatedCandidate(PersonalDetailsWithUserId("Alice", "userId"), "app1", LocalDate.now().plusDays(3))
-  val applicationAssessment = ApplicationAssessment("app1", "London 1", LocalDate.now().plusDays(3), "AM", 1, confirmed = false)
-  val candidateContact = ContactDetails(outsideUk = false, Address("Aldwych road"), Some("AB CDE"), None, "alice@test.com", "1234567")
-
-  val caRepositoryMock = mock[CandidateAllocationRepository]
-  val cdRepositoryMock = mock[ContactDetailsRepository]
-  val aaRepositoryMock = mock[ApplicationAssessmentRepository]
-  val emailClientMock = mock[CSREmailClient]
-  val auditServiceMock = mock[AuditService]
-
-  val HeaderCarrier = new HeaderCarrier()
-  implicit val headerCarrier = HeaderCarrier
-
-  override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
-
-  val service = new CandidateAllocationService {
-    val caRepository = caRepositoryMock
-    val cdRepository = cdRepositoryMock
-    val aaRepository = aaRepositoryMock
-    val emailClient = emailClientMock
-    val auditService = auditServiceMock
-
-    override val headerCarrier = HeaderCarrier
-  }
-
-  "Next unconfirmed candidate for sending a reminder" should {
-    "return nothing when there is no unconfirmed candidates" in {
-      when(caRepositoryMock.nextUnconfirmedCandidateToSendReminder(3)).thenReturn(Future.successful(None))
-
-      val allocatedCandidate = service.nextUnconfirmedCandidateForSendingReminder.futureValue
-
-      allocatedCandidate must be(empty)
-    }
-
-    "return an allocated candidate when there is one" in {
-      val candidate = AllocatedCandidate(PersonalDetailsWithUserId("Bob", "userId"), "app1", LocalDate.now())
-      when(caRepositoryMock.nextUnconfirmedCandidateToSendReminder(3)).thenReturn(Future.successful(Some(candidate)))
-
-      val allocatedCandidate = service.nextUnconfirmedCandidateForSendingReminder.futureValue
-
-      allocatedCandidate must not be empty
-      allocatedCandidate.get must be(candidate)
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(Nil)
+      when(mockAppRepo.find(appId)).thenReturnAsync(None)
+      service.allocateCandidates(candidateAllocations, false)
     }
   }
 
-  "A reminder email" should {
-    "be sent to the next candidate and the candidate should be marked as contacted" in {
-      when(cdRepositoryMock.find(candidate.candidateDetails.userId)).thenReturn(Future.successful(candidateContact))
-      when(aaRepositoryMock.find(candidate.applicationId)).thenReturn(Future.successful(applicationAssessment))
-      when(emailClientMock.sendReminderToConfirmAttendance(
-        candidateContact.email,
-        candidate.candidateDetails.preferredName,
-        applicationAssessment.assessmentDateTime,
-        candidate.expireDate
-      )).thenReturn(Future.successful(()))
-      when(caRepositoryMock.saveAllocationReminderSentDate(eqTo("app1"), any[DateTime])).thenReturn(Future.successful(()))
+  "Unallocate candidate" must {
+    "unallocate candidates" in new TestFixture {
+      val eventId = "E1"
+      val sessionId = "S1"
+      val appId = "app1"
+      val userId = "userId"
+      val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
+      val persistedAllocations: Seq[persisted.CandidateAllocation] = model.persisted.CandidateAllocation.fromCommand(candidateAllocations)
+      val allocation: persisted.CandidateAllocation = persistedAllocations.head
 
-      val result = service.sendEmailConfirmationReminder(candidate).futureValue
+      when(mockCandidateAllocationRepository.isAllocationExists(any[String], any[String], any[String], any[Option[String]]))
+        .thenReturnAsync(true)
+      when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation])).thenReturnAsync()
+      when(mockAppRepo.resetApplicationAllocationStatus(any[String], any[EventType])).thenReturnAsync()
 
-      result must be(())
-      verify(emailClientMock).sendReminderToConfirmAttendance(
-        candidateContact.email,
-        candidate.candidateDetails.preferredName, applicationAssessment.assessmentDateTime, candidate.expireDate
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockAppRepo.find(List(appId))).thenReturnAsync(CandidateExamples.NewCandidates)
+      when(mockPersonalDetailsRepo.find(any[String])).thenReturnAsync(PersonalDetailsExamples.JohnDoe)
+      when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(ContactDetailsExamples.ContactDetailsUK)
+
+      when(mockEmailClient.sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
+
+      service.unAllocateCandidates(persistedAllocations.toList).futureValue
+
+      verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
+      verify(mockAppRepo).resetApplicationAllocationStatus(any[String], any[EventType])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
+    }
+  }
+
+  "find eligible candidates" must {
+    "return all candidates except no-shows" in new TestFixture {
+
+      private val fsacIndicator = model.FSACIndicator("","")
+      private val c1 = CandidateEligibleForEvent("app1", "", "", true, fsacIndicator, DateTime.now())
+      private val c2 = CandidateEligibleForEvent("app2", "", "", true, fsacIndicator, DateTime.now())
+      private val loc = "London"
+      private val eventType = EventType.FSAC
+      private val desc = "ORAC"
+      private val scheme = None
+
+      val res = CandidatesEligibleForEventResponse(List(c1, c2), 2)
+      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc), eventType, scheme)).thenReturnAsync(res)
+
+      service.findCandidatesEligibleForEventAllocation(loc, eventType, desc).futureValue mustBe res
+    }
+  }
+
+  "get sessions for application" must {
+    "get list of events with sessions only that the application is a part of" in new TestFixture {
+      when(mockCandidateAllocationRepository.allocationsForApplication(any[String]())).thenReturnAsync(
+        Seq(
+          model.persisted.CandidateAllocation(
+            "appId1", EventExamples.e1.id, EventExamples.e1Session1Id, AllocationStatuses.UNCONFIRMED, "version1", None, LocalDate.now(), false
+          )
+        )
       )
-      verify(caRepositoryMock).saveAllocationReminderSentDate(eqTo("app1"), any[DateTime])
-      verify(auditServiceMock).logEventNoRequest("AllocationReminderEmailSent", Map(
-        "userId" -> "userId",
-        "email" -> "alice@test.com"
-      ))
+
+      when(mockEventsService.getEvents(any[List[String]]())).thenReturnAsync(
+        List(EventExamples.e1WithSessions)
+      )
+
+      service.getSessionsForApplication("appId1").futureValue mustBe List(
+        CandidateAllocationWithEvent("appId1", "version1", AllocationStatuses.UNCONFIRMED,
+          model.exchange.Event(
+            EventExamples.e1WithSessions.copy(sessions = EventExamples.e1WithSessions.sessions.filter(_.id == EventExamples.e1Session1Id))
+          )
+        )
+      )
+
     }
   }
+
+
+  trait TestFixture {
+    val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
+    val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
+    val mockPersonalDetailsRepo: PersonalDetailsRepository = mock[PersonalDetailsRepository]
+    val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
+    val mockEventsService: EventsService = mock[EventsService]
+    val mockEmailClient: EmailClient = mock[EmailClient]
+    val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
+    val mockStcEventService: StcEventService = mock[StcEventService]
+
+    val service = new CandidateAllocationService {
+      override val eventsService: EventsService = mockEventsService
+      override val applicationRepo: GeneralApplicationRepository = mockAppRepo
+      override val personalDetailsRepo: PersonalDetailsRepository = mockPersonalDetailsRepo
+      override val contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
+
+      override def emailClient: EmailClient = mockEmailClient
+
+      override def authProviderClient: AuthProviderClient = mockAuthProviderClient
+
+      override val eventService: StcEventService = mockStcEventService
+
+      def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
+
+      override def schemeRepository: SchemeRepository = SchemeYamlRepository
+
+      override def eventsConfig: EventsConfig = EventsConfig("", "", 1)
+    }
+
+    protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
+      "eventId", EventType.FSAC, "Description", Location("London"), Venue("Venue 1", "venue description"),
+      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, DateTime.now, Map(), Nil
+    ))
+
+    protected def mockAuthProviderFindByUserIds(userId: String*): Unit = userId.foreach { uid =>
+      when(mockAuthProviderClient.findByUserIds(eqTo(Seq(uid)))(any[HeaderCarrier]())).thenReturnAsync(
+        Seq(
+          Candidate("Bob " + uid, "Smith", None, "bob@mailinator.com", None, uid, List("candidate"))
+        )
+      )
+    }
+  }
+
 }

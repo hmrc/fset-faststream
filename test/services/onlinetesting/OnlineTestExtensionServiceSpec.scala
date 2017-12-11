@@ -27,13 +27,13 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.events.EventServiceFixture
 import services.onlinetesting.Exceptions.TestExtensionException
+import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.{ ShortTimeout, UnitSpec }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
@@ -196,7 +196,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val mockAppRepository = mock[GeneralApplicationRepository]
     val mockOtRepository = mock[Phase1TestRepository]
     val mockAuditService = mock[AuditService]
-    val underTest = new OnlineTestExtensionService with EventServiceFixture {
+    val underTest = new OnlineTestExtensionService with StcEventServiceFixture {
       val appRepository = mockAppRepository
       val otRepository = mockOtRepository
       val auditService = mockAuditService

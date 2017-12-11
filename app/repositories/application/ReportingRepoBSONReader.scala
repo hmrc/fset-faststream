@@ -19,71 +19,28 @@ package repositories.application
 import config.MicroserviceAppConfig._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewedCallbackRequest }
-import model.ApplicationRoute.{ BSONEnumHandler => _, apply => _, toString => _, _ }
+import model._
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.{ apply => _ }
 import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _ }
 import model.Commands._
 import model.InternshipType.{ InternshipType, apply => _ }
 import model.OnlineTestCommands.TestResult
-import model.SchemeType.{ BSONEnumHandler => _, apply => _, toString => _, _ }
+import model.assessmentscores.AssessmentScoresAllExercises
 import model.command._
 import model.persisted._
 import model.report._
-import model.{ ApplicationRoute, CivilServiceExperienceType, InternshipType, Phase }
 import play.api.Logger
+import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.{ BaseBSONReader, CommonBSONDocuments }
+import repositories.{ BaseBSONReader, CommonBSONDocuments, CurrentSchemeStatusHelper }
 
 trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
-
-  implicit val toReportWithPersonalDetails: BSONDocumentReader[ReportWithPersonalDetails] = bsonReader {
-    (doc: BSONDocument) => {
-      val fr = doc.getAs[BSONDocument]("framework-preferences")
-      val fr1 = fr.flatMap(_.getAs[BSONDocument]("firstLocation"))
-      val fr2 = fr.flatMap(_.getAs[BSONDocument]("secondLocation"))
-
-      def frLocation(root: Option[BSONDocument]) = extract("location")(root)
-      def frScheme1(root: Option[BSONDocument]) = extract("firstFramework")(root)
-      def frScheme2(root: Option[BSONDocument]) = extract("secondFramework")(root)
-
-      val personalDetails = doc.getAs[BSONDocument]("personal-details")
-      val aLevel = personalDetails.flatMap(_.getAs[Boolean]("aLevel").map(booleanTranslator))
-      val stemLevel = personalDetails.flatMap(_.getAs[Boolean]("stemLevel").map(booleanTranslator))
-      val firstName = personalDetails.flatMap(_.getAs[String]("firstName"))
-      val lastName = personalDetails.flatMap(_.getAs[String]("lastName"))
-      val preferredName = personalDetails.flatMap(_.getAs[String]("preferredName"))
-      val dateOfBirth = personalDetails.flatMap(_.getAs[String]("dateOfBirth"))
-
-      val fpAlternatives = fr.flatMap(_.getAs[BSONDocument]("alternatives"))
-      val location = fpAlternatives.flatMap(_.getAs[Boolean]("location").map(booleanTranslator))
-      val framework = fpAlternatives.flatMap(_.getAs[Boolean]("framework").map(booleanTranslator))
-
-      val ad = doc.getAs[BSONDocument]("assistance-details")
-      val needsAssistance = ad.flatMap(_.getAs[String]("needsAssistance"))
-      val needsAdjustment = ad.flatMap(_.getAs[String]("needsAdjustment"))
-      val guaranteedInterview = ad.flatMap(_.getAs[String]("guaranteedInterview"))
-
-      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
-      val userId = doc.getAs[String]("userId").getOrElse("")
-      val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
-
-      val onlineTests = doc.getAs[BSONDocument]("online-tests")
-      val cubiksUserId = onlineTests.flatMap(_.getAs[Int]("cubiksUserId"))
-
-      ReportWithPersonalDetails(
-        applicationId, userId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
-        frLocation(fr1), frScheme1(fr1), frScheme2(fr1),
-        frLocation(fr2), frScheme1(fr2), frScheme2(fr2), aLevel,
-        stemLevel, location, framework, needsAssistance, needsAdjustment, guaranteedInterview, firstName, lastName,
-        preferredName, dateOfBirth, cubiksUserId
-      )
-    }
-  }
 
   implicit val toCandidateProgressReportItem: BSONDocumentReader[CandidateProgressReportItem] = bsonReader {
     (doc: BSONDocument) => {
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
-      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
@@ -122,9 +79,12 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         case _ => None
       }
 
+      val fsacIndicatorDoc = doc.getAs[BSONDocument]("fsac-indicator")
+      val assessmentCentre = fsacIndicatorDoc.flatMap(_.getAs[String]("assessmentCentre"))
+
       CandidateProgressReportItem(userId, applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
         schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, phoneAdjustments, gis, civilServant,
-        fastTrack, edipReportColumn, sdipPrevious, sdip, fastPassCertificate, None, applicationRoute)
+        fastTrack, edipReportColumn, sdipPrevious, sdip, fastPassCertificate, assessmentCentre, applicationRoute)
     }
   }
 
@@ -180,7 +140,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val lastName = psDoc.flatMap(_.getAs[String]("lastName"))
 
       val spDoc = doc.getAs[BSONDocument]("scheme-preferences")
-      val schemes = spDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+      val schemes = spDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
       val firstSchemePreference = schemes.map(_.head.toString)
 
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
@@ -213,7 +173,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         else if (applicationRoute == ApplicationRoute.Sdip) { "needsSupportForPhoneInterview" }
         else { "needsSupportForOnlineAssessment" }
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
-      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
@@ -228,29 +188,36 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val userId = doc.getAs[String]("userId").getOrElse("")
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
+      val curSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(
+        schemes.getOrElse(List.empty).map(s => new SchemeEvaluationResult(s, EvaluationResults.Green.toString)))
+
       ApplicationForDiversityReport(applicationId, userId, applicationRoute,
         Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
         schemes.getOrElse(List.empty), disability, gis, onlineAdjustments,
-        assessmentCentreAdjustments, civilServiceExperience)
+        assessmentCentreAdjustments, civilServiceExperience, curSchemeStatus)
     }
   }
 
   implicit val toApplicationForOnlineTestPassMarkReport: BSONDocumentReader[ApplicationForOnlineTestPassMarkReport] = bsonReader {
     (doc: BSONDocument) => {
+      val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
-      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
       val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
       val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
       val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
+      val curSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(
+        schemes.getOrElse(List.empty).map(s => new SchemeEvaluationResult(s, EvaluationResults.Green.toString)))
 
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
       ApplicationForOnlineTestPassMarkReport(
+        userId,
         applicationId,
         ProgressStatusesReportLabels.progressStatusNameInReports(progress),
         applicationRoute,
@@ -259,7 +226,53 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         gis,
         onlineAdjustments,
         assessmentCentreAdjustments,
-        toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId))
+        toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId),
+        curSchemeStatus)
+    }
+  }
+
+  implicit val toApplicationForNumericTestExtractReport: BSONDocumentReader[ApplicationForNumericTestExtractReport] = bsonReader {
+    (doc: BSONDocument) => {
+      import reactivemongo.json._
+
+      val userId = doc.getAs[String]("userId").getOrElse("")
+      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
+      val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
+      val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
+      val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
+
+      val personalDetails = doc.getAs[PersonalDetails]("personal-details").getOrElse(
+        throw new Exception(s"Error parsing personal details for $userId")
+      )
+
+      val adDoc = doc.getAs[BSONDocument]("assistance-details")
+      val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
+      val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
+      val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
+      val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
+
+      val currentSchemeStatus = doc.getAs[List[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(
+        throw new Exception(s"Error parsing current scheme status for $userId")
+      )
+
+      val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
+
+      ApplicationForNumericTestExtractReport(
+        userId,
+        applicationId,
+        applicationRoute,
+        personalDetails.firstName,
+        personalDetails.lastName,
+        personalDetails.preferredName,
+        ProgressStatusesReportLabels.progressStatusNameInReports(progress),
+        schemes.getOrElse(Nil),
+        disability,
+        gis,
+        onlineAdjustments,
+        assessmentCentreAdjustments,
+        toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId),
+        currentSchemeStatus
+      )
     }
   }
 
@@ -281,33 +294,41 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
-  private[application] def toTestResultsForOnlineTestPassMarkReportItem(doc: BSONDocument, applicationId: String):
+  private[application] def toTestResultsForOnlineTestPassMarkReportItem(
+    appDoc: BSONDocument, applicationId: String):
   TestResultsForOnlineTestPassMarkReportItem = {
 
-    val testGroupsDoc = doc.getAs[BSONDocument]("testGroups")
+    val testGroupsDoc = appDoc.getAs[BSONDocument]("testGroups")
     val (behaviouralTestResult, situationalTestResult) = toPhase1TestResults(testGroupsDoc)
     val etrayTestResult = toPhase2TestResults(applicationId, testGroupsDoc)
     val videoInterviewResults = toPhase3TestResults(testGroupsDoc)
 
-    TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult, videoInterviewResults)
+    TestResultsForOnlineTestPassMarkReportItem(
+      behaviouralTestResult,
+      situationalTestResult,
+      etrayTestResult,
+      videoInterviewResults,
+      None, None, None)
   }
 
-  private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]) = {
-    val phase1Doc = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1))
-    val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
+  private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]): (Option[TestResult], Option[TestResult]) = {
+    testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1)).map { phase1Doc =>
+      val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc)
 
-    val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
-    val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
+      val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
+      val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
 
-    def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
-      phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
-        phase1Test.testResult.map { tr => toTestResult(tr) }
+      def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
+        phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
+          phase1Test.testResult.map { tr => toTestResult(tr) }
+        }
       }
-    }
-    (getTestResult(phase1TestProfile, behaviouralScheduleId), getTestResult(phase1TestProfile, situationalScheduleId))
+
+      (getTestResult(phase1TestProfile, behaviouralScheduleId), getTestResult(phase1TestProfile, situationalScheduleId))
+    }.getOrElse((None, None))
   }
 
-  private[application] def toPhase2TestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]) = {
+  private[application] def toPhase2TestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]): Option[TestResult] = {
     val phase2DocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE2))
     phase2DocOpt.flatMap { phase2Doc =>
       val phase2TestProfile = Phase2TestGroup.bsonHandler.read(phase2Doc)
@@ -353,7 +374,4 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   private[this] def toTestResult(tr: model.persisted.TestResult) = {
     TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
   }
-
-  private def extract(key: String)(root: Option[BSONDocument]): Option[String] = root.flatMap(_.getAs[String](key))
-
 }

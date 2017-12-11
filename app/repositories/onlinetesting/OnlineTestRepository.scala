@@ -123,7 +123,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     throw CannotFindTestByCubiksId(s"Cannot find test group by token: $token")
   }
 
-  private def phaseTestProfileByQuery(query: BSONDocument, phase: String = "PHASE1"): Future[Option[T]] = {
+  private def phaseTestProfileByQuery(query: BSONDocument, phase: String): Future[Option[T]] = {
     val projection = BSONDocument(s"testGroups.$phase" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map { optDocument =>
@@ -252,6 +252,13 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.update(query, update) map validator
   }
 
+  def upsertTestGroupEvaluationResult(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument("$set" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> passmarkEvaluation))
+
+    collection.update(query, update).map(_ => ())
+  }
+
   def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
     require(progressStatuses forall (ps =>
@@ -262,7 +269,10 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> resetStatuses))
     ))
 
-    val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
+    val progressesToRemoveQueryPartial: Seq[(String, BSONValue)] = progressStatuses.flatMap(p =>
+        Seq(s"progress-status.$p" -> BSONString(""),
+          s"progress-status-timestamp.$p" -> BSONString(""))
+      )
 
     val updateQuery = BSONDocument(
       "$set" -> BSONDocument("applicationStatus" -> thisApplicationStatus),

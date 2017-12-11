@@ -24,9 +24,11 @@ import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
 import model.{ ApplicationStatus, Phase => _, _ }
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
-import repositories.{ BaseBSONReader, CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
+import repositories.{ BaseBSONReader, CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper }
+import repositories.{ RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import model.Phase._
@@ -36,12 +38,13 @@ import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRepositoryHelpers with RandomSelection {
+trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRepositoryHelpers with RandomSelection
+  with CurrentSchemeStatusHelper {
 
   this: ReactiveRepository[ApplicationReadyForEvaluation, _] =>
 
   val phase: Phase
-  val evaluationApplicationStatuses: List[ApplicationStatus]
+  val evaluationApplicationStatuses: Set[ApplicationStatus]
   val evaluationProgressStatus: ProgressStatus
   val expiredProgressStatus: ProgressStatus
 
@@ -49,11 +52,19 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 
   val nextApplicationQuery: String => BSONDocument
 
+  def validEvaluationPhaseStatuses(phase: ApplicationStatus): Set[ApplicationStatus] = {
+    val statusesToIgnore = List(ApplicationStatus.PHASE1_TESTS_FAILED, ApplicationStatus.PHASE2_TESTS_FAILED)
+    ApplicationStatus.values.filter(s =>
+      s >= phase && s < ApplicationStatus.PHASE3_TESTS_PASSED && !statusesToIgnore.contains(s))
+  }
+
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] =
     selectRandom[ApplicationReadyForEvaluation](nextApplicationQuery(currentPassmarkVersion), batchSize)
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
                              newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
+    Logger.info(s"**** applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
+
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses))
@@ -63,8 +74,9 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
       s"testGroups.$phase.evaluation" -> evaluation
     ).add(
       newProgressStatus.map(applicationStatusBSON).getOrElse(BSONDocument.empty)
+    ).add(
+      currentSchemeStatusBSON(evaluation.result)
     ))
-
     val validator = singleUpdateValidator(applicationId, actionDesc = s"saving passmark evaluation during $phase evaluation")
 
     collection.update(query, passMarkEvaluation) map validator
@@ -77,7 +89,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 
     val removeEvaluationIfExists = BSONDocument(
       "$pull" -> BSONDocument(s"testGroups.$phase.evaluation.result" ->
-        BSONDocument("scheme" -> SchemeType.Sdip)))
+        BSONDocument("schemeId" -> SchemeId("Sdip"))))
 
     val passMarkEvaluation = BSONDocument(
       "$addToSet" -> BSONDocument(s"testGroups.$phase.evaluation.result" -> schemeEvaluationResult),
@@ -119,13 +131,13 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   }
 }
 
-class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
+class Phase1EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments{
 
   val phase = PHASE1
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS)
+  val evaluationApplicationStatuses = validEvaluationPhaseStatuses(ApplicationStatus.PHASE1_TESTS)
   val evaluationProgressStatus = ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED
   val expiredProgressStatus = ProgressStatuses.PHASE1_TESTS_EXPIRED
 
@@ -136,7 +148,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   })
 
   val nextApplicationQuery = (currentPassmarkVersion: String) => {
-    val phase1TestsApplications = BSONDocument("$and" -> BSONArray(
+    BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
       BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
       BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
@@ -145,27 +157,10 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
       ))
     ))
-
-    val sdipFaststreamApplications = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
-      BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
-      BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
-      BSONDocument(s"testGroups.$phase.evaluation.result" ->
-        BSONDocument("$not" -> BSONDocument("$elemMatch" ->
-          BSONDocument("scheme" -> SchemeType.Sdip,
-            "result" -> BSONDocument("$in" -> List(Green.toString, Red.toString))
-          ))))
-    ))
-
-    BSONDocument("$or" -> BSONArray(
-      phase1TestsApplications,
-      sdipFaststreamApplications
-    ))
   }
 }
 
-class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
+class Phase2EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository
@@ -173,7 +168,7 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
 
   val phase = PHASE2
   val prevPhase = PHASE1
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE2_TESTS)
+  val evaluationApplicationStatuses = validEvaluationPhaseStatuses(ApplicationStatus.PHASE2_TESTS)
   val evaluationProgressStatus = ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED
   val expiredProgressStatus = ProgressStatuses.PHASE2_TESTS_EXPIRED
 
@@ -200,8 +195,10 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
       ))
 }
 
-class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayConfig,
-                                      dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
+class Phase3EvaluationMongoRepository(
+  launchpadGatewayConfig: LaunchpadGatewayConfig,
+  val dateTimeFactory: DateTimeFactory
+)(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with BaseBSONReader {
@@ -210,7 +207,7 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
 
   val phase = PHASE3
   val prevPhase = PHASE2
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
+  val evaluationApplicationStatuses = validEvaluationPhaseStatuses(ApplicationStatus.PHASE3_TESTS)
   val evaluationProgressStatus = ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
   val expiredProgressStatus = ProgressStatuses.PHASE3_TESTS_EXPIRED
 
@@ -222,7 +219,14 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
     applicationEvaluationBuilder(Nil, phase3.activeTests.headOption, Some(phase2Evaluation))(doc)
   })
 
-  val nextApplicationQuery = (currentPassmarkVersion: String) =>
+  val nextApplicationQuery = (currentPassmarkVersion: String) => {
+    // The where clause specifies evaluation will trigger for this phase if the either the previous phase passmark version
+    // is changed or the previous phase result version is changed, which can happen if the phase 1 pass marks were changed.
+    // This allows us to trigger a phase 3 evaluation from a phase 1 pass mark change (and also a phase 2 evaluation)
+    val whereClause =
+      s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion" +
+        s" || this.testGroups.$phase.evaluation.previousPhaseResultVersion != this.testGroups.$prevPhase.evaluation.resultVersion"
+
     BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
       BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
@@ -232,17 +236,17 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
         BSONDocument("$elemMatch" -> BSONDocument(
           "usedForResults" -> true, "callbacks.reviewed" -> BSONDocument("$exists" -> true),
           "callbacks.reviewed" -> BSONDocument("$elemMatch" -> BSONDocument("received" -> BSONDocument("$lte" ->
-                dateTimeFactory.nowLocalTimeZone.minusHours(
-                  launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
-                ))))
-          )
+            dateTimeFactory.nowLocalTimeZone.minusHours(
+              launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
+            ))))
+        )
         )
       ),
       BSONDocument("$or" -> BSONArray(
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
-        BSONDocument("$where" ->
-          s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
-      )
+        BSONDocument("$where" -> whereClause)
+      ))
     ))
+  }
 }

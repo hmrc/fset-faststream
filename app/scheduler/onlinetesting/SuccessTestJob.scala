@@ -23,9 +23,9 @@ import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase3.Phase3TestService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SuccessPhase1TestJob extends SuccessTestJob {
   override val service = Phase1TestService
@@ -36,7 +36,14 @@ object SuccessPhase1TestJob extends SuccessTestJob {
 object SuccessPhase3TestJob extends SuccessTestJob {
   override val service = Phase3TestService
   override val successType: SuccessTestType = Phase3SuccessTestType
-  val config = SuccessPhase3TestJobConfig}
+  val config = SuccessPhase3TestJobConfig
+}
+
+object SuccessPhase3SdipFsTestJob extends SuccessTestJob {
+  override val service = Phase3TestService
+  override val successType: SuccessTestType = Phase3SuccessSdipFsTestType
+  val config = SuccessPhase3TestJobConfig
+}
 
 trait SuccessTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: OnlineTestService
@@ -57,4 +64,9 @@ object SuccessPhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
 object SuccessPhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
   configPrefix = "scheduling.online-testing.success-phase3-test-job",
   name = "SuccessPhase3TestJob"
+)
+
+object SuccessPhase3SdipFsTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.success-phase3-sdipfs-test-job",
+  name = "SuccessPhase3SdipFsTestJob"
 )

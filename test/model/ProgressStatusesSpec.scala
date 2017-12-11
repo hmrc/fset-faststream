@@ -16,12 +16,10 @@
 
 package model
 
-import services.testdata.ApplicationStatusOnlyForTest
+import services.testdata.candidate.ApplicationStatusOnlyForTest
 import testkit.UnitSpec
 
 class ProgressStatusesSpec extends UnitSpec {
-
-  import ProgressStatusesSpec._
 
   "Progress statuses" should {
     "be assigned to all application statuses" in {
@@ -29,7 +27,7 @@ class ProgressStatusesSpec extends UnitSpec {
         type ApplicationStatus = Value
       }
 
-      val excludedApplicationStatuses = JustForTest.values.map(_.toString).toList ::: NotTestableApplicationStatus
+      val excludedApplicationStatuses = JustForTest.values.map(_.toString).toList
       val allAppStatusesAssignedToProgressStatuses: Seq[String] = ProgressStatuses.allStatuses.map(_.applicationStatus.toString).sorted
       val allAppStatuses: Seq[String] = ApplicationStatus.values.map(_.toString).toSeq diff excludedApplicationStatuses
 
@@ -40,9 +38,4 @@ class ProgressStatusesSpec extends UnitSpec {
       allAppStatuses.size mustBe allAppStatuses.size
     }
   }
-}
-
-object ProgressStatusesSpec {
-  import model.ApplicationStatus._
-  val NotTestableApplicationStatus: List[String] = READY_TO_UPDATE.toString :: Nil
 }

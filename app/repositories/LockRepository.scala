@@ -20,11 +20,16 @@ import org.joda.time.{ DateTime, Duration }
 import play.api.Logger
 import play.api.libs.json.{ Format, JsValue, Json }
 import reactivemongo.api.DB
+import reactivemongo.api.indexes.Index
+import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import scala.concurrent.duration._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
+import language.postfixOps
+import scala.concurrent.ExecutionContext.Implicits.global
 
 case class Lock(id: String, owner: String, timeCreated: DateTime, expiryTime: DateTime)
 
@@ -53,6 +58,14 @@ class LockMongoRepository(implicit mongo: () => DB)
   private val DuplicateKey = 11000
 
   import LockFormats._
+
+  // When starting check indexes exist
+  Await.result(Future.sequence(List(
+    collection.indexesManager.create(Index(Seq((id, Ascending)), unique = true)),
+    collection.indexesManager.create(Index(Seq((owner, Ascending)), unique = false)),
+    collection.indexesManager.create(Index(Seq((timeCreated, Ascending)), unique = false)),
+    collection.indexesManager.create(Index(Seq((expiryTime, Ascending)), unique = false))
+  )), 10 seconds)
 
   def lock(
     reqLockId: String,

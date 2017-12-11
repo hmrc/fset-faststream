@@ -17,8 +17,7 @@
 package services.search
 
 import connectors.AuthProviderClient
-import model.Address
-import model.Commands.{ Candidate, SearchCandidate }
+import model.{ Address, Candidate, SearchCandidate }
 import model.persisted.ContactDetailsWithId
 import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers._
@@ -28,9 +27,9 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.BaseServiceSpec
 import testkit.ShortTimeout
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
 

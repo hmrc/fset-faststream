@@ -2,9 +2,8 @@ package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
-import model.SchemeType._
 import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest, Phase1TestProfile, _ }
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType }
+import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
@@ -18,6 +17,16 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   import Phase1EvaluationMongoRepositorySpec._
 
   val collectionName: String = CollectionNames.APPLICATION
+
+  "dynamically specified evaluation application statuses collection" should {
+    "contain the expected phases that result in evaluation running" in {
+      phase1EvaluationRepo.evaluationApplicationStatuses mustBe Set(
+        ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED,
+        ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_PASSED,
+        ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER
+      )
+    }
+  }
 
   "next Application Ready For Evaluation" should {
     "return nothing if there is no PHASE1_TESTS applications" in {
@@ -48,7 +57,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase1TestProfile(now, phase1TestsWithResult).activeTests,
         None,
         None,
-        selectedSchemes(List(Commercial)))
+        selectedSchemes(List(SchemeId("Commercial"))))
     }
 
     "return GIS application in PHASE1_TESTS with results" in {
@@ -65,7 +74,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase1TestProfile(now, phase1TestsWithResult).activeTests,
         None,
         None,
-        selectedSchemes(List(Commercial)))
+        selectedSchemes(List(SchemeId("Commercial"))))
     }
 
     "return nothing when PHASE1_TESTS have expired" in {
@@ -97,11 +106,11 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "save passmark evaluation" should {
-    val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED)).futureValue
 
@@ -110,13 +119,13 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE1_TESTS_PASSED
       result.evaluation mustBe Some(PassmarkEvaluation("version1", None, List(
-        SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString)
-      )))
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)
+      ), "version1-res", None))
     }
 
     "return nothing when candidate has been already evaluated" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
@@ -126,7 +135,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
     "return the candidate in PHASE1_TESTS if the passmark has changed" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
@@ -134,47 +143,74 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result must not be empty
     }
 
-    "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is not evaluated for phase1" in {
+    "not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is not evaluated for phase1" ignore {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
       applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
+      getOnePhase1Profile("app1") mustBe defined
+
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
+      result mustBe empty
+    }
+
+    "return SdipFaststream candidate in PHASE2_TESTS if sdip has not been previously evaluated for phase1" in {
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
+        applicationRoute = Some(ApplicationRoute.SdipFaststream))
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
       result must not be empty
     }
 
-    "do not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated to Green/Red for phase1" in {
+    "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated to Green for phase1" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
-        SchemeEvaluationResult(SchemeType.Sdip, Green.toString))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      val evaluation = PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res",
+        previousPhaseResultVersion = None)
 
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
       applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
-      result mustBe empty
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
+      result must not be empty
+    }
+
+    "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated to Red for phase1" in {
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
+        applicationRoute = Some(ApplicationRoute.SdipFaststream))
+
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), Red.toString))
+      val evaluation = PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res",
+        previousPhaseResultVersion = None)
+
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
+      getOnePhase1Profile("app1") mustBe defined
+
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
+      result must not be empty
     }
 
     "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is evaluated to Amber for phase1" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
-        SchemeEvaluationResult(SchemeType.Sdip, Amber.toString))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
       applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
       result must not be empty
     }
   }
@@ -184,35 +220,35 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
 
-      val sdipResult = SchemeEvaluationResult(SchemeType.Sdip, Green.toString)
+      val sdipResult = SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
 
       phase1EvaluationRepo.addSchemeResultToPassmarkEvaluation("app1", sdipResult, "version2").futureValue
 
       val passmarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation("app1").futureValue
 
-      passmarkEvaluation.result must contain theSameElementsAs List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
-        SchemeEvaluationResult(SchemeType.Sdip, Green.toString))
+      passmarkEvaluation.result must contain theSameElementsAs List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
     }
 
     "update sdip results in pass mark evaluation" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.Sdip, Amber.toString))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
 
-      val sdipResult = SchemeEvaluationResult(SchemeType.Sdip, Red.toString)
+      val sdipResult = SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)
 
       phase1EvaluationRepo.addSchemeResultToPassmarkEvaluation("app1", sdipResult, "version2").futureValue
 
       val passmarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation("app1").futureValue
 
-      passmarkEvaluation.result must contain theSameElementsAs List(SchemeEvaluationResult(SchemeType.Sdip, Red.toString))
+      passmarkEvaluation.result must contain theSameElementsAs List(SchemeEvaluationResult(SchemeId("Sdip"), Red.toString))
     }
   }
 

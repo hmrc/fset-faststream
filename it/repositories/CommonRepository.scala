@@ -1,5 +1,6 @@
 package repositories
 
+import common.FutureEx
 import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig }
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
@@ -7,25 +8,28 @@ import model.ApplicationStatus.ApplicationStatus
 import model.Phase1TestExamples._
 import model.Phase2TestProfileExamples._
 import model.Phase3TestProfileExamples._
-import model.ProgressStatuses.ProgressStatus
-import model.SchemeType._
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ProgressStatus }
 import model.persisted._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SelectedSchemes }
+import model._
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.junit.Assert._
 import org.scalatest.concurrent.ScalaFutures
-import reactivemongo.bson.BSONDocument
-import repositories.application.GeneralApplicationMongoRepository
+import reactivemongo.bson.{ BSONArray, BSONDocument }
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
+import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting._
-import repositories.parity.ParityExportMongoRepository
 import repositories.passmarksettings._
+import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import services.GBTimeZoneService
+import services.sift.ApplicationSiftService
 import testkit.MongoRepositorySpec
 
+import scala.concurrent.Future
 
-trait CommonRepository {
+
+trait CommonRepository extends CurrentSchemeStatusHelper {
   this: MongoRepositorySpec with ScalaFutures =>
 
   import reactivemongo.json.ImplicitBSONHandlers._
@@ -34,7 +38,14 @@ trait CommonRepository {
 
   val mockLaunchpadConfig = mock[LaunchpadGatewayConfig]
 
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig)
+  val European: SchemeId = SchemeId("European")
+  val Finance = SchemeId("Finance")
+  val DiplomaticService = SchemeId("Diplomatic Service")
+  val Sdip = SchemeId("Sdip")
+  val Edip = SchemeId("Edip")
+  val siftableSchemeDefinitions = List(European, Finance, DiplomaticService, Edip, Sdip)
+
+  def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, mockGatewayConfig)
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 
@@ -46,9 +57,9 @@ trait CommonRepository {
 
   def phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
 
-  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository()
+  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository(DateTimeFactory)
 
-  def phase2EvaluationRepo = new Phase2EvaluationMongoRepository()
+  def phase2EvaluationRepo = new Phase2EvaluationMongoRepository(DateTimeFactory)
 
   def phase3EvaluationRepo = new Phase3EvaluationMongoRepository(mockLaunchpadConfig, DateTimeFactory)
 
@@ -58,16 +69,18 @@ trait CommonRepository {
 
   def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
 
-  def parityExportMongoRepo = new ParityExportMongoRepository(DateTimeFactory)
+  def applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, siftableSchemeDefinitions)
 
-  implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
+  def assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, siftableSchemeDefinitions)
 
-  def selectedSchemes(schemeTypes: List[SchemeType]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
+  implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
+
+  def selectedSchemes(schemeTypes: List[SchemeId]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
 
 
   def insertApplicationWithPhase1TestResults(appId: String, sjq: Double, bq: Option[Double] = None, isGis: Boolean = false,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
-  )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
+  )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(sjq), None, None, None)))
     val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", bq, None, None, None)))
     val phase1Tests = if(isGis) List(sjqTest) else List(sjqTest, bqTest)
@@ -77,17 +90,31 @@ trait CommonRepository {
     )
   }
 
+  def insertApplicationWithPhase1TestNotifiedResults(appId: String, results: List[SchemeEvaluationResult],
+    appRoute: ApplicationRoute = ApplicationRoute.Sdip
+  ): Future[Unit] = {
+    val phase1PassMarkEvaluation = PassmarkEvaluation("", Some(""), results, "", Some(""))
+
+    val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
+    val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
+    val phase1Tests = List(sjqTest, bqTest)
+    insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = Some(appRoute))
+
+    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
+
+    updateApplicationStatus(appId, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+  }
+
   def insertApplicationWithPhase2TestResults(appId: String, etray: Double,
     phase1PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
-  )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
-    assertNotNull("Phase1 pass mark evaluation must be set", phase1PassMarkEvaluation)
+  )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
     val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
     val etrayTest = getEtrayTest.copy(cubiksUserId = 3, testResult = Some(TestResult("Ready", "norm", Some(etray), None, None, None)))
     val phase1Tests = List(sjqTest, bqTest)
     insertApplication(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(List(etrayTest)))
-    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None)
+    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE2_TESTS, applicationRoute, isGis = false,
       List(etrayTest), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
@@ -95,19 +122,59 @@ trait CommonRepository {
   def insertApplicationWithPhase3TestResults(appId: String, videoInterviewScore: Option[Double],
     phase2PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
-  )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
-    assertNotNull("Phase2 pass mark evaluation must be set", phase2PassMarkEvaluation)
+  )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
-    phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None)
+    phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None).futureValue
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, applicationRoute, isGis = false,
       Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
+  }
+
+  def insertApplicationWithPhase3TestNotifiedResults(appId: String, results: List[SchemeEvaluationResult],
+                             videoInterviewScore: Option[Double] = None,
+                             applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+                            ): Future[Unit] = {
+    val schemes = results.map(_.schemeId)
+    val phase3PassMarkEvaluation = PassmarkEvaluation("", Some(""), results, "", Some(""))
+
+    val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
+    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests), applicationRoute = Some(applicationRoute),
+      schemes = schemes
+    )
+
+    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None).futureValue
+
+    updateApplicationStatus(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+  }
+
+  def insertApplicationWithSiftComplete(appId: String, results: Seq[SchemeEvaluationResult],
+    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+  ) = {
+    insertApplicationWithPhase3TestNotifiedResults(appId, results.toList, applicationRoute = applicationRoute).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED).futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
+  }
+
+  def insertApplicationAtFsbWithStatus(appId: String, results: Seq[SchemeEvaluationResult], progressStatus: ProgressStatus,
+    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+  ) = {
+    insertApplicationWithSiftComplete(appId, results, applicationRoute)
+    FutureEx.traverseSerial(results) { result => fsbRepository.saveResult(appId, result) }.futureValue
+    applicationRepository.addProgressStatusAndUpdateAppStatus(appId, progressStatus).futureValue
+  }
+
+  def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
+    val application = BSONDocument("applicationId" -> appId)
+    val update = BSONDocument(
+      "$set" -> BSONDocument(s"applicationStatus" -> newStatus)
+    )
+    applicationRepository.collection.update(application, update).map {_ => ()}
   }
 
   // scalastyle:off
   def insertApplication(appId: String, applicationStatus: ApplicationStatus, phase1Tests: Option[List[CubiksTest]] = None,
                         phase2Tests: Option[List[CubiksTest]] = None, phase3Tests: Option[List[LaunchpadTest]] = None,
-                        isGis: Boolean = false, schemes: List[SchemeType] = List(Commercial),
+                        isGis: Boolean = false, schemes: List[SchemeId] = List(SchemeId("Commercial")),
                         phase1Evaluation: Option[PassmarkEvaluation] = None,
                         phase2Evaluation: Option[PassmarkEvaluation] = None,
                         additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,

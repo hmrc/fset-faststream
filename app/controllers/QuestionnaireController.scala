@@ -16,9 +16,10 @@
 
 package controllers
 
-import model.Commands.Questionnaire
+import model.questionnaire.Questionnaire
+import model.questionnaire.Question._
 import play.api.mvc.Action
-import repositories.application.GeneralApplicationRepository
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.{ QuestionnaireRepository, _ }
 import services.AuditService
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -26,9 +27,9 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object QuestionnaireController extends QuestionnaireController {
-  val qRepository = questionnaireRepository
-  val appRepository = applicationRepository
-  val auditService = AuditService
+  val qRepository: QuestionnaireMongoRepository = questionnaireRepository
+  val appRepository: GeneralApplicationMongoRepository = applicationRepository
+  val auditService: AuditService.type = AuditService
 }
 
 trait QuestionnaireController extends BaseController {
@@ -36,8 +37,6 @@ trait QuestionnaireController extends BaseController {
   val qRepository: QuestionnaireRepository
   val appRepository: GeneralApplicationRepository
   val auditService: AuditService
-
-  import model.Commands.Implicits._
 
   def addSection(applicationId: String, sectionKey: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[Questionnaire] { questionnaire =>

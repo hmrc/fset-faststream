@@ -16,6 +16,7 @@
 
 import de.heikoseeberger.sbtheader.{ AutomateHeaderPlugin, HeaderPlugin }
 import play.routes.compiler.StaticRoutesGenerator
+import play.sbt.routes.RoutesKeys._
 import sbt.Keys._
 import sbt.Tests.{ Group, SubProcess }
 import sbt._
@@ -30,7 +31,7 @@ trait MicroService {
   import DefaultBuildSettings._
   import TestPhases._
   import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
-  import play.sbt.routes.RoutesKeys.routesGenerator
+  import play.sbt.routes.RoutesKeys.{ routesImport, routesGenerator }
 
   import scalariform.formatter.preferences._
 
@@ -50,15 +51,18 @@ trait MicroService {
     .settings(defaultSettings(): _*)
     .settings(
       routesGenerator := StaticRoutesGenerator,
+      routesImport += "controllers.Binders._",
       targetJvm := "jvm-1.8",
-      scalaVersion := "2.11.8",
+      scalaVersion := "2.11.11",
       libraryDependencies ++= appDependencies,
       parallelExecution in Test := false,
       fork in Test := false,
       retrieveManaged := true,
       scalacOptions += "-feature",
       // Currently don't enable warning in value discard in tests until ScalaTest 3
-      scalacOptions in (Compile, compile) += "-Ywarn-value-discard")
+      scalacOptions in(Compile, compile) += "-Ywarn-value-discard",
+      scalacOptions in(Compile, compile) += "-Xlint:-missing-interpolator,_",
+      scalacOptions in(Compile, compile) += "-Ywarn-unused")
     .settings(sources in (Compile, doc) := Seq.empty)
     .settings(HeaderPlugin.settingsFor(IntegrationTest))
     .configs(IntegrationTest)

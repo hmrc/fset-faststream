@@ -39,10 +39,34 @@ trait ReactiveRepositoryHelpers {
       new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false)
   }
 
-  def singleUpsertValidator(id: String,
-                            actionDesc: String): UpdateWriteResult => Unit = {
+  def singleUpsertValidator(id: String, actionDesc: String): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true)
+  }
+
+  def singleUpsertValidator(id: String, actionDesc: String, notFound: => Exception): UpdateWriteResult => Unit = {
+
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, notFound, upsert = true)
+  }
+
+
+  def multipleRemoveValidator(expected: Int, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
+    if (result.ok) {
+      if (result.n == expected) {
+        ()
+      } else if (result.n == 0) {
+        throw new NotFoundException(s"No documents found whilst $actionDesc")
+      } else if (result.n > expected) {
+        throw TooManyEntries(s"Deletion successful, but too many documents deleted whilst $actionDesc")
+      } else if (result.n < expected) {
+        Logger.error(s"Not enough documents deleted for $actionDesc")
+      }
+    } else {
+      val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
+      val msg = s"Failed to $actionDesc -> $mongoError"
+      Logger.error(msg)
+      throw CannotUpdateRecord(msg)
+    }
   }
 
   def singleRemovalValidator(id: String, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
@@ -62,14 +86,14 @@ trait ReactiveRepositoryHelpers {
     }
   }
 
-  private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean = false,
+  private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean,
                                               notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult) = {
     if (result.ok) {
       if (result.n == 1) {
         ()
       } else if (result.n == 0 && ignoreNotFound) {
         val msg = s"Failed to find record whilst $actionDesc for id: $id"
-        Logger.warn(msg)
+        Logger.debug(msg)
       } else if (result.n == 0) {
         throw notFound
       } else if (result.n > 1) {

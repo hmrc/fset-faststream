@@ -1,4 +1,4 @@
-
+dist: trusty
 sudo: false
 language: scala
 scala:
@@ -10,9 +10,4 @@ jdk:
 cache:
   directories:
     - '$HOME/.ivy2/cache'
-addons:
-  apt:
-    source:
-    - mongodb-3.0-precise
-    packages:
-    - mongodb-org-server
+services: mongodb

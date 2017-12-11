@@ -16,18 +16,25 @@
 
 package model.report
 
-import model.{ ApplicationRoute, SchemeType }
+import model.persisted.SchemeEvaluationResult
+import model.{ApplicationRoute, EvaluationResults, SchemeId}
 
 object ApplicationForDiversityReportItemExamples {
 
   val Example1 = ApplicationForDiversityReportItem(Some("phase1_tests_completed"), ApplicationRoute.Faststream,
-      List(SchemeType.DiplomaticService, SchemeType.Commercial), Some("No"), Some(false), Some("No"), Some("No"),
-      Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some(""))))
+      List(SchemeId("DiplomaticService"), SchemeId("Commercial")), Some("No"), Some(false), Some("No"), Some("No"),
+      Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some(""))),
+    List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+      SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
 
   val Example2 =
     ApplicationForDiversityReportItem(Some("submitted"), ApplicationRoute.Faststream,
-      List(SchemeType.DiplomaticServiceEconomics, SchemeType.Commercial, SchemeType.GovernmentCommunicationService,
-        SchemeType.European), Some("Yes"), Some(true), Some("Yes"), Some("No"),
+      List(SchemeId("DiplomaticServiceEconomics"), SchemeId("Commercial"), SchemeId("GovernmentCommunicationService"),
+        SchemeId("European")), Some("Yes"), Some(true), Some("Yes"), Some("No"),
       Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"),
-        Some("fastPass-101"))))
+        Some("fastPass-101"))),
+      List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("GovernmentCommunicationService"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("European"), EvaluationResults.Green.toString)))
 }

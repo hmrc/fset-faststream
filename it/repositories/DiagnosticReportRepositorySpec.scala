@@ -16,15 +16,12 @@
 
 package repositories
 
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
-import model.PersistedObjects.{ ApplicationProgressStatus, ApplicationProgressStatuses, ApplicationUser }
-import reactivemongo.bson.{ BSONBoolean, BSONDocument }
 import model.Exceptions.ApplicationNotFound
 import reactivemongo.bson.{ BSONBoolean, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
-import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
+import factories.DateTimeFactory
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.JsValue
 import testkit.MongoRepositorySpec
@@ -35,12 +32,12 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   override val collectionName = CollectionNames.APPLICATION
   
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository()
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
 
 
   "Find by user id" should {
     "return an empty list if there is nobody with this userId" in {
-      val result = diagnosticReportRepo.findByUserId("123").failed.futureValue
+      val result = diagnosticReportRepo.findByApplicationId("123").failed.futureValue
       result mustBe an[ApplicationNotFound]
     }
 
@@ -49,16 +46,12 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
       helperRepo.collection.insert(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
       helperRepo.collection.insert(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
 
-      val result = diagnosticReportRepo.findByUserId("user1").futureValue
-      result.length mustBe 2
-      (result(0) \ "applicationId").as[String] mustBe "app1"
-      (result(0) \ "progress-status" \ "registered").as[Boolean] mustBe true
-      (result(0) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
-      (result(0) \\ "personal-details") mustBe Nil
-      (result(1) \ "applicationId").as[String] mustBe "app2"
-      (result(1) \ "progress-status" \ "registered").as[Boolean] mustBe true
-      (result(1) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
-      (result(1) \\ "personal-details") mustBe Nil
+      val result = diagnosticReportRepo.findByApplicationId("app1").futureValue
+      result.length mustBe 1
+      (result.head \ "applicationId").as[String] mustBe "app1"
+      (result.head \ "progress-status" \ "registered").as[Boolean] mustBe true
+      (result.head \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      (result.head \\ "personal-details") mustBe Nil
     }
   }
 

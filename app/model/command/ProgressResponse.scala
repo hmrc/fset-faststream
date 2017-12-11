@@ -18,18 +18,32 @@ package model.command
 
 import play.api.libs.json.Json
 
-case class AssessmentScores(
-                             entered: Boolean = false,
-                             accepted: Boolean = false
-                           )
-
 case class AssessmentCentre(
-                             awaitingReevaluation: Boolean = false,
-                             passed: Boolean = false,
-                             passedNotified: Boolean = false,
-                             failed: Boolean = false,
-                             failedNotified: Boolean = false
-                           )
+  awaitingAllocation: Boolean = false,
+  allocationUnconfirmed: Boolean = false,
+  allocationConfirmed: Boolean = false,
+  failedToAttend: Boolean = false,
+  scoresEntered: Boolean = false,
+  scoresAccepted: Boolean = false,
+  awaitingReevaluation: Boolean = false,
+  passed: Boolean = false,
+  failed: Boolean = false,
+  failedNotified: Boolean = false,
+  failedSdipGreen: Boolean = false,
+  failedSdipGreenNotified: Boolean = false
+)
+
+case class Fsb(
+                awaitingAllocation: Boolean = false,
+                allocationConfirmed: Boolean = false,
+                allocationUnconfirmed: Boolean = false,
+                failedToAttend: Boolean = false,
+                resultEntered: Boolean = false,
+                passed: Boolean = false,
+                failed: Boolean = false,
+                allFailed: Boolean = false,
+                allFailedNotified: Boolean = false
+)
 
 case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   phase1TestsFirstRemainder: Boolean = false,
@@ -48,7 +62,8 @@ case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   sdipFSFailed: Boolean = false,
   sdipFSFailedNotified: Boolean = false,
   sdipFSSuccessful: Boolean = false,
-  sdipFSSuccessfulNotified: Boolean = false
+  sdipFSSuccessfulNotified: Boolean = false,
+  phase1TestsFailedSdipAmber: Boolean = false
 )
 
 case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
@@ -63,7 +78,8 @@ case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
   phase2TestsResultsReceived: Boolean = false,
   phase2TestsPassed: Boolean = false,
   phase2TestsFailed: Boolean = false,
-  phase2TestsFailedNotified: Boolean = false
+  phase2TestsFailedNotified: Boolean = false,
+  phase2TestsFailedSdipAmber: Boolean = false
 )
 
 case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
@@ -77,7 +93,23 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
   phase3TestsPassed: Boolean = false,
   phase3TestsFailed: Boolean = false,
   phase3TestsFailedNotified: Boolean = false,
-  phase3TestsSuccessNotified: Boolean = false
+  phase3TestsSuccessNotified: Boolean = false,
+  phase3TestsFailedSdipAmber: Boolean = false
+)
+
+case class SiftProgressResponse(
+  siftEntered: Boolean = false,
+  siftReady: Boolean = false,
+  siftCompleted: Boolean = false,
+  sdipFailedAtSift: Boolean = false,
+  failedAtSift: Boolean = false,
+  failedAtSiftNotified: Boolean = false,
+  siftFaststreamFailedSdipGreen: Boolean = false
+)
+
+case class JobOfferProgressResponse(
+  eligible: Boolean = false,
+  eligibleNotified: Boolean = false
 )
 
 case class ProgressResponse(
@@ -91,23 +123,25 @@ case class ProgressResponse(
   submitted: Boolean = false,
   fastPassAccepted: Boolean = false,
   withdrawn: Boolean = false,
+  eligibleForJobOffer: JobOfferProgressResponse = JobOfferProgressResponse(),
   phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
   phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
   phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
+  siftProgressResponse: SiftProgressResponse = SiftProgressResponse(),
   exported: Boolean = false,
   updateExported: Boolean = false,
   applicationArchived: Boolean = false,
-  failedToAttend: Boolean = false,
-  assessmentScores: AssessmentScores = AssessmentScores(),
-  assessmentCentre: AssessmentCentre = AssessmentCentre()
+  assessmentCentre: AssessmentCentre = AssessmentCentre(),
+  fsb: Fsb = Fsb()
 )
 
-
 object ProgressResponse {
-  implicit val assessmentScoresFormat = Json.format[AssessmentScores]
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
+  implicit val fsbFormat = Json.format[Fsb]
+  implicit val eligibleForJobOfferFormat = Json.format[JobOfferProgressResponse]
   implicit val phase1ProgressResponseFormat = Json.format[Phase1ProgressResponse]
   implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
   implicit val phase3ProgressResponseFormat = Json.format[Phase3ProgressResponse]
+  implicit val siftProgressResponse = Json.format[SiftProgressResponse]
   implicit val progressResponseFormat = Json.format[ProgressResponse]
 }

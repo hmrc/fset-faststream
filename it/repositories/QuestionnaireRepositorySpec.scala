@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
+import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.QuestionnaireReportItem
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -31,16 +31,19 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
   "The Questionnaire Repo" should {
     "create collection, append questions to the application and overwrite existing questions" in new TestFixture {
       val applicationId = System.currentTimeMillis() + ""
-      questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("what?", PersistedAnswer(Some("nothing"), None, None)))).futureValue
+      questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("what?",
+        QuestionnaireAnswer(Some("nothing"), None, None)))).futureValue
       val result = questionnaireRepo.find(applicationId).futureValue
       result.size mustBe 1
 
-      questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("what?", PersistedAnswer(Some("nada"), None, None)))).futureValue
+      questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("what?",
+        QuestionnaireAnswer(Some("nada"), None, None)))).futureValue
       val result1 = questionnaireRepo.find(applicationId).futureValue
       result1.size mustBe 1
       result1.head.answer.answer must be(Some("nada"))
 
-      questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("where?", PersistedAnswer(None, None, Some(true))))).futureValue
+      questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("where?",
+        QuestionnaireAnswer(None, None, Some(true))))).futureValue
       val result2 = questionnaireRepo.find(applicationId).futureValue
       result2.size mustBe 2
     }
@@ -48,10 +51,11 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     "find questions should return a map of questions/answers ignoring the non answered ones" in new TestFixture {
       val applicationId = System.currentTimeMillis() + ""
 
-      val emptyAnswer = PersistedAnswer(None, None, Some(true))
+      val emptyAnswer = QuestionnaireAnswer(None, None, Some(true))
 
-      questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("what?", PersistedAnswer(Some("nada"), None, None)))).futureValue
-      questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("where?", emptyAnswer))).futureValue
+      questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("what?",
+        QuestionnaireAnswer(Some("nada"), None, None)))).futureValue
+      questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("where?", emptyAnswer))).futureValue
       val result2 = questionnaireRepo.findQuestions(applicationId).futureValue
 
       result2.keys.size mustBe 2
@@ -62,7 +66,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaires()
 
-      val report = questionnaireRepo.findForOnlineTestPassMarkReport.futureValue
+      val report = questionnaireRepo.findForOnlineTestPassMarkReport(List(applicationId1, applicationId2, applicationId3)).futureValue
 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
@@ -78,7 +82,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaire()
 
-      questionnaireRepo.findForOnlineTestPassMarkReport.futureValue
+      questionnaireRepo.findForOnlineTestPassMarkReport(List(applicationId1)).futureValue
 
       verify(socioEconomicCalculator).calculate(Map(
         "What is your gender identity?" -> "Male",
@@ -114,27 +118,30 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     val applicationId2 = "123"
     val applicationId3 = "partiallyCompleteId"
     val submittedQuestionnaire1 = List(
-      PersistedQuestion("What is your gender identity?", PersistedAnswer(Some("Male"), None, None)),
-      PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some("Straight"), None, None)),
-      PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some("Black"), None, None)),
-      PersistedQuestion("What is the name of the university you received your degree from?", PersistedAnswer(Some("W01-USW"), None, None)),
-      PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-        PersistedAnswer(Some("Unemployed"), None, None))
+      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Male"), None, None)),
+      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Straight"), None, None)),
+      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("Black"), None, None)),
+      QuestionnaireQuestion("What is the name of the university you received your degree from?",
+        QuestionnaireAnswer(Some("W01-USW"), None, None)),
+      QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+        QuestionnaireAnswer(Some("Unemployed"), None, None))
     )
     val submittedQuestionnaire2 = List(
-      PersistedQuestion("What is your gender identity?", PersistedAnswer(Some("Female"), None, None)),
-      PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some("Lesbian"), None, None)),
-      PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some("White"), None, None)),
-      PersistedQuestion("What is the name of the university you received your degree from?", PersistedAnswer(Some("W17-WARR"), None, None)),
-      PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-        PersistedAnswer(Some("Modern professional"), None, None)),
-      PersistedQuestion("Did they work as an employee or were they self-employed?", PersistedAnswer(Some("Part-time employed"), None, None)),
-      PersistedQuestion("Which size would best describe their place of work?", PersistedAnswer(Some("Large (26-500)"), None, None))
+      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), None, None)),
+      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), None, None)),
+      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), None, None)),
+      QuestionnaireQuestion("What is the name of the university you received your degree from?",
+        QuestionnaireAnswer(Some("W17-WARR"), None, None)),
+      QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+        QuestionnaireAnswer(Some("Modern professional"), None, None)),
+      QuestionnaireQuestion("Did they work as an employee or were they self-employed?",
+        QuestionnaireAnswer(Some("Part-time employed"), None, None)),
+      QuestionnaireQuestion("Which size would best describe their place of work?", QuestionnaireAnswer(Some("Large (26-500)"), None, None))
     )
     val partiallyCompleteQuestionnaire = List(
-      PersistedQuestion("What is your gender identity?", PersistedAnswer(Some("Female"), None, None)),
-      PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some("Lesbian"), None, None)),
-      PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some("White"), None, None))
+      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), None, None)),
+      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), None, None)),
+      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), None, None))
     )
 
     val socioEconomicCalculator = mock[SocioEconomicScoreCalculator]

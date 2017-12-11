@@ -48,6 +48,10 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
 
   def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
 
+  def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
+
+  def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
+
   def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]]
 
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
@@ -123,7 +127,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     updateGroupExpiryTime(applicationId, expirationDate, phaseName)
   }
 
-  override def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup) = {
+  override def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val updateBson = BSONDocument("$set" ->
@@ -133,6 +137,18 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
 
     collection.update(query, updateBson) map validator
+  }
+
+  def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
+    upsertTestGroupEvaluationResult(applicationId, passmarkEvaluation)
+  }
+
+  override def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup) = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val updateBSON = BSONDocument("$set" -> BSONDocument("testGroups.PHASE2" -> phase2TestProfile))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "Saving phase2 test group")
+    collection.update(query, updateBSON).map(validator)
   }
 
   override def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit] = {

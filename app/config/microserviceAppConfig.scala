@@ -16,13 +16,27 @@
 
 package config
 
+import java.io.File
+
+import com.github.ghik.silencer.silent
+import com.typesafe.config.ConfigFactory
+import model.persisted.eventschedules.{Location, Venue}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
-import play.api.Play.{ configuration, current }
+import play.api.Play
+import play.api.Play.{configuration, current}
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.config.{ RunMode, ServicesConfig }
+import uk.gov.hmrc.play.config.{RunMode, ServicesConfig}
 
 case class FrameworksConfig(yamlFilePath: String)
+
+case class SchemeConfig(yamlFilePath: String)
+
+case class EventsConfig(scheduleFilePath: String, fsacGuideUrl: String, daysBeforeInvitationReminder: Int)
+
+case class EventSubtypeConfig(yamlFilePath: String)
+
+case class AuthConfig(host: String, port: Int, serviceName: String)
 
 case class EmailConfig(url: String)
 
@@ -68,8 +82,6 @@ object WaitingScheduledJobConfig {
 case class CubiksGatewayConfig(url: String,
   phase1Tests: Phase1TestsConfig,
   phase2Tests: Phase2TestsConfig,
-  competenceAssessment: CubiksGatewayStandardAssessment,
-  situationalAssessment: CubiksGatewayStandardAssessment,
   reportConfig: ReportConfig,
   candidateAppUrl: String,
   emailDomain: String
@@ -80,7 +92,7 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
                              standard: List[String],
                              gis: List[String])
 
-case class Phase2Schedule(scheduleId: Int, assessmentId: Int, normId: Int)
+case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
                              expiryTimeInDaysForInvigilatedETray: Int,
@@ -100,16 +112,13 @@ case class Phase2TestsConfig(expiryTimeInDays: Int,
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
-  val normId: Int
 }
 
-case class CubiksGatewayStandardAssessment(assessmentId: Int, normId: Int) extends CubiksGatewayAssessment
+case class CubiksGatewayStandardAssessment(assessmentId: Int) extends CubiksGatewayAssessment
 
 case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, suppressValidation: Boolean = false)
 
 case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
-
-case class ParityGatewayConfig(url: String, upstreamAuthToken: String)
 
 case class Phase3TestsConfig(timeToExpireInDays: Int,
                              invigilatedTimeToExpireInDays: Int,
@@ -118,12 +127,10 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
                              evaluationWaitTimeAfterResultsReceivedInHours: Int,
                              verifyAllScoresArePresent: Boolean)
 
-case class AssessmentCentresLocationsConfig(yamlFilePath: String)
-case class AssessmentCentresConfig(yamlFilePath: String)
+case class LocationsAndVenuesConfig(yamlFilePath: String)
 
-case class AssessmentEvaluationMinimumCompetencyLevel(enabled: Boolean, minimumCompetencyLevelScore: Option[Double],
-  motivationalFitMinimumCompetencyLevelScore: Option[Double]) {
-  require(!enabled || (minimumCompetencyLevelScore.isDefined && motivationalFitMinimumCompetencyLevelScore.isDefined))
+case class AssessmentEvaluationMinimumCompetencyLevel(enabled: Boolean, minimumCompetencyLevelScore: Option[Double]) {
+  require(!enabled || minimumCompetencyLevelScore.isDefined)
 }
 
 object AssessmentEvaluationMinimumCompetencyLevel {
@@ -134,26 +141,50 @@ object MicroserviceAppConfig extends MicroserviceAppConfig
 
 trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-  lazy val app = play.api.Play.current
-  lazy val emailConfig = configuration.underlying.as[EmailConfig]("microservice.services.email")
-  lazy val frameworksConfig = configuration.underlying.as[FrameworksConfig]("microservice.frameworks")
-  lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
-  lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
-  lazy val launchpadGatewayConfig = configuration.underlying.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
-  lazy val parityGatewayConfig = configuration.underlying.as[ParityGatewayConfig]("microservice.services.parity-gateway")
-  lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
+  @silent lazy val app = play.api.Play.current
+  @silent lazy val underlyingConfiguration = configuration.underlying
 
-  lazy val assessmentCentresLocationsConfig =
-    configuration.underlying.as[AssessmentCentresLocationsConfig]("scheduling.online-testing.assessment-centres-locations")
-  lazy val assessmentCentresConfig =
-    configuration.underlying.as[AssessmentCentresConfig]("scheduling.online-testing.assessment-centres")
+  lazy val appName = app.configuration.getString("appName").get
+
+  lazy val emailConfig = underlyingConfiguration.as[EmailConfig]("microservice.services.email")
+  lazy val authConfig = underlyingConfiguration.as[AuthConfig](s"microservice.services.auth")
+  lazy val frameworksConfig = underlyingConfiguration.as[FrameworksConfig]("microservice.frameworks")
+  lazy val schemeConfig = underlyingConfiguration.as[SchemeConfig]("microservice.schemes")
+  lazy val eventsConfig = underlyingConfiguration.as[EventsConfig]("microservice.events")
+  lazy val userManagementConfig = underlyingConfiguration.as[UserManagementConfig]("microservice.services.user-management")
+  lazy val cubiksGatewayConfig = underlyingConfiguration.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val launchpadGatewayConfig = underlyingConfiguration.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
+  lazy val disableSdipFaststreamForSift = underlyingConfiguration.as[Boolean]("microservice.services.disableSdipFaststreamForSift")
+  lazy val maxNumberOfDocuments = underlyingConfiguration.as[Int]("maxNumberOfDocuments")
+
+  lazy val locationsAndVenuesConfig =
+    underlyingConfiguration.as[LocationsAndVenuesConfig]("scheduling.online-testing.locations-and-venues")
+
+  val AllLocations = Location("All")
+  val AllVenues = Venue("ALL_VENUES", "All venues")
+
+
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
-    configuration.underlying
+    underlyingConfiguration
       .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")
 
   lazy val fixerJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.fixer-job")
+    underlyingConfiguration.as[ScheduledJobConfig]("scheduling.online-testing.fixer-job")
 
   lazy val parityExportJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.parity-export-job")
+    underlyingConfiguration.as[ScheduledJobConfig]("scheduling.parity-export-job")
+
+  private val secretsFileCubiksUrlKey = "microservice.services.cubiks-gateway.testdata.url"
+  lazy val testDataGeneratorCubiksSecret = app.configuration.getString(secretsFileCubiksUrlKey).
+    getOrElse(fetchSecretConfigKeyFromFile("cubiks.url"))
+
+  private def fetchSecretConfigKeyFromFile(key: String): String = {
+    val path = System.getProperty("user.home") + "/.csr/.secrets"
+    val testConfig = ConfigFactory.parseFile(new File(path))
+    if (testConfig.isEmpty) {
+      throw new IllegalArgumentException(s"No key found at '$secretsFileCubiksUrlKey' and .secrets file does not exist.")
+    } else {
+      testConfig.getString(s"testdata.$key")
+    }
+  }
 }

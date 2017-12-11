@@ -20,9 +20,12 @@ import config.TestFixtureBase
 import connectors.AuthProviderClient
 import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
-import mocks._
-import model._
-import model.persisted.ContactDetailsWithId
+import model.EvaluationResults.Green
+import model.{ Scheme, _ }
+import model.persisted._
+import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.persisted.eventschedules.SkillType
+import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
 import model.report.{ CandidateProgressReportItem, _ }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
@@ -30,12 +33,20 @@ import play.api.libs.json.{ JsArray, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.{ PreviousYearCandidatesDetailsRepository, ReportingRepository }
+import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import repositories.application.{ GeneralApplicationRepository, ReportingRepository }
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.csv.FSACIndicatorCSVRepository
+import repositories.events.EventsRepository
+import repositories.fsb.FsbRepository
+import repositories.sift.ApplicationSiftRepository
 import testkit.UnitWithAppSpec
+import testkit.MockitoImplicits._
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class ReportingControllerSpec extends UnitWithAppSpec {
 
@@ -61,7 +72,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", None),
         ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", None)
       )))
-      when(reportingRepositoryMock.adjustmentReport(frameworkId)).thenReturn(SuccessfulAdjustmentReportResponse)
+      when(mockReportingRepository.adjustmentReport(frameworkId)).thenReturn(SuccessfulAdjustmentReportResponse)
       val controller = new TestableReportingController
       val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run
       val finalResult = contentAsJson(result).as[JsArray].value
@@ -104,7 +115,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "Reporting controller candidate deferral report" must {
     "return the report in a happy path" in new TestFixture {
 
-      when(reportingRepositoryMock.candidateDeferralReport(any[String])).thenReturn(
+      when(mockReportingRepository.candidateDeferralReport(any[String])).thenReturn(
         Future.successful(List(
         ApplicationDeferralPartialItem("userId1", "Bob", "Bobson", "prefBob", List("Police Now")),
         ApplicationDeferralPartialItem("userId2", "Dave", "Daveson", "prefDave", List("Teach First"))
@@ -141,7 +152,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "Reporting controller internship report" must {
     "return the report in a happy path scenario" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.applicationsForInternshipReport(frameworkId)).thenReturn(SuccessfulInternshipReportResponse)
+      when(mockReportingRepository.applicationsForInternshipReport(frameworkId)).thenReturn(SuccessfulInternshipReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(SuccessfulFindByUserIdsResponse)
 
       val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run
@@ -176,7 +187,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     "throw an exception if no contact details are fetched" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.applicationsForInternshipReport(frameworkId)).thenReturn(SuccessfulInternshipReportResponse)
+      when(mockReportingRepository.applicationsForInternshipReport(frameworkId)).thenReturn(SuccessfulInternshipReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(Future.successful(List.empty[ContactDetailsWithId]))
 
       val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run
@@ -189,7 +200,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "Reporting controller analytical schemes report" must {
     "return the analytical schemes report in a happy path scenario" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.applicationsForAnalyticalSchemesReport(frameworkId)).thenReturn(SuccessfulAnalyticalSchemesReportResponse)
+      when(mockReportingRepository.applicationsForAnalyticalSchemesReport(frameworkId)).thenReturn(SuccessfulAnalyticalSchemesReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(SuccessfulFindByUserIdsResponse)
 
       val result = underTest.analyticalSchemesReport(frameworkId)(candidateProgressRequest(frameworkId)).run
@@ -220,7 +231,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     "throw an exception if no contact details are fetched" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.applicationsForAnalyticalSchemesReport(frameworkId)).thenReturn(SuccessfulAnalyticalSchemesReportResponse)
+      when(mockReportingRepository.applicationsForAnalyticalSchemesReport(frameworkId)).thenReturn(SuccessfulAnalyticalSchemesReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(Future.successful(List.empty[ContactDetailsWithId]))
 
       val result = underTest.analyticalSchemesReport(frameworkId)(candidateProgressRequest(frameworkId)).run
@@ -233,262 +244,224 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "Reporting controller create progress report" must {
     "return the progress report in an happy path scenario" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.candidateProgressReport(frameworkId)).thenReturn(SuccessfulProgressReportResponse)
-      when(mockContactDetailsRepository.findAllPostcodes()).thenReturn(SuccessfulFindAllPostCodeResponse)
+      when(mockReportingRepository.candidateProgressReport(frameworkId)).thenReturn(SuccessfulProgressReportResponse)
 
-      val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+      val response = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
 
-      val finalResult = contentAsJson(result).as[JsArray].value
+      val result = contentAsJson(response).as[List[CandidateProgressReportItem]]
 
-      finalResult mustBe a[Seq[_]]
-      finalResult.size must be(4)
+      result.size must be(4)
 
-      val user1 = finalResult.head
-      (user1 \ "userId").asOpt[String] mustBe Some("user1")
-      (user1 \ "fsacIndicator").asOpt[String] mustBe Some("Newcastle")
+      val user1 = result.head
+      user1.userId mustBe "user1"
+      user1.assessmentCentre mustBe Some("London")
 
-      val user2 = finalResult(1) // because it's "registered"
-      (user2 \ "userId").asOpt[String] mustBe Some("user2")
-      (user2 \ "fsacIndicator").asOpt[String] mustBe None
+      val user2 = result(1)
+      user2.userId mustBe "user2"
+      user2.assessmentCentre mustBe None
 
-      val user3 = finalResult(2) // because edip candidate
-      (user3 \ "userId").asOpt[String] mustBe Some("user3")
-      (user3 \ "fsacIndicator").asOpt[String] mustBe None
+      val user3 = result(2)
+      user3.userId mustBe "user3"
+      user3.assessmentCentre mustBe None
 
-      val user4 = finalResult(3) // because with no postcode we use the default fsac (London)
-      (user4 \ "userId").asOpt[String] mustBe Some("user4")
-      (user4 \ "fsacIndicator").asOpt[String] mustBe Some("London")
+      val user4 = result(3)
+      user4.userId mustBe "user4"
+      user4.assessmentCentre mustBe Some("Newcastle")
     }
 
     "return a failed future with the expected throwable when candidateProgressReport fails" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.candidateProgressReport(frameworkId)).thenReturn(GenericFailureResponse)
-      when(mockContactDetailsRepository.findAllPostcodes()).thenReturn(SuccessfulFindAllPostCodeResponse)
+      when(mockReportingRepository.candidateProgressReport(frameworkId)).thenReturn(GenericFailureResponse)
 
       val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
 
       result.failed.futureValue mustBe Error
     }
+  }
 
-    "return a failed future with the expected throwable when findAllPostcodes fails" in new TestFixture {
+
+  "assessor allocation report" must {
+    "return the allocation report when all data is present" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.candidateProgressReport(frameworkId)).thenReturn(SuccessfulProgressReportResponse)
-      when(mockContactDetailsRepository.findAllPostcodes()).thenReturn(GenericFailureResponse)
-
-      val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
-
-      result.failed.futureValue mustBe Error
-    }
-  }
-
-  /*
-  "Reporting controller create non-submitted applications report" must {
-    "return a list of non submitted applications with phone number if contact details exist" in new TestFixture {
-      val controller = new ReportingController {
-        override val appRepository = new DocumentRootInMemoryRepository
-        //override val reportingRepository = ReportingInMemoryRepository
-        override val cdRepository = new ContactDetailsInMemoryRepository {
-          override def findAll: Future[List[ContactDetailsWithId]] = {
-            Future.successful(ContactDetailsWithId(
-              "user1",
-              Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", Some("123456789")
-            ) :: Nil)
-          }
-        }
-        override val authProviderClient: AuthProviderClient = authProviderClientMock
-        override val questionnaireRepository = QuestionnaireInMemoryRepository
-        override val testReportRepository = TestReportInMemoryRepository
-        override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
-      }
-      val result = controller.createNonSubmittedAppsReports(frameworkId)(createNonSubmittedAppsReportRequest(frameworkId)).run
-
-      val finalResult = contentAsJson(result).as[List[PreferencesWithContactDetails]]
-
-      finalResult must have size 2
-      val reportApp1 = finalResult.head
-      reportApp1.firstName must be(Some("firstName1"))
-      reportApp1.lastName must be(Some("lastName1"))
-      reportApp1.preferredName must be(Some("preferredName1"))
-      reportApp1.email must be(Some("email1@test.com"))
-      reportApp1.location1 must be(Some("location1"))
-      reportApp1.location1Scheme1 must be(Some("location1Scheme1"))
-      reportApp1.location1Scheme2 must be(Some("location1Scheme2"))
-      reportApp1.location2 must be(Some("location2"))
-      reportApp1.location2Scheme1 must be(Some("location2Scheme1"))
-      reportApp1.location2Scheme2 must be(Some("location2Scheme2"))
-    }
-
-    "return only applications based on auth provider in registered state if there is no applications created" in new TestFixture {
-      val controller = new ReportingController {
-        override val appRepository = new DocumentRootInMemoryRepository {
-          override def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]] = {
-            Future.successful(Nil)
-          }
-        }
-        //override val reportingRepository = ReportingInMemoryRepository
-        override val cdRepository = ContactDetailsInMemoryRepository
-        override val authProviderClient = authProviderClientMock
-        override val questionnaireRepository = QuestionnaireInMemoryRepository
-        override val testReportRepository = TestReportInMemoryRepository
-        override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
-      }
-      val result = controller.createNonSubmittedAppsReports(frameworkId)(createNonSubmittedAppsReportRequest(frameworkId)).run
-
-      val finalResult = contentAsJson(result).as[List[JsValue]]
-
-      finalResult must have size 2
-      finalResult.foreach { headValue =>
-        (headValue \ "progress").asOpt[String] mustBe Some("registered")
-      }
-    }
-  }
-*/
-  /*
-  "Assessment centre allocation report" must {
-    "return nothing if no applications exist" in new AssessmentCentreAllocationReportTestFixture {
-      when(appRepo.candidatesAwaitingAllocation(any())).thenReturnAsync(Nil)
-      when(cdRepo.findAll).thenReturnAsync(Nil)
-
-      val response = controller.createAssessmentCentreAllocationReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentCentreAllocationReport]]
-
-      status(response) mustBe OK
-      result mustBe empty
-    }
-
-    "return nothing if applications exist, but no contact details" in new AssessmentCentreAllocationReportTestFixture {
-      when(appRepo.candidatesAwaitingAllocation(any())).thenReturnAsync(candidates)
-      when(cdRepo.findAll).thenReturnAsync(Nil)
-
-      val response = controller.createAssessmentCentreAllocationReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentCentreAllocationReport]]
-
-      status(response) mustBe OK
-      result mustBe empty
-    }
-
-    "return applications with contact details" in new AssessmentCentreAllocationReportTestFixture {
-      when(appRepo.candidatesAwaitingAllocation(any())).thenReturnAsync(candidates)
-      when(cdRepo.findAll).thenReturnAsync(contactDetails)
-
-      val response = controller.createAssessmentCentreAllocationReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentCentreAllocationReport]]
-
-      status(response) mustBe OK
-      result mustBe List(
-        toReport(candidate1, contactDetails1),
-        toReport(candidate2, contactDetails2)
+      when(mockEventsRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
+        List(
+          EventExamples.e1,
+          EventExamples.e2
+        )
+      )
+      when(mockAssessorRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
+        List(
+          Assessor("userId1", None, List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR"), Nil,
+            civilServant = false, Set.empty, AssessorStatus.CREATED)
+        )
+      )
+      when(mockAuthProviderClient.findByUserIds(any[Seq[String]]())(any[HeaderCarrier])).thenReturnAsync(
+        Seq(
+          Candidate(
+            "Bob", "Smith", None, "bob@bob.com", None, "userId1", List("assessor")
+          )
+        )
+      )
+      when(mockAssessorAllocationRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
+        List(
+          AssessorAllocation(
+            "userId1", EventExamples.e1.id, AllocationStatuses.CONFIRMED, SkillType.ASSESSOR, "version1"
+          )
+        )
       )
 
-      def toReport(candidate: CandidateAwaitingAllocation, contact: ContactDetailsWithId) = {
-       import candidate._
-       import contact._
-        AssessmentCentreAllocationReport(firstName, lastName, preferredName, email, phone.getOrElse(""),
-          preferredLocation1, adjustments, dateOfBirth)
+      val response = underTest.assessorAllocationReport(FakeRequest())
+
+      val result = contentAsJson(response).as[List[String]]
+
+      result must have length 2
+
+      val expectedHeaders = s"Name,Role,Skills,Sift schemes,Email,Phone," +
+        s"""Internal/External,"${EventExamples.e1.date.toString} (FSAC, London)","${EventExamples.e2.date.toString} (FSB, London)""""
+
+      result.head mustBe expectedHeaders
+
+      result(1) mustBe
+        """"Bob Smith","assessor","ASSESSOR, QUALITY_ASSURANCE_COORDINATOR","",
+          |"bob@bob.com"," ","External","ASSESSOR (CONFIRMED)"," """".stripMargin.replaceAll("\n", "")
+    }
+
+    "numeric text extract report" must {
+      "return candidates in sift_entered or ready who have a numeric test requirement, " +
+        "ignoring candidates who do not meet this criteria" in new TestFixture {
+        val underTest = new TestableReportingController
+
+        mocksForNumericTestExtract
+
+        val response = underTest.numericTestExtractReport()(FakeRequest())
+
+        val result = contentAsJson(response).as[List[NumericTestExtractReportItem]]
+
+        result must have length 1
+
+        result.head mustBe NumericTestExtractReportItem(
+          application = applicationForNumericSift,
+          contactDetails = contactDetailsWithId,
+          questionnaire = questionnaireReportItem
+        )
       }
-
-    }
-  }*/
-
-  /*
-  "Assessment results report" must {
-    "return results report" in new AssessmentResultsReportTestFixture {
-      when(appRepo.applicationsWithAssessmentScoresAccepted(any())).thenReturnAsync(appPreferences)
-      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(passMarks)
-      when(assessmentScoresRepo.allScores).thenReturnAsync(scores)
-
-      val response = controller.createAssessmentResultsReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentResultsReport]]
-
-      status(response) mustBe OK
-
-      result mustBe List(AssessmentResultsReport(applicationPreference1, passMarks1, scores1))
-    }
-
-    "return nothing if no applications exist" in new AssessmentResultsReportTestFixture {
-      when(appRepo.applicationsWithAssessmentScoresAccepted(any())).thenReturnAsync(Nil)
-      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(passMarks)
-      when(assessmentScoresRepo.allScores).thenReturnAsync(scores)
-
-      val response = controller.createAssessmentResultsReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentResultsReport]]
-
-      status(response) mustBe OK
-
-      result mustBe empty
-    }
-
-    "return nothing if no questionnaires exist" in new AssessmentResultsReportTestFixture {
-      when(appRepo.applicationsWithAssessmentScoresAccepted(any())).thenReturnAsync(appPreferences)
-      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(Map.empty)
-      when(assessmentScoresRepo.allScores).thenReturnAsync(scores)
-
-      val response = controller.createAssessmentResultsReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentResultsReport]]
-
-      status(response) mustBe OK
-
-      result mustBe empty
-    }
-
-    "return nothing if no scores exist" in new AssessmentResultsReportTestFixture {
-      when(appRepo.applicationsWithAssessmentScoresAccepted(any())).thenReturnAsync(appPreferences)
-      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(passMarks)
-      when(assessmentScoresRepo.allScores).thenReturnAsync(Map.empty)
-
-      val response = controller.createAssessmentResultsReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentResultsReport]]
-
-      status(response) mustBe OK
-
-      result mustBe empty
     }
   }
-  */
-
-  /*
-  "Successful candidates report" must {
-    "return results report" in new SuccessfulCandidatesReportTestFixture {
-      when(appRepo.applicationsPassedInAssessmentCentre(any())).thenReturnAsync(appPreferences)
-      when(cdRepo.findAll).thenReturnAsync(contactDetails)
-
-      val response = controller.createSuccessfulCandidatesReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentCentreCandidatesReport]]
-
-      status(response) mustBe OK
-
-      result mustBe List(AssessmentCentreCandidatesReport(applicationPreference1, phoneAndEmail))
-    }
-
-    "return nothing if no applications exist" in new SuccessfulCandidatesReportTestFixture {
-      when(appRepo.applicationsPassedInAssessmentCentre(any())).thenReturnAsync(Nil)
-      when(cdRepo.findAll).thenReturnAsync(contactDetails)
-
-      val response = controller.createSuccessfulCandidatesReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentCentreCandidatesReport]]
-
-      status(response) mustBe OK
-
-      result mustBe empty
-    }
-
-    "return nothing if no contact details exist" in new SuccessfulCandidatesReportTestFixture {
-      when(appRepo.applicationsPassedInAssessmentCentre(any())).thenReturnAsync(appPreferences)
-      when(cdRepo.findAll).thenReturnAsync(Nil)
-
-      val response = controller.createSuccessfulCandidatesReport(frameworkId)(request).run
-      val result = contentAsJson(response).as[List[AssessmentCentreCandidatesReport]]
-
-      status(response) mustBe OK
-
-      result mustBe empty
-    }
-  }
-  */
 
   trait TestFixture extends TestFixtureBase {
     val frameworkId = "FastStream-2016"
 
+    val mockContactDetailsRepository: ContactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
+    val mockReportingRepository: ReportingRepository = mock[ReportingRepository]
+    val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
+    val mockQuestionnaireRepository: QuestionnaireRepository = mock[QuestionnaireRepository]
+    val mockAssessmentScoresRepository: AssessmentScoresRepository = mock[AssessmentScoresRepository]
+    val mockMediaRepository: MediaRepository = mock[MediaRepository]
+    val mockAssessorAllocationRepository = mock[AssessorAllocationRepository]
+    val mockEventsRepository = mock[EventsRepository]
+    val mockAssessorRepository = mock[AssessorRepository]
+    val mockSchemeRepo = mock[SchemeRepository]
+    val mockCandidateAllocationRepo = mock[CandidateAllocationRepository]
+    val mockApplicationSiftRepo = mock[ApplicationSiftRepository]
+    val mockFsbRepo = mock[FsbRepository]
+    val mockAppRepo = mock[GeneralApplicationRepository]
+
+    class TestableReportingController extends ReportingController {
+      override val reportingRepository: ReportingRepository = mockReportingRepository
+      override val contactDetailsRepository: contactdetails.ContactDetailsRepository = mockContactDetailsRepository
+      override val questionnaireRepository: QuestionnaireRepository = mockQuestionnaireRepository
+      override val assessmentScoresRepository: AssessmentScoresRepository = mockAssessmentScoresRepository
+      override val mediaRepository: MediaRepository = mockMediaRepository // MediaInMemoryRepository
+      override val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
+      override val authProviderClient: AuthProviderClient = mockAuthProviderClient
+      override val eventsRepository = mockEventsRepository
+      override val assessorRepository = mockAssessorRepository
+      override val assessorAllocationRepository = mockAssessorAllocationRepository
+      override val schemeRepo = mockSchemeRepo
+      val candidateAllocationRepo = mockCandidateAllocationRepo
+      val applicationSiftRepository = mockApplicationSiftRepo
+      val fsbRepository: FsbRepository = mockFsbRepo
+      val applicationRepository: GeneralApplicationRepository = mockAppRepo
+    }
+
+    val contactDetailsWithId = ContactDetailsWithId(
+      "userId1",
+      Address("123, Fake Street"),
+      Some("AB1 2CD"),
+      outsideUk = false,
+      "fake@user.com",
+      Some("231456879")
+    )
+
+    val questionnaireReportItem = QuestionnaireReportItem(None, None, None, None, None, None, None, "2.5", None)
+
+    val applicationForNumericSift = ApplicationForNumericTestExtractReport(
+      "userId1", "appId1",
+      ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
+      ProgressStatuses.SIFT_ENTERED,
+      schemes = List(SchemeId("Commercial"), SchemeId("Finance"), SchemeId("Generalist"), SchemeId("HumanResources")),
+      disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
+      currentSchemeStatus =
+        List("Commercial", "Finance", "Generalist", "HumanResources").map(s => SchemeEvaluationResult(s, Green.toString))
+    )
+
+    val applicationForFormSift = ApplicationForNumericTestExtractReport(
+      "userId2", "appId2",
+      ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
+      ProgressStatuses.SIFT_ENTERED,
+      schemes = List(SchemeId("Generalist")),
+      disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
+      currentSchemeStatus =
+        List("Generalist").map(s => SchemeEvaluationResult(s, Green.toString))
+    )
+
+    val applicationForNoSift = ApplicationForNumericTestExtractReport(
+      "userId3", "appId3",
+      ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
+      ProgressStatuses.SIFT_ENTERED,
+      schemes = List(SchemeId("HumanResources")),
+      disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+      testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
+      currentSchemeStatus =
+        List("HumanResources").map(s => SchemeEvaluationResult(s, Green.toString))
+    )
+
+    def mocksForNumericTestExtract = {
+      when(mockSchemeRepo.schemes).thenReturn(
+        Seq(
+          Scheme("Commercial", "COM", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
+            siftEvaluationRequired = true, fsbType = None, schemeGuide = None, None),
+          Scheme("Finance", "FIN", "Finance", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
+            siftEvaluationRequired = true, fsbType = None, schemeGuide = None, None),
+          Scheme("Generalist", "GCS", "Generalist", civilServantEligible = false, None, Some(SiftRequirement.FORM),
+            siftEvaluationRequired = true, fsbType = None, schemeGuide = None, None),
+          Scheme("HumanResources", "HRS", "Human Resources", civilServantEligible = false, None, None,
+            siftEvaluationRequired = false, fsbType = None, schemeGuide = None, None)
+        )
+      )
+
+      when(mockReportingRepository.numericTestExtractReport).thenReturnAsync(
+        List(applicationForNumericSift, applicationForFormSift, applicationForNoSift)
+      )
+
+      when(mockContactDetailsRepository.findByUserIds(any())).thenReturnAsync(
+        List(
+          contactDetailsWithId,
+          contactDetailsWithId.copy(userId = "userId2"),
+          contactDetailsWithId.copy(userId = "userId3")
+        )
+      )
+
+      when(mockQuestionnaireRepository.findForOnlineTestPassMarkReport(any())).thenReturnAsync(
+        Map(
+          "appId1" -> questionnaireReportItem,
+          "appId2" -> questionnaireReportItem,
+          "appId3" -> questionnaireReportItem
+        )
+      )
+    }
 
     val SuccessfulAdjustmentReportResponse = Future.successful(
       List(
@@ -509,20 +482,20 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val SuccessfulProgressReportResponse = Future.successful(
       List(
         CandidateProgressReportItem("user1", "app1", Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
+          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("London"),
           ApplicationRoute.Faststream),
         CandidateProgressReportItem("user2", "app2", Some("registered"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
           Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
           ApplicationRoute.Faststream),
         CandidateProgressReportItem("user3", "app3", Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
           Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
           ApplicationRoute.Edip),
         CandidateProgressReportItem("user4", "app4", Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
+          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("Newcastle"),
           ApplicationRoute.Faststream)
       )
     )
@@ -598,183 +571,12 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    /*
-    def createNonSubmittedAppsReportRequest(frameworkId: String) = {
-      FakeRequest(Helpers.GET, controllers.routes.ReportingController.createNonSubmittedAppsReports(frameworkId).url, FakeHeaders(), "")
-        .withHeaders("Content-Type" -> "application/json")
-    }
-    */
-
-    val authProviderClientMock = mock[AuthProviderClient]
-    when(authProviderClientMock.candidatesReport(any())).thenReturn(Future.successful(
-      Candidate("firstName1", "lastName1", Some("preferredName1"), "email1@test.com", "user1") ::
-        Candidate("firstName2", "lastName2", None, "email2@test.com", "user2") ::
+    when(mockAuthProviderClient.candidatesReport(any())).thenReturn(Future.successful(
+      Candidate("firstName1", "lastName1", Some("preferredName1"), "email1@test.com", None, "user1", List("candidate")) ::
+        Candidate("firstName2", "lastName2", None, "email2@test.com", None, "user2", List("candidate")) ::
         Nil
     ))
 
     when(mockContactDetailsRepository.findAll).thenReturn(Future.successful(List.empty))
   }
-
-  /*
-  trait SuccessfulCandidatesReportTestFixture extends TestFixture {
-    val appRepo = mock[GeneralApplicationRepository]
-    val questionRepo = mock[QuestionnaireRepository]
-    val testResultRepo = mock[TestReportRepository]
-    val assessmentScoresRepo = mock[ApplicationAssessmentScoresRepository]
-    val cdRepo = mock[ContactDetailsRepository]
-    val controller = new ReportingController {
-      val appRepository = appRepo
-      val reportingRepository = mock[ReportingRepository]
-      val cdRepository = cdRepo
-      val authProviderClient = mock[AuthProviderClient]
-      val questionnaireRepository = questionRepo
-      val testReportRepository = testResultRepo
-      val assessmentScoresRepository = assessmentScoresRepo
-    }
-
-    val appId = rnd("appId")
-    val userId = rnd("userId")
-
-    lazy val applicationPreference1 = newAppPreferences
-    lazy val contactDetails1 = newContactDetails
-
-    lazy val appPreferences = List(applicationPreference1)
-    lazy val contactDetails = List(contactDetails1)
-    lazy val phoneAndEmail = newPhoneAndEmail(contactDetails1)
-    lazy val summaryScores = CandidateScoresSummary(Some(10d), Some(10d), Some(10d),
-      Some(10d), Some(10d), Some(10d), Some(20d), Some(80d))
-    lazy val schemeEvaluations = SchemeEvaluation(Some("Pass"), Some("Fail"), Some("Amber"), Some("Pass"),
-      Some("Fail"))
-
-    private def someDouble = Some(Random.nextDouble())
-
-    def newAppPreferences =
-      ApplicationPreferencesWithTestResults(userId, appId, someRnd("location"), someRnd("location1scheme1-"),
-        someRnd("location1scheme2-"), someRnd("location"), someRnd("location2scheme1-"), someRnd("location2scheme2-"),
-        yesNoRnd, yesNoRnd,
-        PersonalInfo(someRnd("firstname-"), someRnd("lastName-"), someRnd("preferredName-"), yesNoRnd, yesNoRnd),
-        summaryScores, schemeEvaluations)
-
-    def newContactDetails = ContactDetailsWithId(
-      userId,
-      Address(rnd("Line 1"), None, None, None),
-      Some(rnd("PostCode")),
-      rnd("Email"),
-      someRnd("Phone")
-    )
-
-    def newPhoneAndEmail(cd: ContactDetailsWithId) = {
-      PhoneAndEmail(cd.phone, Some(cd.email))
-    }
-
-    def request = {
-      FakeRequest(Helpers.GET, controllers.routes.ReportingController.createSuccessfulCandidatesReport(frameworkId).url, FakeHeaders(), "")
-        .withHeaders("Content-Type" -> "application/json")
-    }
-  }
-  */
-  /*
-  trait AssessmentCentreAllocationReportTestFixture extends TestFixture {
-    val appRepo = mock[GeneralApplicationRepository]
-    val cdRepo = mock[ContactDetailsRepository]
-    val controller = new ReportingController {
-      val appRepository = appRepo
-      val reportingRepository = mock[ReportingRepository]
-      val cdRepository = cdRepo
-      val authProviderClient = mock[AuthProviderClient]
-      val questionnaireRepository = mock[QuestionnaireRepository]
-      val testReportRepository = mock[TestReportRepository]
-      val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
-    }
-
-    lazy val candidate1 = newCandidate
-    lazy val candidate2 = newCandidate
-    lazy val candidates = List(candidate1, candidate2)
-
-    lazy val contactDetails1 = newContactDetails(candidate1.userId)
-    lazy val contactDetails2 = newContactDetails(candidate2.userId)
-    lazy val contactDetails = List(contactDetails1, contactDetails2)
-
-    def newCandidate = CandidateAwaitingAllocation(
-      rnd("UserId"),
-      rnd("FirstName"),
-      rnd("LastName"),
-      rnd("PreferredName"),
-      rnd("PrefLocation1"),
-      someRnd("Adjustments"),
-      new LocalDate(2000, 1, 1)
-    )
-
-    def newContactDetails(id: String) = ContactDetailsWithId(
-      id,
-      Address(rnd("Line 1"), None, None, None),
-      Some(rnd("PostCode")),
-      rnd("Email"),
-      someRnd("Phone")
-    )
-
-    def request = {
-      FakeRequest(Helpers.GET, controllers.routes.ReportingController.createAssessmentCentreAllocationReport(frameworkId).url, FakeHeaders(), "")
-        .withHeaders("Content-Type" -> "application/json")
-    }
-  }
-  */
-
-  /*
-  trait AssessmentResultsReportTestFixture extends TestFixture {
-    val appRepo = mock[GeneralApplicationRepository]
-    val questionRepo = mock[QuestionnaireRepository]
-    val testResultRepo = mock[TestReportRepository]
-    val assessmentScoresRepo = mock[ApplicationAssessmentScoresRepository]
-    val controller = new ReportingController {
-      val appRepository = appRepo
-      val reportingRepository = mock[ReportingRepository]
-      val cdRepository = mock[ContactDetailsRepository]
-      val authProviderClient = mock[AuthProviderClient]
-      val questionnaireRepository = questionRepo
-      val testReportRepository = testResultRepo
-      val assessmentScoresRepository = assessmentScoresRepo
-    }
-
-    val appId = rnd("appId")
-
-    lazy val applicationPreference1 = newAppPreferences
-    lazy val passMarks1 = newQuestionnaire
-    lazy val scores1 = newScores
-
-    lazy val appPreferences = List(applicationPreference1)
-    lazy val passMarks = Map(appId -> passMarks1)
-    lazy val scores = Map(appId -> scores1)
-
-    private def someDouble = Some(Random.nextDouble())
-
-    def newAppPreferences =
-      ApplicationPreferences(rnd("userId"), appId, someRnd("location"), someRnd("location1scheme1-"),
-        someRnd("location1scheme2-"), someRnd("location"), someRnd("location2scheme1-"), someRnd("location2scheme2-"),
-        yesNoRnd, yesNoRnd, yesNoRnd, yesNoRnd, yesNoRnd, yesNoRnd, yesNoRnd,
-        OnlineTestPassmarkEvaluationSchemes(Some("Pass"), Some("Fail"), Some("Pass"), Some("Fail"), Some("Amber")))
-
-    def newQuestionnaire =
-      QuestionnaireReportItem(someRnd("Gender"), someRnd("Orientation"), someRnd("Ethnicity"),
-        someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"), rnd("SES"),
-        someRnd("university"))
-
-    def newScores = CandidateScoresAndFeedback(applicationId = appId, attendancy = maybe(true),
-      assessmentIncomplete = false,
-      leadingAndCommunicating = CandidateScores(someDouble, someDouble, someDouble),
-      collaboratingAndPartnering = CandidateScores(someDouble, someDouble, someDouble),
-      deliveringAtPace = CandidateScores(someDouble, someDouble, someDouble),
-      makingEffectiveDecisions = CandidateScores(someDouble, someDouble, someDouble),
-      changingAndImproving = CandidateScores(someDouble, someDouble, someDouble),
-      buildingCapabilityForAll = CandidateScores(someDouble, someDouble, someDouble),
-      motivationFit = CandidateScores(someDouble, someDouble, someDouble),
-      feedback = CandidateScoreFeedback(someRnd("feedback"), someRnd("feedback"), someRnd("feedback")))
-
-    def request = {
-      FakeRequest(Helpers.GET, controllers.routes.ReportingController.createAssessmentResultsReport(frameworkId).url, FakeHeaders(), "")
-        .withHeaders("Content-Type" -> "application/json")
-    }
-  }
-  */
-
 }

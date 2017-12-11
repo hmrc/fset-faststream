@@ -18,6 +18,7 @@ package connectors
 
 import java.util.UUID
 
+import connectors.AuthProviderClient.UserRole
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, Json, OFormat }
 
@@ -39,7 +40,10 @@ object ExchangeObjects {
     implicit val format: Format[SendFsetMailRequest] = Json.format[SendFsetMailRequest]
   }
 
-  case class Candidate(firstName: String, lastName: String, preferredName: Option[String], email: String, userId: String)
+  case class Candidate(firstName: String, lastName: String, preferredName: Option[String], email: String,
+    phone: Option[String], userId: String, roles: List[String]) {
+    def name: String = preferredName.getOrElse(firstName)
+  }
   object Candidate { implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate] }
 
   // Cubiks Gateway Requests
@@ -57,9 +61,6 @@ object ExchangeObjects {
                              timeAdjustments: List[TimeAdjustments] = Nil)
   object InviteApplicant { implicit val inviteApplicantFormat: OFormat[InviteApplicant] = Json.format[InviteApplicant] }
 
-  case class ReportNorm(assessmentId: Int, normId: Int)
-  object ReportNorm { implicit val reportNormFormat: OFormat[ReportNorm] = Json.format[ReportNorm] }
-
   // Cubiks Gateway Response
   case class Registration(userId: Int)
   object Registration { implicit val registrationFormat: OFormat[Registration] = Json.format[Registration] }
@@ -73,11 +74,12 @@ object ExchangeObjects {
   case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: DateTime, expirationDate: Option[LocalDate])
   object AllocationDetails { implicit val allocationDetailsFormat: OFormat[AllocationDetails] = Json.format[AllocationDetails] }
 
-  case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, role: String, service: String)
+  case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, roles: List[String], service: String)
   object AddUserRequest { implicit val addUserRequestFormat: OFormat[AddUserRequest] = Json.format[AddUserRequest] }
 
   case class UserResponse(firstName: String, lastName: String, preferredName: Option[String],
-    isActive: Boolean, userId: UUID, email: String, lockStatus: String, role: String)
+                          isActive: Boolean, userId: String, email: String, disabled: Boolean, lockStatus: String,
+                          roles: List[String], service: String, phoneNumber: Option[String], detailsConfirmed: Option[Boolean])
   object UserResponse { implicit val userResponseFormat: OFormat[UserResponse] = Json.format[UserResponse] }
 
   case class ActivateEmailRequest(email: String, token: String, service: String)

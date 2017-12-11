@@ -21,11 +21,13 @@ import connectors.CSREmailClient
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.Commands.PostCode
 import model.OnlineTestCommands.OnlineTestApplication
+import model.ProgressStatuses.{ PHASE3_TESTS_EXPIRED, SIFT_ENTERED }
 import model._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
-import model.persisted.{ ContactDetails, Phase3TestGroupWithAppId }
+import model.persisted._
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -36,11 +38,12 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
 import services.adjustmentsmanagement.AdjustmentsManagementService
-import services.events.EventServiceFixture
+import services.sift.ApplicationSiftService
+import services.stc.StcEventServiceFixture
 import testkit.{ ExtendedTimeout, UnitSpec }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -289,7 +292,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         RetakeApplicantRequest(
           testInterviewId,
           testLaunchpadCandidateId,
-          phase3TestGroupNotCompleted.expirationDate.toLocalDate //,
+          testTestGroup.expirationDate.toLocalDate
         )
       ))
       verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
@@ -318,11 +321,11 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyAuditEvents(1, "VideoInterviewCompleted")
     }
 
-    "change progress to completed if there are all tests completed and remove expired, if it was set" in new Phase3TestServiceFixture {
+    "change progress to completed if there are all tests completed and DO NOT remove expired, if it was set" in new Phase3TestServiceFixture {
       phase3TestServiceWithExpiredTestGroup.markAsCompleted(testInviteId).futureValue
 
       verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)
-      verify(appRepositoryMock).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
+      verify(appRepositoryMock, times(0)).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
 
       verifyDataStoreEvents(1, "VideoInterviewCompleted")
       verifyAuditEvents(1, "VideoInterviewCompleted")
@@ -339,11 +342,11 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyAuditEvents(1, "VideoInterviewResultsReceived")
     }
 
-    "change progress to results received when any result set arrives and unexpire the testgroup if expired" in new Phase3TestServiceFixture {
+    "change progress to results received when any result set arrives and DO NOT unexpire the testgroup if expired" in new Phase3TestServiceFixture {
       phase3TestServiceWithExpiredTestGroup.markAsResultsReceived(testInviteId).futureValue
 
       verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
-      verify(appRepositoryMock).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
+      verify(appRepositoryMock, times(0)).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
 
       verifyDataStoreEvents(1, "VideoInterviewResultsReceived")
       verifyAuditEvents(1, "VideoInterviewResultsReceived")
@@ -361,7 +364,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "extend a test group from the current time if it's expired" in new Phase3TestServiceFixture {
-      val daysToExtend = 7
+      val daysToExtend = 5
       phase3TestServiceWithExpiredTestGroup.extendTestGroupExpiryTime("a", daysToExtend, "A N User").futureValue
 
       val launchpadRequestCaptor = ArgumentCaptor.forClass(classOf[ExtendDeadlineRequest])
@@ -377,7 +380,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "extend a test group from its expiry time if it's not expired" in new Phase3TestServiceFixture {
-      val daysToExtend = 7
+      val daysToExtend = 5
       phase3TestServiceWithUnexpiredTestGroup.extendTestGroupExpiryTime("a", daysToExtend, "A N User").futureValue
 
       val launchpadRequestCaptor = ArgumentCaptor.forClass(classOf[ExtendDeadlineRequest])
@@ -390,6 +393,84 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       launchpadRequestCaptor.getValue.newDeadline mustBe expectedFromExistingExpiryExpiryTime.toLocalDate
       repositoryDateCaptor.getValue mustBe expectedFromExistingExpiryExpiryTime
+    }
+  }
+
+  "processNextExpiredTest" should {
+    "do nothing if there are no expired application to process" in new Phase3TestServiceFixture {
+      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent)).thenReturn(Future.successful(None))
+      phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent).futureValue mustBe unit
+    }
+
+    "update progress status and send an email to the user when a Faststream application is expired" in new Phase3TestServiceFixture {
+      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.Faststream))
+      val results = List(SchemeEvaluationResult("Sdip", "Green"))
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val result = phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent)
+
+      result.futureValue mustBe unit
+
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE3_TESTS_EXPIRED)
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
+      verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
+      verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
+      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase3ExpirationEvent.template)
+    }
+
+    "progress SdipFS application to SIFT_ENTERED if Sdip is GREEN and tests have expired" in new Phase3TestServiceFixture {
+      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
+      val results = List(SchemeEvaluationResult("Sdip", "Green"))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
+      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(success)
+      when(p3TestRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(success)
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(success)
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val result = phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent)
+
+      result.futureValue mustBe unit
+
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE3_TESTS_EXPIRED)
+      verify(appRepositoryMock, times(1)).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
+      verify(appRepositoryMock, times(1)).getCurrentSchemeStatus(applicationId)
+      verify(appRepositoryMock, times(1)).updateCurrentSchemeStatus(applicationId, results)
+      verify(siftServiceMock, times(1)).sendSiftEnteredNotification(applicationId)
+      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase3ExpirationEvent.template)
+    }
+
+    "not progress SdipFS application to SIFT_ENTERED if Sdip is RED and tests have expired" in new Phase3TestServiceFixture {
+      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
+      val results = List(SchemeEvaluationResult("Sdip", "Red"))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
+      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(success)
+      when(p3TestRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(success)
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(success)
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val result = phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent)
+
+      result.futureValue mustBe unit
+
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE3_TESTS_EXPIRED)
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
+      verify(appRepositoryMock, times(1)).getCurrentSchemeStatus(applicationId)
+      verify(appRepositoryMock, times(1)).updateCurrentSchemeStatus(applicationId, results)
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
+      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase3ExpirationEvent.template)
     }
   }
 
@@ -411,7 +492,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
-  trait Phase3TestServiceFixture extends EventServiceFixture {
+  trait Phase3TestServiceFixture extends StcEventServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
     implicit val rh = mock[RequestHeader]
@@ -425,10 +506,22 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val tokenFactoryMock = mock[UUIDFactory]
     val dateTimeFactoryMock = mock[DateTimeFactory]
     val adjustmentsManagementServiceMock = mock[AdjustmentsManagementService]
+    val siftServiceMock = mock[ApplicationSiftService]
     val tokens = UUIDFactory.generateUUID() :: Nil
 
     val testFirstName = "Optimus"
     val testLastName = "Prime"
+
+    val applicationId = "appId"
+    val userId = "userId"
+    val preferredName = "Preferred\tName"
+    val expiredApplication = ExpiringOnlineTest(applicationId, userId, preferredName)
+
+    val postcode : Option[PostCode]= Some("WC2B 4")
+    val emailContactDetails = "emailfjjfjdf@mailinator.com"
+    val contactDetails = ContactDetails(outsideUk = false, Address("Aldwych road"), postcode, Some("UK"), emailContactDetails, "111111")
+
+    val success = Future.successful(unit)
 
     val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
       applicationStatus = ApplicationStatus.SUBMITTED,
@@ -450,8 +543,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val testInterviewId = 123
     val testTimeNow = DateTime.parse("2016-10-01T00:00:01Z")
     val unexpiredTestExpiryTime = DateTime.parse("2016-11-01T00:00:01Z")
-    val expectedFromNowExpiryTime = testTimeNow.plusDays(7)
-    val expectedFromExistingExpiryExpiryTime = unexpiredTestExpiryTime.plusDays(7)
+    val expectedFromNowExpiryTime = testTimeNow.plusDays(5)
+    val expectedFromExistingExpiryExpiryTime = unexpiredTestExpiryTime.plusDays(5)
     val testExpiredTime = testTimeNow.minusDays(3)
     val testLaunchpadCandidateId = "CND_123"
     val testFaststreamCustomCandidateId = "FSCND_456"
@@ -465,7 +558,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val gatewayConfigMock = LaunchpadGatewayConfig(
       "localhost",
       Phase3TestsConfig(
-        timeToExpireInDays = 7,
+        timeToExpireInDays = 5,
         invigilatedTimeToExpireInDays = 90,
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
         Map(
@@ -617,6 +710,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
           val auditService = auditServiceMock
           val gatewayConfig = gatewayConfigMock
           val eventService = eventServiceMock
+          val siftService = siftServiceMock
         }
 
       val phase3TestServiceSpy = spy(service)
@@ -769,6 +863,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         val gatewayConfig = gatewayConfigMock
         val eventService = eventServiceMock
         val adjustmentsService = adjustmentsManagementServiceMock
+        val siftService = siftServiceMock
       }
     }
   }

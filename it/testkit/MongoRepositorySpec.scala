@@ -84,10 +84,8 @@ trait IndexesReader {
   this: ScalaFutures =>
 
   def indexesWithFields(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): Seq[Seq[String]] = {
-    play.api.Logger.error(s"\n\n COLL ${repo.collection.name}")
     val indexesManager = repo.collection.indexesManager
     val indexes = indexesManager.list().futureValue
-    play.api.Logger.error(s"\n\nINDICES $indexes\n")
     indexes.map(_.key.map(_._1))
   }
 }

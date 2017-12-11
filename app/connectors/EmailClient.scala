@@ -16,14 +16,17 @@
 
 package connectors
 
+import java.util.TimeZone
+
 import config.{ EmailConfig, WSHttp }
 import connectors.ExchangeObjects._
-import org.joda.time.{ DateTime, LocalDate }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import model.stc.EmailEvents.{ CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalDateTime }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.TimeUnit
+import uk.gov.hmrc.http.HeaderCarrier
 
 object CSREmailClient extends CSREmailClient {
   val emailConfig: EmailConfig = config.MicroserviceAppConfig.emailConfig
@@ -207,6 +210,80 @@ trait EmailClient extends WSHttp {
   def sendApplicationExtendedToSdip(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_app_converted_to_sdip_confirmation", Map("name" -> name))
 
+  def sendCandidateConfirmationRequestToEvent(c: CandidateAllocationConfirmationRequest)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(c.to, "fset_faststream_candidate_need_confirm_assessment_date",
+      Map("name" -> c.name, "eventDate" -> c.eventDate, "eventStartTime" -> c.eventTime,
+        "eventType" -> c.eventType, "eventVenue" -> c.eventVenue, "deadlineDate" -> c.deadlineDate,
+      "eventGuideUrl" -> c.eventGuideUrl))
+  }
+
+  def sendCandidateConfirmationRequestReminderToEvent(c: CandidateAllocationConfirmationReminder)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(c.to, "fset_faststream_candidate_need_confirm_assessment_date_reminder",
+      Map("name" -> c.name, "eventDate" -> c.eventDate, "eventStartTime" -> c.eventTime, "eventType" -> c.eventType,
+        "eventVenue" -> c.eventVenue, "deadlineDate" -> c.deadlineDate, "eventGuideUrl" -> c.eventGuideUrl))
+  }
+
+
+  def sendCandidateInvitationConfirmedToEvent(to: String, name: String,
+    eventDate: String, eventTime: String,
+    eventType: String, eventVenue: String, eventGuideUrl: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_candidate_assessment_scheduled",
+      Map("name" -> name, "eventDate" -> eventDate, "eventStartTime" -> eventTime,
+        "eventType" -> eventType, "eventVenue" -> eventVenue, "eventGuideUrl" -> eventGuideUrl))
+  }
+
+  // scalastyle:off parameter.number
+  def sendAssessorAllocatedToEvent(to: String, name: String, eventDate: String, eventRole: String, eventRoleKey: String,
+              eventName: String, eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_event_assessor_allocated",
+      Map("name" -> name, "eventDate" -> eventDate, "eventRole" -> eventRole, "eventRoleKey" -> eventRoleKey,
+        "eventName" -> eventName, "eventLocation" -> eventLocation, "eventStartTime" -> eventStartTime)
+    )
+  }
+  // scalastyle:on
+
+  def sendAssessorUnAllocatedFromEvent(to: String, name: String, eventDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_event_assessor_unallocated",
+      Map("name" -> name, "eventDate" -> eventDate)
+    )
+  }
+
+  def sendAssessorEventAllocationChanged(to: String, name: String, eventDate: String, eventRole: String, eventName: String,
+                                   eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_event_assessor_allocation_changed",
+      Map("name" -> name, "eventDate" -> eventDate, "eventRole" -> eventRole, "eventName" -> eventName, "eventLocation" -> eventLocation,
+        "eventStartTime" -> eventStartTime)
+    )
+  }
+
+  def sendCandidateAssessmentCompletedMovedToFsb(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_candidate_assessment_centre_completed", Map("name" -> name))
+  }
+
+  def sendCandidateUnAllocatedFromEvent(to: String, name: String, eventDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_event_candidate_unallocated",
+      Map("name" -> name, "eventDate" -> eventDate)
+    )
+  }
+
+  def notifyAssessorsOfNewEvents(to: String, name: String, htmlBody: String, txtBody: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_assessors_of_new_events",
+      Map("name" -> name, "htmlBody" -> htmlBody, "txtBody" -> txtBody))
+  }
+
+  def notifyCandidateOnFinalFailure(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_app_final_failed", Map("name" -> name))
+  }
+
+  def notifyCandidateOnFinalSuccess(to: String, name: String, scheme: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_app_final_success", Map("name" -> name, "scheme" -> scheme))
+  }
+
+
+  def notifyCandidateSiftEnteredAdditionalQuestions(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_candidate_sift_entered_additional_questions", Map("name" -> name))
+  }
+
 }
 
 object EmailDateFormatter {
@@ -215,13 +292,16 @@ object EmailDateFormatter {
 
   def toDate(date: LocalDate): String = date.toString("d MMMM yyyy")
 
+  protected def toLondonLocalDateTime(dateTime: DateTime): LocalDateTime =
+    dateTime.toDateTime(DateTimeZone.forTimeZone(TimeZone.getTimeZone("Europe/London"))).toLocalDateTime
+
   def toExpiryTime(dateTime: DateTime): String = {
-    dateTime.toString("d MMMM yyyy 'at' h:mma")
+    toLondonLocalDateTime(dateTime).toString("d MMMM yyyy 'at' h:mma")
       .replace("AM", "am").replace("PM", "pm") // Joda time has no easy way to change the case of AM/PM
   }
 
   def toConfirmTime(dateTime: DateTime): String = {
-    dateTime.toString("d MMMM yyyy, h:mma")
+    toLondonLocalDateTime(dateTime).toString("d MMMM yyyy, h:mma")
       .replace("AM", "am").replace("PM", "pm") // Joda time has no easy way to change the case of AM/PM
   }
 

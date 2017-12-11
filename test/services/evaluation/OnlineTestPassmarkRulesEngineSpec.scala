@@ -16,10 +16,9 @@
 
 package services.evaluation
 
-import fixture.PreferencesFixture
-import model.EvaluationResults.{RuleCategoryResult, _}
+import model.EvaluationResults._
 import model.OnlineTestCommands._
-import model.Schemes
+import model.Scheme
 import org.joda.time.DateTime
 
 /* TODO: in faststream

@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import model.ApplicationRoute._
-import model.{ ApplicationRoute, ApplicationStatus, SchemeType }
+import model.{ ApplicationRoute, ApplicationStatus, SchemeId }
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Result, _ }
 import model.Phase.Phase
@@ -28,7 +28,7 @@ import model.persisted.SchemeEvaluationResult
 
 trait ApplicationStatusCalculator {
 
-  def faststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+  private def faststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     results: List[Result]): Option[ProgressStatus] = (phase, originalAppStatus) match {
     case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
     case (PHASE2, ApplicationStatus.PHASE2_TESTS) => processResults(results, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED)
@@ -41,13 +41,44 @@ trait ApplicationStatusCalculator {
     case _ => None
   }
 
-  def sdipFaststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+  //scalastyle:off cyclomatic.complexity
+  private def sdipFaststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     evaluatedSchemes: List[SchemeEvaluationResult]): Option[ProgressStatus] = {
-    val results = evaluatedSchemes.filterNot(_.scheme == SchemeType.Sdip).map(s => Result(s.result))
-    faststreamCalc(phase, originalAppStatus, results)
-  }
+    val sdip = "Sdip"
+    val fsResults = evaluatedSchemes.filterNot(_.schemeId == SchemeId(sdip)).map(s => Result(s.result))
+    val fsOverallResult = faststreamCalc(phase, originalAppStatus, fsResults)
 
-  def edipSdipCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+    def toResultWhenPhase1SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
+      result match {
+        case Amber => Some(PHASE1_TESTS_FAILED_SDIP_AMBER)
+        case _ => Some(PHASE1_TESTS_PASSED)
+      }
+
+    def toResultWhenPhase2SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
+      result match {
+        case Amber => Some(PHASE2_TESTS_FAILED_SDIP_AMBER)
+        case _ => Some(PHASE2_TESTS_PASSED)
+      }
+
+    def toResultWhenPhase3SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
+      result match {
+        case Amber => Some(PHASE3_TESTS_FAILED_SDIP_AMBER)
+        case _ => Some(PHASE3_TESTS_PASSED)
+      }
+
+    val sdipResult = evaluatedSchemes.filter(_.schemeId == SchemeId(sdip)).map(s => Result(s.result)).head
+    sdipResult match {
+      case Amber | Green if fsOverallResult.contains(PHASE1_TESTS_FAILED) => toResultWhenPhase1SdipFaststreamNotFailed(sdipResult)
+      case Amber | Green if fsOverallResult.contains(PHASE2_TESTS_FAILED) => toResultWhenPhase2SdipFaststreamNotFailed(sdipResult)
+      case Amber | Green if fsOverallResult.contains(PHASE3_TESTS_FAILED) => toResultWhenPhase3SdipFaststreamNotFailed(sdipResult)
+      case Amber if fsOverallResult.contains(PHASE3_TESTS_PASSED) => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
+      case Green if fsOverallResult.isEmpty && phase == PHASE3 => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
+      case _ => fsOverallResult
+    }
+  }
+  //scalastyle:on
+
+  private def edipSdipCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     results: List[Result]): Option[ProgressStatus] = (phase, originalAppStatus) match {
     case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
     case _ => None

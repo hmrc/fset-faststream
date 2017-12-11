@@ -18,7 +18,7 @@ package services.onlinetesting
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.exchange.passmarksettings.PassMarkThreshold
-
+import play.api.Logger
 
 trait OnlineTestResultsCalculator {
 
@@ -27,7 +27,7 @@ trait OnlineTestResultsCalculator {
     val passmark = threshold.passThreshold
     tScore match {
       case Some(score) if score >= passmark => Green
-      case Some(score) if score <= failmark => Red
+      case Some(score) if score < failmark => Red
       case Some(_) => Amber
       case _ => throw new IllegalArgumentException("Score not found")
     }
@@ -35,11 +35,12 @@ trait OnlineTestResultsCalculator {
 
   def combineTestResults(results: Result*) = {
     require(results.nonEmpty, "Test results not found")
-    results match {
+    val result = results match {
       case _ if results.contains(Red) => Red
       case _ if results.contains(Amber) => Amber
       case _ if results.forall(_ == Green) => Green
     }
+    Logger.info(s"**** Combining results $results = $result")
+    result
   }
-
 }

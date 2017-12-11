@@ -17,27 +17,23 @@
 package model.report
 
 import model.ApplicationRoute._
+import model.SchemeId
 import play.api.libs.json.Json
-import model.SchemeType._
-import model.persisted.ApplicationForDiversityReport
+import model.persisted.{ApplicationForDiversityReport, SchemeEvaluationResult}
 
-case class ApplicationForDiversityReportItem(
-                                              progress: Option[String],
-                                              applicationRoute: ApplicationRoute,
-                                              schemes: List[SchemeType],
-                                              disability: Option[String],
-                                              gis: Option[Boolean],
-                                              onlineAdjustments: Option[String],
-                                              assessmentCentreAdjustments: Option[String],
-                                              civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsReportItem]
-                                            ) {
+case class ApplicationForDiversityReportItem(progress: Option[String],
+                                             applicationRoute: ApplicationRoute,
+                                             schemes: List[SchemeId],
+                                             disability: Option[String],
+                                             gis: Option[Boolean],
+                                             onlineAdjustments: Option[String],
+                                             assessmentCentreAdjustments: Option[String],
+                                             civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsReportItem],
+                                             currentSchemeStatus: List[SchemeEvaluationResult])
 
-}
-
-case class DiversityReportItem(
-                                application: ApplicationForDiversityReportItem,
-                                questionnaire: Option[QuestionnaireReportItem],
-                                media: Option[MediaReportItem])
+case class DiversityReportItem(application: ApplicationForDiversityReportItem,
+                               questionnaire: Option[QuestionnaireReportItem],
+                               media: Option[MediaReportItem])
 
 object ApplicationForDiversityReportItem {
   implicit val applicationForDiversityReportItemFormat = Json.format[ApplicationForDiversityReportItem]
@@ -52,7 +48,8 @@ object ApplicationForDiversityReportItem {
       assessmentCentreAdjustments = a.assessmentCentreAdjustments,
       civilServiceExperiencesDetails = a.civilServiceExperiencesDetails.map { c =>
         CivilServiceExperienceDetailsReportItem.create(c)
-      }
+      },
+      currentSchemeStatus = a.currentSchemeStatus
     )
   }
 }

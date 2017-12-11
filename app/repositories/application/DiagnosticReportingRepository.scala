@@ -16,8 +16,7 @@
 
 package repositories.application
 
-import model.Commands
-import model.Commands.CreateApplicationRequest
+import model.{ Commands, CreateApplicationRequest }
 import model.Exceptions.ApplicationNotFound
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{ JsObject, JsValue, Json }
@@ -31,31 +30,36 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait DiagnosticReportingRepository {
-  def findByUserId(userId: String): Future[List[JsObject]]
+  def findByApplicationId(userId: String): Future[List[JsObject]]
   def findAll(): Enumerator[JsValue]
 }
 
 class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
+    CreateApplicationRequest.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
 
   private val defaultExclusions = Json.obj(
     "_id" -> 0,
     "personal-details" -> 0)  // these reports should not export personally identifiable data
 
   private val largeFields = Json.obj(
-    "progress-status-timestamp" -> 0, // this is quite a bit of data, that is not really used for queries as progress-status is easier
     "testGroups.PHASE1.tests.reportLinkURL" -> 0,
     "testGroups.PHASE1.tests.testUrl" -> 0,
     "testGroups.PHASE2.tests.reportLinkURL" -> 0,
     "testGroups.PHASE2.tests.testUrl" -> 0,
-    "testGroups.PHASE3.tests.callbacks" -> 0
+    "testGroups.PHASE3.tests.callbacks.viewBrandedVideo" -> 0,
+    "testGroups.PHASE3.tests.callbacks.setupProcess" -> 0,
+    "testGroups.PHASE3.tests.callbacks.viewPracticeQuestion" -> 0,
+    "testGroups.PHASE3.tests.callbacks.question" -> 0,
+    "testGroups.PHASE3.tests.callbacks.finalCallback" -> 0,
+    "testGroups.PHASE3.tests.callbacks.finished" -> 0,
+    "testGroups.PHASE3.tests.callbacks.reviewed.reviews" -> 0
   )
 
-  def findByUserId(userId: String): Future[List[JsObject]] = {
+  def findByApplicationId(userId: String): Future[List[JsObject]] = {
     val projection = defaultExclusions
 
-    val results = collection.find(Json.obj("userId" -> userId), projection)
+    val results = collection.find(Json.obj("applicationId" -> userId), projection)
       .cursor[JsObject](ReadPreference.primaryPreferred)
       .collect[List]()
 

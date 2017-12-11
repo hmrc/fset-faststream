@@ -16,18 +16,20 @@
 
 package connectors
 
+import akka.util.ByteString
 import config.MicroserviceAppConfig._
-import config.WSHttp
+import _root_.config.WSHttp
+import akka.stream.scaladsl.Source
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration }
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands._
 import play.api.http.Status._
 import play.api.libs.iteratee.Iteratee
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait CubiksGatewayClient {
   val http: WSHttp
@@ -76,16 +78,6 @@ trait CubiksGatewayClient {
       }
     }
 
-  def getReport(application: OnlineTestApplicationForReportRetrieving): Future[OnlineTestReportAvailability] = {
-    http.POST(s"$url/csr-cubiks-gateway/report", application).map { response =>
-      if (response.status == OK) {
-        response.json.as[OnlineTestReportAvailability]
-      } else {
-        throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
-      }
-    }
-  }
-
   def downloadXmlReport(reportId: Int): Future[TestResult] = {
     http.GET(s"$url/csr-cubiks-gateway/faststream/report-xml/$reportId").map { response =>
       if (response.status == OK) {
@@ -95,21 +87,9 @@ trait CubiksGatewayClient {
       }
     }
   }
-
-  def downloadPdfReport(reportId: Int): Future[Array[Byte]] = {
-    http.playWS.url(s"$url/csr-cubiks-gateway/report-pdf/$reportId").get(respHeaders =>
-      if (respHeaders.status == OK) {
-        Iteratee.consume[Array[Byte]]()
-      } else {
-        throw new ConnectorException(
-          s"There was a general problem connecting to the Cubiks Gateway to download the PDF report '$reportId'. " +
-            s"HTTP response headers were $respHeaders"
-        )
-      }).flatMap { iteratee => iteratee.run }
-  }
 }
 
 object CubiksGatewayClient extends CubiksGatewayClient {
   val http: WSHttp = WSHttp
-  val url = cubiksGatewayConfig.url
+  val url: String = cubiksGatewayConfig.url
 }

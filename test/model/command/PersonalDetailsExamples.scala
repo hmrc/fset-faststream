@@ -16,12 +16,16 @@
 
 package model.command
 
+import factories.DateTimeFactory
 import model.Address
+import model.persisted.PersonalDetails
 import org.joda.time.LocalDate
 
 object PersonalDetailsExamples {
 
-  val completePersonalDetails = PersonalDetails("TestName", "TestSurname", "Jo Test", "jo@go.sx", LocalDate.parse("1972-11-23"),
+  val completeGeneralDetails = GeneralDetails("TestName", "TestSurname", "Jo Test", "jo@go.sx", LocalDate.parse("1972-11-23"),
     outsideUk = false, Address("Test street"), None, None, None, "098762532", None, None, None)
 
+  val completed = PersonalDetails("firstname", "lastname", "preferedname", DateTimeFactory.nowLocalDate, Some(false))
+  val personalDetails = PersonalDetails("TestName", "TestSurname", "Jo Test", LocalDate.parse("1972-11-23"), edipCompleted = None)
 }

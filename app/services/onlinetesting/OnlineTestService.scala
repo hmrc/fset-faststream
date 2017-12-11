@@ -18,26 +18,28 @@ package services.onlinetesting
 
 import connectors.OnlineTestEmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
-import model.events.DataStoreEvents
+import model.stc.DataStoreEvents
 import model.exchange.CubiksTestResultReady
 import model.persisted._
 import model._
 import org.joda.time.DateTime
-import model.events.AuditEvents
-import model.events.EventTypes._
+import model.stc.AuditEvents
+import model.stc.StcEventTypes._
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.OnlineTestRepository
 import services.AuditService
-import services.events.EventSink
-import uk.gov.hmrc.play.http.HeaderCarrier
+import services.sift.ApplicationSiftService
+import services.stc.EventSink
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
+import uk.gov.hmrc.http.HeaderCarrier
 
 
 trait OnlineTestService extends TimeExtension with EventSink {
@@ -53,6 +55,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
   val cdRepository: ContactDetailsRepository
   val appRepository: GeneralApplicationRepository
   val testRepository: TestRepository
+  val siftService: ApplicationSiftService
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -107,20 +110,12 @@ trait OnlineTestService extends TimeExtension with EventSink {
   protected def processTestForSdipFsNotification(toNotify: TestResultSdipFsNotification, `type`: NotificationTestTypeSdipFs)
                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    val notificationProgressStatus = Try{(`type`, toNotify.applicationStatus) match {
+    val notificationProgressStatus = Try {
+      (`type`, toNotify.applicationStatus) match {
       case(n: FailedTestTypeSdipFs, status) =>
         getProgressStatusForSdipFsFailedNotified(status)
-      case(n: SuccessfulTestTypeSdipFs, ApplicationStatus.EXPORTED) =>
-        getProgressStatusForSdipFsPassedNotified(ApplicationStatus.READY_TO_UPDATE)
-      case(n: SuccessfulTestTypeSdipFs, ApplicationStatus.PHASE1_TESTS_FAILED) =>
-        getProgressStatusForSdipFsPassedNotified(ApplicationStatus.READY_FOR_EXPORT)
-      case(n: SuccessfulTestTypeSdipFs, ApplicationStatus.PHASE2_TESTS_FAILED) =>
-        getProgressStatusForSdipFsPassedNotified(ApplicationStatus.READY_FOR_EXPORT)
-      case(n: SuccessfulTestTypeSdipFs, ApplicationStatus.PHASE3_TESTS_FAILED) =>
-        getProgressStatusForSdipFsPassedNotified(ApplicationStatus.READY_FOR_EXPORT)
-      case(n: SuccessfulTestTypeSdipFs, status) =>
-        getProgressStatusForSdipFsPassedNotified(status)
-    }}
+      }
+    }
 
     for {
       notificationStatus <- Future.fromTry(notificationProgressStatus)
@@ -155,12 +150,54 @@ trait OnlineTestService extends TimeExtension with EventSink {
     )
   }
 
+  // scalastyle:off method.length
   protected def processExpiredTest(expiringTest: ExpiringOnlineTest, expiryType: TestExpirationEvent)
                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    def markFsSchemesAsRed(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = {
+      val updatedResults = setToRedExceptSdip(results)
+      val evaluation = PassmarkEvaluation("", None, updatedResults.toList, "", None)
+      testRepository.upsertTestGroupEvaluationResult(applicationId, evaluation).flatMap { _ =>
+        appRepository.updateCurrentSchemeStatus(applicationId, updatedResults).map(_ => ())
+      }
+    }
+
+    def setToRedExceptSdip(results: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
+      results.map { result =>
+        if(result.schemeId != Scheme.SdipId) {
+          result.copy(result = EvaluationResults.Red.toString)
+        } else {
+          result
+        }
+      }
+    }
+
+    def updateResultsAndMaybeProgressSdipToSift(): Future[Unit] = {
+      for {
+        currentSchemeStatus <- appRepository.getCurrentSchemeStatus(expiringTest.applicationId)
+        _ <- markFsSchemesAsRed(expiringTest.applicationId, currentSchemeStatus)
+      } yield {
+        val sdipIsGreen = currentSchemeStatus.find(_.schemeId == Scheme.SdipId)
+          .getOrElse(throw UnexpectedException("SDIP is not found in CurrentSchemeStatus"))
+          .result == "Green"
+        if(sdipIsGreen) {
+          appRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, ProgressStatuses.SIFT_ENTERED).flatMap { _ =>
+            siftService.sendSiftEnteredNotification(expiringTest.applicationId).map(_ => ())
+          }
+        } else {
+          Future.successful(())
+        }
+      }
+    }
+
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
       _ <- commitProgressStatus(expiringTest.applicationId, expiryType.expiredStatus)
       _ <- emailCandidate(expiringTest.applicationId, expiringTest.preferredName, emailAddress, expiryType.template, expiryType.expiredStatus)
+      appRoute <- appRepository.getApplicationRoute(expiringTest.applicationId)
+      isPhase2Or3 = Seq("PHASE2", "PHASE3").contains(expiryType.phase.toUpperCase)
+      _ <- if(appRoute == ApplicationRoute.SdipFaststream && isPhase2Or3) {
+        updateResultsAndMaybeProgressSdipToSift() } else { Future.successful(()) }
     } yield ()
   }
 
@@ -201,10 +238,10 @@ trait OnlineTestService extends TimeExtension with EventSink {
     }
   }
 
-  private[onlinetesting] def generateStatusEvents(applicationId: String, status: ProgressStatuses.ProgressStatus): Events = {
+  private[onlinetesting] def generateStatusEvents(applicationId: String, status: ProgressStatuses.ProgressStatus): StcEvents = {
 
     val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
-    val passedStates = PHASE3_TESTS_SUCCESS_NOTIFIED :: Nil
+    val passedStates = PHASE3_TESTS_PASSED_NOTIFIED :: Nil
 
     if(expiredStates.contains(status)) {
       AuditEvents.ApplicationExpired(Map("applicationId" -> applicationId, "status" -> status )) ::
@@ -220,11 +257,11 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
   private[onlinetesting] def generateEmailEvents(applicationId: String,
                                                  status: ProgressStatuses.ProgressStatus,
-                                                 email: String, to: String, template: String): Events = {
+                                                 email: String, to: String, template: String): StcEvents = {
 
     val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
     val failedStates = PHASE1_TESTS_FAILED_NOTIFIED :: PHASE2_TESTS_FAILED_NOTIFIED :: PHASE3_TESTS_FAILED_NOTIFIED :: Nil
-    val passedStates = PHASE3_TESTS_SUCCESS_NOTIFIED :: Nil
+    val passedStates = PHASE3_TESTS_PASSED_NOTIFIED :: Nil
     val data = Map("applicationId" -> applicationId, "emailAddress" -> email, "to" -> to, "template" -> template)
     if(expiredStates.contains(status)) {
       AuditEvents.ExpiredTestEmailSent(data) :: Nil

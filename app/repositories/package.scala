@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-import factories.DateTimeFactory
-import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
-import model.PassmarkPersistedObjects._
-import model.PersistedObjects.PersistedAnswer
-import model.command.WithdrawApplication
-import model.persisted.{ AssistanceDetails, ContactDetails }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
-import play.modules.reactivemongo.MongoDbConnection
+import model.assessmentscores._
+import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
+import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
 import reactivemongo.bson._
 import repositories.application._
 import repositories.onlinetesting._
@@ -34,11 +30,20 @@ import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
+import model.command.WithdrawApplication
 import play.api.libs.json._
-import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
-import repositories.parity.ParityExportMongoRepository
-import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
+import repositories.assessmentcentre.AssessmentCentreMongoRepository
+import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeMongoRepository
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
+import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
+import repositories.events.EventsMongoRepository
+import repositories.fileupload.FileUploadMongoRepository
+import repositories.fsacindicator.FSACIndicatorMongoRepository
+import repositories.fsb.FsbMongoRepository
+import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
+import repositories.sift.{ ApplicationSiftMongoRepository, SiftAnswersMongoRepository }
+import repositories.stc.StcEventMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -54,41 +59,51 @@ package object repositories {
     MongoDbConnection.mongoConnector.db
   }
 
-  lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
+  lazy val personalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository(DateTimeFactory)
   lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository()
   lazy val schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
   lazy val civilServiceExperienceDetailsRepository = new CivilServiceExperienceDetailsMongoRepository()
   lazy val faststreamPartnerGraduateProgrammesRepository = new partnergraduateprogrammes.PartnerGraduateProgrammesMongoRepository()
   lazy val faststreamAssistanceDetailsRepository = new assistancedetails.AssistanceDetailsMongoRepository()
-  lazy val faststreamPhase1EvaluationRepository = new onlinetesting.Phase1EvaluationMongoRepository()
-  lazy val faststreamPhase2EvaluationRepository = new onlinetesting.Phase2EvaluationMongoRepository()
+  lazy val faststreamPhase1EvaluationRepository = new onlinetesting.Phase1EvaluationMongoRepository(DateTimeFactory)
+  lazy val faststreamPhase2EvaluationRepository = new onlinetesting.Phase2EvaluationMongoRepository(DateTimeFactory)
   lazy val faststreamPhase3EvaluationRepository = new onlinetesting.Phase3EvaluationMongoRepository(launchpadGatewayConfig, DateTimeFactory)
   lazy val schoolsRepository = SchoolsCSVRepository
-  lazy val northSouthIndicatorRepository = NorthSouthIndicatorCSVRepository
+  lazy val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
+  lazy val fsacIndicatorRepository = new FSACIndicatorMongoRepository
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)
-  lazy val reportingRepository = new ReportingMongoRepository(timeZoneService)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
+  lazy val reportingRepository = new ReportingMongoRepository(timeZoneService, DateTimeFactory)
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
   lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
+  lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
-  lazy val eventMongoRepository = new EventMongoRepository
-  lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
+  lazy val stcEventMongoRepository = new StcEventMongoRepository
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
+  lazy val assessorRepository = new AssessorMongoRepository()
+  lazy val assessorAllocationRepository = new AssessorAllocationMongoRepository()
+  lazy val candidateAllocationRepository = new CandidateAllocationMongoRepository()
+  lazy val eventsRepository = new EventsMongoRepository()
+  lazy val siftAnswersRepository = new SiftAnswersMongoRepository()
+  lazy val fileUploadRepository = new FileUploadMongoRepository()
+  lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
+  lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
+  lazy val fsbRepository = new FsbMongoRepository(DateTimeFactory)
+  lazy val finalOutcomeRepository = new FinaOutcomeMongoRepository(DateTimeFactory)
+  lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository
+  lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository
+  lazy val assessorsEventsSummaryJobsRepository = new AssessorsEventsSummaryJobsMongoRepository()
+  lazy val campaignManagementAfterDeadlineSignupCodeRepository = new CampaignManagementAfterDeadlineSignupCodeMongoRepository()
   lazy val previousYearCandidatesDetailsRepository = new PreviousYearCandidatesDetailsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
-  lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
-  lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
-  lazy val candidateAllocationMongoRepository = new CandidateAllocationMongoRepository(DateTimeFactory)
-  lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
-
 
   /** Create indexes */
   Await.result(Future.sequence(List(
@@ -108,15 +123,36 @@ package object repositories {
 
     phase3PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
-    assessmentCentrePassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("info.createDate", Ascending)), unique = true)),
+    assessmentCentrePassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
-    applicationAssessmentRepository.collection.indexesManager.create(Index(Seq(("venue", Ascending), ("date", Ascending),
-      ("session", Ascending), ("slot", Ascending)), unique = true)),
-    applicationAssessmentRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
+    assessorAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
+    reviewerAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
-    applicationAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true))
+    assessorRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
 
-  )), 20 seconds)
+    eventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending),
+      ("location", Ascending), ("venue", Ascending)), unique = false)),
+
+    assessorAllocationRepository.collection.indexesManager.create(Index(
+      Seq("id" -> Ascending, "eventId" -> Ascending),
+      unique = false
+    )),
+
+    candidateAllocationRepository.collection.indexesManager.create(Index(
+      Seq("id" -> Ascending, "eventId" -> Ascending, "sessionId" -> Ascending),
+      unique = false
+    )),
+
+    campaignManagementAfterDeadlineSignupCodeRepository.collection.indexesManager.create(Index(
+      Seq("code" -> Ascending),
+      unique = true
+    )),
+
+    campaignManagementAfterDeadlineSignupCodeRepository.collection.indexesManager.create(Index(
+      Seq("expires" -> Descending),
+      unique = false
+    ))
+  )), 30 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
     def read(time: BSONDateTime) = new DateTime(time.value, DateTimeZone.UTC)
@@ -131,7 +167,13 @@ package object repositories {
     def write(jdtime: LocalDate) = BSONString(jdtime.toString("yyyy-MM-dd"))
   }
 
-  implicit object BSONMapHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
+  implicit object BSONLocalTimeHandler extends BSONHandler[BSONString, LocalTime] {
+    def read(time: BSONString) = LocalTime.parse(time.value)
+
+    def write(jdtime: LocalTime) = BSONString(jdtime.toString("HH:mm"))
+  }
+
+  implicit object BSONMapStringIntHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
     override def write(map: Map[String, Int]): BSONDocument = {
       val elements = map.toStream.map { tuple =>
         tuple._1 -> BSONInteger(tuple._2)
@@ -148,31 +190,67 @@ package object repositories {
     }
   }
 
-implicit object OFormatHelper {
-  def oFormat[T](implicit format:Format[T]) : OFormat[T] = {
-    val oFormat: OFormat[T] = new OFormat[T](){
-      override def writes(o: T): JsObject = format.writes(o).as[JsObject]
-      override def reads(json: JsValue): JsResult[T] = format.reads(json)
+  implicit object BSONMapStringStringHandler extends BSONHandler[BSONDocument, Map[String, String]] {
+    override def write(map: Map[String, String]): BSONDocument = {
+      val elements = map.toStream.map { tuple =>
+        tuple._1 -> BSONString(tuple._2)
+      }
+      BSONDocument(elements)
     }
-    oFormat
+
+    override def read(bson: BSONDocument): Map[String, String] = {
+      val elements = bson.elements.map { tuple =>
+        // assume that all values in the document are BSONDocuments
+        tuple._1 -> tuple._2.seeAsTry[String].get
+      }
+      elements.toMap
+    }
   }
-}
+
+  implicit object BSONMapOfListOfLocalDateHandler extends BSONHandler[BSONDocument, Map[String, List[LocalDate]]] {
+    import Producer._
+
+    override def write(map: Map[String, List[LocalDate]]): BSONDocument = {
+      val elements = map.map {
+        case (key, value) =>
+          nameValue2Producer(key -> value)
+      }.toSeq
+
+      BSONDocument(elements:_*)
+    }
+
+    override def read(bson: BSONDocument): Map[String, List[LocalDate]] = {
+      val elements = bson.elements.map {
+        case (key, value) =>
+          key -> value.seeAsTry[List[LocalDate]].get
+      }
+      elements.toMap
+    }
+  }
+
+  implicit object OFormatHelper {
+    def oFormat[T](implicit format:Format[T]) : OFormat[T] = {
+      val oFormat: OFormat[T] = new OFormat[T](){
+        override def writes(o: T): JsObject = format.writes(o).as[JsObject]
+        override def reads(json: JsValue): JsResult[T] = format.reads(json)
+      }
+      oFormat
+    }
+  }
 
   implicit val withdrawHandler: BSONHandler[BSONDocument, WithdrawApplication] = Macros.handler[WithdrawApplication]
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
-  implicit val answerHandler: BSONHandler[BSONDocument, PersistedAnswer] = Macros.handler[PersistedAnswer]
-  implicit val candidateScoresHandler: BSONHandler[BSONDocument, CandidateScores] = Macros.handler[CandidateScores]
-  implicit val candidateScoreFeedback: BSONHandler[BSONDocument, CandidateScoreFeedback] = Macros.handler[CandidateScoreFeedback]
-  implicit val candidateScoresAndFeedback: BSONHandler[BSONDocument, CandidateScoresAndFeedback] = Macros.handler[CandidateScoresAndFeedback]
-  implicit val passMarkSchemeThresholdHandler: BSONHandler[BSONDocument, PassMarkSchemeThreshold] =
-    Macros.handler[PassMarkSchemeThreshold]
-  implicit val assessmentCentrePassMarkInfoHandler: BSONHandler[BSONDocument, AssessmentCentrePassMarkInfo] =
-    Macros.handler[AssessmentCentrePassMarkInfo]
-  implicit val assessmentCentrePassMarkSchemeHandler: BSONHandler[BSONDocument, AssessmentCentrePassMarkScheme] =
-    Macros.handler[AssessmentCentrePassMarkScheme]
-  implicit val assessmentCentrePassMarkSettingsHandler: BSONHandler[BSONDocument, AssessmentCentrePassMarkSettings] =
-    Macros.handler[AssessmentCentrePassMarkSettings]
+  implicit val answerHandler: BSONHandler[BSONDocument, QuestionnaireAnswer] = Macros.handler[QuestionnaireAnswer]
+  implicit val buildingProductiveRelationshipsScoresHandler
+  : BSONHandler[BSONDocument, BuildingProductiveRelationshipsScores] =
+    Macros.handler[BuildingProductiveRelationshipsScores]
+  implicit val analysisAndDecisionMakingScoresHandler: BSONHandler[BSONDocument, AnalysisAndDecisionMakingScores] =
+    Macros.handler[AnalysisAndDecisionMakingScores]
+  implicit val leadingAndCommunicatingScoresHandler: BSONHandler[BSONDocument, LeadingAndCommunicatingScores] =
+    Macros.handler[LeadingAndCommunicatingScores]
+  implicit val strategicApproachToObjectivesScoresHandler: BSONHandler[BSONDocument, StrategicApproachToObjectivesScores] =
+    Macros.handler[StrategicApproachToObjectivesScores]
   implicit val competencyAverageResultHandler: BSONHandler[BSONDocument, CompetencyAverageResult] =
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]

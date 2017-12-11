@@ -17,8 +17,7 @@
 package controllers
 
 import config.TestFixtureBase
-import mocks.QuestionnaireInMemoryRepository
-import mocks.application.DocumentRootInMemoryRepository
+import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -29,15 +28,18 @@ import repositories.QuestionnaireRepository
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
+import testkit.MockitoImplicits._
 
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
 
   "The Questionnaire API" should {
     "append questions to the questionnaire for the current application" in new TestFixture {
       val appId = "1234"
+
+      when(mockApplicationRepository.updateQuestionnaireStatus(any(), any())).thenReturnAsync()
 
       status(TestQuestionnaireController.addSection(appId, "section1")(addQuestionnaireSection(appId, "section1")(
         s"""
@@ -50,7 +52,13 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
            |""".stripMargin
       ))) must be(202)
 
-      await(QuestionnaireInMemoryRepository.find(appId)).size must be(2)
+      verify(mockQuestionnaireRepository).addQuestions(appId,
+        List(
+          QuestionnaireQuestion("parent occupation", QuestionnaireAnswer(None, None, Some(true))),
+          QuestionnaireQuestion("other stuff", QuestionnaireAnswer(Some("other"), Some("something"), None))
+        )
+      )
+
       verify(mockAuditService).logEvent(eqTo("QuestionnaireSectionSaved"), eqTo(
         Map("section" -> "section1")))(any[HeaderCarrier], any[RequestHeader])
 
@@ -66,7 +74,14 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
            |""".stripMargin
       ))) must be(202)
 
-      await(QuestionnaireInMemoryRepository.find(appId)).size must be(5)
+      verify(mockQuestionnaireRepository).addQuestions(appId,
+        List(
+          QuestionnaireQuestion("income", QuestionnaireAnswer(None, None, Some(true))),
+          QuestionnaireQuestion("stuff 1", QuestionnaireAnswer(Some("other"), None, None)),
+          QuestionnaireQuestion("stuff 2", QuestionnaireAnswer(Some("other"), Some("something"), None))
+        )
+      )
+
       verify(mockAuditService).logEvent(eqTo("QuestionnaireSectionSaved"), eqTo(
         Map("section" -> "section2")))(any[HeaderCarrier], any[RequestHeader])
     }
@@ -86,9 +101,15 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
   }
 
   trait TestFixture extends TestFixtureBase {
+
+    val mockQuestionnaireRepository = mock[QuestionnaireRepository]
+    val mockApplicationRepository = mock[GeneralApplicationRepository]
+
+    when(mockQuestionnaireRepository.addQuestions(any(), any())).thenReturnAsync()
+
     object TestQuestionnaireController extends QuestionnaireController {
-      override val qRepository: QuestionnaireRepository = QuestionnaireInMemoryRepository
-      override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
+      override val qRepository: QuestionnaireRepository = mockQuestionnaireRepository
+      override val appRepository: GeneralApplicationRepository = mockApplicationRepository
       override val auditService: AuditService = mockAuditService
     }
 

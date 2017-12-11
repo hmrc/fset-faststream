@@ -19,10 +19,10 @@ package services.onlinetesting.phase1
 import config.CubiksGatewayConfig
 import model.EvaluationResults.Green
 import model.ProgressStatuses.ProgressStatus
-import model.SchemeType.SchemeType
 import model._
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted._
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
@@ -90,8 +90,18 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       service.evaluate(application, PassmarkSettings).futureValue
 
-      verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(AppId, ExpectedPassmarkEvaluation,
-        Some(ProgressStatuses.PHASE1_TESTS_PASSED))
+      val applicationIdCaptor = ArgumentCaptor.forClass(classOf[String])
+      val passmarkEvaluationCaptor = ArgumentCaptor.forClass(classOf[PassmarkEvaluation])
+      val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
+
+      verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
+        progressStatusCaptor.capture)
+
+      applicationIdCaptor.getValue.toString mustBe AppId
+      passmarkEvaluationCaptor.getValue.passmarkVersion mustBe PassmarkVersion
+      passmarkEvaluationCaptor.getValue.result mustBe EvaluateForNonGis
+      passmarkEvaluationCaptor.getValue.resultVersion must not be ""
+      progressStatusCaptor.getValue mustBe Some(ProgressStatuses.PHASE1_TESTS_PASSED)
     }
 
     "save evaluated result and do not update the application status for PHASE1_TESTS_PASSED" in new TestFixture {
@@ -99,7 +109,18 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       service.evaluate(application, PassmarkSettings).futureValue
 
-      verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(AppId, ExpectedPassmarkEvaluation, None)
+      val applicationIdCaptor = ArgumentCaptor.forClass(classOf[String])
+      val passmarkEvaluationCaptor = ArgumentCaptor.forClass(classOf[PassmarkEvaluation])
+      val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
+
+      verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
+        progressStatusCaptor.capture)
+
+      applicationIdCaptor.getValue.toString mustBe AppId
+      passmarkEvaluationCaptor.getValue.passmarkVersion mustBe PassmarkVersion
+      passmarkEvaluationCaptor.getValue.result mustBe EvaluateForNonGis
+      passmarkEvaluationCaptor.getValue.resultVersion must not be ""
+      progressStatusCaptor.getValue mustBe None
     }
 
     "save evaluated result and do not update the application status for PHASE2_TESTS" in new TestFixture {
@@ -107,7 +128,18 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       service.evaluate(application, PassmarkSettings).futureValue
 
-      verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(AppId, ExpectedPassmarkEvaluation, None)
+      val applicationIdCaptor = ArgumentCaptor.forClass(classOf[String])
+      val passmarkEvaluationCaptor = ArgumentCaptor.forClass(classOf[PassmarkEvaluation])
+      val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
+
+      verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
+        progressStatusCaptor.capture)
+
+      applicationIdCaptor.getValue.toString mustBe AppId
+      passmarkEvaluationCaptor.getValue.passmarkVersion mustBe PassmarkVersion
+      passmarkEvaluationCaptor.getValue.result mustBe EvaluateForNonGis
+      passmarkEvaluationCaptor.getValue.resultVersion must not be ""
+      progressStatusCaptor.getValue mustBe None
     }
   }
 
@@ -133,8 +165,8 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val PassmarkVersion = PassmarkSettings.version
     val SjqId = 16196
     val BqId = 16194
-    val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
-    val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis)
+    val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
+    val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis, "", None)
 
     val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository]
     val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
@@ -164,7 +196,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       override def bq = BqId
 
-      override def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult,bqTestResult: TestResult,
+      override def evaluateForNonGis(schemes: List[SchemeId], sjqTestResult: TestResult,bqTestResult: TestResult,
                                      passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
         Nil
       }
@@ -180,11 +212,10 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     }
 
     trait StubbedPhase1TestEvaluation extends Phase1TestEvaluation {
-      override def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult,bqTestResult: TestResult,
+      override def evaluateForNonGis(schemes: List[SchemeId], sjqTestResult: TestResult,bqTestResult: TestResult,
                                      passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
         EvaluateForNonGis
       }
     }
-
   }
 }

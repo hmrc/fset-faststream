@@ -17,7 +17,7 @@
 package config
 
 object Phase2ScheduleExamples {
-  val DaroSchedule = Phase2Schedule(1, 2, 3)
-  val IradSchedule = Phase2Schedule(4, 5, 6)
-  val WardSchedule = Phase2Schedule(7, 8, 9)
+  val DaroSchedule = Phase2Schedule(1, 2)
+  val IradSchedule = Phase2Schedule(4, 5)
+  val WardSchedule = Phase2Schedule(7, 8)
 }

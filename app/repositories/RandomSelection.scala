@@ -40,7 +40,7 @@ trait RandomSelection {
 
   // In Mongo 3.2.0 it would be more efficient and safer to use `db.aggregate` with the new `$sample` aggregation
   // to randomly select a single record.
-  protected def selectRandom[T](query: BSONDocument, batchSize: Int = 1)(
+  protected def selectRandom[T](query: BSONDocument, batchSize: Int = 1, projection: BSONDocument = BSONDocument.empty)(
     implicit reader: BSONDocumentReader[T], ec: ExecutionContext): Future[List[T]] = {
 
     collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
@@ -52,7 +52,7 @@ trait RandomSelection {
         // `None` is returned by the method instead of a Some[BSONDocument].
         val (randomIndex, newBatchSize) = RandomSelection.calculateBatchSize(batchSize, count)
 
-        bsonCollection.find(query)
+        bsonCollection.find(query, projection)
           .options(QueryOpts(skipN = randomIndex, batchSizeN = newBatchSize))
           .cursor[T]().collect[List](newBatchSize)
       }

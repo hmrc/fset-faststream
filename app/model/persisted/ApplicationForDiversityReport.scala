@@ -17,19 +17,20 @@
 package model.persisted
 
 import model.ApplicationRoute._
-import model.SchemeType._
+import model.SchemeId
 import play.api.libs.json.Json
 
 case class ApplicationForDiversityReport(applicationId: String,
                                              userId: String,
                                              applicationRoute: ApplicationRoute,
                                              progress: Option[String],
-                                             schemes: List[SchemeType],
+                                             schemes: List[SchemeId],
                                              disability: Option[String],
                                              gis: Option[Boolean],
                                              onlineAdjustments: Option[String],
                                              assessmentCentreAdjustments: Option[String],
-                                             civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsForDiversityReport]
+                                             civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsForDiversityReport],
+                                             currentSchemeStatus: List[SchemeEvaluationResult]
                                             )
 
 object ApplicationForDiversityReport {

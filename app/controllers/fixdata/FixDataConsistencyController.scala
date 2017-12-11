@@ -16,24 +16,38 @@
 
 package controllers.fixdata
 
+import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.NotFoundException
-import model.command.{ FastPassEvaluation, FastPassPromotion, ProcessedFastPassCandidate }
-import play.api.libs.json.Json
-import play.api.mvc.Action
+import model.SchemeId
+import model.command.FastPassPromotion
+import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
 import services.fastpass.FastPassService
+import services.sift.ApplicationSiftService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object FixDataConsistencyController extends FixDataConsistencyController {
   override val applicationService = ApplicationService
   override val fastPassService = FastPassService
+  override val siftService = ApplicationSiftService
 }
 
 trait FixDataConsistencyController extends BaseController {
   val applicationService: ApplicationService
   val fastPassService: FastPassService
+  val siftService: ApplicationSiftService
+
+  def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
+    applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
+      Ok
+    } recover {
+      case _: NotFoundException => NotFound
+    }
+  }
 
   def removeETray(appId: String) = Action.async { implicit request =>
     applicationService.fixDataByRemovingETray(appId).map { _ =>
@@ -67,6 +81,159 @@ trait FixDataConsistencyController extends BaseController {
     } recover {
       case _: NotFoundException => NotFound
     }
+  }
+
+  def rollbackToPhase2CompletedFromPhase2Failed(applicationId: String): Action[AnyContent] = Action.async {
+    rollbackApplicationState(applicationId, applicationService.rollbackCandidateToPhase2CompletedFromPhase2Failed)
+  }
+
+  def rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
+    rollbackApplicationState(applicationId, applicationService.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified)
+  }
+
+  def rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
+    rollbackApplicationState(applicationId, applicationService.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified)
+  }
+
+  def rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int,
+    sdipFaststream: Boolean): Action[AnyContent] = Action.async {
+    for {
+      _ <- applicationService.convertToFastStreamRouteWithFastpassFromOnlineTestsExpired(applicationId, fastPass, sdipFaststream)
+      response <- rollbackApplicationState(applicationId, applicationService.rollbackToSubmittedFromOnlineTestsExpired)
+    } yield response
+  }
+
+  def rollbackToInProgressFromFastPassAccepted(applicationId: String): Action[AnyContent] = Action.async {
+    for {
+      response <- rollbackApplicationState(applicationId, applicationService.rollbackToInProgressFromFastPassAccepted)
+    } yield response
+  }
+
+  def removeSdipSchemeFromFaststreamUser(applicationId: String): Action[AnyContent] = Action.async {
+    for {
+      _ <- applicationService.removeSdipSchemeFromFaststreamUser(applicationId)
+    } yield Ok
+  }
+
+  def rollbackApplicationState(applicationId: String, operator: String => Future[Unit]): Future[Result] = {
+    operator(applicationId).map { _ =>
+      Ok(s"Successfully rolled back $applicationId")
+    }.recover { case _ =>
+      InternalServerError(s"Unable to rollback $applicationId")
+    }
+  }
+
+  def findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes(): Action[AnyContent] = Action.async {
+    siftService.findUsersInSiftReadyWhoShouldHaveBeenCompleted.map(resultList =>
+        Ok((Seq("applicationId, timeEnteredSift, shouldBeCompleted") ++ resultList.map { case(user, result) =>
+          s"${user.applicationId},${user.timeEnteredSift},$result"
+        }).mkString("\n"))
+      )
+  }
+
+  def fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String): Action[AnyContent] = Action.async {
+    siftService.fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId).map(_ => Ok)
+  }
+
+  def findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase(): Action[AnyContent] = Action.async {
+    siftService.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase.map(resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("applicationId,currentSchemeStatus") ++ resultList.map { user =>
+          s"${user.applicationId},${user.currentSchemeStatus}"
+        }).mkString("\n"))
+      }
+    )
+  }
+
+  def fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId: String): Action[AnyContent] =
+    Action.async {
+    siftService.fixUserInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId).map(_ => Ok)
+  }
+
+  def findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(): Action[AnyContent] = Action.async {
+    siftService.findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes.map(resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("applicationId,currentSchemeStatus") ++ resultList.map { user =>
+          s"${user.applicationId},${user.currentSchemeStatus}"
+        }).mkString("\n"))
+      }
+    )
+  }
+
+  def findSdipFaststreamFailedFaststreamInvitedToVideoInterview(): Action[AnyContent] = Action.async {
+    applicationService.findSdipFaststreamFailedFaststreamInvitedToVideoInterview.map { resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("Email,Preferred Name (or first name if no preferred),Application ID,Failed at stage," +
+          "Latest Progress Status,online test results,e-tray results") ++
+          resultList.map { case (user, contactDetails, failedAtStage, latestProgressStatus, onlineTestPassMarks, etrayPassMarks) =>
+            val onlineTestResultsAsString = "\"[" + onlineTestPassMarks.result.map(schemeResult =>
+              s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
+            ).mkString(", ") + "]\""
+
+            val eTrayResultsAsString = "\"[" + etrayPassMarks.result.map(schemeResult =>
+              s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
+            ).mkString(", ") + "]\""
+
+          s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
+            s"$failedAtStage,${latestProgressStatus.toString},$onlineTestResultsAsString,$eTrayResultsAsString"
+        }).mkString("\n"))
+      }
+    }
+  }
+
+  def moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId).map(_ =>
+        Ok(s"Successfully fixed $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          InternalServerError(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String): Action[AnyContent] =
+    Action.async {
+      siftService.fixUserInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId).map(_ => Ok)
+    }
+
+  def fixUserSiftedWithAFailByMistake(applicationId: String): Action[AnyContent] =
+    Action.async {
+      siftService.fixUserSiftedWithAFailByMistake(applicationId).map(_ => Ok(s"Successfully fixed $applicationId"))
+    }
+
+  def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    applicationService.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId).map(_ => Ok(s"Successfully fixed $applicationId"))
+  }
+
+  def markSiftSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
+    applicationService.markSiftSchemeAsRed(applicationId, schemeId).map(_ =>
+      Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")
+    )
+  }
+
+  def markSiftSchemeAsGreen(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
+    applicationService.markSiftSchemeAsGreen(applicationId, schemeId).map(_ =>
+      Ok(s"Successfully marked ${schemeId.value} as green for $applicationId")
+    )
+  }
+
+  def rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId).map(_ =>
+      Ok(s"Successfully rolled $applicationId back to sift ready")
+    )
+  }
+
+  def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId,
+                                      result: model.EvaluationResults.Result): Action[AnyContent] = Action.async {
+    applicationService.updateCurrentSchemeStatusScheme(applicationId, schemeId, result).map(_ =>
+      Ok(s"Successfully updated CSS for schemeId ${schemeId.toString} to ${result.toString} for $applicationId ")
+    )
   }
 
 }

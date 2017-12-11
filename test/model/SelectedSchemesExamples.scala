@@ -16,8 +16,9 @@
 
 package model
 
-import model.SchemeType._
-
 object SelectedSchemesExamples {
-  val TwoSchemes = SelectedSchemes(List(DigitalAndTechnology, Commercial), orderAgreed = true, eligible = true)
+  val TwoSchemes = SelectedSchemes(List(SchemeId("DigitalAndTechnology"), SchemeId("Commercial")), orderAgreed = true, eligible = true)
+
+  val siftableSchemes = SelectedSchemes(
+    List(SchemeId("Commercial"), SchemeId("Finance"), SchemeId("DigitalAndTechnology")), orderAgreed = true, eligible = true)
 }

@@ -37,7 +37,7 @@ trait Phase2TestSelector {
     }
   }
 
-  private def getRandomScheduleWithName(currentScheduleIds: List[Int] = Nil): (String, Phase2Schedule) = {
+  private def getRandomScheduleWithName(currentScheduleIds: List[Int]): (String, Phase2Schedule) = {
     val schedules = getUnallocatedSchedules(currentScheduleIds)
 
     require(schedules.nonEmpty, "Phase2 schedule list cannot be empty")

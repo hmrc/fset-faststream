@@ -16,34 +16,76 @@
 
 package controllers
 
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.Action
+import akka.stream.scaladsl.Source
+import connectors.AuthProviderClient
+import connectors.exchange.AssessorDiagnosticReport
+import model.Exceptions.NotFoundException
+import model.UniqueIdentifier
+import play.api.libs.json.{ JsObject, Json }
+import play.api.libs.streams.Streams
+import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.DiagnosticReportingRepository
+import services.assessor.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object DiagnosticReportController extends DiagnosticReportController {
   val drRepository: DiagnosticReportingRepository = diagnosticReportRepository
+  val assessorAssessmentCentreScoresRepo: AssessorAssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
+  val reviewerAssessmentCentreScoresRepo: ReviewerAssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
+  val authProvider: AuthProviderClient = AuthProviderClient
+  val assessorService: AssessorService = AssessorService
 }
 
 trait DiagnosticReportController extends BaseController {
 
-  val drRepository: DiagnosticReportingRepository
+  def drRepository: DiagnosticReportingRepository
+  def assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
+  def reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
+  def authProvider: AuthProviderClient
+  def assessorService: AssessorService
 
-  def getApplicationByUserId(userId: String) = Action.async { implicit request =>
-    val applicationUser = drRepository.findByUserId(userId)
+  def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
 
-    applicationUser.map { au =>
-      Ok(Json.toJson(au))
-    } recover {
+    (for {
+      application <- drRepository.findByApplicationId(applicationId)
+      assessorScores <- assessorAssessmentCentreScoresRepo.find(UniqueIdentifier(applicationId))
+      reviewerScores <- reviewerAssessmentCentreScoresRepo.find(UniqueIdentifier(applicationId))
+    } yield {
+      val assessorScoresJson = assessorScores.map(s => JsObject(Map("assessorScores" -> Json.toJson(s).as[JsObject])))
+      val reviewerScoresJson = reviewerScores.map(s => JsObject(Map("reviewerScores" -> Json.toJson(s).as[JsObject])))
+
+      val allJson = Seq(assessorScoresJson, reviewerScoresJson).flatten.foldLeft(application) { (a, v) =>
+        a :+ v
+      }
+
+      Ok(Json.toJson(allJson))
+    }).recover {
       case _ => NotFound
     }
   }
 
+  def getAssessorDiagnosticDetail(userId: String): Action[AnyContent] = Action.async { implicit request =>
+    authProvider.findByUserIds(Seq(userId)).flatMap { users =>
+      users.headOption.map { user =>
+        assessorService.findAssessor(userId).flatMap { assessor =>
+          assessorService.findAssessorAllocations(userId).map { allocations =>
+              AssessorDiagnosticReport(
+                user.userId,
+                user.roles,
+                assessor,
+                allocations
+              )
+          }
+        }
+      }.getOrElse(throw new NotFoundException(s"User with id $userId not found."))
+    }.map( report => Ok(Json.toJson(report)))
+  }
+
   def getAllApplications = Action { implicit request =>
-    Ok.chunked(drRepository.findAll())
+    val response = Source.fromPublisher(Streams.enumeratorToPublisher(drRepository.findAll()))
+    Ok.chunked(response)
   }
 }

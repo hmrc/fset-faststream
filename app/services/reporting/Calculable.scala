@@ -16,9 +16,9 @@
 
 package services.reporting
 
-import model.PersistedObjects.PersistedAnswer
+import model.persisted.QuestionnaireAnswer
 
 trait Calculable {
-  def calculateAsInt(answers: Map[String, PersistedAnswer]): Int
+  def calculateAsInt(answers: Map[String, QuestionnaireAnswer]): Int
   def calculate(answers: Map[String, String]): String
 }

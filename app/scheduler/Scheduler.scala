@@ -17,11 +17,10 @@
 package scheduler
 
 import play.api.Logger
-import scheduler.allocation.{ ConfirmAttendanceReminderJob, ConfirmAttendanceReminderJobConfig }
-import scheduler.assessment._
+import scheduler.assessment.{ EvaluateAssessmentScoreJob, EvaluateAssessmentScoreJobConfig }
 import scheduler.fixer.{ FixerJob, FixerJobConfig }
+import scheduler.fsb.{ EvaluateFsbJob, EvaluateFsbJobConfig }
 import scheduler.onlinetesting._
-import scheduler.parity._
 import uk.gov.hmrc.play.scheduling.{ RunningOfScheduledJobs, ScheduledJob }
 
 trait Scheduler extends RunningOfScheduledJobs {
@@ -50,20 +49,25 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(FailedPhase2TestJobConfig, FailedPhase2TestJob),
     maybeInitScheduler(FailedPhase3TestJobConfig, FailedPhase3TestJob),
     maybeInitScheduler(FailedSdipFsTestJobConfig, FailedSdipFsTestJob),
-    maybeInitScheduler(SuccessfulSdipFsTestJobConfig, SuccessfulSdipFsTestJob),
     maybeInitScheduler(SuccessPhase1TestJobConfig, SuccessPhase1TestJob),
     maybeInitScheduler(SuccessPhase3TestJobConfig, SuccessPhase3TestJob),
+    maybeInitScheduler(SuccessPhase3SdipFsTestJobConfig, SuccessPhase3SdipFsTestJob),
     maybeInitScheduler(RetrievePhase1ResultsJobConfig, RetrievePhase1ResultsJob),
     maybeInitScheduler(RetrievePhase2ResultsJobConfig, RetrievePhase2ResultsJob),
     maybeInitScheduler(EvaluatePhase1ResultJobConfig, EvaluatePhase1ResultJob),
     maybeInitScheduler(EvaluatePhase2ResultJobConfig, EvaluatePhase2ResultJob),
     maybeInitScheduler(EvaluatePhase3ResultJobConfig, EvaluatePhase3ResultJob),
-    maybeInitScheduler(ConfirmAttendanceReminderJobConfig, ConfirmAttendanceReminderJob),
     maybeInitScheduler(EvaluateAssessmentScoreJobConfig, EvaluateAssessmentScoreJob),
-    maybeInitScheduler(NotifyAssessmentCentrePassedOrFailedJobConfig, NotifyAssessmentCentrePassedOrFailedJob),
     maybeInitScheduler(FixerJobConfig, FixerJob),
     maybeInitScheduler(ProgressSdipForFaststreamCandidateJobConfig, ProgressSdipForFaststreamCandidateJob),
-    maybeInitScheduler(ParityExportJobConfig, ParityExportJob),
-    maybeInitScheduler(ParityUpdateExportJobConfig, ParityUpdateExportJob)
+    maybeInitScheduler(ProgressToSiftJobConfig, ProgressToSiftJob),
+    maybeInitScheduler(ProgressToAssessmentCentreJobConfig, ProgressToAssessmentCentreJob),
+    maybeInitScheduler(NotifyAssessorsOfNewEventsJobConfig, NotifyAssessorsOfNewEventsJob),
+    maybeInitScheduler(SiftFailureJobConfig, SiftFailureJob),
+    maybeInitScheduler(ProgressToFsbOrOfferJobConfig, ProgressToFsbOrOfferJob),
+    maybeInitScheduler(ReminderEventAllocationJobConfig, ReminderEventAllocationJob),
+    maybeInitScheduler(NotifyOnFinalFailureJobConfig, NotifyOnFinalFailureJob),
+    maybeInitScheduler(NotifyOnFinalSuccessJobConfig, NotifyOnFinalSuccessJob),
+    maybeInitScheduler(EvaluateFsbJobConfig, EvaluateFsbJob)
   ).flatten
 }

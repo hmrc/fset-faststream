@@ -20,7 +20,7 @@ import play.api.libs.json.JsValue
 import play.api.mvc.Action
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-import services.events.EventService
+import services.stc.StcEventService
 import services.onlinetesting.OnlineTestExtensionService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -29,14 +29,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Phase1TestGroupController extends Phase1TestGroupController {
   override val phase1Repository = phase1TestRepository
   override val phase1TestExtensionService = OnlineTestExtensionService
-  val eventService: EventService = EventService
+  val eventService: StcEventService = StcEventService
 }
 
 trait Phase1TestGroupController extends BaseController {
 
   val phase1Repository: Phase1TestRepository
   val phase1TestExtensionService: OnlineTestExtensionService
-  val eventService: EventService
+  val eventService: StcEventService
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>

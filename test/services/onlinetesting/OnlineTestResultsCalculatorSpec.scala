@@ -24,19 +24,22 @@ class OnlineTestResultsCalculatorSpec extends UnitSpec {
 
   "evaluate test result" should {
     "give green result" in new OnlineTestResultsCalculator {
-      evaluateTestResult(PassMarkThreshold(10.0, 20.0))(Some(20.0)) mustBe Green
-      evaluateTestResult(PassMarkThreshold(20.9, 20.9))(Some(20.91)) mustBe Green
-      evaluateTestResult(PassMarkThreshold(20.96, 20.96))(Some(20.966)) mustBe Green
+      evaluateTestResult(PassMarkThreshold(10.0, 20.0))(Some(20.0)) mustBe Green     // amber gap and score = pass
+      evaluateTestResult(PassMarkThreshold(10.0, 20.0))(Some(21.0)) mustBe Green     // amber gap and score > pass
+      evaluateTestResult(PassMarkThreshold(20.9, 20.9))(Some(20.91)) mustBe Green    // no amber gap and score > pass
+      evaluateTestResult(PassMarkThreshold(20.96, 20.96))(Some(20.96)) mustBe Green  // no amber gap and score = pass
+      evaluateTestResult(PassMarkThreshold(20.96, 20.96))(Some(20.961)) mustBe Green // no amber gap and score > pass
     }
     "give amber result" in new OnlineTestResultsCalculator {
-      evaluateTestResult(PassMarkThreshold(10.0, 20.0))(Some(15.0)) mustBe Amber
-      evaluateTestResult(PassMarkThreshold(20.01, 20.02))(Some(20.015)) mustBe Amber
-      evaluateTestResult(PassMarkThreshold(45.0, 45.01))(Some(45.001)) mustBe Amber
+      evaluateTestResult(PassMarkThreshold(10.0, 20.0))(Some(15.0)) mustBe Amber     // amber gap and score > fail and < pass
+      evaluateTestResult(PassMarkThreshold(20.01, 20.02))(Some(20.015)) mustBe Amber // amber gap and score > fail and < pass
+      evaluateTestResult(PassMarkThreshold(45.0, 45.01))(Some(45.001)) mustBe Amber  // amber gap and score > fail and < pass
+      evaluateTestResult(PassMarkThreshold(10.0, 20.0))(Some(10.0)) mustBe Amber     // amber gap and score = fail
     }
     "give red result" in new OnlineTestResultsCalculator {
-      evaluateTestResult(PassMarkThreshold(10.0, 20.0))(Some(10.0)) mustBe Red
-      evaluateTestResult(PassMarkThreshold(20.01, 20.02))(Some(20.01)) mustBe Red
-      evaluateTestResult(PassMarkThreshold(45.0, 45.01))(Some(44.99)) mustBe Red
+      evaluateTestResult(PassMarkThreshold(10.0, 20.0))(Some(9.0)) mustBe Red    // amber gap and score < fail
+      evaluateTestResult(PassMarkThreshold(45.0, 45.0))(Some(44.99)) mustBe Red  // no amber gap and score < fail
+      evaluateTestResult(PassMarkThreshold(45.0, 45.0))(Some(44.999)) mustBe Red // no amber gap and score < fail
     }
     "throw exception" in new OnlineTestResultsCalculator {
       an[IllegalArgumentException] must be thrownBy evaluateTestResult(PassMarkThreshold(10.0, 20.0))(None)

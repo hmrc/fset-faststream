@@ -17,26 +17,40 @@
 package controllers.report
 
 import config.TestFixtureBase
+import connectors.AuthProviderClient
 import controllers.DiagnosticReportController
+import factories.UUIDFactory
 import model.Exceptions.ApplicationNotFound
+import model.UniqueIdentifier
 import org.mockito.Mockito._
 import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import repositories.AssessmentScoresMongoRepository
 import repositories.application.DiagnosticReportingRepository
 import testkit.UnitWithAppSpec
+import org.mockito.ArgumentMatchers.any
+import services.assessor.AssessorService
+import testkit.MockitoImplicits.OngoingStubbingExtension
 
 import scala.concurrent.Future
 
 class DiagnosticReportControllerSpec extends UnitWithAppSpec {
 
-  val mockdiagnosticReportRepository = mock[DiagnosticReportingRepository]
+  val mockdiagnosticReportRepository: DiagnosticReportingRepository = mock[DiagnosticReportingRepository]
+  val mockAssessorScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
+  val mockReviewerScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
+  val mockAuthProvider: AuthProviderClient = mock[AuthProviderClient]
+  val mockAssessorService: AssessorService = mock[AssessorService]
 
   "Get application by id" should {
     "return all non-sensitive information about the user application" in new TestFixture {
-      val expectedApplications = List(Json.obj("applicationId" -> "app1", "userId" -> "user1", "frameworkId" -> "FastStream-2016"))
-      when(mockdiagnosticReportRepository.findByUserId("user1")).thenReturn(Future.successful(expectedApplications))
-      val result = TestableDiagnosticReportingController.getApplicationByUserId("user1")(createGetUserByIdRequest(
+      val appId = UUIDFactory.generateUUID()
+      val expectedApplications = List(Json.obj("applicationId" -> appId, "userId" -> "user1", "frameworkId" -> "FastStream-2016"))
+      when(mockdiagnosticReportRepository.findByApplicationId(appId)).thenReturnAsync(expectedApplications)
+      when(mockAssessorScoresRepo.find(any[UniqueIdentifier])).thenReturnAsync(None)
+      when(mockReviewerScoresRepo.find(any[UniqueIdentifier])).thenReturnAsync(None)
+      val result = TestableDiagnosticReportingController.getApplicationByUserId(appId)(createGetUserByIdRequest(
         "user1"
       )).run
 
@@ -49,7 +63,7 @@ class DiagnosticReportControllerSpec extends UnitWithAppSpec {
 
     "return NotFound if the user cannot be found" in new TestFixture {
       val IncorrectUserId = "1234"
-      when(mockdiagnosticReportRepository.findByUserId(IncorrectUserId)).thenReturn(Future.failed(
+      when(mockdiagnosticReportRepository.findByApplicationId(IncorrectUserId)).thenReturn(Future.failed(
         ApplicationNotFound(IncorrectUserId)
       ))
       val result = TestableDiagnosticReportingController.getApplicationByUserId(IncorrectUserId)(createGetUserByIdRequest(IncorrectUserId)).run
@@ -60,15 +74,20 @@ class DiagnosticReportControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     object TestableDiagnosticReportingController extends DiagnosticReportController {
-      val drRepository = mockdiagnosticReportRepository
+      val drRepository: DiagnosticReportingRepository = mockdiagnosticReportRepository
+      val assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository = mockAssessorScoresRepo
+      val reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository = mockReviewerScoresRepo
+
+      val authProvider: AuthProviderClient = mockAuthProvider
+      val assessorService: AssessorService = mockAssessorService
     }
 
-    def createGetUserByIdRequest(userId: String) = {
+    def createGetUserByIdRequest(userId: String): FakeRequest[String] = {
       FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getApplicationByUserId(userId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    def createGetAllUsersRequest = {
+    def createGetAllUsersRequest: FakeRequest[String] = {
       FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getAllApplications().url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }

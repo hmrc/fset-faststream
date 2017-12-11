@@ -21,7 +21,8 @@ case class DuplicateApplicationsReportItem(firstName: String,
                                            email: String,
                                            progress: String,
                                            matchType: Int,
-                                           matchGroup: Int)
+                                           matchGroup: Int,
+                                           applicationRoute: String)
 
 object DuplicateApplicationsReportItem {
   implicit val duplicateApplicationsReportItemFormat = play.api.libs.json.Json.format[DuplicateApplicationsReportItem]

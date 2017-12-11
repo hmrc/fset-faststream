@@ -16,6 +16,7 @@
 
 package repositories.personaldetails
 
+import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
@@ -35,9 +36,11 @@ trait PersonalDetailsRepository {
   def updateWithoutStatusChange(appid: String, userId: String, personalDetails: PersonalDetails): Future[Unit]
 
   def find(appId: String): Future[PersonalDetails]
+
+  def findByIds(appIds: Seq[String]): Future[List[(String, Option[PersonalDetails])]]
 }
 
-class PersonalDetailsMongoRepository(implicit mongo: () => DB)
+class PersonalDetailsMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[PersonalDetails, BSONObjectID](CollectionNames.APPLICATION, mongo, PersonalDetails.personalDetailsFormat,
     ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
   val PersonalDetailsCollection = "personal-details"
@@ -88,6 +91,22 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
       case Some(document) if document.getAs[BSONDocument](PersonalDetailsCollection).isDefined =>
         document.getAs[PersonalDetails](PersonalDetailsCollection).get
       case _ => throw PersonalDetailsNotFound(applicationId)
+    }
+  }
+
+  override def findByIds(applicationIds: Seq[String]): Future[List[(String, Option[PersonalDetails])]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val projection = BSONDocument(
+      "applicationId" -> 1,
+      PersonalDetailsCollection -> 1, "_id" -> 0
+    )
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docs =>
+      docs.map { doc =>
+        val appId = doc.getAs[String]("applicationId").get
+        val personalDetailsOpt = doc.getAs[PersonalDetails](PersonalDetailsCollection)
+        (appId, personalDetailsOpt)
+      }
     }
   }
 }

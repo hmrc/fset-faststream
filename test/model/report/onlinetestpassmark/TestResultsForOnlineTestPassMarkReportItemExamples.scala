@@ -37,5 +37,6 @@ object TestResultsForOnlineTestPassMarkReportItemExamples {
       newTestResult),
       maybe(newTestResult),
       maybe(newTestResult),
-      Some(VideoInterviewTestResultExamples.Example1))
+      Some(VideoInterviewTestResultExamples.Example1),
+      None, None, None)
 }

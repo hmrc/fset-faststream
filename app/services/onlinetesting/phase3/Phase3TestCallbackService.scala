@@ -23,12 +23,12 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackR
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
-import services.events.EventService
-import uk.gov.hmrc.play.http.HeaderCarrier
+import services.stc.StcEventService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase3TestCallbackService extends Phase3TestCallbackService {
 
@@ -38,7 +38,7 @@ object Phase3TestCallbackService extends Phase3TestCallbackService {
   val phase3TestService = Phase3TestService
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
-  val eventService = EventService
+  val eventService = StcEventService
 
   case class InviteIdNotRecognisedException(message: String) extends Exception(message)
 }
@@ -48,7 +48,7 @@ trait Phase3TestCallbackService {
   val phase3TestService: Phase3TestService
   val auditService: AuditService
   val gatewayConfig: LaunchpadGatewayConfig
-  val eventService: EventService
+  val eventService: StcEventService
 
   def recordCallback(callbackData: SetupProcessCallbackRequest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for{

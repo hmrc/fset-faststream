@@ -1,4 +1,4 @@
-# Civil Service Fast Stream Service
+# Civil Service Fast Stream Service 
 
 [![Build Status](https://travis-ci.org/hmrc/fset-faststream.svg?branch=master)](https://travis-ci.org/hmrc/fset-faststream)
 

@@ -25,10 +25,10 @@ import scheduler.BasicJobConfig
 import services.BaseServiceSpec
 import services.onlinetesting.OnlineTestService
 import testkit.ShortTimeout
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 
 class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {

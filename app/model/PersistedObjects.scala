@@ -16,9 +16,9 @@
 
 package model
 
-import model.Commands.{ PhoneNumber, PostCode }
+import model.Commands.PhoneNumber
 import model.OnlineTestCommands.TestResult
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.LocalDate
 import model.ApplicationStatus._
 import play.api.libs.json._
 import reactivemongo.bson.Macros
@@ -29,9 +29,6 @@ object PersistedObjects {
   case class PersonalDetailsWithUserId(preferredName: String, userId: String)
 
   case class ApplicationIdWithUserIdAndStatus(applicationId: String, userId: String, applicationStatus: String)
-
-  case class PersistedAnswer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
-  case class PersistedQuestion(question: String, answer: PersistedAnswer)
 
   case class UserIdAndPhoneNumber(userId: String, phoneNumber: Option[PhoneNumber])
 
@@ -70,8 +67,6 @@ object PersistedObjects {
 
   object Implicits {
     implicit val addressFormats = Json.format[Address]
-    implicit val answerFormats = Json.format[PersistedAnswer]
-    implicit val questionFormats = Json.format[PersistedQuestion]
     implicit val personalDetailsWithUserIdFormats = Json.format[PersonalDetailsWithUserId]
     implicit val testFormats = Json.format[TestResult]
     implicit val candidateTestReportFormats = Json.format[CandidateTestReport]

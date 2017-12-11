@@ -17,26 +17,30 @@
 package model.report
 
 import model.ApplicationRoute._
-import model.SchemeType.SchemeType
-import model.persisted.ApplicationForOnlineTestPassMarkReport
+import model.SchemeId
+import model.assessmentscores.AssessmentScoresAllExercises
+import model.persisted.{ ApplicationForOnlineTestPassMarkReport, SchemeEvaluationResult }
 import play.api.libs.json.Json
 
 case class ApplicationForOnlineTestPassMarkReportItem(
                                                        progress: String,
                                                        applicationRoute: ApplicationRoute,
-                                                       schemes: List[SchemeType],
+                                                       schemes: List[SchemeId],
                                                        disability: Option[String],
                                                        gis: Option[Boolean],
                                                        onlineAdjustments: Option[String],
                                                        assessmentCentreAdjustments: Option[String],
-                                                       testResults: TestResultsForOnlineTestPassMarkReportItem
-                                                     )
+                                                       testResults: TestResultsForOnlineTestPassMarkReportItem,
+                                                       currentSchemeStatus: List[SchemeEvaluationResult])
 
 object ApplicationForOnlineTestPassMarkReportItem {
   implicit val applicationForOnlineTestReportItemFormat = Json.format[ApplicationForOnlineTestPassMarkReportItem]
 
   // If you add a custom apply() to a case class companion object then Json.reads and Json.writes fail
-  def create(a: ApplicationForOnlineTestPassMarkReport): ApplicationForOnlineTestPassMarkReportItem = {
+  def create(a: ApplicationForOnlineTestPassMarkReport,
+             fsacResults: Option[AssessmentScoresAllExercises],
+             overallScoreOpt: Option[Double],
+             siftResults: Option[SiftPhaseReportItem]): ApplicationForOnlineTestPassMarkReportItem = {
     ApplicationForOnlineTestPassMarkReportItem(
       progress = a.progress,
       applicationRoute = a.applicationRoute,
@@ -45,7 +49,8 @@ object ApplicationForOnlineTestPassMarkReportItem {
       gis = a.gis,
       onlineAdjustments = a.onlineAdjustments,
       assessmentCentreAdjustments = a.assessmentCentreAdjustments,
-      testResults = a.testResults
+      testResults = a.testResults.copy(fsac = fsacResults, overallFsacScore = overallScoreOpt, sift = siftResults),
+      currentSchemeStatus = a.currentSchemeStatus
     )
   }
 }

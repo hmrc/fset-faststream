@@ -16,28 +16,29 @@
 
 package services.evaluation
 
-import model.CandidateScoresCommands.{ CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults.CompetencyAverageResult
+import model.assessmentscores.AssessmentScoresAllExercises
+
+object AssessmentScoreCalculator extends AssessmentScoreCalculator
 
 trait AssessmentScoreCalculator {
 
-  def countScores(scores: CandidateScoresAndFeedback): CompetencyAverageResult = {
-    val leadingAndCommunicating = average(scores.leadingAndCommunicating)
-    val collaboratingAndPartnering = average(scores.collaboratingAndPartnering)
-    val deliveringAtPace = average(scores.deliveringAtPace)
-    val makingEffectiveDecisions = average(scores.makingEffectiveDecisions)
-    val changingAndImproving = average(scores.changingAndImproving)
-    val buildingCapabilityForAll = average(scores.buildingCapabilityForAll)
+  def countAverage(scores: AssessmentScoresAllExercises): CompetencyAverageResult = {
+    val overallScores = List(
+      scores.analysisAndDecisionMakingAvg,
+      scores.buildingProductiveRelationshipsAvg,
+      scores.leadingAndCommunicatingAvg,
+      scores.strategicApproachToObjectivesAvg
+    ).map{ avg =>
+      val bd = BigDecimal.apply(avg)
+      bd.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+    }.sum
 
-    val motivationFit = scores.motivationFit.sum
-
-    val overallScores = List(leadingAndCommunicating, collaboratingAndPartnering,
-      deliveringAtPace, makingEffectiveDecisions, changingAndImproving,
-      buildingCapabilityForAll, motivationFit).map(BigDecimal(_)).sum.toDouble
-
-    CompetencyAverageResult(leadingAndCommunicating, collaboratingAndPartnering, deliveringAtPace, makingEffectiveDecisions,
-      changingAndImproving, buildingCapabilityForAll, motivationFit, overallScores)
+    CompetencyAverageResult(
+      scores.analysisAndDecisionMakingAvg,
+      scores.buildingProductiveRelationshipsAvg,
+      scores.leadingAndCommunicatingAvg,
+      scores.strategicApproachToObjectivesAvg,
+      overallScores.toDouble)
   }
-
-  private def average(scores: CandidateScores) = scores.sum / scores.length
 }

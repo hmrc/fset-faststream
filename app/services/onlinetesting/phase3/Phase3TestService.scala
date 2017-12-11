@@ -23,13 +23,13 @@ import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.{ NotFoundException }
+import model.Exceptions.NotFoundException
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
 import model.command.ProgressResponse
-import model.events.EventTypes.EventType
-import model.events.{ AuditEvents, DataStoreEvents }
+import model.stc.StcEventTypes.StcEventType
+import model.stc.{ AuditEvents, DataStoreEvents }
 import model.exchange.Phase3TestGroupWithActiveTest
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
@@ -37,15 +37,16 @@ import org.joda.time.{ DateTime, LocalDate }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
-import services.events.EventService
+import services.stc.StcEventService
 import services.onlinetesting.Exceptions.NoActiveTestException
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
-import uk.gov.hmrc.play.http.HeaderCarrier
+import services.sift.ApplicationSiftService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase3TestService extends Phase3TestService {
 
@@ -60,8 +61,8 @@ object Phase3TestService extends Phase3TestService {
   val emailClient = Phase3OnlineTestEmailClient
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
-  val eventService = EventService
-
+  val eventService = StcEventService
+  val siftService = ApplicationSiftService
 }
 
 //scalastyle:off number.of.methods
@@ -172,7 +173,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     val daysUntilExpiry = gatewayConfig.phase3Tests.timeToExpireInDays
 
     val expirationDate = phase3TestGroup.map { phase3TG =>
-      if (phase3TG.expirationDate.isAfterNow()) {
+      if (phase3TG.expirationDate.isAfterNow) {
         phase3TG.expirationDate
       } else {
         dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry)
@@ -238,14 +239,14 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       phase3TestGroup.map {
         phase3TestGroupContent =>
           val candidateId = phase3TestGroupContent.tests.head.candidateId
-          phase3TestGroupContent.tests.filter(_.interviewId == interviewId).headOption.map {
+          phase3TestGroupContent.tests.find(_.interviewId == interviewId).map {
             launchpadTest =>
               if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isDefined) {
-                retakeApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
+                retakeApplicant(application, interviewId, candidateId, expirationDate.toLocalDate).map {
                   retakeResponse =>
                     InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
                 }
-              } else if (launchpadTest.startedDateTime.isDefined && !launchpadTest.completedDateTime.isDefined) {
+              } else if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isEmpty) {
                 resetApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
                   resetResponse =>
                     InviteResetOrTakeResponse(candidateId, resetResponse.testUrl, resetResponse.customInviteId, getInitialCustomCandidateId)
@@ -287,6 +288,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     )
   }
 
+  //scalastyle:on method.length
+
   def markAsStarted(launchpadInviteId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
@@ -307,12 +310,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       testRepository.getTestGroupByToken(launchpadInviteId).flatMap {
         test =>
           val launchpadTest = test.testGroup.tests.find(_.token == launchpadInviteId).get
-          if (launchpadTest.completedDateTime.isEmpty && !launchpadTest.startedDateTime.isEmpty) {
+          if (launchpadTest.completedDateTime.isEmpty && launchpadTest.startedDateTime.isDefined) {
             for {
               _ <- testRepository.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
               updated <- testRepository.getTestGroupByToken(launchpadInviteId)
-              // Launchpad only: If a user has completed unexpire them
-              _ <- removeExpiryStatus(updated.applicationId)
               _ <- testRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
             } yield {
               AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
@@ -320,21 +321,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                 Nil
             }
           } else {
-            Future.successful(List[EventType]())
+            Future.successful(List[StcEventType]())
           }
       }
     }
-  }
-
-  private def removeExpiryStatus(applicationId: String): Future[Unit] = {
-    for {
-      progress <- appRepository.findProgress(applicationId)
-      actionFut <- if (progress.phase3ProgressResponse.phase3TestsExpired) {
-        appRepository.removeProgressStatuses(applicationId, ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
-      } else {
-        Future.successful(())
-      }
-    } yield actionFut
   }
 
   def addResetEventMayBe(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
@@ -359,14 +349,22 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       _ =>
         for {
           testGroup <- testRepository.getTestGroupByToken(launchpadInviteId)
-          // Launchpad only: If results have been sent for a user, unexpire them
-          _ <- removeExpiryStatus(testGroup.applicationId)
           _ <- testRepository.updateProgressStatus(testGroup.applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
         } yield {
           AuditEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
             DataStoreEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
             Nil
         }
+    }
+  }
+
+  def removeExpiredStatus(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
+    } yield {
+      AuditEvents.VideoInterviewUnexpired(
+        "applicationId" -> applicationId
+      ) :: Nil
     }
   }
 
@@ -541,6 +539,6 @@ object ResetPhase3Test {
   def determineProgressStatusesToRemove: List[ProgressStatus] = {
     List(PHASE3_TESTS_EXPIRED, PHASE3_TESTS_STARTED, PHASE3_TESTS_FIRST_REMINDER, PHASE3_TESTS_SECOND_REMINDER,
       PHASE3_TESTS_COMPLETED, PHASE3_TESTS_RESULTS_RECEIVED, PHASE3_TESTS_FAILED, PHASE3_TESTS_FAILED_NOTIFIED, PHASE3_TESTS_PASSED,
-      PHASE3_TESTS_PASSED_WITH_AMBER)
+      PHASE3_TESTS_PASSED_WITH_AMBER, PHASE3_TESTS_FAILED_SDIP_AMBER)
   }
 }

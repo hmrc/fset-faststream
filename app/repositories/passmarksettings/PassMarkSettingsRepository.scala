@@ -16,7 +16,7 @@
 
 package repositories.passmarksettings
 
-import model.Commands._
+import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings._
 import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.DB
@@ -30,18 +30,23 @@ import repositories.{ CollectionNames, OFormatHelper }
 
 class Phase1PassMarkSettingsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Phase1PassMarkSettings, BSONObjectID](CollectionNames.PHASE1_PASS_MARK_SETTINGS, mongo,
-    Phase1PassMarkSettings.phase1PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
+    Phase1PassMarkSettings.jsonFormat, ReactiveMongoFormats.objectIdFormats
   ) with PassMarkSettingsRepository[Phase1PassMarkSettings]
 
 class Phase2PassMarkSettingsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Phase2PassMarkSettings, BSONObjectID](CollectionNames.PHASE2_PASS_MARK_SETTINGS, mongo,
-    Phase2PassMarkSettings.phase2PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
+    Phase2PassMarkSettings.jsonFormat, ReactiveMongoFormats.objectIdFormats
   ) with PassMarkSettingsRepository[Phase2PassMarkSettings]
 
 class Phase3PassMarkSettingsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Phase3PassMarkSettings, BSONObjectID](CollectionNames.PHASE3_PASS_MARK_SETTINGS, mongo,
-    Phase3PassMarkSettings.phase3PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
+    Phase3PassMarkSettings.jsonFormat, ReactiveMongoFormats.objectIdFormats
   ) with PassMarkSettingsRepository[Phase3PassMarkSettings]
+
+class AssessmentCentrePassMarkSettingsMongoRepository(implicit mongo: () => DB)
+  extends ReactiveRepository[AssessmentCentrePassMarkSettings, BSONObjectID](CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS, mongo,
+    AssessmentCentrePassMarkSettings.jsonFormat, ReactiveMongoFormats.objectIdFormats
+  ) with PassMarkSettingsRepository[AssessmentCentrePassMarkSettings]
 
 trait PassMarkSettingsRepository[T <: PassMarkSettings] {
   this: ReactiveRepository[T, _] =>
@@ -61,7 +66,8 @@ trait PassMarkSettingsRepository[T <: PassMarkSettings] {
 
   def getLatestVersion(implicit jsonFormat: Format[T]): Future[Option[T]] = {
     val query = BSONDocument.empty
-    val sort = JsObject(Seq("createDate" -> JsNumber(-1)))
+    val descending = -1
+    val sort = JsObject(Seq("createDate" -> JsNumber(descending)))
     collection.find(query).sort(sort).one[T]
   }
 }

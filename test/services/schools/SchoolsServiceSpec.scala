@@ -17,7 +17,8 @@
 package services.schools
 
 import model.School
-import repositories.{ SchoolsCSVRepository, SchoolsRepository }
+import repositories.csv.SchoolsCSVRepository
+import repositories.csv.{ SchoolsCSVRepository, SchoolsRepository }
 import testkit.{ ShortTimeout, UnitWithAppSpec }
 
 import scala.concurrent.Future

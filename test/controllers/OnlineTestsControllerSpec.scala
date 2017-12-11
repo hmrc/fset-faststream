@@ -33,9 +33,9 @@ import services.onlinetesting.Exceptions.{ ResetLimitExceededException, CannotRe
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class OnlineTestsControllerSpec extends UnitWithAppSpec {
 

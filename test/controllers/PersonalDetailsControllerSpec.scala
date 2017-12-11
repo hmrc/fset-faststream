@@ -17,8 +17,10 @@
 package controllers
 
 import model.Exceptions._
-import model.command.PersonalDetails
-import model.command.UpdatePersonalDetailsExamples._
+import model.command.GeneralDetails
+import model.command.GeneralDetailsExamples._
+import model.command.PersonalDetailsExamples.personalDetails
+import model.persisted.PersonalDetails
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -26,10 +28,10 @@ import play.api.test.Helpers._
 import services.AuditService
 import services.personaldetails.PersonalDetailsService
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 import play.api.libs.json.Json
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class PersonalDetailsControllerSpec extends UnitWithAppSpec {
   val mockCandidateDetailsService = mock[PersonalDetailsService]
@@ -92,7 +94,7 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
       when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.successful(CandidateContactDetailsUK))
       val response = controller.find(UserId, AppId)(fakeRequest)
       status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson[PersonalDetails](CandidateContactDetailsUK)
+      contentAsJson(response) mustBe Json.toJson[GeneralDetails](CandidateContactDetailsUK)
     }
 
     "return Not Found when contact details cannot be found" in {
@@ -110,6 +112,21 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
     "return Not Found when person details cannot be found" in {
       when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.failed(PersonalDetailsNotFound(AppId)))
       val response = controller.find(UserId, AppId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
+    }
+  }
+
+  "find by application id" should {
+    "return a candidate's personal details" in {
+      when(mockCandidateDetailsService.find(AppId)).thenReturn(Future.successful(personalDetails))
+      val response = controller.findByApplicationId(AppId)(fakeRequest)
+      status(response) mustBe OK
+      contentAsJson(response) mustBe Json.toJson[PersonalDetails](personalDetails)
+    }
+
+    "return Not Found when personal details cannot be found" in {
+      when(mockCandidateDetailsService.find(AppId)).thenReturn(Future.failed(PersonalDetailsNotFound(AppId)))
+      val response = controller.findByApplicationId(AppId)(fakeRequest)
       status(response) mustBe NOT_FOUND
     }
   }

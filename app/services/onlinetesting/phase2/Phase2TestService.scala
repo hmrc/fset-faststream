@@ -27,8 +27,8 @@ import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.events.EventTypes.EventType
-import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
+import model.stc.StcEventTypes.StcEventType
+import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
 import model.persisted._
 import model.{ ApplicationStatus, _ }
@@ -36,15 +36,16 @@ import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
-import services.events.EventService
+import services.stc.StcEventService
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, NoActiveTestException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.OnlineTestService
-import uk.gov.hmrc.play.http.HeaderCarrier
+import services.sift.ApplicationSiftService
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.{ Failure, Success, Try }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase2TestService extends Phase2TestService {
 
@@ -60,9 +61,10 @@ object Phase2TestService extends Phase2TestService {
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
-  val eventService = EventService
+  val eventService = StcEventService
   val authProvider = AuthProviderClient
   val phase3TestService = Phase3TestService
+  val siftService = ApplicationSiftService
 }
 
 // scalastyle:off number.of.methods
@@ -391,7 +393,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
           DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
         }
       } else {
-        Future.successful(List.empty[EventType])
+        Future.successful(List.empty[StcEventType])
       }
     }
   }
@@ -549,7 +551,7 @@ trait ResetPhase2Test {
     (if (testGroup.hasNotStartedYet) List(PHASE2_TESTS_STARTED) else List()) ++
       (if (testGroup.hasNotCompletedYet) List(PHASE2_TESTS_COMPLETED) else List()) ++
       (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY) else List()) ++
-      List(PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED)
+      List(PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED, PHASE2_TESTS_FAILED_SDIP_AMBER)
   }
 }
 

@@ -27,9 +27,10 @@ import play.api.mvc.Action
 import play.api.mvc.Results._
 import play.api.test.Helpers._
 import testkit.{ ShortTimeout, UnitSpec }
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, _ }
+import uk.gov.hmrc.play.http._
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse }
 
 class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
 
@@ -100,24 +101,6 @@ class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
     }
   }
 
-  "download pdf report" should {
-    "return a ConnectorException when cubiks gateway returns HTTP status Bad Gateway" in new GatewayTest {
-      setupPDFWSMock()
-      val result = cubiksGatewayClient.downloadPdfReport(44444)
-      result.failed.futureValue mustBe a[ConnectorException]
-    }
-    "throw an Exception when there is an exception when calling cubiks gateway" in new GatewayTest {
-      setupPDFWSMock()
-      val result = cubiksGatewayClient.downloadPdfReport(55555)
-      result.failed.futureValue mustBe an[Exception]
-    }
-    "request a report" in new GatewayTest {
-      setupPDFWSMock()
-      val result = cubiksGatewayClient.downloadPdfReport(66666)
-      result.futureValue must be(samplePDFValue)
-    }
-  }
-
   trait GatewayTest {
     implicit val hc = HeaderCarrier()
     val mockWSHttp = mock[WSHttp]
@@ -148,7 +131,7 @@ class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
 
     def mockPost[T] = {
       when(
-        mockWSHttp.POST(anyString(), any[T], anyObject())(any[Writes[T]], any[HttpReads[HttpResponse]], any[HeaderCarrier])
+        mockWSHttp.POST(anyString(), any[T], any())(any[Writes[T]], any[HttpReads[HttpResponse]], any[HeaderCarrier], any[ExecutionContext])
       )
     }
   }

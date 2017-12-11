@@ -16,6 +16,8 @@
 
 package model
 
+import play.api.libs.json.{ Json, OFormat }
+
 // scalastyle:off number.of.methods
 object Exceptions {
   sealed class ConnectorException(message: String) extends Exception(message)
@@ -34,6 +36,8 @@ object Exceptions {
 
   case class CannotUpdateContactDetails(userId: String) extends Exception(userId)
 
+  case class CannotUpdateFSACIndicator(userId: String) extends Exception(userId)
+
   case class CannotUpdateSchemePreferences(applicationId: String) extends Exception(applicationId)
 
   case class CannotUpdatePartnerGraduateProgrammes(applicationId: String) extends Exception(applicationId)
@@ -42,7 +46,16 @@ object Exceptions {
 
   case class CannotUpdatePreview(applicationId: String) extends Exception(applicationId)
 
+  case class CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException(userId: String,
+    msg: String) extends Exception(msg)
+
+  case class CannotRemoveAssessorWhenFutureAllocationExistsException(userId: String, msg: String) extends Exception(msg)
+
   case class PersonalDetailsNotFound(applicationId: String) extends Exception(applicationId)
+
+  case class FSACIndicatorNotFound(applicationId: String) extends Exception(applicationId)
+
+  case class FSACCSVIndicatorNotFound(applicationId: String) extends Exception(applicationId)
 
   case class ContactDetailsNotFound(userId: String) extends Exception(userId)
 
@@ -64,7 +77,15 @@ object Exceptions {
 
   case class TooManyEntries(msg: String) extends Exception(msg)
 
+  object TooManyEntries {
+    implicit val tooManyEntriesFormat: OFormat[TooManyEntries] = Json.format[TooManyEntries]
+  }
+
   case class NoResultsReturned(reason: String) extends Exception(reason)
+
+  object NoResultsReturned {
+    implicit val noResultsReturnedFormat: OFormat[NoResultsReturned] = Json.format[NoResultsReturned]
+  }
 
   case class NoSuchVenueException(reason: String) extends Exception(reason)
 
@@ -91,6 +112,32 @@ object Exceptions {
   case class InvalidTokenException(m: String) extends Exception(m)
 
   case class ExpiredTestForTokenException(m: String) extends Exception(m)
+
+  case class AssessorNotFoundException(userId: String) extends Exception(userId)
+
+  case class EventNotFoundException(m: String) extends Exception(m)
+
+  case class OptimisticLockException(m: String) extends Exception(m)
+
+  case class TooManyEventIdsException(m: String) extends Exception(m)
+
+  case class TooManySessionIdsException(m: String) extends Exception(m)
+
+  case class SchemeSpecificAnswerNotFound(m: String) extends Exception(m)
+
+  case class SiftAnswersNotFound(m: String) extends Exception(m)
+
+  case class SiftAnswersIncomplete(m: String) extends Exception(m)
+
+  case class SiftAnswersSubmitted(m: String) extends Exception(m)
+
+  case class AlreadyEvaluatedForSchemeException(message: String) extends Exception(message)
+
+  case class SchemeNotFoundException(message: String) extends Exception(message)
+
+  case class LastSchemeWithdrawException(m: String) extends Exception(m)
+
+  case class LastRunInfoNotFound(m: String) extends Exception(m)
 }
 
 // scalastyle:on number.of.methods

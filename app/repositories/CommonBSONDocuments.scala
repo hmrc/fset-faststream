@@ -16,16 +16,18 @@
 
 package repositories
 
+import factories.DateTimeFactory
 import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
 import model.command._
 import model.{ ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType }
-import org.joda.time.DateTime
 import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader }
 
 import scala.language.implicitConversions
 
 trait CommonBSONDocuments extends BaseBSONReader {
+
+  def dateTimeFactory: DateTimeFactory
 
   protected def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
@@ -37,7 +39,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
         BSONDocument(
           "applicationStatus" -> applicationStatus,
           s"progress-status.${progressStatus.key}" -> true,
-          s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
+          s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
         )
         // For in progress application status we store application status in
         // progress-status-timestamp.
@@ -45,7 +47,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
         BSONDocument(
           "applicationStatus" -> applicationStatus,
           s"progress-status.${ApplicationStatus.IN_PROGRESS}" -> true,
-          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> DateTime.now()
+          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> dateTimeFactory.nowLocalTimeZone
         )
       case _ =>
         BSONDocument(
@@ -58,14 +60,14 @@ trait CommonBSONDocuments extends BaseBSONReader {
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
       s"progress-status.${progressStatus.key}" -> true,
-      s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
+      s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
     )
   }
 
   def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {
      BSONDocument(
       s"progress-status.${progressStatus.key}" -> true,
-      s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
+      s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
     )
   }
 
@@ -106,6 +108,10 @@ trait CommonBSONDocuments extends BaseBSONReader {
           fastPassAccepted = getProgress(ProgressStatuses.FAST_PASS_ACCEPTED.key),
           withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
           applicationArchived = getProgress(ProgressStatuses.APPLICATION_ARCHIVED.key),
+          eligibleForJobOffer = JobOfferProgressResponse(
+            eligible = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER.key),
+            eligibleNotified = getProgress(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED.key)
+          ),
           phase1ProgressResponse = Phase1ProgressResponse(
             phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
             phase1TestsFirstReminder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
@@ -116,13 +122,13 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.key),
             phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.key),
             phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.key),
-            phase1TestsSuccessNotified = getProgress(ProgressStatuses.PHASE1_TESTS_SUCCESS_NOTIFIED.key),
+            phase1TestsSuccessNotified = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED.key),
             phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key),
             phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key),
             sdipFSFailed = getProgress(FailedSdipFsTestType.progressStatus),
             sdipFSFailedNotified = getProgress(FailedSdipFsTestType.notificationProgress),
             sdipFSSuccessful = getProgress(SuccessfulSdipFsTestType.progressStatus),
-            sdipFSSuccessfulNotified = getProgress(SuccessfulSdipFsTestType.notificationProgress)
+            phase1TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER.key)
           ),
           phase2ProgressResponse = Phase2ProgressResponse(
             phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
@@ -135,7 +141,8 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.key),
             phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
             phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key),
-            phase2TestsFailedNotified = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED.key)
+            phase2TestsFailedNotified = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED.key),
+            phase2TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER.key)
           ),
           phase3ProgressResponse = Phase3ProgressResponse(
             phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
@@ -147,20 +154,44 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
             phase3TestsPassedWithAmber = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_WITH_AMBER.toString),
             phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
-            phase3TestsSuccessNotified = getProgress(ProgressStatuses.PHASE3_TESTS_SUCCESS_NOTIFIED.key),
+            phase3TestsSuccessNotified = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED.key),
             phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString),
-            phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key)
+            phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key),
+            phase3TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER.key)
           ),
-          exported = getProgress(ProgressStatuses.EXPORTED.toString),
-          updateExported = getProgress(ProgressStatuses.UPDATE_EXPORTED.toString),
-          failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
-          assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
+          siftProgressResponse = SiftProgressResponse(
+            siftEntered = getProgress(ProgressStatuses.SIFT_ENTERED.key),
+            siftReady = getProgress(ProgressStatuses.SIFT_READY.key),
+            siftCompleted = getProgress(ProgressStatuses.SIFT_COMPLETED.key),
+            failedAtSift = getProgress(ProgressStatuses.FAILED_AT_SIFT.key),
+            failedAtSiftNotified = getProgress(ProgressStatuses.FAILED_AT_SIFT_NOTIFIED.key),
+            sdipFailedAtSift = getProgress(ProgressStatuses.SDIP_FAILED_AT_SIFT.key),
+            siftFaststreamFailedSdipGreen = getProgress(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN.key)
+          ),
           assessmentCentre = AssessmentCentre(
-            getProgress(ProgressStatuses.AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED_NOTIFIED.key),
-            getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key)
+            awaitingAllocation = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION.key),
+            allocationUnconfirmed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED.key),
+            allocationConfirmed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED.key),
+            failedToAttend = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND.key),
+            scoresEntered = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED.key),
+            scoresAccepted = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.key),
+            awaitingReevaluation = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION.key),
+            passed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
+            failed = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key),
+            failedNotified = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key),
+            failedSdipGreen = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.key),
+            failedSdipGreenNotified = getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED.key)
+          ),
+          fsb = Fsb(
+            getProgress(ProgressStatuses.FSB_AWAITING_ALLOCATION.key),
+            getProgress(ProgressStatuses.FSB_ALLOCATION_CONFIRMED.key),
+            getProgress(ProgressStatuses.FSB_ALLOCATION_UNCONFIRMED.key),
+            getProgress(ProgressStatuses.FSB_FAILED_TO_ATTEND.key),
+            getProgress(ProgressStatuses.FSB_RESULT_ENTERED.key),
+            getProgress(ProgressStatuses.FSB_PASSED.key),
+            getProgress(ProgressStatuses.FSB_FAILED.key),
+            getProgress(ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED.key),
+            getProgress(ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED_NOTIFIED.key)
           )
         )
       }).getOrElse(ProgressResponse(applicationId))

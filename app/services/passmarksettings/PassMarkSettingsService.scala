@@ -16,13 +16,13 @@
 
 package services.passmarksettings
 
-import model.Commands.PassMarkSettingsCreateResponse
-import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
+import model.PassMarkSettingsCreateResponse
+import model.exchange.passmarksettings._
 import play.api.libs.json.Format
 import repositories._
 import repositories.passmarksettings.PassMarkSettingsRepository
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object Phase1PassMarkSettingsService extends PassMarkSettingsService[Phase1PassMarkSettings] {
@@ -44,6 +44,10 @@ object Phase2PassMarkSettingsService extends PassMarkSettingsService[Phase2PassM
 
 object Phase3PassMarkSettingsService extends PassMarkSettingsService[Phase3PassMarkSettings] {
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
+}
+
+object AssessmentCentrePassMarkSettingsService extends PassMarkSettingsService[AssessmentCentrePassMarkSettings] {
+  val passMarkSettingsRepo = assessmentCentrePassMarkSettingsRepository
 }
 
 trait PassMarkSettingsService[T <: PassMarkSettings] {

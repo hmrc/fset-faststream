@@ -24,18 +24,18 @@ object MicroServiceBuild extends Build with MicroService {
 
 private object Versions {
 
-  val microserviceBootstrapVersion  = "5.14.0"
+  val microserviceBootstrapVersion  = "6.13.0"
   val ficus                         = "1.1.2"
   val playHealthVersion             = "2.1.0"
   val playConfigVersion             = "4.2.0"
-  val hmrcScheduler                 = "4.0.0"
+  val hmrcScheduler                 = "4.1.0"
   val hmrcTestVersion               = "2.3.0"
   val playReactivemongoVersion      = "5.2.0"
   val logbackJsonLogger             = "3.1.0"
 
   val pegdown                       = "1.6.0"
   val mockito                       = "2.2.17"
-  val scalatestplus                 = "1.5.1"
+  val scalatestplus                 = "2.0.1"
  }
 
 
@@ -46,16 +46,16 @@ private object AppDependencies {
   val compile = Seq(
     "uk.gov.hmrc" %% "play-reactivemongo" % playReactivemongoVersion,
     "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
-    "uk.gov.hmrc" %% "play-health" % playHealthVersion,
-    "uk.gov.hmrc" %% "play-config" % playConfigVersion,
-    "uk.gov.hmrc" %% "logback-json-logger" % logbackJsonLogger,
     "uk.gov.hmrc" %% "play-scheduling" % hmrcScheduler,
     "org.webjars" %% "webjars-play" % "2.3.0",
     "org.webjars" % "bootstrap" % "3.1.1",
     "org.webjars" % "jquery" % "1.11.0",
     "net.ceedubs" %% "ficus" % ficus,
+    compilerPlugin("com.github.ghik" %% "silencer-plugin" % "0.5"),
+    "com.github.ghik" %% "silencer-lib" % "0.5",
     "org.yaml" % "snakeyaml" % "1.16",
     "com.jsuereth" %% "scala-arm" % "1.4",
+    "net.jcazevedo" %% "moultingyaml" % "0.4.0",
     filters,
     cache,
     ws
@@ -68,7 +68,9 @@ private object AppDependencies {
       "org.mockito" % "mockito-core" % mockito % scope,
       "org.scalatestplus.play" %% "scalatestplus-play" % scalatestplus % scope,
       "org.pegdown" % "pegdown" % pegdown % scope,
-      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2")
+      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
+      "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % scope,
+      "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
     )
   }
 

@@ -42,7 +42,8 @@ trait DuplicateApplicationReportController extends BaseController {
 
   private def toReportItem(source: DuplicateApplicationGroup, matchGroup: Int) = {
     source.candidates.map { c =>
-      DuplicateApplicationsReportItem(c.firstName, c.lastName, c.email, c.latestProgressStatus, source.matchType, matchGroup)
+      DuplicateApplicationsReportItem(c.firstName, c.lastName, c.email, c.latestProgressStatus, source.matchType,
+        matchGroup, c.applicationRoute)
     }
   }
 

@@ -16,17 +16,15 @@
 
 package model.persisted
 
+import model.ApplicationRoute.ApplicationRoute
+import model.command.ProgressResponse
 import org.joda.time.LocalDate
-import reactivemongo.bson.Macros
 
 case class UserApplicationProfile(userId: String,
+                                  progress: ProgressResponse,
                                   latestProgressStatus: String,
                                   firstName: String,
                                   lastName: String,
                                   dateOfBirth: LocalDate,
-                                  exportedToParity: Boolean)
+                                  applicationRoute: ApplicationRoute)
 
-object UserApplicationProfile {
-  import repositories.BSONLocalDateHandler
-  implicit val userApplicationProfileHandler = Macros.handler[UserApplicationProfile]
-}

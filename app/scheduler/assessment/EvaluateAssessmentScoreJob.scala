@@ -16,35 +16,47 @@
 
 package scheduler.assessment
 
-import config.ScheduledJobConfig
+import config.WaitingScheduledJobConfig
+import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.applicationassessment.ApplicationAssessmentService
+import services.assessmentcentre.AssessmentCentreService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object EvaluateAssessmentScoreJob extends EvaluateAssessmentScoreJob {
-  val applicationAssessmentService: ApplicationAssessmentService = ApplicationAssessmentService
-  val config = EvaluateAssessmentScoreJobConfig
+  val applicationAssessmentService: AssessmentCentreService = AssessmentCentreService
 }
 
-trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob[EvaluateAssessmentScoreJobConfig] {
-  val applicationAssessmentService: ApplicationAssessmentService
+trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]]
+  with MinimumCompetencyLevelConfig {
+  val applicationAssessmentService: AssessmentCentreService
+
+  val config = EvaluateAssessmentScoreJobConfig
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    applicationAssessmentService.nextAssessmentCandidateScoreReadyForEvaluation.flatMap { scoresOpt =>
-      scoresOpt.map { scores =>
-        applicationAssessmentService.evaluateAssessmentCandidateScore(scores, config.minimumCompetencyLevelConfig)
-      }.getOrElse(Future.successful(()))
+    Logger.debug(s"EvaluateAssessmentScoreJob starting")
+    applicationAssessmentService.nextAssessmentCandidatesReadyForEvaluation(config.batchSize).map { candidateResults =>
+      candidateResults.map { candidateResult =>
+        if (candidateResult.schemes.isEmpty) {
+          Logger.debug(s"EvaluateAssessmentScoreJob - no non-RED schemes found so will not evaluate this candidate")
+          Future.successful(())
+        } else {
+          Logger.debug(s"EvaluateAssessmentScoreJob found candidate - now evaluating...")
+          applicationAssessmentService.evaluateAssessmentCandidate(candidateResult, minimumCompetencyLevelConfig)
+        }
+      }
     }
   }
 }
 
-object EvaluateAssessmentScoreJobConfig extends EvaluateAssessmentScoreJobConfig
-
-class EvaluateAssessmentScoreJobConfig extends BasicJobConfig[ScheduledJobConfig](
+object EvaluateAssessmentScoreJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
   configPrefix = "scheduling.evaluate-assessment-score-job",
-  name = "EvaluateAssessmentScoreJob") {
-  // // TODO: FSET-696 Remove this scheduler or replace the configuration to use one from assessment not phase1
+  name = "EvaluateAssessmentScoreJob"
+) {
+  val batchSize: Int = conf.batchSize.getOrElse(1)
+}
+
+trait MinimumCompetencyLevelConfig {
   val minimumCompetencyLevelConfig = config.MicroserviceAppConfig.assessmentEvaluationMinimumCompetencyLevelConfig
 }

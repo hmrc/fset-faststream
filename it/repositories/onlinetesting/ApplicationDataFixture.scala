@@ -1,6 +1,6 @@
 package repositories.onlinetesting
 
-import factories.DateTimeFactory
+import factories.ITDateTimeFactoryMock
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{ Phase1TestProfile, Phase2TestGroup }
@@ -13,18 +13,19 @@ import reactivemongo.json.ImplicitBSONHandlers
 
 import scala.concurrent.Future
 import config.MicroserviceAppConfig.cubiksGatewayConfig
+import model.SchemeId
 import repositories.CollectionNames
 
 trait ApplicationDataFixture {
   this: MongoRepositorySpec =>
 
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
 
-  def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
+  def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock)
 
-  def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
+  def phase2TestRepo = new Phase2TestMongoRepository(ITDateTimeFactoryMock)
 
-  def phase3TestRepo = new Phase3TestMongoRepository(DateTimeFactory)
+  def phase3TestRepo = new Phase3TestMongoRepository(ITDateTimeFactoryMock)
 
   import ImplicitBSONHandlers._
 
@@ -49,7 +50,9 @@ trait ApplicationDataFixture {
     )).futureValue
   }
 
-  def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean): BSONDocument = {
+  def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean,
+                              adjustmentsConfirmed: Boolean,
+                              timeExtensionAdjustments: Boolean): BSONDocument = {
     if (needsSupportForOnlineAssessment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
@@ -141,23 +144,6 @@ trait ApplicationDataFixture {
       "userId" -> userId,
       "applicationRoute" -> applicationRoute,
       "frameworkId" -> frameworkId,
-      "framework-preferences" -> BSONDocument(
-        "firstLocation" -> BSONDocument(
-          "region" -> "Region1",
-          "location" -> "Location1",
-          "firstFramework" -> "Commercial",
-          "secondFramework" -> "Digital and technology"
-        ),
-        "secondLocation" -> BSONDocument(
-          "location" -> "Location2",
-          "firstFramework" -> "Business",
-          "secondFramework" -> "Finance"
-        ),
-        "alternatives" -> BSONDocument(
-          "location" -> true,
-          "framework" -> true
-        )
-      ),
       "personal-details" -> BSONDocument(
         "firstName" -> s"${testCandidate("firstName")}",
         "lastName" -> s"${testCandidate("lastName")}",
@@ -175,6 +161,7 @@ trait ApplicationDataFixture {
         needsSupportAtVenue, isGis, typeOfEtrayOnlineAdjustments),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
+      "scheme-preferences" -> schemes,
       "testGroups" -> testGroups(phase1TestProfile, phase2TestGroup, phase3TestGroup)
     )
 
@@ -182,6 +169,11 @@ trait ApplicationDataFixture {
   }
   // scalastyle:on method.length
   // scalastyle:on parameter.number
+
+  val Commercial = SchemeId("Commercial")
+  val Edip = SchemeId("Edip")
+  val Finance = SchemeId("Finance")
+  private def schemes: BSONDocument = BSONDocument("schemes" -> List(Commercial, Edip, Finance))
 
   private def testGroups(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup], p3: Option[Phase3TestGroup]): BSONDocument = {
     BSONDocument("PHASE1" -> p1.map(Phase1TestProfile.bsonHandler.write),

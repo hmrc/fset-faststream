@@ -17,12 +17,11 @@
 package controllers
 
 import config.TestFixtureBase
-import mocks.application.DocumentRootInMemoryRepository
 import model.EvaluationResults.Green
-import model.Exceptions.NotFoundException
-import model.{ ApplicationRoute, SchemeType }
-import model.command.WithdrawApplication
+import model.Exceptions.{ ApplicationNotFound, CannotUpdateFSACIndicator }
+import model.command.{ ProgressResponse, WithdrawApplication }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.{ ApplicationResponse, ApplicationRoute, SchemeId }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -30,14 +29,19 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
+import repositories.fileupload.FileUploadMongoRepository
 import services.AuditService
 import services.application.ApplicationService
+import services.assessmentcentre.AssessmentCentreService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.personaldetails.PersonalDetailsService
+import services.sift.ApplicationSiftService
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
+import testkit.MockitoImplicits._
 
 import scala.concurrent.Future
 import scala.language.postfixOps
+import uk.gov.hmrc.http.HeaderCarrier
 
 class ApplicationControllerSpec extends UnitWithAppSpec {
 
@@ -46,8 +50,12 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
   val auditDetails = Map("applicationId" -> ApplicationId, "withdrawRequest" -> aWithdrawApplicationRequest.toString)
 
   "Create Application" must {
-
     "create an application" in new TestFixture {
+      when(mockApplicationRepository.create(any(), any(), any())).thenReturnAsync(
+        ApplicationResponse("a1234", "CREATED", ApplicationRoute.Faststream, "1234",
+        ProgressResponse("a1234"), None, None)
+      )
+
       val result = TestApplicationController.createApplication(createApplicationRequest(
         s"""
            |{
@@ -59,8 +67,8 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       ))
       val jsonResponse = contentAsJson(result)
 
-      (jsonResponse \ "applicationStatus").as[String] must be("CREATED")
-      (jsonResponse \ "userId").as[String] must be("1234")
+      (jsonResponse \ "applicationStatus").as[String] mustBe "CREATED"
+      (jsonResponse \ "userId").as[String] mustBe "1234"
 
       verify(mockAuditService).logEvent(eqTo("ApplicationCreated"))(any[HeaderCarrier], any[RequestHeader])
     }
@@ -76,72 +84,67 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
           """.stripMargin
         ))
 
-      status(result) must be(400)
+      status(result) mustBe BAD_REQUEST
     }
   }
 
   "Application Progress" must {
-
     "return the progress of an application" in new TestFixture {
+      when(mockApplicationRepository.findProgress(any())).thenReturnAsync(ProgressResponse(ApplicationId, personalDetails = true))
+
       val result = TestApplicationController.applicationProgress(ApplicationId)(applicationProgressRequest(ApplicationId)).run
       val jsonResponse = contentAsJson(result)
 
-      (jsonResponse \ "applicationId").as[String] must be(ApplicationId)
-      (jsonResponse \ "personalDetails").as[Boolean] must be(true)
+      (jsonResponse \ "applicationId").as[String] mustBe ApplicationId
+      (jsonResponse \ "personalDetails").as[Boolean] mustBe true
 
-      status(result) must be(200)
+      status(result) mustBe OK
     }
 
     "return a system error when applicationId doesn't exists" in new TestFixture {
+      when(mockApplicationRepository.findProgress(any())).thenReturn(Future.failed(ApplicationNotFound("1111-1234")))
+
       val result = TestApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
 
-      status(result) must be(404)
+      status(result) mustBe NOT_FOUND
     }
   }
 
   "Find application" must {
-
     "return the application" in new TestFixture {
+      when(mockApplicationRepository.findByUserId(any(), any())).thenReturnAsync(
+        ApplicationResponse(ApplicationId, "CREATED", ApplicationRoute.Faststream, "validUser",
+        ProgressResponse(ApplicationId), None, None)
+      )
+
       val result = TestApplicationController.findApplication(
         "validUser",
         "validFramework"
       )(findApplicationRequest("validUser", "validFramework")).run
       val jsonResponse = contentAsJson(result)
 
-      (jsonResponse \ "applicationId").as[String] must be(ApplicationId)
-      (jsonResponse \ "applicationStatus").as[String] must be("CREATED")
-      (jsonResponse \ "userId").as[String] must be("validUser")
+      (jsonResponse \ "applicationId").as[String] mustBe ApplicationId
+      (jsonResponse \ "applicationStatus").as[String] mustBe "CREATED"
+      (jsonResponse \ "userId").as[String] mustBe "validUser"
 
-      status(result) must be(200)
+      status(result) mustBe OK
     }
 
     "return a system error when application doesn't exists" in new TestFixture {
+      when(mockApplicationRepository.findByUserId(any(), any())).thenReturn(Future.failed(ApplicationNotFound("invalidUser")))
+
       val result = TestApplicationController.findApplication(
         "invalidUser",
         "invalidFramework"
       )(findApplicationRequest("invalidUser", "invalidFramework")).run
 
-      status(result) must be(404)
-    }
-  }
-
-  "Withdraw application" must {
-    "withdraw the application" in new TestFixture {
-      val result = TestApplicationController.withdrawApplication("1111-1111")(withdrawApplicationRequest("1111-1111")(
-        s"""
-           |{
-           |  "reason":"Something",
-           |  "otherReason":"Else",
-           |  "withdrawer":"Candidate"
-           |}
-        """.stripMargin
-      ))
-      status(result) must be(200)
+      status(result) mustBe NOT_FOUND
     }
   }
 
   "Preview application" must {
     "mark the application as previewed" in new TestFixture {
+      when(mockApplicationRepository.preview(any())).thenReturnAsync()
       val result = TestApplicationController.preview(ApplicationId)(previewApplicationRequest(ApplicationId)(
         s"""
            |{
@@ -149,51 +152,81 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
            |}
         """.stripMargin
       ))
-      status(result) must be(200)
+      status(result) mustBe OK
       verify(mockAuditService).logEvent(eqTo("ApplicationPreviewed"))(any[HeaderCarrier], any[RequestHeader])
     }
   }
 
   "Get Scheme Results" must {
-
     "return the scheme results for an application" in new TestFixture {
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version2", None)
       when(mockPassmarkService.getPassmarkEvaluation(any[String])).thenReturn(Future.successful(evaluation))
 
-      val result = TestApplicationController.getSchemeResults(ApplicationId)(getSchemeResultsRequest(ApplicationId)).run
+      val result = TestApplicationController.getPhase3Results(ApplicationId)(getPhase3ResultsRequest(ApplicationId)).run
       val jsonResponse = contentAsJson(result)
 
       jsonResponse mustBe Json.toJson(resultToSave)
-      status(result) must be(200)
+      status(result) mustBe OK
     }
 
     "Return a 404 if no results are found for the application Id" in new TestFixture {
+      when(mockApplicationRepository.findProgress(any())).thenReturn(Future.failed(ApplicationNotFound("1111-1234")))
       val result = TestApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
-      status(result) must be(404)
+      status(result) mustBe NOT_FOUND
     }
   }
 
-  "Mark as ready for export" must {
-    "return a 404 if the application can't be found" in new TestFixture {
-      when(mockApplicationService.markForExportToParity(any[String])(any[HeaderCarrier])).thenReturn(Future.failed(new NotFoundException()))
-      val result = TestApplicationController.markForExportToParity("appId").apply(FakeRequest())
-      status(result) mustBe 404
+  "update FSAC indicator" must {
+    val userId = "2222-2222"
+    "successfully update when all the data is valid" in new TestFixture {
+      when(mockPersonalDetailsService.updateFsacIndicator(any[String], any[String], any[String])).thenReturn(Future.successful(()))
 
+      val request = FakeRequest(Helpers.POST,
+        controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")
+      val result = TestApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run
+      status(result) mustBe OK
+    }
+
+    "return a bad request when the fsac indicator is invalid" in new TestFixture {
+      when(mockPersonalDetailsService.updateFsacIndicator(any[String], any[String], any[String]))
+        .thenReturn(Future.failed(new IllegalArgumentException("boom")))
+
+      val request = FakeRequest(Helpers.POST,
+        controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")
+      val result = TestApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run
+      status(result) mustBe BAD_REQUEST
+    }
+
+    "return a bad request when the repository fails to update (applicationId or userId is wrong)" in new TestFixture {
+      when(mockPersonalDetailsService.updateFsacIndicator(any[String], any[String], any[String]))
+        .thenReturn(Future.failed(new CannotUpdateFSACIndicator("boom")))
+
+      val request = FakeRequest(Helpers.POST,
+        controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")
+      val result = TestApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run
+      status(result) mustBe BAD_REQUEST
     }
   }
 
   trait TestFixture extends TestFixtureBase {
     val mockApplicationService = mock[ApplicationService]
     val mockPassmarkService = mock[EvaluatePhase3ResultService]
-    when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))(any[HeaderCarrier], any[RequestHeader]))
-      .thenReturn(Future.successful(()))
+    val mockAssessmentCentreService = mock[AssessmentCentreService]
+    val mockFileUploadRepository = mock[FileUploadMongoRepository]
+    val mockPersonalDetailsService = mock[PersonalDetailsService]
+    val mockApplicationSiftService = mock[ApplicationSiftService]
+    val mockApplicationRepository = mock[GeneralApplicationRepository]
 
     object TestApplicationController extends ApplicationController {
-      override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
+      override val appRepository: GeneralApplicationRepository = mockApplicationRepository
       override val auditService: AuditService = mockAuditService
+      override val siftService: ApplicationSiftService = mockApplicationSiftService
       override val applicationService: ApplicationService = mockApplicationService
       override val passmarkService: EvaluatePhase3ResultService = mockPassmarkService
+      override val assessmentCentreService: AssessmentCentreService = mockAssessmentCentreService
+      override val uploadRepository: FileUploadMongoRepository = mockFileUploadRepository
+      override val personalDetailsService: PersonalDetailsService = mockPersonalDetailsService
     }
 
     def applicationProgressRequest(applicationId: String) = {
@@ -212,20 +245,14 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    def withdrawApplicationRequest(applicationId: String)(jsonString: String) = {
-      val json = Json.parse(jsonString)
-      FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.withdrawApplication(applicationId).url, FakeHeaders(), json)
-        .withHeaders("Content-Type" -> "application/json")
-    }
-
     def previewApplicationRequest(applicationId: String)(jsonString: String) = {
       val json = Json.parse(jsonString)
       FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.preview(applicationId).url, FakeHeaders(), json)
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    def getSchemeResultsRequest(applicationId: String) = {
-      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.getSchemeResults(applicationId).url, FakeHeaders(), "")
+    def getPhase3ResultsRequest(applicationId: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.getPhase3Results(applicationId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
   }

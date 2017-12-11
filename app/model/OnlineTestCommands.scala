@@ -16,7 +16,6 @@
 
 package model
 
-import connectors.ExchangeObjects.ReportNorm
 import model.PersistedObjects.CandidateTestReport
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import play.api.libs.json.Json
@@ -33,13 +32,11 @@ object OnlineTestCommands {
                                    lastName: String,
                                    eTrayAdjustments: Option[AdjustmentDetail],
                                    videoInterviewAdjustments: Option[AdjustmentDetail]) {
-    def isInvigilatedETray = needsOnlineAdjustments && eTrayAdjustments.exists(_.invigilatedInfo.isDefined)
+    def isInvigilatedETray = eTrayAdjustments.exists(_.invigilatedInfo.isDefined)
     def isInvigilatedVideo = videoInterviewAdjustments.exists(_.invigilatedInfo.isDefined)
   }
 
   case class OnlineTestApplicationWithCubiksUser(applicationId: String, userId: String, cubiksUserId: Int)
-
-  case class OnlineTestApplicationForReportRetrieving(userId: Int, locale: String, reportId: Int, norms: List[ReportNorm])
 
   case class OnlineTestReportAvailability(reportId: Int, available: Boolean)
 
@@ -61,7 +58,6 @@ object OnlineTestCommands {
   object Implicits {
     implicit val TimeAdjustmentsOnlineTestApplicationFormats = Json.format[TimeAdjustmentsOnlineTestApplication]
     implicit val ApplicationForOnlineTestingFormats = Json.format[OnlineTestApplication]
-    implicit val OnlineTestApplicationForReportRetrievingFormats = Json.format[OnlineTestApplicationForReportRetrieving]
     implicit val OnlineTestApplicationUserFormats = Json.format[OnlineTestApplicationWithCubiksUser]
     implicit val OnlineTestReportIdMRAFormats = Json.format[OnlineTestReportAvailability]
     implicit val testFormat = Json.format[TestResult]

@@ -16,8 +16,7 @@
 
 package controllers
 
-import model.ApplicationRoute
-import model.Commands._
+import model.{ ApplicationRoute, Candidate, SearchCandidate }
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
@@ -33,14 +32,12 @@ import scala.concurrent.Future
 
 object SearchForApplicantsController extends SearchForApplicantsController {
   val appRepository = applicationRepository
-  val psRepository = faststreamPersonalDetailsRepository
+  val psRepository = personalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val searchForApplicantService = SearchForApplicantService
 }
 
 trait SearchForApplicantsController extends BaseController {
-
-  import Implicits._
 
   val appRepository: GeneralApplicationRepository
   val psRepository: PersonalDetailsRepository

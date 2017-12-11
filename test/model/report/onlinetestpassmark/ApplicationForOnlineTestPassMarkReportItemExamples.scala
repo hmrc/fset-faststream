@@ -16,7 +16,8 @@
 
 package model.report.onlinetestpassmark
 
-import model.{ ApplicationRoute, SchemeType }
+import model.persisted.SchemeEvaluationResult
+import model.{ ApplicationRoute, EvaluationResults, SchemeId }
 import model.report.{ ApplicationForOnlineTestPassMarkReportItem, TestResultsForOnlineTestPassMarkReportItem }
 
 import scala.util.Random
@@ -26,20 +27,22 @@ object ApplicationForOnlineTestPassMarkReportItemExamples {
   lazy val application2 = newApplicationForOnlineTestPassMarkReportItem(TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
 
   lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None))
   lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None))
 
   def newApplicationForOnlineTestPassMarkReportItem(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
     ApplicationForOnlineTestPassMarkReportItem(
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
-      List(SchemeType.Commercial, SchemeType.DigitalAndTechnology),
+      List(SchemeId("Commercial"), SchemeId("DigitalAndTechnology")),
       None,
       None,
       None,
       None,
-      testsResult)
+      testsResult,
+      List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString)))
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
 }

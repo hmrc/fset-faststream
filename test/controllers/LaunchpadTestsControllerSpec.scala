@@ -26,12 +26,12 @@ import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.events.EventService
+import services.stc.StcEventService
 import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
 
@@ -40,7 +40,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
 
     val mockPhase3TestService = mock[Phase3TestService]
-    val mockEventService = mock[EventService]
+    val mockEventService = mock[StcEventService]
     val mockPhase3TestCallbackService = mock[Phase3TestCallbackService]
 
     val sampleCandidateId = UUID.randomUUID().toString

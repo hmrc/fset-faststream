@@ -17,31 +17,42 @@
 package services.onlinetesting.phase1
 
 import model.EvaluationResults.Green
-import model.SchemeType._
+import model.SchemeId
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ SchemeEvaluationResult, TestResult }
+import play.api.Logger
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult,
+  def evaluateForGis(schemes: List[SchemeId], sjqTestResult: TestResult,
                      passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     evaluate(isGis = true, schemes, passmark, sjqTestResult)
   }
 
-  def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult,
+  def evaluateForNonGis(schemes: List[SchemeId], sjqTestResult: TestResult, bqTestResult: TestResult,
                         passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     evaluate(isGis = false, schemes, passmark, sjqTestResult, Some(bqTestResult))
   }
 
-  private def evaluate(isGis: Boolean, schemes: List[SchemeType], passmark: Phase1PassMarkSettings,
+  private def evaluate(isGis: Boolean, schemes: List[SchemeId], passmark: Phase1PassMarkSettings,
                sjqTestResult: TestResult, bqTestResultOpt: Option[TestResult] = None) = {
     for {
       schemeToEvaluate <- schemes
-      schemePassmark <- passmark.schemes find (_.schemeName == schemeToEvaluate)
+      schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
     } yield {
       val sjqResult = evaluateTestResult(schemePassmark.schemeThresholds.situational)(sjqTestResult.tScore)
       val bqResult = bqTestResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.behavioural)).getOrElse(Green)
+      Logger.info(s"**** Processing scheme $schemeToEvaluate, " +
+        s"sjq score = ${sjqTestResult.tScore}, " +
+        s"sjq fail = ${schemePassmark.schemeThresholds.situational.failThreshold}, " +
+        s"sqj pass = ${schemePassmark.schemeThresholds.situational.passThreshold}, " +
+        s"sqj result = $sjqResult, " +
+        s"bq score = ${bqTestResultOpt.map(_.tScore).getOrElse(None)}, " +
+        s"bq fail = ${schemePassmark.schemeThresholds.behavioural.failThreshold}, " +
+        s"bq pass = ${schemePassmark.schemeThresholds.behavioural.passThreshold}, " +
+        s"bq result = $bqResult"
+      )
       SchemeEvaluationResult(schemeToEvaluate, combineTestResults(sjqResult, bqResult).toString)
     }
   }

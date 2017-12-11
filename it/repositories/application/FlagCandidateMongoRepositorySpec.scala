@@ -16,12 +16,11 @@
 
 package repositories.application
 
-import factories.UUIDFactory
+import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.Exceptions.NotFoundException
 import model.FlagCandidatePersistedObject.FlagCandidate
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
@@ -31,7 +30,7 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
 
   val collectionName = CollectionNames.APPLICATION
   def repository = new FlagCandidateMongoRepository
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
 
   "Flag Candidate repository" should {
     "create and get an issue for the candidate" in {

@@ -18,15 +18,16 @@ package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
 import model._
+import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting._
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object ExpirePhase1TestJob extends ExpireOnlineTestJob {
   override val onlineTestingService = Phase1TestService
@@ -53,6 +54,7 @@ trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[Sche
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = new HeaderCarrier()
     implicit val rh = EmptyRequestHeader
+    Logger.debug(s"Running online test expiry job for ${expiryTest.phase}")
     onlineTestingService.processNextExpiredTest(expiryTest)
   }
 }

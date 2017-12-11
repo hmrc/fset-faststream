@@ -20,7 +20,7 @@ import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
 import play.api.Logger
 import play.api.mvc.{ Action, Result }
-import services.events.EventService
+import services.stc.StcEventService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -30,13 +30,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object CubiksTestsController extends CubiksTestsController {
   override val phase1TestService = Phase1TestService
   override val phase2TestService = Phase2TestService
-  val eventService = EventService
+  val eventService = StcEventService
 }
 
 trait CubiksTestsController extends BaseController {
   val phase1TestService: Phase1TestService
   val phase2TestService: Phase2TestService
-  val eventService: EventService
+  val eventService: StcEventService
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId started")

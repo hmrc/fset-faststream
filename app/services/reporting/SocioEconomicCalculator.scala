@@ -16,7 +16,7 @@
 
 package services.reporting
 
-import model.PersistedObjects.PersistedAnswer
+import model.persisted.QuestionnaireAnswer
 
 object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
   val NotApplicable = 0
@@ -33,7 +33,7 @@ object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
 trait SocioEconomicScoreCalculator extends Calculable {
   import services.reporting.SocioEconomicCalculator._
 
-  def calculateAsInt(answers: Map[String, PersistedAnswer]): Int = {
+  def calculateAsInt(answers: Map[String, QuestionnaireAnswer]): Int = {
     val flattenedAnswers = answers.map { case (question, answer) => question -> answer.answer.getOrElse("") }
 
     val employmentStatusSize = calculateEmploymentStatusSize(flattenedAnswers)
@@ -45,7 +45,6 @@ trait SocioEconomicScoreCalculator extends Calculable {
   }
 
   def calculate(answers: Map[String, String]): String = {
-    //    Logger.debug("## SocioEconomicScoreCalculatorTrait: " + answer)
     val employmentStatusSize = calculateEmploymentStatusSize(answers)
     if (employmentStatusSize != NotApplicable) {
       calculateSocioEconomicScore(employmentStatusSize, getTypeOfOccupation(answers))

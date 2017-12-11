@@ -1,0 +1,12 @@
+London:
+  - LONDON_FSAC:
+      description: London (100 Parliament Street)
+  - LONDON_FSB:
+      description: London (FCO King Charles Street)
+Newcastle:
+  - NEWCASTLE_FSAC:
+      description: Newcastle (Tyne View Park)
+Virtual:
+  - VIRTUAL:
+      description: Virtual
+Home: []

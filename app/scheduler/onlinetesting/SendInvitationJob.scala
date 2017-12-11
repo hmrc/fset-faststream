@@ -24,9 +24,9 @@ import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SendPhase1InvitationJob extends SendInvitationJob {
   val onlineTestingService = Phase1TestService
@@ -40,7 +40,7 @@ object SendPhase2InvitationJob extends SendInvitationJob {
 
 object SendPhase3InvitationJob extends SendInvitationJob {
   val onlineTestingService = Phase3TestService
-  val config = SendPhase2InvitationJobConfig
+  val config = SendPhase3InvitationJobConfig
 }
 
 trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {

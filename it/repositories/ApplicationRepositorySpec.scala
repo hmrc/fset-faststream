@@ -17,21 +17,17 @@
 package repositories
 
 import config.MicroserviceAppConfig.cubiksGatewayConfig
+import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
-import model.Commands._
-import model.{ ApplicationRoute, EvaluationResults, ProgressStatuses }
-import model.EvaluationResults.AssessmentRuleCategoryResult
+import model.{ ApplicationRoute, ProgressStatuses }
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import model.report.AdjustmentReportItem
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONReader, TestDataMongoRepository }
+import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Await
@@ -44,7 +40,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val collectionName = CollectionNames.APPLICATION
 
-  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
 
   def assistanceRepo = new AssistanceDetailsMongoRepository()
 
@@ -166,172 +162,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  "find applications for assessment allocation" should {
-    "return an empty list when there are no applications" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(0, onlyAwaitingAllocation = false).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 0, 5).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result mustBe empty
-    }
-
-    "return an empty list when there are no applications awaiting for allocation" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(5, onlyAwaitingAllocation = false, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 0, 5).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result mustBe empty
-    }
-
-    "return a one item list when there are applications awaiting for allocation and start item and end item is the same" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(5, onlyAwaitingAllocation = true, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 2, 2).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result must have size 1
-    }
-
-    "return a non empty list when there are applications" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(20, onlyAwaitingAllocation = true, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 0, 5).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result.length mustBe 6
-    }
-
-    "return an empty list when start is beyond the number of results" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(5, onlyAwaitingAllocation = true, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), Int.MaxValue, Int.MaxValue).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result mustBe empty
-    }
-
-    "return an empty list when start is higher than end" in {
-      lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(5, onlyAwaitingAllocation = true, Seq("London" -> "London")).futureValue
-
-      val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 2, 1).futureValue
-      result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result mustBe empty
-    }
-  }
-
-  "next application ready for assessment score evaluation" should {
-    "return the only application ready for evaluation" in {
-      createApplication("app1", ASSESSMENT_SCORES_ACCEPTED)
-
-      val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
-
-      result must not be empty
-      result.get mustBe "app1"
-    }
-
-    "return the next application when the passmark is different" in {
-      createApplicationWithPassmark("app1", AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, "1")
-
-      val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("2").futureValue
-
-      result must not be empty
-    }
-
-    "return none when application has already passmark and it has not changed" in {
-      createApplicationWithPassmark("app1", AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, "1")
-
-      val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
-
-      result mustBe empty
-    }
-
-    "return none when there is no candidates in ASSESSMENT_SCORES_ACCEPTED status" in {
-      createApplication("app1", "ASSESSMENT_SCORES_UNACCEPTED")
-
-      val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
-
-      result mustBe empty
-    }
-  }
-
-  "save assessment score evaluation" should {
-    "save a score evaluation and update the application status when the application is in ASSESSMENT_SCORES_ACCEPTED status" in {
-      createApplication("app1", ASSESSMENT_SCORES_ACCEPTED)
-
-      val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION).futureValue
-
-      val status = getApplicationStatus("app1")
-      status mustBe AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.toString
-    }
-
-    "save a score evaluation and update the application status when the application is in AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION" in {
-      createApplication("app1", AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
-
-      val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_SCORES_ACCEPTED).futureValue
-
-      val status = getApplicationStatus("app1")
-      status mustBe ASSESSMENT_SCORES_ACCEPTED.toString
-    }
-
-    "fail to save a score evaluation when candidate has been withdrawn" in {
-      createApplication("app1", WITHDRAWN)
-
-      val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_SCORES_ACCEPTED).futureValue
-
-      val status = getApplicationStatus("app1")
-      status mustBe WITHDRAWN.toString
-    }
-  }
-
-  "applications passed in assessment centre" should {
-    "be returned" in {
-      val scores = CandidateScoresSummary(Some(2d), Some(2d), Some(2d), Some(2d), Some(2d), Some(2d), Some(2d), Some(14d))
-      createApplicationWithSummaryScoresAndSchemeEvaluations("app1", frameworkId,
-        ASSESSMENT_CENTRE_PASSED,
-        "1",
-        scores,
-        SchemeEvaluation(Some("Red"), Some("Green"), Some("Amber"), Some("Red"), Some("Green"))
-      )
-
-      val result = applicationRepo.applicationsPassedInAssessmentCentre(frameworkId).futureValue
-      result.size mustBe 1
-      result.head.applicationId mustBe "app1"
-      result.head.scores mustBe scores
-      result.head.passmarks mustBe SchemeEvaluation(
-        Some("Fail"),
-        Some("Pass"),
-        Some("Amber"),
-        Some("Fail"),
-        Some("Pass"))
-    }
-  }
-
-  "online test results" should {
-    "be returned" in {
-      createApplicationWithFrameworkEvaluations("app1", frameworkId,
-        ASSESSMENT_SCORES_ACCEPTED,
-        "1",
-        OnlineTestPassmarkEvaluationSchemes(Some("Red"), Some("Green"), Some("Amber"), Some("Red"), Some("Green"))
-      )
-
-      val result = applicationRepo.applicationsWithAssessmentScoresAccepted(frameworkId).futureValue
-      result.size mustBe 1
-      result.head.applicationId mustBe "app1"
-      result.head.onlineTestPassmarkEvaluations mustBe OnlineTestPassmarkEvaluationSchemes(
-        Some("Fail"),
-        Some("Pass"),
-        Some("Amber"),
-        Some("Fail"),
-        Some("Pass"))
-    }
-  }
-
   "preview" should {
     "change progress status to preview" in {
       createApplication("app1", IN_PROGRESS)
@@ -367,66 +197,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       "applicationStatus" -> appStatus,
       "assessment-centre-passmark-evaluation" -> BSONDocument(
         "passmarkVersion" -> passmarkVersion
-      )
-    )).futureValue
-  }
-
-  def createApplicationWithFrameworkEvaluations(appId: String,
-                                                frameworkId: String,
-                                                appStatus: String,
-                                                passmarkVersion: String,
-                                                frameworkSchemes: OnlineTestPassmarkEvaluationSchemes): Unit = {
-    applicationRepo.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "frameworkId" -> frameworkId,
-      "applicationStatus" -> appStatus,
-      "progress-status" -> BSONDocument(
-        appStatus.toLowerCase -> true
-      ),
-      "passmarkEvaluation" -> BSONDocument(
-        "passmarkVersion" -> passmarkVersion,
-        "location1Scheme1" -> frameworkSchemes.location1Scheme1.get,
-        "location1Scheme2" -> frameworkSchemes.location1Scheme2.get,
-        "location2Scheme1" -> frameworkSchemes.location2Scheme1.get,
-        "location2Scheme2" -> frameworkSchemes.location2Scheme2.get,
-        "alternativeScheme" -> frameworkSchemes.alternativeScheme.get
-      )
-    )).futureValue
-  }
-
-  def createApplicationWithSummaryScoresAndSchemeEvaluations(appId: String,
-                                                             frameworkId: String,
-                                                             appStatus: String,
-                                                             passmarkVersion: String,
-                                                             scores: CandidateScoresSummary,
-                                                             scheme: SchemeEvaluation): Unit = {
-
-    applicationRepo.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "frameworkId" -> frameworkId,
-      "applicationStatus" -> appStatus,
-      "progress-status" -> BSONDocument(
-        "assessment_centre_passed" -> true
-      ),
-      "assessment-centre-passmark-evaluation" -> BSONDocument(
-        "passmarkVersion" -> passmarkVersion,
-        "competency-average" -> BSONDocument(
-          "leadingAndCommunicatingAverage" -> scores.avgLeadingAndCommunicating.get,
-          "collaboratingAndPartneringAverage" -> scores.avgCollaboratingAndPartnering.get,
-          "deliveringAtPaceAverage" -> scores.avgDeliveringAtPace.get,
-          "makingEffectiveDecisionsAverage" -> scores.avgMakingEffectiveDecisions,
-          "changingAndImprovingAverage" -> scores.avgChangingAndImproving,
-          "buildingCapabilityForAllAverage" -> scores.avgBuildingCapabilityForAll,
-          "motivationFitAverage" -> scores.avgMotivationFit,
-          "overallScore" -> scores.totalScore
-        ),
-        "schemes-evaluation" -> BSONDocument(
-          "Commercial" -> scheme.commercial.get,
-          "Digital and technology" -> scheme.digitalAndTechnology.get,
-          "Business" -> scheme.business.get,
-          "Project delivery" -> scheme.projectDelivery.get,
-          "Finance" -> scheme.finance.get
-        )
       )
     )).futureValue
   }

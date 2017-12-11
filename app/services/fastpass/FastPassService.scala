@@ -17,28 +17,34 @@
 package services.fastpass
 
 import connectors.{ CSREmailClient, OnlineTestEmailClient }
-import model.{ CivilServiceExperienceDetails, ProgressStatuses }
-import model.events.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
-import model.events.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
+import model.persisted.SchemeEvaluationResult
+import model._
+import model.stc.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
+import model.stc.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.events.{ EventService, EventSink }
+import services.stc.{ EventSink, StcEventService }
 import services.personaldetails.PersonalDetailsService
-import uk.gov.hmrc.play.http.HeaderCarrier
+import services.scheme.SchemePreferencesService
+import services.sift.ApplicationSiftService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object FastPassService extends FastPassService {
   override val appRepo = applicationRepository
   override val personalDetailsService = PersonalDetailsService
-  override val eventService: EventService = EventService
+  override val eventService: StcEventService = StcEventService
   override val emailClient = CSREmailClient
   override val cdRepository = faststreamContactDetailsRepository
   override val csedRepository = civilServiceExperienceDetailsRepository
+  override val schemePreferencesService = SchemePreferencesService
+  override val schemesRepository = SchemeYamlRepository
+  override val applicationSiftService = ApplicationSiftService
 
   override val fastPassDetails = CivilServiceExperienceDetails(
     applicable = true,
@@ -49,14 +55,17 @@ object FastPassService extends FastPassService {
 
 }
 
-trait FastPassService extends EventSink {
+trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
 
   val appRepo: GeneralApplicationRepository
   val personalDetailsService: PersonalDetailsService
-  val eventService: EventService
+  val eventService: StcEventService
   val emailClient: OnlineTestEmailClient
   val cdRepository: ContactDetailsRepository
   val csedRepository: CivilServiceExperienceDetailsRepository
+  val schemePreferencesService: SchemePreferencesService
+  val schemesRepository: SchemeRepository
+  val applicationSiftService: ApplicationSiftService
 
   val fastPassDetails: CivilServiceExperienceDetails
 
@@ -66,7 +75,7 @@ trait FastPassService extends EventSink {
   def processFastPassCandidate(userId: String, applicationId: String, accepted: Boolean, actionTriggeredBy: String)
                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
     if (accepted) { acceptFastPassCandidate(userId, applicationId, actionTriggeredBy) }
-    else {rejectFastPassCandidate(userId, applicationId, actionTriggeredBy)}
+    else { rejectFastPassCandidate(userId, applicationId, actionTriggeredBy) }
   }
 
   def promoteToFastPassCandidate(applicationId: String, actionTriggeredBy: String)
@@ -76,10 +85,42 @@ trait FastPassService extends EventSink {
     for {
       _ <- csedRepository.update(applicationId, fastPassDetails)
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      _ <- eventSink(model.events.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
+      _ <- eventSink(model.stc.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
       _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
 
     } yield ()
+  }
+
+  private def autoProgressToSiftOrFSAC(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    def notifySiftEntered(siftStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
+      if(siftStatus == ProgressStatuses.SIFT_ENTERED) {
+        applicationSiftService.sendSiftEnteredNotification(applicationId)
+      } else {
+        Future.successful(())
+      }
+    }
+
+    val res = for {
+      preferences <- schemePreferencesService.find(applicationId)
+    } yield {
+      val hasSiftableScheme = schemesRepository.siftableSchemeIds.intersect(preferences.schemes).nonEmpty
+      if (hasSiftableScheme) {
+        val siftStatus = applicationSiftService.progressStatusForSiftStage(preferences.schemes)
+        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, siftStatus).flatMap { _ =>
+          notifySiftEntered(siftStatus).map(_ => ())
+        }
+      } else {
+        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+      }
+    }
+    res.flatMap(identity)
+  }
+
+  def createCurrentSchemeStatus(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit] = {
+    val results = selectedSchemes.schemes.map { schemeId =>
+      SchemeEvaluationResult(schemeId, EvaluationResults.Green.toString)
+    }
+    appRepo.updateCurrentSchemeStatus(applicationId, results)
   }
 
   private def acceptFastPassCandidate(userId: String, applicationId: String, actionTriggeredBy: String)
@@ -92,10 +133,13 @@ trait FastPassService extends EventSink {
       email <- emailFut
       personalDetail <- personalDetailsFut
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
-      _ <- eventSink(model.events.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
+      preferences <- schemePreferencesService.find(applicationId)
+      _ <- createCurrentSchemeStatus(applicationId, preferences)
+      _ <- eventSink(model.stc.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
       _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = true)
       _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
       _ <- emailClient.sendEmailWithName(email, personalDetail.preferredName, acceptedTemplate)
+      _ <- autoProgressToSiftOrFSAC(applicationId)
       _ <- eventSink(FastPassUserAcceptedEmailSent(
         Map("email" -> email, "name" -> personalDetail.preferredName, "template" -> acceptedTemplate)) :: Nil)
     } yield (personalDetail.firstName, personalDetail.lastName)

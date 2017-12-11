@@ -18,17 +18,15 @@ package model.persisted
 
 import model.Address
 import model.Commands.{ PhoneNumber, PostCode }
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
-case class ContactDetailsWithId(
-                                 userId: String,
-                                 address: Address,
-                                 postCode: Option[PostCode],
-                                 outsideUk: Boolean,
-                                 email: String,
-                                 phone: Option[PhoneNumber]
-                               )
+case class ContactDetailsWithId(userId: String,
+                                address: Address,
+                                postCode: Option[PostCode],
+                                outsideUk: Boolean,
+                                email: String,
+                                phone: Option[PhoneNumber])
 
 object ContactDetailsWithId {
-  implicit val contactDetailsWithIdFormat = Json.format[ContactDetailsWithId]
+  implicit val format: OFormat[ContactDetailsWithId] = Json.format[ContactDetailsWithId]
 }

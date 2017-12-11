@@ -17,13 +17,16 @@
 package services.personaldetails
 
 import model.{ ApplicationStatus, CivilServiceExperienceDetails }
-import model.command.UpdatePersonalDetailsExamples._
+import model.command.GeneralDetailsExamples._
 import model.persisted.ContactDetailsExamples._
+import model.persisted.FSACIndicator
 import model.persisted.PersonalDetailsExamples._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.csv.FSACIndicatorCSVRepository
+import repositories.fsacindicator.FSACIndicatorRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.AuditService
 import testkit.{ ShortTimeout, UnitWithAppSpec }
@@ -34,33 +37,17 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
   val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
   val mockContactDetailsRepository = mock[ContactDetailsRepository]
   val mockCivilServiceExperienceDetailsRepository = mock[CivilServiceExperienceDetailsRepository]
+  val mockFSACIndicatorRepository = mock[FSACIndicatorRepository]
+  val mockFSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
   val mockAuditService = mock[AuditService]
 
   val service = new PersonalDetailsService {
     val pdRepository = mockPersonalDetailsRepository
     val cdRepository = mockContactDetailsRepository
     val csedRepository = mockCivilServiceExperienceDetailsRepository
+    val fsacIndicatorRepository = mockFSACIndicatorRepository
+    val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mockFSACIndicatorCSVRepository
     val auditService = mockAuditService
-  }
-
-  "update candidate" should {
-    "update personal and contact details" in {
-      when(mockPersonalDetailsRepository.update(eqTo(AppId), eqTo(UserId), eqTo(JohnDoe), any[Seq[ApplicationStatus.Value]],
-        any[ApplicationStatus.Value])).thenReturn(Future.successful(()))
-      when(mockContactDetailsRepository.update(UserId, ContactDetailsUK)).thenReturn(emptyFuture)
-      when(mockCivilServiceExperienceDetailsRepository.update(AppId, CandidateContactDetailsUK.civilServiceExperienceDetails.get)
-      ).thenReturn(emptyFuture)
-
-      val response = service.update(AppId, UserId, CandidateContactDetailsUK)
-
-      assertNoExceptions(response)
-    }
-
-    "throw an exception when updateApplicationStatus is not set" in {
-      intercept[IllegalArgumentException] {
-        service.update(AppId, UserId, CandidateContactDetailsUK.copy(updateApplicationStatus = None))
-      }
-    }
   }
 
   "find candidate" should {
@@ -69,6 +56,8 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
       when(mockContactDetailsRepository.find(UserId)).thenReturn(Future.successful(ContactDetailsUK))
       when(mockCivilServiceExperienceDetailsRepository.find(AppId)
       ).thenReturn(Future.successful(Some(CivilServiceExperienceDetails(applicable = false))))
+      when(mockFSACIndicatorRepository.find(AppId)).thenReturn(Future.successful(FSACIndicator("London", "London", "1")))
+      when(mockFSACIndicatorCSVRepository.find(any(), any())).thenReturn(Some(model.FSACIndicator("London", "London")))
 
       val response = service.find(AppId, UserId).futureValue
 
@@ -80,10 +69,35 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
       when(mockContactDetailsRepository.find(UserId)).thenReturn(Future.successful(ContactDetailsUK))
       when(mockCivilServiceExperienceDetailsRepository.find(AppId)
       ).thenReturn(Future.successful(Some(CivilServiceExperienceDetails(applicable = false))))
+      when(mockFSACIndicatorRepository.find(AppId)).thenReturn(Future.successful(FSACIndicator("London", "London", "1")))
+      when(mockFSACIndicatorCSVRepository.find(any(), any())).thenReturn(Some(model.FSACIndicator("London", "London")))
 
       val response = service.find(AppId, UserId).futureValue
 
       response mustBe CandidateContactDetailsUKSdip.copy(updateApplicationStatus = None)
+    }
+  }
+
+  "update candidate" should {
+    "update personal and contact details" in {
+      when(mockPersonalDetailsRepository.update(eqTo(AppId), eqTo(UserId), eqTo(JohnDoe), any[Seq[ApplicationStatus.Value]],
+        any[ApplicationStatus.Value])).thenReturn(Future.successful(()))
+      when(mockContactDetailsRepository.update(UserId, ContactDetailsUK)).thenReturn(emptyFuture)
+      when(mockCivilServiceExperienceDetailsRepository.update(AppId, CandidateContactDetailsUK.civilServiceExperienceDetails.get)
+      ).thenReturn(emptyFuture)
+      when(mockFSACIndicatorCSVRepository.find(any(), any())).thenReturn(Some(model.FSACIndicator("London", "London")))
+      when(mockFSACIndicatorRepository.update(eqTo(AppId), eqTo(UserId), eqTo(FSACIndicator("London", "London", "1")))
+      ).thenReturn(emptyFuture)
+
+      val response = service.update(AppId, UserId, CandidateContactDetailsUK)
+
+      assertNoExceptions(response)
+    }
+
+    "throw an exception when updateApplicationStatus is not set" in {
+      intercept[IllegalArgumentException] {
+        service.update(AppId, UserId, CandidateContactDetailsUK.copy(updateApplicationStatus = None))
+      }
     }
   }
 }

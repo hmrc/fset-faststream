@@ -16,7 +16,7 @@
 
 package model.exchange.passmarksettings
 
-import model.SchemeType.SchemeType
+import model.SchemeId
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
@@ -37,16 +37,16 @@ case class Phase1PassMarkSettings(
 
 object Phase1PassMarkSettings {
   import repositories.BSONDateTimeHandler
-  implicit val phase1PassMarkSettingsFormat = Json.format[Phase1PassMarkSettings]
-  implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase1PassMarkSettings]
+  implicit val jsonFormat = Json.format[Phase1PassMarkSettings]
+  implicit val bsonHandler = Macros.handler[Phase1PassMarkSettings]
 
   def merge(oldPassMarkSettings: Option[Phase1PassMarkSettings],
             newPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = {
-    def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeName).mapValues { v =>
+    def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeId).mapValues { v =>
       require(v.size == 1, s"Scheme name must be non empty and must be unique: ${v.mkString(",")}")
       v.head
     }
-    def toSchemeNames(passmark: Phase1PassMarkSettings) = passmark.schemes.map(_.schemeName)
+    def toSchemeNames(passmark: Phase1PassMarkSettings) = passmark.schemes.map(_.schemeId)
 
     oldPassMarkSettings match {
       case Some(latest) =>
@@ -62,8 +62,8 @@ object Phase1PassMarkSettings {
     }
   }
 
-  private def mergeToListInOrder[T](originalMap: Map[SchemeType, T], toUpdateMap: Map[SchemeType, T],
-                                               order: List[SchemeType]): List[T] = {
+  private def mergeToListInOrder[T](originalMap: Map[SchemeId, T], toUpdateMap: Map[SchemeId, T],
+                                               order: List[SchemeId]): List[T] = {
     val mergedMaps = originalMap ++ toUpdateMap
     order.map(schemeName => mergedMaps(schemeName))
   }
@@ -78,8 +78,8 @@ case class Phase2PassMarkSettings(
 
 object Phase2PassMarkSettings {
   import repositories.BSONDateTimeHandler
-  implicit val phase2PassMarkSettingsFormat = Json.format[Phase2PassMarkSettings]
-  implicit val phase2PassMarkSettingsHandler = Macros.handler[Phase2PassMarkSettings]
+  implicit val jsonFormat = Json.format[Phase2PassMarkSettings]
+  implicit val bsonHandler = Macros.handler[Phase2PassMarkSettings]
 }
 
 case class Phase3PassMarkSettings(
@@ -91,6 +91,19 @@ case class Phase3PassMarkSettings(
 
 object Phase3PassMarkSettings {
   import repositories.BSONDateTimeHandler
-  implicit val phase3PassMarkSettingsFormat = Json.format[Phase3PassMarkSettings]
-  implicit val phase3PassMarkSettingsHandler = Macros.handler[Phase3PassMarkSettings]
+  implicit val jsonFormat = Json.format[Phase3PassMarkSettings]
+  implicit val bsonHandler = Macros.handler[Phase3PassMarkSettings]
+}
+
+case class AssessmentCentrePassMarkSettings(
+                                   schemes: List[AssessmentCentrePassMark],
+                                   version: String,
+                                   createDate: DateTime,
+                                   createdBy: String
+                                 ) extends PassMarkSettings
+
+object AssessmentCentrePassMarkSettings {
+  import repositories.BSONDateTimeHandler
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettings]
+  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkSettings]
 }

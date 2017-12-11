@@ -16,8 +16,7 @@
 
 package repositories
 
-import model.PersistedObjects
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
 import reactivemongo.api.{ DB, ReadPreference }
@@ -32,18 +31,33 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 trait QuestionnaireRepository {
-  def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit]
-  def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]]
-  def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]]
+  def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit]
+  def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]]
+  def findForOnlineTestPassMarkReport(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]]
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
+  def findQuestionsByIds(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]]
+
+
+  val GenderQuestionText = "What is your gender identity?"
+  val SexualOrientationQuestionText = "What is your sexual orientation?"
+  val EthnicityQuestionText = "What is your ethnic group?"
+  val UniversityQuestionText = "What is the name of the university you received your degree from?"
+  val EmploymentStatusQuestionText = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
+  val ParentEmployedOrSelfEmployedQuestionText = "Did they work as an employee or were they self-employed?"
+  val ParentCompanySizeQuestionText = "Which size would best describe their place of work?"
+
+  val DontKnowAnswerText = "I don't know/prefer not to say"
+  val EmployedAnswerText = "Employed"
+  val UnemployedAnswerText = "Unemployed"
+  val UnknownAnswerText = "Unknown"
 }
 
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
-  extends ReactiveRepository[PersistedAnswer, BSONObjectID](CollectionNames.QUESTIONNAIRE, mongo,
-    PersistedObjects.Implicits.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
+  extends ReactiveRepository[QuestionnaireAnswer, BSONObjectID](CollectionNames.QUESTIONNAIRE, mongo,
+    QuestionnaireAnswer.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
     with ReactiveRepositoryHelpers with BaseBSONReader {
 
-  override def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit] = {
+  override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = {
 
     val appId = "applicationId" -> applicationId
 
@@ -56,28 +70,35 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     ) map validator
   }
 
-  override def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]] = {
+  override def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]] = {
     find(applicationId).map { questions =>
       (for {
         q <- questions
       } yield {
         val answer = q.answer
         q.question -> answer
-      }).toMap[String, PersistedAnswer]
+      }).toMap[String, QuestionnaireAnswer]
     }
   }
 
-  override def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]] = {
+  override def findForOnlineTestPassMarkReport(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]] = {
     // We need to ensure that the candidates have completed the last page of the questionnaire
     // however, only the first question on the employment page is mandatory, as if the answer is
     // unemployed, they don't need to answer other questions
-    val firstEmploymentQuestion = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
-    val query = BSONDocument(s"questions.$firstEmploymentQuestion" -> BSONDocument("$exists" -> BSONBoolean(true)))
+    val query =
+      BSONDocument(s"questions.$EmploymentStatusQuestionText" -> BSONDocument("$exists" -> BSONBoolean(true))) ++
+      BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+
     findAllAsReportItem(query)
   }
 
   override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] = {
     findAllAsReportItem(BSONDocument.empty)
+  }
+
+  override def findQuestionsByIds(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    findAllAsReportItem(query)
   }
 
   protected def findAllAsReportItem(query: BSONDocument): Future[Map[String, QuestionnaireReportItem]] = {
@@ -87,22 +108,22 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     queryResult.map(_.toMap)
   }
 
-  private[repositories] def find(applicationId: String): Future[List[PersistedQuestion]] = {
+  private[repositories] def find(applicationId: String): Future[List[QuestionnaireQuestion]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("questions" -> 1, "_id" -> 0)
 
-    case class Questions(questions: Map[String, PersistedAnswer])
+    case class Questions(questions: Map[String, QuestionnaireAnswer])
 
     implicit object SearchFormat extends Format[Questions] {
       def reads(json: JsValue): JsResult[Questions] = JsSuccess(Questions(
-        (json \ "questions").as[Map[String, PersistedAnswer]]
+        (json \ "questions").as[Map[String, QuestionnaireAnswer]]
       ))
 
       def writes(s: Questions): JsValue = ???
     }
 
     collection.find(query, projection).one[Questions].map {
-      case Some(q) => q.questions.map((q: (String, PersistedAnswer)) => PersistedQuestion(q._1, q._2)).toList
+      case Some(q) => q.questions.map((q: (String, QuestionnaireAnswer)) => QuestionnaireQuestion(q._1, q._2)).toList
       case None => List()
     }
   }
@@ -113,28 +134,28 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     def getAnswer(question: String): Option[String] = {
       val questionDoc = questionsDoc.flatMap(_.getAs[BSONDocument](question))
       questionDoc.flatMap(_.getAs[String]("answer")).orElse(
-        questionDoc.flatMap(_.getAs[Boolean]("unknown")).map { unknown => if (unknown) { "I don't know/prefer not to say"} else {""}})
+        questionDoc.flatMap(_.getAs[Boolean]("unknown")).map { unknown => if (unknown) { DontKnowAnswerText } else {""}})
     }
 
     val applicationId = document.getAs[String]("applicationId").get
-    val gender = getAnswer("What is your gender identity?")
-    val sexualOrientation = getAnswer("What is your sexual orientation?")
-    val ethnicity = getAnswer("What is your ethnic group?")
+    val gender = getAnswer(GenderQuestionText)
+    val sexualOrientation = getAnswer(SexualOrientationQuestionText)
+    val ethnicity = getAnswer(EthnicityQuestionText)
 
-    val university = getAnswer("What is the name of the university you received your degree from?")
+    val university = getAnswer(UniversityQuestionText)
 
-    val employmentStatus = getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?")
-    val isEmployed = employmentStatus.exists (s => !s.startsWith("Unemployed") && !s.startsWith("Unknown"))
+    val employmentStatus = getAnswer(EmploymentStatusQuestionText)
+    val isEmployed = employmentStatus.exists (s => !s.startsWith(UnemployedAnswerText) && !s.startsWith(UnknownAnswerText))
 
-    val parentEmploymentStatus = if (isEmployed) Some("Employed") else employmentStatus
+    val parentEmploymentStatus = if (isEmployed) Some(EmployedAnswerText) else employmentStatus
     val parentOccupation = if (isEmployed) employmentStatus else None
 
-    val parentEmployedOrSelf = getAnswer("Did they work as an employee or were they self-employed?")
-    val parentCompanySize = getAnswer("Which size would best describe their place of work?")
+    val parentEmployedOrSelf = getAnswer(ParentEmployedOrSelfEmployedQuestionText)
+    val parentCompanySize = getAnswer(ParentCompanySizeQuestionText)
 
     val qAndA = questionsDoc.toList.flatMap(_.elements).map {
       case (question, _) =>
-        val answer = getAnswer(question).getOrElse("Unknown")
+        val answer = getAnswer(question).getOrElse(UnknownAnswerText)
         (question, answer)
     }.toMap
 
