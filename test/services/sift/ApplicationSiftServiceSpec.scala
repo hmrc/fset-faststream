@@ -184,7 +184,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       }
     }
 
-    "sift and update progress status for a candidate" in new SiftUpdateTest {
+    "sift and update progress status for a candidate" ignore new SiftUpdateTest {
+      (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(schemeSiftResult),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)
