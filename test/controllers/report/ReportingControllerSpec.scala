@@ -20,12 +20,11 @@ import config.TestFixtureBase
 import connectors.AuthProviderClient
 import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
-import mocks._
 import model.EvaluationResults.Green
 import model.{ Scheme, _ }
 import model.persisted._
 import model.persisted.assessor.{ Assessor, AssessorStatus }
-import model.persisted.eventschedules.{ Event, SkillType }
+import model.persisted.eventschedules.SkillType
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
 import model.report.{ CandidateProgressReportItem, _ }
 import org.mockito.ArgumentMatchers._
@@ -339,6 +338,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val mockReportingRepository: ReportingRepository = mock[ReportingRepository]
     val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
     val mockQuestionnaireRepository: QuestionnaireRepository = mock[QuestionnaireRepository]
+    val mockAssessmentScoresRepository: AssessmentScoresRepository = mock[AssessmentScoresRepository]
+    val mockMediaRepository: MediaRepository = mock[MediaRepository]
     val mockAssessorAllocationRepository = mock[AssessorAllocationRepository]
     val mockEventsRepository = mock[EventsRepository]
     val mockAssessorRepository = mock[AssessorRepository]
@@ -352,8 +353,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       override val reportingRepository: ReportingRepository = mockReportingRepository
       override val contactDetailsRepository: contactdetails.ContactDetailsRepository = mockContactDetailsRepository
       override val questionnaireRepository: QuestionnaireRepository = mockQuestionnaireRepository
-      override val assessmentScoresRepository: AssessmentScoresRepository = AssessmentScoresRepositoryInMemoryRepository
-      override val mediaRepository: MediaRepository = MediaInMemoryRepository
+      override val assessmentScoresRepository: AssessmentScoresRepository = mockAssessmentScoresRepository
+      override val mediaRepository: MediaRepository = mockMediaRepository // MediaInMemoryRepository
       override val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
       override val authProviderClient: AuthProviderClient = mockAuthProviderClient
       override val eventsRepository = mockEventsRepository
