@@ -183,8 +183,10 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         result mustBe candidates
       }
     }
+  }
 
-    "sift and update progress status for a candidate" ignore new SiftUpdateTest {
+  "Sifting" ignore {
+    "sift and update progress status for a candidate" in new SiftUpdateTest {
       (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(schemeSiftResult),
@@ -346,7 +348,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     "sift a candidate with remaining schemes to sift" in new SiftUpdateTest {
       (mockSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
-       val currentStatus = Seq(
+      val currentStatus = Seq(
         SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
       )
