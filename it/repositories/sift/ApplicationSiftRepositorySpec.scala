@@ -137,13 +137,6 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
     }
-
-    "not sift application for already sifted scheme" in forAll(candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
-      repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green")).futureValue
-      intercept[Exception] {
-        repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Red")).futureValue
-      }
-    }
   }
 
   "next application failed at sift" must {

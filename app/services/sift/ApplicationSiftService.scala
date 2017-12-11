@@ -20,6 +20,7 @@ import common.FutureEx
 import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
 import model.EvaluationResults.{ Green, Red, Withdrawn }
+import model.Exceptions.{ PassMarkEvaluationNotFound, SiftResultsAlreadyExistsException }
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
@@ -87,12 +88,18 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    applicationRepo.getApplicationRoute(applicationId).flatMap { route =>
-      val updateFunction = route match {
-        case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
-        case _ => buildSiftSettableFields(result, schemeFilter) _
+    applicationSiftRepo.siftResultsExists(applicationId).map { siftResultsExists =>
+      if(siftResultsExists) {
+        throw SiftResultsAlreadyExistsException(s"Sift result already exists for appId $applicationId and scheme ${result.schemeId}")
+      } else {
+        applicationRepo.getApplicationRoute(applicationId).flatMap { route =>
+          val updateFunction = route match {
+            case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
+            case _ => buildSiftSettableFields(result, schemeFilter) _
+          }
+          siftApplicationForScheme(applicationId, result, updateFunction)
+        }
       }
-      siftApplicationForScheme(applicationId, result, updateFunction)
     }
   }
 
