@@ -56,7 +56,7 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
       val canRun = shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
 
       if (canRun) {
-        assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun).flatMap { nFut =>
+        assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun).flatMap { _ =>
           assessorsEventsSummaryJobsService.save(newLastRun).map(_ => ())
         }
       } else {

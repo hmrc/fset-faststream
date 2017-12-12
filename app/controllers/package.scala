@@ -33,7 +33,7 @@ package object controllers {
       def bind(key: String, value: String): Either[String, UniqueIdentifier] =
         Try { UniqueIdentifier(value) } match {
           case Success(v) => Right(v)
-          case Failure(e: IllegalArgumentException) => Left(s"Badly formatted UniqueIdentifier $value")
+          case Failure(_: IllegalArgumentException) => Left(s"Badly formatted UniqueIdentifier $value")
           case Failure(e) => throw e
         }
       def unbind(key: String, value: UniqueIdentifier) = value.toString()
@@ -47,7 +47,7 @@ package object controllers {
           uuid match {
             case Right(value) => Try { UniqueIdentifier(value) } match {
               case Success(v) => Right(v)
-              case Failure(e: IllegalArgumentException) => Left(s"Badly formatted UniqueIdentifier $value")
+              case Failure(_: IllegalArgumentException) => Left(s"Badly formatted UniqueIdentifier $value")
               case Failure(e) => throw e
             }
             case _ => Left("Bad uuid")

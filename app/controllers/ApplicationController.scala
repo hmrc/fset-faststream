@@ -154,7 +154,7 @@ trait ApplicationController extends BaseController {
     withJsonBody[OverrideSubmissionDeadlineRequest] { overrideRequest =>
       applicationService.overrideSubmissionDeadline(applicationId, overrideRequest.submissionDeadline).map(_ => Ok)
         .recover {
-          case e: NotFoundException => NotFound(s"cannot find application with id $applicationId")
+          case _: NotFoundException => NotFound(s"cannot find application with id $applicationId")
         }
     }
   }
@@ -167,7 +167,7 @@ trait ApplicationController extends BaseController {
       } yield {
         Ok
       }).recover {
-        case x: CandidateAlreadyHasAnAnalysisExerciseException => Conflict("An analysis exercise has already been added for this user")
+        case _: CandidateAlreadyHasAnAnalysisExerciseException => Conflict("An analysis exercise has already been added for this user")
       }
   }
 

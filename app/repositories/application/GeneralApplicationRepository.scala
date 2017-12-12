@@ -653,14 +653,6 @@ class GeneralApplicationMongoRepository(
     isNotWithdrawn && isNotSubmitted
   }
 
-  private def reportQueryWithProjections[A](
-    query: BSONDocument,
-    prj: BSONDocument,
-    upTo: Int = Int.MaxValue,
-    stopOnError: Boolean = true
-  )(implicit reader: Format[A]): Future[List[A]] =
-    collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
-
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
 
   /*private def getAdjustmentsConfirmed(assistance: Option[BSONDocument]): Option[String] = {
@@ -899,9 +891,6 @@ class GeneralApplicationMongoRepository(
       "fsac-indicator" -> true
     )
 
-    val ascending = JsNumber(1)
-    val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
-
     collection.find(query, projection).cursor[BSONDocument]().collect[List]()
       .map { docList =>
         docList.map { doc =>
@@ -1025,21 +1014,6 @@ class GeneralApplicationMongoRepository(
         BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
       ))
     case _ => BSONDocument("applicationRoute" -> appRoute)
-  }
-
-  private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {
-    case Some(r) => BSONDocument(schemeName -> r.toString)
-    case _ => BSONDocument.empty
-  }
-
-  private def booleanToBSON(schemeName: String, result: Option[Boolean]): BSONDocument = result match {
-    case Some(r) => BSONDocument(schemeName -> r)
-    case _ => BSONDocument.empty
-  }
-
-  private def averageToBSON(name: String, result: Option[CompetencyAverageResult]): BSONDocument = result match {
-    case Some(r) => BSONDocument(name -> r)
-    case _ => BSONDocument.empty
   }
 
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute] = {

@@ -313,7 +313,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
         val personalDetails = document.getAs[BSONDocument]("personal-details")
         val userId = document.getAs[String]("userId").getOrElse("")
         val applicationId = document.getAs[String]("applicationId")
-        val applicationStatus = document.getAs[String]("applicationStatus")
         val candidateProgressStatuses = toProgressResponse(applicationId.get).read(document)
         val latestProgressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses))
         val firstName = extract("firstName")(personalDetails)

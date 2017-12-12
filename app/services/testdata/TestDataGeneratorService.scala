@@ -160,7 +160,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
       val parNumbers = getParNumbers(numberToGenerate)
 
       // one wasted generation of data
-      val data = createData(parNumbers.head)
+      val _ = createData(parNumbers.head)
 
       runInParallel(parNumbers, createData, EventGenerator.generate)
     }
@@ -172,7 +172,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
       val parNumbers = getParNumbers(numberToGenerate)
 
       // one wasted generation of data
-      val data = createData(parNumbers.head)
+      val _ = createData(parNumbers.head)
 
       runInParallel(parNumbers, createData, AssessorAllocationGenerator.generate)
     }

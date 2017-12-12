@@ -567,7 +567,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   private def getSdipFaststreamSchemes(applicationId: String): Future[List[SchemeId]] = for {
     phase1 <- evaluateP1ResultService.getPassmarkEvaluation(applicationId)
-    phase3 <- evaluateP3ResultService.getPassmarkEvaluation(applicationId).recover{
+    _ <- evaluateP3ResultService.getPassmarkEvaluation(applicationId).recover{
       case _: PassMarkEvaluationNotFound =>
         PassmarkEvaluation(passmarkVersion = "", previousPhasePassMarkVersion = None, result = Nil,
           resultVersion = "", previousPhaseResultVersion = None)
