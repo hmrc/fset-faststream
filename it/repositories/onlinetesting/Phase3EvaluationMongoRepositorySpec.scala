@@ -153,7 +153,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       1 to 6 foreach { id =>
         val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version1_res", None)
         insertApplication(s"app$id", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
-          Some(phase3TestWithResult), isGis = false, phase2Evaluation = Some(phase2Evaluation))
+          Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
       }
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version1", batchSizeLimit).futureValue
       result.size mustBe batchSizeLimit
@@ -164,7 +164,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       1 to 2 foreach { id =>
         val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version1-res", None)
         insertApplication(s"app$id", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
-          Some(phase3TestWithResult), isGis = false, phase2Evaluation = Some(phase2Evaluation))
+          Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
       }
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSizeLimit).futureValue
       result.size mustBe 2

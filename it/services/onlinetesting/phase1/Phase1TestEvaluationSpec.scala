@@ -83,7 +83,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     def applicationEvaluationWithPassMarks(passmarks: Phase1PassMarkSettings, applicationId:String, sjqScore: Double, bjqScore: Double,
       selectedSchemes: SchemeId*)(implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(applicationId, sjqScore, Some(bjqScore),
-        isGis = false, applicationRoute = applicationRoute)(selectedSchemes: _*)
+        applicationRoute = applicationRoute)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, passmarks).futureValue
       this
     }

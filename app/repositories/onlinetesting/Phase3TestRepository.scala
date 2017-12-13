@@ -173,7 +173,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
     ))
 
-    findAndUpdateLaunchpadTest(launchpadInviteId, update, ignoreNotFound = false)
+    findAndUpdateLaunchpadTest(launchpadInviteId, update)
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {

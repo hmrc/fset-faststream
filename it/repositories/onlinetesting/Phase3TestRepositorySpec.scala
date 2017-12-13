@@ -142,10 +142,10 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val testWithCallback = phase3TestRepo.getTestGroup("appId").futureValue.get
 
       val test1 = testWithCallback.tests.find(t => t.token == token1).get
-      assertCallbacks(test1, 2, 0)
+      assertCallbacks(test1, 2)
 
       val test2 = testWithCallback.tests.find(t => t.token == token2).get
-      assertCallbacks(test2, 1, 0)
+      assertCallbacks(test2, 1)
 
       val test3 = testWithCallback.tests.find(t => t.token == token3).get
       assertCallbacks(test3, 0, 1)
@@ -176,10 +176,10 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val testWithCallback3 = phase3TestRepo.getTestGroup("appId3").futureValue.get
 
       val test1 = testWithCallback1.tests.find(t => t.token == token1).get
-      assertCallbacks(test1, 2, 0)
+      assertCallbacks(test1, 2)
 
       val test2 = testWithCallback2.tests.find(t => t.token == token2).get
-      assertCallbacks(test2, 1, 0)
+      assertCallbacks(test2, 1)
 
       val test3 = testWithCallback3.tests.find(t => t.token == token3).get
       assertCallbacks(test3, 0, 1)
@@ -194,7 +194,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE2_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Edip").futureValue
       createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE2_TESTS_PASSED",
-       additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Faststream").futureValue
+       additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true))).futureValue
 
       val results = phase3TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
@@ -204,9 +204,8 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return one application if there is only one" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((model.ProgressStatuses.PHASE2_TESTS_PASSED, true))
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED",
+        additionalProgressStatuses = List((model.ProgressStatuses.PHASE2_TESTS_PASSED, true))
       ).futureValue
 
       val result = phase3TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
@@ -219,10 +218,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Insert a phase 3 test" should {
     "correctly insert a test" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false
-      ).futureValue
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED").futureValue
 
       phase3TestRepo.insertOrUpdateTestGroup("appId", TestGroup).futureValue
 
@@ -235,10 +231,8 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Remove a phase 3 test" should {
     "remove test when requested" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE3", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        additionalProgressStatuses = List((ProgressStatuses.PHASE3_TESTS_INVITED, true)),
-        fastPassReceived = false
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE3",
+        additionalProgressStatuses = List((ProgressStatuses.PHASE3_TESTS_INVITED, true))
       ).futureValue
 
       phase3TestRepo.insertOrUpdateTestGroup("appId", TestGroup).futureValue
