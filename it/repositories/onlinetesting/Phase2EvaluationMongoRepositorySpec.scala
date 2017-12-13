@@ -6,7 +6,7 @@ import model.SchemeId._
 import model.persisted.{ ApplicationReadyForEvaluation, _ }
 import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId }
 import org.joda.time.{ DateTime, DateTimeZone }
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }

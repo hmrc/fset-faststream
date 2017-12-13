@@ -1028,7 +1028,7 @@ class GeneralApplicationMongoRepository(
     val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
     val query = BSONDocument()
 
-    collection.find(query, projection).cursor[BSONDocument].collect[List]().map { doc =>
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { doc =>
       doc.flatMap { item =>
         item.getAs[BSONDocument]("progress-status-timestamp").map {
           _.elements.toList.map { progressStatus =>
