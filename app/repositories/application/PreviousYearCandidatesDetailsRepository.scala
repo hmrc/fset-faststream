@@ -18,19 +18,17 @@ package repositories.application
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
+import model.command.{ CandidateDetailsReportItem, CsvExtract }
 import model.{ CivilServiceExperienceType, InternshipType, ProgressStatuses }
-import model.CivilServiceExperienceType.CivilServiceExperienceType
-import model.InternshipType.InternshipType
-import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse }
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository }
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import reactivemongo.api.{ DB, ReadPreference }
-import reactivemongo.bson.BSONDocument
-import reactivemongo.json.collection.JSONCollection
+import reactivemongo.bson.{ BSONDocument, BSONReader, BSONValue }
 import reactivemongo.json.ImplicitBSONHandlers._
+import reactivemongo.json.collection.JSONCollection
+import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository }
 import services.reporting.SocioEconomicCalculator
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,7 +36,38 @@ import scala.concurrent.Future
 
 trait PreviousYearCandidatesDetailsRepository {
 
+  implicit class RichOptionBSONDocument(doc: Option[BSONDocument]) {
+
+    def getAs[T](key: String)(implicit reader: BSONReader[_ <: BSONValue, T]) = doc.flatMap(_.getAs[T](key))
+
+    def getAsStr[T](key: String)(implicit reader: BSONReader[_ <: BSONValue, T]) = doc.flatMap(_.getAs[T](key)).map(_.toString)
+
+    def getOrElseAsStr[T](key: String)(default: T)(implicit reader: BSONReader[_ <: BSONValue, T]) = {
+      doc.flatMap(_.getAs[T](key).orElse(Some(default))).map(_.toString)
+    }
+  }
+
   // scalastyle:off
+
+  private val appTestStatuses = "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE2_TESTS_INVITED,PHASE2_TESTS_FIRST_REMINDER," +
+    "PHASE2_TESTS_SECOND_REMINDER,PHASE2_TESTS_STARTED,PHASE2_TESTS_COMPLETED,PHASE2_TESTS_RESULTS_READY," +
+    "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
+    "PHASE3_TESTS_SECOND_REMINDER,PHASE3_TESTS_STARTED,PHASE3_TESTS_COMPLETED,PHASE3_TESTS_RESULTS_RECEIVED," +
+    "PHASE3_TESTS_PASSED,PHASE3_TESTS_SUCCESS_NOTIFIED," +
+    "SIFT_ENTERED,SIFT_READY,SIFT_COMPLETED,FAILED_AT_SIFT,FAILED_AT_SIFT_NOTIFIED,SDIP_FAILED_AT_SIFT,SIFT_FASTSTREAM_FAILED_SDIP_GREEN," +
+    "ASSESSMENT_CENTRE_AWAITING_ALLOCATION,ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,ASSESSMENT_CENTRE_FAILED_TO_ATTEND," +
+    "ASSESSMENT_CENTRE_SCORES_ENTERED,ASSESSMENT_CENTRE_SCORES_ACCEPTED,ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION,ASSESSMENT_CENTRE_PASSED,ASSESSMENT_CENTRE_FAILED," +
+    "ASSESSMENT_CENTRE_FAILED_NOTIFIED,ASSESSMENT_CENTRE_FAILED_SDIP_GREEN,ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED," +
+    "FSB_AWAITING_ALLOCATION,FSB_ALLOCATION_UNCONFIRMED,FSB_ALLOCATION_CONFIRMED,FSB_FAILED_TO_ATTEND," +
+    "FSB_RESULT_ENTERED,FSB_PASSED,FSB_FAILED,ALL_FSBS_AND_FSACS_FAILED,ALL_FSBS_AND_FSACS_FAILED_NOTIFIED," +
+    "ELIGIBLE_FOR_JOB_OFFER,ELIGIBLE_FOR_JOB_OFFER_NOTIFIED,"
+
+
+  private val appTestResults =
+    List("PHASE 1", "PHASE 2", "PHASE 3", "SIFT", "FSAC", "FSB").map { s =>
+      s"$s result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result"
+    }.mkString(",")
+
   val applicationDetailsHeader = "applicationId, userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
     "EDIP,SDIP 2016 (previous years),Fast Pass (sdip 2017),Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
@@ -56,15 +85,8 @@ trait PreviousYearCandidatesDetailsRepository {
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
     "personal-details,IN_PROGRESS,scheme-preferences,partner-graduate-programmes,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_RESULTS_READY," +
-    "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE2_TESTS_INVITED,PHASE2_TESTS_FIRST_REMINDER," +
-    "PHASE2_TESTS_SECOND_REMINDER,PHASE2_TESTS_STARTED,PHASE2_TESTS_COMPLETED,PHASE2_TESTS_RESULTS_READY," +
-    "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
-    "PHASE3_TESTS_SECOND_REMINDER,PHASE3_TESTS_STARTED,PHASE3_TESTS_COMPLETED,PHASE3_TESTS_RESULTS_RECEIVED," +
-    "PHASE3_TESTS_PASSED,PHASE3_TESTS_SUCCESS_NOTIFIED,EXPORTED,PHASE 1 result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
-    "result,result,result,result," +
-    "PHASE 2 result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result," +
-    "PHASE 3 result,result,result,result,result,result,result,result,result,result," +
-    "result,result,result,result,result,result,result,result"
+    appTestStatuses +
+    appTestResults
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
@@ -75,6 +97,8 @@ trait PreviousYearCandidatesDetailsRepository {
 
   val mediaHeader = "How did you hear about us?"
 
+  val eventsDetailsHeader = "FSAC events,FSB events"
+
   def applicationDetailsStream(): Enumerator[CandidateDetailsReportItem]
 
   def findContactDetails(): Future[CsvExtract[String]]
@@ -82,9 +106,12 @@ trait PreviousYearCandidatesDetailsRepository {
   def findQuestionnaireDetails(): Future[CsvExtract[String]]
 
   def findMediaDetails(): Future[CsvExtract[String]]
+
+  def findEventsDetails(): Future[CsvExtract[String]]
 }
 
-class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments {
+class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
+  extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments {
   import config.MicroserviceAppConfig._
 
   val applicationDetailsCollection = mongo().collection[JSONCollection](CollectionNames.APPLICATION)
@@ -95,8 +122,12 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
 
   val mediaCollection = mongo().collection[JSONCollection](CollectionNames.MEDIA)
 
-  private def optYes = Some("Yes")
-  private def optNo = Some("No")
+  val candidateAllocationCollection = mongo().collection[JSONCollection](CollectionNames.CANDIDATE_ALLOCATION)
+
+  val eventCollection = mongo().collection[JSONCollection](CollectionNames.ASSESSMENT_EVENTS)
+
+  private val optYes = Some("Yes")
+  private val optNo = Some("No")
 
   private var adsCounter = 0
 
@@ -122,8 +153,9 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
           val onlineTestResults = onlineTests(doc)
 
           adsCounter += 1
+          val applicationIdOpt = doc.getAs[String]("applicationId")
           val csvContent = makeRow(
-            List(doc.getAs[String]("applicationId")) :::
+            List(applicationIdOpt) :::
               List(doc.getAs[String]("userId")) :::
               List(doc.getAs[String]("frameworkId")) :::
               List(doc.getAs[String]("applicationStatus")) :::
@@ -167,70 +199,96 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
   }
 
   private def progressStatusTimestamps(doc: BSONDocument): List[Option[String]] = {
+
     val statusTimestamps = doc.getAs[BSONDocument]("progress-status-timestamp")
     val progressStatus = doc.getAs[BSONDocument]("progress-status")
     val progressStatusDates = doc.getAs[BSONDocument]("progress-status-dates")
 
     val questionnaireStatuses = progressStatus.flatMap(_.getAs[BSONDocument]("questionnaire"))
 
-    def questionnaireStatus(key: String): Option[String] = {
-      if (questionnaireStatuses.isEmpty) {
-        Some("false")
-      } else {
-        questionnaireStatuses.flatMap(_.getAs[Boolean](key).orElse(Some(false)).map(_.toString))
+    def timestampFor(status: ProgressStatuses.ProgressStatus) = statusTimestamps.getAsStr[DateTime](status.toString)
+
+    def questionnaireStatus(key: String): Option[String] = questionnaireStatuses match {
+        case None => Some("false")
+        case Some(stat) => stat.getAs[Boolean](key).orElse(Some(false)).map(_.toString)
       }
-    }
 
     List(
-      progressStatus.flatMap(_.getAs[Boolean]("personal-details").orElse(Some(false)).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](
-        "IN_PROGRESS").map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("in_progress"))
+      progressStatus.getOrElseAsStr[Boolean]("personal-details")(false),
+      statusTimestamps.getAsStr[DateTime]("IN_PROGRESS").orElse(progressStatusDates.flatMap(_.getAs[String]("in_progress"))
       ),
-      progressStatus.flatMap(_.getAs[Boolean]("scheme-preferences").orElse(Some(false)).map(_.toString)),
-      progressStatus.flatMap(_.getAs[Boolean]("partner-graduate-programmes").orElse(Some(false)).map(_.toString)),
-      progressStatus.flatMap(_.getAs[Boolean]("assistance-details").orElse(Some(false)).map(_.toString)),
+      progressStatus.getOrElseAsStr[Boolean]("scheme-preferences")(false),
+      progressStatus.getOrElseAsStr[Boolean]("partner-graduate-programmes")(false),
+      progressStatus.getOrElseAsStr[Boolean]("assistance-details")(false),
       questionnaireStatus("start_questionnaire"),
       questionnaireStatus("diversity_questionnaire"),
       questionnaireStatus("education_questionnaire"),
       questionnaireStatus("occupation_questionnaire"),
-      progressStatus.flatMap(_.getAs[Boolean]("preview").orElse(Some(false)).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](
-        ProgressStatuses.SUBMITTED.toString).map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("submitted"))
-      ),
-      statusTimestamps.flatMap(_.getAs[DateTime](
-        ProgressStatuses.PHASE1_TESTS_INVITED.toString).map(_.toString)
-      ).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_INVITED"))),
-      statusTimestamps.flatMap(_.getAs[DateTime](
-        ProgressStatuses.PHASE1_TESTS_STARTED.toString
-      ).map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_STARTED"))),
-      statusTimestamps.flatMap(_.getAs[DateTime](
-        ProgressStatuses.PHASE1_TESTS_COMPLETED.toString
-      ).map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_COMPLETED"))),
-      statusTimestamps.flatMap(_.getAs[DateTime](
-        ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString).map(_.toString)
-      ).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_RESULTS_READY"))),
-      statusTimestamps.flatMap(_.getAs[DateTime](
-        ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString
-      ).map(_.toString)).orElse(progressStatusDates.flatMap(_.getAs[String]("PHASE1_TESTS_RESULTS_RECEIVED"))),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE1_TESTS_PASSED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_INVITED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_STARTED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_COMPLETED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_RESULTS_READY.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE2_TESTS_PASSED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_INVITED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_STARTED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_COMPLETED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_PASSED.toString).map(_.toString)),
-      statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED.toString).map(_.toString))
-      // ,statusTimestamps.flatMap(_.getAs[DateTime](ProgressStatuses.EXPORTED.toString).map(_.toString))
-    )
+      progressStatus.getOrElseAsStr[Boolean]("preview")(false),
+      timestampFor(ProgressStatuses.SUBMITTED).orElse(progressStatusDates.getAsStr[String]("submitted")),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_INVITED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_INVITED")),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_STARTED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_STARTED")),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_COMPLETED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_COMPLETED")),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_RESULTS_READY).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_RESULTS_READY")),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_RESULTS_RECEIVED"))
+    ) ++
+    List(
+      ProgressStatuses.PHASE1_TESTS_PASSED,
+      ProgressStatuses.PHASE2_TESTS_INVITED,
+      ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_STARTED,
+      ProgressStatuses.PHASE2_TESTS_COMPLETED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_READY,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE2_TESTS_PASSED,
+      ProgressStatuses.PHASE3_TESTS_INVITED,
+      ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_STARTED,
+      ProgressStatuses.PHASE3_TESTS_COMPLETED,
+      ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE3_TESTS_PASSED,
+      ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED
+    ).map(timestampFor) ++
+    List(
+        ProgressStatuses.SIFT_ENTERED,
+        ProgressStatuses.SIFT_READY,
+        ProgressStatuses.SIFT_COMPLETED,
+        ProgressStatuses.FAILED_AT_SIFT,
+        ProgressStatuses.FAILED_AT_SIFT_NOTIFIED,
+        ProgressStatuses.SDIP_FAILED_AT_SIFT,
+        ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN
+      ).map(timestampFor) ++
+    List(
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED,
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION,
+      ProgressStatuses.ASSESSMENT_CENTRE_PASSED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED
+    ).map(timestampFor) ++
+    List(
+      ProgressStatuses.FSB_AWAITING_ALLOCATION,
+      ProgressStatuses.FSB_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.FSB_ALLOCATION_CONFIRMED,
+      ProgressStatuses.FSB_FAILED_TO_ATTEND,
+      ProgressStatuses.FSB_RESULT_ENTERED,
+      ProgressStatuses.FSB_PASSED,
+      ProgressStatuses.FSB_FAILED,
+      ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED,
+      ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED_NOTIFIED
+    ).map(timestampFor) ++
+    List(
+      ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER,
+      ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED
+    ).map(timestampFor)
   }
 
   private def civilServiceExperienceCheckExpType(civilServExperienceType: Option[String], typeToMatch: String) =
@@ -263,15 +321,15 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
           val contactDetails = doc.getAs[BSONDocument]("contact-details")
           val address = contactDetails.flatMap(_.getAs[BSONDocument]("address"))
           val csvRecord = makeRow(
-            contactDetails.flatMap(_.getAs[String]("email")),
-            address.flatMap(_.getAs[String]("line1")),
-            address.flatMap(_.getAs[String]("line2")),
-            address.flatMap(_.getAs[String]("line3")),
-            address.flatMap(_.getAs[String]("line4")),
-            contactDetails.flatMap(_.getAs[String]("postCode")),
-            contactDetails.flatMap(_.getAs[Boolean]("outsideUk").map(outside => if (outside) "Yes" else "No")),
-            contactDetails.flatMap(_.getAs[String]("country")),
-            contactDetails.flatMap(_.getAs[String]("phone"))
+            contactDetails.getAsStr[String]("email"),
+            address.getAsStr[String]("line1"),
+            address.getAsStr[String]("line2"),
+            address.getAsStr[String]("line3"),
+            address.getAsStr[String]("line4"),
+            contactDetails.getAsStr[String]("postCode"),
+            contactDetails.flatMap(_.getAs[Boolean]("outsideUk")).map(outside => if (outside) "Yes" else "No"),
+            contactDetails.getAsStr[String]("country"),
+            contactDetails.getAsStr[String]("phone")
           )
           doc.getAs[String]("userId").getOrElse("") -> csvRecord
         }
@@ -335,6 +393,52 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
       }
   }
 
+  def findEventsDetails(): Future[CsvExtract[String]] = {
+    val projection = Json.obj("_id" -> 0)
+
+
+    val allEventsFut = eventCollection.find(Json.obj(), projection)
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .collect[List]().map { docs =>
+      docs.map { doc =>
+        val id = doc.getAs[String]("id")
+        id.getOrElse("") ->
+          List(
+            id,
+            doc.getAs[String]("eventType"),
+            doc.getAs[String]("description"),
+            doc.getAs[String]("venue.description"),
+            doc.getAs[String]("date")
+          ).flatten.mkString(" ")
+      }.toMap
+    }
+
+    allEventsFut.flatMap { allEvents =>
+      candidateAllocationCollection.find(Json.obj(), projection)
+        .cursor[BSONDocument](ReadPreference.nearest)
+        .collect[List]().map { docs =>
+        val csvRecords = docs.map { doc =>
+          val eventId = doc.getAs[String]("eventId").getOrElse("-")
+          val csvRecord = makeRow(
+            Some(List(
+              allEvents.get(eventId).map(e => s"Event: $e"),
+              doc.getAs[String]("sessionId").map(s => s"session: $s"),
+              doc.getAs[String]("status"),
+              doc.getAs[String]("removeReason"),
+              doc.getAs[String]("createdAt")
+            ).flatten.mkString(" ")
+            )
+          )
+          doc.getAs[String]("id").getOrElse("") -> csvRecord
+        }.groupBy(_._1).map {
+          case (appId, events) => appId -> events.map(_._2).mkString(";")
+        }
+        CsvExtract(mediaHeader, csvRecords)
+      }
+    }
+
+  }
+
   def findMediaDetails(): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
 
@@ -353,8 +457,8 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
 
   private def isOxbridge(code: Option[String]): Option[String] = {
     code match {
-      case Some("O33-OXF") | Some("C05-CAM") => Some("Yes")
-      case Some(_) => Some("No")
+      case Some("O33-OXF") | Some("C05-CAM") => optYes
+      case Some(_) => optNo
       case None => None
     }
   }
@@ -370,13 +474,12 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
   }
 
   private def videoInterview(doc: BSONDocument): List[Option[String]] = {
-    val appId = doc.getAs[String]("applicationId").get
     val testGroups = doc.getAs[BSONDocument]("testGroups")
-    val videoTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE3"))
-    val videoTests = videoTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
+    val videoTestSection = testGroups.getAs[BSONDocument]("PHASE3")
+    val videoTests = videoTestSection.getAs[List[BSONDocument]]("tests")
     val activeVideoTest = videoTests.map(_.filter(_.getAs[Boolean]("usedForResults").getOrElse(false)).head)
-    val activeVideoTestCallbacks = activeVideoTest.flatMap(_.getAs[BSONDocument]("callbacks"))
-    val activeVideoTestReviewedCallbacks = activeVideoTestCallbacks.flatMap(_.getAs[List[BSONDocument]]("reviewed"))
+    val activeVideoTestCallbacks = activeVideoTest.getAs[BSONDocument]("callbacks")
+    val activeVideoTestReviewedCallbacks = activeVideoTestCallbacks.getAs[List[BSONDocument]]("reviewed")
 
     val latestAVTRCallback = activeVideoTestReviewedCallbacks.flatMap {
       reviewedCallbacks =>
@@ -410,10 +513,10 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
     }
 
     List(
-      activeVideoTest.flatMap(_.getAs[Int]("interviewId").map(_.toString)),
-      activeVideoTest.flatMap(_.getAs[String]("token")),
-      activeVideoTest.flatMap(_.getAs[String]("candidateId")),
-      activeVideoTest.flatMap(_.getAs[String]("customCandidateId")),
+      activeVideoTest.getAsStr[Int]("interviewId"),
+      activeVideoTest.getAsStr[String]("token"),
+      activeVideoTest.getAsStr[String]("candidateId"),
+      activeVideoTest.getAsStr[String]("customCandidateId"),
       latestReviewer.flatMap(_.comment),
       latestReviewer.flatMap(_.question1.reviewCriteria1.score.map(_.toString)),
       latestReviewer.flatMap(_.question1.reviewCriteria2.score.map(_.toString)),
@@ -438,36 +541,19 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
   private def testEvaluations(doc: BSONDocument): List[Option[String]] = {
     val testGroups = doc.getAs[BSONDocument]("testGroups")
 
-    val onlineTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
-    val onlineTestsEvaluation = onlineTestSection.flatMap(_.getAs[BSONDocument]("evaluation"))
-    val onlineTestEvalResults = onlineTestsEvaluation.flatMap(_.getAs[List[BSONDocument]]("result"))
+    def getSchemeResults(results: List[BSONDocument]) = results.map {
+      result => result.getAs[String]("schemeId").getOrElse("") + ": " + result.getAs[String]("result").getOrElse("")
+    }
 
-    val etrayTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE2"))
-    val etrayEvaluation = etrayTestSection.flatMap(_.getAs[BSONDocument]("evaluation"))
-    val etrayEvalResults = etrayEvaluation.flatMap(_.getAs[List[BSONDocument]]("result"))
-
-    val videoInterviewSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE3"))
-    val videoEvaluation = videoInterviewSection.flatMap(_.getAs[BSONDocument]("evaluation"))
-    val videoEvalResults = videoEvaluation.flatMap(_.getAs[List[BSONDocument]]("result"))
-
-    val otEvalResultsMap = onlineTestEvalResults.map(resultList => resultList.map(result => result.getAs[String]("scheme").get +
-      ": " + result.getAs[String]("result").get))
-    val etrayEvalResultsMap = etrayEvalResults.map(resultList => resultList.map(result => result.getAs[String]("scheme").get +
-      ": " + result.getAs[String]("result").get))
-    val videoEvalResultsMap = videoEvalResults.map(resultList => resultList.map(result => result.getAs[String]("scheme").get +
-      ": " + result.getAs[String]("result").get))
-
-    val otSchemeResults = otEvalResultsMap.getOrElse(Nil)
-
-    val etraySchemeResults = etrayEvalResultsMap.getOrElse(Nil)
-    val videoSchemeResults = videoEvalResultsMap.getOrElse(Nil)
-
-    otSchemeResults.map(Option(_)) :::
-    (1 to (18 - otSchemeResults.size)).toList.map(_ => Some("")) :::
-    etraySchemeResults.map(Option(_)) :::
-    (1 to (18 - etraySchemeResults.size)).toList.map(_ => Some("")) :::
-    videoSchemeResults.map(Option(_)) :::
-    (1 to (18 - videoSchemeResults.size)).toList.map(_ => Some(""))
+    List("PHASE1", "PHASE2", "PHASE3", "SIFT_PHASE", "FSAC", "FSB").flatMap { sectionName => {
+      val testSection = testGroups.getAs[BSONDocument](sectionName)
+      val testsEvaluation = testSection.getAs[BSONDocument]("evaluation")
+      val testEvalResults = testsEvaluation.getAs[List[BSONDocument]]("result")
+      val evalResultsMap = testEvalResults.map(getSchemeResults)
+      val schemeResults = evalResultsMap.getOrElse(Nil)
+      schemeResults.map(Option(_)) ::: ( 1 to ( 18 - schemeResults.size ) ).toList.map(_ => Some(""))
+    }
+    }
   }
 
   private def onlineTests(doc: BSONDocument): Map[String, List[Option[String]]] = {
@@ -492,101 +578,101 @@ class PreviousYearCandidatesDetailsMongoRepository(implicit mongo: () => DB) ext
     Map(
       "bq" ->
         List(
-          bqTest.flatMap(_.getAs[Int]("scheduleId").map(_.toString)),
-          bqTest.flatMap(_.getAs[Int]("cubiksUserId").map(_.toString)),
-          bqTest.flatMap(_.getAs[String]("token")),
-          bqTest.flatMap(_.getAs[String]("testUrl")),
-          bqTest.flatMap(_.getAs[DateTime]("invitationDate").map(_.toString)),
-          bqTest.flatMap(_.getAs[Int]("participantScheduleId").map(_.toString)),
-          bqTest.flatMap(_.getAs[DateTime]("startedDateTime").map(_.toString)),
-          bqTest.flatMap(_.getAs[DateTime]("completedDateTime").map(_.toString)),
-          bqTest.flatMap(_.getAs[Int]("reportId").map(_.toString)),
-          bqTest.flatMap(_.getAs[String]("reportLinkURL")),
-          bqTestResults.flatMap(_.getAs[Double]("tScore").map(_.toString)),
-          bqTestResults.flatMap(_.getAs[Double]("percentile").map(_.toString)),
-          bqTestResults.flatMap(_.getAs[Double]("raw").map(_.toString)),
-          bqTestResults.flatMap(_.getAs[Double]("sten").map(_.toString))
+          bqTest.getAsStr[Int]("scheduleId"),
+          bqTest.getAsStr[Int]("cubiksUserId"),
+          bqTest.getAsStr[String]("token"),
+          bqTest.getAsStr[String]("testUrl"),
+          bqTest.getAsStr[DateTime]("invitationDate"),
+          bqTest.getAsStr[Int]("participantScheduleId"),
+          bqTest.getAsStr[DateTime]("startedDateTime"),
+          bqTest.getAsStr[DateTime]("completedDateTime"),
+          bqTest.getAsStr[Int]("reportId"),
+          bqTest.getAsStr[String]("reportLinkURL"),
+          bqTestResults.getAsStr[Double]("tScore"),
+          bqTestResults.getAsStr[Double]("percentile"),
+          bqTestResults.getAsStr[Double]("raw"),
+          bqTestResults.getAsStr[Double]("sten")
         ),
       "sjq" ->
         List(
-          sjqTest.flatMap(_.getAs[Int]("scheduleId").map(_.toString)),
-          sjqTest.flatMap(_.getAs[Int]("cubiksUserId").map(_.toString)),
-          sjqTest.flatMap(_.getAs[String]("token")),
-          sjqTest.flatMap(_.getAs[String]("testUrl")),
-          sjqTest.flatMap(_.getAs[DateTime]("invitationDate").map(_.toString)),
-          sjqTest.flatMap(_.getAs[Int]("participantScheduleId").map(_.toString)),
-          sjqTest.flatMap(_.getAs[DateTime]("startedDateTime").map(_.toString)),
-          sjqTest.flatMap(_.getAs[DateTime]("completedDateTime").map(_.toString)),
-          sjqTest.flatMap(_.getAs[Int]("reportId").map(_.toString)),
-          sjqTest.flatMap(_.getAs[String]("reportLinkURL")),
-          sjqTestResults.flatMap(_.getAs[Double]("tScore").map(_.toString)),
-          sjqTestResults.flatMap(_.getAs[Double]("percentile").map(_.toString)),
-          sjqTestResults.flatMap(_.getAs[Double]("raw").map(_.toString)),
-          sjqTestResults.flatMap(_.getAs[Double]("sten").map(_.toString))
+          sjqTest.getAsStr[Int]("scheduleId"),
+          sjqTest.getAsStr[Int]("cubiksUserId"),
+          sjqTest.getAsStr[String]("token"),
+          sjqTest.getAsStr[String]("testUrl"),
+          sjqTest.getAsStr[DateTime]("invitationDate"),
+          sjqTest.getAsStr[Int]("participantScheduleId"),
+          sjqTest.getAsStr[DateTime]("startedDateTime"),
+          sjqTest.getAsStr[DateTime]("completedDateTime"),
+          sjqTest.getAsStr[Int]("reportId"),
+          sjqTest.getAsStr[String]("reportLinkURL"),
+          sjqTestResults.getAsStr[Double]("tScore"),
+          sjqTestResults.getAsStr[Double]("percentile"),
+          sjqTestResults.getAsStr[Double]("raw"),
+          sjqTestResults.getAsStr[Double]("sten")
         ),
       "etray" ->
         List(
-          etrayTest.flatMap(_.getAs[Int]("scheduleId").map(_.toString)),
-          etrayTest.flatMap(_.getAs[Int]("cubiksUserId").map(_.toString)),
-          etrayTest.flatMap(_.getAs[String]("token")),
-          etrayTest.flatMap(_.getAs[String]("testUrl")),
-          etrayTest.flatMap(_.getAs[DateTime]("invitationDate").map(_.toString)),
-          etrayTest.flatMap(_.getAs[Int]("participantScheduleId").map(_.toString)),
-          etrayTest.flatMap(_.getAs[DateTime]("startedDateTime").map(_.toString)),
-          etrayTest.flatMap(_.getAs[DateTime]("completedDateTime").map(_.toString)),
-          etrayTest.flatMap(_.getAs[Int]("reportId").map(_.toString)),
-          etrayTest.flatMap(_.getAs[String]("reportLinkURL")),
-          etrayResults.flatMap(_.getAs[Double]("tScore").map(_.toString)),
-          etrayResults.flatMap(_.getAs[Double]("raw").map(_.toString))
+          etrayTest.getAsStr[Int]("scheduleId"),
+          etrayTest.getAsStr[Int]("cubiksUserId"),
+          etrayTest.getAsStr[String]("token"),
+          etrayTest.getAsStr[String]("testUrl"),
+          etrayTest.getAsStr[DateTime]("invitationDate"),
+          etrayTest.getAsStr[Int]("participantScheduleId"),
+          etrayTest.getAsStr[DateTime]("startedDateTime"),
+          etrayTest.getAsStr[DateTime]("completedDateTime"),
+          etrayTest.getAsStr[Int]("reportId"),
+          etrayTest.getAsStr[String]("reportLinkURL"),
+          etrayResults.getAsStr[Double]("tScore"),
+          etrayResults.getAsStr[Double]("raw")
         )
     )
   }
 
   private def assistanceDetails(doc: BSONDocument): List[Option[String]] = {
     val assistanceDetails = doc.getAs[BSONDocument]("assistance-details")
-    val etrayAdjustments = assistanceDetails.flatMap(_.getAs[BSONDocument]("etray"))
-    val videoAdjustments = assistanceDetails.flatMap(_.getAs[BSONDocument]("video"))
-    val typeOfAdjustments = assistanceDetails.flatMap(_.getAs[List[String]]("typeOfAdjustments")).getOrElse(Nil)
+    val etrayAdjustments = assistanceDetails.getAs[BSONDocument]("etray")
+    val videoAdjustments = assistanceDetails.getAs[BSONDocument]("video")
+    val typeOfAdjustments = assistanceDetails.getAs[List[String]]("typeOfAdjustments").getOrElse(Nil)
 
     List(
-      assistanceDetails.flatMap(_.getAs[String]("hasDisability")),
-      assistanceDetails.flatMap(_.getAs[String]("hasDisabilityDescription")),
+      assistanceDetails.getAs[String]("hasDisability"),
+      assistanceDetails.getAs[String]("hasDisabilityDescription"),
       assistanceDetails.map(ad => if (ad.getAs[Boolean]("guaranteedInterview").getOrElse(false)) "Yes" else "No"),
-      if (assistanceDetails.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).getOrElse(false)) optYes else optNo,
-      assistanceDetails.flatMap(_.getAs[String]("needsSupportForOnlineAssessmentDescription")),
-      if (assistanceDetails.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).getOrElse(false)) optYes else optNo,
-      assistanceDetails.flatMap(_.getAs[String]("needsSupportAtVenueDescription")),
-      if (assistanceDetails.flatMap(_.getAs[Boolean]("needsSupportForPhoneInterview")).getOrElse(false)) optYes else optNo,
-      assistanceDetails.flatMap(_.getAs[String]("needsSupportForPhoneInterviewDescription")),
-      etrayAdjustments.flatMap(_.getAs[Int]("timeNeeded").map(_ + "%")),
+      if (assistanceDetails.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)) optYes else optNo,
+      assistanceDetails.getAs[String]("needsSupportForOnlineAssessmentDescription"),
+      if (assistanceDetails.getAs[Boolean]("needsSupportAtVenue").getOrElse(false)) optYes else optNo,
+      assistanceDetails.getAs[String]("needsSupportAtVenueDescription"),
+      if (assistanceDetails.getAs[Boolean]("needsSupportForPhoneInterview").getOrElse(false)) optYes else optNo,
+      assistanceDetails.getAs[String]("needsSupportForPhoneInterviewDescription"),
+      etrayAdjustments.getAs[Int]("timeNeeded").map(_ + "%"),
       if (typeOfAdjustments.contains("etrayInvigilated")) optYes else optNo,
-      etrayAdjustments.flatMap(_.getAs[String]("invigilatedInfo")),
-      etrayAdjustments.flatMap(_.getAs[String]("otherInfo")),
-      videoAdjustments.flatMap(_.getAs[Int]("timeNeeded").map(_ + "%")),
+      etrayAdjustments.getAs[String]("invigilatedInfo"),
+      etrayAdjustments.getAs[String]("otherInfo"),
+      videoAdjustments.getAs[Int]("timeNeeded").map(_ + "%"),
       if (typeOfAdjustments.contains("videoInvigilated")) optYes else optNo,
-      videoAdjustments.flatMap(_.getAs[String]("invigilatedInfo")),
-      videoAdjustments.flatMap(_.getAs[String]("otherInfo")),
-      assistanceDetails.flatMap(_.getAs[String]("adjustmentsComment")),
-      if (assistanceDetails.flatMap(_.getAs[Boolean]("adjustmentsConfirmed")).getOrElse(false)) optYes else optNo
+      videoAdjustments.getAs[String]("invigilatedInfo"),
+      videoAdjustments.getAs[String]("otherInfo"),
+      assistanceDetails.getAs[String]("adjustmentsComment"),
+      if (assistanceDetails.getAs[Boolean]("adjustmentsConfirmed").getOrElse(false)) optYes else optNo
     )
   }
 
   private def personalDetails(doc: BSONDocument) = {
     val personalDetails = doc.getAs[BSONDocument]("personal-details")
     List(
-      personalDetails.flatMap(_.getAs[String]("firstName")),
-      personalDetails.flatMap(_.getAs[String]("lastName")),
-      personalDetails.flatMap(_.getAs[String]("preferredName")),
-      personalDetails.flatMap(_.getAs[String]("dateOfBirth"))
+      personalDetails.getAs[String]("firstName"),
+      personalDetails.getAs[String]("lastName"),
+      personalDetails.getAs[String]("preferredName"),
+      personalDetails.getAs[String]("dateOfBirth")
     )
   }
 
   private def civilServiceExperience(doc: BSONDocument): (Option[String], Option[List[String]], Option[String]) = {
     val csExperienceDetails = doc.getAs[BSONDocument]("civil-service-experience-details")
     (
-      csExperienceDetails.flatMap(_.getAs[String]("civilServiceExperienceType")),
-      csExperienceDetails.flatMap(_.getAs[List[String]]("internshipTypes")),
-      csExperienceDetails.flatMap(_.getAs[String]("certificateNumber"))
+      csExperienceDetails.getAs[String]("civilServiceExperienceType"),
+      csExperienceDetails.getAs[List[String]]("internshipTypes"),
+      csExperienceDetails.getAs[String]("certificateNumber")
     )
   }
 

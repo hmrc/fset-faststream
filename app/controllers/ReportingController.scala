@@ -119,18 +119,19 @@ trait ReportingController extends BaseController {
 
   def streamPreviousYearCandidatesDetailsReport: Action[AnyContent] = Action.async { implicit request =>
     enrichPreviousYearCandidateDetails {
-      (contactDetails, questionnaireDetails, mediaDetails) =>
+      (contactDetails, questionnaireDetails, mediaDetails, eventsDetails) =>
       {
         val header = Enumerator(
           (prevYearCandidatesDetailsRepository.applicationDetailsHeader ::
             prevYearCandidatesDetailsRepository.contactDetailsHeader ::
             prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
             prevYearCandidatesDetailsRepository.mediaHeader ::
+            prevYearCandidatesDetailsRepository.eventsDetailsHeader ::
             Nil).mkString(",") + "\n"
         )
         var counter = 0
         val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream().map { app =>
-          val ret = createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails, mediaDetails) + "\n"
+          val ret = createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails, mediaDetails, eventsDetails) + "\n"
           // Logger.debug("Output line " + counter + ": " + ret)
           counter += 1
           ret
@@ -141,27 +142,36 @@ trait ReportingController extends BaseController {
   }
 
   // scalastyle:off line.size.limit
-  private def enrichPreviousYearCandidateDetails(block: (CsvExtract[String], CsvExtract[String],CsvExtract[String]) => Result) = {
+  private def enrichPreviousYearCandidateDetails(
+    block: (CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result
+  ) = {
     val candidateDetailsFut = prevYearCandidatesDetailsRepository.findContactDetails()
     val questionnaireDetailsFut = prevYearCandidatesDetailsRepository.findQuestionnaireDetails()
     val mediaDetailsFut = prevYearCandidatesDetailsRepository.findMediaDetails()
+    val eventsDetailsFut = prevYearCandidatesDetailsRepository.findEventsDetails()
 
     for {
       contactDetails <- candidateDetailsFut
       questionnaireDetails <- questionnaireDetailsFut
       mediaDetails <- mediaDetailsFut
+      eventsDetails <- eventsDetailsFut
     } yield {
-      block(contactDetails, questionnaireDetails, mediaDetails)
+      block(contactDetails, questionnaireDetails, mediaDetails, eventsDetails)
     }
   }
   // scalastyle:on
 
-  private def createCandidateInfoBackUpRecord(candidateDetails: CandidateDetailsReportItem, contactDetails: CsvExtract[String],
-                                              questionnaireDetails: CsvExtract[String], mediaDetails: CsvExtract[String]) = {
+  private def createCandidateInfoBackUpRecord(
+    candidateDetails: CandidateDetailsReportItem,
+    contactDetails: CsvExtract[String],
+    questionnaireDetails: CsvExtract[String],
+    mediaDetails: CsvExtract[String],
+    eventsDetails: CsvExtract[String]) = {
     (candidateDetails.csvRecord ::
       contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
       questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
       mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
+      eventsDetails.records.getOrElse(candidateDetails.appId, eventsDetails.emptyRecord) ::
       Nil).mkString(",")
   }
 
