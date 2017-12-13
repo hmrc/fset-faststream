@@ -88,7 +88,7 @@ object AssessmentCentreYamlConverter extends App {
   println()
   println("IMPORTANT: Remember to add one year to all dates in the dev environment configuration in order to pass Acceptance Tests")
 
-  def writeFile(pathToOutputFile: String) = {
+  def writeFile(pathToOutputFile: String): Unit = {
     val assessmentYamlFile = new File(pathToOutputFile)
     val result = Try {
       val writer = new PrintWriter(new File(pathToOutputFile))

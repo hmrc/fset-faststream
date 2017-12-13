@@ -1,6 +1,6 @@
 package services.onlinetesting.phase3
 
-import config.{ LaunchpadGatewayConfig, Phase2TestsConfig, Phase3TestsConfig }
+import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig, Phase2TestsConfig, Phase3TestsConfig }
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
 import model.Exceptions.PassMarkEvaluationNotFound
@@ -9,23 +9,26 @@ import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, Sche
 import model.{ ApplicationStatus, Phase, SchemeId }
 import org.joda.time.DateTime
 import org.scalatest.prop._
+import repositories.application.GeneralApplicationMongoRepository
+import repositories.onlinetesting.Phase3EvaluationMongoRepository
+import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
 
-  val collectionName = CollectionNames.APPLICATION
+  val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE3_PASS_MARK_SETTINGS)
 
   def phase3TestEvaluationService(verifyAllScoresArePresent: Boolean = true) = new EvaluatePhase3ResultService {
-    val evaluationRepository = phase3EvaluationRepo
-    val gatewayConfig = mockGatewayConfig
-    val passMarkSettingsRepo = phase3PassMarkSettingRepo
+    val evaluationRepository: Phase3EvaluationMongoRepository = phase3EvaluationRepo
+    val gatewayConfig: CubiksGatewayConfig = mockGatewayConfig
+    val passMarkSettingsRepo: Phase3PassMarkSettingsMongoRepository = phase3PassMarkSettingRepo
     val phase = Phase.PHASE3
-    val phase3TestsConfigMock = mock[Phase2TestsConfig]
+    val phase3TestsConfigMock: Phase2TestsConfig = mock[Phase2TestsConfig]
     val launchpadGWConfig = LaunchpadGatewayConfig(url = "", phase3Tests = Phase3TestsConfig(7, 7, "", Map.empty, 3, verifyAllScoresArePresent))
-    val generalAppRepository = applicationRepository
+    val generalAppRepository: GeneralApplicationMongoRepository = applicationRepository
   }
 
   "phase3 evaluation process" should {
@@ -189,7 +192,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     )
     // format: ON
 
-    var phase3PassMarkSettings = createPhase3PassMarkSettings(phase3PassMarkSettingsTable)
+    var phase3PassMarkSettings: Phase3PassMarkSettings = createPhase3PassMarkSettings(phase3PassMarkSettingsTable)
 
     var applicationReadyForEvaluation: ApplicationReadyForEvaluation = _
 

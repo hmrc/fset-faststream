@@ -4,14 +4,15 @@ import java.util.UUID
 
 import model.{ ApplicationRoute, ProgressStatuses }
 import repositories.CollectionNames
+import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
 
 class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
   val collectionName: String = CollectionNames.APPLICATION
 
-  lazy val appRepo = repositories.applicationRepository
+  lazy val appRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
 
-  val reportLabels = new ProgressStatusesReportLabels {}
+  val reportLabels: ProgressStatusesReportLabels = new ProgressStatusesReportLabels {}
 
   import model.ProgressStatuses._
   val ProgressStatusCustomNames: Map[ProgressStatus, String] = Map(
