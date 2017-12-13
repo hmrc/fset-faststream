@@ -468,7 +468,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                   oldLaunchpadTest.copy(usedForResults = false)
                 }
             }
-            if (mergedLaunchpadTests.filter(_.interviewId == newLaunchpadTest.interviewId).size > 0) {
+            if (mergedLaunchpadTests.exists(_.interviewId == newLaunchpadTest.interviewId)) {
               Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests)
             } else {
               Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests :+ newLaunchpadTest.copy(usedForResults = true))
