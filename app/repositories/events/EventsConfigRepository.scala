@@ -69,11 +69,10 @@ object EventConfigProtocol extends DefaultYamlProtocol {
     def write(jodaTime: LocalTime) = YamlString(jodaTime.toString("HH:mm"))
     def read(value: YamlValue) = value match {
       case YamlString(stringValue) => DateTimeFormat.forPattern("HH:mm").parseLocalTime(stringValue)
-      case YamlNumber(minutesSinceStartOfDay) => {
+      case YamlNumber(minutesSinceStartOfDay) =>
         val hour = minutesSinceStartOfDay.toInt / 60
         val minute = minutesSinceStartOfDay % 60
         DateTimeFormat.forPattern("HH:mm").parseLocalTime(s"$hour:$minute")
-      }
       case x => deserializationError("Expected Time as YamlString/YamlNumber, but got " + x)
     }
   }
