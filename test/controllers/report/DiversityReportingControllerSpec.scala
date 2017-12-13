@@ -31,7 +31,7 @@ import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
 import repositories.fsb.FsbRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{ AssessmentScoresRepository, AssessorAllocationRepository, AssessorRepository, CandidateAllocationRepository, MediaRepository, QuestionnaireRepository, SchemeRepository, contactdetails }
+import repositories._
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 

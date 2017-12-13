@@ -478,8 +478,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           ApplicationRoute.Edip),
         CandidateProgressReportItem("user4", "app4", Some("submitted"),
           List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
-          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("Newcastle"),
-          ApplicationRoute.Faststream)
+          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"),
+          Some("Newcastle"), ApplicationRoute.Faststream)
       )
     )
 

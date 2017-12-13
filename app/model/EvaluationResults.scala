@@ -22,6 +22,7 @@ import reactivemongo.bson.Macros
 
 object EvaluationResults {
 
+  //scalastyle:off method.name
   sealed trait Result {
     def toReportReadableString: String
 
@@ -65,6 +66,7 @@ object EvaluationResults {
 
     def +(that: Result): Result = this
   }
+  //scalastyle:off method.name
 
   object Result {
     def apply(s: String): Result = s match {

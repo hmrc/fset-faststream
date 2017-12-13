@@ -25,7 +25,7 @@ import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationMongoRepository
-import repositories.onlinetesting.{ OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository, Phase2EvaluationMongoRepository, Phase3EvaluationMongoRepository }
+import repositories.onlinetesting._
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.phase1.Phase1TestsResultsReceivedStatusGenerator
 import services.testdata.candidate.onlinetests.phase2.Phase2TestsResultsReceivedStatusGenerator

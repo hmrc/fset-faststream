@@ -36,7 +36,13 @@ object DataStoreEvent {
   import scala.language.implicitConversions
 
   implicit def toDataStoreEvent(dataStoreEvent: DataStoreEvent): model.persisted.StcEvent =
-    StcEvent(dataStoreEvent.eventName, dataStoreEvent.eventCreated, dataStoreEvent.applicationId, dataStoreEvent.userId, dataStoreEvent.createdBy)
+    StcEvent(
+      dataStoreEvent.eventName,
+      dataStoreEvent.eventCreated,
+      dataStoreEvent.applicationId,
+      dataStoreEvent.userId,
+      dataStoreEvent.createdBy
+    )
 }
 
 sealed trait DataStoreEventWithAppId extends DataStoreEvent {
