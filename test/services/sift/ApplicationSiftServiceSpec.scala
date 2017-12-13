@@ -419,7 +419,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockEmailClient.notifyCandidateSiftEnteredAdditionalQuestions(_: String, _: String)(_: HeaderCarrier))
         .expects(contactDetails.email, candidate.name, *).returningAsync
 
-      whenReady(service.sendSiftEnteredNotification(appId)(new HeaderCarrier())) { result => result mustBe unit }
+      whenReady(service.sendSiftEnteredNotification(appId)(HeaderCarrier())) { result => result mustBe unit }
     }
   }
 

@@ -37,7 +37,7 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
   lazy val batchSize = conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val hc: HeaderCarrier = new HeaderCarrier()
+    implicit val hc: HeaderCarrier = HeaderCarrier()
     siftService.nextApplicationsReadyForSiftStage(batchSize).flatMap {
       case Nil => Future.successful(())
       case applications => siftService.progressApplicationToSiftStage(applications).map { result =>

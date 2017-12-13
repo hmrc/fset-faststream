@@ -114,7 +114,7 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
 
   trait TestFixture {
 
-    implicit val hc = new HeaderCarrier()
+    implicit val hc = HeaderCarrier()
 
     val Scheme = "Commercial"
     val App1 = ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,

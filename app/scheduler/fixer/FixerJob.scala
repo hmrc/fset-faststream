@@ -36,7 +36,7 @@ trait FixerJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobCon
   lazy val jobBatchSize = config.conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   implicit val rh = EmptyRequestHeader
-  implicit val hc = new HeaderCarrier()
+  implicit val hc = HeaderCarrier()
   lazy val typesBeFixed = RequiredFixes.allFixes.map(f => FixBatch(f, jobBatchSize))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {

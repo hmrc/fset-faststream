@@ -37,7 +37,7 @@ trait NotifyOnFinalSuccessJob extends SingleInstanceScheduledJob[BasicJobConfig[
   val batchSize: Int = conf.batchSize.getOrElse(10)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val hc = new HeaderCarrier()
+    implicit val hc = HeaderCarrier()
     service.nextApplicationsFinalSuccessNotification(batchSize).flatMap {
       case Nil => Future.successful(())
       case applications => service.progressApplicationsToFinalSuccessNotified(applications).map { result =>

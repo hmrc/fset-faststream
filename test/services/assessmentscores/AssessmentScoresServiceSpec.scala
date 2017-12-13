@@ -331,7 +331,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
   "findAssessmentScoresWithCandidateSummaryByEventId" should {
     "throw EventNotFoundException when event cannot be found" in
       new FindAssessmentScoresWithCandidateSummaryTestFixture {
-        when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.failed(new EventNotFoundException(s"No event found with id $eventId")))
+        when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.failed(EventNotFoundException(s"No event found with id $eventId")))
 
         val ex = intercept[Exception] {
           val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,

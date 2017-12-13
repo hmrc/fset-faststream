@@ -46,7 +46,7 @@ class FastPassApprovalControllerSpec extends UnitWithAppSpec {
 
 
   trait TestFixture {
-    implicit val hc = new HeaderCarrier()
+    implicit val hc = HeaderCarrier()
     implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
     val mockFastPassService = mock[FastPassService]
     val request = FastPassEvaluation(accepted = true, "adminId")
