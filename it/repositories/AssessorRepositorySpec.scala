@@ -16,7 +16,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
   private val userId = UniqueIdentifier.randomUniqueIdentifier.toString
   private val AssessorWithAvailabilities = Assessor(userId, None,
-    List("assessor", "qac"), List(SchemeId("Sdip")), true,
+    List("assessor", "qac"), List(SchemeId("Sdip")), civilServant = true,
     Set(AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
       AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))),
     AssessorStatus.AVAILABILITIES_SUBMITTED

@@ -26,5 +26,6 @@ object OnlineTestApplicationExamples {
     guaranteedInterview = false, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, "name", "lastname",
     Some(AdjustmentDetail(invigilatedInfo = Some("invigilated e-tray"))), None)
   val VideoInterviewWithAdjustments = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS,
-    "userId", false, true, false, "name", "lastname", None, Some(AdjustmentDetail(timeNeeded = Some(33))))
+    "userId", guaranteedInterview = false, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, "name", "lastname",
+    None, Some(AdjustmentDetail(timeNeeded = Some(33))))
 }

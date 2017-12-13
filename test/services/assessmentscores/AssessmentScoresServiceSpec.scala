@@ -417,7 +417,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
       "version1",
       None,
       LocalDate.now(),
-      false
+      reminderSent = false
     ))
     when(eventsRepositoryMock.getEvent(eventId)).thenReturn(Future.successful(EventExamples.e1WithSession))
     when(candidateAllocationRepositoryMock.find(appId.toString())).thenReturn(Future.successful(candidateAllocations))

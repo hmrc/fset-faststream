@@ -54,7 +54,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
       when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(Nil)
       when(mockAppRepo.find(appId)).thenReturnAsync(None)
-      service.allocateCandidates(candidateAllocations, false)
+      service.allocateCandidates(candidateAllocations, append = false)
     }
   }
 
@@ -92,8 +92,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
     "return all candidates except no-shows" in new TestFixture {
 
       private val fsacIndicator = model.FSACIndicator("","")
-      private val c1 = CandidateEligibleForEvent("app1", "", "", true, fsacIndicator, DateTime.now())
-      private val c2 = CandidateEligibleForEvent("app2", "", "", true, fsacIndicator, DateTime.now())
+      private val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsacIndicator, DateTime.now())
+      private val c2 = CandidateEligibleForEvent("app2", "", "", needsAdjustment = true, fsacIndicator, DateTime.now())
       private val loc = "London"
       private val eventType = EventType.FSAC
       private val desc = "ORAC"
@@ -111,7 +111,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       when(mockCandidateAllocationRepository.allocationsForApplication(any[String]())).thenReturnAsync(
         Seq(
           model.persisted.CandidateAllocation(
-            "appId1", EventExamples.e1.id, EventExamples.e1Session1Id, AllocationStatuses.UNCONFIRMED, "version1", None, LocalDate.now(), false
+            "appId1", EventExamples.e1.id, EventExamples.e1Session1Id, AllocationStatuses.UNCONFIRMED,
+            "version1", None, LocalDate.now(), reminderSent = false
           )
         )
       )
