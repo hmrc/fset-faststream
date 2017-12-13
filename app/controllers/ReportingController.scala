@@ -133,7 +133,6 @@ trait ReportingController extends BaseController {
         var counter = 0
         val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream().map { app =>
           val ret = createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers) + "\n"
-          // Logger.debug("Output line " + counter + ": " + ret)
           counter += 1
           ret
         }
@@ -142,27 +141,19 @@ trait ReportingController extends BaseController {
     }
   }
 
-  // scalastyle:off line.size.limit
   private def enrichPreviousYearCandidateDetails(
     block: (CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result
   ) = {
-    val candidateDetailsFut = prevYearCandidatesDetailsRepository.findContactDetails()
-    val questionnaireDetailsFut = prevYearCandidatesDetailsRepository.findQuestionnaireDetails()
-    val mediaDetailsFut = prevYearCandidatesDetailsRepository.findMediaDetails()
-    val eventsDetailsFut = prevYearCandidatesDetailsRepository.findEventsDetails()
-    val siftAnswersFut = prevYearCandidatesDetailsRepository.findSiftAnswers()
-
     for {
-      contactDetails <- candidateDetailsFut
-      questionnaireDetails <- questionnaireDetailsFut
-      mediaDetails <- mediaDetailsFut
-      eventsDetails <- eventsDetailsFut
-      siftAnswers <- siftAnswersFut
+      contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails()
+      questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetails()
+      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails()
+      eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails()
+      siftAnswers <- prevYearCandidatesDetailsRepository.findSiftAnswers()
     } yield {
       block(contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers)
     }
   }
-  // scalastyle:on
 
   private def createCandidateInfoBackUpRecord(
     candidateDetails: CandidateDetailsReportItem,

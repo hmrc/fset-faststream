@@ -223,7 +223,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
   : List[R] = {parNumbers.map { candidateGenerationId =>
         Await.result(
           block(candidateGenerationId, createData(candidateGenerationId)),
-          30 seconds
+          10 seconds
         )
       }.toList
 
