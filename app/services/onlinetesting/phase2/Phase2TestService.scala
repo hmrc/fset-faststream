@@ -162,9 +162,10 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     def getNewExpirationDate(phase2TestGroup: Phase2TestGroup, application: OnlineTestApplication, expiryTimeInDays: Int) = {
       require(phase2TestGroup.activeTests.nonEmpty, "Active e-tray tests not found")
       val hasInvigilatedEtray = phase2TestGroup.activeTests.head.invigilatedAccessCode.isDefined
-      application.isInvigilatedETray == hasInvigilatedEtray && phase2TestGroup.expirationDate.isAfterNow match {
-        case true => phase2TestGroup.expirationDate
-        case false => calcOnlineTestDates(expiryTimeInDays)._2
+      if (application.isInvigilatedETray == hasInvigilatedEtray && phase2TestGroup.expirationDate.isAfterNow) {
+        phase2TestGroup.expirationDate
+      } else {
+        calcOnlineTestDates(expiryTimeInDays)._2
       }
     }
 
