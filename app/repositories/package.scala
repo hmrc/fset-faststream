@@ -99,6 +99,7 @@ package object repositories {
   lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository
   lazy val assessorsEventsSummaryJobsRepository = new AssessorsEventsSummaryJobsMongoRepository()
   lazy val campaignManagementAfterDeadlineSignupCodeRepository = new CampaignManagementAfterDeadlineSignupCodeMongoRepository()
+  lazy val previousYearCandidatesDetailsRepository = new PreviousYearCandidatesDetailsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()

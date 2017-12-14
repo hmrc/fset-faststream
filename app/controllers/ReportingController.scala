@@ -16,16 +16,20 @@
 
 package controllers
 
+import akka.stream.scaladsl.Source
 import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.EvaluationResults.Green
 import model.Exceptions.{ NotFoundException, UnexpectedException }
-import model.{ ApplicationStatus, SiftRequirement, UniqueIdentifier }
+import model.command.{ CandidateDetailsReportItem, CsvExtract }
 import model.persisted.ContactDetailsWithId
 import model.persisted.eventschedules.Event
 import model.report._
+import model.{ ApplicationStatus, SiftRequirement, UniqueIdentifier }
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import repositories.application.{ GeneralApplicationRepository, ReportingMongoRepository, ReportingRepository }
+import play.api.libs.streams.Streams
+import play.api.mvc.{ Action, AnyContent, Result }
+import repositories.application._
 import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
@@ -38,6 +42,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import common.Joda._
 
 object ReportingController extends ReportingController {
   val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
@@ -46,6 +51,7 @@ object ReportingController extends ReportingController {
   val assessorAllocationRepository: AssessorAllocationRepository = repositories.assessorAllocationRepository
   val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
+  val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsMongoRepository = repositories.previousYearCandidatesDetailsRepository
   val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
   val applicationSiftRepository = repositories.applicationSiftRepository
@@ -65,6 +71,7 @@ trait ReportingController extends BaseController {
   val assessorAllocationRepository: AssessorAllocationRepository
   val contactDetailsRepository: contactdetails.ContactDetailsRepository
   val questionnaireRepository: QuestionnaireRepository
+  val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsRepository
   val assessmentScoresRepository: AssessmentScoresRepository
   val mediaRepository: MediaRepository
   val applicationSiftRepository: ApplicationSiftRepository
@@ -110,6 +117,61 @@ trait ReportingController extends BaseController {
     }
   }
 
+  def streamPreviousYearCandidatesDetailsReport: Action[AnyContent] = Action.async { implicit request =>
+    enrichPreviousYearCandidateDetails {
+      (contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers) =>
+      {
+        val header = Enumerator(
+          (prevYearCandidatesDetailsRepository.applicationDetailsHeader ::
+            prevYearCandidatesDetailsRepository.contactDetailsHeader ::
+            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+            prevYearCandidatesDetailsRepository.mediaHeader ::
+            prevYearCandidatesDetailsRepository.eventsDetailsHeader ::
+            prevYearCandidatesDetailsRepository.siftAnswersHeader ::
+            Nil).mkString(",") + "\n"
+        )
+        var counter = 0
+        val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream().map { app =>
+          val ret = createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers) + "\n"
+          counter += 1
+          ret
+        }
+        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+      }
+    }
+  }
+
+  private def enrichPreviousYearCandidateDetails(
+    block: (CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result
+  ) = {
+    for {
+      contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails()
+      questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetails()
+      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails()
+      eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails()
+      siftAnswers <- prevYearCandidatesDetailsRepository.findSiftAnswers()
+    } yield {
+      block(contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers)
+    }
+  }
+
+  private def createCandidateInfoBackUpRecord(
+    candidateDetails: CandidateDetailsReportItem,
+    contactDetails: CsvExtract[String],
+    questionnaireDetails: CsvExtract[String],
+    mediaDetails: CsvExtract[String],
+    eventsDetails: CsvExtract[String],
+    siftAnswersDetails: CsvExtract[String]
+  ) = {
+    (candidateDetails.csvRecord ::
+      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
+      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
+      eventsDetails.records.getOrElse(candidateDetails.appId, eventsDetails.emptyRecord) ::
+      siftAnswersDetails.records.getOrElse(candidateDetails.appId, siftAnswersDetails.emptyRecord) ::
+      Nil).mkString(",")
+  }
+
   private def makeRow(values: Option[String]*) =
     values.map { s =>
       val ret = s.getOrElse(" ").replace("\r", " ").replace("\n", " ").replace("\"", "'")
@@ -118,8 +180,6 @@ trait ReportingController extends BaseController {
 
   // scalastyle:off method.length
   def assessorAllocationReport: Action[AnyContent] = Action.async { implicit request =>
-
-    import common.Joda._
 
     val sortedEventsFut = eventsRepository.findAll().map(_.sortBy(_.date))
 

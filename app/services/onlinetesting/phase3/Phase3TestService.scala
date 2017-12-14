@@ -287,6 +287,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       )
     )
   }
+
   //scalastyle:on method.length
 
   def markAsStarted(launchpadInviteId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
