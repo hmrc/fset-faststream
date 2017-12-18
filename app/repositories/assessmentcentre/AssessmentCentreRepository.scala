@@ -225,7 +225,7 @@ class AssessmentCentreMongoRepository (
 
     val updateOp = bsonCollection.updateModifier(
       BSONDocument(
-        "$unset" -> BSONDocument(s"testGroups.FSAC.evaluation" -> "")
+        "$unset" -> BSONDocument(s"testGroups.FSAC" -> "")
       )
     )
 
