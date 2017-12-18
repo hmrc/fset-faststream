@@ -53,6 +53,7 @@ trait AssessmentCentreRepository {
     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
   def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
+  def removeFsacScores(applicationId: String): Future[Unit]
 }
 
 class AssessmentCentreMongoRepository (
@@ -215,5 +216,19 @@ class AssessmentCentreMongoRepository (
     val validator = singleUpdateValidator(applicationId, actionDesc = "Updating assessment centre tests")
 
     collection.update(query, update) map validator
+  }
+
+
+  def removeFsacScores(applicationId: String): Future[Unit] = {
+
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$unset" -> BSONDocument(s"testGroups.FSAC.evaluation" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map(_ => ())
   }
 }

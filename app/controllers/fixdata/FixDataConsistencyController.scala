@@ -236,4 +236,11 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
+  def rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.rollbackToFsacAllocatedFromAwaitingFsb(applicationId).map(_ =>
+      Ok(s"Successfully rolled $applicationId back to fsac allocated")
+    )
+  }
+
+
 }
