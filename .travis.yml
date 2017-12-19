@@ -11,3 +11,9 @@ cache:
   directories:
     - '$HOME/.ivy2/cache'
 services: mongodb
+addons:
+  apt:
+    sources:
+      - mongodb-3.2-trusty
+    packages:
+      - mongodb-org-server
