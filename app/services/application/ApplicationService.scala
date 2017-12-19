@@ -539,6 +539,24 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String): Future[Unit] = {
+    import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
+    val exercisesToRemove = List(analysisExercise.toString, groupExercise.toString, leadershipExercise.toString)
+    val reviewerExercisesToRemove = exercisesToRemove :+ finalFeedback.toString
+
+    for {
+      _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
+      _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), reviewerExercisesToRemove)
+      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, List(
+        FSB_AWAITING_ALLOCATION,
+        ASSESSMENT_CENTRE_PASSED,
+        ASSESSMENT_CENTRE_SCORES_ACCEPTED,
+        ASSESSMENT_CENTRE_SCORES_ENTERED
+      ))
+    } yield ()
+  }
+
   def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId, newResult: model.EvaluationResults.Result): Future[Unit] = {
     for {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
