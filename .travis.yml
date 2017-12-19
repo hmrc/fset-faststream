@@ -1,5 +1,6 @@
 dist: trusty
-sudo: false
+group: deprecated-2017Q4
+sudo: required
 language: scala
 scala:
 - 2.11.8
@@ -11,9 +12,3 @@ cache:
   directories:
     - '$HOME/.ivy2/cache'
 services: mongodb
-addons:
-  apt:
-    sources:
-      - mongodb-3.2-precise
-    packages:
-      - mongodb-org-server
