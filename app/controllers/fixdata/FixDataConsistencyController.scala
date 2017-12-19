@@ -241,6 +241,4 @@ trait FixDataConsistencyController extends BaseController {
       Ok(s"Successfully rolled $applicationId back to fsac allocated")
     )
   }
-
-
 }
