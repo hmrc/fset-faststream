@@ -32,7 +32,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
-import repositories.{ MediaRepository, SchemeRepository }
+import repositories.{ AssessorAssessmentScoresMongoRepository, MediaRepository, ReviewerAssessmentScoresMongoRepository, SchemeRepository }
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -919,8 +919,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val phase1EvaluationRepositoryMock = mock[Phase1EvaluationMongoRepository]
     val phase2EvaluationRepositoryMock = mock[Phase2EvaluationMongoRepository]
     val phase3EvaluationRepositoryMock = mock[Phase3EvaluationMongoRepository]
-
     val civilServiceExperienceRepositoryMock = mock[CivilServiceExperienceDetailsRepository]
+    val assessorAssessmentScoresRepositoryMock = mock[AssessorAssessmentScoresMongoRepository]
+    val reviewerAssessmentScoresRepositoryMock = mock[ReviewerAssessmentScoresMongoRepository]
 
     val business = "Business"
     val commercial = "Commercial"
@@ -969,6 +970,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val phase2EvaluationRepository = phase2EvaluationRepositoryMock
       val phase3EvaluationRepository = phase3EvaluationRepositoryMock
       val civilServiceExperienceDetailsRepo = civilServiceExperienceRepositoryMock
+      val assessorAssessmentScoresRepository = assessorAssessmentScoresRepositoryMock
+      val reviewerAssessmentScoresRepository = reviewerAssessmentScoresRepositoryMock
     }
 
     implicit val hc = HeaderCarrier()
