@@ -120,6 +120,14 @@ case class PostOnlineTestsPage(
     }
   }.getOrElse("")
 
+  def fsbEventScheme(al: Option[CandidateAllocationWithEvent]): Option[Scheme] = al.map(_.event).flatMap { e =>
+    e.eventType match {
+      case EventType.FSB => schemes.find(_.fsbType.map(_.key).contains(e.description))
+      case _ => None
+    }
+  }
+
+
   def allSchemesFailed: Boolean = userDataWithSchemes.numberOfFailedSchemesForDisplay == userDataWithSchemes.rawSchemesStatus.length
 
   def firstResidualPreferencePassed: Boolean = {
