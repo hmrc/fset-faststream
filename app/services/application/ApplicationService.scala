@@ -661,7 +661,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     for {
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), reviewerExercisesToRemove)
-      _ <- fsacRepo.fixDataByRemovingFsacEvaluation(applicationId)
+      _ <- fsacRepo.removeFsacEvaluation(applicationId)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, List(
          ASSESSMENT_CENTRE_SCORES_ENTERED,
         ASSESSMENT_CENTRE_SCORES_ACCEPTED,
