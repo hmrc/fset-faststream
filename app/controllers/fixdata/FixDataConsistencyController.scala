@@ -235,10 +235,17 @@ trait FixDataConsistencyController extends BaseController {
       Ok(s"Successfully updated CSS for schemeId ${schemeId.toString} to ${result.toString} for $applicationId ")
     )
   }
+
   def rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String): Action[AnyContent] =
     Action.async {
       applicationService.rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId).map(_ =>
         Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
       )
     }
+
+  def rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.rollbackToFsacAllocatedFromAwaitingFsb(applicationId).map(_ =>
+      Ok(s"Successfully rolled $applicationId back to fsac allocated")
+    )
+  }
 }
