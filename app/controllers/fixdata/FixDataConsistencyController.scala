@@ -18,13 +18,13 @@ package controllers.fixdata
 
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.NotFoundException
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
 import model.SchemeId
 import model.command.FastPassPromotion
 import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
 import services.fastpass.FastPassService
 import services.sift.ApplicationSiftService
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -236,9 +236,28 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
+  def rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String): Action[AnyContent] =
+    Action.async {
+      val statusesToRemove = List(
+        ASSESSMENT_CENTRE_SCORES_ENTERED,
+        ASSESSMENT_CENTRE_SCORES_ACCEPTED,
+        ASSESSMENT_CENTRE_FAILED,
+        ASSESSMENT_CENTRE_FAILED_NOTIFIED
+      )
+      applicationService.rollbackToAssessmentCentreConfirmed(applicationId, statusesToRemove).map(_ =>
+        Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
+      )
+    }
+
   def rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String): Action[AnyContent] = Action.async {
-    applicationService.rollbackToFsacAllocatedFromAwaitingFsb(applicationId).map(_ =>
-      Ok(s"Successfully rolled $applicationId back to fsac allocated")
+    val statusesToRemove = List(
+      ASSESSMENT_CENTRE_SCORES_ENTERED,
+      ASSESSMENT_CENTRE_SCORES_ACCEPTED,
+      ASSESSMENT_CENTRE_PASSED,
+      FSB_AWAITING_ALLOCATION
+    )
+    applicationService.rollbackToAssessmentCentreConfirmed(applicationId, statusesToRemove).map(_ =>
+      Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
     )
   }
 }

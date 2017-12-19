@@ -122,6 +122,7 @@ GET         /diagnostic/moveSdipFaststreamFailedFaststreamInvitedToVideoIntervie
 GET         /diagnostic/application/fixSdipFaststreamCandidateWhoExpiredInOnlineTests                  controllers.fixdata.FixDataConsistencyController.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String)
 GET         /diagnostic/application/rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation          controllers.fixdata.FixDataConsistencyController.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String)
 GET         /diagnostic/currentSchemeStatus/markAs/:result/schemeId/:schemeId                          controllers.fixdata.FixDataConsistencyController.updateCurrentSchemeStatusScheme(applicationId: String, schemeId: model.SchemeId, result: model.EvaluationResults.Result)
+GET         /diagnostic/application/rollback-to-ac-confirmed-from-ac-failed-notified                   controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

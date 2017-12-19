@@ -79,6 +79,8 @@ object ApplicationService extends ApplicationService {
   val fsacRepo = assessmentCentreRepository
   val fsbRepo = fsbRepository
   val civilServiceExperienceDetailsRepo = civilServiceExperienceDetailsRepository
+  val assessorAssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
+  val reviewerAssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
   val candidateAllocationService = CandidateAllocationService
 
   case class NoChangeInCurrentSchemeStatusException(applicationId: String,
@@ -109,6 +111,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def fsacRepo: AssessmentCentreRepository
   def fsbRepo: FsbRepository
   def civilServiceExperienceDetailsRepo: CivilServiceExperienceDetailsRepository
+  def assessorAssessmentScoresRepository: AssessorAssessmentScoresMongoRepository
+  def reviewerAssessmentScoresRepository: ReviewerAssessmentScoresMongoRepository
   def candidateAllocationService: CandidateAllocationService
 
   val Candidate_Role = "Candidate"
@@ -539,8 +543,15 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
-  def rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String): Future[Unit] = {
+  def rollbackToAssessmentCentreConfirmed(applicationId: String, statuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
+    def getPhase3Results(applicationId: String): Future[Option[List[SchemeEvaluationResult]]] = {
+      phase3TestRepository.getTestGroup(applicationId).map { maybeTestGroup =>
+        maybeTestGroup.flatMap { phase3TestGroup =>
+          phase3TestGroup.evaluation.map(_.result)
+        }
+      }
+    }
     val exercisesToRemove = List(analysisExercise.toString, groupExercise.toString, leadershipExercise.toString)
     val reviewerExercisesToRemove = exercisesToRemove :+ finalFeedback.toString
 
@@ -548,12 +559,11 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), reviewerExercisesToRemove)
       _ <- fsacRepo.removeFsacEvaluation(applicationId)
-      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, List(
-        FSB_AWAITING_ALLOCATION,
-        ASSESSMENT_CENTRE_PASSED,
-        ASSESSMENT_CENTRE_SCORES_ACCEPTED,
-        ASSESSMENT_CENTRE_SCORES_ENTERED
-      ))
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
+      // Read back the video results and set the current scheme status to these
+      phase3ResultsOpt <- getPhase3Results(applicationId)
+      phase3Results = phase3ResultsOpt.getOrElse(throw new RuntimeException("No phase 3 video results found"))
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, phase3Results)
     } yield ()
   }
 
