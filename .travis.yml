@@ -14,6 +14,6 @@ services: mongodb
 addons:
   apt:
     sources:
-      - mongodb-3.2-trusty
+      - mongodb-3.2-precise
     packages:
       - mongodb-org-server
