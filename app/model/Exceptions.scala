@@ -138,6 +138,8 @@ object Exceptions {
   case class LastSchemeWithdrawException(m: String) extends Exception(m)
 
   case class LastRunInfoNotFound(m: String) extends Exception(m)
+
+  case class SiftResultsAlreadyExistsException(m: String) extends Exception(m)
 }
 
 // scalastyle:on number.of.methods

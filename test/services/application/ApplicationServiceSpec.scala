@@ -41,6 +41,7 @@ import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsR
 import repositories.fsb.FsbRepository
 import repositories.onlinetesting._
 import repositories.sift.ApplicationSiftRepository
+import services.allocation.CandidateAllocationService
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
@@ -206,6 +207,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         SchemeEvaluationResult(SchemeId(commercial), "Green")
       ))
       when(appRepositoryMock.withdraw(any[String], any[WithdrawApplication])).thenReturnAsync()
+      when(candidateAllocationServiceMock.allocationsForApplication(any[String])(any[HeaderCarrier])).thenReturnAsync(Nil)
+      when(candidateAllocationServiceMock.unAllocateCandidates(any[List[model.persisted.CandidateAllocation]])(any[HeaderCarrier]))
+        .thenReturnAsync()
       val withdraw = WithdrawApplication("reason", None, "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
@@ -919,6 +923,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val phase1EvaluationRepositoryMock = mock[Phase1EvaluationMongoRepository]
     val phase2EvaluationRepositoryMock = mock[Phase2EvaluationMongoRepository]
     val phase3EvaluationRepositoryMock = mock[Phase3EvaluationMongoRepository]
+    val candidateAllocationServiceMock = mock[CandidateAllocationService]
     val civilServiceExperienceRepositoryMock = mock[CivilServiceExperienceDetailsRepository]
     val assessorAssessmentScoresRepositoryMock = mock[AssessorAssessmentScoresMongoRepository]
     val reviewerAssessmentScoresRepositoryMock = mock[ReviewerAssessmentScoresMongoRepository]
@@ -972,6 +977,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val civilServiceExperienceDetailsRepo = civilServiceExperienceRepositoryMock
       val assessorAssessmentScoresRepository = assessorAssessmentScoresRepositoryMock
       val reviewerAssessmentScoresRepository = reviewerAssessmentScoresRepositoryMock
+      val candidateAllocationService = candidateAllocationServiceMock
     }
 
     implicit val hc = HeaderCarrier()

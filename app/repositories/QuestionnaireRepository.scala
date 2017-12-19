@@ -136,6 +136,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
       questionDoc.flatMap(_.getAs[String]("answer")).orElse(
         questionDoc.flatMap(_.getAs[Boolean]("unknown")).map { unknown => if (unknown) { DontKnowAnswerText } else {""}})
     }
+
     val applicationId = document.getAs[String]("applicationId").get
     val gender = getAnswer(GenderQuestionText)
     val sexualOrientation = getAnswer(SexualOrientationQuestionText)
