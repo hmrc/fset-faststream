@@ -92,6 +92,14 @@
     </p>
 }
 
+@renderFindMoreAboutFsbDay(a: Option[CandidateAllocationWithEvent]) = {
+    @page.fsbEventScheme(a).flatMap(_.schemeGuide).map { link =>
+        <p><a href="@link" rel="external" target="_blank">
+            Find out more about the assessment centre</a>
+        </p>
+    }
+}
+
 @renderViewAssessmentFeedback = {
     <p>
         <i class="fa fa-check"></i>
@@ -222,7 +230,7 @@
                         @renderEventType(page.fsbAllocation)
                         @renderEventDetails(page.fsbAllocation)
                         @renderCannotAttend
-                        @renderFindMoreAboutAssessmentDay
+                        @renderFindMoreAboutFsbDay(page.fsbAllocation)
                     }
                     case PostOnlineTestsStage.ALLOCATED_TO_EVENT => {
                         <p>Confirm you can attend this assessment centre</p>
@@ -239,7 +247,7 @@
                         }}
 
                         @renderCannotAttend
-                        @renderFindMoreAboutAssessmentDay
+                        @renderFindMoreAboutFsbDay(page.fsbAllocation)
                     }
 
                     case _ => {
