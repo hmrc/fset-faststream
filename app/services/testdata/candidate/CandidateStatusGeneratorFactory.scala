@@ -137,6 +137,9 @@ object CandidateStatusGeneratorFactory {
 
       case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_AWAITING_ALLOCATION)) => AssessmentCentreAwaitingAllocationStatusGenerator
       case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED)) => AssessmentCentreAllocationConfirmedStatusGenerator
+      case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_SCORES_ENTERED)) => AssessmentCentreScoresEnteredStatusGenerator
+      case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_SCORES_ACCEPTED)) => AssessmentCentreScoresAcceptedStatusGenerator
+      case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_PASSED)) => AssessmentCentrePassedStatusGenerator
       case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_FAILED)) => AssessmentCentreFailedStatusGenerator
       case (ASSESSMENT_CENTRE, Some(ASSESSMENT_CENTRE_FAILED_NOTIFIED)) => AssessmentCentreFailedNotifiedStatusGenerator
       case (FSB, Some(ProgressStatuses.FSB_AWAITING_ALLOCATION)) => FsbAwaitingAllocationStatusGenerator
@@ -150,6 +153,7 @@ object CandidateStatusGeneratorFactory {
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")
     }
   }
+
   // scalastyle:on cyclomatic.complexity
 }
 
