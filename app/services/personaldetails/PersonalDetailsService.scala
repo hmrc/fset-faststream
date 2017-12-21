@@ -86,7 +86,7 @@ trait PersonalDetailsService {
     val fsacIndicatorUpdateFut = fsacIndicator.map { fsacIndicatorVal =>
        fsacIndicatorRepository.update(applicationId, userId,
          model.persisted.FSACIndicator(fsacIndicatorVal))
-    }.getOrElse(Future.failed(new FSACCSVIndicatorNotFound(applicationId)))
+    }.getOrElse(Future.failed(FSACCSVIndicatorNotFound(applicationId)))
     val civilServiceExperienceDetailsUpdateFut = personalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
       csedRepository.update(applicationId, civilServiceExperienceDetails)
     } getOrElse Future.successful(())

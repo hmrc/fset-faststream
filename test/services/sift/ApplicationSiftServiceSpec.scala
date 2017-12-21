@@ -17,12 +17,12 @@
 package services.sift
 
 import connectors.EmailClient
-import factories.DateTimeFactoryMock
+import factories.{ DateTimeFactory, DateTimeFactoryMock }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ApplicationForSift
-import model.persisted.{ ContactDetailsExamples, SchemeEvaluationResult }
+import model.persisted.{ ContactDetails, ContactDetailsExamples, SchemeEvaluationResult }
 import model.sift.FixUserStuckInSiftEntered
 import org.joda.time.LocalDate
 import reactivemongo.bson.BSONDocument
@@ -40,10 +40,10 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
   trait TestFixture  {
     val appId = "applicationId"
-    val mockAppRepo = mock[GeneralApplicationRepository]
-    val mockSiftRepo = mock[ApplicationSiftRepository]
-    val mockContactDetailsRepo = mock[ContactDetailsRepository]
-    val mockEmailClient = mock[EmailClient]
+    val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
+    val mockSiftRepo: ApplicationSiftRepository = mock[ApplicationSiftRepository]
+    val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
+    val mockEmailClient: EmailClient = mock[EmailClient]
     val mockSchemeRepo = new SchemeRepository {
       override lazy val schemes: Seq[Scheme] = Seq(
         Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
@@ -84,12 +84,12 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       def schemeRepo: SchemeRepository = mockSchemeRepo
       def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
       def emailClient: EmailClient = mockEmailClient
-      def dateTimeFactory = DateTimeFactoryMock
+      def dateTimeFactory: DateTimeFactory = DateTimeFactoryMock
     }
   }
 
   trait SiftUpdateTest extends TestFixture {
-    val progressStatusUpdateBson = (status: ProgressStatus) => BSONDocument(
+    val progressStatusUpdateBson: ProgressStatus => BSONDocument = (status: ProgressStatus) => BSONDocument(
       s"progress-status.$status" -> true,
       s"progress-status-timestamp.$status" -> BSONDateTimeHandler.write(DateTimeFactoryMock.nowLocalTimeZone)
     )
@@ -411,15 +411,15 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
   "sendSiftEnteredNotification" must {
     "send email to the right candidate" in new TestFixture {
-      val candidate = CandidateExamples.minCandidate("userId")
-      val contactDetails = ContactDetailsExamples.ContactDetailsUK
+      val candidate: Candidate = CandidateExamples.minCandidate("userId")
+      val contactDetails: ContactDetails = ContactDetailsExamples.ContactDetailsUK
 
       (mockAppRepo.find(_ : String)).expects(appId).returningAsync(Some(candidate))
       (mockContactDetailsRepo.find _ ).expects("userId").returningAsync(contactDetails)
       (mockEmailClient.notifyCandidateSiftEnteredAdditionalQuestions(_: String, _: String)(_: HeaderCarrier))
         .expects(contactDetails.email, candidate.name, *).returningAsync
 
-      whenReady(service.sendSiftEnteredNotification(appId)(new HeaderCarrier())) { result => result mustBe unit }
+      whenReady(service.sendSiftEnteredNotification(appId)(HeaderCarrier())) { result => result mustBe unit }
     }
   }
 

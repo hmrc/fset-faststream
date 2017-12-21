@@ -1,6 +1,6 @@
 package services.onlinetesting.phase2
 
-import config.Phase2TestsConfig
+import config.{ CubiksGatewayConfig, Phase2TestsConfig }
 import model.ApplicationRoute._
 import model.ApplicationStatus._
 import model.EvaluationResults._
@@ -14,6 +14,9 @@ import org.scalatest.prop._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
+import repositories.application.GeneralApplicationMongoRepository
+import repositories.onlinetesting.Phase2EvaluationMongoRepository
+import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
@@ -24,15 +27,15 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   import ImplicitBSONHandlers._
 
-  val collectionName = CollectionNames.APPLICATION
+  val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE2_PASS_MARK_SETTINGS)
 
   def phase2TestEvaluationService = new EvaluatePhase2ResultService {
-    val evaluationRepository = phase2EvaluationRepo
-    val gatewayConfig = mockGatewayConfig
-    val passMarkSettingsRepo = phase2PassMarkSettingRepo
-    val phase2TestsConfigMock = mock[Phase2TestsConfig]
-    val generalAppRepository = applicationRepository
+    val evaluationRepository: Phase2EvaluationMongoRepository = phase2EvaluationRepo
+    val gatewayConfig: CubiksGatewayConfig = mockGatewayConfig
+    val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository = phase2PassMarkSettingRepo
+    val phase2TestsConfigMock: Phase2TestsConfig = mock[Phase2TestsConfig]
+    val generalAppRepository: GeneralApplicationMongoRepository = applicationRepository
 
     val phase = Phase.PHASE2
     when(gatewayConfig.phase2Tests).thenReturn(phase2TestsConfigMock)
@@ -125,7 +128,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
     }
 
-    val appCollection = mongo().collection[JSONCollection](collectionName)
+    val appCollection: JSONCollection = mongo().collection[JSONCollection](collectionName)
 
     def createUser(userId: String, appId: String) = {
       appCollection.insert(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED))

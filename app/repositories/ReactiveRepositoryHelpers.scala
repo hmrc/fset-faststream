@@ -25,7 +25,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 trait ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
 
-  protected lazy val bsonCollection = collection.db.collection[BSONCollection](collection.name)
+  protected lazy val bsonCollection: BSONCollection = collection.db.collection[BSONCollection](collection.name)
 
   def singleUpdateValidator(id: String,
                             actionDesc: String,
@@ -87,7 +87,7 @@ trait ReactiveRepositoryHelpers {
   }
 
   private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean,
-                                              notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult) = {
+                                              notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult): Unit = {
     if (result.ok) {
       if (result.n == 1) {
         ()

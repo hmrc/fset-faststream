@@ -51,7 +51,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       "when there is a CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException" in new TestFixture {
       val Request = fakeRequest(AssessorExamples.Assessor1)
       when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(
-        Future.failed(new CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException("", "")))
+        Future.failed(CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException("", "")))
 
       val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
 
@@ -63,7 +63,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       "when there is a OptimisticLockException" in new TestFixture {
       val Request = fakeRequest(AssessorExamples.Assessor1)
       when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(
-        Future.failed(new OptimisticLockException("")))
+        Future.failed(OptimisticLockException("")))
 
       val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
 
@@ -134,7 +134,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       "when there is CannotRemoveAssessorWhenFutureAllocationExistsException" in new TestFixture {
       val userId = UniqueIdentifier.randomUniqueIdentifier
       when(mockAssessorService.remove(eqTo(userId))).thenReturn(
-        Future.failed(new CannotRemoveAssessorWhenFutureAllocationExistsException("", "")))
+        Future.failed(CannotRemoveAssessorWhenFutureAllocationExistsException("", "")))
 
       val response = controller.removeAssessor(userId)(fakeRequest)
 
@@ -146,7 +146,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     "return NOT_FOUND " +
       "when there is CannotRemoveAssessorWhenFutureAllocationExistsException" in new TestFixture {
       val userId = UniqueIdentifier.randomUniqueIdentifier
-      when(mockAssessorService.remove(eqTo(userId))).thenReturn(Future.failed(new AssessorNotFoundException("")))
+      when(mockAssessorService.remove(eqTo(userId))).thenReturn(Future.failed(AssessorNotFoundException("")))
 
       val response = controller.removeAssessor(userId)(fakeRequest)
 

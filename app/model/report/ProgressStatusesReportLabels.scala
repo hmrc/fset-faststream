@@ -129,7 +129,7 @@ trait ProgressStatusesReportLabels {
         current match {
           case (true, weighting, name) if weighting > highestWeighting =>
             weighting -> name
-          case (_, weighting, name) =>
+          case (_, _, _) =>
             highest
         }
       }

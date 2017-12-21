@@ -212,12 +212,11 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { documents =>
       documents.foldLeft(List[FsbSchemeResult]())((list, document) => {
         BSON.readDocument[Option[FsbSchemeResult]](document) match {
-          case Some(fsbSchemeResult) => {
+          case Some(fsbSchemeResult) =>
             schemeId match {
               case Some(scheme) => filterBySchemeId(list, fsbSchemeResult, scheme)
               case None => list :+ fsbSchemeResult
             }
-          }
           case _ => list
         }
       })

@@ -6,7 +6,7 @@ import model.SchemeId._
 import model.persisted.{ ApplicationReadyForEvaluation, _ }
 import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId }
 import org.joda.time.{ DateTime, DateTimeZone }
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
@@ -143,7 +143,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       1 to 6 foreach { id =>
         val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave, "phase1-version1-res", None)
         insertApplication(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
-          Some(phase2TestWithResult), isGis = false, phase1Evaluation = Some(phase1Evaluation))
+          Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
       }
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSizeLimit).futureValue
       result.size mustBe batchSizeLimit
@@ -154,7 +154,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       1 to 2 foreach { id =>
         val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave, "phase1-version1-res", None)
         insertApplication(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
-          Some(phase2TestWithResult), isGis = false, phase1Evaluation = Some(phase1Evaluation))
+          Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
       }
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSizeLimit).futureValue
       result.size mustBe 2

@@ -171,7 +171,7 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
     }
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(exercisesToUnset))
-    collection.update(query, unsetDoc) map( s => () )
+    collection.update(query, unsetDoc) map( _ => () )
   }
 }
 

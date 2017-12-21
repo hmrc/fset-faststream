@@ -72,8 +72,8 @@ trait ReportingRepository {
 
 class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    CreateApplicationRequest.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with ReportingRepository with RandomSelection with
-    CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
+    CreateApplicationRequest.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with ReportingRepository
+    with RandomSelection with CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
     candidateProgressReport(BSONDocument("$and" -> BSONArray(
@@ -313,7 +313,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
         val personalDetails = document.getAs[BSONDocument]("personal-details")
         val userId = document.getAs[String]("userId").getOrElse("")
         val applicationId = document.getAs[String]("applicationId")
-        val applicationStatus = document.getAs[String]("applicationStatus")
         val candidateProgressStatuses = toProgressResponse(applicationId.get).read(document)
         val latestProgressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses))
         val firstName = extract("firstName")(personalDetails)

@@ -112,7 +112,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
     val notificationProgressStatus = Try {
       (`type`, toNotify.applicationStatus) match {
-      case(n: FailedTestTypeSdipFs, status) =>
+      case(_: FailedTestTypeSdipFs, status) =>
         getProgressStatusForSdipFsFailedNotified(status)
       }
     }

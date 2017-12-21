@@ -50,7 +50,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   def testDataGeneratorService = TestDataGeneratorService
 
-  implicit def blankedHeaderCarrier = new HeaderCarrier()
+  implicit def blankedHeaderCarrier = HeaderCarrier()
 
   "Candidate Progress Report" must {
     "for an application with all fields" in {
@@ -202,7 +202,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       testDataGeneratorService.createCandidates(1,
         CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
-      )(new HeaderCarrier(), EmptyRequestHeader)
+      )(HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
 
@@ -225,7 +225,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       )
       testDataGeneratorService.createCandidates(1,
         CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
-      )(new HeaderCarrier(), EmptyRequestHeader)
+      )(HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
 
@@ -255,7 +255,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       )
       testDataGeneratorService.createCandidates(1,
         CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
-      )(new HeaderCarrier(), EmptyRequestHeader)
+      )(HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
 
@@ -291,7 +291,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       )
       testDataGeneratorService.createCandidates(1,
         CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
-      )(new HeaderCarrier(), EmptyRequestHeader)
+      )(HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
 

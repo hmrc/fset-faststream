@@ -1,6 +1,6 @@
 package services.onlinetesting.phase1
 
-import config.Phase1TestsConfig
+import config.{ CubiksGatewayConfig, Phase1TestsConfig }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
@@ -14,6 +14,8 @@ import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
+import repositories.onlinetesting.Phase1EvaluationMongoRepository
+import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
@@ -24,14 +26,14 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   import ImplicitBSONHandlers._
 
-  val collectionName = CollectionNames.APPLICATION
+  val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE1_PASS_MARK_SETTINGS)
 
   def phase1TestEvaluationService = new EvaluatePhase1ResultService {
-    val evaluationRepository = phase1EvaluationRepo
-    val gatewayConfig = mockGatewayConfig
-    val passMarkSettingsRepo = phase1PassMarkSettingRepo
-    val phase1TestsConfigMock = mock[Phase1TestsConfig]
+    val evaluationRepository: Phase1EvaluationMongoRepository = phase1EvaluationRepo
+    val gatewayConfig: CubiksGatewayConfig = mockGatewayConfig
+    val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository = phase1PassMarkSettingRepo
+    val phase1TestsConfigMock: Phase1TestsConfig = mock[Phase1TestsConfig]
     val phase = Phase.PHASE1
 
     when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
@@ -81,7 +83,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     def applicationEvaluationWithPassMarks(passmarks: Phase1PassMarkSettings, applicationId:String, sjqScore: Double, bjqScore: Double,
       selectedSchemes: SchemeId*)(implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(applicationId, sjqScore, Some(bjqScore),
-        isGis = false, applicationRoute = applicationRoute)(selectedSchemes: _*)
+        applicationRoute = applicationRoute)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, passmarks).futureValue
       this
     }
