@@ -28,7 +28,7 @@ import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
-import repositories.contactdetails.ContactDetailsRepository
+import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 
@@ -40,10 +40,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 object ApplicationSiftService extends ApplicationSiftService {
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
-  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
-  val schemeRepo = SchemeYamlRepository
-  val dateTimeFactory = DateTimeFactory
-  val emailClient = CSREmailClient
+  val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
+  val schemeRepo: SchemeRepository = SchemeYamlRepository
+  val dateTimeFactory: DateTimeFactory = DateTimeFactory
+  val emailClient: CSREmailClient = CSREmailClient
 }
 
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
@@ -66,7 +66,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
   }
 
-  def progressStatusForSiftStage(schemeList: Seq[SchemeId]) = if (requiresForms(schemeList)) {
+  def progressStatusForSiftStage(schemeList: Seq[SchemeId]): ProgressStatuses.ProgressStatus = if (requiresForms(schemeList)) {
     ProgressStatuses.SIFT_ENTERED
   } else {
     ProgressStatuses.SIFT_READY
@@ -300,7 +300,6 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       _ <- applicationSiftRepo.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId)
       _ <- applicationRepo.removeProgressStatuses(applicationId,
         List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
-      currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
     } yield ()
   }
 }

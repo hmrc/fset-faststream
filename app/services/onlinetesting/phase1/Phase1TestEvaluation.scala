@@ -48,7 +48,7 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
         s"sjq fail = ${schemePassmark.schemeThresholds.situational.failThreshold}, " +
         s"sqj pass = ${schemePassmark.schemeThresholds.situational.passThreshold}, " +
         s"sqj result = $sjqResult, " +
-        s"bq score = ${bqTestResultOpt.map(_.tScore).getOrElse(None)}, " +
+        s"bq score = ${bqTestResultOpt.flatMap(_.tScore)}, " +
         s"bq fail = ${schemePassmark.schemeThresholds.behavioural.failThreshold}, " +
         s"bq pass = ${schemePassmark.schemeThresholds.behavioural.passThreshold}, " +
         s"bq result = $bqResult"

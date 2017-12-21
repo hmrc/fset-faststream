@@ -52,7 +52,7 @@ trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob[BasicJobC
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val rh = EmptyRequestHeader
-    implicit val hc = new HeaderCarrier()
+    implicit val hc = HeaderCarrier()
     service.processNextTestForReminder(reminderNotice)
   }
 }

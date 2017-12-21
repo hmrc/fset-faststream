@@ -166,8 +166,6 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
-  private val PdfsSchemeId = "ProjectDelivery"
-
   def findCandidatesEligibleForEventAllocation(assessmentCentreLocation: String, eventType: EventType, eventDescription: String) = {
     val schemeId = eventType match {
       case EventType.FSAC => None

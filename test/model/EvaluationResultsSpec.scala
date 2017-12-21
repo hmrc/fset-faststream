@@ -32,8 +32,6 @@ class EvaluationResultsSpec extends UnitSpec with TableDrivenPropertyChecks {
       EvaluationResults.Result.apply("Withdrawn") mustBe Withdrawn
     }
 
-    val All = Seq(Green, Amber, Red, Withdrawn)
-
     "add withdrawn" in {
       val table = Table(
         ("addend", "sum"),

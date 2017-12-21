@@ -51,7 +51,7 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
       case Nil =>
         Future.successful(())
       case applications =>
-        implicit val hc = new HeaderCarrier()
+        implicit val hc = HeaderCarrier()
         implicit val rh = EmptyRequestHeader
         onlineTestingService.registerAndInviteForTestGroup(applications)
     }

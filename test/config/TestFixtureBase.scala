@@ -16,7 +16,7 @@
 
 package config
 
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import services.AuditService

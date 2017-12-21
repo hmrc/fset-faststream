@@ -61,8 +61,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
       "add extra days onto expiry, from the expiry time, if not expired" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(
-          createSuccessfulProgressResponse(Phase1ProgressResponse(phase1TestsExpired = false,
-          phase1TestsStarted = true))
+          createSuccessfulProgressResponse(Phase1ProgressResponse(phase1TestsStarted = true))
         )
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(false)

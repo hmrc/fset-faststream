@@ -13,9 +13,9 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
   override val collectionName: String = CollectionNames.CANDIDATE_ALLOCATION
   def repository: CandidateAllocationMongoRepository = new CandidateAllocationMongoRepository()
   val allocations: Seq[CandidateAllocation] = Seq(
-    CandidateAllocation("candId1", "eventId1", "sessionId1", UNCONFIRMED, "version1", None, LocalDate.now(), false),
-    CandidateAllocation("candId2", "eventId1", "sessionId1", CONFIRMED, "version1", None, LocalDate.now(), false),
-    CandidateAllocation("candId3", "eventId2", "sessionId2",  UNCONFIRMED, "version1", None, LocalDate.now().minusDays(6), false)
+    CandidateAllocation("candId1", "eventId1", "sessionId1", UNCONFIRMED, "version1", None, LocalDate.now(), reminderSent = false),
+    CandidateAllocation("candId2", "eventId1", "sessionId1", CONFIRMED, "version1", None, LocalDate.now(), reminderSent = false),
+    CandidateAllocation("candId3", "eventId2", "sessionId2",  UNCONFIRMED, "version1", None, LocalDate.now().minusDays(6), reminderSent = false)
   )
 
   def storeAllocations = allocations.foreach(a => repository.save(Seq(a)).futureValue)

@@ -52,7 +52,7 @@ trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[Sche
   val expiryTest: TestExpirationEvent
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val hc = new HeaderCarrier()
+    implicit val hc = HeaderCarrier()
     implicit val rh = EmptyRequestHeader
     Logger.debug(s"Running online test expiry job for ${expiryTest.phase}")
     onlineTestingService.processNextExpiredTest(expiryTest)

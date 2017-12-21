@@ -36,7 +36,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture {
-    implicit val hc = new HeaderCarrier()
+    implicit val hc = HeaderCarrier()
     implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
 
     val mockPhase3TestService = mock[Phase3TestService]

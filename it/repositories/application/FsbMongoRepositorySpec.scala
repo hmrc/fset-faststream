@@ -93,7 +93,6 @@ class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with C
     }
 
     "return None if FsbTestGroup is not found for the given applicationId" in {
-      val applicationId = createApplication()
       val result = repository.findByApplicationId("appId-with-no-fsb-test-group").futureValue
       result mustBe None
     }

@@ -43,7 +43,7 @@ trait RetrieveResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[Waiti
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextTestGroupWithReportReady.flatMap {
       case Some(richTestGroup) =>
-        implicit val hc = new HeaderCarrier()
+        implicit val hc = HeaderCarrier()
         onlineTestingService.retrieveTestResult(richTestGroup)
       case None => Future.successful(())
     }

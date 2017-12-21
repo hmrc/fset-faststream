@@ -200,7 +200,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
     "return a bad request when the repository fails to update (applicationId or userId is wrong)" in new TestFixture {
       when(mockPersonalDetailsService.updateFsacIndicator(any[String], any[String], any[String]))
-        .thenReturn(Future.failed(new CannotUpdateFSACIndicator("boom")))
+        .thenReturn(Future.failed(CannotUpdateFSACIndicator("boom")))
 
       val request = FakeRequest(Helpers.POST,
         controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")

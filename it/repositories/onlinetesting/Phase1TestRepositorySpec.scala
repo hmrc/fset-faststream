@@ -114,9 +114,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Next application ready for online testing" should {
     "return no application if there is only one and it is a fast pass candidate" in {
-      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true,
-        fastPassReceived = true
+      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED",
+        fastPassApplicable = true, fastPassReceived = true
       ).futureValue
 
       val result = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
@@ -125,8 +124,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return no application if there is one fast pass approved candidate" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true,
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", fastPassApplicable = true,
         fastPassReceived = true, fastPassAccepted = Some(true)
       ).futureValue
 
@@ -136,8 +134,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return no application if there is one fast pass rejected candidate" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true,
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", fastPassApplicable = true,
         fastPassReceived = true, fastPassAccepted = Some(false)
       ).futureValue
 
@@ -149,10 +146,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return one application if there is only one and it is not a fast pass candidate" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false
-      ).futureValue
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED").futureValue
 
       val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
@@ -201,7 +195,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   "Next phase1 test group with report ready" should {
     "not return a test group if the progress status is not appropriately set" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS",
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, false))
+        additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, false))
       ).futureValue
 
       val result = phase1TestRepo.nextTestGroupWithReportReady.futureValue
@@ -210,9 +204,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return a test group if the progress status is set to PHASE1_TEST_RESULTS_READY" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true), (PHASE1_TESTS_RESULTS_READY, true)),
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS",
+        additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true), (PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(testProfileWithAppId.testGroup)
       ).futureValue
 
@@ -224,9 +217,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     "return a test group if only one report is ready to download" in {
       val profile = testProfileWithAppId.testGroup.copy(tests = List(phase1Test, phase1Test.copy(resultsReadyToDownload = true)))
 
-      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true), (PHASE1_TESTS_RESULTS_READY, true)),
+      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS",
+        additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true), (PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(profile)
       ).futureValue
 
@@ -238,9 +230,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Insert test result" should {
     "correctly update a test group with results" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS",
+        additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(testProfileWithAppId.testGroup)
       ).futureValue
 
@@ -265,10 +256,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "The OnlineTestApplication case model" should {
     "be correctly read from mongo" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
-        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        isGis = true
-      ).futureValue
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", isGis = true).futureValue
 
       val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
@@ -291,10 +279,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "be correctly read from mongo with lower case submitted status" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "submitted", needsSupportForOnlineAssessment = false,
-        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        isGis = true
-      ).futureValue
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "submitted", isGis = true).futureValue
 
       val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
@@ -565,10 +550,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
           ))
         )
 
-        createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
-          adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-          fastPassReceived = false, phase1TestProfile = Some(input)
-        ).futureValue
+        createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", phase1TestProfile = Some(input)).futureValue
 
         phase1TestRepo.updateTestCompletionTime(111, now).futureValue
         val result = phase1TestRepo.getTestProfileByCubiksId(111).futureValue

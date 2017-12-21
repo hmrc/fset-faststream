@@ -91,7 +91,7 @@ trait AssessorService {
 
     hasFutureAssessorAllocations(userId, skillsToRemove).map { hasFutureAssessorAllocationsVal =>
       if (hasFutureAssessorAllocationsVal) {
-        throw new CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException(userId,
+        throw CannotUpdateAssessorWhenSkillsAreRemovedAndFutureAllocationExistsException(userId,
           s"You cannot remove skills from user with id $userId when the user has been allocated to those future events with those skills." +
           " Please remove the allocations from those events before removing the skills")
       } else {

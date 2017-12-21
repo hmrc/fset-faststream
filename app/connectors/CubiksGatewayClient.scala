@@ -37,7 +37,7 @@ trait CubiksGatewayClient {
 
   // Blank out header carriers for calls to LPG. Passing on someone's true-client-ip header will cause them to be reassessed
   // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesirable behaviour.
-  implicit def blankedHeaderCarrier = new HeaderCarrier()
+  implicit def blankedHeaderCarrier = HeaderCarrier()
 
   def registerApplicants(batchSize: Int): Future[List[Registration]] = {
     http.GET(s"$url/csr-cubiks-gateway/faststream/register/$batchSize").map { response =>

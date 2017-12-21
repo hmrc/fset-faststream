@@ -26,7 +26,7 @@ import uk.gov.hmrc.http.HeaderCarrier
   */
 class BaseServiceSpec extends UnitSpec with FutureHelper {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
-  implicit val hc = new HeaderCarrier()
+  implicit val hc = HeaderCarrier()
   implicit val rh = EmptyRequestHeader
 
   val AppId = "AppId"

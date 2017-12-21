@@ -47,7 +47,7 @@ trait CandidateAllocationGenerator {
         createData.toCandidateAllocations
       }
 
-      candidateAllocationService.allocateCandidates(newAllocationsWithVersion, true).map { d =>
+      candidateAllocationService.allocateCandidates(newAllocationsWithVersion, append = true).map { d =>
         CreateCandidateAllocationResponse(generationId, createData.copy(version = d.version))
       }
     }
