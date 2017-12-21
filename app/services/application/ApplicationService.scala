@@ -57,7 +57,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.http.HeaderCarrier
 
-object ApplicationService extends ApplicationService {
+object ApplicationService extends ApplicationService with CurrentSchemeStatusHelper {
   val appRepository = applicationRepository
   val eventService = StcEventService
   val pdRepository = personalDetailsRepository
@@ -545,11 +545,18 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   def rollbackToAssessmentCentreConfirmed(applicationId: String, statuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
-    def getPhase3Results(applicationId: String): Future[Option[List[SchemeEvaluationResult]]] = {
+    def getPhase3Results: Future[Option[List[SchemeEvaluationResult]]] = {
       phase3TestRepository.getTestGroup(applicationId).map { maybeTestGroup =>
         maybeTestGroup.flatMap { phase3TestGroup =>
           phase3TestGroup.evaluation.map(_.result)
         }
+      }
+    }
+    def fetchSiftResults: Future[Seq[SchemeEvaluationResult]] = {
+      for {
+        siftEvaluation <- appSiftRepository.getSiftEvaluations(applicationId).recover { case _ => Nil }
+      } yield {
+        siftEvaluation
       }
     }
     val exercisesToRemove = List(analysisExercise.toString, groupExercise.toString, leadershipExercise.toString)
@@ -560,10 +567,11 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), reviewerExercisesToRemove)
       _ <- fsacRepo.removeFsacEvaluation(applicationId)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
-      // Read back the video results and set the current scheme status to these
-      phase3ResultsOpt <- getPhase3Results(applicationId)
+      phase3ResultsOpt <- getPhase3Results
       phase3Results = phase3ResultsOpt.getOrElse(throw new RuntimeException("No phase 3 video results found"))
-      _ <- appRepository.updateCurrentSchemeStatus(applicationId, phase3Results)
+      siftResults <- fetchSiftResults
+      css = calculateCurrentSchemeStatus(phase3Results, siftResults)
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, css)
     } yield ()
   }
 
