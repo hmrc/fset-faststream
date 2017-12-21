@@ -99,9 +99,9 @@ trait AssessmentScoresService {
   def submitFinalFeedback(applicationId: UniqueIdentifier, newFinalFeedback: AssessmentScoresFinalFeedback): Future[Unit] = {
     def findScoresAndVerify(applicationId: UniqueIdentifier) = {
       assessmentScoresRepository.find(applicationId).map { scoresOpt =>
-        require(scoresOpt.map { scores =>
+        require(scoresOpt.exists { scores =>
           scores.analysisExercise.isDefined && scores.groupExercise.isDefined && scores.leadershipExercise.isDefined
-        }.getOrElse(false))
+        })
         scoresOpt
       }
     }
@@ -211,9 +211,9 @@ abstract class AssessorAssessmentScoresService extends AssessmentScoresService {
   override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED
 
   override def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean = {
-    allExercisesScores.analysisExercise.map(_.isSubmitted).getOrElse(false) &&
-      allExercisesScores.groupExercise.map(_.isSubmitted).getOrElse(false) &&
-      allExercisesScores.leadershipExercise.map(_.isSubmitted).getOrElse(false)
+    allExercisesScores.analysisExercise.exists(_.isSubmitted) &&
+      allExercisesScores.groupExercise.exists(_.isSubmitted) &&
+      allExercisesScores.leadershipExercise.exists(_.isSubmitted)
   }
 }
 
@@ -231,9 +231,9 @@ abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
   override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
 
   override def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean = {
-    allExercisesScores.analysisExercise.map(_.isSubmitted).getOrElse(false) &&
-      allExercisesScores.groupExercise.map(_.isSubmitted).getOrElse(false) &&
-      allExercisesScores.leadershipExercise.map(_.isSubmitted).getOrElse(false) &&
+    allExercisesScores.analysisExercise.exists(_.isSubmitted) &&
+      allExercisesScores.groupExercise.exists(_.isSubmitted) &&
+      allExercisesScores.leadershipExercise.exists(_.isSubmitted) &&
       allExercisesScores.finalFeedback.isDefined
   }
 }

@@ -29,8 +29,7 @@ case class AssessmentScoresExercise(
   strategicApproachToObjectivesScores: Option[StrategicApproachToObjectivesScores] = None,
   analysisAndDecisionMakingScores: Option[AnalysisAndDecisionMakingScores] = None,
   leadingAndCommunicatingScores: Option[LeadingAndCommunicatingScores] = None,
-  buildingProductiveRelationshipsScores:
-  Option[BuildingProductiveRelationshipsScores] = None,
+  buildingProductiveRelationshipsScores: Option[BuildingProductiveRelationshipsScores] = None,
 
   strategicApproachToObjectivesFeedback: Option[String] = None,
   analysisAndDecisionMakingFeedback: Option[String] = None,

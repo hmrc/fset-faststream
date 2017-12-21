@@ -34,10 +34,10 @@ import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
 object AssessmentCentreAllocationConfirmedStatusGenerator extends AssessmentCentreAllocationConfirmedStatusGenerator {
-  override val previousStatusGenerator: BaseGenerator = AssessmentCentreAwaitingAllocationStatusGenerator
+  override val previousStatusGenerator = AssessmentCentreAwaitingAllocationStatusGenerator
   override val applicationRepository = repositories.applicationRepository
-  override val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
-  override val eventGenerator: EventGenerator = EventGenerator
+  override val candidateAllocationService = CandidateAllocationService
+  override val eventGenerator = EventGenerator
 }
 
 trait AssessmentCentreAllocationConfirmedStatusGenerator extends ConstructiveGenerator {
