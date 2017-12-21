@@ -66,6 +66,16 @@ trait TestDataGeneratorService extends MongoDbConnection {
     for {
       _ <- RegisteredStatusGenerator.createUser(
         1,
+        "test_tech_admin_1@mailinator.com", "CSR Test", "Tech Admin", Some("TestTechAdmin"),
+        List(AuthProviderClient.TechnicalAdminRole)
+      )
+      _ <- RegisteredStatusGenerator.createUser(
+        1,
+        "test_super_admin_1@mailinator.com", "CSR Test", "Super Admin", Some("TestSuperAdmin"),
+        List(AuthProviderClient.SuperAdminRole)
+      )
+      _ <- RegisteredStatusGenerator.createUser(
+        1,
         "test_service_manager_1@mailinator.com", "CSR Test", "Tech Admin", Some("TestServiceManager"),
         List(AuthProviderClient.TechnicalAdminRole)
       )
@@ -215,13 +225,14 @@ trait TestDataGeneratorService extends MongoDbConnection {
   private def runInParallel[D <: CreateTestData, R <: CreateTestDataResponse](parNumbers: ParRange,
                                                                               createData: (Int => D),
                                                                               block: (Int, D) => Future[R])
-  : List[R] = {
-    parNumbers.map { candidateGenerationId =>
-      Await.result(
-        block(candidateGenerationId, createData(candidateGenerationId)),
-        10 seconds
-      )
-    }.toList
+  : List[R] = {parNumbers.map { candidateGenerationId =>
+        Await.result(
+          block(candidateGenerationId, createData(candidateGenerationId)),
+          10 seconds
+        )
+      }.toList
+
+
   }
 
 }

@@ -25,6 +25,8 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import repositories.application.PreviousYearCandidatesDetailsRepository
+import repositories.{ MediaRepository, QuestionnaireRepository, contactdetails }
 import repositories.application.{ GeneralApplicationRepository, ReportingRepository }
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.events.EventsRepository
@@ -121,6 +123,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       val assessmentScoresRepository = mockAssessmentScoresRepository
       val mediaRepository: MediaRepository = mockMediaRepository
       val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
+      val prevYearCandidatesDetailsRepository = mock[PreviousYearCandidatesDetailsRepository]
       val authProviderClient = mock[AuthProviderClient]
       val eventsRepository = mockEventsRepository
       val assessorRepository = mockAssessorRepository

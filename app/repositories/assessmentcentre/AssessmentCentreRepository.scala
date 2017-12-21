@@ -19,6 +19,7 @@ package repositories.assessmentcentre
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.CompetencyAverageResult
+import model.Exceptions.NotFoundException
 import model._
 import model.command.{ ApplicationForProgression, ApplicationForSift }
 import model.persisted.SchemeEvaluationResult
@@ -53,6 +54,7 @@ trait AssessmentCentreRepository {
     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
   def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
+  def removeFsacEvaluation(applicationId: String): Future[Unit]
 }
 
 class AssessmentCentreMongoRepository (
@@ -215,5 +217,20 @@ class AssessmentCentreMongoRepository (
     val validator = singleUpdateValidator(applicationId, actionDesc = "Updating assessment centre tests")
 
     collection.update(query, update) map validator
+  }
+
+  override def removeFsacEvaluation(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$unset" -> BSONDocument(s"testGroups.$fsacKey" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map{ result =>
+      if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
   }
 }

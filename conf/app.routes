@@ -84,6 +84,7 @@ GET         /report/internship/:frameworkId                              control
 GET         /report/analytical-schemes/:frameworkId                      controllers.ReportingController.analyticalSchemesReport(frameworkId: String)
 GET         /report/numeric-test-extract                                 controllers.ReportingController.numericTestExtractReport()
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
+GET         /report/candidates-details-stream/previous-year              controllers.ReportingController.streamPreviousYearCandidatesDetailsReport()
 GET         /report/assessor-allocation                                  controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                 controllers.ReportingController.candidateAcceptanceReport()
 
@@ -98,11 +99,14 @@ DELETE      /diagnostic/application/:applicationId/eTray                        
 DELETE      /diagnostic/application/:applicationId/progress/:progress                   controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
 DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
 PUT         /diagnostic/application/:applicationId/fastPassPromotion                    controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-phase2-completed-from-phase2-failed                   controllers.fixdata.FixDataConsistencyController.rollbackToPhase2CompletedFromPhase2Failed(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-phase1-results-received-from-phase1-failed        controllers.fixdata.FixDataConsistencyController.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-phase2-results-received-from-phase2-failed        controllers.fixdata.FixDataConsistencyController.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase2-completed-from-phase2-failed                controllers.fixdata.FixDataConsistencyController.rollbackToPhase2CompletedFromPhase2Failed(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase1-results-received-from-phase1-failed         controllers.fixdata.FixDataConsistencyController.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase2-results-received-from-phase2-failed         controllers.fixdata.FixDataConsistencyController.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-submitted-with-fast-pass-from-online-tests-expired controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean)
-GET         /diagnostic/application/:applicationId/rollback-to-in-progress-from-fast-pass-accepted controllers.fixdata.FixDataConsistencyController.rollbackToInProgressFromFastPassAccepted(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-in-progress-from-fast-pass-accepted                controllers.fixdata.FixDataConsistencyController.rollbackToInProgressFromFastPassAccepted(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocated-from-awaiting-fsb                   controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String)
+
+
 GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-faststream-user controllers.fixdata.FixDataConsistencyController.removeSdipSchemeFromFaststreamUser(applicationId: String)
 GET         /diagnostic/sift/findCandidatesStuckInSiftReady              controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes
 GET         /diagnostic/sift/fixCandidateStuckInSiftReady                controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String)
@@ -118,6 +122,7 @@ GET         /diagnostic/moveSdipFaststreamFailedFaststreamInvitedToVideoIntervie
 GET         /diagnostic/application/fixSdipFaststreamCandidateWhoExpiredInOnlineTests                  controllers.fixdata.FixDataConsistencyController.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String)
 GET         /diagnostic/application/rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation          controllers.fixdata.FixDataConsistencyController.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String)
 GET         /diagnostic/currentSchemeStatus/markAs/:result/schemeId/:schemeId                          controllers.fixdata.FixDataConsistencyController.updateCurrentSchemeStatusScheme(applicationId: String, schemeId: model.SchemeId, result: model.EvaluationResults.Result)
+GET         /diagnostic/application/rollback-to-ac-confirmed-from-ac-failed-notified                   controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

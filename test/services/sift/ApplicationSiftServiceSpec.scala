@@ -104,7 +104,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     val queryBson = BSONDocument("applicationId" -> appId)
     val updateBson = BSONDocument("test" -> "test")
 
-    (mockSiftRepo.siftResultsExists _).expects(appId).returningAsync(false)
+    (mockSiftRepo.siftResultsExistsForScheme _).expects(appId, schemeSiftResult.schemeId).returningAsync(false)
   }
 
   "An ApplicationSiftService.progressApplicationToSift" must {
