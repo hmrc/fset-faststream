@@ -58,9 +58,11 @@ trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator with M
 
     for {
       latestPassMarks <- applicationAssessmentService.passmarkService.getLatestPassMarkSettings
-      _ <- applicationAssessmentService.passmarkService.createPassMarkSettings(
-          latestPassMarks.getOrElse(dummyPassmarks)
-        )
+      _ <- if (latestPassMarks.isEmpty) {
+        applicationAssessmentService.passmarkService.createPassMarkSettings(dummyPassmarks)
+      } else {
+        Future.successful(())
+      }
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       appId = UniqueIdentifier(candidateInPreviousStatus.applicationId.getOrElse(sys.error("Missed application id for candidate")))
       passMarksSchemesAndScoresSeq <- applicationAssessmentService.nextAssessmentCandidatesReadyForEvaluation(100)
