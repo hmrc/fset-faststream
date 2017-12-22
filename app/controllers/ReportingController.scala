@@ -119,7 +119,7 @@ trait ReportingController extends BaseController {
 
   def streamPreviousYearCandidatesDetailsReport: Action[AnyContent] = Action.async { implicit request =>
     enrichPreviousYearCandidateDetails {
-      (contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers) =>
+      (contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) =>
       {
         val header = Enumerator(
           (prevYearCandidatesDetailsRepository.applicationDetailsHeader ::
@@ -128,11 +128,22 @@ trait ReportingController extends BaseController {
             prevYearCandidatesDetailsRepository.mediaHeader ::
             prevYearCandidatesDetailsRepository.eventsDetailsHeader ::
             prevYearCandidatesDetailsRepository.siftAnswersHeader ::
+            prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Assessor") ::
+            prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Reviewer") ::
             Nil).mkString(",") + "\n"
         )
         var counter = 0
         val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream().map { app =>
-          val ret = createCandidateInfoBackUpRecord(app, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers) + "\n"
+          val ret = createCandidateInfoBackUpRecord(
+            app,
+            contactDetails,
+            questionnaireDetails,
+            mediaDetails,
+            eventsDetails,
+            siftAnswers,
+            assessorAssessmentScores,
+            reviewerAssessmentScores
+          ) + "\n"
           counter += 1
           ret
         }
@@ -142,7 +153,10 @@ trait ReportingController extends BaseController {
   }
 
   private def enrichPreviousYearCandidateDetails(
-    block: (CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result
+    block: (CsvExtract[String], CsvExtract[String],
+      CsvExtract[String], CsvExtract[String],
+      CsvExtract[String], CsvExtract[String],
+      CsvExtract[String]) => Result
   ) = {
     for {
       contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails()
@@ -150,8 +164,11 @@ trait ReportingController extends BaseController {
       mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails()
       eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails()
       siftAnswers <- prevYearCandidatesDetailsRepository.findSiftAnswers()
+      assessorAssessmentScores <- prevYearCandidatesDetailsRepository.findAssessorAssessmentScores()
+      reviewerAssessmentScores <- prevYearCandidatesDetailsRepository.findReviewerAssessmentScores()
     } yield {
-      block(contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers)
+      block(contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
+        assessorAssessmentScores, reviewerAssessmentScores)
     }
   }
 
@@ -161,7 +178,9 @@ trait ReportingController extends BaseController {
     questionnaireDetails: CsvExtract[String],
     mediaDetails: CsvExtract[String],
     eventsDetails: CsvExtract[String],
-    siftAnswersDetails: CsvExtract[String]
+    siftAnswersDetails: CsvExtract[String],
+    assessorAssessmentScoresDetails: CsvExtract[String],
+    reviewerAssessmentScoresDetails: CsvExtract[String]
   ) = {
     (candidateDetails.csvRecord ::
       contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
@@ -169,6 +188,8 @@ trait ReportingController extends BaseController {
       mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
       eventsDetails.records.getOrElse(candidateDetails.appId, eventsDetails.emptyRecord) ::
       siftAnswersDetails.records.getOrElse(candidateDetails.appId, siftAnswersDetails.emptyRecord) ::
+      assessorAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, assessorAssessmentScoresDetails.emptyRecord) ::
+      reviewerAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, reviewerAssessmentScoresDetails.emptyRecord) ::
       Nil).mkString(",")
   }
 

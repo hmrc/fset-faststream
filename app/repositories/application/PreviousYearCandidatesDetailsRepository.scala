@@ -63,6 +63,8 @@ trait PreviousYearCandidatesDetailsRepository {
     "ELIGIBLE_FOR_JOB_OFFER,ELIGIBLE_FOR_JOB_OFFER_NOTIFIED,"
 
 
+  val fsacCompetencyHeaders = "FSAC passedMinimumCompetencyLevel,analysisAndDecisionMakingAverage,buildingProductiveRelationshipsAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage,overallScore,"
+
   private val appTestResults =
     List("PHASE 1", "PHASE 2", "PHASE 3", "SIFT", "FSAC", "FSB", "Current Scheme Status").map { s =>
       s"$s result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result"
@@ -87,6 +89,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
     "personal-details,IN_PROGRESS,scheme-preferences,partner-graduate-programmes,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_RESULTS_READY," +
     appTestStatuses +
+    fsacCompetencyHeaders +
     appTestResults
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
@@ -106,6 +109,19 @@ trait PreviousYearCandidatesDetailsRepository {
     "undergrad degree name,classification,graduationYear,moduleDetails," +
     "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
 
+  val assessmentScoresNumericFields = Seq(
+    "analysisExercise" -> "analysisAndDecisionMakingAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage",
+    "leadershipExercise" -> "buildingProductiveRelationshipsAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage",
+    "groupExercise" -> "analysisAndDecisionMakingAverage,leadingAndCommunicatingAverage,buildingProductiveRelationshipsAverage"
+  )
+  val assessmentScoresNumericFieldsMap: Map[String, String] = assessmentScoresNumericFields.toMap
+
+  def assessmentScoresHeaders(assessor: String): String = {
+    assessmentScoresNumericFields.map(_._1).map { x =>
+      s"$assessor $x attended,updatedBy,submittedDate,${assessmentScoresNumericFieldsMap(x)}"
+    }.mkString(",") + s",$assessor Final feedback,updatedBy,acceptedDate"
+  }
+
 
   def applicationDetailsStream(): Enumerator[CandidateDetailsReportItem]
 
@@ -114,6 +130,10 @@ trait PreviousYearCandidatesDetailsRepository {
   def findQuestionnaireDetails(): Future[CsvExtract[String]]
 
   def findMediaDetails(): Future[CsvExtract[String]]
+
+  def findAssessorAssessmentScores(): Future[CsvExtract[String]]
+
+  def findReviewerAssessmentScores(): Future[CsvExtract[String]]
 
   def findEventsDetails(): Future[CsvExtract[String]]
 
@@ -132,6 +152,10 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   val questionnaireCollection = mongo().collection[JSONCollection](CollectionNames.QUESTIONNAIRE)
 
   val mediaCollection = mongo().collection[JSONCollection](CollectionNames.MEDIA)
+
+  val assessorAssessmentScoresCollection = mongo().collection[JSONCollection](CollectionNames.ASSESSOR_ASSESSMENT_SCORES)
+
+  val reviewerAssessmentScoresCollection = mongo().collection[JSONCollection](CollectionNames.REVIEWER_ASSESSMENT_SCORES)
 
   val candidateAllocationCollection = mongo().collection[JSONCollection](CollectionNames.CANDIDATE_ALLOCATION)
 
@@ -194,6 +218,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             onlineTestResults("etray") :::
             videoInterview(doc) :::
             progressStatusTimestamps(doc) :::
+            fsacCompetency(doc) :::
             testEvaluations(doc) :::
             currentSchemeStatus(doc)
             : _*
@@ -509,6 +534,44 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
+
+  def findAssessorAssessmentScores(): Future[CsvExtract[String]] = findAssessmentScores("Assessor", assessorAssessmentScoresCollection)
+
+  def findReviewerAssessmentScores(): Future[CsvExtract[String]] = findAssessmentScores("Reviewer", reviewerAssessmentScoresCollection)
+
+  private def findAssessmentScores(name: String, col: JSONCollection): Future[CsvExtract[String]] = {
+
+    val exerciseSections = assessmentScoresNumericFields.map(_._1)
+    val projection = Json.obj("_id" -> 0)
+    col.find(Json.obj(), projection)
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .collect[List]().map { docs =>
+      val csvRecords = docs.map { doc =>
+        val csvStr = exerciseSections.flatMap { s =>
+          val section = doc.getAs[BSONDocument](s)
+          List(
+            section.getAsStr[Boolean]("attended"),
+            section.getAsStr[String]("updatedBy"),
+            section.getAsStr[DateTime]("submittedDate")
+          ) ++
+            assessmentScoresNumericFieldsMap(s).split(",").map { field =>
+              section.getAsStr[Double](field)
+            }
+        } ++ {
+          val section = doc.getAs[BSONDocument]("finalFeedback")
+          List(
+            section.getAsStr[String]("feedback"),
+            section.getAsStr[String]("updatedBy"),
+            section.getAsStr[DateTime]("acceptedDate")
+          )
+        }
+        val csvRecord = makeRow(csvStr: _*)
+        doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
+      }
+      CsvExtract(assessmentScoresHeaders(name), csvRecords.toMap)
+    }
+  }
+
   private def isOxbridge(code: Option[String]): Option[String] = {
     code match {
       case Some("O33-OXF") | Some("C05-CAM") => Y
@@ -603,11 +666,29 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       val testSection = testGroups.getAs[BSONDocument](sectionName)
       val testsEvaluation = testSection.getAs[BSONDocument]("evaluation")
       val testEvalResults = testsEvaluation.getAs[List[BSONDocument]]("result")
+        .orElse(testsEvaluation.getAs[List[BSONDocument]]("schemes-evaluation"))
       val evalResultsMap = testEvalResults.map(getSchemeResults)
       val schemeResults = evalResultsMap.getOrElse(Nil)
       schemeResults.map(Option(_)) ::: ( 1 to ( 18 - schemeResults.size ) ).toList.map(_ => Some(""))
     }
     }
+  }
+
+  private def fsacCompetency(doc: BSONDocument): List[Option[String]] = {
+    val testGroups = doc.getAs[BSONDocument]("testGroups")
+    val testSection = testGroups.getAs[BSONDocument]("FSAC")
+    val testsEvaluation = testSection.getAs[BSONDocument]("evaluation")
+
+
+    val passedMin = testsEvaluation.getAs[Boolean]("passedMinimumCompetencyLevel").map(_.toString)
+    val competencyAvg = testsEvaluation.getAs[BSONDocument]("competency-average")
+    passedMin :: List(
+      "analysisAndDecisionMakingAverage",
+      "buildingProductiveRelationshipsAverage",
+      "leadingAndCommunicatingAverage",
+      "strategicApproachToObjectivesAverage",
+      "overallScore"
+    ).map { f => competencyAvg.getAs[Double](f) map ( _.toString ) }
   }
 
   private def currentSchemeStatus(doc: BSONDocument): List[Option[String]] = {

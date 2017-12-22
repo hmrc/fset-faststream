@@ -21,7 +21,7 @@ import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import services.testdata.candidate.assessmentcentre.AssessmentCentreAwaitingAllocationStatusGenerator
+import services.testdata.candidate.assessmentcentre._
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
 
 import scala.concurrent.Future
@@ -29,7 +29,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.http.HeaderCarrier
 
 object FsbAwaitingAllocationStatusGenerator extends FsbAwaitingAllocationStatusGenerator {
-  override val previousStatusGenerator: BaseGenerator = AssessmentCentreAwaitingAllocationStatusGenerator
+  override val previousStatusGenerator: BaseGenerator = AssessmentCentrePassedStatusGenerator
   override val applicationRepository = repositories.applicationRepository
 }
 
@@ -41,11 +41,6 @@ trait FsbAwaitingAllocationStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      // this should be properly implemented as soon as story FSET-1711 done.
-      _ <- applicationRepository.removeProgressStatuses(
-        candidateInPreviousStatus.applicationId.get,
-        List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
-      )
       _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(
         candidateInPreviousStatus.applicationId.get,
         ProgressStatuses.FSB_AWAITING_ALLOCATION
