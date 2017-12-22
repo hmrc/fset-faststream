@@ -20,7 +20,7 @@ import common.FutureEx
 import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
 import model.EvaluationResults.{ Green, Red, Withdrawn }
-import model.Exceptions.{ PassMarkEvaluationNotFound, SiftResultsAlreadyExistsException }
+import model.Exceptions.SiftResultsAlreadyExistsException
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult

@@ -260,4 +260,17 @@ trait FixDataConsistencyController extends BaseController {
       Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
     )
   }
+
+  def rollbackToAssessmentCentreConfirmedFromEligibleForJobOfferNotified(applicationId: String): Action[AnyContent] = Action.async {
+    val statusesToRemove = List(
+      ASSESSMENT_CENTRE_SCORES_ENTERED,
+      ASSESSMENT_CENTRE_SCORES_ACCEPTED,
+      ASSESSMENT_CENTRE_PASSED,
+      ELIGIBLE_FOR_JOB_OFFER,
+      ELIGIBLE_FOR_JOB_OFFER_NOTIFIED
+    )
+    applicationService.rollbackToAssessmentCentreConfirmed(applicationId, statusesToRemove).map(_ =>
+      Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
+    )
+  }
 }
