@@ -109,6 +109,19 @@ trait PreviousYearCandidatesDetailsRepository {
     "undergrad degree name,classification,graduationYear,moduleDetails," +
     "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
 
+  val assessmentScoresNumericFields = Seq(
+    "analysisExercise" -> "analysisAndDecisionMakingAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage",
+    "leadershipExercise" -> "buildingProductiveRelationshipsAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage",
+    "groupExercise" -> "analysisAndDecisionMakingAverage,leadingAndCommunicatingAverage,buildingProductiveRelationshipsAverage"
+  )
+  val assessmentScoresNumericFieldsMap: Map[String, String] = assessmentScoresNumericFields.toMap
+
+  def assessmentScoresHeaders(assessor: String): String = {
+    assessmentScoresNumericFields.map(_._1).map { x =>
+      s"$assessor $x attended,updatedBy,submittedDate,${assessmentScoresNumericFieldsMap(x)}"
+    }.mkString(",") + s",$assessor Final feedback,updatedBy,acceptedDate"
+  }
+
 
   def applicationDetailsStream(): Enumerator[CandidateDetailsReportItem]
 
@@ -117,6 +130,10 @@ trait PreviousYearCandidatesDetailsRepository {
   def findQuestionnaireDetails(): Future[CsvExtract[String]]
 
   def findMediaDetails(): Future[CsvExtract[String]]
+
+  def findAssessorAssessmentScores(): Future[CsvExtract[String]]
+
+  def findReviewerAssessmentScores(): Future[CsvExtract[String]]
 
   def findEventsDetails(): Future[CsvExtract[String]]
 
@@ -135,6 +152,10 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   val questionnaireCollection = mongo().collection[JSONCollection](CollectionNames.QUESTIONNAIRE)
 
   val mediaCollection = mongo().collection[JSONCollection](CollectionNames.MEDIA)
+
+  val assessorAssessmentScoresCollection = mongo().collection[JSONCollection](CollectionNames.ASSESSOR_ASSESSMENT_SCORES)
+
+  val reviewerAssessmentScoresCollection = mongo().collection[JSONCollection](CollectionNames.REVIEWER_ASSESSMENT_SCORES)
 
   val candidateAllocationCollection = mongo().collection[JSONCollection](CollectionNames.CANDIDATE_ALLOCATION)
 
@@ -510,6 +531,44 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         doc.getAs[String]("userId").getOrElse("") -> csvRecord
       }
       CsvExtract(mediaHeader, csvRecords.toMap)
+    }
+  }
+
+
+  def findAssessorAssessmentScores(): Future[CsvExtract[String]] = findAssessmentScores("Assessor", assessorAssessmentScoresCollection)
+
+  def findReviewerAssessmentScores(): Future[CsvExtract[String]] = findAssessmentScores("Reviewer", reviewerAssessmentScoresCollection)
+
+  private def findAssessmentScores(name: String, col: JSONCollection): Future[CsvExtract[String]] = {
+
+    val exerciseSections = assessmentScoresNumericFields.map(_._1)
+    val projection = Json.obj("_id" -> 0)
+    col.find(Json.obj(), projection)
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .collect[List]().map { docs =>
+      val csvRecords = docs.map { doc =>
+        val csvStr = exerciseSections.flatMap { s =>
+          val section = doc.getAs[BSONDocument](s)
+          List(
+            section.getAsStr[Boolean]("attended"),
+            section.getAsStr[String]("updatedBy"),
+            section.getAsStr[DateTime]("submittedDate")
+          ) ++
+            assessmentScoresNumericFieldsMap(s).split(",").map { field =>
+              section.getAsStr[Double](field)
+            }
+        } ++ {
+          val section = doc.getAs[BSONDocument]("finalFeedback")
+          List(
+            section.getAsStr[String]("feedback"),
+            section.getAsStr[String]("updatedBy"),
+            section.getAsStr[DateTime]("acceptedDate")
+          )
+        }
+        val csvRecord = makeRow(csvStr: _*)
+        doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
+      }
+      CsvExtract(assessmentScoresHeaders(name), csvRecords.toMap)
     }
   }
 
