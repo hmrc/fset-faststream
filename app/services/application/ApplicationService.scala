@@ -137,6 +137,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   }
 
+  def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatus): Future[Unit] = {
+    appRepository.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus)
+  }
+
   def removeFromAllEvents(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     candidateAllocationService.allocationsForApplication(applicationId).flatMap { allocations =>
       candidateAllocationService.unAllocateCandidates(allocations.toList).map(_ => ())

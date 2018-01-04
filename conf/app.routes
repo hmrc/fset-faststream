@@ -106,6 +106,7 @@ GET         /diagnostic/application/:applicationId/rollback-to-submitted-with-fa
 GET         /diagnostic/application/:applicationId/rollback-to-in-progress-from-fast-pass-accepted                controllers.fixdata.FixDataConsistencyController.rollbackToInProgressFromFastPassAccepted(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocated-from-awaiting-fsb                   controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-fastpass-from-fsac-to-submitted                       controllers.fixdata.FixDataConsistencyController.rollbackFastPassFromFsacToSubmitted(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-fsac-anllocated-from-awaiting-fsb                   controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String)
 
 
 GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-faststream-user controllers.fixdata.FixDataConsistencyController.removeSdipSchemeFromFaststreamUser(applicationId: String)
@@ -125,6 +126,9 @@ GET         /diagnostic/application/rollbackToSiftReadyFromAssessmentCentreAwait
 GET         /diagnostic/currentSchemeStatus/markAs/:result/schemeId/:schemeId                          controllers.fixdata.FixDataConsistencyController.updateCurrentSchemeStatusScheme(applicationId: String, schemeId: model.SchemeId, result: model.EvaluationResults.Result)
 GET         /diagnostic/application/rollback-to-ac-confirmed-from-ac-failed-notified                   controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String)
 GET         /diagnostic/application/rollback-to-ac-confirmed-from-eligible-for-job-offer-notified      controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromEligibleForJobOfferNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/addProgressStatus/:progressStatus                   controllers.fixdata.FixDataConsistencyController.addProgressStatus(applicationId: String, progressStatus: model.ProgressStatuses.ProgressStatus)
+GET         /diagnostic/application/setPhasePassmarkVersion                                            controllers.fixdata.FixDataConsistencyController.setPhasePassmarkVersion(applicationId: String, phase: String)
+GET         /diagnostic/findUsersStuckInAssessmentScoresAccepted                                       controllers.fixdata.FixDataConsistencyController.findUsersStuckInAssessmentScoresAccepted
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

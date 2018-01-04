@@ -15,9 +15,9 @@
  */
 
 import model.ApplicationStatus.ApplicationStatus
-import model.ApplicationStatus
+import model.{ ApplicationStatus, ProgressStatuses, SchemeId, UniqueIdentifier }
 import model.EvaluationResults.Result
-import model.{ SchemeId, UniqueIdentifier }
+import model.ProgressStatuses.ProgressStatus
 import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import org.joda.time.LocalDate
 import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
@@ -73,6 +73,12 @@ package object controllers {
       parse = (value: String) => ApplicationStatus.withName(value),
       serialize = _.toString,
       error = (m: String, e: Exception) => "Can't parse %s as ApplicationStatus: %s".format(m, e.getMessage)
+    )
+
+    implicit val progressStatusPathBinder = new PathBindable.Parsing[ProgressStatus](
+      parse = (value: String) => ProgressStatuses.nameToProgressStatus(value),
+      serialize = _.toString,
+      error = (m: String, e: Exception) => "Can't parse %s as ProgressStatus: %s".format(m, e.getMessage)
     )
 
     val pathDateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd")

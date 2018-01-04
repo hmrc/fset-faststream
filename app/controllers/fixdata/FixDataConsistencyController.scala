@@ -131,6 +131,22 @@ trait FixDataConsistencyController extends BaseController {
       )
   }
 
+  // TODO
+  def setPhasePassmarkVersion(applicationId: String, phase: String) = Action.async {
+    Future.successful(Ok)
+  }
+
+  def addProgressStatus(applicationId: String, progressStatus: ProgressStatus) = Action.async {
+    applicationService.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus).map(_ => Ok)
+  }
+
+  // TODO
+  def findUsersStuckInAssessmentScoresAccepted(): Action[AnyContent] = Action.async {
+    // Find all with assessment scores accepted and no pass or fail
+    // filter to all users where there's an evaluation that has at least one green or all red
+    Future.successful(Ok)
+  }
+
   def fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String): Action[AnyContent] = Action.async {
     siftService.fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId).map(_ => Ok)
   }
