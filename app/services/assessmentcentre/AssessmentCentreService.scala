@@ -21,6 +21,7 @@ import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult, Green }
 import model.ProgressStatuses._
 import model._
+import model.assessmentscores.FixUserStuckInScoresAccepted
 import model.command.ApplicationForProgression
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
@@ -198,6 +199,12 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
       Logger.debug(s"$logPrefix No progress status, candidate status has not been changed")
       Future.successful(())
     }
+  }
+
+  def findUsersStuckInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]] = {
+    // Find all with assessment scores accepted and no pass or fail
+    // filter to all users where there's an evaluation that has at least one green or all red
+    ???
   }
 
   def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,

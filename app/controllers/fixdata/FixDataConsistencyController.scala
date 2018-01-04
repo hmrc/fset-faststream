@@ -23,6 +23,7 @@ import model.SchemeId
 import model.command.FastPassPromotion
 import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
+import services.assessmentcentre.AssessmentCentreService
 import services.fastpass.FastPassService
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -34,12 +35,14 @@ object FixDataConsistencyController extends FixDataConsistencyController {
   override val applicationService = ApplicationService
   override val fastPassService = FastPassService
   override val siftService = ApplicationSiftService
+  override val assessmentCentreService = AssessmentCentreService
 }
 
 trait FixDataConsistencyController extends BaseController {
   val applicationService: ApplicationService
   val fastPassService: FastPassService
   val siftService: ApplicationSiftService
+  val assessmentCentreService: AssessmentCentreService
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -144,7 +147,15 @@ trait FixDataConsistencyController extends BaseController {
   def findUsersStuckInAssessmentScoresAccepted(): Action[AnyContent] = Action.async {
     // Find all with assessment scores accepted and no pass or fail
     // filter to all users where there's an evaluation that has at least one green or all red
-    Future.successful(Ok)
+    assessmentCentreService.findUsersStuckInAssessmentScoresAccepted.map(resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("applicationId") ++ resultList.map { user =>
+          s"${user.applicationId}"
+        }).mkString("\n"))
+      }
+    )
   }
 
   def fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String): Action[AnyContent] = Action.async {
