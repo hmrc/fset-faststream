@@ -28,7 +28,6 @@ import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future
 
-
 trait CommonRepository extends CurrentSchemeStatusHelper {
   this: MongoRepositorySpec with ScalaFutures =>
 

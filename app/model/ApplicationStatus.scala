@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,6 @@ object ApplicationStatus extends Enumeration with ApplicationStatusOnlyForTest {
 
   implicit object BSONEnumHandler extends BSONHandler[BSONString, ApplicationStatus] {
     def read(doc: BSONString) = ApplicationStatus.withName(doc.value.toUpperCase())
-    def write(stats: ApplicationStatus) = BSON.write(stats.toString)
+    def write(status: ApplicationStatus) = BSON.write(status.toString)
   }
 }
