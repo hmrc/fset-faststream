@@ -261,6 +261,11 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
+  def rollbackFastPassFromFsacToSubmitted(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    applicationService.rollbackFastPassFromFsacToSubmitted(applicationId)
+      .map(_ => Ok(s"Successfully rolled $applicationId back to Submitted from FSAC"))
+  }
+
   def rollbackToAssessmentCentreConfirmedFromEligibleForJobOfferNotified(applicationId: String): Action[AnyContent] = Action.async {
     val statusesToRemove = List(
       ASSESSMENT_CENTRE_SCORES_ENTERED,

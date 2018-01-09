@@ -27,7 +27,7 @@ import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
 import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
-import model._
+import model.{ ProgressStatuses, _ }
 import model.exchange.SchemeEvaluationResultWithFailureDetails
 import org.joda.time.DateTime
 import play.api.Logger
@@ -372,6 +372,25 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.FAST_PASS_ACCEPTED
     )
     rollbackAppAndProgressStatus(applicationId, ApplicationStatus.IN_PROGRESS, statuses)
+  }
+
+  def rollbackFastPassFromFsacToSubmitted(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.FAST_PASS_ACCEPTED,
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED
+    )
+
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.SUBMITTED, statuses)
+      civilServiceDetails <- civilServiceExperienceDetailsRepo.find(applicationId)
+      updatedCivilServiceDetails = civilServiceDetails
+        .map(_.copy(fastPassAccepted = None)).getOrElse(throw UnexpectedException("Civil Service Details not found"))
+      _ <- civilServiceExperienceDetailsRepo.update(applicationId, updatedCivilServiceDetails)
+      allocations <- candidateAllocationService.allocationsForApplication(applicationId)
+      _ <- candidateAllocationService.unAllocateCandidates(allocations.toList)
+    } yield ()
   }
 
   def convertToFastStreamRouteWithFastpassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean): Future[Unit] = {

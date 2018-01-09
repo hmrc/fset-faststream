@@ -105,6 +105,7 @@ GET         /diagnostic/application/:applicationId/rollback-to-phase2-results-re
 GET         /diagnostic/application/:applicationId/rollback-to-submitted-with-fast-pass-from-online-tests-expired controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean)
 GET         /diagnostic/application/:applicationId/rollback-to-in-progress-from-fast-pass-accepted                controllers.fixdata.FixDataConsistencyController.rollbackToInProgressFromFastPassAccepted(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocated-from-awaiting-fsb                   controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-fastpass-from-fsac-to-submitted                       controllers.fixdata.FixDataConsistencyController.rollbackFastPassFromFsacToSubmitted(applicationId: String)
 
 
 GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-faststream-user controllers.fixdata.FixDataConsistencyController.removeSdipSchemeFromFaststreamUser(applicationId: String)
