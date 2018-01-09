@@ -214,7 +214,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   def findUsersStuckInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]] = {
     // Find all with assessment scores accepted and no pass or fail
     // filter to all users where there's an evaluation that has at least one green or all red
-    ???
+    assessmentCentreRepo.findNonPassedNonFailedUsersInAssessmentScoresAccepted
   }
 
   def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,

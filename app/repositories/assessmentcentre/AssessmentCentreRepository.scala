@@ -20,7 +20,9 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult }
 import model.Exceptions.NotFoundException
+import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED }
 import model._
+import model.assessmentscores.FixUserStuckInScoresAccepted
 import model.command.{ ApplicationForProgression, ApplicationForSift }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
@@ -56,6 +58,7 @@ trait AssessmentCentreRepository {
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
   def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
   def removeFsacEvaluation(applicationId: String): Future[Unit]
+  def findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]]
 }
 
 class AssessmentCentreMongoRepository (
@@ -134,20 +137,20 @@ class AssessmentCentreMongoRepository (
 
   override def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument("FSAC.evaluation" -> 1, "_id" -> 0)
+    val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument].map {
       case Some(doc) =>
         doc.getAs[BSONDocument]("testGroups")
-          .flatMap(_.getAs[BSONDocument]("FSAC")
+          .flatMap(_.getAs[BSONDocument](fsacKey)
             .flatMap(_.getAs[BSONDocument]("evaluation"))).map { evaluationDoc =>
           AssessmentPassMarkEvaluation(
             UniqueIdentifier(applicationId),
-            passmarkVersion = doc.getAs[String]("passmarkVersion").get,
+            passmarkVersion = evaluationDoc.getAs[String]("passmarkVersion").get,
             evaluationResult = AssessmentEvaluationResult(
-              doc.getAs[Boolean]("passedMinimumCompetencyLevel"),
-              doc.getAs[CompetencyAverageResult]("competency-average").get,
-              doc.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation").get
+              evaluationDoc.getAs[Boolean]("passedMinimumCompetencyLevel"),
+              evaluationDoc.getAs[CompetencyAverageResult]("competency-average").get,
+              evaluationDoc.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation").get
             )
           )
         }
@@ -254,6 +257,26 @@ class AssessmentCentreMongoRepository (
     bsonCollection.findAndModify(query, updateOp).map{ result =>
       if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
       else { () }
+    }
+  }
+
+  def findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]] = {
+    val query = BSONDocument(
+      "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
+      s"progress-status.${ASSESSMENT_CENTRE_PASSED.toString}" -> BSONDocument("$exists" -> false),
+      s"progress-status.${ASSESSMENT_CENTRE_FAILED.toString}" -> BSONDocument("$exists" -> false)
+    )
+    val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "applicationId" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[Seq]().map { docList =>
+      docList.map { doc =>
+        // TODO: Parse results
+        val evaluation = doc.getAs[BSONDocument]("")
+        FixUserStuckInScoresAccepted(
+          doc.getAs[String]("applicationId"),
+          doc.getAs[Seq[SchemeEvaluationResult]]("")
+        )
+      }
     }
   }
 }

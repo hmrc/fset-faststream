@@ -137,7 +137,7 @@ trait FixDataConsistencyController extends BaseController {
       )
   }
 
-  def randomisePhasePassmarkVersion(applicationId: String, phase: String) = Action.async {
+  def randomisePhasePassmarkVersion(applicationId: String, phase: String): Action[AnyContent] = Action.async {
     phase match {
       case "FSAC" => {
         for {
@@ -152,14 +152,11 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
-  def addProgressStatus(applicationId: String, progressStatus: ProgressStatus) = Action.async {
+  def addProgressStatus(applicationId: String, progressStatus: ProgressStatus): Action[AnyContent] = Action.async {
     applicationService.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus).map(_ => Ok)
   }
 
-  // TODO
   def findUsersStuckInAssessmentScoresAccepted(): Action[AnyContent] = Action.async {
-    // Find all with assessment scores accepted and no pass or fail
-    // filter to all users where there's an evaluation that has at least one green or all red
     assessmentCentreService.findUsersStuckInAssessmentScoresAccepted.map(resultList =>
       if (resultList.isEmpty) {
         Ok("No candidates found")
