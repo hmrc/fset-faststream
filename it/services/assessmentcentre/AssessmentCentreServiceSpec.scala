@@ -47,7 +47,7 @@ class AssessmentCentreServiceSpec extends MongoRepositorySpec {
   val DebugRunTestSuitePathPatternOnly: Option[String] = None
 //  val DebugRunTestSuitePathPatternOnly: Option[String] = Some("2_oneSchemeWithMclSuite/")
 
-  val prefix= "****"
+  val prefix= ""
 
   // Ficus specific ValueReaders so Ficus can read the config files into case classes
   implicit object SchemeReader extends ValueReader[SchemeId] {
@@ -106,7 +106,6 @@ class AssessmentCentreServiceSpec extends MongoRepositorySpec {
   private def loadSuites: Array[File] = {
     val suites = new File(TestPath).listFiles sortBy(_.getName)
     require(suites.nonEmpty, s"No test suites found in $TestPath")
-//    Logger.info(s"$prefix suites = ${suites.mkString(",")}")
     suites.foreach( s => Logger.info(s"$prefix test suite loaded = $s" ) )
     suites
   }
