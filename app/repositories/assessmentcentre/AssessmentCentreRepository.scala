@@ -18,7 +18,7 @@ package repositories.assessmentcentre
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.CompetencyAverageResult
+import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult }
 import model.Exceptions.NotFoundException
 import model._
 import model.command.{ ApplicationForProgression, ApplicationForSift }
@@ -50,6 +50,7 @@ trait AssessmentCentreRepository {
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[UniqueIdentifier]]
+  def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]]
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
@@ -129,6 +130,28 @@ class AssessmentCentreMongoRepository (
       )
 
     selectRandom[BSONDocument](query, batchSize).map(docs => docs.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get))
+  }
+
+  override def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("FSAC.evaluation" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      case Some(doc) =>
+        doc.getAs[BSONDocument]("testGroups")
+          .flatMap(_.getAs[BSONDocument]("FSAC")
+            .flatMap(_.getAs[BSONDocument]("evaluation"))).map { evaluationDoc =>
+          AssessmentPassMarkEvaluation(
+            UniqueIdentifier(applicationId),
+            passmarkVersion = doc.getAs[String]("passmarkVersion").get,
+            evaluationResult = AssessmentEvaluationResult(
+              doc.getAs[Boolean]("passedMinimumCompetencyLevel"),
+              doc.getAs[CompetencyAverageResult]("competency-average").get,
+              doc.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation").get
+            )
+          )
+        }
+    }
   }
 
   override def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,

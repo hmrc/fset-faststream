@@ -16,6 +16,7 @@
 
 package controllers.fixdata
 
+import factories.UUIDFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.NotFoundException
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
@@ -24,6 +25,7 @@ import model.command.FastPassPromotion
 import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
 import services.assessmentcentre.AssessmentCentreService
+import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.fastpass.FastPassService
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -137,9 +139,17 @@ trait FixDataConsistencyController extends BaseController {
 
   def randomisePhasePassmarkVersion(applicationId: String, phase: String) = Action.async {
     phase match {
-      case "PHASE1" => true
+      case "FSAC" => {
+        for {
+          currentSchemeStatus <- applicationService.getCurrentSchemeStatus(applicationId)
+          assessmentCentreScoreEvaluation <- assessmentCentreService.getAssessmentScoreEvaluation(applicationId)
+          _ = if (assessmentCentreScoreEvaluation.isEmpty) { throw CandidateHasNoAssessmentScoreEvaluationException(applicationId) }
+          newEvaluation = assessmentCentreScoreEvaluation.get.copy(passmarkVersion = UUIDFactory.generateUUID())
+          _ <- assessmentCentreService.saveAssessmentScoreEvaluation(newEvaluation, currentSchemeStatus)
+        } yield Ok(s"Pass marks randomised for application $applicationId in phase $phase")
+      }
+      case _ => Future.successful(NotImplemented("Phase pass mark randomisation not implemented for phase: " + phase))
     }
-    Future.successful(Ok)
   }
 
   def addProgressStatus(applicationId: String, progressStatus: ProgressStatus) = Action.async {

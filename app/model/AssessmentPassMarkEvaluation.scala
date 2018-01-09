@@ -17,8 +17,10 @@
 package model
 
 import model.EvaluationResults.AssessmentEvaluationResult
+import reactivemongo.bson.Macros
 
 case class AssessmentPassMarkEvaluation(
   applicationId: UniqueIdentifier,
   passmarkVersion: String,
   evaluationResult: AssessmentEvaluationResult)
+

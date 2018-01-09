@@ -46,6 +46,7 @@ object AssessmentCentreService extends AssessmentCentreService {
 
   case class CandidateAlreadyHasAnAnalysisExerciseException(message: String) extends Exception(message)
   case class CandidateHasNoAnalysisExerciseException(message: String) extends Exception(message)
+  case class CandidateHasNoAssessmentScoreEvaluationException(message: String) extends Exception(message)
 }
 
 trait AssessmentCentreService extends CurrentSchemeStatusHelper {
@@ -146,6 +147,15 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
       Logger.debug(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
   }
+
+  def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]] = {
+    assessmentCentreRepo.getAssessmentScoreEvaluation(applicationId)
+  }
+
+  def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
+    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = assessmentCentreRepo.saveAssessmentScoreEvaluation(
+    evaluation, currentSchemeStatus
+  )
 
   private def mergeSchemes(evaluation: Seq[SchemeEvaluationResult], evaluatedSchemesFromDb: Option[Seq[SchemeEvaluationResult]],
     assessmentPassmarkEvaluation: AssessmentPassMarkEvaluation): AssessmentPassMarkEvaluation = {
