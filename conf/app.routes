@@ -106,7 +106,7 @@ GET         /diagnostic/application/:applicationId/rollback-to-submitted-with-fa
 GET         /diagnostic/application/:applicationId/rollback-to-in-progress-from-fast-pass-accepted                controllers.fixdata.FixDataConsistencyController.rollbackToInProgressFromFastPassAccepted(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocated-from-awaiting-fsb                   controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-fastpass-from-fsac-to-submitted                       controllers.fixdata.FixDataConsistencyController.rollbackFastPassFromFsacToSubmitted(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-fsac-anllocated-from-awaiting-fsb                   controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocated-from-awaiting-fsb                   controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String)
 
 
 GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-faststream-user controllers.fixdata.FixDataConsistencyController.removeSdipSchemeFromFaststreamUser(applicationId: String)
@@ -119,7 +119,7 @@ GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredAfterWithdrawingFromA
 GET         /diagnostic/sift/fixUserSiftedWithAFailByMistake                                           controllers.fixdata.FixDataConsistencyController.fixUserSiftedWithAFailByMistake(applicationId: String)
 GET         /diagnostic/sift/markSiftSchemeAsRed/:schemeId                                             controllers.fixdata.FixDataConsistencyController.markSiftSchemeAsRed(applicationId: String, schemeId: model.SchemeId)
 GET         /diagnostic/sift/markSiftSchemeAsGreen/:schemeId                                           controllers.fixdata.FixDataConsistencyController.markSiftSchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
-GET         /diagnostic/findSdipFaststreamFailedFaststreamInvitedToVideoInterview                      controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInvitedToVidefoInterview
+GET         /diagnostic/findSdipFaststreamFailedFaststreamInvitedToVideoInterview                      controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInvitedToVideoInterview
 GET         /diagnostic/moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift                controllers.fixdata.FixDataConsistencyController.moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)
 GET         /diagnostic/application/fixSdipFaststreamCandidateWhoExpiredInOnlineTests                  controllers.fixdata.FixDataConsistencyController.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String)
 GET         /diagnostic/application/rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation          controllers.fixdata.FixDataConsistencyController.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String)
