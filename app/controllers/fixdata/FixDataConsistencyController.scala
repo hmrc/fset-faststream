@@ -38,6 +38,7 @@ object FixDataConsistencyController extends FixDataConsistencyController {
   override val assessmentCentreService = AssessmentCentreService
 }
 
+// scalastyle:off number.of.methods
 trait FixDataConsistencyController extends BaseController {
   val applicationService: ApplicationService
   val fastPassService: FastPassService
@@ -134,8 +135,10 @@ trait FixDataConsistencyController extends BaseController {
       )
   }
 
-  // TODO
-  def setPhasePassmarkVersion(applicationId: String, phase: String) = Action.async {
+  def randomisePhasePassmarkVersion(applicationId: String, phase: String) = Action.async {
+    phase match {
+      case "PHASE1" => true
+    }
     Future.successful(Ok)
   }
 
@@ -306,3 +309,4 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 }
+// scalastyle:on

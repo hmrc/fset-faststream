@@ -62,16 +62,6 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
     }
   }
 
-  def updatePassMarkEvaluation(application: ApplicationReadyForEvaluation,
-                             schemeResults: List[SchemeEvaluationResult],
-                             passMarkSettings: T) = {
-    if (schemeResults.nonEmpty) {
-      evaluationRepository.addSchemeResultToPassmarkEvaluation(application.applicationId, schemeResults.head, passMarkSettings.version)
-    } else {
-      Future.successful(())
-    }
-  }
-
   def getPassmarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
     evaluationRepository.getPassMarkEvaluation(applicationId)
   }
