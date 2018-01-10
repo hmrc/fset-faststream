@@ -212,8 +212,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   }
 
   def findUsersStuckInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]] = {
-    val usersStuckInScoresAccepted = assessmentCentreRepo.findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted
-    usersStuckInScoresAccepted
+    assessmentCentreRepo.findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted
   }
 
   def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,

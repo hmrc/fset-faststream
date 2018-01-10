@@ -109,6 +109,5 @@ object EvaluationResults {
     passedMinimumCompetencyLevel: Option[Boolean],
     competencyAverageResult: CompetencyAverageResult,
     schemesEvaluation: Seq[SchemeEvaluationResult])
-
 }
 
