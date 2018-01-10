@@ -271,15 +271,17 @@ class AssessmentCentreMongoRepository (
     val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "applicationId" -> 1, "_id" -> 0)
 
     collection.find(query, projection).cursor[BSONDocument]().collect[Seq]().map { docList =>
-      docList.map { doc =>
-        val evaluation = doc.getAs[BSONDocument]("testGroups")
+      docList.flatMap { doc =>
+        val evaluationSection = doc.getAs[BSONDocument]("testGroups")
           .flatMap(_.getAs[BSONDocument]("FSAC"))
           .flatMap(_.getAs[BSONDocument]("evaluation"))
 
-        FixUserStuckInScoresAccepted(
-          doc.getAs[String]("applicationId").get,
-          evaluation.flatMap(_.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")).get
-        )
+        evaluationSection.flatMap(_.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")).map { evaluation =>
+          FixUserStuckInScoresAccepted(
+            doc.getAs[String]("applicationId").get,
+            evaluation
+          )
+        }
       }
     }
   }
