@@ -48,6 +48,7 @@ trait FsbRepository {
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
   def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
   def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]]
+  def removeTestGroup(applicationId: String): Future[Unit]
 }
 
 class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB) extends
@@ -230,6 +231,13 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
       case head :: tail => list :+ FsbSchemeResult(applicationId, head :: tail)
     }
     filteredResult
+  }
+
+  def removeTestGroup(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument("$unset" -> FSB_TEST_GROUPS)
+
+    collection.update(query, update).map(_ => ())
   }
 
 }
