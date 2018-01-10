@@ -265,7 +265,7 @@ class AssessmentCentreMongoRepository (
       "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
       s"progress-status.${ASSESSMENT_CENTRE_PASSED.toString}" -> BSONDocument("$exists" -> false),
       s"progress-status.${ASSESSMENT_CENTRE_FAILED.toString}" -> BSONDocument("$exists" -> false),
-      "testGroups.FSAC.evaluation.schemes-evaluation.result" -> BSONDocument("$nin" -> Amber.toString)
+      "testGroups.FSAC.evaluation.schemes-evaluation.result" -> BSONDocument("$nin" -> BSONArray(Amber.toString))
     )
     val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "applicationId" -> 1, "_id" -> 0)
 
