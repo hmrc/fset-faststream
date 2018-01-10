@@ -139,8 +139,8 @@ class AssessmentCentreMongoRepository (
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument].map {
-      case Some(doc) =>
+    collection.find(query, projection).one[BSONDocument].map { docOpt =>
+      docOpt.flatMap { doc =>
         doc.getAs[BSONDocument]("testGroups")
           .flatMap(_.getAs[BSONDocument](fsacKey)
             .flatMap(_.getAs[BSONDocument]("evaluation"))).map { evaluationDoc =>
@@ -154,6 +154,7 @@ class AssessmentCentreMongoRepository (
             )
           )
         }
+      }
     }
   }
 

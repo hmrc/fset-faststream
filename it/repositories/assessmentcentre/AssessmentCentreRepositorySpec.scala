@@ -16,6 +16,7 @@
 
 package repositories.assessmentcentre
 
+import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult, Green }
 import model.ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION
 import model._
 import model.command.ApplicationForProgression
@@ -86,7 +87,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
   }
 
-  "progressToFsac" must {
+  "progressToAssessmentCentre" must {
 
     "ignore candidates who only have Sdip/Edip green at the end of sifting" in {
       insertApplicationWithSiftComplete("appId1",
@@ -128,6 +129,43 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       )
 
       assessmentCentreRepository.progressToAssessmentCentre(nextResults.head, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).futureValue
+    }
+  }
+
+  "getAssessmentScoreEvaluation" must {
+    "retrieve assessment results when present" in new TestFixture {
+      val appId: UniqueIdentifier = UniqueIdentifier.randomUniqueIdentifier
+
+      insertApplicationWithAssessmentCentreAwaitingAllocation(appId.toString())
+
+      assessmentCentreRepository.saveAssessmentScoreEvaluation(
+        AssessmentPassMarkEvaluation(
+          appId,
+          "passMarkVersion",
+          AssessmentEvaluationResult(
+            None,
+            CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+            Seq(
+              SchemeEvaluationResult(
+                schemeId = "GovernmentCommunicationService",
+                result = Green.toString
+              )
+            )
+          )
+        ),
+        Seq(SchemeEvaluationResult(
+          schemeId = "GovernmentCommunicationService",
+          result = Green.toString
+        ))
+      ).futureValue
+
+      val result: Option[AssessmentPassMarkEvaluation] = assessmentCentreRepository.getAssessmentScoreEvaluation(appId.toString()).futureValue
+
+      result mustBe defined
+    }
+
+    "return None when not present" in new TestFixture {
+      assessmentCentreRepository.getAssessmentScoreEvaluation("appId1").futureValue must not be defined
     }
   }
 
