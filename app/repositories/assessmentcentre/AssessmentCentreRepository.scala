@@ -18,7 +18,7 @@ package repositories.assessmentcentre
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult }
+import model.EvaluationResults.{ Amber, AssessmentEvaluationResult, CompetencyAverageResult }
 import model.Exceptions.NotFoundException
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED }
 import model._
@@ -264,17 +264,20 @@ class AssessmentCentreMongoRepository (
     val query = BSONDocument(
       "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
       s"progress-status.${ASSESSMENT_CENTRE_PASSED.toString}" -> BSONDocument("$exists" -> false),
-      s"progress-status.${ASSESSMENT_CENTRE_FAILED.toString}" -> BSONDocument("$exists" -> false)
+      s"progress-status.${ASSESSMENT_CENTRE_FAILED.toString}" -> BSONDocument("$exists" -> false),
+      "testGroups.FSAC.evaluation.schemes-evaluation.result" -> BSONDocument("$nin" -> Amber.toString)
     )
     val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "applicationId" -> 1, "_id" -> 0)
 
     collection.find(query, projection).cursor[BSONDocument]().collect[Seq]().map { docList =>
       docList.map { doc =>
-        // TODO: Parse results
-        val evaluation = doc.getAs[BSONDocument]("")
+        val evaluation = doc.getAs[BSONDocument]("testGroups")
+          .flatMap(_.getAs[BSONDocument]("FSAC"))
+          .flatMap(_.getAs[BSONDocument]("evaluation"))
+
         FixUserStuckInScoresAccepted(
-          doc.getAs[String]("applicationId"),
-          doc.getAs[Seq[SchemeEvaluationResult]]("")
+          evaluation.flatMap(_.getAs[String]("applicationId")).get,
+          evaluation.flatMap(_.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")).get
         )
       }
     }
