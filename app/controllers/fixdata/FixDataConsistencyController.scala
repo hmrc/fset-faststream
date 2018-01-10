@@ -162,7 +162,7 @@ trait FixDataConsistencyController extends BaseController {
         Ok("No candidates found")
       } else {
         Ok((Seq("applicationId,fsac scheme evaluation") ++ resultList.map { user =>
-          s"${user.applicationId},${user.schemeEvaluation}"
+          s"""${user.applicationId},"${user.schemeEvaluation.map(eval => eval.schemeId + " -> " + eval.result).mkString(",")}""""
         }).mkString("\n"))
       }
     )

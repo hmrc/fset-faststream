@@ -276,7 +276,7 @@ class AssessmentCentreMongoRepository (
           .flatMap(_.getAs[BSONDocument]("evaluation"))
 
         FixUserStuckInScoresAccepted(
-          evaluation.flatMap(_.getAs[String]("applicationId")).get,
+          doc.getAs[String]("applicationId").get,
           evaluation.flatMap(_.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")).get
         )
       }
