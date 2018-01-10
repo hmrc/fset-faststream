@@ -16,6 +16,7 @@
 
 package controllers.fixdata
 
+import factories.UUIDFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.NotFoundException
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
@@ -23,6 +24,8 @@ import model.SchemeId
 import model.command.FastPassPromotion
 import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
+import services.assessmentcentre.AssessmentCentreService
+import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.fastpass.FastPassService
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -34,12 +37,15 @@ object FixDataConsistencyController extends FixDataConsistencyController {
   override val applicationService = ApplicationService
   override val fastPassService = FastPassService
   override val siftService = ApplicationSiftService
+  override val assessmentCentreService = AssessmentCentreService
 }
 
+// scalastyle:off number.of.methods
 trait FixDataConsistencyController extends BaseController {
   val applicationService: ApplicationService
   val fastPassService: FastPassService
   val siftService: ApplicationSiftService
+  val assessmentCentreService: AssessmentCentreService
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -129,6 +135,37 @@ trait FixDataConsistencyController extends BaseController {
           s"${user.applicationId},${user.timeEnteredSift},$result"
         }).mkString("\n"))
       )
+  }
+
+  def randomisePhasePassmarkVersion(applicationId: String, phase: String): Action[AnyContent] = Action.async {
+    phase match {
+      case "FSAC" => {
+        for {
+          currentSchemeStatus <- applicationService.getCurrentSchemeStatus(applicationId)
+          assessmentCentreScoreEvaluation <- assessmentCentreService.getAssessmentScoreEvaluation(applicationId)
+          _ = if (assessmentCentreScoreEvaluation.isEmpty) { throw CandidateHasNoAssessmentScoreEvaluationException(applicationId) }
+          newEvaluation = assessmentCentreScoreEvaluation.get.copy(passmarkVersion = UUIDFactory.generateUUID())
+          _ <- assessmentCentreService.saveAssessmentScoreEvaluation(newEvaluation, currentSchemeStatus)
+        } yield Ok(s"Pass marks randomised for application $applicationId in phase $phase")
+      }
+      case _ => Future.successful(NotImplemented("Phase pass mark randomisation not implemented for phase: " + phase))
+    }
+  }
+
+  def addProgressStatus(applicationId: String, progressStatus: ProgressStatus): Action[AnyContent] = Action.async {
+    applicationService.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus).map(_ => Ok)
+  }
+
+  def findUsersStuckInAssessmentScoresAccepted(): Action[AnyContent] = Action.async {
+    assessmentCentreService.findUsersStuckInAssessmentScoresAccepted.map(resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("applicationId,fsac scheme evaluation") ++ resultList.map { user =>
+          s"""${user.applicationId},"${user.schemeEvaluation.map(eval => eval.schemeId + " -> " + eval.result).mkString(",")}""""
+        }).mkString("\n"))
+      }
+    )
   }
 
   def fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String): Action[AnyContent] = Action.async {
@@ -279,3 +316,4 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 }
+// scalastyle:on

@@ -117,6 +117,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   val Candidate_Role = "Candidate"
 
+  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = appRepository.getCurrentSchemeStatus(applicationId)
+
   def withdraw(applicationId: String, withdrawRequest: WithdrawRequest)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     (for {
@@ -135,6 +137,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       }
     }) flatMap identity
 
+  }
+
+  def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatus): Future[Unit] = {
+    appRepository.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus)
   }
 
   def removeFromAllEvents(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {

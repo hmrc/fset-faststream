@@ -21,6 +21,7 @@ import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult, Green }
 import model.ProgressStatuses._
 import model._
+import model.assessmentscores.FixUserStuckInScoresAccepted
 import model.command.ApplicationForProgression
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
@@ -45,6 +46,7 @@ object AssessmentCentreService extends AssessmentCentreService {
 
   case class CandidateAlreadyHasAnAnalysisExerciseException(message: String) extends Exception(message)
   case class CandidateHasNoAnalysisExerciseException(message: String) extends Exception(message)
+  case class CandidateHasNoAssessmentScoreEvaluationException(message: String) extends Exception(message)
 }
 
 trait AssessmentCentreService extends CurrentSchemeStatusHelper {
@@ -146,6 +148,15 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     }
   }
 
+  def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]] = {
+    assessmentCentreRepo.getAssessmentScoreEvaluation(applicationId)
+  }
+
+  def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
+    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = assessmentCentreRepo.saveAssessmentScoreEvaluation(
+    evaluation, currentSchemeStatus
+  )
+
   private def mergeSchemes(evaluation: Seq[SchemeEvaluationResult], evaluatedSchemesFromDb: Option[Seq[SchemeEvaluationResult]],
     assessmentPassmarkEvaluation: AssessmentPassMarkEvaluation): AssessmentPassMarkEvaluation = {
       // find any schemes which have been previously evaluated and stored in db and are not in the current evaluated schemes collection
@@ -198,6 +209,10 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
       Logger.debug(s"$logPrefix No progress status, candidate status has not been changed")
       Future.successful(())
     }
+  }
+
+  def findUsersStuckInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]] = {
+    assessmentCentreRepo.findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted
   }
 
   def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,
