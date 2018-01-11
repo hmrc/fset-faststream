@@ -60,7 +60,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "ASSESSMENT_CENTRE_FAILED_NOTIFIED,ASSESSMENT_CENTRE_FAILED_SDIP_GREEN,ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED," +
     "FSB_AWAITING_ALLOCATION,FSB_ALLOCATION_UNCONFIRMED,FSB_ALLOCATION_CONFIRMED,FSB_FAILED_TO_ATTEND," +
     "FSB_RESULT_ENTERED,FSB_PASSED,FSB_FAILED,ALL_FSBS_AND_FSACS_FAILED,ALL_FSBS_AND_FSACS_FAILED_NOTIFIED," +
-    "ELIGIBLE_FOR_JOB_OFFER,ELIGIBLE_FOR_JOB_OFFER_NOTIFIED,"
+    "ELIGIBLE_FOR_JOB_OFFER,ELIGIBLE_FOR_JOB_OFFER_NOTIFIED,WITHDRAWN,"
 
 
   val fsacCompetencyHeaders = "FSAC passedMinimumCompetencyLevel,analysisAndDecisionMakingAverage,buildingProductiveRelationshipsAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage,overallScore,"
@@ -326,6 +326,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       List(
         ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER,
         ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED
+      ).map(timestampFor) ++
+      List(
+        ProgressStatuses.WITHDRAWN
       ).map(timestampFor)
   }
 
