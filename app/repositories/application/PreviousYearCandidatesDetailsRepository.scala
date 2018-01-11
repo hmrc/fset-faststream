@@ -71,7 +71,7 @@ trait PreviousYearCandidatesDetailsRepository {
     }
       .mkString(",")
 
-  val applicationDetailsHeader = "applicationId, userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
+  val applicationDetailsHeader = "applicationId,userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
     "EDIP,SDIP 2016 (previous years),Fast Pass (sdip 2017),Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
     "Do you want to defer,Deferal selections,Do you have a disability,Provide more info,GIS,Extra support online tests," +
@@ -513,9 +513,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           )
           doc.getAs[String]("id").getOrElse("") -> csvRecord
         }.groupBy(_._1).map {
-          case (appId, events) => appId -> events.map(_._2).mkString(";")
+          case (appId, events) => appId -> events.map(_._2).mkString(" --- ")
         }
-        CsvExtract(mediaHeader, csvRecords)
+        CsvExtract(eventsDetailsHeader, csvRecords)
       }
     }
 
