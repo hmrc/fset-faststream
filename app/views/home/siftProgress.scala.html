@@ -93,10 +93,19 @@
 }
 
 @renderFindMoreAboutFsbDay(a: Option[CandidateAllocationWithEvent]) = {
-    @page.fsbEventScheme(a).flatMap(_.schemeGuide).map { link =>
-        <p><a href="@link" rel="external" target="_blank">
-            Find out more about the assessment centre</a>
-        </p>
+    @page.fsbEventScheme(a).map { schemeConfig =>
+        @schemeConfig.schemeGuide.map { schemeGuideLink =>
+            <p><a href="@schemeGuideLink" rel="external" target="_blank">
+                Find out more about the assessment centre</a>
+                @* TODO: Add this link to configuration *@
+                @if(schemeConfig.id.value.toString == SchemeType.Sdip.toString) {
+                    <br />
+                    You will also need: <a href="https://www.faststream.gov.uk/media/1292/sdip-posting.docx"
+                    rel="external" target="_blank">
+                    The posting preference form</a>
+                }
+            </p>
+        }
     }
 }
 
