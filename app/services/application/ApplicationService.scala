@@ -399,6 +399,69 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def allOnlineTestsPhases: Seq[ProgressStatus] = {
+    Seq(
+      ProgressStatuses.PHASE1_TESTS_INVITED,
+      ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE1_TESTS_STARTED,
+      ProgressStatuses.PHASE1_TESTS_COMPLETED,
+      ProgressStatuses.PHASE1_TESTS_RESULTS_READY,
+      ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE1_TESTS_PASSED,
+      ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED,
+      ProgressStatuses.PHASE1_TESTS_FAILED,
+      ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE1_TESTS_EXPIRED,
+
+      ProgressStatuses.PHASE2_TESTS_INVITED,
+      ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_STARTED,
+      ProgressStatuses.PHASE2_TESTS_COMPLETED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_READY,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE2_TESTS_PASSED,
+      ProgressStatuses.PHASE2_TESTS_PASSED,
+      ProgressStatuses.PHASE2_TESTS_FAILED,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE2_TESTS_EXPIRED,
+
+      ProgressStatuses.PHASE3_TESTS_INVITED,
+      ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_STARTED,
+      ProgressStatuses.PHASE3_TESTS_COMPLETED,
+      ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE3_TESTS_PASSED,
+      ProgressStatuses.PHASE3_TESTS_PASSED_WITH_AMBER,
+      ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED,
+      ProgressStatuses.PHASE3_TESTS_FAILED,
+      ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE3_TESTS_EXPIRED
+    )
+  }
+
+  def rollbackToSubmittedFromOnlineTestsAndAddFastpassNumber(applicationId: String, certificateNumber: String)
+                                                           (implicit hc: HeaderCarrier): Future[Unit] = {
+    val statuses = allOnlineTestsPhases
+    for {
+      civilServiceDetails <- civilServiceExperienceDetailsRepo.find(applicationId)
+      updatedCivilServiceDetails = civilServiceDetails
+        .map(_.copy(fastPassReceived = Some(true), certificateNumber = Some(certificateNumber)))
+        .getOrElse(throw UnexpectedException("Civil Service Details not found"))
+      _ <- civilServiceExperienceDetailsRepo.update(applicationId, updatedCivilServiceDetails)
+      _ <- phase1TestRepo.removeTestGroup(applicationId)
+      _ <- phase2TestRepository.removeTestGroup(applicationId)
+      _ <- phase3TestRepository.removeTestGroup(applicationId)
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, Seq.empty[SchemeEvaluationResult])
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.SUBMITTED, statuses.toList)
+    } yield ()
+  }
+
   def convertToFastStreamRouteWithFastpassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean): Future[Unit] = {
     val routeConversion = if (sdipFaststream) {
       appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream, ApplicationRoute.Faststream)
@@ -619,10 +682,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,
-                                           statuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
+                                           statuses: Seq[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     for {
       _ <- appRepository.updateStatus(applicationId, applicationStatus)
-      _ <- appRepository.removeProgressStatuses(applicationId, statuses)
+      _ <- appRepository.removeProgressStatuses(applicationId, statuses.toList)
     } yield ()
   }
 

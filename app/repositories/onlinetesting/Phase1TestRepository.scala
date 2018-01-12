@@ -153,17 +153,6 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     collection.update(query, update) map validator
   }
 
-  // Caution - for administrative fixes only (dataconsistency)
-  def removeTestGroup(applicationId: String): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-
-    val update = BSONDocument("$unset" -> BSONDocument(s"testGroups.$phaseName" -> ""))
-
-    val validator = singleUpdateValidator(applicationId, actionDesc = "removing test group")
-
-    collection.update(query, update) map validator
-  }
-
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
       val progressStatusQuery = BSONDocument("$and" -> BSONArray(
         BSONDocument(s"progress-status.$PHASE1_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),

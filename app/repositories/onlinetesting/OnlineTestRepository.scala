@@ -283,4 +283,15 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.update(query, updateQuery) map validator
   }
+
+  // Caution - for administrative fixes only (dataconsistency)
+  def removeTestGroup(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val update = BSONDocument("$unset" -> BSONDocument(s"testGroups.$phaseName" -> ""))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing test group")
+
+    collection.update(query, update) map validator
+  }
 }
