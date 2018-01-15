@@ -58,8 +58,6 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
-
-  def removeTestGroup(applicationId: String): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -117,7 +115,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     upsertTestGroupEvaluationResult(applicationId, passmarkEvaluation)
   }
 
-  def removeTestGroup(applicationId: String): Future[Unit] = {
+  override def removeTestGroup(applicationId: String): Future[Unit] = {
     val appStatuses = List(ApplicationStatus.PHASE3_TESTS,
       ApplicationStatus.PHASE3_TESTS_FAILED,
       ApplicationStatus.PHASE3_TESTS_PASSED)
