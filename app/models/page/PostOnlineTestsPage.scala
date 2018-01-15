@@ -67,7 +67,13 @@ case class PostOnlineTestsPage(
       schemeStatus => schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Green
     )
 
-  val sdipFaststreamBannerPage = SdipFaststreamBannerPage(isOnlySdipGreen, isSdipFaststreamFailed, isSdipFaststreamSuccessful)
+  val sdipFaststreamAllSchemesFailed: Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
+    userDataWithSchemes.currentSchemesStatus.forall(
+      schemeStatus => schemeStatus.status == SchemeStatus.Red
+    )
+
+  val sdipFaststreamBannerPage = SdipFaststreamBannerPage(isOnlySdipGreen, isSdipFaststreamFailed,
+    isSdipFaststreamSuccessful, sdipFaststreamAllSchemesFailed, userDataWithSchemes.application.applicationStatus)
 
   // scalastyle:off cyclomatic.complexity
   def fsacStage: PostOnlineTestsStage =

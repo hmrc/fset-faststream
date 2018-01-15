@@ -15,6 +15,7 @@
  *@
 
 @import models.page.SdipFaststreamBannerPage
+@import models.ApplicationData.ApplicationStatus._
 
 @(cachedUserData: CachedData, sdipFaststreamBannerPage: Option[SdipFaststreamBannerPage] = None)(implicit request: Request[_])
 
@@ -61,6 +62,7 @@
 }
 
 @sdipFaststreamBannerPage match {
+    case Some(page) if page.sdipFaststreamAllSchemesFailed || page.applicationStatus.toString == ELIGIBLE_FOR_JOB_OFFER.toString => { }
     case Some(page) if page.isOnlySdipGreen => { @displaySdipFaststreamOnlySdipSuccessfulAfterPhase3Banner }
     case Some(page) if page.isSdipFaststreamFailed => { @displaySdipFaststreamFailedBanner }
     case Some(page) if page.isSdipFaststreamSuccessful => { @displaySdipFaststreamSuccessfulBanner }
