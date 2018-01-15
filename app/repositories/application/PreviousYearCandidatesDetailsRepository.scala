@@ -49,11 +49,13 @@ trait PreviousYearCandidatesDetailsRepository {
 
   // scalastyle:off
 
-  private val appTestStatuses = "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE2_TESTS_INVITED,PHASE2_TESTS_FIRST_REMINDER," +
-    "PHASE2_TESTS_SECOND_REMINDER,PHASE2_TESTS_STARTED,PHASE2_TESTS_COMPLETED,PHASE2_TESTS_RESULTS_READY," +
-    "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
-    "PHASE3_TESTS_SECOND_REMINDER,PHASE3_TESTS_STARTED,PHASE3_TESTS_COMPLETED,PHASE3_TESTS_RESULTS_RECEIVED," +
-    "PHASE3_TESTS_PASSED,PHASE3_TESTS_SUCCESS_NOTIFIED," +
+  private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,partner-graduate-programmes,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
+    "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE1_TESTS_PASSED_NOTIFIED,PHASE1_TESTS_FAILED,PHASE1_TESTS_FAILED_NOTIFIED,PHASE1_TESTS_FAILED_SDIP_AMBER," +
+    "PHASE2_TESTS_INVITED,PHASE2_TESTS_FIRST_REMINDER," +
+    "PHASE2_TESTS_SECOND_REMINDER,PHASE2_TESTS_STARTED,PHASE2_TESTS_COMPLETED,PHASE2_TESTS_EXPIRED,PHASE2_TESTS_RESULTS_READY," +
+    "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE2_TESTS_FAILED,PHASE2_TESTS_FAILED_NOTIFIED,PHASE2_TESTS_FAILED_SDIP_AMBER,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
+    "PHASE3_TESTS_SECOND_REMINDER,PHASE3_TESTS_STARTED,PHASE3_TESTS_COMPLETED,PHASE3_TESTS_EXPIRED,PHASE3_TESTS_RESULTS_RECEIVED," +
+    "PHASE3_TESTS_PASSED_WITH_AMBER,PHASE3_TESTS_PASSED,PHASE3_TESTS_PASSED_NOTIFIED,PHASE3_TESTS_FAILED,PHASE3_TESTS_FAILED_NOTIFIED,PHASE3_TESTS_FAILED_SDIP_AMBER," +
     "SIFT_ENTERED,SIFT_READY,SIFT_COMPLETED,FAILED_AT_SIFT,FAILED_AT_SIFT_NOTIFIED,SDIP_FAILED_AT_SIFT,SIFT_FASTSTREAM_FAILED_SDIP_GREEN," +
     "ASSESSMENT_CENTRE_AWAITING_ALLOCATION,ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,ASSESSMENT_CENTRE_FAILED_TO_ATTEND," +
     "ASSESSMENT_CENTRE_SCORES_ENTERED,ASSESSMENT_CENTRE_SCORES_ACCEPTED,ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION,ASSESSMENT_CENTRE_PASSED,ASSESSMENT_CENTRE_FAILED," +
@@ -87,7 +89,6 @@ trait PreviousYearCandidatesDetailsRepository {
     "e-Tray T-score,e-Tray Raw,PHASE 3 interviewId,token,candidateId,customCandidateId,comment,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
-    "personal-details,IN_PROGRESS,scheme-preferences,partner-graduate-programmes,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_RESULTS_READY," +
     appTestStatuses +
     fsacCompetencyHeaders +
     appTestResults
@@ -264,30 +265,47 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       questionnaireStatus("occupation_questionnaire"),
       progressStatus.getOrElseAsStr[Boolean]("preview")(false),
       timestampFor(ProgressStatuses.SUBMITTED).orElse(progressStatusDates.getAsStr[String]("submitted")),
+      timestampFor(ProgressStatuses.FAST_PASS_ACCEPTED).orElse(progressStatusDates.getAsStr[String]("FAST_PASS_ACCEPTED")),
       timestampFor(ProgressStatuses.PHASE1_TESTS_INVITED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_INVITED")),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_FIRST_REMINDER")),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_SECOND_REMINDER")),
       timestampFor(ProgressStatuses.PHASE1_TESTS_STARTED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_STARTED")),
       timestampFor(ProgressStatuses.PHASE1_TESTS_COMPLETED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_COMPLETED")),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_EXPIRED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_EXPIRED")),
       timestampFor(ProgressStatuses.PHASE1_TESTS_RESULTS_READY).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_RESULTS_READY")),
       timestampFor(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_RESULTS_RECEIVED"))
     ) ++
       List(
         ProgressStatuses.PHASE1_TESTS_PASSED,
+        ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED,
+        ProgressStatuses.PHASE1_TESTS_FAILED,
+        ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
+        ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER,
         ProgressStatuses.PHASE2_TESTS_INVITED,
         ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER,
         ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER,
         ProgressStatuses.PHASE2_TESTS_STARTED,
         ProgressStatuses.PHASE2_TESTS_COMPLETED,
+        ProgressStatuses.PHASE2_TESTS_EXPIRED,
         ProgressStatuses.PHASE2_TESTS_RESULTS_READY,
         ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
         ProgressStatuses.PHASE2_TESTS_PASSED,
+        ProgressStatuses.PHASE2_TESTS_FAILED,
+        ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
+        ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
         ProgressStatuses.PHASE3_TESTS_INVITED,
         ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER,
         ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
         ProgressStatuses.PHASE3_TESTS_STARTED,
         ProgressStatuses.PHASE3_TESTS_COMPLETED,
+        ProgressStatuses.PHASE3_TESTS_EXPIRED,
         ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED,
+        ProgressStatuses.PHASE3_TESTS_PASSED_WITH_AMBER,
         ProgressStatuses.PHASE3_TESTS_PASSED,
-        ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED
+        ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED,
+        ProgressStatuses.PHASE3_TESTS_FAILED,
+        ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED,
+        ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER
       ).map(timestampFor) ++
       List(
         ProgressStatuses.SIFT_ENTERED,
