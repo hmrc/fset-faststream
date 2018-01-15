@@ -16,6 +16,8 @@
 
 package models.page
 
+import models.ApplicationData.ApplicationStatus.ApplicationStatus
+
 case class SdipFaststreamBannerPage(isOnlySdipGreen: Boolean, isSdipFaststreamFailed: Boolean,
-  isSdipFaststreamSuccessful: Boolean)
+  isSdipFaststreamSuccessful: Boolean, sdipFaststreamAllSchemesFailed: Boolean, applicationStatus: ApplicationStatus)
 
