@@ -324,13 +324,13 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       result must have length 2
 
-      val expectedHeaders = s"Name,Role,Skills,Sift schemes,Email,Phone," +
+      val expectedHeaders = s"Assessor ID,Name,Role,Skills,Sift schemes,Email,Phone," +
         s"""Internal/External,"${EventExamples.e1.date.toString} (FSAC, London)","${EventExamples.e2.date.toString} (FSB, London)""""
 
       result.head mustBe expectedHeaders
 
       result(1) mustBe
-        """"Bob Smith","assessor","ASSESSOR, QUALITY_ASSURANCE_COORDINATOR","",
+        """"userId1","Bob Smith","assessor","ASSESSOR, QUALITY_ASSURANCE_COORDINATOR","",
           |"bob@bob.com"," ","External","ASSESSOR (CONFIRMED)"," """".stripMargin.replaceAll("\n", "")
     }
 
