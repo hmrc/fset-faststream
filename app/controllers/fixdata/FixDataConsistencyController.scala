@@ -322,8 +322,10 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
-  def rollbackToFsbAwaitingAllocationFromEligibleForJobOfferNotified(applicationId: String): Action[AnyContent] = Action.async {
-    val statusesToRemove = List(
+  def rollbackToFsbAwaitingAllocationFromEligibleForJobOfferNotified(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+
+      val statusesToRemove = List(
       FSB_FAILED,
       FSB_PASSED,
       FSB_FAILED_TO_ATTEND,

@@ -26,9 +26,10 @@ import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.{ CandidateAllocation, ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ProgressStatuses, _ }
 import model.exchange.SchemeEvaluationResultWithFailureDetails
+import model.persisted.eventschedules.EventType
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -46,6 +47,7 @@ import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.allocation.CandidateAllocationService
 import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
+import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase2.EvaluatePhase2ResultService
@@ -77,6 +79,7 @@ object ApplicationService extends ApplicationService with CurrentSchemeStatusHel
   val phase3EvaluationRepository = faststreamPhase3EvaluationRepository
   val appSiftRepository = applicationSiftRepository
   val fsacRepo = assessmentCentreRepository
+  val eventsService = EventsService
   val fsbRepo = fsbRepository
   val civilServiceExperienceDetailsRepo = civilServiceExperienceDetailsRepository
   val assessorAssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
@@ -109,6 +112,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def phase3EvaluationRepository: Phase3EvaluationMongoRepository
   def appSiftRepository: ApplicationSiftRepository
   def fsacRepo: AssessmentCentreRepository
+  def eventsService: EventsService
   def fsbRepo: FsbRepository
   def civilServiceExperienceDetailsRepo: CivilServiceExperienceDetailsRepository
   def assessorAssessmentScoresRepository: AssessorAssessmentScoresMongoRepository
@@ -631,13 +635,24 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
-  def rollbackToFsbAwaitingAllocation(applicationId: String, statuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
+  def rollbackToFsbAwaitingAllocation(applicationId: String, statuses: List[ProgressStatuses.ProgressStatus])
+                                     (implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       assessmentCentreEvaluation <- fsacRepo.getFsacEvaluatedSchemes(applicationId)
       _ <- appRepository.updateCurrentSchemeStatus(applicationId, assessmentCentreEvaluation.get)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.FSB, statuses)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, FSB_AWAITING_ALLOCATION)
       _ <- fsbRepo.removeTestGroup(applicationId)
+      // Mark as removed on active fsb allocations
+      allocations <- candidateAllocationService.allocationsForApplication(applicationId)
+      eventIds = allocations.map(_.eventId)
+      allocatedEvents <- Future.sequence(eventIds.map(eventId => eventsService.getEvent(eventId)))
+      allocatedFsbEventIds = allocatedEvents.filter(_.eventType == EventType.FSB).map(_.id)
+      activeFsbAllocations = allocations.filter(allocation =>
+        allocatedFsbEventIds.contains(allocation.eventId) &&
+        List(AllocationStatuses.CONFIRMED, AllocationStatuses.UNCONFIRMED).contains(allocation.status)
+      )
+      _ <- candidateAllocationService.unAllocateCandidates(activeFsbAllocations.toList)
     } yield ()
   }
 

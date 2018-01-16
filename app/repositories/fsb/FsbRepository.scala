@@ -235,9 +235,8 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
 
   def removeTestGroup(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val update = BSONDocument("$unset" -> FSB_TEST_GROUPS)
+    val update = BSONDocument("$unset" -> BSONDocument(FSB_TEST_GROUPS -> ""))
 
     collection.update(query, update).map(_ => ())
   }
-
 }
