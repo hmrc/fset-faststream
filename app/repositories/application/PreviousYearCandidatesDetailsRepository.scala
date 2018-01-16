@@ -115,11 +115,20 @@ trait PreviousYearCandidatesDetailsRepository {
     "leadershipExercise" -> "buildingProductiveRelationshipsAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage",
     "groupExercise" -> "analysisAndDecisionMakingAverage,leadingAndCommunicatingAverage,buildingProductiveRelationshipsAverage"
   )
+
+  val assessmentScoresFeedbackFields = Seq(
+    "analysisExercise" -> "analysisAndDecisionMakingFeedback,leadingAndCommunicatingFeedback,strategicApproachToObjectivesFeedback",
+    "leadershipExercise" -> "buildingProductiveRelationshipsFeedback,leadingAndCommunicatingFeedback,strategicApproachToObjectivesFeedback",
+    "groupExercise" -> "analysisAndDecisionMakingFeedback,leadingAndCommunicatingFeedback,buildingProductiveRelationshipsFeedback"
+  )
+
   val assessmentScoresNumericFieldsMap: Map[String, String] = assessmentScoresNumericFields.toMap
 
+  val assessmentScoresFeedbackFieldsMap: Map[String, String] = assessmentScoresFeedbackFields.toMap
+
   def assessmentScoresHeaders(assessor: String): String = {
-    assessmentScoresNumericFields.map(_._1).map { x =>
-      s"$assessor $x attended,updatedBy,submittedDate,${assessmentScoresNumericFieldsMap(x)}"
+    assessmentScoresNumericFields.map(_._1).map { exercise =>
+      s"$assessor $exercise attended,updatedBy,submittedDate,${assessmentScoresNumericFieldsMap(exercise)},${assessmentScoresFeedbackFieldsMap(exercise)}"
     }.mkString(",") + s",$assessor Final feedback,updatedBy,acceptedDate"
   }
 
@@ -185,7 +194,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
         val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
         val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
-        val schemesYesNoAsString: Option[String] = Option(( schemePrefs.map(_ + ": Yes") ::: allSchemes.filterNot(schemePrefs.contains).map(_ + ": No") ).mkString(","))
+        val schemesYesNoAsString: Option[String] = Option((schemePrefs.map(_ + ": Yes") ::: allSchemes.filterNot(schemePrefs.contains).map(_ + ": No")).mkString(","))
 
         val onlineTestResults = onlineTests(doc)
 
@@ -577,6 +586,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           ) ++
             assessmentScoresNumericFieldsMap(s).split(",").map { field =>
               section.getAsStr[Double](field)
+            } ++
+            assessmentScoresFeedbackFieldsMap(s).split(",").map { field =>
+              section.getAsStr[String](field)
             }
         } ++ {
           val section = doc.getAs[BSONDocument]("finalFeedback")
@@ -690,7 +702,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         .orElse(testsEvaluation.getAs[List[BSONDocument]]("schemes-evaluation"))
       val evalResultsMap = testEvalResults.map(getSchemeResults)
       val schemeResults = evalResultsMap.getOrElse(Nil)
-      schemeResults.map(Option(_)) ::: ( 1 to ( 18 - schemeResults.size ) ).toList.map(_ => Some(""))
+      schemeResults.map(Option(_)) ::: (1 to (18 - schemeResults.size)).toList.map(_ => Some(""))
     }
     }
   }
@@ -709,14 +721,14 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       "leadingAndCommunicatingAverage",
       "strategicApproachToObjectivesAverage",
       "overallScore"
-    ).map { f => competencyAvg.getAs[Double](f) map ( _.toString ) }
+    ).map { f => competencyAvg.getAs[Double](f) map (_.toString) }
   }
 
   private def currentSchemeStatus(doc: BSONDocument): List[Option[String]] = {
     val testEvalResults = doc.getAs[List[BSONDocument]]("currentSchemeStatus")
     val evalResultsMap = testEvalResults.map(getSchemeResults)
     val schemeResults = evalResultsMap.getOrElse(Nil)
-    schemeResults.map(Option(_)) ::: ( 1 to ( 18 - schemeResults.size ) ).toList.map(_ => Some(""))
+    schemeResults.map(Option(_)) ::: (1 to (18 - schemeResults.size)).toList.map(_ => Some(""))
   }
 
 

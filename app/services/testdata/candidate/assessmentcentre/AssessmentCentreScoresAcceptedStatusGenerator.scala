@@ -17,7 +17,7 @@
 package services.testdata.candidate.assessmentcentre
 
 import model.UniqueIdentifier
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresFinalFeedback }
+import model.assessmentscores.{ AssessmentScoresAllExercises }
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
@@ -41,7 +41,6 @@ trait AssessmentCentreScoresAcceptedStatusGenerator extends ConstructiveGenerato
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   private val now = DateTime.now(DateTimeZone.UTC)
-  val finalFeedbackSample = AssessmentScoresFinalFeedback("feedback2", updatedBy, now)
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
@@ -49,11 +48,12 @@ trait AssessmentCentreScoresAcceptedStatusGenerator extends ConstructiveGenerato
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       appId = UniqueIdentifier(candidateInPreviousStatus.applicationId.getOrElse(sys.error("Missed application id for candidate")))
+      assessorOrReviewer = "reviewer"
       _ <- reviewerAssessmentScoresService.save(AssessmentScoresAllExercises(appId,
-        Some(AssessmentCentreScoresEnteredStatusGenerator.analysisExerciseSample.copy(submittedDate = Some(now))),
-        Some(AssessmentCentreScoresEnteredStatusGenerator.groupExerciseSample.copy(submittedDate = Some(now))),
-        Some(AssessmentCentreScoresEnteredStatusGenerator.leadershipExerciseSample.copy(submittedDate = Some(now))),
-        Some(finalFeedbackSample)
+        Some(AssessmentCentreScoresEnteredStatusGenerator.analysisExerciseSample(assessorOrReviewer).copy(submittedDate = Some(now))),
+        Some(AssessmentCentreScoresEnteredStatusGenerator.groupExerciseSample(assessorOrReviewer).copy(submittedDate = Some(now))),
+        Some(AssessmentCentreScoresEnteredStatusGenerator.leadershipExerciseSample(assessorOrReviewer).copy(submittedDate = Some(now))),
+        Some(AssessmentCentreScoresEnteredStatusGenerator.finalFeedbackSample(assessorOrReviewer))
       ))
     } yield {
       candidateInPreviousStatus
