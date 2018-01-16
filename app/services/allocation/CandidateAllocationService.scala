@@ -16,6 +16,7 @@
 
 package services.allocation
 
+import common.FutureEx
 import config.{ EventsConfig, MicroserviceAppConfig }
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
 import model.Exceptions.OptimisticLockException
@@ -131,8 +132,28 @@ trait CandidateAllocationService extends EventSink {
     candidateAllocationRepo.isAllocationExists(allocation.id, newAllocations.eventId, newAllocations.sessionId, Some(newAllocations.version))
       .flatMap { ex =>
         if (!ex) throw OptimisticLockException(s"There are no relevant allocation for candidate ${allocation.id}")
-        allocateCandidates(newAllocations, append = true)
+        for {
+          allocations <- allocateCandidates(newAllocations, append = true)
+          _ <- updateScoresAcceptedTimeIfAlreadySet(newAllocations.allocations.map(_.id))
+        } yield allocations
     }
+  }
+
+  def updateScoresAcceptedTimeIfAlreadySet(applicationIds: Seq[String]): Future[Seq[Unit]] = {
+    val amendmentFutures = for {
+      applicationId <- applicationIds
+    } yield for {
+      candidateOpt <- applicationRepo.find(applicationId)
+      candidateAppStatus = candidateOpt.get.applicationStatus.get
+      progress <- applicationRepo.findProgress(applicationId)
+      _ <- if (progress.assessmentCentre.scoresAccepted && candidateAppStatus == ApplicationStatus.ASSESSMENT_CENTRE.toString) {
+        applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
+      } else {
+        Future.successful(())
+      }
+    } yield ()
+
+    Future.sequence(amendmentFutures)
   }
 
   def allocateCandidates(
