@@ -321,5 +321,11 @@ trait FixDataConsistencyController extends BaseController {
       Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
     )
   }
+
+  def rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId).map(_ =>
+      Ok(s"Successfully rolled $applicationId back to FSAC AWAITING ALLOCATION. Remember to update the CurrentSchemeStatus")
+    )
+  }
 }
 // scalastyle:on

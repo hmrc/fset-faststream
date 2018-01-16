@@ -663,6 +663,27 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String): Future[Unit] = {
+    val exercisesToRemove = List("analysisExercise", "groupExercise", "leadershipExercise", "finalFeedback")
+    val statuses = List(
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED,
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED
+    )
+
+    for {
+      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+      _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
+      _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
+      _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+    } yield ()
+  }
+
   def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId, newResult: model.EvaluationResults.Result): Future[Unit] = {
     for {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
