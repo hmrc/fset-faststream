@@ -128,6 +128,7 @@ GET         /diagnostic/application/rollback-to-ac-confirmed-from-ac-failed-noti
 GET         /diagnostic/application/rollback-to-ac-confirmed-from-eligible-for-job-offer-notified      controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromEligibleForJobOfferNotified(applicationId: String)
 GET         /diagnostic/application/rollback-to-fsb-awaiting-allocation-from-eligible-for-job-offer-notified controllers.fixdata.FixDataConsistencyController.rollbackToFsbAwaitingAllocationFromEligibleForJobOfferNotified(applicationId: String)
 GET         /diagnostic/application/:applicationId/addProgressStatus/:progressStatus                   controllers.fixdata.FixDataConsistencyController.addProgressStatus(applicationId: String, progressStatus: model.ProgressStatuses.ProgressStatus)
+GET         /diagnostic/application/:applicationId/removeSiftTestGroup                                 controllers.fixdata.FixDataConsistencyController.removeSiftTestGroup(applicationId: String)
 GET         /diagnostic/application/randomisePhasePassmarkVersion                                      controllers.fixdata.FixDataConsistencyController.randomisePhasePassmarkVersion(applicationId: String, phase: String)
 GET         /diagnostic/findUsersStuckInAssessmentScoresAccepted                                       controllers.fixdata.FixDataConsistencyController.findUsersStuckInAssessmentScoresAccepted
 

@@ -17,7 +17,7 @@
 package services.testdata.candidate.assessmentcentre
 
 import model.UniqueIdentifier
-import model.assessmentscores.{ AssessmentScoresExercise, AssessmentScoresFinalFeedback }
+import model.assessmentscores._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
@@ -40,28 +40,66 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   // The scores awarded to the candidate by assessor/reviewer
-  val analysisExerciseSample = AssessmentScoresExercise(
+  def analysisExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
     analysisAndDecisionMakingAverage = Some(5.0),
     leadingAndCommunicatingAverage = Some(4.0),
     strategicApproachToObjectivesAverage = Some(4.0),
-    updatedBy = updatedBy
+    updatedBy = updatedBy,
+    strategicApproachToObjectivesScores = Some(StrategicApproachToObjectivesScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    analysisAndDecisionMakingScores = Some(AnalysisAndDecisionMakingScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    strategicApproachToObjectivesFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
+    analysisAndDecisionMakingFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
+    leadingAndCommunicatingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
-  val groupExerciseSample = AssessmentScoresExercise(
+  def groupExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
     analysisAndDecisionMakingAverage = Some(5.0),
     buildingProductiveRelationshipsAverage = Some(2.0),
     leadingAndCommunicatingAverage = Some(4.0),
-    updatedBy = updatedBy
+    updatedBy = updatedBy,
+    analysisAndDecisionMakingScores = Some(AnalysisAndDecisionMakingScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    buildingProductiveRelationshipsScores = Some(BuildingProductiveRelationshipsScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    analysisAndDecisionMakingFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
+    buildingProductiveRelationshipsFeedback = Some("Building Productive feedback" + assessorOrReviewer),
+    leadingAndCommunicatingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
-  val leadershipExerciseSample = AssessmentScoresExercise(
+  def leadershipExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
     buildingProductiveRelationshipsAverage = Some(4.0),
     leadingAndCommunicatingAverage = Some(4.0),
     strategicApproachToObjectivesAverage = Some(4.0),
-    updatedBy = updatedBy
+    updatedBy = updatedBy,
+    buildingProductiveRelationshipsScores = Some(BuildingProductiveRelationshipsScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    strategicApproachToObjectivesScores = Some(StrategicApproachToObjectivesScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    buildingProductiveRelationshipsFeedback = Some("Building Productive feedback " + assessorOrReviewer),
+    leadingAndCommunicatingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
+    strategicApproachToObjectivesFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )
-  val finalFeedbackSample = AssessmentScoresFinalFeedback("feedback1", updatedBy, DateTime.now(DateTimeZone.UTC))
+  def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(
+    "final feedback for " + assessorOrReviewer, updatedBy, DateTime.now(DateTimeZone.UTC)
+  )
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
@@ -70,10 +108,11 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       appId = UniqueIdentifier(candidateInPreviousStatus.applicationId.getOrElse(sys.error("Missed application id for candidate")))
-      _ <- assessorAssessmentScoresService.submitExercise(appId, analysisExercise, analysisExerciseSample)
-      _ <- assessorAssessmentScoresService.submitExercise(appId, groupExercise, groupExerciseSample)
-      _ <- assessorAssessmentScoresService.submitExercise(appId, leadershipExercise, leadershipExerciseSample)
-      _ <- assessorAssessmentScoresService.submitFinalFeedback(appId, finalFeedbackSample)
+      assessorOrReviewer = "assessor"
+      _ <- assessorAssessmentScoresService.submitExercise(appId, analysisExercise, analysisExerciseSample(assessorOrReviewer))
+      _ <- assessorAssessmentScoresService.submitExercise(appId, groupExercise, groupExerciseSample(assessorOrReviewer))
+      _ <- assessorAssessmentScoresService.submitExercise(appId, leadershipExercise, leadershipExerciseSample(assessorOrReviewer))
+      _ <- assessorAssessmentScoresService.submitFinalFeedback(appId, finalFeedbackSample(assessorOrReviewer))
     } yield {
       candidateInPreviousStatus
     }
