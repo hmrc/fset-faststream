@@ -322,6 +322,25 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
+  def rollbackToFsbAwaitingAllocationFromEligibleForJobOfferNotified(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+
+      val statusesToRemove = List(
+        FSB_FAILED,
+        FSB_PASSED,
+        FSB_FAILED_TO_ATTEND,
+        FSB_RESULT_ENTERED,
+        FSB_ALLOCATION_CONFIRMED,
+        FSB_ALLOCATION_UNCONFIRMED,
+        ELIGIBLE_FOR_JOB_OFFER,
+        ELIGIBLE_FOR_JOB_OFFER_NOTIFIED
+      )
+
+      applicationService.rollbackToFsbAwaitingAllocation(applicationId, statusesToRemove).map(_ =>
+        Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
+      )
+    }
+
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT testgroup for  $applicationId"))
   }
