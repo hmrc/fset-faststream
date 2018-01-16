@@ -447,7 +447,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   def rollbackToSubmittedFromOnlineTestsAndAddFastpassNumber(applicationId: String, certificateNumber: String)
                                                            (implicit hc: HeaderCarrier): Future[Unit] = {
-    val statuses = allOnlineTestsPhases
+    val statuses = allOnlineTestsPhases ++ Seq(ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_READY, ProgressStatuses.SIFT_COMPLETED)
+
     for {
       civilServiceDetails <- civilServiceExperienceDetailsRepo.find(applicationId)
       updatedCivilServiceDetails = civilServiceDetails
@@ -457,6 +458,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- phase1TestRepo.removeTestGroup(applicationId)
       _ <- phase2TestRepository.removeTestGroup(applicationId)
       _ <- phase3TestRepository.removeTestGroup(applicationId)
+      _ <- appSiftRepository.removeTestGroup(applicationId)
       _ <- appRepository.updateCurrentSchemeStatus(applicationId, Seq.empty[SchemeEvaluationResult])
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.SUBMITTED, statuses.toList)
     } yield ()
