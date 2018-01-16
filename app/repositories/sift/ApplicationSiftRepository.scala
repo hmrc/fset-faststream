@@ -54,6 +54,7 @@ trait ApplicationSiftRepository {
   def siftResultsExistsForScheme(applicationId: String, schemeId: SchemeId): Future[Boolean]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
+  def removeTestGroup(applicationId: String): Future[Unit]
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
   def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId: String): Future[Unit]
@@ -221,6 +222,16 @@ class ApplicationSiftMongoRepository(
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit] = {
     val validator = singleUpdateValidator(applicationId, action)
     collection.update(predicate, update) map validator
+  }
+
+  def removeTestGroup(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val update = BSONDocument("$unset" -> BSONDocument(s"testGroups.$phaseName" -> ""))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing test group")
+
+    collection.update(query, update) map validator
   }
 
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]] = {

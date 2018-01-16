@@ -321,5 +321,9 @@ trait FixDataConsistencyController extends BaseController {
       Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
     )
   }
+
+  def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT testgroup for  $applicationId"))
+  }
 }
 // scalastyle:on
