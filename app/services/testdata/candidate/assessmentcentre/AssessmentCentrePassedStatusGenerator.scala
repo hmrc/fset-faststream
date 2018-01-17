@@ -43,8 +43,6 @@ trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator with M
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
   val version = UniqueIdentifier.randomUniqueIdentifier
 
-  val finalFeedbackSample = AssessmentScoresFinalFeedback("feedback2", updatedBy, DateTime.now(DateTimeZone.UTC))
-
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 

@@ -631,6 +631,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def removeSiftTestGroup(application: String): Future[Unit] = {
+    appSiftRepository.removeTestGroup(application).map(_ => ())
+  }
+
   def rollbackToAssessmentCentreConfirmed(applicationId: String, statuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
     def getPhase3Results: Future[Option[List[SchemeEvaluationResult]]] = {
