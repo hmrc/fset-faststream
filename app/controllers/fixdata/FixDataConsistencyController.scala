@@ -333,7 +333,9 @@ trait FixDataConsistencyController extends BaseController {
         FSB_ALLOCATION_CONFIRMED,
         FSB_ALLOCATION_UNCONFIRMED,
         ELIGIBLE_FOR_JOB_OFFER,
-        ELIGIBLE_FOR_JOB_OFFER_NOTIFIED
+        ELIGIBLE_FOR_JOB_OFFER_NOTIFIED,
+        ALL_FSBS_AND_FSACS_FAILED,
+        ALL_FSBS_AND_FSACS_FAILED_NOTIFIED
       )
 
       applicationService.rollbackToFsbAwaitingAllocation(applicationId, statusesToRemove).map(_ =>
