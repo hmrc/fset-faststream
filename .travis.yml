@@ -15,6 +15,4 @@ addons:
     sources:
       - mongodb-3.2-precise
     packages:
-      - mongodb-org-server
-install:
-    - sudo apt-get install -y --allow-downgrades mongodb-org=3.2.18
+      - mongodb-org=3.2.18

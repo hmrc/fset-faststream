@@ -42,6 +42,7 @@ import repositories.fsb.FsbRepository
 import repositories.onlinetesting._
 import repositories.sift.ApplicationSiftRepository
 import services.allocation.CandidateAllocationService
+import services.events.EventsService
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
@@ -919,6 +920,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val phase3TestRepositoryMock: Phase3TestRepository = mock[Phase3TestRepository]
     val siftRepoMock = mock[ApplicationSiftRepository]
     val fsacRepoMock = mock[AssessmentCentreRepository]
+    val eventsServiceMock = mock[EventsService]
     val fsbRepoMock = mock[FsbRepository]
     val phase1EvaluationRepositoryMock = mock[Phase1EvaluationMongoRepository]
     val phase2EvaluationRepositoryMock = mock[Phase2EvaluationMongoRepository]
@@ -970,6 +972,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val phase3TestRepository = phase3TestRepositoryMock
       val appSiftRepository = siftRepoMock
       val fsacRepo = fsacRepoMock
+      val eventsService = eventsServiceMock
       val fsbRepo = fsbRepoMock
       val phase1EvaluationRepository = phase1EvaluationRepositoryMock
       val phase2EvaluationRepository = phase2EvaluationRepositoryMock
