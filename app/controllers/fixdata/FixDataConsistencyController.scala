@@ -156,6 +156,10 @@ trait FixDataConsistencyController extends BaseController {
     applicationService.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus).map(_ => Ok)
   }
 
+  def setUsedForResults(): Action[AnyContent] = Action.async {
+
+  }
+
   def findUsersStuckInAssessmentScoresAccepted(): Action[AnyContent] = Action.async {
     assessmentCentreService.findUsersStuckInAssessmentScoresAccepted.map(resultList =>
       if (resultList.isEmpty) {
