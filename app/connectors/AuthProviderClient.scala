@@ -163,6 +163,12 @@ trait AuthProviderClient {
     }
   }
 
+  def findAuthInfoByUserIds(userIds: Seq[String])(implicit hs: HeaderCarrier): Future[Seq[UserAuthInfo]] = {
+    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findAuthInfoByIds", Map("userIds" -> userIds)).map { (response) =>
+      response.json.as[List[UserAuthInfo]]
+    }
+  }
+
   def generateAccessCode(implicit hc: HeaderCarrier): Future[SimpleTokenResponse] = {
     WSHttp.GET(s"$url/user-friendly-access-token").map { response =>
       response.json.as[SimpleTokenResponse]

@@ -46,6 +46,10 @@ object ExchangeObjects {
   }
   object Candidate { implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate] }
 
+  case class UserAuthInfo(userId: String, isActive: Boolean, disabled: Boolean,
+                          lastAttempt: Option[List[String]], failedAttempts: Option[Int])
+  object UserAuthInfo { implicit val format: OFormat[UserAuthInfo] = Json.format[UserAuthInfo] }
+
   // Cubiks Gateway Requests
   case class RegisterApplicant(firstName: String, lastName: String, email: String)
   object RegisterApplicant { implicit val registerApplicantFormat: OFormat[RegisterApplicant] = Json.format[RegisterApplicant] }
