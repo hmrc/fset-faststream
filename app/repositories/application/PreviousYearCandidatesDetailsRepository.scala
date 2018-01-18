@@ -496,7 +496,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         )
         doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
       }.toMap
-      CsvExtract(mediaHeader, csvRecords)
+      CsvExtract(siftAnswersHeader, csvRecords)
     }
 
 
@@ -539,8 +539,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             )
           )
           doc.getAs[String]("id").getOrElse("") -> csvRecord
-        }.groupBy(_._1).map {
-          case (appId, events) => appId -> events.map(_._2).mkString(" --- ")
+        }.groupBy { case (id, _) => id }.map {
+          case (appId, events) => appId -> events.map { case (_, eventList) => eventList }.mkString(" --- ")
         }
         CsvExtract(eventsDetailsHeader, csvRecords)
       }
