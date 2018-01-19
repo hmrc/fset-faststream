@@ -156,8 +156,9 @@ trait FixDataConsistencyController extends BaseController {
     applicationService.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus).map(_ => Ok)
   }
 
-  def setUsedForResults(): Action[AnyContent] = Action.async {
-
+  def setUsedForResults(applicationId: String, newUsedForResults: Boolean, token: String): Action[AnyContent] = Action.async {
+    applicationService.setUsedForResults(applicationId, newUsedForResults, token)
+      .map(_ => Ok(s"Successfully updated PHASE3 test for $applicationId"))
   }
 
   def findUsersStuckInAssessmentScoresAccepted(): Action[AnyContent] = Action.async {

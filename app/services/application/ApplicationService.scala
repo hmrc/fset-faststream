@@ -732,6 +732,17 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def setUsedForResults(applicationId: String, newUsedForResults: Boolean, token: String): Future[Unit] = {
+    for {
+      phase3TestGroupOpt <- phase3TestRepository.getTestGroup(applicationId)
+      phase3TestGroup = phase3TestGroupOpt.getOrElse(throw UnexpectedException(s"Unable to find PHASE3 TestGroup for $applicationId"))
+      newTests = phase3TestGroup.tests.map { test =>
+        if(test.token == token) test.copy(usedForResults = newUsedForResults) else test }
+      newPhase3TestGroup = phase3TestGroup.copy(tests = newTests)
+      _ <- phase3TestRepository.insertOrUpdateTestGroup(applicationId, newPhase3TestGroup)
+    } yield ()
+  }
+
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,
                                            statuses: Seq[ProgressStatuses.ProgressStatus]): Future[Unit] = {
