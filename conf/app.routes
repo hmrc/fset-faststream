@@ -132,6 +132,7 @@ GET         /diagnostic/application/:applicationId/addProgressStatus/:progressSt
 GET         /diagnostic/application/:applicationId/removeSiftTestGroup                                 controllers.fixdata.FixDataConsistencyController.removeSiftTestGroup(applicationId: String)
 GET         /diagnostic/application/randomisePhasePassmarkVersion                                      controllers.fixdata.FixDataConsistencyController.randomisePhasePassmarkVersion(applicationId: String, phase: String)
 GET         /diagnostic/findUsersStuckInAssessmentScoresAccepted                                       controllers.fixdata.FixDataConsistencyController.findUsersStuckInAssessmentScoresAccepted
+GET         /diagnostic/application/:applicationId/setUsedForResults/:newUsedForResults                controllers.fixdata.FixDataConsistencyController.setUsedForResults(applicationId: String, newUsedForResults: Boolean, token: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
