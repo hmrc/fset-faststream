@@ -18,20 +18,20 @@ package controllers.report
 
 import config.TestFixtureBase
 import connectors.AuthProviderClient
-import connectors.ExchangeObjects.Candidate
+import connectors.ExchangeObjects.{Candidate, UserAuthInfo}
 import controllers.ReportingController
 import model.EvaluationResults.Green
 import model.persisted._
-import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.persisted.assessor.{Assessor, AssessorStatus}
 import model.persisted.eventschedules.SkillType
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
-import model.report.{ CandidateProgressReportItem, _ }
-import model.{ Scheme, _ }
+import model.report.{CandidateProgressReportItem, _}
+import model.{Scheme, _}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.{ JsArray, Json }
+import play.api.libs.json.{JsArray, Json}
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories.fsb._
 import repositories.events._
 import repositories.sift._
@@ -43,7 +43,7 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 class ReportingControllerSpec extends UnitWithAppSpec {
@@ -310,6 +310,11 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           )
         )
       )
+      when(mockAuthProviderClient.findAuthInfoByUserIds(any[Seq[String]]())(any[HeaderCarrier])).thenReturnAsync(
+        Seq(
+          UserAuthInfo("userId1", isActive = true, disabled = false, None, None)
+        )
+      )
       when(mockAssessorAllocationRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
         List(
           AssessorAllocation(
@@ -324,13 +329,13 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       result must have length 2
 
-      val expectedHeaders = s"Assessor ID,Name,Role,Skills,Sift schemes,Email,Phone," +
+      val expectedHeaders = s"Assessor ID,Name,Role,Deactivated,Skills,Sift schemes,Email,Phone," +
         s"""Internal/External,"${EventExamples.e1.date.toString} (FSAC, London)","${EventExamples.e2.date.toString} (FSB, London)""""
 
       result.head mustBe expectedHeaders
 
       result(1) mustBe
-        """"userId1","Bob Smith","assessor","ASSESSOR, QUALITY_ASSURANCE_COORDINATOR","",
+        """"userId1","Bob Smith","assessor","NO","ASSESSOR, QUALITY_ASSURANCE_COORDINATOR","",
           |"bob@bob.com"," ","External","ASSESSOR (CONFIRMED)"," """".stripMargin.replaceAll("\n", "")
     }
 
