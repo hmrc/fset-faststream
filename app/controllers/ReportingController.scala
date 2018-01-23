@@ -206,15 +206,21 @@ trait ReportingController extends BaseController {
 
     val reportRows = for {
       allAssessors <- assessorRepository.findAll()
-      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessors.map(_.userId))
+      allAssessorsIds = allAssessors.map(_.userId)
+      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessorsIds)
         .map(
           _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.Candidate]
+        )
+      allAssessorsAuthInfo <- authProviderClient.findAuthInfoByUserIds(allAssessorsIds)
+        .map(
+          _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.UserAuthInfo]
         )
       sortedEvents <- sortedEventsFut
       assessorAllocations <- assessorAllocationRepository.findAll().map(_.groupBy(_.id))
     } yield for {
       theAssessor <- allAssessors
-      theAssessorAuthProviderInfo = allAssessorsPersonalInfo(theAssessor.userId)
+      theAssessorPersonalInfo = allAssessorsPersonalInfo(theAssessor.userId)
+      theAssessorAuthInfo = allAssessorsAuthInfo(theAssessor.userId)
       theAssessorAllocations = assessorAllocations.getOrElse(theAssessor.userId, Nil)
     } yield {
 
@@ -231,11 +237,13 @@ trait ReportingController extends BaseController {
         }
       }
 
-      val assessorInfo = List(Some(s"${theAssessorAuthProviderInfo.userId}"),
-        Some(s"${theAssessorAuthProviderInfo.firstName} ${theAssessorAuthProviderInfo.lastName}"),
-        Some(theAssessorAuthProviderInfo.roles.mkString(", ")), Some(theAssessor.skills.mkString(", ")),
+      val assessorInfo = List(Some(s"${theAssessorPersonalInfo.userId}"),
+        Some(s"${theAssessorPersonalInfo.firstName} ${theAssessorPersonalInfo.lastName}"),
+        Some(theAssessorPersonalInfo.roles.mkString(", ")),
+        Some(if(theAssessorAuthInfo.disabled) "YES" else "NO"),
+        Some(theAssessor.skills.mkString(", ")),
         Some(theAssessor.sifterSchemes.map(_.toString).mkString(", ")),
-        Some(theAssessorAuthProviderInfo.email), theAssessorAuthProviderInfo.phone,
+        Some(theAssessorPersonalInfo.email), theAssessorPersonalInfo.phone,
         Some(if (theAssessor.civilServant) { "Internal" } else { "External" }))
 
       makeRow(assessorInfo ++ roleByDate: _*)
@@ -244,7 +252,7 @@ trait ReportingController extends BaseController {
     sortedEventsFut.flatMap { events =>
       val orderedDates = events.map(event => s""""${event.date} (${event.eventType.toString}, ${event.location.name})"""").mkString(",")
       val headers = List(
-        s"Assessor ID,Name,Role,Skills,Sift schemes,Email,Phone,Internal/External,$orderedDates"
+        s"Assessor ID,Name,Role,Deactivated,Skills,Sift schemes,Email,Phone,Internal/External,$orderedDates"
       )
 
       reportRows.map { rows =>
