@@ -16,3 +16,5 @@ addons:
       - mongodb-3.2-precise
     packages:
       - mongodb-org=3.2.18
+before_script:
+  - sudo service mongod restart
