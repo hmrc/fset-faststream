@@ -30,6 +30,7 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.{ FsbMongoRepository, FsbRepository }
 import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import services.application.DSSchemeIds._
+import services.application.FsbService.NotYetReadyForFsbEvaluationException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -42,6 +43,8 @@ object FsbService extends FsbService {
   override val fsbRepo: FsbMongoRepository = repositories.fsbRepository
   override val schemeRepo: SchemeYamlRepository.type = SchemeYamlRepository
   override val emailClient: EmailClient = CSREmailClient
+
+  case class NotYetReadyForFsbEvaluationException(message: String) extends Exception(message)
 }
 
 trait FsbService extends CurrentSchemeStatusHelper {
@@ -94,7 +97,9 @@ trait FsbService extends CurrentSchemeStatusHelper {
           results.find(_.schemeId == DiplomaticService)
         ).flatten
         Logger.info(s">>>>>>> Results for GES-DS: $res")
-        require(res.size == 2 || res.exists(_.result == Red.toString), s"$DiplomaticServiceEconomists require EAC && FCO test results")
+        if(res.size != 2 && !res.exists(_.result == Red.toString)) {
+          throw new NotYetReadyForFsbEvaluationException(s"$DiplomaticServiceEconomists require EAC && FCO test results")
+        }
         res
       case GovernmentEconomicsService =>
         results.find(r => EacSchemes.contains(r.schemeId)).toSeq
@@ -135,7 +140,10 @@ trait FsbService extends CurrentSchemeStatusHelper {
     require(fsbEvaluation.isDefined, "Evaluation for scheme must be defined to reach this stage, unexpected error.")
     require(firstResidualPreferenceOpt.isDefined, "First residual preference must be defined to reach this stage, unexpected error.")
 
-    val firstResidualInEvaluation = getResultsForScheme(firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)
+    val firstResidualInEvaluation = Try(getResultsForScheme(firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)) match {
+      case Failure(ex: NotYetReadyForFsbEvaluationException) =>
+      case Success(firstResidualInEvaluation) =>
+    }
 
     if (firstResidualInEvaluation.result == Green.toString) {
       for {
