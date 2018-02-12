@@ -34,7 +34,7 @@ import services.application.FsbService.NotYetReadyForFsbEvaluationException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Try
+import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.http.HeaderCarrier
 
 object FsbService extends FsbService {
@@ -98,7 +98,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
         ).flatten
         Logger.info(s">>>>>>> Results for GES-DS: $res")
         if(res.size != 2 && !res.exists(_.result == Red.toString)) {
-          throw new NotYetReadyForFsbEvaluationException(s"$DiplomaticServiceEconomists require EAC && FCO test results")
+          throw NotYetReadyForFsbEvaluationException(s"$DiplomaticServiceEconomists require EAC && FCO test results")
         }
         res
       case GovernmentEconomicsService =>
@@ -140,32 +140,33 @@ trait FsbService extends CurrentSchemeStatusHelper {
     require(fsbEvaluation.isDefined, "Evaluation for scheme must be defined to reach this stage, unexpected error.")
     require(firstResidualPreferenceOpt.isDefined, "First residual preference must be defined to reach this stage, unexpected error.")
 
-    val firstResidualInEvaluation = Try(getResultsForScheme(firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)) match {
+    Try(getResultsForScheme(firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)) match {
       case Failure(ex: NotYetReadyForFsbEvaluationException) =>
+        Future.successful(Logger.info(s"Not evaluating $appId until both GES-DS schemes are present."))
+      case Failure(ex: Throwable) => throw ex
       case Success(firstResidualInEvaluation) =>
-    }
+        if (firstResidualInEvaluation.result == Green.toString) {
+          for {
+            _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
+            // There are no notifications before going to eligible but we want audit trail to show we've passed
+            _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
+          } yield ()
 
-    if (firstResidualInEvaluation.result == Green.toString) {
-      for {
-        _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
-        // There are no notifications before going to eligible but we want audit trail to show we've passed
-        _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
-      } yield ()
-
-    } else {
-      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED).flatMap { _ =>
-        val newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluation.get ++ Seq(firstResidualInEvaluation))
-        val newFirstPreference = firstResidualPreference(newCurrentSchemeStatus)
-        fsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus).flatMap { _ =>
-          if (canEvaluateNextWithExistingResults(currentSchemeStatus, newFirstPreference, fsbEvaluation.get)) {
-            passOrFailFsb(appId, fsbEvaluation, newFirstPreference, newCurrentSchemeStatus)
-          } else {
-            maybeMarkAsFailedAll(appId, newFirstPreference).flatMap(_ =>
-              maybeNotifyOnFailNeedNewFsb(appId, newCurrentSchemeStatus)
-            )
+        } else {
+          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED).flatMap { _ =>
+            val newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluation.get ++ Seq(firstResidualInEvaluation))
+            val newFirstPreference = firstResidualPreference(newCurrentSchemeStatus)
+            fsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus).flatMap { _ =>
+              if (canEvaluateNextWithExistingResults(currentSchemeStatus, newFirstPreference, fsbEvaluation.get)) {
+                passOrFailFsb(appId, fsbEvaluation, newFirstPreference, newCurrentSchemeStatus)
+              } else {
+                maybeMarkAsFailedAll(appId, newFirstPreference).flatMap(_ =>
+                  maybeNotifyOnFailNeedNewFsb(appId, newCurrentSchemeStatus)
+                )
+              }
+            }
           }
         }
-      }
     }
   }
 

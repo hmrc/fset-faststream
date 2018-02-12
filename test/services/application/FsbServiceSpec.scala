@@ -70,9 +70,11 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
       when(mockFsbRepo.updateCurrentSchemeStatus(uid.toString(), res.evaluation.result)).thenReturnAsync()
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)).thenReturnAsync()
-      intercept[IllegalArgumentException] {
-        Await.result(service.evaluateFsbCandidate(uid)(hc), 1.second)
-      }
+
+      service.evaluateFsbCandidate(uid)(hc).futureValue
+
+      verify(mockApplicationRepo, times(0)).addProgressStatusAndUpdateAppStatus(any(), any())
+      verify(mockFsbRepo, times(0)).updateCurrentSchemeStatus(any(), any())
     }
 
 
