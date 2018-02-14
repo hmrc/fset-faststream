@@ -16,16 +16,13 @@
 
 package connectors
 
-import akka.util.ByteString
 import config.MicroserviceAppConfig._
 import _root_.config.WSHttp
-import akka.stream.scaladsl.Source
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration }
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands._
 import play.api.http.Status._
-import play.api.libs.iteratee.Iteratee
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -34,56 +31,57 @@ import uk.gov.hmrc.http.HeaderCarrier
 trait CubiksGatewayClient {
   val http: WSHttp
   val url: String
+  val root = "fset-online-tests-gateway"
 
   // Blank out header carriers for calls to LPG. Passing on someone's true-client-ip header will cause them to be reassessed
   // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesirable behaviour.
   implicit def blankedHeaderCarrier = HeaderCarrier()
 
   def registerApplicants(batchSize: Int): Future[List[Registration]] = {
-    http.GET(s"$url/csr-cubiks-gateway/faststream/register/$batchSize").map { response =>
+    http.GET(s"$url/$root/faststream/register/$batchSize").map { response =>
       if (response.status == OK) {
         response.json.as[List[Registration]]
       } else {
-        throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
+        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
   }
 
   def registerApplicant(registerApplicant: RegisterApplicant): Future[Registration] = {
-    http.POST(s"$url/csr-cubiks-gateway/faststream/register", registerApplicant).map { response =>
+    http.POST(s"$url/$root/faststream/register", registerApplicant).map { response =>
       if (response.status == OK) {
         response.json.as[Registration]
       } else {
-        throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
+        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
   }
 
   def inviteApplicant(inviteApplicant: InviteApplicant): Future[Invitation] = {
-    http.POST(s"$url/csr-cubiks-gateway/faststream/invite", inviteApplicant).map { response =>
+    http.POST(s"$url/$root/faststream/invite", inviteApplicant).map { response =>
       if (response.status == OK) {
         response.json.as[Invitation]
       } else {
-        throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
+        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
   }
 
   def inviteApplicants(invitations: List[InviteApplicant]): Future[List[Invitation]] =
-    http.POST(s"$url/csr-cubiks-gateway/faststream/batchInvite", invitations).map { response =>
+    http.POST(s"$url/$root/faststream/batchInvite", invitations).map { response =>
       if (response.status == OK) {
         response.json.as[List[Invitation]]
       } else {
-        throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
+        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
 
   def downloadXmlReport(reportId: Int): Future[TestResult] = {
-    http.GET(s"$url/csr-cubiks-gateway/faststream/report-xml/$reportId").map { response =>
+    http.GET(s"$url/$root/faststream/report-xml/$reportId").map { response =>
       if (response.status == OK) {
         response.json.as[TestResult]
       } else {
-        throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
+        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
   }
