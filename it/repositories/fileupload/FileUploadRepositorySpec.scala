@@ -18,11 +18,11 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
       val testContentType = "application/pdf"
       Try {
         val failedFut = repository.add(testContentType, testContent).failed.futureValue
-        Logger.error("FAILED FUT = " + failedFut.getStackTrace.mkString("\n"))
+        Logger.error("FAILED FUT = " + failedFut.getStackTrace.map(_.toString).mkString("\n"))
         failedFut
       } match {
         case Success(_) => Logger.error("SUCCESS.... WTF?")
-        case Failure(ex: Throwable) => Logger.error("EXCEPTION STACK = " + ex.getStackTrace.mkString("\n"))
+        case Failure(ex: Throwable) => Logger.error("EXCEPTION STACK = " + ex.getStackTrace.map(_.toString).mkString("\n"))
       }
       /*
       val retrievedFile = repository.retrieve(id).futureValue
