@@ -75,8 +75,8 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   }
 
   override def beforeEach(): Unit = {
-    val collection = mongo().collection[JSONCollection](collectionName)
     scala.util.Try {
+      val collection = mongo().collection[JSONCollection](collectionName)
       Await.ready(collection.remove(Json.obj()), timeout)
     } match {
       case scala.util.Success(_) => // This is good
