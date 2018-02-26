@@ -17,9 +17,11 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
       val testContent = "Test contents".toCharArray.map(_.toByte)
       val testContentType = "application/pdf"
       Try {
-        val failedFut = repository.add(testContentType, testContent).failed.futureValue
-        Logger.error("FAILED FUT = " + failedFut.getStackTrace.map(_.toString).mkString("\n"))
-        failedFut
+        val fut = repository.add(testContentType, testContent)
+        val failedFut = fut.failed.futureValue
+        Logger.error("FAILED FUT = " + failedFut + " === " + failedFut.getStackTrace.map(_.toString).mkString("\n") +
+          " === " + failedFut.printStackTrace())
+        fut.futureValue
       } match {
         case Success(_) => Logger.error("SUCCESS.... WTF?")
         case Failure(ex: Throwable) => Logger.error("EXCEPTION STACK = " + ex.getStackTrace.map(_.toString).mkString("\n"))
