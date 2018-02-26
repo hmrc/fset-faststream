@@ -7,7 +7,7 @@ import testkit.MongoRepositorySpec
 class FileUploadRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.FILE_UPLOAD
-  lazy val repository: FileUploadMongoRepository = repositories.fileUploadRepository
+  lazy val repository: FileUploadMongoRepository = new FileUploadMongoRepository()
 
   "add" must {
     "store a file with contentType" in {
