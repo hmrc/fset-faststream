@@ -4,7 +4,8 @@ language: scala
 scala:
 - 2.11.8
 script:
-  - sbt "it:test-only repositories.fileupload.FileUploadRepositorySpec"
+#  - sbt "it:test-only repositories.fileupload.FileUploadRepositorySpec"
+  - sbt "it:test-only repositories.fileupload.FileUploadRepositorySpec repositories.onlinetesting.Phase1EvaluationMongoRepositorySpec"
 jdk:
 - oraclejdk8
 cache:
