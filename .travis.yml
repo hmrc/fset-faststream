@@ -20,5 +20,5 @@ addons:
       - mongodb-org-shell=3.2.10
       - mongodb-org-mongos=3.2.10
       - mongodb-org-tools=3.2.10
-# before_script:
-#   - sudo service mongod restart
+before_script:
+  - sudo service mongod restart
