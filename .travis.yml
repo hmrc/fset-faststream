@@ -15,6 +15,6 @@ addons:
     sources:
       - mongodb-3.2-precise
 before_script:
-  - sudo service mongod stop
+  - sudo pkill mongod
   - sudo apt-get install -y mongodb-org=3.2.10 mongodb-org-server=3.2.10 mongodb-org-shell=3.2.10 mongodb-org-mongos=3.2.10 mongodb-org-tools=3.2.10
   - sudo service mongod start
