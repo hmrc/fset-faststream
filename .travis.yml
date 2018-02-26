@@ -4,7 +4,7 @@ language: scala
 scala:
 - 2.11.8
 script:
-  - sbt test it:test
+  - sbt "it:test-only repositories.fileupload.FileUploadRepositorySpec"
 jdk:
 - oraclejdk8
 cache:

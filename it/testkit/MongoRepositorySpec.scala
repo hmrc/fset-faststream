@@ -76,7 +76,13 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   override def beforeEach(): Unit = {
     val collection = mongo().collection[JSONCollection](collectionName)
-    Await.ready(collection.remove(Json.obj()), timeout)
+    scala.util.Try {
+      Await.ready(collection.remove(Json.obj()), timeout)
+    } match {
+      case scala.util.Success(_) => // This is good
+      case scala.util.Failure(ex: Throwable) =>
+        play.api.Logger.error("**** IGNORING EXCEPTION STACK = " + ex.getStackTrace.map(_.toString).mkString("\n"))
+    }
   }
 }
 
