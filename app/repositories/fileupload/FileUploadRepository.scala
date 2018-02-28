@@ -42,7 +42,7 @@ trait FileUploadRepository {
 
 class FileUploadMongoRepository(implicit mongo: () => DB) extends FileUploadRepository {
 
-  val gridFS = new GridFS[BSONSerializationPack.type](DefaultDB(mongo.apply.name, mongo.apply.connection), CollectionNames.FILE_UPLOAD)
+  lazy val gridFS = new GridFS[BSONSerializationPack.type](DefaultDB(mongo.apply.name, mongo.apply.connection), CollectionNames.FILE_UPLOAD)
 
   def add(contentType: String, fileContents: Array[Byte]): Future[String] = {
     val newId = UUID.randomUUID().toString

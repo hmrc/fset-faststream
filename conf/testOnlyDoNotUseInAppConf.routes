@@ -32,6 +32,7 @@ GET     /candidate-application/test-data-generator/example-assessor-allocations 
 GET     /candidate-application/test-data-generator/example-candidate-allocations    controllers.testdata.TestDataGeneratorController.exampleCreateCandidateAllocations
 
 # Trigger Jobs manually
+GET     /candidate-application/online-test-invitation/:phase                        controllers.testdata.TestJobsController.testInvitationJob(phase: String)
 GET     /candidate-application/expire-online-tests/:phase                           controllers.testdata.TestJobsController.expireOnlineTestJob(phase: String)
 GET     /candidate-application/evaluate-phase1-candidate                            controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
 GET     /candidate-application/evaluate-phase2-candidate                            controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate

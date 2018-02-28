@@ -4,7 +4,8 @@ language: scala
 scala:
 - 2.11.8
 script:
-  - sbt test it:test
+# run unit tests and all ITs except the test tagged with TravisIgnore
+  - sbt test "it:test-only -- -l TravisIgnore"
 jdk:
 - oraclejdk8
 cache:
@@ -15,4 +16,7 @@ addons:
     sources:
       - mongodb-3.2-precise
     packages:
-      - mongodb-org=3.2.18
+      - mongodb-org=3.2.10
+
+before_script:
+  - sudo service mongod restart

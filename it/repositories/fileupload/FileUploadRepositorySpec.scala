@@ -1,5 +1,6 @@
 package repositories.fileupload
 
+import org.scalatest.Tag
 import play.api.libs.iteratee.Iteratee
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
@@ -7,10 +8,10 @@ import testkit.MongoRepositorySpec
 class FileUploadRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.FILE_UPLOAD
-  lazy val repository: FileUploadMongoRepository = repositories.fileUploadRepository
+  lazy val repository: FileUploadMongoRepository = new FileUploadMongoRepository()
 
   "add" must {
-    "store a file with contentType" in {
+    "store a file with contentType" taggedAs TravisIgnore in {
       val testContent = "Test contents".toCharArray.map(_.toByte)
       val testContentType = "application/pdf"
       val id = repository.add(testContentType, testContent).futureValue
@@ -21,7 +22,7 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
   }
 
   "retrieve" must {
-    "retrieve a file by id" in {
+    "retrieve a file by id" taggedAs TravisIgnore in {
       val testContent = "Test contents".toCharArray.map(_.toByte)
       val testContentType = "application/pdf"
       val id = repository.add(testContentType, testContent).futureValue
@@ -31,3 +32,7 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
     }
   }
 }
+
+// This test fails on Travis but works locally and on jenkins by tagging it so we can
+// explicitly skip it when travis runs
+object TravisIgnore extends Tag("TravisIgnore")
