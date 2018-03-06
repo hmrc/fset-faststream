@@ -19,17 +19,14 @@ package repositories.application
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.Commands._
 import model.ProgressStatuses.ProgressStatus
 import model.command._
 import model.persisted._
 import model.report._
 import model.{ ApplicationStatus, _ }
-import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
+import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.Logger
-import play.api.libs.json.{ Format, Json }
-import reactivemongo.api.collections.bson.BSONCollection
+import play.api.libs.json.Format
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
 import repositories._
@@ -418,6 +415,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val projection = BSONDocument(
       "userId" -> true,
       "applicationId" -> true,
+      "applicationStatus" -> true,
       "applicationRoute" -> true,
       "personal-details" -> true,
       "progress-status" -> true,
@@ -433,6 +431,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       _.map { doc =>
         val userId = doc.getAs[String]("userId").get
         val appId = doc.getAs[String]("applicationId").get
+        val applicationStatus = doc.getAs[String]("applicationStatus").get
         val applicationRoute = doc.getAs[String]("applicationRoute").get
         val personalDetailsDoc = doc.getAs[BSONDocument]("personal-details")
         val fullName = for {
@@ -451,6 +450,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
         SuccessfulCandidatePartialItem(
           userId,
           appId,
+          applicationStatus,
           applicationRoute,
           fullName,
           preferredName,
