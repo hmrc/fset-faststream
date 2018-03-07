@@ -1072,8 +1072,8 @@ class GeneralApplicationMongoRepository(
 
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = {
     val query = BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> BSONDocument("$eq" -> "FSB")),
-        BSONDocument("progress-status.ELIGIBLE_FOR_JOB_OFFER" -> BSONDocument("$exists" -> true))
+        BSONDocument("applicationStatus" -> BSONDocument("$eq" -> FSB.toString)),
+        BSONDocument(s"progress-status.${ELIGIBLE_FOR_JOB_OFFER.toString}" -> BSONDocument("$exists" -> true))
     ))
 
     val projection = BSONDocument("applicationId" -> 1)
