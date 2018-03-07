@@ -185,6 +185,10 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
+  def fixUsersEligibleForJobOfferButFsbApplicationStatus(): Action[AnyContent] = Action.async {
+    applicationService.fixUsersEligibleForJobOfferButFsbApplicationStatus().map(affected => Ok(s"$affected Users Fixed"))
+  }
+
   def fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String): Action[AnyContent] = Action.async {
     siftService.fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId).map(_ => Ok)
   }
