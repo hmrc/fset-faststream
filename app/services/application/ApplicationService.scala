@@ -507,7 +507,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     val applicationIdsFut = findUsersEligibleForJobOfferButFsbApplicationStatus()
     applicationIdsFut.flatMap { applicationIds =>
       Future.sequence(applicationIds.map { applicationId =>
-        appRepository.updateStatus(applicationId, ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
+        appRepository.updateApplicationStatusOnly(applicationId, ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
       })
     }.flatMap(_ => applicationIdsFut.map(_.length))
   }

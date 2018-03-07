@@ -109,6 +109,8 @@ trait GeneralApplicationRepository {
 
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
 
+  def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
+
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
@@ -802,6 +804,13 @@ class GeneralApplicationMongoRepository(
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating status")
 
     collection.update(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map validator
+  }
+
+  def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating application status")
+
+    collection.update(query, BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus.toString))) map validator
   }
 
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = {
