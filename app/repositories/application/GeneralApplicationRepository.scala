@@ -109,6 +109,8 @@ trait GeneralApplicationRepository {
 
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
 
+  def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
+
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
@@ -162,6 +164,8 @@ trait GeneralApplicationRepository {
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
 
   def removeWithdrawReason(applicationId: String): Future[Unit]
+
+  def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
 }
 
 // scalastyle:off number.of.methods
@@ -802,6 +806,13 @@ class GeneralApplicationMongoRepository(
     collection.update(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map validator
   }
 
+  def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating application status")
+
+    collection.update(query, BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus.toString))) map validator
+  }
+
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating submission deadline")
@@ -1066,5 +1077,20 @@ class GeneralApplicationMongoRepository(
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"Saving currentSchemeStatus for $applicationId")
     collection.update(query, updateBSON).map(validator)
+  }
+
+  def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> BSONDocument("$eq" -> FSB.toString)),
+        BSONDocument(s"progress-status.${ELIGIBLE_FOR_JOB_OFFER.toString}" -> BSONDocument("$exists" -> true))
+    ))
+
+    val projection = BSONDocument("applicationId" -> 1)
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docList =>
+      docList.map { doc =>
+        doc.getAs[String]("applicationId").get
+      }
+    }
   }
 }

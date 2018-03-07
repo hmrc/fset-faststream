@@ -173,6 +173,22 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
+  def findUsersEligibleForJobOfferButFsbApplicationStatus(): Action[AnyContent] = Action.async {
+    applicationService.findUsersEligibleForJobOfferButFsbApplicationStatus().map(resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("applicationId") ++ resultList.map { applicationId =>
+          s"""$applicationId"""
+        }).mkString("\n"))
+      }
+    )
+  }
+
+  def fixUsersEligibleForJobOfferButFsbApplicationStatus(): Action[AnyContent] = Action.async {
+    applicationService.fixUsersEligibleForJobOfferButFsbApplicationStatus().map(affected => Ok(s"$affected Users Fixed"))
+  }
+
   def fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String): Action[AnyContent] = Action.async {
     siftService.fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId).map(_ => Ok)
   }

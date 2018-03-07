@@ -499,6 +499,19 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def findUsersEligibleForJobOfferButFsbApplicationStatus(): Future[Seq[String]] = {
+    appRepository.findEligibleForJobOfferCandidatesWithFsbStatus
+  }
+
+  def fixUsersEligibleForJobOfferButFsbApplicationStatus(): Future[Int] = {
+    val applicationIdsFut = findUsersEligibleForJobOfferButFsbApplicationStatus()
+    applicationIdsFut.flatMap { applicationIds =>
+      Future.sequence(applicationIds.map { applicationId =>
+        appRepository.updateApplicationStatusOnly(applicationId, ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
+      })
+    }.flatMap(_ => applicationIdsFut.map(_.length))
+  }
+
   // scalastyle:off cyclomatic.complexity
   def findSdipFaststreamFailedFaststreamInvitedToVideoInterview:
   Future[Seq[(Candidate, ContactDetails, String, ProgressStatus, PassmarkEvaluation, PassmarkEvaluation)]] = {
