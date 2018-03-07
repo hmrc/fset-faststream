@@ -499,6 +499,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def findUsersEligibleForJobOfferButFsbApplicationStatus(): Future[Seq[String]] = {
+    appRepository.findEligibleForJobOfferCandidatesWithFsbStatus
+  }
+
   // scalastyle:off cyclomatic.complexity
   def findSdipFaststreamFailedFaststreamInvitedToVideoInterview:
   Future[Seq[(Candidate, ContactDetails, String, ProgressStatus, PassmarkEvaluation, PassmarkEvaluation)]] = {

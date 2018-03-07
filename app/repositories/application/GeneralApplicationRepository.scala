@@ -162,6 +162,8 @@ trait GeneralApplicationRepository {
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
 
   def removeWithdrawReason(applicationId: String): Future[Unit]
+
+  def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
 }
 
 // scalastyle:off number.of.methods
@@ -1066,5 +1068,20 @@ class GeneralApplicationMongoRepository(
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"Saving currentSchemeStatus for $applicationId")
     collection.update(query, updateBSON).map(validator)
+  }
+
+  def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> BSONDocument("$eq" -> "FSB")),
+        BSONDocument("progress-status.ELIGIBLE_FOR_JOB_OFFER" -> BSONDocument("$exists" -> true))
+    ))
+
+    val projection = BSONDocument("applicationId" -> 1)
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docList =>
+      docList.map { doc =>
+        doc.getAs[String]("applicationId").get
+      }
+    }
   }
 }
