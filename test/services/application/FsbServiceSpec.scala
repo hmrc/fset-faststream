@@ -17,17 +17,18 @@
 package services.application
 
 import connectors.EmailClient
-import model.EvaluationResults.{ Green, Red }
-import model.persisted.{ ContactDetails, FsbTestGroup, SchemeEvaluationResult }
+import model.EvaluationResults.{Green, Red}
+import model.persisted.{ContactDetails, FsbTestGroup, SchemeEvaluationResult}
 import model._
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
-import repositories.{ SchemeRepository, SchemeYamlRepository }
+import repositories.{SchemeRepository, SchemeYamlRepository}
 import testkit.MockitoImplicits._
-import testkit.{ ExtendedTimeout, UnitSpec }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import testkit.{ExtendedTimeout, UnitSpec}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import services.scheme.SchemePreferencesService
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -39,6 +40,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
   "fsb evaluation" must {
     "evaluate scheme to Eligible for Job Offer if results are Green" in new TestFixture {
       val res = FsbTestGroup(List(SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)))
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(res))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(res.evaluation.result)
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_PASSED)).thenReturnAsync()
@@ -50,6 +52,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     "evaluate scheme to Final FAILED if results are red and no more schemes selected" in new TestFixture {
       val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString))
       val res = FsbTestGroup(List(SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Red.toString)))
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(res))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
@@ -65,6 +68,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
         SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString)
       )
       val res = FsbTestGroup(List(SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString)))
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(res))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
@@ -86,6 +90,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       val res = FsbTestGroup(List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Red.toString)
       ))
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(res))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
 
@@ -130,6 +135,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
         SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Red.toString),
         SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
       ))
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(res))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
 
@@ -174,6 +180,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     val mockContactDetailsRepo = mock[ContactDetailsRepository]
     val mockSchemeRepo = SchemeYamlRepository
     val mockEmailClient = mock[EmailClient]
+    val mockSchemePreferencesService = mock[SchemePreferencesService]
 
     val cand1 = Candidate("123", None, Some("t@t.com"), Some("Leia"), Some("Amadala"), None, None, None, None, None, None, None)
     val cd1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "t@t.com", "12345")
@@ -184,7 +191,17 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       override val contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
       override val schemeRepo: SchemeRepository = mockSchemeRepo
       override val emailClient: EmailClient = mockEmailClient
+      override val schemePreferencesService: SchemePreferencesService = mockSchemePreferencesService
     }
+
+    val schemes = List(
+      SchemeId("DigitalAndTechnology"),
+      SchemeId("DiplomaticService"),
+      SchemeId("DiplomaticServiceEconomists"),
+      SchemeId("GovernmentEconomicsService")
+    )
+
+    val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
   }
 
 }
