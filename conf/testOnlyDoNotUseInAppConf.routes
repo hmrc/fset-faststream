@@ -47,3 +47,4 @@ GET     /candidate-application/notify-assessors-of-new-events                   
 GET     /candidate-application/process-failed-at-fsb                                controllers.testdata.TestJobsController.allFailedAtFsb
 GET     /candidate-application/evaluate-fsb-results                                 controllers.testdata.TestJobsController.evaluateFsbResults
 GET     /candidate-application/notify-on-final-failure                              controllers.testdata.TestJobsController.notifyOnFinalFailure
+GET     /candidate-application/notify-on-final-success                              controllers.testdata.TestJobsController.notifyOnFinalSuccess
