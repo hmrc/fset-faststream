@@ -18,17 +18,17 @@ package repositories.fsb
 
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
-import model.EvaluationResults.{ Amber, Green, Red }
-import model.Exceptions.AlreadyEvaluatedForSchemeException
-import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION, ProgressStatus }
+import model.EvaluationResults.{Amber, Green, Red}
+import model.Exceptions.{AlreadyEvaluatedForSchemeException, ApplicationNotFound}
+import model.ProgressStatuses.{ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION, ProgressStatus}
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.fsac.AssessmentCentreTests
-import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
+import model.persisted.{FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult}
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.bson.{BSON, BSONArray, BSONDocument, BSONObjectID}
 import repositories._
 import repositories.assessmentcentre.AssessmentCentreRepository
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -43,6 +43,7 @@ trait FsbRepository {
   def progressToFsb(application: ApplicationForProgression): Future[Unit]
   def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
   def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit]
   def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
@@ -156,6 +157,35 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
       applicationId, actionDesc = s"saving fsb assessment result $result", AlreadyEvaluatedForSchemeException(message)
     )
     collection.update(selector, modifier) map validator
+  }
+
+
+  override def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+    val saveEvaluationResultsDoc = BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result)
+    val removeDoc = BSONDocument(
+      "$pull" -> BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> BSONDocument("schemeId" -> result.schemeId.value))
+    )
+    val setDoc = BSONDocument("$addToSet" -> saveEvaluationResultsDoc)
+
+    val removePredicate = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(
+        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BSONDocument("$in" -> BSONArray(result.schemeId.value))
+      )
+    ))
+    val setPredicate = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(
+        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
+      )
+    ))
+
+    val validator = singleUpdateValidator(applicationId, s"Fixing FSB results for ${result.schemeId}", ApplicationNotFound(applicationId))
+
+    for {
+      _ <- collection.update(removePredicate, removeDoc) map validator
+      _ <- collection.update(setPredicate, setDoc) map validator
+    } yield ()
   }
 
   override def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {

@@ -627,6 +627,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def markFsbSchemeAsRed(applicationId: String, schemeId: SchemeId): Future[Unit] = {
+    fsbRepo.updateResult(applicationId, SchemeEvaluationResult(schemeId, Red.toString)).map(_ => ())
+  }
+
+  def markFsbSchemeAsGreen(applicationId: String, schemeId: SchemeId): Future[Unit] = {
+    fsbRepo.updateResult(applicationId, SchemeEvaluationResult(schemeId, Green.toString)).map(_ => ())
+  }
+
   def rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String): Future[Unit] = {
     for {
       _ <- appSiftRepository.fixDataByRemovingSiftEvaluation(applicationId)
