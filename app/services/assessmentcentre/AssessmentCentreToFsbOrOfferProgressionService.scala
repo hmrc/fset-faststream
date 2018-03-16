@@ -17,19 +17,20 @@
 package services.assessmentcentre
 
 import common.FutureEx
-import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
+import connectors.{AuthProviderClient, CSREmailClient, EmailClient}
 import model.EvaluationResults.Green
 import model.ProgressStatuses._
 import model._
-import model.command.{ ApplicationForProgression, ProgressResponse }
+import model.command.{ApplicationForProgression, ProgressResponse}
 import model.fsb.FSBProgressStatus
-import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
+import model.persisted.{FsbSchemeResult, SchemeEvaluationResult}
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories.{ CurrentSchemeStatusHelper, SchemeYamlRepository }
-import repositories.application.GeneralApplicationRepository
-import repositories.contactdetails.ContactDetailsRepository
-import repositories.fsb.FsbRepository
+import repositories.{CurrentSchemeStatusHelper, SchemeYamlRepository}
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepository}
+import repositories.contactdetails.{ContactDetailsMongoRepository, ContactDetailsRepository}
+import repositories.fsb.{FsbMongoRepository, FsbRepository}
+import services.scheme.SchemePreferencesService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -37,10 +38,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 object AssessmentCentreToFsbOrOfferProgressionService extends AssessmentCentreToFsbOrOfferProgressionService {
   val fsbRequiredSchemeIds: Seq[SchemeId] = SchemeYamlRepository.fsbSchemeIds
-  val applicationRepo = repositories.applicationRepository
-  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
-  val fsbRepo = repositories.fsbRepository
-  val emailClient = CSREmailClient
+  val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
+  val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
+  val fsbRepo: FsbMongoRepository = repositories.fsbRepository
+  val emailClient: CSREmailClient = CSREmailClient
+  val schemePreferencesService: SchemePreferencesService = SchemePreferencesService
 }
 
 trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatusHelper {
@@ -54,6 +56,8 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
   def fsbRepo: FsbRepository
 
   def emailClient: EmailClient
+
+  def schemePreferencesService: SchemePreferencesService
 
   def nextApplicationsForFsbOrJobOffer(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     fsbRepo.nextApplicationForFsbOrJobOfferProgression(batchSize)
@@ -132,7 +136,10 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
       FutureEx.futureToEither(application,
         withErrLogging("Failed while progressing to fsb or job offer") {
           for {
-            currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
+            //TODO: Filter this with selected schemes? Any regressions?
+            schemePreferences <- schemePreferencesService.find(application.applicationId)
+            currentSchemeStatusUnfiltered <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
+            currentSchemeStatus = currentSchemeStatusUnfiltered.filter(res => schemePreferences.schemes.contains(res.schemeId))
             firstResidual = firstResidualPreference(currentSchemeStatus)
             applicationStatus <- applicationRepo.findStatus(application.applicationId)
             _ <- maybeArchiveOldFsbStatuses(application, applicationStatus.latestProgressStatus.get, firstResidual)

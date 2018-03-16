@@ -17,14 +17,15 @@
 package services.assessmentcentre
 
 import connectors.ExchangeObjects.Candidate
-import connectors.{ AuthProviderClient, EmailClient }
+import connectors.{AuthProviderClient, EmailClient}
 import model.ProgressStatuses.ASSESSMENT_CENTRE_PASSED
-import model.{ SchemeId, _ }
-import model.command.{ ApplicationForProgression, ApplicationStatusDetails }
-import model.persisted.{ ContactDetails, SchemeEvaluationResult }
+import model.{SchemeId, _}
+import model.command.{ApplicationForProgression, ApplicationStatusDetails}
+import model.persisted.{ContactDetails, SchemeEvaluationResult}
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
+import services.scheme.SchemePreferencesService
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 
@@ -37,6 +38,10 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
     "Progress candidates to FSB when their first residual preference is green, and requires an FSB" in new TestFixture {
 
       applicationsToProgressToFsb.map { expectedApplication =>
+        (mockSchemePreferencesService.find(_: String))
+          .expects(expectedApplication.applicationId)
+          .returningAsync(selectedSchemes)
+
         (mockApplicationRepository.getCurrentSchemeStatus _)
           .expects(expectedApplication.applicationId)
           .returningAsync(expectedApplication.currentSchemeStatus).once
@@ -72,6 +77,10 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
 
     "Progress candidates to job offer when their first residual preference is green, and does not require an FSB" in new TestFixture {
       applicationsToProgressToJobOffer.map { expectedApplication =>
+        (mockSchemePreferencesService.find(_: String))
+          .expects(expectedApplication.applicationId)
+          .returningAsync(selectedSchemes)
+
         (mockApplicationRepository.getCurrentSchemeStatus _)
           .expects(expectedApplication.applicationId)
           .returningAsync(expectedApplication.currentSchemeStatus).once
@@ -95,6 +104,10 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
 
     "Do nothing to a candidate when their first residual preference is not green" in new TestFixture {
       applicationsNotToProgress.map { expectedApplication =>
+        (mockSchemePreferencesService.find(_: String))
+          .expects(expectedApplication.applicationId)
+          .returningAsync(selectedSchemes)
+
         (mockApplicationRepository.getCurrentSchemeStatus _)
           .expects(expectedApplication.applicationId)
           .returningAsync(expectedApplication.currentSchemeStatus).once
@@ -126,6 +139,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
     val mockApplicationRepository = mock[GeneralApplicationRepository]
     val mockContactDetailsRepo = mock[ContactDetailsRepository]
     val mockEmailClient = mock[EmailClient]
+    val mockSchemePreferencesService = mock[SchemePreferencesService]
 
     val service: AssessmentCentreToFsbOrOfferProgressionService = new AssessmentCentreToFsbOrOfferProgressionService() {
       val fsbRepo = mockFsbRepository
@@ -135,6 +149,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
 
       override def emailClient: EmailClient = mockEmailClient
       override def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
+      def schemePreferencesService: SchemePreferencesService = mockSchemePreferencesService
     }
 
     val userId = "1"
@@ -177,5 +192,16 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
       ApplicationForProgression("appId3", ApplicationStatus.ASSESSMENT_CENTRE,
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Red.toString)))
     )
+
+    val schemes = List(
+      SchemeId("DigitalAndTechnology"),
+      SchemeId("DiplomaticService"),
+      SchemeId("GovernmentStatisticalService"),
+      SchemeId("Commercial"),
+      SchemeId("International"),
+      SchemeId("Finance")
+    )
+
+    val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
   }
 }
