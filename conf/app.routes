@@ -109,8 +109,6 @@ GET         /diagnostic/application/:applicationId/rollback-fastpass-from-fsac-t
 GET         /diagnostic/application/:applicationId/rollback-to-submitted-and-add-fastpass-to-application                controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedFromOnlineTestsAndAddFastpassNumber(applicationId: String, certificateNumber: String)
 GET         /diagnostic/application/:applicationId/rollback-to-fsac-awaiting-allocation-from-fsac-failed                controllers.fixdata.FixDataConsistencyController.rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocation-confirmed-from-fsb                       controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocationConfirmedFromFsb(applicationId: String)
-
-
 GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-faststream-user controllers.fixdata.FixDataConsistencyController.removeSdipSchemeFromFaststreamUser(applicationId: String)
 GET         /diagnostic/sift/findCandidatesStuckInSiftReady              controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes
 GET         /diagnostic/sift/fixCandidateStuckInSiftReady                controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String)
@@ -135,6 +133,8 @@ GET         /diagnostic/application/:applicationId/addProgressStatus/:progressSt
 GET         /diagnostic/application/:applicationId/removeSiftTestGroup                                 controllers.fixdata.FixDataConsistencyController.removeSiftTestGroup(applicationId: String)
 GET         /diagnostic/application/randomisePhasePassmarkVersion                                      controllers.fixdata.FixDataConsistencyController.randomisePhasePassmarkVersion(applicationId: String, phase: String)
 GET         /diagnostic/findUsersStuckInAssessmentScoresAccepted                                       controllers.fixdata.FixDataConsistencyController.findUsersStuckInAssessmentScoresAccepted
+GET         /diagnostic/findUsersEligibleForJobOfferButFsbApplicationStatus                            controllers.fixdata.FixDataConsistencyController.findUsersEligibleForJobOfferButFsbApplicationStatus
+GET         /diagnostic/fixUsersEligibleForJobOfferButFsbApplicationStatus                             controllers.fixdata.FixDataConsistencyController.fixUsersEligibleForJobOfferButFsbApplicationStatus
 GET         /diagnostic/application/:applicationId/setUsedForResults/:newUsedForResults                controllers.fixdata.FixDataConsistencyController.setUsedForResults(applicationId: String, newUsedForResults: Boolean, token: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)

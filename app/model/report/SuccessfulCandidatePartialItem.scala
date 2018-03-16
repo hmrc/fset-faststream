@@ -21,6 +21,7 @@ import play.api.libs.json.{ Json, OFormat }
 
 case class SuccessfulCandidatePartialItem(userId: String,
                                           applicationId: String,
+                                          applicationStatus: String,
                                           applicationRoute: String,
                                           fullName: Option[String],
                                           preferredName: Option[String],

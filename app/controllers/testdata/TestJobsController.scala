@@ -124,4 +124,10 @@ class TestJobsController extends BaseController {
       Ok("Notify on final failure job started")
     }
   }
+
+  def notifyOnFinalSuccess: Action[AnyContent] = Action.async { implicit request =>
+    NotifyOnFinalSuccessJob.tryExecute().map { _ =>
+      Ok("Notify on final success job started")
+    }
+  }
 }

@@ -33,6 +33,6 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
   }
 }
 
-// This test fails on Travis but works locally and on jenkins by tagging it so we can
-// explicitly skip it when travis runs
+// These tests fail on Travis but work locally and on jenkins. By tagging the tests we can
+// explicitly skip them when travis runs
 object TravisIgnore extends Tag("TravisIgnore")
