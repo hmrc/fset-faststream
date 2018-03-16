@@ -223,7 +223,6 @@ trait EmailClient extends WSHttp {
         "eventVenue" -> c.eventVenue, "deadlineDate" -> c.deadlineDate, "eventGuideUrl" -> c.eventGuideUrl))
   }
 
-
   def sendCandidateInvitationConfirmedToEvent(to: String, name: String,
     eventDate: String, eventTime: String,
     eventType: String, eventVenue: String, eventGuideUrl: String)(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -279,11 +278,12 @@ trait EmailClient extends WSHttp {
     sendEmail(to, "fset_faststream_app_final_success", Map("name" -> name, "scheme" -> scheme))
   }
 
-
   def notifyCandidateSiftEnteredAdditionalQuestions(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_candidate_sift_entered_additional_questions", Map("name" -> name))
   }
 
+  def sendSiftExpired(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
+    sendEmail(to, "fset_faststream_sift_expired", Map("name" -> name))
 }
 
 object EmailDateFormatter {
