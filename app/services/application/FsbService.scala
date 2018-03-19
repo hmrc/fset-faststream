@@ -17,19 +17,20 @@
 package services.application
 
 import common.FutureEx
-import connectors.{ CSREmailClient, EmailClient }
-import model.EvaluationResults.{ Green, Red }
+import connectors.{CSREmailClient, EmailClient}
+import model.EvaluationResults.{Green, Red}
 import model.ProgressStatuses._
 import model._
 import model.command.ApplicationForProgression
 import model.exchange.ApplicationResult
-import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
+import model.persisted.{FsbSchemeResult, SchemeEvaluationResult}
 import play.api.Logger
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.fsb.{ FsbMongoRepository, FsbRepository }
-import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
+import repositories.fsb.{FsbMongoRepository, FsbRepository}
+import repositories.{CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository}
 import services.application.DSSchemeIds._
+import services.scheme.SchemePreferencesService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -42,6 +43,7 @@ object FsbService extends FsbService {
   override val fsbRepo: FsbMongoRepository = repositories.fsbRepository
   override val schemeRepo: SchemeYamlRepository.type = SchemeYamlRepository
   override val emailClient: EmailClient = CSREmailClient
+  override val schemePreferencesService: SchemePreferencesService = SchemePreferencesService
 }
 
 trait FsbService extends CurrentSchemeStatusHelper {
@@ -50,6 +52,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
   val fsbRepo: FsbRepository
   val schemeRepo: SchemeRepository
   val emailClient: EmailClient
+  val schemePreferencesService: SchemePreferencesService
 
   val logPrefix = "[FsbEvaluation]"
 
@@ -77,7 +80,9 @@ trait FsbService extends CurrentSchemeStatusHelper {
 
     for {
       fsbEvaluation <- fsbRepo.findByApplicationId(appId).map(_.map(_.evaluation.result))
-      currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(appId)
+      schemePreferences <- schemePreferencesService.find(applicationId.toString())
+      currentSchemeStatusUnfiltered <- applicationRepo.getCurrentSchemeStatus(appId)
+      currentSchemeStatus = currentSchemeStatusUnfiltered.filter(res => schemePreferences.schemes.contains(res.schemeId))
       firstPreference = firstResidualPreference(currentSchemeStatus)
       _ <- passOrFailFsb(appId, fsbEvaluation, firstPreference, currentSchemeStatus)
     } yield {

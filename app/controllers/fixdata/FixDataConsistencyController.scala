@@ -281,6 +281,18 @@ trait FixDataConsistencyController extends BaseController {
     )
   }
 
+  def markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
+    applicationService.markFsbSchemeAsRed(applicationId, schemeId).map(_ =>
+      Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")
+    )
+  }
+
+  def markFsbSchemeAsGreen(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
+    applicationService.markFsbSchemeAsGreen(applicationId, schemeId).map(_ =>
+      Ok(s"Successfully marked ${schemeId.value} as green for $applicationId")
+    )
+  }
+
   def rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String): Action[AnyContent] = Action.async {
     applicationService.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId).map(_ =>
       Ok(s"Successfully rolled $applicationId back to sift ready")
