@@ -282,6 +282,20 @@ trait EmailClient extends WSHttp {
     sendEmail(to, "fset_faststream_notify_candidate_sift_entered_additional_questions", Map("name" -> name))
   }
 
+  def sendSiftReminder(to: String, name: String, timeLeftInHours: Int,
+    timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+
+    sendEmail(
+      to,
+      "fset_faststream_sift_reminder",
+      Map("name" -> name,
+        "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
+        "timeUnit" -> timeUnit.toString.toLowerCase,
+        "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeftInHours)
+      )
+    )
+  }
+
   def sendSiftExpired(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_sift_expired", Map("name" -> name))
 }
