@@ -25,6 +25,7 @@ import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
+import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
@@ -73,14 +74,19 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def progressApplicationToSiftStage(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
-    val updates = FutureEx.traverseSerial(applications) { application =>
-      FutureEx.futureToEither(application,
-        applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId,
-          progressStatusForSiftStage(application.currentSchemeStatus.collect { case s if s.result == Green.toString => s.schemeId } ))
+    val updates = FutureEx.traverseSerial(applications) { app =>
+      val status = progressStatusForSiftStage(app.currentSchemeStatus.collect { case s if s.result == Green.toString => s.schemeId })
+      FutureEx.futureToEither(
+        app,
+        applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, status)
+          .map(_ => saveSiftExpiryDate(app.applicationId))
       )
     }
-
     updates.map(SerialUpdateResult.fromEither)
+  }
+
+  def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime = DateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+    applicationSiftRepo.saveSiftExpiryDate(applicationId, expiryDate).map(_ => ())
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[model.Candidate]] = {
