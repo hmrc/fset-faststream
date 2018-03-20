@@ -21,6 +21,7 @@ import scheduler.assessment.EvaluateAssessmentScoreJob
 import scheduler.onlinetesting._
 import scheduler._
 import scheduler.fsb.EvaluateFsbJob
+import scheduler.sift.{ FirstSiftReminderJob, SecondSiftReminderJob }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -74,6 +75,18 @@ class TestJobsController extends BaseController {
   def progressCandidatesToSift: Action[AnyContent] = Action.async { implicit request =>
     ProgressToSiftJob.tryExecute().map { _ =>
       Ok("Progress to sift result job started")
+    }
+  }
+
+  def firstSiftReminder: Action[AnyContent] = Action.async { implicit request =>
+    FirstSiftReminderJob.tryExecute().map { _ =>
+      Ok("First sift reminder job started")
+    }
+  }
+
+  def secondSiftReminder: Action[AnyContent] = Action.async { implicit request =>
+    SecondSiftReminderJob.tryExecute().map { _ =>
+      Ok("Second sift reminder job started")
     }
   }
 

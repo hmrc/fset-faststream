@@ -25,6 +25,7 @@ import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvalua
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
+import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
 import model.report.SiftPhaseReportItem
@@ -60,6 +61,8 @@ trait ApplicationSiftRepository {
   def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId: String): Future[Unit]
   def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit]
+  def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
+  def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
 }
 
 class ApplicationSiftMongoRepository(
@@ -118,6 +121,39 @@ class ApplicationSiftMongoRepository(
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
       _.map { document => applicationForSiftBsonReads(document) }
     }
+  }
+
+  def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> BSONDocument("$ne" -> true)),
+
+      BSONDocument(s"testGroups.$phaseName.expirationDate" ->
+        BSONDocument( "$lte" -> dateTime.nowLocalTimeZone.plusHours(timeInHours)) // Serialises to UTC.
+      )
+    ))
+
+    implicit val reader = bsonReader(x => NotificationExpiringSift.fromBson(x, phaseName))
+    selectOneRandom[NotificationExpiringSift](query)
+  }
+
+  def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_SECOND_REMINDER}" -> BSONDocument("$ne" -> true)),
+
+      BSONDocument(s"testGroups.$phaseName.expirationDate" ->
+        BSONDocument( "$lte" -> dateTime.nowLocalTimeZone.plusHours(timeInHours)) // Serialises to UTC.
+      )
+    ))
+
+    implicit val reader = bsonReader(x => NotificationExpiringSift.fromBson(x, phaseName))
+    selectOneRandom[NotificationExpiringSift](query)
   }
 
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]] = {

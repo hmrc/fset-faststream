@@ -24,7 +24,9 @@ import model.Exceptions.SiftResultsAlreadyExistsException
 import model._
 import model.command.ApplicationForSift
 import model.persisted.SchemeEvaluationResult
-import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
+import model.persisted.sift.NotificationExpiringSift
+import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
+import play.api.Logger
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
@@ -46,6 +48,7 @@ object ApplicationSiftService extends ApplicationSiftService {
   val emailClient: CSREmailClient = CSREmailClient
 }
 
+//scalastyle:off number.of.methods
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
 
   def applicationSiftRepo: ApplicationSiftRepository
@@ -56,6 +59,29 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
+  }
+
+  def processNextApplicationForFirstReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
+    applicationSiftRepo.nextApplicationForFirstSiftReminder(timeInHours)
+  }
+
+  def processNextApplicationForSecondReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
+    applicationSiftRepo.nextApplicationForSecondSiftReminder(timeInHours)
+  }
+
+  def sendReminderNotification(expiringSift: NotificationExpiringSift,
+    siftReminderNotice: SiftReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+      for {
+        emailAddress <- contactDetailsRepo.find(expiringSift.userId).map(_.email)
+        _ <- emailClient.sendSiftReminder(emailAddress, expiringSift.preferredName, siftReminderNotice.hoursBeforeReminder,
+          siftReminderNotice.timeUnit, expiringSift.expiryDate)
+        _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(expiringSift.applicationId, siftReminderNotice.progressStatus)
+      } yield {
+        val msg = s"Sift reminder email sent to candidate whose applicationId = ${expiringSift.applicationId} " +
+          s"${siftReminderNotice.hoursBeforeReminder} hours before expiry and candidate status updated " +
+          s"to ${siftReminderNotice.progressStatus}"
+        Logger.info(msg)
+      }
   }
 
   def processNextApplicationFailedAtSift: Future[Unit] = applicationSiftRepo.nextApplicationFailedAtSift.flatMap(_.map { application =>
@@ -303,3 +329,4 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     } yield ()
   }
 }
+//scalastyle:on

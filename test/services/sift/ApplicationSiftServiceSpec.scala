@@ -18,13 +18,13 @@ package services.sift
 
 import connectors.EmailClient
 import factories.{ DateTimeFactory, DateTimeFactoryMock }
-import model.Exceptions.PassMarkEvaluationNotFound
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ApplicationForSift
+import model.persisted.sift.NotificationExpiringSift
 import model.persisted.{ ContactDetails, ContactDetailsExamples, SchemeEvaluationResult }
-import model.sift.FixUserStuckInSiftEntered
-import org.joda.time.LocalDate
+import model.sift.{ FixUserStuckInSiftEntered, SiftFirstReminder, SiftSecondReminder }
+import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.BSONDocument
 import repositories.{ BSONDateTimeHandler, SchemeRepository }
 import repositories.application.GeneralApplicationRepository
@@ -36,10 +36,15 @@ import testkit.ScalaMockUnitWithAppSpec
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.duration.TimeUnit
+
 class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
   trait TestFixture  {
     val appId = "applicationId"
+    val userId = "userId"
+    val expiryDate = DateTime.now()
+    val expiringSift = NotificationExpiringSift(appId, userId, "TestUser", expiryDate)
     val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
     val mockSiftRepo: ApplicationSiftRepository = mock[ApplicationSiftRepository]
     val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
@@ -420,6 +425,36 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         .expects(contactDetails.email, candidate.name, *).returningAsync
 
       whenReady(service.sendSiftEnteredNotification(appId)(HeaderCarrier())) { result => result mustBe unit }
+    }
+  }
+
+  "sendReminderNotification" must {
+    "send a first reminder email" in new TestFixture {
+      val contactDetails = ContactDetailsExamples.ContactDetailsUK
+
+      (mockContactDetailsRepo.find _ ).expects(userId).returningAsync(contactDetails)
+      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: DateTime)(_: HeaderCarrier))
+        .expects(contactDetails.email, expiringSift.preferredName, SiftFirstReminder.hoursBeforeReminder,
+          SiftFirstReminder.timeUnit, expiryDate, *)
+        .returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus(_ : String, _: ProgressStatuses.ProgressStatus))
+        .expects(appId, SiftFirstReminder.progressStatus).returningAsync
+
+      whenReady(service.sendReminderNotification(expiringSift, SiftFirstReminder)(HeaderCarrier())) { result => result mustBe unit }
+    }
+
+    "send a second reminder email" in new TestFixture {
+      val contactDetails = ContactDetailsExamples.ContactDetailsUK
+
+      (mockContactDetailsRepo.find _ ).expects(userId).returningAsync(contactDetails)
+      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: DateTime)(_: HeaderCarrier))
+        .expects(contactDetails.email, expiringSift.preferredName, SiftSecondReminder.hoursBeforeReminder,
+          SiftSecondReminder.timeUnit, expiryDate, *)
+        .returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus(_ : String, _: ProgressStatuses.ProgressStatus))
+        .expects(appId, SiftSecondReminder.progressStatus).returningAsync
+
+      whenReady(service.sendReminderNotification(expiringSift, SiftSecondReminder)(HeaderCarrier())) { result => result mustBe unit }
     }
   }
 

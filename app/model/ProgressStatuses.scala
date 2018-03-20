@@ -111,6 +111,8 @@ object ProgressStatuses {
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
   case object SIFT_ENTERED extends ProgressStatus(ApplicationStatus.SIFT)
+  case object SIFT_FIRST_REMINDER extends ProgressStatus(ApplicationStatus.SIFT)
+  case object SIFT_SECOND_REMINDER extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_READY extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_COMPLETED extends ProgressStatus(ApplicationStatus.SIFT)
   case object FAILED_AT_SIFT extends ProgressStatus(ApplicationStatus.FAILED_AT_SIFT)
