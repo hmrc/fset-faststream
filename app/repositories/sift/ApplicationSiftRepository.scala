@@ -23,7 +23,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
 import model._
-import model.command.ApplicationForSift
+import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.persisted.SchemeEvaluationResult
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
@@ -46,6 +46,7 @@ trait ApplicationSiftRepository {
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
+  def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]]
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]]
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
   def findAllResults: Future[Seq[SiftPhaseReportItem]]
@@ -118,6 +119,23 @@ class ApplicationSiftMongoRepository(
 
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
       _.map { document => applicationForSiftBsonReads(document) }
+    }
+  }
+
+  def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]] = {
+    val query = BSONDocument(
+      "applicationStatus" -> ApplicationStatus.SIFT,
+      s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true,
+      s"testGroups.$phaseName.expirationDate" -> BSONDocument("$lte" -> DateTimeFactory.nowLocalTimeZone)
+    )
+
+    selectRandom[BSONDocument](query, maxBatchSize).map {
+      _.map { doc =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val userId = doc.getAs[String]("userId").get
+        val appStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
+        ApplicationForSiftExpiry(applicationId, userId, appStatus)
+      }
     }
   }
 

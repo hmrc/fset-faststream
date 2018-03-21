@@ -22,10 +22,11 @@ import factories.DateTimeFactory
 import model.EvaluationResults.{ Green, Red, Withdrawn }
 import model.Exceptions.SiftResultsAlreadyExistsException
 import model._
-import model.command.ApplicationForSift
+import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.persisted.SchemeEvaluationResult
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
+import play.api.Logger
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
@@ -47,6 +48,7 @@ object ApplicationSiftService extends ApplicationSiftService {
   val emailClient: CSREmailClient = CSREmailClient
 }
 
+// scalastyle:off number.of.methods
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
 
   def applicationSiftRepo: ApplicationSiftRepository
@@ -107,6 +109,27 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
         }
       }
     }
+  }
+
+  def processExpiredCandidates(batchSize: Int): Future[Unit] = {
+    nextApplicationsForExpiry(batchSize)
+      .flatMap { applications =>
+        Logger.info(s"${applications.size} applications found for sift expiry -- $applications")
+        expireCandidates(applications).map(_ =>())
+      }
+  }
+
+  def nextApplicationsForExpiry(batchSize: Int): Future[Seq[ApplicationForSiftExpiry]] = {
+    applicationSiftRepo.nextApplicationsForSiftExpiry(batchSize)
+  }
+
+  def expireCandidates(appsForExpiry: Seq[ApplicationForSiftExpiry]): Future[Unit] = {
+    Future.sequence(
+      appsForExpiry.map(app =>
+        applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.SIFT_EXPIRED)
+          .map(_ => Logger.info(s"Expiring Application: $app"))
+      )
+    ).map(_ => ())
   }
 
   private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
