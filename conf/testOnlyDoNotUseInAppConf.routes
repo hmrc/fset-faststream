@@ -39,6 +39,7 @@ GET     /candidate-application/evaluate-phase2-candidate                        
 GET     /candidate-application/evaluate-phase3-candidate                            controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
 GET     /candidate-application/process-phase1-success                               controllers.testdata.TestJobsController.processSuccessPhase1TestJob
 GET     /candidate-application/progress-candidates-to-sift                          controllers.testdata.TestJobsController.progressCandidatesToSift
+GET     /candidate-application/process-expired-at-sift                              controllers.testdata.TestJobsController.processExpiredAtSift
 GET     /candidate-application/process-failed-at-sift                               controllers.testdata.TestJobsController.processFailedAtSift
 GET     /candidate-application/progress-candidates-to-ac                            controllers.testdata.TestJobsController.progressCandidatesToAssessmentCentre
 GET     /candidate-application/progress-candidates-to-fsb-or-offer-job              controllers.testdata.TestJobsController.progressCandidatesToFsbOrOfferJob
