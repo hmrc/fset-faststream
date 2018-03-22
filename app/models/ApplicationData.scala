@@ -44,6 +44,9 @@ case class ApplicationData(applicationId: UniqueIdentifier,
   def isPhase3 = (applicationStatus == PHASE3_TESTS || applicationStatus == PHASE3_TESTS_PASSED
     || applicationStatus == PHASE3_TESTS_FAILED || applicationStatus == PHASE3_TESTS_PASSED_WITH_AMBER
     || progress.phase3TestProgress.phase3TestsInvited)
+
+  def isSift = applicationStatus == SIFT
+  def isSiftExpired = (applicationStatus == SIFT) && progress.siftProgress.failedAtSift
 }
 
 object ApplicationData {
@@ -168,6 +171,7 @@ object ProgressStatuses {
 
   case object ALL_SCHEMES_SIFT_ENTERED extends ProgressStatus(ApplicationStatus.SIFT)
   case object ALL_SCHEMES_SIFT_COMPLETED extends ProgressStatus(ApplicationStatus.SIFT)
+  case object SIFT_EXPIRED extends ProgressStatus(ApplicationStatus.SIFT)
 
   case object ASSESSMENT_CENTRE_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)

@@ -214,8 +214,12 @@
             @if(isInPhase3PassedOrNotified(page.userDataWithSchemes.toCachedData)) {
                 <p>Depending on your chosen schemes, you may need to answer some additional questions.</p>
             } else {
-                @if(page.userDataWithSchemes.hasFormRequirement || page.userDataWithSchemes.hasNumericRequirement) {
-                    @renderExtraInfo
+                @if(page.userDataWithSchemes.application.isSiftExpired) {
+                    <h2>You have expired in SIFT!</h2>
+                } else {
+                    @if(page.userDataWithSchemes.hasFormRequirement || page.userDataWithSchemes.hasNumericRequirement) {
+                        @renderExtraInfo
+                    }
                 }
             }
         </li>

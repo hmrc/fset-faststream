@@ -105,6 +105,8 @@ case class PostOnlineTestsPage(
 
   def isFailedFaststreamGreenSdip = RoleUtils.isFastStreamFailedGreenSdip(userDataWithSchemes.toCachedData)
 
+  def isSiftExpired = ??? //TODO: Complete this
+
   def haveAdditionalQuestionsBeenSubmitted = additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 
   private def dateTimeToStringWithOptionalMinutes(localTime: LocalTime): String = {

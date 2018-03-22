@@ -67,6 +67,7 @@ case class SiftProgress(
   siftEntered: Boolean = false,
   siftReady: Boolean = false,
   siftCompleted: Boolean = false,
+  siftExpired: Boolean = false,
   sdipFailedAtSift: Boolean = false,
   failedAtSift: Boolean = false,
   failedAtSiftNotified: Boolean = false
