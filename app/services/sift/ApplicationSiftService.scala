@@ -116,9 +116,13 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def processExpiredCandidates(batchSize: Int): Future[Unit] = {
     nextApplicationsForExpiry(batchSize)
-      .flatMap { applications =>
-        Logger.info(s"${applications.size} applications found for sift expiry -- $applications")
-        expireCandidates(applications).map(_ =>())
+      .flatMap {
+        case Nil =>
+          Logger.info("No application found for SIFT expiry")
+          Future.successful(())
+        case applications: Seq[ApplicationForSiftExpiry] =>
+          Logger.info(s"${applications.size} applications found for SIFT expiry -- $applications")
+          expireCandidates(applications).map(_ =>())
       }
   }
 
