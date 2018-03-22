@@ -84,7 +84,6 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       FutureEx.futureToEither(
         app,
         applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, status)
-          .map(_ => saveSiftExpiryDate(app.applicationId))
       )
     }
     updates.map(SerialUpdateResult.fromEither)
