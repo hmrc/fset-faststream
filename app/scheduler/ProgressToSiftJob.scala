@@ -21,6 +21,7 @@ import model.ProgressStatuses
 import model.command.ApplicationForSift
 import scheduler.clustering.SingleInstanceScheduledJob
 import ProgressToSiftJobConfig.conf
+import play.api.Logger
 import services.sift.ApplicationSiftService
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -39,14 +40,16 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     siftService.nextApplicationsReadyForSiftStage(batchSize).flatMap {
-      case Nil => Future.successful(())
+      case Nil =>
+        Logger.info("No application found to progress to SIFT")
+        Future.successful(())
       case applications => siftService.progressApplicationToSiftStage(applications).map { result =>
         result.successes.map { application =>
           if (isSiftEnteredStatus(application)) {
             siftService.sendSiftEnteredNotification(application.applicationId).map(_ => ())
           }
         }
-        play.api.Logger.info(s"Progress to sift complete - ${result.successes.size} updated and ${result.failures.size} failed to update")
+        Logger.info(s"Progress to sift complete - ${result.successes.size} updated and ${result.failures.size} failed to update")
       }
     }
   }

@@ -46,10 +46,13 @@ object ApplicationSiftService extends ApplicationSiftService {
   val schemeRepo: SchemeRepository = SchemeYamlRepository
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val emailClient: CSREmailClient = CSREmailClient
+  val SiftExpiryWindowInDays: Int = 7
 }
 
 // scalastyle:off number.of.methods
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
+
+  val SiftExpiryWindowInDays: Int
 
   def applicationSiftRepo: ApplicationSiftRepository
   def applicationRepo: GeneralApplicationRepository
@@ -87,7 +90,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     updates.map(SerialUpdateResult.fromEither)
   }
 
-  def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime = DateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+  def saveSiftExpiryDate(applicationId: String,
+                         expiryDate: DateTime = DateTimeFactory.nowLocalTimeZone.plusDays(SiftExpiryWindowInDays)): Future[Unit] = {
     applicationSiftRepo.saveSiftExpiryDate(applicationId, expiryDate).map(_ => ())
   }
 
