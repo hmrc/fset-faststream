@@ -163,6 +163,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             siftEntered = getProgress(ProgressStatuses.SIFT_ENTERED.key),
             siftReady = getProgress(ProgressStatuses.SIFT_READY.key),
             siftCompleted = getProgress(ProgressStatuses.SIFT_COMPLETED.key),
+            siftExpired = getProgress(ProgressStatuses.SIFT_EXPIRED.key),
             failedAtSift = getProgress(ProgressStatuses.FAILED_AT_SIFT.key),
             failedAtSiftNotified = getProgress(ProgressStatuses.FAILED_AT_SIFT_NOTIFIED.key),
             sdipFailedAtSift = getProgress(ProgressStatuses.SDIP_FAILED_AT_SIFT.key),
