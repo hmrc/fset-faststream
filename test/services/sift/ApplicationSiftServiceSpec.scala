@@ -85,6 +85,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
       def emailClient: EmailClient = mockEmailClient
       def dateTimeFactory: DateTimeFactory = DateTimeFactoryMock
+
+      val SiftExpiryWindowInDays: Int = 7
     }
   }
 
@@ -119,8 +121,6 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
       )
 
-      (mockSiftRepo.saveSiftExpiryDate _).expects("appId1", *).returningAsync
-      (mockSiftRepo.saveSiftExpiryDate _).expects("appId3", *).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId2", ProgressStatuses.SIFT_ENTERED)
         .returning(Future.failed(new Exception))
@@ -144,7 +144,6 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         )
       )
 
-      (mockSiftRepo.saveSiftExpiryDate _).expects(*, *).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
 
       whenReady(service.progressApplicationToSiftStage(applicationToProgressToSift)) { results =>
@@ -166,7 +165,6 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         )
       )
 
-      (mockSiftRepo.saveSiftExpiryDate _).expects(*, *).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
 
       whenReady(service.progressApplicationToSiftStage(applicationToProgressToSift)) { results =>
