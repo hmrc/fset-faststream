@@ -126,6 +126,7 @@ class ApplicationSiftMongoRepository(
     val query = BSONDocument(
       "applicationStatus" -> ApplicationStatus.SIFT,
       s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true,
+      s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> false,
       s"testGroups.$phaseName.expirationDate" -> BSONDocument("$lte" -> DateTimeFactory.nowLocalTimeZone)
     )
 
