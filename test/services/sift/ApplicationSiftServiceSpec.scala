@@ -90,6 +90,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
       def emailClient: EmailClient = mockEmailClient
       def dateTimeFactory: DateTimeFactory = DateTimeFactoryMock
+
+      val SiftExpiryWindowInDays: Int = 7
     }
   }
 

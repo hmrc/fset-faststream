@@ -46,6 +46,7 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftService.nextApplicationsReadyForSiftStage _).expects(10).returningAsync(applications)
       (mockApplicationSiftService.progressApplicationToSiftStage _).expects(applications).returningAsync(expected)
       (mockApplicationSiftService.progressStatusForSiftStage(_: Seq[SchemeId])).expects(*).returning(ProgressStatuses.SIFT_ENTERED)
+      (mockApplicationSiftService.saveSiftExpiryDate _).expects("applicationId", *).returningAsync
       (mockApplicationSiftService.sendSiftEnteredNotification(_: String)(_: HeaderCarrier)).expects("applicationId", *).returningAsync
       TestProgressToSiftJob.tryExecute().futureValue mustBe unit
     }
@@ -67,6 +68,7 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftService.nextApplicationsReadyForSiftStage _).expects(10).returningAsync(applications)
       (mockApplicationSiftService.progressApplicationToSiftStage _).expects(applications).returningAsync(expected)
       (mockApplicationSiftService.progressStatusForSiftStage(_: Seq[SchemeId])).expects(*).returning(ProgressStatuses.SIFT_ENTERED)
+      (mockApplicationSiftService.saveSiftExpiryDate _).expects("applicationId", *).returningAsync
       (mockApplicationSiftService.sendSiftEnteredNotification(_: String)(_: HeaderCarrier)).expects("applicationId", *).returningAsync
       TestProgressToSiftJob.tryExecute().futureValue mustBe unit
     }

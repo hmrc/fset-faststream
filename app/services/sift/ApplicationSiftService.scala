@@ -22,10 +22,13 @@ import factories.DateTimeFactory
 import model.EvaluationResults.{ Green, Red, Withdrawn }
 import model.Exceptions.SiftResultsAlreadyExistsException
 import model._
-import model.command.ApplicationForSift
+import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
+import play.api.Logger
+import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
+import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.bson.BSONDocument
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
@@ -46,10 +49,13 @@ object ApplicationSiftService extends ApplicationSiftService {
   val schemeRepo: SchemeRepository = SchemeYamlRepository
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val emailClient: CSREmailClient = CSREmailClient
+  val SiftExpiryWindowInDays: Int = 7
 }
 
-//scalastyle:off number.of.methods
+// scalastyle:off number.of.methods
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
+
+  val SiftExpiryWindowInDays: Int
 
   def applicationSiftRepo: ApplicationSiftRepository
   def applicationRepo: GeneralApplicationRepository
@@ -99,14 +105,19 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def progressApplicationToSiftStage(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
-    val updates = FutureEx.traverseSerial(applications) { application =>
-      FutureEx.futureToEither(application,
-        applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId,
-          progressStatusForSiftStage(application.currentSchemeStatus.collect { case s if s.result == Green.toString => s.schemeId } ))
+    val updates = FutureEx.traverseSerial(applications) { app =>
+      val status = progressStatusForSiftStage(app.currentSchemeStatus.collect { case s if s.result == Green.toString => s.schemeId })
+      FutureEx.futureToEither(
+        app,
+        applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, status)
       )
     }
-
     updates.map(SerialUpdateResult.fromEither)
+  }
+
+  def saveSiftExpiryDate(applicationId: String,
+                         expiryDate: DateTime = DateTimeFactory.nowLocalTimeZone.plusDays(SiftExpiryWindowInDays)): Future[Unit] = {
+    applicationSiftRepo.saveSiftExpiryDate(applicationId, expiryDate).map(_ => ())
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[model.Candidate]] = {
@@ -126,6 +137,46 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
           siftApplicationForScheme(applicationId, result, updateFunction)
         }
       }
+    }
+  }
+
+  def processExpiredCandidates(batchSize: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
+    def processApplication(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
+      expireCandidate(appForExpiry)
+        .map(_ => notifyExpiredCandidate(appForExpiry.applicationId))
+    }
+
+    nextApplicationsForExpiry(batchSize)
+      .flatMap {
+        case Nil =>
+          Logger.info("No application found for SIFT expiry")
+          Future.successful(())
+        case applications: Seq[ApplicationForSiftExpiry] =>
+          Logger.info(s"${applications.size} applications found for SIFT expiry -- $applications")
+          Future.sequence(applications.map(processApplication)).map(_ => ())
+      }
+  }
+
+  def nextApplicationsForExpiry(batchSize: Int): Future[Seq[ApplicationForSiftExpiry]] = {
+    applicationSiftRepo.nextApplicationsForSiftExpiry(batchSize)
+  }
+
+  def expireCandidate(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
+    applicationRepo
+      .addProgressStatusAndUpdateAppStatus(appForExpiry.applicationId, ProgressStatuses.SIFT_EXPIRED)
+      .map(_ => Logger.info(s"Expiring Application: $appForExpiry"))
+  }
+
+  def expireCandidates(appsForExpiry: Seq[ApplicationForSiftExpiry]): Future[Unit] = {
+    Future.sequence(appsForExpiry.map(app => expireCandidate(app))).map(_ => ())
+  }
+
+  private def notifyExpiredCandidate(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    applicationRepo.find(applicationId).flatMap {
+      case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
+        emailClient.sendSiftExpired(contactDetails.email, candidate.name).map(_ => ())
+      }
+      case None => throw CouldNotFindCandidateWithApplication(applicationId)
     }
   }
 
@@ -329,4 +380,4 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     } yield ()
   }
 }
-//scalastyle:on
+// scalastyle:off

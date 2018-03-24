@@ -107,7 +107,12 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
       if (hasSiftableScheme) {
         val siftStatus = applicationSiftService.progressStatusForSiftStage(preferences.schemes)
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, siftStatus).flatMap { _ =>
-          notifySiftEntered(siftStatus).map(_ => ())
+          val startExpiry = if(siftStatus == ProgressStatuses.SIFT_ENTERED) {
+            applicationSiftService.saveSiftExpiryDate(applicationId)
+          } else {
+            Future.successful(())
+          }
+          startExpiry.flatMap(_ => notifySiftEntered(siftStatus).map(_ => ()))
         }
       } else {
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
