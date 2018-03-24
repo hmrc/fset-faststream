@@ -23,7 +23,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
 import model._
-import model.command.ApplicationForSift
+import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.persisted.SchemeEvaluationResult
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
@@ -46,6 +46,7 @@ trait ApplicationSiftRepository {
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
+  def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]]
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]]
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
   def findAllResults: Future[Seq[SiftPhaseReportItem]]
@@ -54,6 +55,7 @@ trait ApplicationSiftRepository {
   def siftResultsExistsForScheme(applicationId: String, schemeId: SchemeId): Future[Boolean]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
+  def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
   def removeTestGroup(applicationId: String): Future[Unit]
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
@@ -117,6 +119,24 @@ class ApplicationSiftMongoRepository(
 
     selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
       _.map { document => applicationForSiftBsonReads(document) }
+    }
+  }
+
+  def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]] = {
+    val query = BSONDocument(
+      "applicationStatus" -> ApplicationStatus.SIFT,
+      s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true,
+      s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> false,
+      s"testGroups.$phaseName.expirationDate" -> BSONDocument("$lte" -> DateTimeFactory.nowLocalTimeZone)
+    )
+
+    selectRandom[BSONDocument](query, maxBatchSize).map {
+      _.map { doc =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val userId = doc.getAs[String]("userId").get
+        val appStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
+        ApplicationForSiftExpiry(applicationId, userId, appStatus)
+      }
     }
   }
 
@@ -222,6 +242,16 @@ class ApplicationSiftMongoRepository(
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit] = {
     val validator = singleUpdateValidator(applicationId, action)
     collection.update(predicate, update) map validator
+  }
+
+  def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument("$set" -> BSONDocument(s"testGroups.$phaseName.expirationDate" -> expiryDate))
+
+    val validator = singleUpdateValidator(applicationId,
+      actionDesc = s"inserting expiry date during $phaseName", ApplicationNotFound(applicationId))
+
+    collection.update(query, update) map validator
   }
 
   def removeTestGroup(applicationId: String): Future[Unit] = {

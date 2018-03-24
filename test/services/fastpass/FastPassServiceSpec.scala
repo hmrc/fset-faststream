@@ -22,6 +22,7 @@ import model._
 import model.command.PersonalDetailsExamples._
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
 import model.persisted.SchemeEvaluationResult
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito.{ atLeast => atLeastTimes, _ }
 import play.api.mvc.RequestHeader
@@ -93,6 +94,7 @@ class FastPassServiceSpec extends UnitSpec {
       val schemes = SelectedSchemes(
         List(SchemeId("Generalist"), SchemeId("HumanResources"), SchemeId("DigitalAndTechnology")), orderAgreed = true, eligible = true)
       when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
+      when(applicationSiftServiceMock.saveSiftExpiryDate(any[String], any[DateTime])).thenReturn(Future.successful(unit))
       when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
       val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue

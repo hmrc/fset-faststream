@@ -85,6 +85,7 @@ trait ProgressStatusesReportLabels {
     (progress.siftProgressResponse.siftEntered, 400, SiftEntered),
     (progress.siftProgressResponse.siftReady, 403, SiftReady),
     (progress.siftProgressResponse.siftCompleted, 404, SiftCompleted),
+    (progress.siftProgressResponse.siftExpired, 405, SiftExpired),
     (progress.siftProgressResponse.siftFaststreamFailedSdipGreen, 410, SiftFaststreamFailedSdipGreen),
     (progress.siftProgressResponse.failedAtSift, 414, SiftFailed),
     (progress.siftProgressResponse.failedAtSiftNotified, 416, SiftFailedNotified),
@@ -225,6 +226,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val SiftEntered = "sift_entered"
   val SiftReady = "sift_ready"
   val SiftCompleted = "sift_completed"
+  val SiftExpired = "sift_expired"
   val SiftFailed = "failed_at_sift"
   val SiftFailedNotified = FAILED_AT_SIFT_NOTIFIED.toString.toLowerCase()
   val SdipSiftFailed = "sdip_failed_at_sift"
