@@ -38,7 +38,7 @@ trait FirstSiftReminderJob extends SingleInstanceScheduledJob[BasicJobConfig[Sch
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
-    service.processNextApplicationForFirstReminder(reminderNotice.hoursBeforeReminder).flatMap {
+    service.nextApplicationForFirstReminder(reminderNotice.hoursBeforeReminder).flatMap {
       case None =>
         Logger.info("Sift first reminder job complete - NO applications found")
         Future.successful(())

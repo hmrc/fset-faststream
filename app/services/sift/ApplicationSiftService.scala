@@ -67,11 +67,11 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
   }
 
-  def processNextApplicationForFirstReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
+  def nextApplicationForFirstReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
     applicationSiftRepo.nextApplicationForFirstSiftReminder(timeInHours)
   }
 
-  def processNextApplicationForSecondReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
+  def nextApplicationForSecondReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
     applicationSiftRepo.nextApplicationForSecondSiftReminder(timeInHours)
   }
 
