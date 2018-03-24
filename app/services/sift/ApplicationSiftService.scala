@@ -114,7 +114,12 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
-  def processExpiredCandidates(batchSize: Int): Future[Unit] = {
+  def processExpiredCandidates(batchSize: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
+    def processApplication(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
+      expireCandidate(appForExpiry)
+        .map(_ => notifyExpiredCandidate(appForExpiry.applicationId))
+    }
+
     nextApplicationsForExpiry(batchSize)
       .flatMap {
         case Nil =>
@@ -122,7 +127,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
           Future.successful(())
         case applications: Seq[ApplicationForSiftExpiry] =>
           Logger.info(s"${applications.size} applications found for SIFT expiry -- $applications")
-          expireCandidates(applications).map(_ =>())
+          Future.sequence(applications.map(processApplication)).map(_ => ())
       }
   }
 
@@ -130,13 +135,23 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.nextApplicationsForSiftExpiry(batchSize)
   }
 
+  def expireCandidate(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
+    applicationRepo
+      .addProgressStatusAndUpdateAppStatus(appForExpiry.applicationId, ProgressStatuses.SIFT_EXPIRED)
+      .map(_ => Logger.info(s"Expiring Application: $appForExpiry"))
+  }
+
   def expireCandidates(appsForExpiry: Seq[ApplicationForSiftExpiry]): Future[Unit] = {
-    Future.sequence(
-      appsForExpiry.map(app =>
-        applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.SIFT_EXPIRED)
-          .map(_ => Logger.info(s"Expiring Application: $app"))
-      )
-    ).map(_ => ())
+    Future.sequence(appsForExpiry.map(app => expireCandidate(app))).map(_ => ())
+  }
+
+  private def notifyExpiredCandidate(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    applicationRepo.find(applicationId).flatMap {
+      case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
+        emailClient.sendSiftExpired(contactDetails.email, candidate.name).map(_ => ())
+      }
+      case None => throw CouldNotFindCandidateWithApplication(applicationId)
+    }
   }
 
   private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {

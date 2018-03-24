@@ -21,8 +21,9 @@ import play.api.Logger
 import scheduler.ProgressToSiftJobConfig.conf
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.sift.ApplicationSiftService
+import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 object SiftExpiryJob extends SiftExpiryJob {
   val siftService = ApplicationSiftService
@@ -34,6 +35,7 @@ trait SiftExpiryJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingSch
   lazy val batchSize = conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    implicit val hc: HeaderCarrier = HeaderCarrier()
     Logger.info("Expiring candidates in SIFT")
     siftService.processExpiredCandidates(batchSize).map(_ => ())
   }
