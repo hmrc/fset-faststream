@@ -129,8 +129,8 @@ class ApplicationSiftMongoRepository(
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> false),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> false),
 
       BSONDocument(s"testGroups.$phaseName.expirationDate" ->
         BSONDocument( "$lte" -> dateTime.nowLocalTimeZone.plusHours(timeInHours)) // Serialises to UTC.
@@ -145,9 +145,9 @@ class ApplicationSiftMongoRepository(
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> false),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_SECOND_REMINDER}" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_SECOND_REMINDER}" -> false),
 
       BSONDocument(s"testGroups.$phaseName.expirationDate" ->
         BSONDocument( "$lte" -> dateTime.nowLocalTimeZone.plusHours(timeInHours)) // Serialises to UTC.
