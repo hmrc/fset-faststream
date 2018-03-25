@@ -83,6 +83,8 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
 
     (progress.siftProgressResponse.siftEntered, 400, SiftEntered),
+    (progress.siftProgressResponse.siftFirstReminder, 401, SiftFirstReminder),
+    (progress.siftProgressResponse.siftSecondReminder, 402, SiftSecondReminder),
     (progress.siftProgressResponse.siftReady, 403, SiftReady),
     (progress.siftProgressResponse.siftCompleted, 404, SiftCompleted),
     (progress.siftProgressResponse.siftExpired, 405, SiftExpired),
@@ -224,6 +226,8 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val EligibleForJobOfferNotified = ELIGIBLE_FOR_JOB_OFFER_NOTIFIED.toString.toLowerCase()
 
   val SiftEntered = "sift_entered"
+  val SiftFirstReminder = "sift_first_reminder"
+  val SiftSecondReminder = "sift_second_reminder"
   val SiftReady = "sift_ready"
   val SiftCompleted = "sift_completed"
   val SiftExpired = "sift_expired"

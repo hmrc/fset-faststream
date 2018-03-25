@@ -16,7 +16,6 @@
 
 package model
 
-
 case class SerialUpdateResult[UpdateRequest](
   failures: Seq[UpdateRequest],
   successes: Seq[UpdateRequest]
@@ -30,7 +29,6 @@ case class SerialUpdateResult[UpdateRequest](
     case (_, Nil) => Result.SUCCESS
     case (_, _) => Result.PARTIAL
   }
-
 }
 
 object SerialUpdateResult {
