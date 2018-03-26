@@ -129,8 +129,8 @@ class ApplicationSiftMongoRepository(
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> false),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> false),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> BSONDocument("$exists" -> false)),
 
       BSONDocument(s"testGroups.$phaseName.expirationDate" ->
         BSONDocument( "$lte" -> dateTime.nowLocalTimeZone.plusHours(timeInHours)) // Serialises to UTC.
@@ -145,9 +145,9 @@ class ApplicationSiftMongoRepository(
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> false),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_SECOND_REMINDER}" -> false),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_SECOND_REMINDER}" -> BSONDocument("$exists" -> false)),
 
       BSONDocument(s"testGroups.$phaseName.expirationDate" ->
         BSONDocument( "$lte" -> dateTime.nowLocalTimeZone.plusHours(timeInHours)) // Serialises to UTC.
@@ -159,12 +159,12 @@ class ApplicationSiftMongoRepository(
   }
 
   def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]] = {
-    val query = BSONDocument(
-      "applicationStatus" -> ApplicationStatus.SIFT,
-      s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true,
-      s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> false,
-      s"testGroups.$phaseName.expirationDate" -> BSONDocument("$lte" -> DateTimeFactory.nowLocalTimeZone)
-    )
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"testGroups.$phaseName.expirationDate" -> BSONDocument("$lte" -> DateTimeFactory.nowLocalTimeZone))
+    ))
 
     selectRandom[BSONDocument](query, maxBatchSize).map {
       _.map { doc =>
