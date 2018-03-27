@@ -225,13 +225,14 @@
                 <section>
                     <p>Your current schemes are detailed below:</p>
                     <p>Check your scheme preferences, as the order may have changed.</p>
-                    @if(SchemeWithdrawRole.isAuthorized(page.userDataWithSchemes.toCachedData)) {
-                    <div class="panel-indent" id="importantToProgress">
-                        <p><i class="fa fa-exclamation-triangle"></i>Important</p>
-                        <p><span>To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
-                            If you've changed your mind, you can <a href="@routes.WithdrawController.presentWithdrawScheme">withdraw from individual schemes</a>.
-                        </p>
-                    </div>
+                    @if(SchemeWithdrawRole.isAuthorized(page.userDataWithSchemes.toCachedData) && !page.userDataWithSchemes.application.isSiftExpired) {
+                        <div class="panel-indent" id="importantToProgress">
+                            <p><i class="fa fa-exclamation-triangle"></i>Important</p>
+                            <p><span>To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
+                             If you've changed your mind, you can <a href="@routes.WithdrawController.presentWithdrawScheme">
+                                 withdraw from individual schemes</a>.
+                            </p>
+                        </div>
                     }
                     @firstScheme
                 </section>
@@ -242,7 +243,9 @@
             <h2 class="heading-large">Next steps</h2>
             @siftProgress(page)
         </section>
-        @withdrawSection(page.userDataWithSchemes.toCachedData)
+        @if(!page.userDataWithSchemes.application.isSiftExpired) {
+            @withdrawSection(page.userDataWithSchemes.toCachedData)
+        }
         }
     }
 }
