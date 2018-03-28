@@ -14,6 +14,7 @@ withdraw.scheme.required = You must select a scheme to withdraw from.
 withdraw.scheme.invalid = {0} is not a valid scheme for withdrawal.
 withdraw.scheme.success = You''ve successfully withdrawn from the selected scheme.
 withdraw.scheme.last = You only have one scheme remaining. To withdraw you must withdraw your application.
+withdraw.scheme.error = Your time to provide additional information has expired. See your dashboard for more info.
 
 # Signin form
 signIn.giveFeedback = You''ve successfully signed out.<p><a href="{0}" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>

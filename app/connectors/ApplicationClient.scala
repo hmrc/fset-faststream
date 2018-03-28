@@ -99,6 +99,7 @@ trait ApplicationClient {
     http.PUT(s"$apiBaseUrl/application/withdraw/$applicationId", Json.toJson(reason)).map {
       case x: HttpResponse if x.status == OK => ()
     }.recover {
+      case e: Upstream4xxResponse if e.upstreamResponseCode == FORBIDDEN => throw new SiftExpired()
       case _: NotFoundException => throw new CannotWithdraw()
     }
   }
@@ -106,6 +107,7 @@ trait ApplicationClient {
   def withdrawScheme(applicationId: UniqueIdentifier, withdrawal: WithdrawScheme)(implicit hc: HeaderCarrier) = {
     http.PUT(s"$apiBaseUrl/application/$applicationId/scheme/withdraw", Json.toJson(withdrawal)).map (_ => ())
       .recover {
+        case e: Upstream4xxResponse if e.upstreamResponseCode == FORBIDDEN => throw new SiftExpired()
         case _: Exception => throw new CannotWithdraw()
       }
   }
