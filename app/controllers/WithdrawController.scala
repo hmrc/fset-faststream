@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException }
+import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, SiftExpiredException }
 import model.command.{ WithdrawApplication, WithdrawScheme }
 import play.api.libs.json.JsValue
 import play.api.mvc.Action
@@ -35,6 +35,7 @@ abstract class WithdrawController(applicationService: ApplicationService) extend
         Ok
       }.recover {
         case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
+        case e: SiftExpiredException => Forbidden(e.m)
       }
     }
   }
@@ -45,6 +46,7 @@ abstract class WithdrawController(applicationService: ApplicationService) extend
         .recover {
           case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
           case e: LastSchemeWithdrawException => BadRequest(e.m)
+          case e: SiftExpiredException=> Forbidden(e.m)
         }
     }
   }

@@ -126,6 +126,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def withdraw(applicationId: String, withdrawRequest: WithdrawRequest)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     (for {
+      isSiftExpired <- siftService.isSiftExpired(applicationId)
+      _ = if(isSiftExpired) throw SiftExpiredException("SIFT_PHASE has expired. Unable to withdraw")
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
       candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
       contactDetails <- cdRepository.find(candidate.userId)

@@ -140,6 +140,8 @@ object Exceptions {
   case class LastRunInfoNotFound(m: String) extends Exception(m)
 
   case class SiftResultsAlreadyExistsException(m: String) extends Exception(m)
+
+  case class SiftExpiredException(m: String) extends Exception(m)
 }
 
 // scalastyle:on number.of.methods
