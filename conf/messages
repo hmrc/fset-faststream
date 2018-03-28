@@ -291,6 +291,7 @@ additionalquestions.section.saved=You have saved your submission for this sectio
 additionalquestions.section.missing=You have not saved your answers for some of the sections.  Please review each section and try again.
 additionalquestions.submitted=You have submitted your additional questions
 additionalquestions.error.schemespecific=You must enter an answer
+additionalquestions.sift.expired=Time has run out to complete your sift details
 
 undergradDegree.classification.unsupported.value=You much select a degree classification from the list
 undergradDegree.error.required=You must tell us the name of your degree

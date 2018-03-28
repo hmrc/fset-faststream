@@ -18,7 +18,7 @@ package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import connectors.ApplicationClient.{ SiftAnswersIncomplete, SiftAnswersNotFound }
+import connectors.ApplicationClient.{ SiftAnswersIncomplete, SiftAnswersNotFound, SiftExpired }
 import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient }
 import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
 import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
@@ -178,6 +178,8 @@ abstract class SiftQuestionsController(
       } recover {
         case _: SiftAnswersIncomplete =>
           Redirect(routes.HomeController.present()).flashing(danger("additionalquestions.section.missing"))
+        case _: SiftExpired =>
+          Redirect(routes.HomeController.present()).flashing(danger("additionalquestions.sift.expired"))
       }
   }
 
