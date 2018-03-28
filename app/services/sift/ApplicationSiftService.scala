@@ -90,6 +90,10 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       }
   }
 
+  def isSiftExpired(applicationId: String): Future[Boolean] = {
+    applicationSiftRepo.isSiftExpired(applicationId)
+  }
+
   def processNextApplicationFailedAtSift: Future[Unit] = applicationSiftRepo.nextApplicationFailedAtSift.flatMap(_.map { application =>
     applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.FAILED_AT_SIFT)
   }.getOrElse(Future.successful(())))

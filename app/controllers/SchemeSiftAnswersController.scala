@@ -21,22 +21,23 @@ import model.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
 import model.{ SchemeId, persisted }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
-import repositories.sift.SiftAnswersRepository
 import repositories._
 import services.AuditService
-import services.sift.SiftAnswersService
+import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object SchemeSiftAnswersController extends SchemeSiftAnswersController {
   val siftAnswersService = SiftAnswersService
+  val applicationSiftService = ApplicationSiftService
   val auditService = AuditService
 }
 
 trait SchemeSiftAnswersController extends BaseController {
 
   val siftAnswersService: SiftAnswersService
+  val applicationSiftService: ApplicationSiftService
   val auditService: AuditService
 
   def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Action[JsValue] =
@@ -89,6 +90,8 @@ trait SchemeSiftAnswersController extends BaseController {
 
   def submitAnswers(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     (for {
+      isSiftExpired <- applicationSiftService.isSiftExpired(applicationId)
+      if !isSiftExpired
       _ <- siftAnswersService.submitAnswers(applicationId)
     } yield {
       auditService.logEvent("Additional answers saved", Map("applicationId" -> applicationId))
@@ -96,6 +99,7 @@ trait SchemeSiftAnswersController extends BaseController {
     })recover {
       case e: SiftAnswersIncomplete => UnprocessableEntity(e.m)
       case e: SiftAnswersSubmitted => Conflict(e.m)
+      case e: NoSuchElementException => Forbidden(e.getMessage)
     }
   }
 
