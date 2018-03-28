@@ -57,6 +57,7 @@ trait ApplicationSiftRepository {
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
   def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
+  def isSiftExpired(applicationId: String): Future[Boolean]
   def removeTestGroup(applicationId: String): Future[Unit]
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
@@ -173,6 +174,23 @@ class ApplicationSiftMongoRepository(
         val appStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
         ApplicationForSiftExpiry(applicationId, userId, appStatus)
       }
+    }
+  }
+
+  def isSiftExpired(applicationId: String): Future[Boolean] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument(
+      "_id" -> 0, "applicationId" -> 1,
+      s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> 1
+    )
+    collection.find(query, projection).one[BSONDocument].map {
+      case Some(doc) =>
+        val siftExpiredStatus = doc.getAs[BSONDocument]("progress-status")
+          .flatMap(_.getAs[Boolean](ProgressStatuses.SIFT_EXPIRED.toString))
+          .getOrElse(false)
+        siftExpiredStatus
+      case _ =>
+        throw ApplicationNotFound(applicationId)
     }
   }
 
