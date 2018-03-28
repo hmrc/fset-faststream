@@ -88,6 +88,7 @@ trait SiftClient {
     }
   }
 
+  // scalastyle:off cyclomatic.complexity
   def submitSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(
       s"$apiBase/sift-answers/$applicationId/submit",
@@ -98,8 +99,10 @@ trait SiftClient {
       case e: Upstream4xxResponse if e.upstreamResponseCode == UNPROCESSABLE_ENTITY => throw new SiftAnswersIncomplete
       case e: Upstream4xxResponse if e.upstreamResponseCode == CONFLICT => throw new SiftAnswersSubmitted
       case e: Upstream4xxResponse if e.upstreamResponseCode == BAD_REQUEST => throw new SiftAnswersNotFound()
+      case e: Upstream4xxResponse if e.upstreamResponseCode == FORBIDDEN => throw new SiftExpired()
     }
   }
+  // scalastyle:on
 
   def getSiftAnswersStatus(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[SiftAnswersStatus]] = {
     http.GET(s"$apiBase/sift-answers/$applicationId/status").map { response =>
