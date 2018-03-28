@@ -19,7 +19,7 @@ package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
 import connectors.{ ApplicationClient, ReferenceDataClient }
-import connectors.ApplicationClient.CannotWithdraw
+import connectors.ApplicationClient.{ CannotWithdraw, SiftExpired }
 import connectors.exchange._
 import connectors.exchange.referencedata.SchemeId
 import forms.{ SchemeWithdrawForm, WithdrawApplicationForm }
@@ -92,7 +92,10 @@ abstract class WithdrawController(
           }
         }.getOrElse(Future(Redirect(routes.WithdrawController.presentWithdrawScheme())
           .flashing(danger("withdraw.scheme.invalid", data.scheme)))
-        ))
+        ).recover {
+          case _: SiftExpired =>
+            Redirect(routes.HomeController.present()).flashing(danger("withdraw.scheme.error", data.scheme))
+        })
       )
   }
 
@@ -106,6 +109,8 @@ abstract class WithdrawController(
               Redirect(routes.HomeController.present()).flashing(success("application.withdrawn", feedbackUrl))
           }.recover {
             case _: CannotWithdraw => Redirect(routes.HomeController.present()).flashing(danger("error.cannot.withdraw"))
+            case _: SiftExpired =>
+              Redirect(routes.HomeController.present()).flashing(danger("withdraw.scheme.error", feedbackUrl))
           }
         }
       )
