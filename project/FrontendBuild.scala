@@ -36,8 +36,8 @@ private object AppDependencies {
 
   val compile = Seq(
     "com.iheart"                %% "ficus"                                    % "1.2.6",
-    "uk.gov.hmrc"               %% "http-caching-client"                      % "7.0.0",
-    "uk.gov.hmrc"               %% "frontend-bootstrap"                       % "8.19.0",
+    "uk.gov.hmrc"               %% "http-caching-client"                      % "7.1.0",
+    "uk.gov.hmrc"               %% "frontend-bootstrap"                       % "8.20.0",
     "uk.gov.hmrc"               %% "play-whitelist-filter"                    % "2.0.0",
     "uk.gov.hmrc"               %% "url-builder"                              % "2.1.0",
     "org.apache.httpcomponents" %  "httpclient"                               % "4.5.3",
@@ -55,7 +55,7 @@ private object AppDependencies {
     "org.pegdown"               %  "pegdown"                      % "1.4.2"       % "test",
     "org.jsoup"                 %  "jsoup"                        % "1.7.3"       % "test",
     "com.github.tomakehurst"    %  "wiremock"                     % "1.57"        % "test",
-    "uk.gov.hmrc"               %% "hmrctest"                     % "2.3.0"       % "test",
+    "uk.gov.hmrc"               %% "hmrctest"                     % "3.0.0"       % "test",
     "com.mohiva"                %% "play-silhouette-testkit"      % silhouette    % "test"
   )
 

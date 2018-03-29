@@ -1,1 +1,6 @@
 digital-service: "FSET: Faststream"
+
+leakDetectionExemptions:
+ - ruleId: 'ip_addresses'
+   filePaths:
+      - '/test/config/WhitelistFilterConfigSpec.scala'
