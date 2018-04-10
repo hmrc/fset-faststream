@@ -214,7 +214,6 @@ PUT         /candidate-allocations/confirm-allocation/events/:eventId/sessions/:
 GET         /candidate-allocations/sessions/findByApplicationId                              controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String)
 GET         /candidate-allocations/add-new-attributes                                        controllers.CandidateAllocationController.addNewAttributes()
 
-
 POST          /assessments/fsb-scheme/results                                             controllers.FsbTestGroupController.savePerScheme()
 GET           /assessments/fsb-events/results                                             controllers.FsbTestGroupController.find(applicationIds: List[String], fsbType: Option[String])
 
@@ -251,6 +250,8 @@ PUT         /sift-answers/:applicationId/submit                          control
 GET         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
 PUT         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
 GET         /sift-answers/:applicationId                                 controllers.SchemeSiftAnswersController.getSiftAnswers(applicationId: String)
+
+POST        /sift-test-group/extend/:applicationId                       controllers.SiftTestGroupController.extend(applicationId: String)
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
