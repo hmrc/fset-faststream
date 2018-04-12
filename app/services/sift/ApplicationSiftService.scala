@@ -19,10 +19,10 @@ package services.sift
 import common.FutureEx
 import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
-import model.EvaluationResults.{ Green, Red, Withdrawn }
+import model.EvaluationResults.{ Green, Red, Result, Withdrawn }
 import model.Exceptions.SiftResultsAlreadyExistsException
 import model._
-import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
+import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
@@ -73,6 +73,16 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def nextApplicationForSecondReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
     applicationSiftRepo.nextApplicationForSecondSiftReminder(timeInHours)
+  }
+
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[ApplicationForNumericTest]] = {
+    val numericalSchemeIds = schemeRepo.numericTestSiftRequirementSchemeIds
+    def isEligibleForNumericTest(app: ApplicationForNumericTest): Boolean = {
+      app.currentSchemeStatus.exists(schemeRes =>
+        Result(schemeRes.result) == Green && numericalSchemeIds.contains(schemeRes.schemeId)
+      )
+    }
+    applicationSiftRepo.nextApplicationsReadyForNumericTestsInvitation(batchSize).map(_.filter(isEligibleForNumericTest))
   }
 
   def sendReminderNotification(expiringSift: NotificationExpiringSift,

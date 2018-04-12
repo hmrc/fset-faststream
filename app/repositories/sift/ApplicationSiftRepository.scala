@@ -23,7 +23,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
 import model._
-import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
+import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
@@ -47,6 +47,7 @@ trait ApplicationSiftRepository {
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int): Future[Seq[ApplicationForNumericTest]]
   def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]]
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]]
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
@@ -191,6 +192,27 @@ class ApplicationSiftMongoRepository(
         siftExpiredStatus
       case _ =>
         throw ApplicationNotFound(applicationId)
+    }
+  }
+
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int): Future[Seq[ApplicationForNumericTest]] = {
+    //TODO: Update query to ignore already invited candidates, NUMERICAL_TESTS_INVITED
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false))
+    ))
+
+    selectRandom[BSONDocument](query, batchSize).map {
+      _.map { doc =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val userId = doc.getAs[String]("userId").get
+        val appStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
+        val currentSchemeStatus = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+        ApplicationForNumericTest(applicationId, userId, appStatus, currentSchemeStatus)
+      }
     }
   }
 

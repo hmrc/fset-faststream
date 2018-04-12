@@ -20,19 +20,30 @@ import config.WaitingScheduledJobConfig
 import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
+import services.sift.ApplicationSiftService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object NumeracyTestInvitationJob extends NumeracyTestInvitationJob {
+  val siftService = ApplicationSiftService
   val config = NumeracyTestInvitationConfig
 }
 
 trait NumeracyTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+  val siftService: ApplicationSiftService
   lazy val batchSize = NumeracyTestInvitationConfig.conf.batchSize.getOrElse(1)
 
   override def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.info("Inviting candidates to Numeracy tests")
-    Future.successful(())
+    siftService.nextApplicationsReadyForNumericTestsInvitation(batchSize).map {
+      case Nil =>
+        Logger.info("No application found for numeric test invitation")
+        Future.successful(())
+      case applications =>
+        Logger.info(s"${applications.size} application(s) found for numeric test invitation")
+        Logger.info(s"Inviting Candidates with IDs: ${applications.map(_.applicationId)}")
+        Future.successful(())
+    }
   }
 }
 
