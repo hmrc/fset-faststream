@@ -20,6 +20,7 @@ import model.command.ApplicationForSiftExamples
 import config.WaitingScheduledJobConfig
 import model.command.ApplicationForSift
 import model.{ ProgressStatuses, SchemeId, SerialUpdateResult }
+import scheduler.sift.ProgressToSiftJob
 import services.sift.ApplicationSiftService
 import testkit.ScalaMockUnitWithAppSpec
 import testkit.ScalaMockImplicits._

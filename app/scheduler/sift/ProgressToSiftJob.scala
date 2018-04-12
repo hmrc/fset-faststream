@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package scheduler
+package scheduler.sift
 
 import config.WaitingScheduledJobConfig
 import model.ProgressStatuses
 import model.command.ApplicationForSift
-import scheduler.clustering.SingleInstanceScheduledJob
-import ProgressToSiftJobConfig.conf
 import play.api.Logger
+import scheduler.BasicJobConfig
+import scheduler.clustering.SingleInstanceScheduledJob
+import scheduler.sift.ProgressToSiftJobConfig.conf
 import services.sift.ApplicationSiftService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
 
 object ProgressToSiftJob extends ProgressToSiftJob {
   val siftService = ApplicationSiftService

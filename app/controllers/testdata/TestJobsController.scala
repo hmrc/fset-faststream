@@ -21,7 +21,7 @@ import scheduler.assessment.EvaluateAssessmentScoreJob
 import scheduler.onlinetesting._
 import scheduler._
 import scheduler.fsb.EvaluateFsbJob
-import scheduler.sift.{ FirstSiftReminderJob, SecondSiftReminderJob }
+import scheduler.sift.{ FirstSiftReminderJob, ProgressToSiftJob, SecondSiftReminderJob, SiftExpiryJob }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
