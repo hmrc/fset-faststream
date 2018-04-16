@@ -41,7 +41,7 @@ trait LaunchpadGatewayClient {
   // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesirable behaviour.
   implicit def blankedHeaderCarrier = HeaderCarrier()
 
-  lazy val urlWithPathPrefix = s"$url/fset-launchpad-gateway/faststream"
+  lazy val urlWithPathPrefix = s"$url/fset-video-interview-gateway/faststream"
 
   def registerApplicant(registerApplicant: RegisterApplicantRequest): Future[RegisterApplicantResponse] =
     http.POST(s"$urlWithPathPrefix/register", registerApplicant).map(responseAsOrThrow[RegisterApplicantResponse])
