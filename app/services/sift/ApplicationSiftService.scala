@@ -187,6 +187,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       val siftEnteredDateOpt = mappedStates.get(SIFT_ENTERED.toString)
 
       // Both dates have to be present otherwise we return a None
+      // testGroups.SIFT_PHASE.expirationDate is created as soon as the candidate moves into SIFT_ENTERED
       (siftEnteredDateOpt, siftTestGroup) match {
         case (Some(enteredDate), Some(testGroup)) =>
           Some(SiftState(siftEnteredDate = enteredDate, expirationDate = testGroup.expirationDate))

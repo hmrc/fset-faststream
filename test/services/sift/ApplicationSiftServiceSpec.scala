@@ -18,10 +18,11 @@ package services.sift
 
 import connectors.EmailClient
 import factories.{ DateTimeFactory, DateTimeFactoryMock }
-import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses.{ ProgressStatus, SIFT_ENTERED }
 import model._
 import model.command.ApplicationForSift
-import model.persisted.sift.NotificationExpiringSift
+import model.exchange.sift.SiftState
+import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
 import model.persisted.{ ContactDetails, ContactDetailsExamples, SchemeEvaluationResult }
 import model.sift.{ FixUserStuckInSiftEntered, SiftFirstReminder, SiftSecondReminder }
 import org.joda.time.{ DateTime, LocalDate }
@@ -534,6 +535,49 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         ))
       ))
       whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes) { result => result mustBe Nil }
+    }
+  }
+
+  "fetching sift state" must {
+    "return no state when the candidate has no sift entered progress status and no sift test group" in new TestFixture {
+      (mockAppRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(List.empty)
+      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(None)
+
+      whenReady(service.getSiftState(appId)) { results =>
+        results mustBe None
+      }
+    }
+
+    // This scenario should never happen but we test to make sure it's handled
+    "return no state when the candidate has no sift entered progress status but has a sift test group" in new TestFixture {
+      (mockAppRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(List.empty)
+      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(DateTime.now())))
+
+      whenReady(service.getSiftState(appId)) { results =>
+        results mustBe None
+      }
+    }
+
+    // This scenario also should never happen but we test to make sure it's handled
+    "return no state when the candidate has sift entered progress status but has no sift test group" in new TestFixture {
+      (mockAppRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(List((SIFT_ENTERED.toString, DateTime.now())))
+      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(None)
+
+      whenReady(service.getSiftState(appId)) { results =>
+        results mustBe None
+      }
+    }
+
+    "return state when the candidate has sift entered progress status and the sift test group" in new TestFixture {
+      val siftEnteredDateTime = DateTime.now()
+      val siftExpiryDateTime = DateTime.now()
+      val progressStatusInfo = List((SIFT_ENTERED.toString, siftEnteredDateTime))
+      (mockAppRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(progressStatusInfo)
+      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(siftExpiryDateTime)))
+
+      whenReady(service.getSiftState(appId)) { results =>
+        results mustBe Some(SiftState(siftEnteredDate = siftEnteredDateTime, expirationDate = siftExpiryDateTime))
+      }
     }
   }
 }

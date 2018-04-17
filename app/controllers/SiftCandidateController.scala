@@ -35,7 +35,7 @@ trait SiftCandidateController extends BaseController {
   val applicationSiftService: ApplicationSiftService
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[OnlineTestExtension] { extension =>
+    withJsonBody[SiftExtension] { extension =>
       siftExpiryExtensionService.extendExpiryTime(applicationId, extension.extraDays, extension.actionTriggeredBy)
         .map( _ => Ok )
     }
