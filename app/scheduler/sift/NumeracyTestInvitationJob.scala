@@ -17,23 +17,30 @@
 package scheduler.sift
 
 import config.WaitingScheduledJobConfig
+import model.EmptyRequestHeader
 import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
+import services.NumericalTestsService
 import services.sift.ApplicationSiftService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object NumeracyTestInvitationJob extends NumeracyTestInvitationJob {
   val siftService = ApplicationSiftService
   val config = NumeracyTestInvitationConfig
+  val numericalTestsService: NumericalTestsService = NumericalTestsService
 }
 
 trait NumeracyTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
+  val numericalTestsService: NumericalTestsService
   lazy val batchSize = NumeracyTestInvitationConfig.conf.batchSize.getOrElse(1)
 
-  override def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    implicit val hc = HeaderCarrier()
+    implicit val rh = EmptyRequestHeader
     Logger.info("Inviting candidates to Numeracy tests")
     siftService.nextApplicationsReadyForNumericTestsInvitation(batchSize).map {
       case Nil =>
@@ -42,7 +49,8 @@ trait NumeracyTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfi
       case applications =>
         Logger.info(s"${applications.size} application(s) found for numeric test invitation")
         Logger.info(s"Inviting Candidates with IDs: ${applications.map(_.applicationId)}")
-        Future.successful(())
+        // TODO: Pass in the application here. Use NumericalTestCommands.NumericalTestApplication
+        numericalTestsService.registerAndInviteForTests(Nil)
     }
   }
 }
