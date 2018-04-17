@@ -251,7 +251,8 @@ GET         /sift-answers/:applicationId/:schemeId                       control
 PUT         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
 GET         /sift-answers/:applicationId                                 controllers.SchemeSiftAnswersController.getSiftAnswers(applicationId: String)
 
-POST        /sift-test-group/extend/:applicationId                       controllers.SiftTestGroupController.extend(applicationId: String)
+POST        /sift-candidate/extend/:applicationId                        controllers.SiftCandidateController.extend(applicationId: String)
+GET         /sift-candidate/state/:applicationId                         controllers.SiftCandidateController.getSiftState(applicationId: String)
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

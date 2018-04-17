@@ -16,28 +16,37 @@
 
 package controllers
 
-import play.api.libs.json.JsValue
+import play.api.Logger
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Action
-import services.sift.SiftExpiryExtensionService
+import services.sift.{ ApplicationSiftService, SiftExpiryExtensionService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SiftTestGroupController extends SiftTestGroupController {
+object SiftCandidateController extends SiftCandidateController {
   override val siftExpiryExtensionService = SiftExpiryExtensionService
+  override val applicationSiftService = ApplicationSiftService
 }
 
-trait SiftTestGroupController extends BaseController {
+trait SiftCandidateController extends BaseController {
 
   val siftExpiryExtensionService: SiftExpiryExtensionService
+  val applicationSiftService: ApplicationSiftService
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>
-      //scalastyle:off
-      println("**** SiftTestGroupController - extend sift called")
-      //scalastyle:on
       siftExpiryExtensionService.extendExpiryTime(applicationId, extension.extraDays, extension.actionTriggeredBy)
         .map( _ => Ok )
+    }
+  }
+
+  def getSiftState(applicationId: String) = Action.async { implicit request =>
+    applicationSiftService.getSiftState(applicationId) map {
+      case Some(siftState) =>
+        Ok(Json.toJson(siftState))
+      case None => Logger.debug(s"No sift state found for applicationId '$applicationId'")
+        NotFound
     }
   }
 }

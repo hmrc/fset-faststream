@@ -52,7 +52,6 @@ trait SiftExpiryExtensionService extends EventSink {
       siftTestGroup <- siftRepository.getTestGroup(applicationId)
     } yield {
 
-      //TODO: when should the extension date be from - today's date or the expiry date?
       (progressResponse, siftTestGroup) match {
         case (progress, Some(group)) if progress.siftProgressResponse.siftExpired =>
           Extension(dateTimeFactory.nowLocalTimeZone.plusDays(extraDays), expired = true, progressResponse)

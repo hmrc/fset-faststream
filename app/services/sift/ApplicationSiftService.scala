@@ -21,8 +21,10 @@ import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
 import model.EvaluationResults.{ Green, Red, Withdrawn }
 import model.Exceptions.SiftResultsAlreadyExistsException
+import model.ProgressStatuses.SIFT_ENTERED
 import model._
 import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
+import model.exchange.sift.SiftState
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
@@ -173,6 +175,24 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def expireCandidates(appsForExpiry: Seq[ApplicationForSiftExpiry]): Future[Unit] = {
     Future.sequence(appsForExpiry.map(app => expireCandidate(app))).map(_ => ())
+  }
+
+  def getSiftState(applicationId: String): Future[Option[SiftState]] = {
+    for {
+      progressStatusTimestamps <- applicationRepo.getProgressStatusTimestamps(applicationId)
+      siftTestGroup <- applicationSiftRepo.getTestGroup(applicationId)
+
+    } yield {
+      val mappedStates = progressStatusTimestamps.toMap
+      val siftEnteredDateOpt = mappedStates.get(SIFT_ENTERED.toString)
+
+      // Both dates have to be present otherwise we return a None
+      (siftEnteredDateOpt, siftTestGroup) match {
+        case (Some(enteredDate), Some(testGroup)) =>
+          Some(SiftState(siftEnteredDate = enteredDate, expirationDate = testGroup.expirationDate))
+        case _ => None
+      }
+    }
   }
 
   private def notifyExpiredCandidate(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
