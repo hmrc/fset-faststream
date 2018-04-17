@@ -19,6 +19,7 @@ package services
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import config.{ CubiksGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
 import connectors.CubiksGatewayClient
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import factories.UUIDFactory
 import model.NumericalTestCommands.NumericalTestApplication
 import play.api.mvc.RequestHeader
@@ -40,11 +41,42 @@ trait NumericalTestsService {
   val tokenFactory: UUIDFactory
   val gatewayConfig: CubiksGatewayConfig
   def testConfig: NumericalTestsConfig = gatewayConfig.numericalTests
+  val cubiksGatewayClient: CubiksGatewayClient
+
+  case class NumericalTestInviteData(application: NumericalTestApplication,
+                                     scheduleId: Int,
+                                     token: String,
+                                     registration: Registration,
+                                     invitation: Invitation)
 
   def registerAndInviteForTests(applications: List[NumericalTestApplication])
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val schedule = testConfig.schedules("sample") //TODO: Update this schedule
     registerAndInvite(applications, schedule).map(_ => ())
+  }
+
+  def registerApplicants(candidates: Seq[NumericalTestApplication], tokens: Seq[String])
+                        (implicit hc: HeaderCarrier): Future[Map[Int, (NumericalTestApplication, String, Registration)]] = {
+    cubiksGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map{
+      case (registration, idx) =>
+        val candidate = candidates(idx)
+        (registration.userId, (candidate, tokens(idx), registration))
+    }.toMap)
+  }
+
+  def inviteApplicants(candidateData: Map[Int, (NumericalTestApplication, String, Registration)],
+                       schedule: NumericalTestSchedule)(implicit hc: HeaderCarrier): Future[List[NumericalTestInviteData]] = {
+    val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/numerical-tests"
+    val invites = candidateData.values.map {
+      case (_, token, registration) =>
+        val completionUrl = s"$scheduleCompletionBaseUrl/complete/$token"
+        InviteApplicant(schedule.scheduleId, registration.userId, completionUrl) // TODO: handle time adjustments
+    }.toList
+
+    cubiksGatewayClient.inviteApplicants(invites).map(_.map { invitation =>
+      val (application, token, registration) = candidateData(invitation.userId)
+      NumericalTestInviteData(application, schedule.scheduleId, token, registration, invitation)
+    })
   }
 
   private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
@@ -54,8 +86,8 @@ trait NumericalTestsService {
       case candidates =>
         val tokens = (1 to candidates.size).map(_ => tokenFactory.generateUUID())
         for {
-          registeredApplicants <- Future.successful(())
-          invitedApplicants <- Future.successful(())
+          registeredApplicants <- registerApplicants(candidates, tokens)
+          invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
           //TODO: Perhaps save something to DB and notify candidates here
         } yield ()
     }
