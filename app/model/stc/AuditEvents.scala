@@ -75,6 +75,9 @@ object AuditEvents {
   case class FastPassUserAccepted(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class FastPassUserRejected(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
 
+  case class ExpiredSiftExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class NonExpiredSiftExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+
   case class AutoProgressedToFSAC(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class AutoProgressedToFSB(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
 }
