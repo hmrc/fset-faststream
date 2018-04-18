@@ -37,10 +37,9 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
   "extendExpiryTime" must {
     "return a successful Future" when {
-      "adding extra days onto expiry and candidate is expired" in new TestFixture {
-
+      "adding extra 2 days onto expiry and candidate is expired and has received both reminders" in new TestFixture {
         when(mockAppRepository.findProgress(applicationId)).thenReturnAsync(
-          // we expect sift expired, first reminder and second reminder to be removed
+          // We are adding 2 days onto expiry. Both reminders have been sent out
           createProgressResponse(SiftProgressResponse(
             siftEntered = true, siftExpired = true, siftFirstReminder = true, siftSecondReminder = true)
           )
@@ -59,6 +58,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
         verify(mockSiftRepository).getTestGroup(eqTo(applicationId))
         verify(mockDateTimeFactory).nowLocalTimeZone
         verify(mockSiftRepository).updateExpiryTime(eqTo(applicationId), eqTo(now.plusDays(twoDays)))
+        // Expect sift expired and both reminder statuses to be removed
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId),
           eqTo(List(SIFT_EXPIRED, SIFT_SECOND_REMINDER, SIFT_FIRST_REMINDER))
         )
@@ -67,45 +67,58 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
         verifyDataStoreEvents(1, "SiftNumericExerciseExtended")
       }
 
-      "processing a candidate who is in SIFT_ENTERED progress status" in new TestFixture {
+      "adding extra 2 days onto expiry and candidate is not expired and has only received the first reminder" in new TestFixture {
         when(mockAppRepository.findProgress(applicationId)).thenReturnAsync(
-          // we do not expect any statuses to be removed - the candidate should just still be in sift entered
-          createProgressResponse(SiftProgressResponse(siftEntered = true))
+          // We are adding 2 days onto expiry. Only first reminder has been sent out
+          createProgressResponse(SiftProgressResponse(
+            siftEntered = true, siftFirstReminder = true)
+          )
         )
         when(mockSiftRepository.getTestGroup(applicationId)).thenReturnAsync(siftTestGroup)
 
-        when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(now)
-        when(mockSiftTestGroup.expirationDate).thenReturn(oneHourAgo)
-
-        when(mockSiftRepository.updateExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
-        when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturn(Future.failed(dummyError))
-
-        service.extendExpiryTime(applicationId, twoDays, "triggeredBy").futureValue
-
-        // should not be called because the list of progress statuses to remove will be empty
-        verify(mockAppRepository, never()).removeProgressStatuses(any(), any())
-      }
-
-      "adding extra days onto expiry and we are not expired" in new TestFixture {
-        when(mockAppRepository.findProgress(applicationId)).thenReturnAsync(
-          createProgressResponse(SiftProgressResponse(siftEntered = true))
-        )
-        when(mockSiftRepository.getTestGroup(applicationId)).thenReturnAsync(siftTestGroup)
-
-
-        when(mockSiftTestGroup.expirationDate).thenReturn(inFiveHours)
+        when(mockSiftTestGroup.expirationDate).thenReturn(inTwoDays)
 
         when(mockSiftRepository.updateExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
 
-        service.extendExpiryTime(applicationId, threeDays, "triggeredBy").futureValue
+        service.extendExpiryTime(applicationId, twoDays, "triggeredBy").futureValue
+
+        verify(mockAppRepository).findProgress(eqTo(applicationId))
+        verify(mockSiftRepository).getTestGroup(eqTo(applicationId))
+        verify(mockSiftRepository).updateExpiryTime(eqTo(applicationId), eqTo(inTwoDays.plusDays(twoDays)))
+        // Expect the first reminder status to be removed
+        verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId),
+          eqTo(List(SIFT_FIRST_REMINDER))
+        )
+
+        verifyAuditEvents(1, "NonExpiredSiftExtended")
+        verifyDataStoreEvents(1, "SiftNumericExerciseExtended")
+      }
+
+      "processing a candidate who is in SIFT_ENTERED progress status and has not been sent any reminders" in new TestFixture {
+        when(mockAppRepository.findProgress(applicationId)).thenReturnAsync(
+          // We do not expect any statuses to be removed - the candidate should just still be in sift entered
+          createProgressResponse(SiftProgressResponse(siftEntered = true))
+        )
+        when(mockSiftRepository.getTestGroup(applicationId)).thenReturnAsync(siftTestGroup)
+        when(mockSiftTestGroup.expirationDate).thenReturn(inTenDays)
+
+        when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(now)
+        when(mockSiftTestGroup.expirationDate).thenReturn(now.plusDays(tenDays)) // current expiry date is 10 days from now
+
+        when(mockSiftRepository.updateExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
+        // Not expecting this to be called so set it up to throw an exception
+        when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturn(Future.failed(dummyError))
+
+        service.extendExpiryTime(applicationId, twoDays, "triggeredBy").futureValue // extend the expiry date by 2 days
 
         verifyAuditEvents(1, "NonExpiredSiftExtended")
         verifyDataStoreEvents(1, "SiftNumericExerciseExtended")
 
-        verify(mockSiftRepository).updateExpiryTime(eqTo(applicationId), eqTo(inFiveHours.plusDays(threeDays)))
-        // Should not be called because the list of statuses to remove is empty
-        verify(mockAppRepository, never).removeProgressStatuses(any(), any())
+        verify(mockSiftRepository).updateExpiryTime(eqTo(applicationId), eqTo(inTenDays.plusDays(twoDays)))
+
+        // Should not be called because the list of progress statuses to remove should be empty
+        verify(mockAppRepository, never()).removeProgressStatuses(any(), any())
       }
     }
 
@@ -168,7 +181,6 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
   "getProgressStatusesToRemove" should {
     "return a list of statuses to remove" when {
       import SiftExpiryExtensionServiceImpl.getProgressStatusesToRemove
-
       "the progress response indicates we are not in sift" in new TestFixture {
         when(mockProgressResponse.siftProgressResponse).thenReturn(new SiftProgressResponse)
 
@@ -194,7 +206,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
         result mustBe Some(List(SIFT_FIRST_REMINDER))
       }
 
-      "the progress response indicates we have received both reminders" in new TestFixture {
+      "the progress response indicates we have not expired and have received both reminders" in new TestFixture {
         when(mockProgressResponse.siftProgressResponse).thenReturn(new SiftProgressResponse(
           siftEntered = true, siftFirstReminder = true, siftSecondReminder = true
         ))
@@ -210,14 +222,14 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
     implicit val rh = mock[RequestHeader]
     val applicationId = "appId"
     val twoDays = 2
-    val threeDays = 3
+    val tenDays = 10
 
     val dummyError = new Exception("Dummy error for test")
 
     val now = DateTime.now()
     val oneHourAgo = now.minusHours(1)
-    val inFiveHours = now.plusHours(5)
-    val inMoreThanThreeDays = now.plusHours(73)
+    val inTwoDays = now.plusDays(2)
+    val inTenDays = now.plusDays(10)
 
     def createProgressResponse(siftProgress: SiftProgressResponse = SiftProgressResponse()): ProgressResponse =
       ProgressResponse(applicationId, siftProgressResponse = siftProgress)
