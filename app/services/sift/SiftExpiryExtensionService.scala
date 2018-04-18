@@ -19,7 +19,6 @@ package services.sift
 import factories.DateTimeFactory
 import model.ProgressStatuses.{ ProgressStatus, SIFT_EXPIRED, SIFT_FIRST_REMINDER, SIFT_SECOND_REMINDER }
 import model.command.ProgressResponse
-import model.sift.{ SiftFirstReminder, SiftSecondReminder }
 import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
