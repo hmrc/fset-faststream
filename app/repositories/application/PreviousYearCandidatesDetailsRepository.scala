@@ -18,18 +18,19 @@ package repositories.application
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
-import model.command.{ CandidateDetailsReportItem, CsvExtract }
-import model.{ CivilServiceExperienceType, InternshipType, ProgressStatuses }
+import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
+import model.{CivilServiceExperienceType, InternshipType, ProgressStatuses}
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
-import reactivemongo.api.{ DB, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, BSONReader, BSONValue }
+import reactivemongo.api.{DB, ReadPreference}
+import reactivemongo.bson.{BSONDocument, BSONReader, BSONValue}
 import reactivemongo.json.ImplicitBSONHandlers._
 import reactivemongo.json.collection.JSONCollection
-import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository }
+import repositories.{BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository}
 import services.reporting.SocioEconomicCalculator
+import repositories.withdrawHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -91,7 +92,8 @@ trait PreviousYearCandidatesDetailsRepository {
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
     appTestStatuses +
     fsacCompetencyHeaders +
-    appTestResults
+    appTestResults +
+  ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
@@ -198,6 +200,17 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
         val onlineTestResults = onlineTests(doc)
 
+        // Get withdrawer
+        val withdrawalInfo = doc.getAs[WithdrawApplication]("withdraw")
+
+        def maybePrefixWithdrawer(withdrawerOpt: Option[String]): Option[String] = withdrawerOpt.map { withdrawer =>
+          if (withdrawer.nonEmpty && withdrawer != "Candidate") {
+            "Admin (User ID: " + withdrawer + ")"
+          } else {
+            withdrawer
+          }
+        }
+
         adsCounter += 1
         val applicationIdOpt = doc.getAs[String]("applicationId")
         val csvContent = makeRow(
@@ -230,7 +243,10 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             progressStatusTimestamps(doc) :::
             fsacCompetency(doc) :::
             testEvaluations(doc) :::
-            currentSchemeStatus(doc)
+            currentSchemeStatus(doc) :::
+            List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
+            List(withdrawalInfo.map(_.reason)) :::
+            List(withdrawalInfo.map(_.otherReason.getOrElse("")))
             : _*
         )
         CandidateDetailsReportItem(
