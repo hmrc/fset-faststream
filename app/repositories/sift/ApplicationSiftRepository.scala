@@ -196,13 +196,13 @@ class ApplicationSiftMongoRepository(
   }
 
   def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int): Future[Seq[ApplicationForNumericTest]] = {
-    //TODO: Update query to ignore already invited candidates, NUMERICAL_TESTS_INVITED
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false))
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.NUMERICAL_TESTS_INVITED}" -> BSONDocument("$exists" -> false))
     ))
 
     selectRandom[BSONDocument](query, batchSize).map {
