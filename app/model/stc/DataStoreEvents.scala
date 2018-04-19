@@ -100,12 +100,13 @@ object DataStoreEvents {
   case class VideoInterviewRemoved(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewRescheduled(appId: String, createdByUser: String) extends DataStoreEventWithAppId
 
-
   case class ManageAdjustmentsUpdated(appId: String) extends DataStoreEventWithAppId
   case class FastPassApproved(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class FastPassRejected(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class AdjustmentsCommentUpdated(appId: String) extends DataStoreEventWithAppId
   case class AdjustmentsCommentRemoved(appId: String) extends DataStoreEventWithAppId
+
+  case class SiftNumericExerciseExtended(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   // scalastyle:on
 
 

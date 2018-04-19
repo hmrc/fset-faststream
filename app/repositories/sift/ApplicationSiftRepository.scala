@@ -25,12 +25,12 @@ import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvalua
 import model._
 import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
 import model.persisted.SchemeEvaluationResult
-import model.persisted.sift.NotificationExpiringSift
+import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
 import model.report.SiftPhaseReportItem
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONHandler, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{ BSONDateTimeHandler, CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -67,6 +67,8 @@ trait ApplicationSiftRepository {
   def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit]
   def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
+  def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]]
+  def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
 }
 
 class ApplicationSiftMongoRepository(
@@ -471,5 +473,26 @@ class ApplicationSiftMongoRepository(
       _ <- collection.update(setPredicate, setDoc) map validator
     } yield ()
   }
-}
 
+  def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument(s"testGroups.$phaseName" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+      optDocument.flatMap { _.getAs[BSONDocument]("testGroups") }
+        .flatMap { _.getAs[BSONDocument](phaseName) }
+        .map { SiftTestGroup.bsonHandler.read }
+    }
+  }
+
+  def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"updating test group expiration date in $phaseName",
+      ApplicationNotFound(applicationId))
+
+    collection.update(query, BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.expirationDate" -> expiryDateTime
+    ))) map validator
+  }
+}

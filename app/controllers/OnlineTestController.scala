@@ -67,6 +67,12 @@ object OnlineTestExtension {
   implicit val onlineTestExtensionFormat = Json.format[OnlineTestExtension]
 }
 
+case class SiftExtension(extraDays: Int, actionTriggeredBy: String)
+
+object SiftExtension {
+  implicit val siftExtensionFormat = Json.format[SiftExtension]
+}
+
 case class UserIdWrapper(userId: String)
 
 object UserIdWrapper {
