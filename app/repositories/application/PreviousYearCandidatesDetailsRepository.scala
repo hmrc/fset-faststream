@@ -96,7 +96,7 @@ trait PreviousYearCandidatesDetailsRepository {
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
   val questionnaireDetailsHeader: String = "Gender Identity,Sexual Orientation,Ethnic Group,Live in UK between 14-18?,Home postcode at 14," +
-    "Name of school 14-16,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
+    "Name of school 14-16,Which type of school was this?,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
     "Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
     "Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
@@ -442,6 +442,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           getAnswer("Did you live in the UK between the ages of 14 and 18?", questionsDoc),
           getAnswer("What was your home postcode when you were 14?", questionsDoc),
           getAnswer("Aged 14 to 16 what was the name of your school?", questionsDoc),
+          getAnswer("Which type of school was this?", questionsDoc),
           getAnswer("Aged 16 to 18 what was the name of your school or college?", questionsDoc),
           getAnswer("Were you at any time eligible for free school meals?", questionsDoc),
           universityName,
