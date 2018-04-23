@@ -16,6 +16,7 @@
 
 package controllers
 
+import model.Exceptions.CannotFindTestByCubiksId
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Action
@@ -45,8 +46,26 @@ trait SiftCandidateController extends BaseController {
     applicationSiftService.getSiftState(applicationId) map {
       case Some(siftState) =>
         Ok(Json.toJson(siftState))
-      case None => Logger.debug(s"No sift state found for applicationId '$applicationId'")
+      case None => Logger.debug(s"No sift state found for applicationId: $applicationId")
         NotFound
     }
+  }
+
+  def getSiftTestGroup(applicationId: String) = Action.async { implicit request =>
+    applicationSiftService.getSiftTestGroup(applicationId) map {
+      case Some(siftTest) =>
+        Ok(Json.toJson(siftTest))
+      case None => Logger.debug(s"No sift test group found for applicationId: $applicationId")
+        NotFound
+    }
+  }
+
+  def startTest(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
+    Logger.info(s"Sift test started for cubiks id: $cubiksUserId")
+    applicationSiftService.markTestAsStarted(cubiksUserId)
+      .map( _ => Ok )
+      .recover {
+        case _: CannotFindTestByCubiksId => NotFound
+      }
   }
 }

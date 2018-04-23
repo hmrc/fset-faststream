@@ -85,9 +85,10 @@ trait ProgressStatusesReportLabels {
     (progress.siftProgressResponse.siftEntered, 400, SiftEntered),
     (progress.siftProgressResponse.siftFirstReminder, 401, SiftFirstReminder),
     (progress.siftProgressResponse.siftSecondReminder, 402, SiftSecondReminder),
-    (progress.siftProgressResponse.siftReady, 403, SiftReady),
-    (progress.siftProgressResponse.siftCompleted, 404, SiftCompleted),
-    (progress.siftProgressResponse.siftExpired, 405, SiftExpired),
+    (progress.siftProgressResponse.siftTestStarted, 403, SiftTestStarted),
+    (progress.siftProgressResponse.siftReady, 404, SiftReady),
+    (progress.siftProgressResponse.siftCompleted, 405, SiftCompleted),
+    (progress.siftProgressResponse.siftExpired, 406, SiftExpired),
     (progress.siftProgressResponse.siftFaststreamFailedSdipGreen, 410, SiftFaststreamFailedSdipGreen),
     (progress.siftProgressResponse.failedAtSift, 414, SiftFailed),
     (progress.siftProgressResponse.failedAtSiftNotified, 416, SiftFailedNotified),
@@ -228,6 +229,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val SiftEntered = "sift_entered"
   val SiftFirstReminder = "sift_first_reminder"
   val SiftSecondReminder = "sift_second_reminder"
+  val SiftTestStarted = "sift_test_started"
   val SiftReady = "sift_ready"
   val SiftCompleted = "sift_completed"
   val SiftExpired = "sift_expired"

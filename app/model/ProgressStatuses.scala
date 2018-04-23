@@ -111,6 +111,7 @@ object ProgressStatuses {
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
   case object SIFT_ENTERED extends ProgressStatus(ApplicationStatus.SIFT)
+  case object SIFT_TEST_STARTED extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_FIRST_REMINDER extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_SECOND_REMINDER extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_READY extends ProgressStatus(ApplicationStatus.SIFT)
@@ -230,8 +231,6 @@ object ProgressStatuses {
       case FSB => fsb
       case ASSESSMENT_CENTRE => assessmentCentre
     }
-
   }
-
 }
 // scalastyle:on

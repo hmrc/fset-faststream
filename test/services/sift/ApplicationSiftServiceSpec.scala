@@ -551,7 +551,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     // This scenario should never happen but we test to make sure it's handled
     "return no state when the candidate has no sift entered progress status but has a sift test group" in new TestFixture {
       (mockAppRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(List.empty)
-      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(DateTime.now())))
+      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(DateTime.now(), List.empty)))
 
       whenReady(service.getSiftState(appId)) { results =>
         results mustBe None
@@ -573,7 +573,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       val siftExpiryDateTime = DateTime.now()
       val progressStatusInfo = List((SIFT_ENTERED.toString, siftEnteredDateTime))
       (mockAppRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(progressStatusInfo)
-      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(siftExpiryDateTime)))
+      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(siftExpiryDateTime, List.empty)))
 
       whenReady(service.getSiftState(appId)) { results =>
         results mustBe Some(SiftState(siftEnteredDate = siftEnteredDateTime, expirationDate = siftExpiryDateTime))

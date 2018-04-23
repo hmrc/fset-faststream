@@ -21,7 +21,7 @@ import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
-import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
+import model.Exceptions._
 import model._
 import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.persisted.SchemeEvaluationResult
@@ -68,6 +68,8 @@ trait ApplicationSiftRepository {
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]]
   def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
+  def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit]
+  def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String]
 }
 
 class ApplicationSiftMongoRepository(
@@ -92,6 +94,36 @@ class ApplicationSiftMongoRepository(
     val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
     ApplicationForSift(applicationId, userId, appStatus, currentSchemeStatus)
   }
+
+  def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime) = {
+    val query = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
+    ))
+
+    val find = BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
+      )
+    )
+
+    val validator = singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests",
+      CannotFindTestByCubiksId(s"Cannot find sift test group by cubiks Id: $cubiksUserId"))
+
+    collection.update(find, query) map validator
+  }
+
+  def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String] = {
+    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
+    ))
+    val projection = BSONDocument("applicationId" -> true)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) => doc.getAs[String]("applicationId").get
+      case _ => throw CannotFindApplicationByCubiksId(s"Cannot find application by cubiks Id: $cubiksUserId")
+    }
+  }
+
 
   def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
     val fsQuery = (route: ApplicationRoute) => BSONDocument("$and" -> BSONArray(
