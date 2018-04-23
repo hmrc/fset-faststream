@@ -24,7 +24,7 @@ import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
 import model._
 import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
-import model.persisted.SchemeEvaluationResult
+import model.persisted.{ NumericalTestGroup, SchemeEvaluationResult }
 import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
@@ -69,6 +69,8 @@ trait ApplicationSiftRepository {
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]]
   def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
+  def insertNumericalTests: Future[Unit]
+  def getNumericalTestsGroup(applicationId: String): Future[Option[NumericalTestGroup]]
 }
 
 class ApplicationSiftMongoRepository(
@@ -495,4 +497,8 @@ class ApplicationSiftMongoRepository(
       s"testGroups.$phaseName.expirationDate" -> expiryDateTime
     ))) map validator
   }
+
+  def insertNumericalTests: Future[Unit] = ???
+
+  def getNumericalTestsGroup(applicationId: String): Future[Option[NumericalTestGroup]] = ???
 }
