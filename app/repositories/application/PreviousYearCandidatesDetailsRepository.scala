@@ -93,7 +93,7 @@ trait PreviousYearCandidatesDetailsRepository {
     appTestStatuses +
     fsacCompetencyHeaders +
     appTestResults +
-  ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal"
+  ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal,Admin comment"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
@@ -246,7 +246,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             currentSchemeStatus(doc) :::
             List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
             List(withdrawalInfo.map(_.reason)) :::
-            List(withdrawalInfo.map(_.otherReason.getOrElse("")))
+            List(withdrawalInfo.map(_.otherReason.getOrElse(""))) :::
+            List(doc.getAs[String]("issue"))
             : _*
         )
         CandidateDetailsReportItem(
