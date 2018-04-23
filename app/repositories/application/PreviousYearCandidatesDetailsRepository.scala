@@ -18,17 +18,18 @@ package repositories.application
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
-import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
-import model.{CivilServiceExperienceType, InternshipType, ProgressStatuses}
+import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
+import model.{ CivilServiceExperienceType, InternshipType, ProgressStatuses }
+import model.persisted.FSACIndicator
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
-import reactivemongo.api.{DB, ReadPreference}
-import reactivemongo.bson.{BSONDocument, BSONReader, BSONValue}
+import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, BSONReader, BSONValue }
 import reactivemongo.json.ImplicitBSONHandlers._
 import reactivemongo.json.collection.JSONCollection
-import repositories.{BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository}
+import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository }
 import services.reporting.SocioEconomicCalculator
 import repositories.withdrawHandler
 
@@ -93,7 +94,8 @@ trait PreviousYearCandidatesDetailsRepository {
     appTestStatuses +
     fsacCompetencyHeaders +
     appTestResults +
-  ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal,Admin comment"
+  ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal,Admin comment," +
+  "FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
@@ -211,6 +213,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           }
         }
 
+        val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
+
         adsCounter += 1
         val applicationIdOpt = doc.getAs[String]("applicationId")
         val csvContent = makeRow(
@@ -247,7 +251,10 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
             List(withdrawalInfo.map(_.reason)) :::
             List(withdrawalInfo.map(_.otherReason.getOrElse(""))) :::
-            List(doc.getAs[String]("issue"))
+            List(doc.getAs[String]("issue")) :::
+            List(fsacIndicator.map(_.area)) :::
+            List(fsacIndicator.map(_.assessmentCentre)) :::
+            List(fsacIndicator.map(_.version))
             : _*
         )
         CandidateDetailsReportItem(
