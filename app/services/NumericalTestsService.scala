@@ -97,18 +97,27 @@ trait NumericalTestsService {
           )
         )
       )
-      insertOrUpdateTestGroup(invite.application)
+      upsertTestGroup(invite.application, testGroup)
     }
     Future.sequence(invitedApplicantsOps).map(_ => ())
   }
 
-  private def insertOrUpdateTestGroup(application: NumericalTestApplication): Future[Unit] = {
+  private def upsertTestGroup(application: NumericalTestApplication, newTestGroup: NumericalTestGroup): Future[Unit] = {
+
+    def upsert(applicationId: String, currentTestGroup: Option[NumericalTestGroup], newTestGroup: NumericalTestGroup) = {
+      currentTestGroup match {
+        case None => applicationSiftRepo.insertNumericalTests(applicationId, newTestGroup)
+        case Some(testGroup) => ??? // TODO: Test may have been reset, chnage the active test here
+      }
+    }
+
     for {
-      currentTestProfileOpt <- applicationSiftRepo.getNumericalTestsGroup(application.applicationId)
-      updatedTestGroup <- Future.successful(currentTestProfileOpt) // TODO: Do an insertOrAppend() operation here?
-      //TODO: Do we need to reset "test profile progresses" ??
+      currentTestGroupOpt <- applicationSiftRepo.getNumericalTestsGroup(application.applicationId)
+      updatedTestGroup <- upsert(application.applicationId, currentTestGroupOpt, newTestGroup)
+      //TODO: Reset "test profile progresses" while resetting tests
     } yield ()
   }
+
 
   private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {

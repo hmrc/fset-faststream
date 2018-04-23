@@ -71,7 +71,7 @@ trait ApplicationSiftRepository {
   def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
   def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit]
   def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String]
-  def insertNumericalTests: Future[Unit]
+  def insertNumericalTests(applicationId: String, testGroup: NumericalTestGroup): Future[Unit]
   def getNumericalTestsGroup(applicationId: String): Future[Option[NumericalTestGroup]]
 }
 
@@ -530,7 +530,7 @@ class ApplicationSiftMongoRepository(
     ))) map validator
   }
 
-  def insertNumericalTests: Future[Unit] = ???
+  def insertNumericalTests(applicationId: String, testGroup: NumericalTestGroup): Future[Unit] = ???
 
   def getNumericalTestsGroup(applicationId: String): Future[Option[NumericalTestGroup]] = ???
 }
