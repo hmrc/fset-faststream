@@ -18,6 +18,7 @@ package scheduler.sift
 
 import config.WaitingScheduledJobConfig
 import model.EmptyRequestHeader
+import model.NumericalTestCommands.NumericalTestApplication
 import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -49,8 +50,8 @@ trait NumeracyTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfi
       case applications =>
         Logger.info(s"${applications.size} application(s) found for numeric test invitation")
         Logger.info(s"Inviting Candidates with IDs: ${applications.map(_.applicationId)}")
-        // TODO: Pass in the application here. Use NumericalTestCommands.NumericalTestApplication
-        numericalTestsService.registerAndInviteForTests(Nil)
+        val apps = applications.map(app => NumericalTestApplication(app.applicationId, app.applicationStatus, app.userId)).toList
+        numericalTestsService.registerAndInviteForTests(apps)
     }
   }
 }
