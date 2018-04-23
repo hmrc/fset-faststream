@@ -253,6 +253,9 @@ GET         /sift-answers/:applicationId                                 control
 
 POST        /sift-candidate/extend/:applicationId                        controllers.SiftCandidateController.extend(applicationId: String)
 GET         /sift-candidate/state/:applicationId                         controllers.SiftCandidateController.getSiftState(applicationId: String)
+GET         /sift-test-group/:applicationId                              controllers.SiftCandidateController.getSiftTestGroup(applicationId: String)
+
+PUT         /sift-test/:cubiksUserId/start                               controllers.SiftCandidateController.startTest(cubiksUserId: Int)
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

@@ -25,7 +25,7 @@ import model.ProgressStatuses.SIFT_ENTERED
 import model._
 import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
 import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
-import model.exchange.sift.SiftState
+import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
@@ -39,6 +39,7 @@ import repositories.application.{ GeneralApplicationMongoRepository, GeneralAppl
 import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
+import services.onlinetesting.Exceptions.NoActiveTestException
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -205,6 +206,28 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
         case _ => None
       }
     }
+  }
+
+  def getSiftTestGroup(applicationId: String): Future[Option[SiftTestGroupWithActiveTest]] = {
+    for {
+      siftOpt <- applicationSiftRepo.getTestGroup(applicationId)
+    } yield siftOpt.map { sift =>
+      val test = sift.tests
+        .find(_.usedForResults)
+        .getOrElse(throw NoActiveTestException(s"No active sift test found for $applicationId"))
+      SiftTestGroupWithActiveTest(
+        sift.expirationDate,
+        test
+      )
+    }
+  }
+
+  def markTestAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+    for {
+      _ <- applicationSiftRepo.updateTestStartTime(cubiksUserId, startedTime)
+      appId <- applicationSiftRepo.getApplicationIdForCubiksId(cubiksUserId)
+      - <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_STARTED)
+    } yield {}
   }
 
   private def notifyExpiredCandidate(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {

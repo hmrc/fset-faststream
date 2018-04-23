@@ -18,8 +18,9 @@ package repositories.application
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
-import model.command.{ CandidateDetailsReportItem, CsvExtract }
+import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
 import model.{ CivilServiceExperienceType, InternshipType, ProgressStatuses }
+import model.persisted.FSACIndicator
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
@@ -30,6 +31,7 @@ import reactivemongo.json.ImplicitBSONHandlers._
 import reactivemongo.json.collection.JSONCollection
 import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository }
 import services.reporting.SocioEconomicCalculator
+import repositories.withdrawHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -91,12 +93,14 @@ trait PreviousYearCandidatesDetailsRepository {
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
     appTestStatuses +
     fsacCompetencyHeaders +
-    appTestResults
+    appTestResults +
+  ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal,Admin comment," +
+  "FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
   val questionnaireDetailsHeader: String = "Gender Identity,Sexual Orientation,Ethnic Group,Live in UK between 14-18?,Home postcode at 14," +
-    "Name of school 14-16,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
+    "Name of school 14-16,Which type of school was this?,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
     "Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
     "Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
@@ -198,6 +202,19 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
         val onlineTestResults = onlineTests(doc)
 
+        // Get withdrawer
+        val withdrawalInfo = doc.getAs[WithdrawApplication]("withdraw")
+
+        def maybePrefixWithdrawer(withdrawerOpt: Option[String]): Option[String] = withdrawerOpt.map { withdrawer =>
+          if (withdrawer.nonEmpty && withdrawer != "Candidate") {
+            "Admin (User ID: " + withdrawer + ")"
+          } else {
+            withdrawer
+          }
+        }
+
+        val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
+
         adsCounter += 1
         val applicationIdOpt = doc.getAs[String]("applicationId")
         val csvContent = makeRow(
@@ -230,7 +247,14 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             progressStatusTimestamps(doc) :::
             fsacCompetency(doc) :::
             testEvaluations(doc) :::
-            currentSchemeStatus(doc)
+            currentSchemeStatus(doc) :::
+            List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
+            List(withdrawalInfo.map(_.reason)) :::
+            List(withdrawalInfo.map(_.otherReason.getOrElse(""))) :::
+            List(doc.getAs[String]("issue")) :::
+            List(fsacIndicator.map(_.area)) :::
+            List(fsacIndicator.map(_.assessmentCentre)) :::
+            List(fsacIndicator.map(_.version))
             : _*
         )
         CandidateDetailsReportItem(
@@ -442,6 +466,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           getAnswer("Did you live in the UK between the ages of 14 and 18?", questionsDoc),
           getAnswer("What was your home postcode when you were 14?", questionsDoc),
           getAnswer("Aged 14 to 16 what was the name of your school?", questionsDoc),
+          getAnswer("Which type of school was this?", questionsDoc),
           getAnswer("Aged 16 to 18 what was the name of your school or college?", questionsDoc),
           getAnswer("Were you at any time eligible for free school meals?", questionsDoc),
           universityName,

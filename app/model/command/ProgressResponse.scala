@@ -104,6 +104,7 @@ case class SiftProgressResponse(
   numericalTestsCompleted: Boolean = false,
   siftFirstReminder: Boolean = false,
   siftSecondReminder: Boolean = false,
+  siftTestStarted: Boolean = false,
   siftReady: Boolean = false,
   siftCompleted: Boolean = false,
   siftExpired: Boolean = false,
