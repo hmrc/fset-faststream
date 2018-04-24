@@ -65,6 +65,7 @@ case class Phase3TestProgress(
 
 case class SiftProgress(
     siftEntered: Boolean = false,
+    siftTestStarted: Boolean = false,
     siftReady: Boolean = false,
     siftCompleted: Boolean = false,
     siftExpired: Boolean = false,
@@ -203,6 +204,7 @@ object Progress {
       ),
       siftProgress = SiftProgress(
         siftEntered = progressResponse.siftProgressResponse.siftEntered,
+        siftTestStarted = progressResponse.siftProgressResponse.siftTestStarted,
         siftReady = progressResponse.siftProgressResponse.siftReady,
         siftCompleted = progressResponse.siftProgressResponse.siftCompleted,
         siftExpired = progressResponse.siftProgressResponse.siftExpired,

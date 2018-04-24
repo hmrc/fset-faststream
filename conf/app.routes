@@ -102,3 +102,5 @@ GET         /additional-questions/submit                            controllers.
 GET         /additional-questions/:schemeId                         controllers.SiftQuestionsController.presentSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
 POST        /additional-questions/generalQuestions                  controllers.SiftQuestionsController.saveGeneralQuestions
 POST        /additional-questions/:schemeId                         controllers.SiftQuestionsController.saveSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
+
+POST        /sift/numeric-test/start                                controllers.CubiksTestController.startSiftNumericTest
