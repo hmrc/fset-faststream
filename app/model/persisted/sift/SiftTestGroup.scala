@@ -21,9 +21,7 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class SiftTestGroup(expirationDate: DateTime,
-  tests: List[CubiksTest]
-)
+case class SiftTestGroup(expirationDate: DateTime, tests: Option[List[CubiksTest]])
 
 object SiftTestGroup {
   import repositories.BSONDateTimeHandler

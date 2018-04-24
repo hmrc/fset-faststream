@@ -24,13 +24,13 @@ import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions._
 import model._
 import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
-import model.persisted.{ NumericalTestGroup, SchemeEvaluationResult }
 import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
+import model.persisted.{ CubiksTest, SchemeEvaluationResult }
+import model.report.SiftPhaseReportItem
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
-import model.report.SiftPhaseReportItem
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONHandler, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{ BSONDateTimeHandler, CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -71,8 +71,7 @@ trait ApplicationSiftRepository {
   def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
   def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit]
   def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String]
-  def insertNumericalTests(applicationId: String, testGroup: NumericalTestGroup): Future[Unit]
-  def getNumericalTestsGroup(applicationId: String): Future[Option[NumericalTestGroup]]
+  def insertNumericalTests(applicationId: String, tests: List[CubiksTest]): Future[Unit]
 }
 
 class ApplicationSiftMongoRepository(
@@ -377,7 +376,6 @@ class ApplicationSiftMongoRepository(
   }
 
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]] = {
-    import BSONDateTimeHandler._
 
     val query = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT,
       s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> true),
@@ -530,7 +528,13 @@ class ApplicationSiftMongoRepository(
     ))) map validator
   }
 
-  def insertNumericalTests(applicationId: String, testGroup: NumericalTestGroup): Future[Unit] = ???
+  def insertNumericalTests(applicationId: String, tests: List[CubiksTest]): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument(
+      "$push" -> BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument("$each" -> tests))
+    )
 
-  def getNumericalTestsGroup(applicationId: String): Future[Option[NumericalTestGroup]] = ???
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
+    collection.update(query, update) map validator
+  }
 }

@@ -20,31 +20,28 @@ import common.FutureEx
 import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
 import model.EvaluationResults.{ Green, Red, Result, Withdrawn }
-import model.Exceptions.SiftResultsAlreadyExistsException
+import model.Exceptions.{ SiftResultsAlreadyExistsException, UnexpectedException }
 import model.ProgressStatuses.SIFT_ENTERED
 import model._
 import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
-import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
-import play.api.Logger
-import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.bson.BSONDocument
-import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
+import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.onlinetesting.Exceptions.NoActiveTestException
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.language.postfixOps
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.language.postfixOps
 
 object ApplicationSiftService extends ApplicationSiftService {
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
@@ -212,7 +209,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     for {
       siftOpt <- applicationSiftRepo.getTestGroup(applicationId)
     } yield siftOpt.map { sift =>
-      val test = sift.tests
+      val test = sift.tests.getOrElse(throw UnexpectedException(s"No tests found for $applicationId in SIFT"))
         .find(_.usedForResults)
         .getOrElse(throw NoActiveTestException(s"No active sift test found for $applicationId"))
       SiftTestGroupWithActiveTest(

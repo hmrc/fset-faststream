@@ -21,8 +21,10 @@ import config.{ CubiksGatewayConfig, NumericalTestSchedule, NumericalTestsConfig
 import connectors.CubiksGatewayClient
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.Exceptions.UnexpectedException
 import model.NumericalTestCommands.NumericalTestApplication
-import model.persisted.{ CubiksTest, NumericalTestGroup }
+import model.persisted.sift.SiftTestGroup
+import model.persisted.CubiksTest
 import play.api.mvc.RequestHeader
 import repositories.sift.ApplicationSiftRepository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -69,7 +71,7 @@ trait NumericalTestsService {
 
   def inviteApplicants(candidateData: Map[Int, (NumericalTestApplication, String, Registration)],
                        schedule: NumericalTestSchedule)(implicit hc: HeaderCarrier): Future[List[NumericalTestInviteData]] = {
-    val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/numerical-tests"
+    val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/sift-test"
     val invites = candidateData.values.map {
       case (_, token, registration) =>
         val completionUrl = s"$scheduleCompletionBaseUrl/complete/$token"
@@ -82,39 +84,42 @@ trait NumericalTestsService {
     })
   }
 
-  def insertNumericalTestGroup(invitedApplicants: List[NumericalTestInviteData]): Future[Unit] = {
+  def insertNumericalTest(invitedApplicants: List[NumericalTestInviteData]): Future[Unit] = {
     val invitedApplicantsOps = invitedApplicants.map { invite =>
-      val testGroup = NumericalTestGroup(
-        tests = List(
-          CubiksTest(
-            scheduleId = invite.scheduleId,
-            usedForResults = true,
-            cubiksUserId = invite.registration.userId,
-            token = invite.token,
-            testUrl = invite.invitation.authenticateUrl,
-            invitationDate = dateTimeFactory.nowLocalTimeZone,
-            participantScheduleId = invite.invitation.participantScheduleId
-          )
+      val tests = List(
+        CubiksTest(
+          scheduleId = invite.scheduleId,
+          usedForResults = true,
+          cubiksUserId = invite.registration.userId,
+          token = invite.token,
+          testUrl = invite.invitation.authenticateUrl,
+          invitationDate = dateTimeFactory.nowLocalTimeZone,
+          participantScheduleId = invite.invitation.participantScheduleId
         )
       )
-      upsertTestGroup(invite.application, testGroup)
+      upsertTests(invite.application, tests)
     }
     Future.sequence(invitedApplicantsOps).map(_ => ())
   }
 
-  private def upsertTestGroup(application: NumericalTestApplication, newTestGroup: NumericalTestGroup): Future[Unit] = {
+  private def upsertTests(application: NumericalTestApplication, newTests: List[CubiksTest]): Future[Unit] = {
 
-    def upsert(applicationId: String, currentTestGroup: Option[NumericalTestGroup], newTestGroup: NumericalTestGroup) = {
+    def upsert(applicationId: String, currentTestGroup: Option[SiftTestGroup], newTests: List[CubiksTest]) = {
       currentTestGroup match {
-        case None => applicationSiftRepo.insertNumericalTests(applicationId, newTestGroup)
-        case Some(testGroup) => ??? // TODO: Test may have been reset, chnage the active test here
+        case Some(testGroup) if testGroup.tests.isEmpty =>
+          applicationSiftRepo.insertNumericalTests(applicationId, newTests)
+        case Some(testGroup) if testGroup.tests.isDefined =>
+          // TODO: Test may have been reset, change the active test here
+          throw new NotImplementedError("Test may have been reset, change the active test here")
+        case None =>
+          throw UnexpectedException(s"Application ${application.applicationId} should have a SIFT_PHASE testGroup at this point")
       }
     }
 
     for {
-      currentTestGroupOpt <- applicationSiftRepo.getNumericalTestsGroup(application.applicationId)
-      updatedTestGroup <- upsert(application.applicationId, currentTestGroupOpt, newTestGroup)
-      //TODO: Reset "test profile progresses" while resetting tests
+      currentTestGroupOpt <- applicationSiftRepo.getTestGroup(application.applicationId)
+      updatedTestGroup <- upsert(application.applicationId, currentTestGroupOpt, newTests)
+      //TODO: Reset "test profile progresses" while resetting tests?
     } yield ()
   }
 
@@ -128,7 +133,7 @@ trait NumericalTestsService {
         for {
           registeredApplicants <- registerApplicants(candidates, tokens)
           invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
-          _ <- insertNumericalTestGroup(invitedApplicants)
+          _ <- insertNumericalTest(invitedApplicants)
         } yield ()
     }
   }
