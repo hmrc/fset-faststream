@@ -20,7 +20,7 @@ import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
-import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole }
+import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole }
 import security.SilhouetteComponent
 
 import scala.concurrent.Future
@@ -75,6 +75,19 @@ abstract class CubiksTestController(applicationClient: ApplicationClient)
     implicit user =>
       applicationClient.completeTestByToken(token).map { _ =>
         Ok(views.html.application.onlineTests.onlineTestSuccess())
+      }
+  }
+
+  def startSiftNumericTest = CSRSecureAppAction(SiftNumericTestRole) { implicit request =>
+    implicit cachedUserData =>
+      applicationClient.getSiftTestGroup(cachedUserData.application.applicationId).flatMap { siftTestGroup =>
+        val cubiksTests = siftTestGroup.activeTest :: Nil
+        cubiksTests.find(!_.completed).map { testToStart =>
+          if (!testToStart.started) {
+            applicationClient.startSiftTest(testToStart.cubiksUserId)
+          }
+          Future.successful(Redirect(testToStart.testUrl))
+        }.getOrElse(Future.successful(NotFound))
       }
   }
 

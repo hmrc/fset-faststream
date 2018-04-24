@@ -90,6 +90,7 @@ case class Phase3ProgressResponse(
 
 case class SiftProgressResponse(
     siftEntered: Boolean = false,
+    siftTestStarted: Boolean = false,
     siftReady: Boolean = false,
     siftCompleted: Boolean = false,
     siftExpired: Boolean = false,

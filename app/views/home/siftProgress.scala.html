@@ -51,15 +51,23 @@
 
 }
 
+@siftTestStarted = @{
+    page.userDataWithSchemes.application.progress.siftProgress.siftTestStarted
+}
+
 @renderNumericTest = {
     <section class="inner-block-padr" id="numericTest">
         <h2 class="heading-medium">Take a numerical test</h2>
-        <p>At least one of your scheme preferences require you to take a
-            numerical test.</p>
-        <p>You'll be sent an email with a link to start your test. Keep
-            an eye on your email inbox, including your junk mail.</p>
-        <p>You should complete this within 7 days from the date of your
-            email. Failure to do this will hold up your application.</p>
+        <p>At least one of your scheme preferences require you to take a numerical test.</p>
+
+        @helper.form(action = routes.CubiksTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
+            @helper.CSRF.formField
+            @if(!siftTestStarted) {
+                    <button id="submit_sift_test" type="submit" value="submit" class="button">Start test</button>
+            } else {
+                    <button id="submit_sift_test" type="submit" value="submit" class="button">Continue test</button>
+            }
+        }
     </section>
 }
 

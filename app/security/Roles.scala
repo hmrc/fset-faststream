@@ -193,6 +193,11 @@ object Roles {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader) = assessmentCentreFailedToAttend(user)
   }
 
+  object SiftNumericTestRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
+      activeUserWithActiveApp(user) && statusIn(user)(SIFT) && isSiftEntered(user) && !isSiftComplete(user)
+  }
+
   object SchemeSpecificQuestionsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
       activeUserWithActiveApp(user) && statusIn(user)(SIFT) && isSiftEntered(user) && !isSiftComplete(user)

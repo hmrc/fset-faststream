@@ -243,6 +243,14 @@ trait ApplicationClient {
     }
   }
 
+  def getSiftTestGroup(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftTestGroupWithActiveTest] = {
+    http.GET(s"$apiBaseUrl/sift-test-group/$appId").map { response =>
+      response.json.as[SiftTestGroupWithActiveTest]
+    } recover {
+      case _: NotFoundException => throw new SiftTestNotFound(s"No sift test group found for $appId")
+    }
+  }
+
   def getSiftResults(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[List[SchemeEvaluationResult]]] = {
     http.GET(s"$apiBaseUrl/application/$appId/sift/results").map { response =>
       Some(response.json.as[List[SchemeEvaluationResult]])
@@ -269,6 +277,10 @@ trait ApplicationClient {
 
   def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"$apiBaseUrl/cubiks/$cubiksUserId/start", "").map(_ => ())
+  }
+
+  def startSiftTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"$apiBaseUrl/sift-test/$cubiksUserId/start", "").map(_ => ())
   }
 
   def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -392,6 +404,8 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class SiftAnswersIncomplete extends Exception
 
   sealed class SiftAnswersSubmitted extends Exception
+
+  sealed class SiftTestNotFound(m: String) extends Exception(m)
 
   sealed class TestForTokenExpiredException extends Exception
 

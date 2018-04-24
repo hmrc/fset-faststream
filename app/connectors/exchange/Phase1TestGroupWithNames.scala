@@ -32,3 +32,10 @@ case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: C
 object Phase2TestGroupWithActiveTest {
   implicit val phase2TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithActiveTest]
 }
+
+case class SiftTestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest)
+
+object SiftTestGroupWithActiveTest {
+  implicit val siftTestGroupFormat = Json.format[SiftTestGroupWithActiveTest]
+}
+
