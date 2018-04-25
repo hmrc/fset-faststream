@@ -28,21 +28,21 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object NumeracyTestInvitationJob extends NumeracyTestInvitationJob {
+object NumericalTestInvitationJob extends NumericalTestInvitationJob {
   val siftService = ApplicationSiftService
-  val config = NumeracyTestInvitationConfig
+  val config = NumericalTestInvitationConfig
   val numericalTestsService: NumericalTestsService = NumericalTestsService
 }
 
-trait NumeracyTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait NumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
   val numericalTestsService: NumericalTestsService
-  lazy val batchSize = NumeracyTestInvitationConfig.conf.batchSize.getOrElse(1)
+  lazy val batchSize = NumericalTestInvitationConfig.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
     implicit val rh = EmptyRequestHeader
-    Logger.info("Inviting candidates to Numeracy tests")
+    Logger.info("Inviting candidates to Numerical tests")
     siftService.nextApplicationsReadyForNumericTestsInvitation(batchSize).map {
       case Nil =>
         Logger.info("No application found for numeric test invitation")
@@ -56,7 +56,7 @@ trait NumeracyTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfi
   }
 }
 
-object NumeracyTestInvitationConfig extends BasicJobConfig[WaitingScheduledJobConfig](
-  configPrefix = "scheduling.numeracy-test-invitation-job",
-  name = "NumeracyTestInvitationJob"
+object NumericalTestInvitationConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+  configPrefix = "scheduling.numerical-test-invitation-job",
+  name = "NumericalTestInvitationJob"
 )

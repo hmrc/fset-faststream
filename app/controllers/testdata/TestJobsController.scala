@@ -36,7 +36,7 @@ class TestJobsController extends BaseController {
       case "PHASE1" => SendPhase1InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
       case "PHASE2" => SendPhase2InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
       case "PHASE3" => SendPhase3InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
-      case "SIFT"   => NumeracyTestInvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
+      case "SIFT"   => NumericalTestInvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
       case _ => Future.successful(BadRequest(s"No such phase: $phase. Options are [phase1, phase2, phase3]"))
     }
   }

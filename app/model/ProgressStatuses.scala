@@ -111,7 +111,9 @@ object ProgressStatuses {
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
   case object SIFT_ENTERED extends ProgressStatus(ApplicationStatus.SIFT)
+  case object SIFT_TEST_INVITED extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_TEST_STARTED extends ProgressStatus(ApplicationStatus.SIFT)
+  case object SIFT_TEST_COMPLETED extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_FIRST_REMINDER extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_SECOND_REMINDER extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_READY extends ProgressStatus(ApplicationStatus.SIFT)
@@ -121,10 +123,6 @@ object ProgressStatuses {
   case object FAILED_AT_SIFT_NOTIFIED extends ProgressStatus(ApplicationStatus.FAILED_AT_SIFT)
   case object SDIP_FAILED_AT_SIFT extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_FASTSTREAM_FAILED_SDIP_GREEN extends ProgressStatus(ApplicationStatus.SIFT)
-
-  case object NUMERICAL_TESTS_INVITED extends ProgressStatus(ApplicationStatus.SIFT)
-  case object NUMERICAL_TESTS_STARTED extends ProgressStatus(ApplicationStatus.SIFT)
-  case object NUMERICAL_TESTS_COMPLETED extends ProgressStatus(ApplicationStatus.SIFT)
 
   case object ASSESSMENT_CENTRE_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)

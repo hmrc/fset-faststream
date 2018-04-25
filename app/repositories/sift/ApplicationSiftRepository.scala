@@ -237,7 +237,7 @@ class ApplicationSiftMongoRepository(
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"progress-status.${ProgressStatuses.NUMERICAL_TESTS_INVITED}" -> BSONDocument("$exists" -> false))
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_TEST_INVITED}" -> BSONDocument("$exists" -> false))
     ))
 
     selectRandom[BSONDocument](query, batchSize).map {
