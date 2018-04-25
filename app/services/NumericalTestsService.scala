@@ -23,9 +23,11 @@ import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.UnexpectedException
 import model.NumericalTestCommands.NumericalTestApplication
-import model.persisted.sift.SiftTestGroup
+import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_INVITED }
 import model.persisted.CubiksTest
+import model.persisted.sift.SiftTestGroup
 import play.api.mvc.RequestHeader
+import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -33,6 +35,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object NumericalTestsService extends NumericalTestsService {
+  val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
   val applicationSiftRepo: ApplicationSiftRepository = repositories.applicationSiftRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val gatewayConfig = cubiksGatewayConfig
@@ -41,6 +44,7 @@ object NumericalTestsService extends NumericalTestsService {
 }
 
 trait NumericalTestsService {
+  def applicationRepo: GeneralApplicationRepository
   def applicationSiftRepo: ApplicationSiftRepository
   val tokenFactory: UUIDFactory
   val gatewayConfig: CubiksGatewayConfig
@@ -124,6 +128,12 @@ trait NumericalTestsService {
   }
 
 
+  def updateProgressStatuses(applicationIds: List[String], progressStatus: ProgressStatus): Future[Unit] = {
+    Future.sequence(
+      applicationIds.map(id => applicationRepo.addProgressStatusAndUpdateAppStatus(id, progressStatus))
+    ).map(_ => ())
+  }
+
   private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     applications match {
@@ -134,6 +144,7 @@ trait NumericalTestsService {
           registeredApplicants <- registerApplicants(candidates, tokens)
           invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
           _ <- insertNumericalTest(invitedApplicants)
+          _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
         } yield ()
     }
   }
