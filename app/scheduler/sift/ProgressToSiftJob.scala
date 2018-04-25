@@ -52,7 +52,7 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
             }
           }
         }
-        Logger.info(s"Progress to sift complete - ${result.successes.size} updated and ${result.failures.size} failed to update")
+        Logger.info(s"Progress to sift entered - ${result.successes.size} updated and ${result.failures.size} failed to update")
       }
     }
   }
@@ -60,7 +60,6 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
   private def isSiftEnteredStatus(application: ApplicationForSift): Boolean = {
     siftService.progressStatusForSiftStage(application.currentSchemeStatus.map(_.schemeId)) == ProgressStatuses.SIFT_ENTERED
   }
-
 }
 
 object ProgressToSiftJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
