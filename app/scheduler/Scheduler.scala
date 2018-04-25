@@ -21,7 +21,7 @@ import scheduler.assessment.{ EvaluateAssessmentScoreJob, EvaluateAssessmentScor
 import scheduler.fixer.{ FixerJob, FixerJobConfig }
 import scheduler.fsb.{ EvaluateFsbJob, EvaluateFsbJobConfig }
 import scheduler.onlinetesting._
-import scheduler.sift.{ FirstSiftReminderJob, FirstSiftReminderJobConfig, SecondSiftReminderJob, SecondSiftReminderJobConfig }
+import scheduler.sift._
 import uk.gov.hmrc.play.scheduling.{ RunningOfScheduledJobs, ScheduledJob }
 
 trait Scheduler extends RunningOfScheduledJobs {
@@ -62,6 +62,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(FixerJobConfig, FixerJob),
     maybeInitScheduler(ProgressSdipForFaststreamCandidateJobConfig, ProgressSdipForFaststreamCandidateJob),
     maybeInitScheduler(ProgressToSiftJobConfig, ProgressToSiftJob),
+    maybeInitScheduler(NumericalTestInvitationConfig, NumericalTestInvitationJob),
     maybeInitScheduler(ProgressToAssessmentCentreJobConfig, ProgressToAssessmentCentreJob),
     maybeInitScheduler(NotifyAssessorsOfNewEventsJobConfig, NotifyAssessorsOfNewEventsJob),
     maybeInitScheduler(FirstSiftReminderJobConfig, FirstSiftReminderJob),

@@ -127,10 +127,10 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
       )
 
-      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_ENTERED).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId2", ProgressStatuses.SIFT_ENTERED)
         .returning(Future.failed(new Exception))
-      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId3", ProgressStatuses.SIFT_READY).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId3", ProgressStatuses.SIFT_ENTERED).returningAsync
 
       whenReady(service.progressApplicationToSiftStage(applicationsToProgressToSift)) { results =>
 
@@ -140,7 +140,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       }
     }
 
-    "progress candidate to SIFT_READY (eligible to be sifted) when the candidate is only in the running for schemes " +
+    "progress candidate to SIFT_ENTERED (eligible to be sifted) when the candidate is only in the running for schemes " +
       "requiring a numeric test and form based schemes are failed" in new TestFixture {
       val applicationToProgressToSift = List(
         ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
@@ -150,7 +150,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         )
       )
 
-      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_ENTERED).returningAsync
 
       whenReady(service.progressApplicationToSiftStage(applicationToProgressToSift)) { results =>
 
@@ -160,7 +160,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       }
     }
 
-    "progress candidate to SIFT_READY (eligible to be sifted) when the candidate is still in the running for schemes " +
+    "progress candidate to SIFT_ENTERED (eligible to be sifted) when the candidate is still in the running for schemes " +
       "requiring a numeric test and Generalist and form based schemes are failed" in new TestFixture {
       val applicationToProgressToSift = List(
         ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
@@ -171,7 +171,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         )
       )
 
-      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_READY).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_ENTERED).returningAsync
 
       whenReady(service.progressApplicationToSiftStage(applicationToProgressToSift)) { results =>
 
@@ -551,7 +551,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     // This scenario should never happen but we test to make sure it's handled
     "return no state when the candidate has no sift entered progress status but has a sift test group" in new TestFixture {
       (mockAppRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(List.empty)
-      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(DateTime.now(), List.empty)))
+      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(DateTime.now(), Some(List.empty))))
 
       whenReady(service.getSiftState(appId)) { results =>
         results mustBe None
@@ -573,7 +573,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       val siftExpiryDateTime = DateTime.now()
       val progressStatusInfo = List((SIFT_ENTERED.toString, siftEnteredDateTime))
       (mockAppRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(progressStatusInfo)
-      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(siftExpiryDateTime, List.empty)))
+      (mockSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(siftExpiryDateTime, Some(List.empty))))
 
       whenReady(service.getSiftState(appId)) { results =>
         results mustBe Some(SiftState(siftEnteredDate = siftEnteredDateTime, expirationDate = siftExpiryDateTime))

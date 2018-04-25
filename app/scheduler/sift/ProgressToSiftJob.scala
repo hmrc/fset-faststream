@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package scheduler
+package scheduler.sift
 
 import config.WaitingScheduledJobConfig
 import model.ProgressStatuses
 import model.command.ApplicationForSift
-import scheduler.clustering.SingleInstanceScheduledJob
-import ProgressToSiftJobConfig.conf
 import play.api.Logger
+import scheduler.BasicJobConfig
+import scheduler.clustering.SingleInstanceScheduledJob
+import scheduler.sift.ProgressToSiftJobConfig.conf
 import services.sift.ApplicationSiftService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
 
 object ProgressToSiftJob extends ProgressToSiftJob {
   val siftService = ApplicationSiftService
@@ -51,7 +52,7 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
             }
           }
         }
-        Logger.info(s"Progress to sift complete - ${result.successes.size} updated and ${result.failures.size} failed to update")
+        Logger.info(s"Progress to sift entered - ${result.successes.size} updated and ${result.failures.size} failed to update")
       }
     }
   }
@@ -59,7 +60,6 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
   private def isSiftEnteredStatus(application: ApplicationForSift): Boolean = {
     siftService.progressStatusForSiftStage(application.currentSchemeStatus.map(_.schemeId)) == ProgressStatuses.SIFT_ENTERED
   }
-
 }
 
 object ProgressToSiftJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](

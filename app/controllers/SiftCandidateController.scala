@@ -52,7 +52,7 @@ trait SiftCandidateController extends BaseController {
   }
 
   def getSiftTestGroup(applicationId: String) = Action.async { implicit request =>
-    applicationSiftService.getSiftTestGroup(applicationId) map {
+    applicationSiftService.getTestGroup(applicationId) map {
       case Some(siftTest) =>
         Ok(Json.toJson(siftTest))
       case None => Logger.debug(s"No sift test group found for applicationId: $applicationId")

@@ -98,17 +98,19 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
 )
 
 case class SiftProgressResponse(
-  siftEntered: Boolean = false,
-  siftFirstReminder: Boolean = false,
-  siftSecondReminder: Boolean = false,
-  siftTestStarted: Boolean = false,
-  siftReady: Boolean = false,
-  siftCompleted: Boolean = false,
-  siftExpired: Boolean = false,
-  sdipFailedAtSift: Boolean = false,
-  failedAtSift: Boolean = false,
-  failedAtSiftNotified: Boolean = false,
-  siftFaststreamFailedSdipGreen: Boolean = false
+                                 siftEntered: Boolean = false,
+                                 siftTestInvited: Boolean = false,
+                                 siftTestStarted: Boolean = false,
+                                 siftTestCompleted: Boolean = false,
+                                 siftFirstReminder: Boolean = false,
+                                 siftSecondReminder: Boolean = false,
+                                 siftReady: Boolean = false,
+                                 siftCompleted: Boolean = false,
+                                 siftExpired: Boolean = false,
+                                 sdipFailedAtSift: Boolean = false,
+                                 failedAtSift: Boolean = false,
+                                 failedAtSiftNotified: Boolean = false,
+                                 siftFaststreamFailedSdipGreen: Boolean = false
 )
 
 case class JobOfferProgressResponse(

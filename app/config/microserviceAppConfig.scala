@@ -82,6 +82,7 @@ object WaitingScheduledJobConfig {
 case class CubiksGatewayConfig(url: String,
   phase1Tests: Phase1TestsConfig,
   phase2Tests: Phase2TestsConfig,
+  numericalTests: NumericalTestsConfig,
   reportConfig: ReportConfig,
   candidateAppUrl: String,
   emailDomain: String
@@ -109,6 +110,9 @@ case class Phase2TestsConfig(expiryTimeInDays: Int,
 
   def scheduleForInvigilatedETray = schedules("daro")
 }
+
+case class NumericalTestSchedule(scheduleId: Int, assessmentId: Int)
+case class NumericalTestsConfig(schedules: Map[String, NumericalTestSchedule])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int

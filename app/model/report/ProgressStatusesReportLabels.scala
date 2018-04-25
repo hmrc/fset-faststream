@@ -85,14 +85,17 @@ trait ProgressStatusesReportLabels {
     (progress.siftProgressResponse.siftEntered, 400, SiftEntered),
     (progress.siftProgressResponse.siftFirstReminder, 401, SiftFirstReminder),
     (progress.siftProgressResponse.siftSecondReminder, 402, SiftSecondReminder),
-    (progress.siftProgressResponse.siftTestStarted, 403, SiftTestStarted),
-    (progress.siftProgressResponse.siftReady, 404, SiftReady),
-    (progress.siftProgressResponse.siftCompleted, 405, SiftCompleted),
-    (progress.siftProgressResponse.siftExpired, 406, SiftExpired),
-    (progress.siftProgressResponse.siftFaststreamFailedSdipGreen, 410, SiftFaststreamFailedSdipGreen),
-    (progress.siftProgressResponse.failedAtSift, 414, SiftFailed),
-    (progress.siftProgressResponse.failedAtSiftNotified, 416, SiftFailedNotified),
-    (progress.siftProgressResponse.sdipFailedAtSift, 418, SdipSiftFailed),
+    (progress.siftProgressResponse.siftTestInvited, 403, SiftTestInvited),
+    (progress.siftProgressResponse.siftTestStarted, 404, SiftTestStarted),
+    (progress.siftProgressResponse.siftTestCompleted, 405, SiftTestCompleted),
+    (progress.siftProgressResponse.siftReady, 406, SiftReady),
+    (progress.siftProgressResponse.siftCompleted, 407, SiftCompleted),
+    (progress.siftProgressResponse.siftExpired, 408, SiftExpired),
+    (progress.siftProgressResponse.siftFaststreamFailedSdipGreen, 409, SiftFaststreamFailedSdipGreen),
+    (progress.siftProgressResponse.failedAtSift, 410, SiftFailed),
+    (progress.siftProgressResponse.failedAtSiftNotified, 411, SiftFailedNotified),
+    (progress.siftProgressResponse.sdipFailedAtSift, 412, SdipSiftFailed),
+
     (progress.assessmentCentre.awaitingAllocation, 420, AssessmentCentreAwaitingAllocation),
     (progress.assessmentCentre.allocationUnconfirmed, 423, AssessmentCentreAllocationUnconfirmed),
     (progress.assessmentCentre.allocationConfirmed, 426, AssessmentCentreAllocationConfirmed),
@@ -227,9 +230,11 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val EligibleForJobOfferNotified = ELIGIBLE_FOR_JOB_OFFER_NOTIFIED.toString.toLowerCase()
 
   val SiftEntered = "sift_entered"
+  val SiftTestInvited = "sift_test_invited"
+  val SiftTestStarted = "sift_test_started"
+  val SiftTestCompleted = "sift_test_completed"
   val SiftFirstReminder = "sift_first_reminder"
   val SiftSecondReminder = "sift_second_reminder"
-  val SiftTestStarted = "sift_test_started"
   val SiftReady = "sift_ready"
   val SiftCompleted = "sift_completed"
   val SiftExpired = "sift_expired"

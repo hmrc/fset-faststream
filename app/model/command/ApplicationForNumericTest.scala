@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package model.persisted.sift
+package model.command
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
+import model.ApplicationStatus.ApplicationStatus
+import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class SiftTestGroup(expirationDate: DateTime, tests: Option[List[CubiksTest]])
+case class ApplicationForNumericTest(
+                               applicationId: String,
+                               userId: String,
+                               applicationStatus: ApplicationStatus,
+                               currentSchemeStatus: Seq[SchemeEvaluationResult]
+                             )
 
-object SiftTestGroup {
-  import repositories.BSONDateTimeHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, SiftTestGroup] = Macros.handler[SiftTestGroup]
-  implicit val siftTestGroupFormat = Json.format[SiftTestGroup]
+object ApplicationForNumericTest {
+  implicit val applicationForNumericTest = Json.format[ApplicationForNumericTest]
 }

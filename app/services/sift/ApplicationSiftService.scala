@@ -19,31 +19,29 @@ package services.sift
 import common.FutureEx
 import connectors.{ CSREmailClient, EmailClient }
 import factories.DateTimeFactory
-import model.EvaluationResults.{ Green, Red, Withdrawn }
-import model.Exceptions.SiftResultsAlreadyExistsException
+import model.EvaluationResults.{ Green, Red, Result, Withdrawn }
+import model.Exceptions.{ SiftResultsAlreadyExistsException, UnexpectedException }
 import model.ProgressStatuses.SIFT_ENTERED
 import model._
-import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
+import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
 import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
-import play.api.Logger
-import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.bson.BSONDocument
-import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
+import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.onlinetesting.Exceptions.NoActiveTestException
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.language.postfixOps
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.language.postfixOps
 
 object ApplicationSiftService extends ApplicationSiftService {
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
@@ -78,6 +76,16 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.nextApplicationForSecondSiftReminder(timeInHours)
   }
 
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[ApplicationForNumericTest]] = {
+    val numericalSchemeIds = schemeRepo.numericTestSiftRequirementSchemeIds
+    def isEligibleForNumericTest(app: ApplicationForNumericTest): Boolean = {
+      app.currentSchemeStatus.exists(schemeRes =>
+        Result(schemeRes.result) == Green && numericalSchemeIds.contains(schemeRes.schemeId)
+      )
+    }
+    applicationSiftRepo.nextApplicationsReadyForNumericTestsInvitation(batchSize).map(_.filter(isEligibleForNumericTest))
+  }
+
   def sendReminderNotification(expiringSift: NotificationExpiringSift,
     siftReminderNotice: SiftReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
       for {
@@ -105,11 +113,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
   }
 
-  def progressStatusForSiftStage(schemeList: Seq[SchemeId]): ProgressStatuses.ProgressStatus = if (requiresForms(schemeList)) {
-    ProgressStatuses.SIFT_ENTERED
-  } else {
-    ProgressStatuses.SIFT_READY
-  }
+  def progressStatusForSiftStage(schemeList: Seq[SchemeId]): ProgressStatuses.ProgressStatus = ProgressStatuses.SIFT_ENTERED
 
   def progressApplicationToSiftStage(applications: Seq[ApplicationForSift]): Future[SerialUpdateResult[ApplicationForSift]] = {
     val updates = FutureEx.traverseSerial(applications) { app =>
@@ -197,11 +201,11 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
-  def getSiftTestGroup(applicationId: String): Future[Option[SiftTestGroupWithActiveTest]] = {
+  def getTestGroup(applicationId: String): Future[Option[SiftTestGroupWithActiveTest]] = {
     for {
       siftOpt <- applicationSiftRepo.getTestGroup(applicationId)
     } yield siftOpt.map { sift =>
-      val test = sift.tests
+      val test = sift.tests.getOrElse(throw UnexpectedException(s"No tests found for $applicationId in SIFT"))
         .find(_.usedForResults)
         .getOrElse(throw NoActiveTestException(s"No active sift test found for $applicationId"))
       SiftTestGroupWithActiveTest(
