@@ -20,10 +20,10 @@ import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
+import services.NumericalTestsService
 import services.stc.StcEventService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
@@ -36,12 +36,14 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
 
   val mockPhase1TestService = mock[Phase1TestService]
   val mockPhase2TestService = mock[Phase2TestService]
+  val mockNumericalTestService = mock[NumericalTestsService]
   val mockEventService = mock[StcEventService]
 
   def controllerUnderTest = new CubiksTestsController {
     val phase1TestService = mockPhase1TestService
     val eventService = mockEventService
     val phase2TestService = mockPhase2TestService
+    val numericalTestService: NumericalTestsService = mockNumericalTestService
   }
 
   "start" should {
@@ -104,6 +106,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
       ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
       when(mockPhase2TestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockNumericalTestService.markAsCompleted(eqTo(cubiksUserId))(any[HeaderCarrier], any[RequestHeader])
+      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
 
       val response = controllerUnderTest.complete(cubiksUserId)(fakeRequest(""))
       status(response) mustBe NOT_FOUND
@@ -136,6 +140,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
       when(mockPhase1TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
       when(mockPhase2TestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])
+      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockNumericalTestService.markAsCompleted(eqTo(token))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
 
       val response = controllerUnderTest.completeTestByToken(token)(fakeRequest)

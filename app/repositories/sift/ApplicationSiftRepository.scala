@@ -24,7 +24,7 @@ import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions._
 import model._
 import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
-import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
+import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup, SiftTestGroupWithAppId }
 import model.persisted.{ CubiksTest, SchemeEvaluationResult }
 import model.report.SiftPhaseReportItem
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
@@ -39,6 +39,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+// scalastyle:off number.of.methods
 trait ApplicationSiftRepository {
 
   def thisApplicationStatus: ApplicationStatus
@@ -68,10 +69,14 @@ trait ApplicationSiftRepository {
   def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]]
+  def getTestGroupByCubiksId(cubiksId: Int): Future[SiftTestGroupWithAppId]
+  def getTestGroupByToken(token: String): Future[SiftTestGroupWithAppId]
   def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
   def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit]
   def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String]
   def insertNumericalTests(applicationId: String, tests: List[CubiksTest]): Future[Unit]
+  def findAndUpdateTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit]
+  def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime): Future[Unit]
 }
 
 class ApplicationSiftMongoRepository(
@@ -508,12 +513,29 @@ class ApplicationSiftMongoRepository(
 
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument(s"testGroups.$phaseName" -> 1, "_id" -> 0)
+    getTestGroupByQuery(query)
+  }
 
+  private def getTestGroupByQuery(query: BSONDocument): Future[Option[SiftTestGroup]] = {
+    val projection = BSONDocument(s"testGroups.$phaseName" -> 1, "_id" -> 0)
     collection.find(query, projection).one[BSONDocument] map { optDocument =>
       optDocument.flatMap { _.getAs[BSONDocument]("testGroups") }
         .flatMap { _.getAs[BSONDocument](phaseName) }
         .map { SiftTestGroup.bsonHandler.read }
+    }
+  }
+
+  private def getTestGroupWithAppIdByQuery(query: BSONDocument): Future[SiftTestGroupWithAppId] = {
+    val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
+
+    val ex = CannotFindTestByCubiksId(s"Cannot find test group for query: ${BSONDocument.pretty(query)}")
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) =>
+        val appId = doc.getAs[String]("applicationId").get
+        val siftDocOpt = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
+        val siftTestGroup = siftDocOpt.map(SiftTestGroup.bsonHandler.read).getOrElse(throw ex)
+        SiftTestGroupWithAppId(appId, siftTestGroup.expirationDate, siftTestGroup.tests)
+      case _ => throw ex
     }
   }
 
@@ -536,5 +558,42 @@ class ApplicationSiftMongoRepository(
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
     collection.update(query, update) map validator
+  }
+
+  def findAndUpdateTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean): Future[Unit] = {
+    val query = BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument("$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId))
+    )
+    val validator = if(ignoreNotFound) {
+      singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
+    } else {
+      singleUpdateValidator(
+        cubiksUserId.toString,
+        actionDesc = s"updating $phaseName tests",
+        CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId")
+      )
+    }
+    collection.update(query, update) map validator
+  }
+
+  def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime): Future[Unit] = {
+    val update = BSONDocument(
+      "$set" -> BSONDocument(s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime))
+    )
+    findAndUpdateTest(cubiksUserId, update, ignoreNotFound = true)
+  }
+
+  def getTestGroupByCubiksId(cubiksUserId: Int): Future[SiftTestGroupWithAppId] = {
+    val query = BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument("$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId))
+    )
+    getTestGroupWithAppIdByQuery(query)
+  }
+
+  def getTestGroupByToken(token: String): Future[SiftTestGroupWithAppId] = {
+    val query = BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument("$elemMatch" -> BSONDocument("token" -> token))
+    )
+    getTestGroupWithAppIdByQuery(query)
   }
 }
