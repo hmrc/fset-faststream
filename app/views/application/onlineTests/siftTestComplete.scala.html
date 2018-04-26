@@ -1,0 +1,45 @@
+@*
+ * Copyright 2018 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+
+@main_template(title = "Additional information numeric test complete | Apply for the Civil Service Fast Stream") {
+    <div class="success-banner">
+        <h1 class="heading-large no-btm-margin"><i class="fa fa-check"></i>Additional information numeric test complete</h1>
+    </div>
+    <section>
+        <div class="text">
+            <p>Thank you, you've completed the additional information numeric test.</p>
+            <h2 class="heading-large">What you need to do next</h2>
+            <div class="panel-indent">
+                <p>Once your results are ready we'll send you an email letting you know
+                    the outcome. Make sure you check your junk inbox.</p>
+                @if(user.isDefined) {
+                    <a href="@routes.HomeController.present()" class="button">Continue</a>
+                    <p>Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a></p>
+                } else {
+                    <p>You've been signed out. <a href="@routes.SignInController.signIn">Sign in</a>
+                        to return to your home page.</p>
+                }
+
+                <p>
+                    <a href="@feedbackUrl" target="_blank" rel="external">Give feedback?</a> (30 second survey)
+                </p>
+            </div>
+        </div>
+    </section>
+}
+

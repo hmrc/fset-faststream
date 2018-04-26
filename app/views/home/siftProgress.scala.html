@@ -51,21 +51,29 @@
 
 }
 
-@siftTestStarted = @{
+@isSiftTestStarted = @{
     page.userDataWithSchemes.application.progress.siftProgress.siftTestStarted
+}
+
+@isSiftTestCompleted = @{
+    page.userDataWithSchemes.application.progress.siftProgress.siftTestCompleted
 }
 
 @renderNumericTest = {
     <section class="inner-block-padr" id="numericTest">
         <h2 class="heading-medium">Take a numerical test</h2>
-        <p>At least one of your scheme preferences require you to take a numerical test.</p>
+        <p>At least one of your scheme preferences requires you to take a numerical test.</p>
 
-        @helper.form(action = routes.CubiksTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
-            @helper.CSRF.formField
-            @if(!siftTestStarted) {
+        @if(isSiftTestCompleted) {
+            <p><strong>You have completed your numerical test.</strong></p>
+        } else {
+            @helper.form(action = routes.CubiksTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
+                @helper.CSRF.formField
+                @if(!isSiftTestStarted) {
                     <button id="submit_sift_test" type="submit" value="submit" class="button">Start test</button>
-            } else {
+                } else {
                     <button id="submit_sift_test" type="submit" value="submit" class="button">Continue test</button>
+                }
             }
         }
     </section>

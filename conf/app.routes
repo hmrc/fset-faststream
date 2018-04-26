@@ -79,6 +79,7 @@ GET         /online-tests/phase1/complete/:token                    controllers.
 GET         /online-tests/phase2/complete/:token                    controllers.CubiksTestController.completePhase2TestsByToken(token: UniqueIdentifier)
 GET         /online-tests/phase3/complete/:token                    controllers.LaunchpadTestController.completePhase3TestsByToken(token: String)
 GET         /online-tests/complete/:token                           controllers.CubiksTestController.completeTestByToken(token: UniqueIdentifier)
+GET         /sift-test/complete/:token                              controllers.CubiksTestController.completeSiftTestByToken(token: UniqueIdentifier)
 
 # Invigilated e-tray
 GET         /invigilated-etray                                      controllers.InvigilatedController.present
