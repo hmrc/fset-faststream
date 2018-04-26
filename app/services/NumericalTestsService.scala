@@ -23,9 +23,10 @@ import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.UnexpectedException
 import model.NumericalTestCommands.NumericalTestApplication
-import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_INVITED }
+import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED }
 import model.persisted.CubiksTest
 import model.persisted.sift.SiftTestGroup
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
@@ -146,6 +147,35 @@ trait NumericalTestsService {
           _ <- insertNumericalTest(invitedApplicants)
           _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
         } yield ()
+    }
+  }
+
+  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    applicationSiftRepo.updateTestCompletionTime(cubiksUserId, dateTimeFactory.nowLocalTimeZone).flatMap { _ =>
+      applicationSiftRepo.getTestGroupByCubiksId(cubiksUserId).map { updatedTestGroup =>
+        val appId = updatedTestGroup.applicationId
+        require(updatedTestGroup.tests.isDefined, s"No numerical tests exists for application: $appId")
+        val tests = updatedTestGroup.tests.get
+        require(tests.exists(_.usedForResults), "Active tests cannot be found")
+
+        val activeCompletedTests = tests.forall(_.completedDateTime.isDefined)
+        if(activeCompletedTests) {
+          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_COMPLETED)
+        } else {
+          Logger.info(s"No tests to mark as completed for cubiksId: $cubiksUserId and applicationId: $appId")
+          Future.successful(())
+        }
+      }
+    }
+  }
+
+  def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    applicationSiftRepo.getTestGroupByToken(token).flatMap { testGroup =>
+      val tests = testGroup.tests
+        .getOrElse(throw UnexpectedException(s"Numerical test with token($token) not found for appId: ${testGroup.applicationId}"))
+      tests.find(_.token == token)
+        .map(test => markAsCompleted(test.cubiksUserId))
+        .getOrElse(Future.successful(()))
     }
   }
 }

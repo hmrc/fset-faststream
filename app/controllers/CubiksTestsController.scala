@@ -20,6 +20,7 @@ import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
 import play.api.Logger
 import play.api.mvc.{ Action, Result }
+import services.NumericalTestsService
 import services.stc.StcEventService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
@@ -30,12 +31,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object CubiksTestsController extends CubiksTestsController {
   override val phase1TestService = Phase1TestService
   override val phase2TestService = Phase2TestService
+  val numericalTestService: NumericalTestsService = NumericalTestsService
   val eventService = StcEventService
 }
 
 trait CubiksTestsController extends BaseController {
   val phase1TestService: Phase1TestService
   val phase2TestService: Phase2TestService
+  val numericalTestService: NumericalTestsService
   val eventService: StcEventService
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
@@ -49,10 +52,13 @@ trait CubiksTestsController extends BaseController {
 
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId completed")
-    phase1TestService.markAsCompleted(cubiksUserId)
-      .recoverWith { case _: CannotFindTestByCubiksId =>
-          phase2TestService.markAsCompleted(cubiksUserId)
-      }.map( _ => Ok )
+    phase1TestService.markAsCompleted(cubiksUserId).recoverWith {
+      case _: CannotFindTestByCubiksId =>
+          phase2TestService.markAsCompleted(cubiksUserId).recoverWith {
+            case _: CannotFindTestByCubiksId =>
+              numericalTestService.markAsCompleted(cubiksUserId)
+          }
+    }.map( _ => Ok )
       .recover(recoverNotFound)
   }
 
@@ -65,7 +71,10 @@ trait CubiksTestsController extends BaseController {
     Logger.info(s"Complete test by token $token")
     phase1TestService.markAsCompleted(token)
       .recoverWith { case _: CannotFindTestByCubiksId =>
-          phase2TestService.markAsCompleted(token)
+          phase2TestService.markAsCompleted(token).recoverWith {
+            case _: CannotFindTestByCubiksId =>
+              numericalTestService.markAsCompleted(token)
+          }
       }.map( _ => Ok )
       .recover(recoverNotFound)
   }
