@@ -92,6 +92,12 @@ case class PostOnlineTestsPage(
     sdipFaststreamAllSchemesFailed,
     userDataWithSchemes.application.applicationStatus)
 
+  val isSiftTestStarted: Boolean =
+    userDataWithSchemes.application.progress.siftProgress.siftTestStarted
+
+  val isSiftTestCompleted: Boolean =
+    userDataWithSchemes.application.progress.siftProgress.siftTestCompleted
+
   // scalastyle:off cyclomatic.complexity
   def fsacStage: PostOnlineTestsStage =
     userDataWithSchemes.application.progress.assessmentCentre match {

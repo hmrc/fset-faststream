@@ -91,6 +91,13 @@ abstract class CubiksTestController(applicationClient: ApplicationClient)
       }
   }
 
+  def completeSiftTestByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
+    implicit user =>
+      applicationClient.completeTestByToken(token).map { _ =>
+        Ok(views.html.application.onlineTests.siftTestComplete())
+      }
+  }
+
   private def startCubiksTest(cubiksTests: Iterable[CubiksTest])(implicit hc: HeaderCarrier) = {
     cubiksTests.find(!_.completed).map { testToStart =>
       applicationClient.startTest(testToStart.cubiksUserId)
