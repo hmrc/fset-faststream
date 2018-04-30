@@ -22,7 +22,7 @@ import connectors.CubiksGatewayClient
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.UnexpectedException
-import model.NumericalTestCommands.NumericalTestApplication
+import model.NumericalTestApplication
 import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED }
 import model.persisted.CubiksTest
 import model.persisted.sift.SiftTestGroup

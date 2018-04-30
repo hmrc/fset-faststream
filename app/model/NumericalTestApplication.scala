@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package model.command
+package model
 
 import model.ApplicationStatus.ApplicationStatus
 import model.persisted.SchemeEvaluationResult
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
-case class ApplicationForNumericTest(
+case class NumericalTestApplication(
                                applicationId: String,
                                userId: String,
                                applicationStatus: ApplicationStatus,
+                               needsOnlineAdjustments: Boolean,
+                               eTrayAdjustments: Option[AdjustmentDetail],
                                currentSchemeStatus: Seq[SchemeEvaluationResult]
                              )
 
-object ApplicationForNumericTest {
-  implicit val applicationForNumericTest = Json.format[ApplicationForNumericTest]
+object NumericalTestApplication {
+  implicit val applicationForNumericTest: OFormat[NumericalTestApplication] =
+    Json.format[NumericalTestApplication]
 }
