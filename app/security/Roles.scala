@@ -334,6 +334,8 @@ object RoleUtils {
 
   def isSiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftEntered)
 
+  def isSiftTestInvited(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftTestInvited)
+
   def isSiftReady(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftReady)
 
   def isSiftComplete(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftCompleted)
