@@ -54,17 +54,32 @@
 @renderNumericTest = {
     <section class="inner-block-padr" id="numericTest">
         <h2 class="heading-medium">Take a numerical test</h2>
-        <p>At least one of your scheme preferences requires you to take a numerical test.</p>
 
-        @if(page.isSiftTestCompleted) {
-            <p><strong>You have completed your numerical test.</strong></p>
+        @if(isSiftTestInvited(page.userDataWithSchemes.toCachedData)) {
+            <p>At least one of your scheme preferences requires you to take a numerical test.</p>
         } else {
-            @helper.form(action = routes.CubiksTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
-                @helper.CSRF.formField
-                @if(!page.isSiftTestStarted) {
-                    <button id="submit_sift_test" type="submit" value="submit" class="button">Start test</button>
-                } else {
-                    <button id="submit_sift_test" type="submit" value="submit" class="button">Continue test</button>
+            <ul class="list-text list-withicons" id="testsIndividual">
+                <li>
+                    <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>
+                        At least one of your scheme preferences requires you to take a numerical test
+                        <span class="font-xsmall">- locked</span>
+                    </p>
+                </li>
+                <p>We'll let you know when the numerical test is ready for you to complete.</p>
+            </ul>
+        }
+
+        @if(isSiftTestInvited(page.userDataWithSchemes.toCachedData)) {
+            @if(page.isSiftTestCompleted) {
+                <p><strong>You have completed your numerical test.</strong></p>
+            } else {
+                @helper.form(action = routes.CubiksTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
+                    @helper.CSRF.formField
+                    @if(!page.isSiftTestStarted) {
+                        <button id="submit_sift_test" type="submit" value="submit" class="button">Start test</button>
+                    } else {
+                        <button id="submit_sift_test" type="submit" value="submit" class="button">Continue test</button>
+                    }
                 }
             }
         }
