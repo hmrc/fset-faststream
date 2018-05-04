@@ -19,10 +19,10 @@ package services
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import config.{ CubiksGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
 import connectors.CubiksGatewayClient
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration, TimeAdjustments }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.UnexpectedException
-import model.NumericalTestCommands.NumericalTestApplication
+import model.NumericalTestApplication
 import model.{ OnlineTestCommands, ProgressStatuses }
 import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED, SIFT_TEST_RESULTS_READY }
 import model.exchange.CubiksTestResultReady
@@ -38,6 +38,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+
 
 object NumericalTestService extends NumericalTestService {
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
@@ -83,9 +84,14 @@ trait NumericalTestService extends EventSink {
                        schedule: NumericalTestSchedule)(implicit hc: HeaderCarrier): Future[List[NumericalTestInviteData]] = {
     val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/sift-test"
     val invites = candidateData.values.map {
-      case (_, token, registration) =>
+      case (application, token, registration) =>
         val completionUrl = s"$scheduleCompletionBaseUrl/complete/$token"
-        InviteApplicant(schedule.scheduleId, registration.userId, completionUrl) // TODO: handle time adjustments
+        val timeAdjustments = application.eTrayAdjustments.flatMap(_.timeNeeded).map { _ =>
+          val absoluteTime = calculateAbsoluteTimeWithAdjustments(application)
+          //TODO: Verify sectionId
+          TimeAdjustments(assessmentId = schedule.assessmentId, sectionId = 1, absoluteTime = absoluteTime) :: Nil
+        }.getOrElse(Nil)
+        InviteApplicant(schedule.scheduleId, registration.userId, completionUrl, timeAdjustments = timeAdjustments)
     }.toList
 
     cubiksGatewayClient.inviteApplicants(invites).map(_.map { invitation =>
@@ -110,6 +116,12 @@ trait NumericalTestService extends EventSink {
       upsertTests(invite.application, tests)
     }
     Future.sequence(invitedApplicantsOps).map(_ => ())
+  }
+
+  private def calculateAbsoluteTimeWithAdjustments(application: NumericalTestApplication): Int = {
+    val baseEtrayTestDurationInMinutes = 25
+    (application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(0)
+      * baseEtrayTestDurationInMinutes / 100) + baseEtrayTestDurationInMinutes
   }
 
   private def upsertTests(application: NumericalTestApplication, newTests: List[CubiksTest]): Future[Unit] = {

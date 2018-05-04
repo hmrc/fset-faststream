@@ -23,9 +23,10 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions._
 import model._
-import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
+//<<<<<<< HEAD we want this
+import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.exchange.CubiksTestResultReady
-import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup, MaybeSiftTestGroupWithAppId, SiftTestGroupWithAppId }
+import model.persisted.sift.{ MaybeSiftTestGroupWithAppId, NotificationExpiringSift, SiftTestGroup, SiftTestGroupWithAppId }
 import model.persisted.{ CubiksTest, SchemeEvaluationResult, TestResult }
 import model.report.SiftPhaseReportItem
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
@@ -34,6 +35,7 @@ import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{ BSONDateTimeHandler, CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
+import repositories.adjustmentDetailHandler
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -49,7 +51,7 @@ trait ApplicationSiftRepository {
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int): Future[Seq[ApplicationForNumericTest]]
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int): Future[Seq[NumericalTestApplication]]
   def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]]
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]]
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
@@ -296,7 +298,7 @@ class ApplicationSiftMongoRepository(
     }
   }
 
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int): Future[Seq[ApplicationForNumericTest]] = {
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int): Future[Seq[NumericalTestApplication]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
@@ -312,7 +314,11 @@ class ApplicationSiftMongoRepository(
         val userId = doc.getAs[String]("userId").get
         val appStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
         val currentSchemeStatus = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
-        ApplicationForNumericTest(applicationId, userId, appStatus, currentSchemeStatus)
+
+        val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
+        val needsAdjustmentForOnlineTests = assistanceDetailsRoot.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)
+        val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
+        NumericalTestApplication(applicationId, userId, appStatus, needsAdjustmentForOnlineTests, etrayAdjustments, currentSchemeStatus)
       }
     }
   }

@@ -23,7 +23,7 @@ import model.EvaluationResults.{ Green, Red, Result, Withdrawn }
 import model.Exceptions.{ SiftResultsAlreadyExistsException, UnexpectedException }
 import model.ProgressStatuses.SIFT_ENTERED
 import model._
-import model.command.{ ApplicationForNumericTest, ApplicationForSift, ApplicationForSiftExpiry }
+import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
@@ -76,9 +76,9 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.nextApplicationForSecondSiftReminder(timeInHours)
   }
 
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[ApplicationForNumericTest]] = {
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication]] = {
     val numericalSchemeIds = schemeRepo.numericTestSiftRequirementSchemeIds
-    def isEligibleForNumericTest(app: ApplicationForNumericTest): Boolean = {
+    def isEligibleForNumericTest(app: NumericalTestApplication): Boolean = {
       app.currentSchemeStatus.exists(schemeRes =>
         Result(schemeRes.result) == Green && numericalSchemeIds.contains(schemeRes.schemeId)
       )

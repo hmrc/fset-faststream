@@ -18,7 +18,7 @@ package scheduler.sift
 
 import config.WaitingScheduledJobConfig
 import model.EmptyRequestHeader
-import model.NumericalTestCommands.NumericalTestApplication
+import model.NumericalTestApplication
 import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -50,8 +50,7 @@ trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJob
       case applications =>
         Logger.info(s"${applications.size} application(s) found for sift numerical test invitation")
         Logger.info(s"Inviting candidates to take a sift numerical test with IDs: ${applications.map(_.applicationId)}")
-        val apps = applications.map(app => NumericalTestApplication(app.applicationId, app.applicationStatus, app.userId)).toList
-        numericalTestService.registerAndInviteForTests(apps)
+        numericalTestService.registerAndInviteForTests(applications.toList)
     }
   }
 }
