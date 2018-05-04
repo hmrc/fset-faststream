@@ -40,7 +40,7 @@ trait RetrieveSiftNumericalResultsJob extends SingleInstanceScheduledJob[BasicJo
 
     numericalTestService.nextTestGroupWithReportReady.flatMap {
       case Some(testGroup) =>
-        Logger.info(s"$intro - processing candidate with applicationId : ${testGroup.applicationId}")
+        Logger.info(s"$intro - processing candidate with applicationId: ${testGroup.applicationId}")
 
         implicit val hc = HeaderCarrier()
         implicit val rh = EmptyRequestHeader

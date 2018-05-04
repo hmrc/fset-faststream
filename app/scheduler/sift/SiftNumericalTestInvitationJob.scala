@@ -28,35 +28,35 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object NumericalTestInvitationJob extends NumericalTestInvitationJob {
+object SiftNumericalTestInvitationJob extends SiftNumericalTestInvitationJob {
   val siftService = ApplicationSiftService
-  val config = NumericalTestInvitationConfig
+  val config = SiftNumericalTestInvitationConfig
   val numericalTestService: NumericalTestService = NumericalTestService
 }
 
-trait NumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
   val numericalTestService: NumericalTestService
-  lazy val batchSize = NumericalTestInvitationConfig.conf.batchSize.getOrElse(1)
+  lazy val batchSize = SiftNumericalTestInvitationConfig.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
     implicit val rh = EmptyRequestHeader
-    Logger.info("Inviting candidates to numerical tests")
+    Logger.info("Looking for candidates to invite to sift numerical test")
     siftService.nextApplicationsReadyForNumericTestsInvitation(batchSize).map {
       case Nil =>
-        Logger.info("No application found for numeric test invitation")
+        Logger.info("No application found for sift numerical test invitation")
         Future.successful(())
       case applications =>
-        Logger.info(s"${applications.size} application(s) found for numeric test invitation")
-        Logger.info(s"Inviting Candidates with IDs: ${applications.map(_.applicationId)}")
+        Logger.info(s"${applications.size} application(s) found for sift numerical test invitation")
+        Logger.info(s"Inviting candidates to take a sift numerical test with IDs: ${applications.map(_.applicationId)}")
         val apps = applications.map(app => NumericalTestApplication(app.applicationId, app.applicationStatus, app.userId)).toList
         numericalTestService.registerAndInviteForTests(apps)
     }
   }
 }
 
-object NumericalTestInvitationConfig extends BasicJobConfig[WaitingScheduledJobConfig](
-  configPrefix = "scheduling.numerical-test-invitation-job",
-  name = "NumericalTestInvitationJob"
+object SiftNumericalTestInvitationConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+  configPrefix = "scheduling.sift-numerical-test-invitation-job",
+  name = "SiftNumericalTestInvitationJob"
 )
