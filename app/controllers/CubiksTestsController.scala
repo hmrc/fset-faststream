@@ -20,7 +20,7 @@ import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
 import play.api.Logger
 import play.api.mvc.{ Action, Result }
-import services.NumericalTestsService
+import services.NumericalTestService
 import services.stc.StcEventService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
@@ -31,14 +31,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object CubiksTestsController extends CubiksTestsController {
   override val phase1TestService = Phase1TestService
   override val phase2TestService = Phase2TestService
-  val numericalTestService: NumericalTestsService = NumericalTestsService
+  val numericalTestService: NumericalTestService = NumericalTestService
   val eventService = StcEventService
 }
 
 trait CubiksTestsController extends BaseController {
   val phase1TestService: Phase1TestService
   val phase2TestService: Phase2TestService
-  val numericalTestService: NumericalTestsService
+  val numericalTestService: NumericalTestService
   val eventService: StcEventService
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
@@ -81,10 +81,13 @@ trait CubiksTestsController extends BaseController {
 
   def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     withJsonBody[CubiksTestResultReady] { testResultReady =>
-      Logger.info(s"Assessment $cubiksUserId has report [$testResultReady] ready to download")
+      Logger.info(s"Cubiks user $cubiksUserId has xml results report ready to download. Payload = [$testResultReady]")
       phase1TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
         .recoverWith { case _: CannotFindTestByCubiksId =>
-            phase2TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
+            phase2TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady).recoverWith {
+              case _: CannotFindTestByCubiksId =>
+                numericalTestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
+            }
         }.map( _ => Ok )
         .recover(recoverNotFound)
     }
