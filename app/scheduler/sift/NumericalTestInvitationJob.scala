@@ -22,7 +22,7 @@ import model.NumericalTestCommands.NumericalTestApplication
 import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.NumericalTestsService
+import services.NumericalTestService
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -31,18 +31,18 @@ import scala.concurrent.{ ExecutionContext, Future }
 object NumericalTestInvitationJob extends NumericalTestInvitationJob {
   val siftService = ApplicationSiftService
   val config = NumericalTestInvitationConfig
-  val numericalTestsService: NumericalTestsService = NumericalTestsService
+  val numericalTestService: NumericalTestService = NumericalTestService
 }
 
 trait NumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
-  val numericalTestsService: NumericalTestsService
+  val numericalTestService: NumericalTestService
   lazy val batchSize = NumericalTestInvitationConfig.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
     implicit val rh = EmptyRequestHeader
-    Logger.info("Inviting candidates to Numerical tests")
+    Logger.info("Inviting candidates to numerical tests")
     siftService.nextApplicationsReadyForNumericTestsInvitation(batchSize).map {
       case Nil =>
         Logger.info("No application found for numeric test invitation")
@@ -51,7 +51,7 @@ trait NumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConf
         Logger.info(s"${applications.size} application(s) found for numeric test invitation")
         Logger.info(s"Inviting Candidates with IDs: ${applications.map(_.applicationId)}")
         val apps = applications.map(app => NumericalTestApplication(app.applicationId, app.applicationStatus, app.userId)).toList
-        numericalTestsService.registerAndInviteForTests(apps)
+        numericalTestService.registerAndInviteForTests(apps)
     }
   }
 }

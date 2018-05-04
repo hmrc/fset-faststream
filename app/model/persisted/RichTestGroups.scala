@@ -17,8 +17,8 @@
 package model.persisted
 
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.sift.SiftTestGroup
 import reactivemongo.bson.Macros
-
 
 trait TestGroupWithIds[U <: Test, T <: TestProfile[U]] {
   def applicationId: String

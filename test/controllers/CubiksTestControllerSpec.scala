@@ -23,7 +23,7 @@ import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
-import services.NumericalTestsService
+import services.NumericalTestService
 import services.stc.StcEventService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
@@ -36,14 +36,14 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
 
   val mockPhase1TestService = mock[Phase1TestService]
   val mockPhase2TestService = mock[Phase2TestService]
-  val mockNumericalTestService = mock[NumericalTestsService]
+  val mockNumericalTestService = mock[NumericalTestService]
   val mockEventService = mock[StcEventService]
 
   def controllerUnderTest = new CubiksTestsController {
     val phase1TestService = mockPhase1TestService
     val eventService = mockEventService
     val phase2TestService = mockPhase2TestService
-    val numericalTestService: NumericalTestsService = mockNumericalTestService
+    val numericalTestService: NumericalTestService = mockNumericalTestService
   }
 
   "start" should {
@@ -178,6 +178,8 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
       when(mockPhase1TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))
       ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
       when(mockPhase2TestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))
+      ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
+      when(mockNumericalTestService.markAsReportReadyToDownload(eqTo(cubiksUserId), eqTo(cubiksTestResult))
       ).thenReturn(Future.failed(CannotFindTestByCubiksId("")))
 
       val response = controllerUnderTest.markResultsReady(cubiksUserId)(fakeRequest(cubiksTestResult))
