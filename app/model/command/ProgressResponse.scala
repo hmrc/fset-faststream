@@ -102,6 +102,8 @@ case class SiftProgressResponse(
                                  siftTestInvited: Boolean = false,
                                  siftTestStarted: Boolean = false,
                                  siftTestCompleted: Boolean = false,
+                                 siftTestResultsReady: Boolean = false,
+                                 siftTestResultsReceived: Boolean = false,
                                  siftFirstReminder: Boolean = false,
                                  siftSecondReminder: Boolean = false,
                                  siftReady: Boolean = false,

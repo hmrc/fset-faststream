@@ -17,15 +17,14 @@
 package model.persisted.sift
 
 import model.persisted.CubiksTest
-import reactivemongo.bson.Macros
+import org.joda.time.DateTime
+import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class SiftTestGroupWithAppId(
-  applicationId: String,
-  testGroup: SiftTestGroup
-) {
-  def activeTests: List[CubiksTest] = testGroup.tests.getOrElse(Nil).filter(_.usedForResults)
-}
+case class MaybeSiftTestGroupWithAppId(applicationId: String, expirationDate: DateTime, tests: Option[List[CubiksTest]])
 
-object SiftTestGroupWithAppId {
-  implicit val siftTestGroupWithAppIdHandler = Macros.handler[SiftTestGroupWithAppId]
+object MaybeSiftTestGroupWithAppId {
+  import repositories.BSONDateTimeHandler
+  implicit val bsonHandler: BSONHandler[BSONDocument, MaybeSiftTestGroupWithAppId] = Macros.handler[MaybeSiftTestGroupWithAppId]
+  implicit val siftTestGroupFormat = Json.format[MaybeSiftTestGroupWithAppId]
 }

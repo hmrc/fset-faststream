@@ -88,13 +88,15 @@ trait ProgressStatusesReportLabels {
     (progress.siftProgressResponse.siftTestInvited, 403, SiftTestInvited),
     (progress.siftProgressResponse.siftTestStarted, 404, SiftTestStarted),
     (progress.siftProgressResponse.siftTestCompleted, 405, SiftTestCompleted),
-    (progress.siftProgressResponse.siftReady, 406, SiftReady),
-    (progress.siftProgressResponse.siftCompleted, 407, SiftCompleted),
-    (progress.siftProgressResponse.siftExpired, 408, SiftExpired),
-    (progress.siftProgressResponse.siftFaststreamFailedSdipGreen, 409, SiftFaststreamFailedSdipGreen),
-    (progress.siftProgressResponse.failedAtSift, 410, SiftFailed),
-    (progress.siftProgressResponse.failedAtSiftNotified, 411, SiftFailedNotified),
-    (progress.siftProgressResponse.sdipFailedAtSift, 412, SdipSiftFailed),
+    (progress.siftProgressResponse.siftTestResultsReady, 406, SiftTestResultsReady),
+    (progress.siftProgressResponse.siftTestResultsReceived, 407, SiftTestResultsReceived),
+    (progress.siftProgressResponse.siftReady, 408, SiftReady),
+    (progress.siftProgressResponse.siftCompleted, 409, SiftCompleted),
+    (progress.siftProgressResponse.siftExpired, 410, SiftExpired),
+    (progress.siftProgressResponse.siftFaststreamFailedSdipGreen, 411, SiftFaststreamFailedSdipGreen),
+    (progress.siftProgressResponse.failedAtSift, 412, SiftFailed),
+    (progress.siftProgressResponse.failedAtSiftNotified, 413, SiftFailedNotified),
+    (progress.siftProgressResponse.sdipFailedAtSift, 414, SdipSiftFailed),
 
     (progress.assessmentCentre.awaitingAllocation, 420, AssessmentCentreAwaitingAllocation),
     (progress.assessmentCentre.allocationUnconfirmed, 423, AssessmentCentreAllocationUnconfirmed),
@@ -233,6 +235,8 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val SiftTestInvited = "sift_test_invited"
   val SiftTestStarted = "sift_test_started"
   val SiftTestCompleted = "sift_test_completed"
+  val SiftTestResultsReady = "sift_test_results_ready"
+  val SiftTestResultsReceived = "sift_test_results_received"
   val SiftFirstReminder = "sift_first_reminder"
   val SiftSecondReminder = "sift_second_reminder"
   val SiftReady = "sift_ready"

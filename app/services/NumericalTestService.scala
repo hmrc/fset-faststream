@@ -23,28 +23,34 @@ import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration, T
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.UnexpectedException
 import model.NumericalTestApplication
-import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED }
+import model.{ OnlineTestCommands, ProgressStatuses }
+import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED, SIFT_TEST_RESULTS_READY }
+import model.exchange.CubiksTestResultReady
 import model.persisted.CubiksTest
-import model.persisted.sift.SiftTestGroup
+import model.persisted.sift.{ SiftTestGroup, SiftTestGroupWithAppId }
+import model.stc.DataStoreEvents
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
+import services.stc.{ EventSink, StcEventService }
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object NumericalTestsService extends NumericalTestsService {
+
+object NumericalTestService extends NumericalTestService {
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
   val applicationSiftRepo: ApplicationSiftRepository = repositories.applicationSiftRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val gatewayConfig = cubiksGatewayConfig
   val tokenFactory = UUIDFactory
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
+  val eventService: StcEventService = StcEventService
 }
 
-trait NumericalTestsService {
+trait NumericalTestService extends EventSink {
   def applicationRepo: GeneralApplicationRepository
   def applicationSiftRepo: ApplicationSiftRepository
   val tokenFactory: UUIDFactory
@@ -149,7 +155,7 @@ trait NumericalTestsService {
   private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     applications match {
-      case Nil => Future.successful(Nil)
+      case Nil => Future.successful(())
       case candidates =>
         val tokens = (1 to candidates.size).map(_ => tokenFactory.generateUUID())
         for {
@@ -163,7 +169,7 @@ trait NumericalTestsService {
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     applicationSiftRepo.updateTestCompletionTime(cubiksUserId, dateTimeFactory.nowLocalTimeZone).flatMap { _ =>
-      applicationSiftRepo.getTestGroupByCubiksId(cubiksUserId).map { updatedTestGroup =>
+      applicationSiftRepo.getTestGroupByCubiksId(cubiksUserId).flatMap { updatedTestGroup =>
         val appId = updatedTestGroup.applicationId
         require(updatedTestGroup.tests.isDefined, s"No numerical tests exists for application: $appId")
         val tests = updatedTestGroup.tests.get
@@ -188,5 +194,69 @@ trait NumericalTestsService {
         .map(test => markAsCompleted(test.cubiksUserId))
         .getOrElse(Future.successful(()))
     }
+  }
+
+  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady)
+    : Future[Unit] = {
+    applicationSiftRepo.updateTestReportReady(cubiksUserId, reportReady).flatMap { _ =>
+      applicationSiftRepo.getTestGroupByCubiksId(cubiksUserId).flatMap { updatedTestGroup =>
+        val appId = updatedTestGroup.applicationId
+        require(updatedTestGroup.tests.isDefined, s"No numerical tests exists for application: $appId")
+        val tests = updatedTestGroup.tests.get
+        require(tests.exists(_.usedForResults), "Active tests cannot be found")
+
+        val activeCompletedTest = tests.forall(_.completedDateTime.isDefined)
+        if (activeCompletedTest) {
+          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_RESULTS_READY)
+        } else {
+          Logger.info(s"No tests to mark as results ready for cubiksId: $cubiksUserId and applicationId: $appId")
+          Future.successful(())
+        }
+      }
+    }
+  }
+
+  def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]] = {
+    applicationSiftRepo.nextTestGroupWithReportReady
+  }
+
+  def retrieveTestResult(siftTestGroup: SiftTestGroupWithAppId)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    def insertTests(testResults: List[(OnlineTestCommands.TestResult, CubiksTest)]): Future[Unit] = {
+      Future.sequence(testResults.map {
+        case (cubiksTestResult, cubiksTest) => applicationSiftRepo.insertCubiksTestResult(
+          siftTestGroup.applicationId,
+          cubiksTest, model.persisted.TestResult.fromCommandObject(cubiksTestResult)
+        )
+      }).map(_ => ())
+    }
+
+    def maybeUpdateProgressStatus(appId: String) = {
+      applicationSiftRepo.getTestGroup(appId).flatMap { eventualTestGroup =>
+        val testGroup = eventualTestGroup.getOrElse(throw new Exception(s"No sift test group returned for $appId"))
+
+        val allTestsHaveCubiksResult = testGroup.tests.isDefined && testGroup.tests.get.forall(_.testResult.isDefined)
+        if (allTestsHaveCubiksResult) {
+          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED).flatMap( _ =>
+            eventSink {
+              DataStoreEvents.SiftTestResultsReceived(appId) :: Nil
+            }
+          )
+        } else {
+          Future.successful(())
+        }
+      }
+    }
+
+    val testResults = Future.sequence(siftTestGroup.activeTests.flatMap { test =>
+      test.reportId.map { reportId =>
+        cubiksGatewayClient.downloadXmlReport(reportId)
+      }.map( cubiksTestResult => cubiksTestResult.map( cubiksTestResult => cubiksTestResult -> test ))
+    })
+
+    for {
+      eventualTestResults <- testResults
+      _ <- insertTests(eventualTestResults)
+      _ <- maybeUpdateProgressStatus(siftTestGroup.applicationId)
+    } yield {}
   }
 }
