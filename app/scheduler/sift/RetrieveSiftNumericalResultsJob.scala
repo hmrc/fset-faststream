@@ -28,7 +28,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object RetrieveSiftNumericalResultsJob extends RetrieveSiftNumericalResultsJob {
   val numericalTestService = NumericalTestService
-  val config = SiftExpiryJobConfig
+  val config = RetrieveSiftNumericalResultsJobConfig
 }
 
 trait RetrieveSiftNumericalResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
