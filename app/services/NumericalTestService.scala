@@ -163,6 +163,8 @@ trait NumericalTestService extends EventSink {
           invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
           _ <- insertNumericalTest(invitedApplicants)
           _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
+          _ = Logger.info(s"Successfully invited candidates to take a sift numerical test with IDs: " +
+            s"${invitedApplicants.map(_.application.applicationId)} - moved to $SIFT_TEST_INVITED")
         } yield ()
     }
   }
@@ -236,11 +238,15 @@ trait NumericalTestService extends EventSink {
 
         val allTestsHaveCubiksResult = testGroup.tests.isDefined && testGroup.tests.get.forall(_.testResult.isDefined)
         if (allTestsHaveCubiksResult) {
-          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED).flatMap( _ =>
-            eventSink {
+          for {
+            _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED)
+            _ <- eventSink {
               DataStoreEvents.SiftTestResultsReceived(appId) :: Nil
             }
-          )
+          } yield {
+            Logger.info(s"Successfully retrieved sift numerical results for Id $appId - " +
+              s"moved to ${ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED}")
+          }
         } else {
           Future.successful(())
         }

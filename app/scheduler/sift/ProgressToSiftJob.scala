@@ -40,6 +40,7 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
+    Logger.info("Looking for candidates to progress to SIFT")
     siftService.nextApplicationsReadyForSiftStage(batchSize).flatMap {
       case Nil =>
         Logger.info("No application found to progress to SIFT")
@@ -52,7 +53,7 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
             }
           }
         }
-        Logger.info(s"Progress to sift entered - ${result.successes.size} updated and ${result.failures.size} failed to update")
+        Logger.info(s"Progressed to sift entered - ${result.successes.size} updated and ${result.failures.size} failed to update")
       }
     }
   }
