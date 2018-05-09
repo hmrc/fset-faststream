@@ -179,7 +179,9 @@ trait NumericalTestService extends EventSink {
 
         val activeCompletedTests = tests.forall(_.completedDateTime.isDefined)
         if(activeCompletedTests) {
-          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_COMPLETED)
+          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_COMPLETED).map { _ =>
+            Logger.info(s"Successfully updated to $SIFT_TEST_COMPLETED for cubiksId: $cubiksUserId and appId: $appId")
+          }
         } else {
           Logger.info(s"No tests to mark as completed for cubiksId: $cubiksUserId and applicationId: $appId")
           Future.successful(())
@@ -209,7 +211,9 @@ trait NumericalTestService extends EventSink {
 
         val activeCompletedTest = tests.forall(_.completedDateTime.isDefined)
         if (activeCompletedTest) {
-          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_RESULTS_READY)
+          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_RESULTS_READY).map { _ =>
+            Logger.info(s"Successfully updated to $SIFT_TEST_RESULTS_READY for cubiksId: $cubiksUserId and appId: $appId")
+          }
         } else {
           Logger.info(s"No tests to mark as results ready for cubiksId: $cubiksUserId and applicationId: $appId")
           Future.successful(())

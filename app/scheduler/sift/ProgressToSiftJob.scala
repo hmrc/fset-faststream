@@ -54,6 +54,7 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
           }
         }
         Logger.info(s"Progressed to sift entered - ${result.successes.size} updated and ${result.failures.size} failed to update")
+        Logger.info(s"Progressed to sift entered - successful application Ids = ${result.successes.map(_.applicationId)}")
       }
     }
   }

@@ -42,7 +42,7 @@ trait CubiksTestsController extends BaseController {
   val eventService: StcEventService
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Assessment $cubiksUserId started")
+    Logger.info(s"Cubiks userId $cubiksUserId assessment started")
     phase1TestService.markAsStarted(cubiksUserId)
       .recoverWith { case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsStarted(cubiksUserId)
@@ -51,7 +51,7 @@ trait CubiksTestsController extends BaseController {
   }
 
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Assessment $cubiksUserId completed")
+    Logger.info(s"Cubiks userId $cubiksUserId assessment completed")
     phase1TestService.markAsCompleted(cubiksUserId).recoverWith {
       case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsCompleted(cubiksUserId).recoverWith {
