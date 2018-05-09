@@ -23,7 +23,6 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions._
 import model._
-//<<<<<<< HEAD we want this
 import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.exchange.CubiksTestResultReady
 import model.persisted.sift.{ MaybeSiftTestGroupWithAppId, NotificationExpiringSift, SiftTestGroup, SiftTestGroupWithAppId }
