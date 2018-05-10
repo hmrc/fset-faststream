@@ -16,27 +16,20 @@
 
 package models.page
 
+import com.github.nscala_time.time.OrderingImplicits._
 import config.FrontendAppConfig
-import connectors.exchange.{
-  SchemeEvaluationResult,
-  SchemeEvaluationResultWithFailureDetails
-}
+import connectors.exchange.SchemeEvaluationResultWithFailureDetails
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.Scheme
-import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import helpers.{CachedUserWithSchemeData, Timezones}
-import models.{ApplicationRoute, CachedData, SchemeStatus}
-import models.events.{AllocationStatuses, EventType}
+import connectors.exchange.sift.{ SiftAnswersStatus, SiftState }
+import helpers.{ CachedUserWithSchemeData, Timezones }
+import models.events.EventType
 import models.page.DashboardPage.Flags
-import models.page.DashboardPage.Flags.{
-  ProgressActive,
-  ProgressInactiveDisabled
-}
-import org.joda.time.{DateTime, LocalTime}
-import play.twirl.api.Html
-import security.{RoleUtils, Roles}
-import com.github.nscala_time.time.OrderingImplicits._
+import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
+import models.{ ApplicationRoute, SchemeStatus }
+import org.joda.time.{ DateTime, LocalTime }
+import security.RoleUtils
 
 import scala.util.Try
 
@@ -53,7 +46,8 @@ case class PostOnlineTestsPage(
     allocationsWithEvent: Seq[CandidateAllocationWithEvent],
     additionalQuestionsStatus: Option[SiftAnswersStatus],
     hasAnalysisExercise: Boolean,
-    schemes: List[Scheme]
+    schemes: List[Scheme],
+    siftState: SiftState
 ) {
   import PostOnlineTestsStage._
 

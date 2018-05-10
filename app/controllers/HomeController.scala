@@ -126,13 +126,16 @@ abstract class HomeController(
       phase3Evaluation <- applicationClient.getPhase3Results(application.applicationId)
       siftEvaluation <- applicationClient.getSiftResults(application.applicationId)
       schemePreferences <- schemeClient.getSchemePreferences(application.applicationId)
+      siftState <- applicationClient.getSiftState(application.applicationId)
+      _ = Logger.info(s"**** date = ${siftState.expirationDate} ************************")
     } yield {
       val page = PostOnlineTestsPage(
         CachedUserWithSchemeData(cachedData.user, application, schemePreferences, allSchemes, phase3Evaluation, siftEvaluation, schemeStatus),
         allocationWithEvents,
         siftAnswersStatus,
         hasWrittenAnalysisExercise,
-        allSchemes
+        allSchemes,
+        siftState
       )
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }

@@ -26,6 +26,7 @@ import connectors.exchange._
 import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
 import connectors.exchange.candidateevents.{ CandidateAllocationWithEvent, CandidateAllocations }
 import connectors.exchange.candidatescores.CompetencyAverageResult
+import connectors.exchange.sift.SiftState
 import models.events.EventType.EventType
 import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
@@ -248,6 +249,14 @@ trait ApplicationClient {
       response.json.as[SiftTestGroupWithActiveTest]
     } recover {
       case _: NotFoundException => throw new SiftTestNotFound(s"No sift test group found for $appId")
+    }
+  }
+
+  def getSiftState(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftState] = {
+    http.GET(s"$apiBaseUrl/sift-candidate/state/$appId").map { response =>
+      response.json.as[SiftState]
+    } recover {
+      case _: NotFoundException => throw new SiftTestNotFound(s"No sift state found for $appId")
     }
   }
 
