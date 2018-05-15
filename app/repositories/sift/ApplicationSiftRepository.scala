@@ -234,6 +234,7 @@ class ApplicationSiftMongoRepository(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> BSONDocument("$exists" -> false)),
 
       BSONDocument(s"testGroups.$phaseName.expirationDate" ->
@@ -250,6 +251,7 @@ class ApplicationSiftMongoRepository(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> true),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_SECOND_REMINDER}" -> BSONDocument("$exists" -> false)),
 
