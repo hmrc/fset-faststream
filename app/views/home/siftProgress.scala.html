@@ -240,7 +240,7 @@
             @renderCompletedSectionOne
         }
     }
-    @if(!isSiftComplete(page.userDataWithSchemes.toCachedData)) {
+    @if(!isSiftReady(page.userDataWithSchemes.toCachedData)) {
         @renderSiftTimeRemaining
     }
  }
