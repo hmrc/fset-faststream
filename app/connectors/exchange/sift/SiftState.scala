@@ -17,36 +17,12 @@
 package connectors.exchange.sift
 
 import org.joda.time._
-import org.joda.time.format.PeriodFormatterBuilder
 import play.api.libs.json.Json
+import services.TimeFormattingService
 
 case class SiftState(siftEnteredDate: DateTime, expirationDate: DateTime) {
 
-  def expiryDateDurationRemaining: String = durationFromNow(expirationDate)
-
-  private def durationFromNow(date: DateTime): String = {
-    val now = DateTime.now
-    val period = new Period(now, date).normalizedStandard(PeriodType.yearMonthDayTime())
-    val periodFormat = new PeriodFormatterBuilder()
-      .appendYears()
-      .appendSuffix(" year", " years")
-      .appendSeparator(", ")
-      .appendMonths()
-      .appendSuffix(" month", " months")
-      .appendSeparator(", ")
-      .printZeroAlways()
-      .appendDays()
-      .appendSuffix(" day", " days")
-      .appendSeparator(" and ")
-      .appendHours()
-      .appendSuffix(" hour", " hours")
-      .appendSeparator(" and ")
-      .appendMinutes()
-      .appendSuffix(" minute", " minutes")
-      .toFormatter
-
-    periodFormat print period
-  }
+  def expiryDateDurationRemaining: String = TimeFormattingService.durationFromNow(expirationDate)
 }
 
 object SiftState {

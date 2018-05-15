@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package connectors.exchange.sift
+package factories
 
-import org.joda.time.DateTime
-import testkit.UnitWithAppSpec
+import org.joda.time.{ DateTime, LocalDate }
 
-class SiftStateSpec extends UnitWithAppSpec {
+trait DateTimeFactory {
+  def nowLocalTimeZone: DateTime // Uses `DateTimeZone.getDefault` (the timezone of the current machine).
 
-  "Sift state" should {
-    "correctly display the time remaining until expiry" in {
-      val now = DateTime.now()
-      val siftEnteredDate = now
-      val expiryDate = now.plusDays(3).plusHours(3).plusMinutes(11)
+  def nowLocalDate: LocalDate
+}
 
-      val siftState = SiftState(siftEnteredDate, expiryDate)
-      val durationRemaining = siftState.expiryDateDurationRemaining
+object DateTimeFactory extends DateTimeFactory {
+  def nowLocalTimeZone = DateTime.now // Uses `DateTimeZone.getDefault` (the timezone of the current machine).
 
-      durationRemaining mustBe "3 days and 3 hours and 10 minutes"
-    }
-  }
+  def nowLocalDate = LocalDate.now
 }
