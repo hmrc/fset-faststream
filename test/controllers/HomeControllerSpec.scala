@@ -22,7 +22,7 @@ import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors._
 import connectors.exchange.referencedata.SchemeId
 import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound }
-import connectors.exchange.sift.SiftAnswersStatus
+import connectors.exchange.sift.{ SiftAnswersStatus, SiftState }
 import connectors.exchange._
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
@@ -46,6 +46,7 @@ import java.nio.file.Path
 import connectors.ReferenceDataExamples.Schemes
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import models.events.{ AllocationStatuses, EventType }
+import org.joda.time.DateTime
 import play.api.test.{ FakeHeaders, FakeRequest }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -413,7 +414,6 @@ class HomeControllerSpec extends BaseControllerSpec {
     val mockUserService = mock[UserCacheService]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
-
     val anyContentMock = mock[AnyContent]
 
     def multipartFormData(contentType: String, key: String = "analysisExerciseFile") = MultipartFormData[Files.TemporaryFile](
@@ -483,6 +483,8 @@ class HomeControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
       when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
+      when(mockApplicationClient.getSiftState(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(SiftState(DateTime.now, DateTime.now))
 
       mockPostOnlineTestsDashboardCalls()
 

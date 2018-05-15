@@ -19,20 +19,20 @@ package models.page
 import java.util.UUID
 
 import connectors.ReferenceDataExamples._
-import connectors.exchange.{ EventsExamples, SchemeEvaluationResult, SchemeEvaluationResultWithFailureDetails, SelectedSchemes }
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.SchemeId
-import connectors.exchange.sift.SiftAnswersStatus
+import connectors.exchange.sift.SiftState
+import connectors.exchange.{ EventsExamples, SchemeEvaluationResultWithFailureDetails, SelectedSchemes }
 import controllers.UnitSpec
 import helpers.{ CachedUserWithSchemeData, CurrentSchemeStatus }
 import models.ApplicationData.ApplicationStatus
 import models._
 import models.events.AllocationStatuses
+import org.joda.time.DateTime
 
 class PostOnlineTestsPageSpec extends UnitSpec {
 
   "PostOnlineTestsPage" should {
-
     def randUUID = UniqueIdentifier(UUID.randomUUID().toString)
 
     val selectedSchemes = SelectedSchemes(Schemes.AllSchemes.map(_.id.value), orderAgreed = true, eligible = true)
@@ -53,7 +53,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
         selectedSchemes, Schemes.AllSchemes, None, None, phase3Results)
 
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.userDataWithSchemes.greenAndAmberSchemesForDisplay mustBe CurrentSchemeStatus(Schemes.HR, SchemeStatus.Green,
         failedAtStage = None) :: Nil
@@ -80,7 +81,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         AllocationStatuses.UNCONFIRMED,
         EventsExamples.Event1
       )
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq(allocation), None, hasAnalysisExercise = false, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq(allocation), None, hasAnalysisExercise = false, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.fsacStage mustBe PostOnlineTestsStage.ALLOCATED_TO_EVENT
     }
@@ -93,7 +95,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
         selectedSchemes, Schemes.AllSchemes, None, None, phase3ResultsAllRed)
 
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.allSchemesFailed mustBe true
     }
@@ -106,7 +109,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
         selectedSchemes, Schemes.AllSchemes, None, None, phase3ResultsOneGreen)
 
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.allSchemesFailed mustBe false
     }
@@ -119,7 +123,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
         selectedSchemes, Schemes.AllSchemes, None, None, schemeResults)
 
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.firstResidualPreferencePassed mustBe true
     }
@@ -132,7 +137,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
         selectedSchemes, Schemes.AllSchemes, None, None, schemeResults)
 
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.firstResidualPreferencePassed mustBe true
     }
@@ -145,7 +151,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
         selectedSchemes, Schemes.AllSchemes, None, None, schemeResults)
 
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.firstResidualPreferencePassed mustBe false
     }
@@ -158,7 +165,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
         selectedSchemes, Schemes.AllSchemes, None, None, schemeResults)
 
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.firstResidualPreferencePassed mustBe false
     }
@@ -171,7 +179,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
         selectedSchemes, Schemes.AllSchemes, None, None, schemeResults)
 
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.firstResidualPreferencePassed mustBe false
     }
@@ -184,7 +193,8 @@ class PostOnlineTestsPageSpec extends UnitSpec {
         ))
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userApp, selectedSchemes, Schemes.AllSchemes,
         None, None, schemeResults)
-      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = true, List.empty)
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = true, List.empty,
+        SiftState(DateTime.now, DateTime.now))
 
       page.isFinalFailure mustBe true
     }

@@ -86,6 +86,17 @@
     </section>
 }
 
+@renderSiftTimeRemaining = {
+    <section class="inner-block-padr" id="timeRemaining">
+        <h2 class="heading-medium">Your remaining time</h2>
+        @if(page.siftState.expiryDateDurationRemaining.contains("-")) {
+            <p>Your time has expired to finish the stage</p>
+        } else {
+            <p>You have <strong>@page.siftState.expiryDateDurationRemaining</strong> to finish the stage</p>
+        }
+    </section>
+}
+
 @renderCompletedSectionOne = {
     <div class="inner-block-padr" id="schemeForms">
         <h2 class='heading-medium'>Extra information</h2>
@@ -228,6 +239,9 @@
         } else {
             @renderCompletedSectionOne
         }
+    }
+    @if(!isSiftComplete(page.userDataWithSchemes.toCachedData)) {
+        @renderSiftTimeRemaining
     }
  }
 
