@@ -484,7 +484,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.getSiftState(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturnAsync(SiftState(DateTime.now, DateTime.now))
+        .thenReturnAsync(None)
 
       mockPostOnlineTestsDashboardCalls()
 
