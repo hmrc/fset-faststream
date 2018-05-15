@@ -252,11 +252,11 @@ trait ApplicationClient {
     }
   }
 
-  def getSiftState(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftState] = {
+  def getSiftState(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[SiftState]] = {
     http.GET(s"$apiBaseUrl/sift-candidate/state/$appId").map { response =>
-      response.json.as[SiftState]
+      Some(response.json.as[SiftState])
     } recover {
-      case _: NotFoundException => throw new SiftTestNotFound(s"No sift state found for $appId")
+      case _: NotFoundException => None
     }
   }
 

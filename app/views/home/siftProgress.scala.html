@@ -87,14 +87,16 @@
 }
 
 @renderSiftTimeRemaining = {
-    <section class="inner-block-padr" id="timeRemaining">
-        <h2 class="heading-medium">Your remaining time</h2>
-        @if(page.siftState.expiryDateDurationRemaining.contains("-")) {
-            <p>Your time has expired to finish the stage</p>
-        } else {
-            <p>You have <strong>@page.siftState.expiryDateDurationRemaining</strong> to finish the stage</p>
-        }
-    </section>
+    @page.siftState.map { siftState =>
+        <section class="inner-block-padr" id="timeRemaining">
+            <h2 class="heading-medium">Your remaining time</h2>
+            @if(siftState.expiryDateDurationRemaining.contains("-")) {
+                <p>Your time has expired to finish the stage</p>
+            } else {
+                <p>You have <strong>@siftState.expiryDateDurationRemaining</strong> to finish the stage</p>
+            }
+        </section>
+    }
 }
 
 @renderCompletedSectionOne = {
@@ -240,7 +242,7 @@
             @renderCompletedSectionOne
         }
     }
-    @if(!isSiftReady(page.userDataWithSchemes.toCachedData)) {
+    @if(isSiftEntered(page.userDataWithSchemes.toCachedData) && !isSiftReady(page.userDataWithSchemes.toCachedData)) {
         @renderSiftTimeRemaining
     }
  }
