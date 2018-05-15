@@ -47,7 +47,7 @@ case class PostOnlineTestsPage(
     additionalQuestionsStatus: Option[SiftAnswersStatus],
     hasAnalysisExercise: Boolean,
     schemes: List[Scheme],
-    siftState: SiftState
+    siftState: Option[SiftState]
 ) {
   import PostOnlineTestsStage._
 
