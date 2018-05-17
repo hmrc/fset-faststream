@@ -17,6 +17,7 @@
 package services.sift
 
 import model._
+import play.api.Logger
 import repositories.application.GeneralApplicationRepository
 import repositories.{ SchemeRepository, SchemeYamlRepository }
 import repositories.sift.SiftAnswersRepository
@@ -69,30 +70,71 @@ trait SiftAnswersService {
     ))
   }
 
+  // This is called when the candidate submits the form answers
   def submitAnswers(applicationId: String): Future[Unit] = {
     for {
       currentSchemeStatus <- appRepo.getCurrentSchemeStatus(applicationId)
+      _ = Logger.info(s"**** currentSchemeStatus = $currentSchemeStatus")
       schemesPassed = currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
+      _ = Logger.info(s"**** schemesPassed = $schemesPassed")
       schemesPassedRequiringSift = schemeRepository.schemes.filter( s =>
         schemesPassed.contains(s.id) && s.siftRequirement.contains(SiftRequirement.FORM)
       ).map(_.id).toSet
+      _ = Logger.info(s"**** schemesPassedRequiringSift = $schemesPassedRequiringSift")
       schemesPassedNotRequiringSift = schemeRepository.schemes.filter( s =>
         schemesPassed.contains(s.id) && !s.siftEvaluationRequired
       ).map(_.id).toSet
+      _ = Logger.info(s"**** schemesPassedNotRequiringSift = $schemesPassedNotRequiringSift")
       _ <- siftAnswersRepo.submitAnswers(applicationId, schemesPassedRequiringSift)
-      _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
+
+      progressResponse <- appRepo.findProgress(applicationId)
+      siftTestResultsReceived = progressResponse.siftProgressResponse.siftTestResultsReceived
+      _ = Logger.info(s"**** siftTestResultsReceived status = $siftTestResultsReceived")
+
+      _ <- maybeMoveToReady(applicationId, schemesPassed, siftTestResultsReceived)
       _ <- maybeMoveToCompleted(applicationId, schemesPassed, schemesPassedNotRequiringSift)
     } yield {}
   }
 
+  // Maybe move the candidate to SIFT_READY to indicate he/she is ready to be sifted for form based schemes
+  private def maybeMoveToReady(applicationId: String, schemesPassed: Set[SchemeId], siftTestResultsReceived: Boolean): Future[Unit] = {
+
+    val hasNumericSchemes = schemeRepository.numericTestSiftRequirementSchemeIds.exists( s => schemesPassed.contains(s))
+    Logger.info(s"**** hasNumericSchemes = $hasNumericSchemes")
+
+    (hasNumericSchemes, siftTestResultsReceived) match {
+      case (false, _) =>
+        // No numeric schemes so move candidate to SIFT_READY
+        Logger.info(s"**** Candidate $applicationId has submitted sift forms and has no numeric schemes " +
+          s"so moving to ${ProgressStatuses.SIFT_READY}")
+        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
+      case (true, true) =>
+        // Numeric schemes and the test results have been received so move candidate to SIFT_READY
+        Logger.info(s"**** Candidate $applicationId has submitted sift forms, has numeric schemes, has " +
+          s"taken the numeric test and received the results so moving to ${ProgressStatuses.SIFT_READY}")
+        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
+      case _ =>
+        // Do not move the candidate
+        Logger.info(s"**** Candidate $applicationId is not yet in a state to move to ${ProgressStatuses.SIFT_READY}")
+        Future.successful(())
+    }
+  }
+
+  // Maybe move the candidate to SIFT_COMPLETED to indicate the candidate has no schemes that require a sift
+  // and can be moved straight into SIFT_COMPLETED
   private def maybeMoveToCompleted(applicationId: String, passedSchemes: Set[SchemeId],
                                    passedSchemesNotRequiringSift: Set[SchemeId]): Future[Unit] = {
     val allPassedSchemesDoNotRequireSift = passedSchemes.size == passedSchemesNotRequiringSift.size &&
       passedSchemes == passedSchemesNotRequiringSift
 
+    Logger.info(s"**** allPassedSchemesDoNotRequireSift = $allPassedSchemesDoNotRequireSift")
     if(allPassedSchemesDoNotRequireSift) {
+      Logger.info(s"**** Candidate $applicationId has submitted sift forms and has no schemes requiring a sift so " +
+        s"now moving to ${ProgressStatuses.SIFT_COMPLETED}")
       appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED)
     } else {
+      Logger.info(s"**** Candidate $applicationId has schemes, which require sifting so cannot " +
+        s"move to ${ProgressStatuses.SIFT_COMPLETED}")
       Future.successful(())
     }
   }

@@ -18,6 +18,7 @@ package services.sift
 
 import model.EvaluationResults.{ Green, Withdrawn }
 import model.ProgressStatuses.{ SIFT_COMPLETED, SIFT_READY }
+import model.command.ProgressResponseExamples
 import model.persisted.SchemeEvaluationResult
 import model.{ Scheme, SchemeId, SiftRequirement }
 import repositories.SchemeRepository
@@ -44,7 +45,6 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
 
-
   trait TestFixture {
     val AppId = "appId1"
     val mockAppRepo = mock[GeneralApplicationRepository]
@@ -67,6 +67,8 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
       )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
+      (mockAppRepo.findProgress _).expects(AppId).returningAsync(ProgressResponseExamples.InSiftEntered)
+
       (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).once().returningAsync
 
@@ -82,6 +84,8 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
       )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
+      (mockAppRepo.findProgress _).expects(AppId).returningAsync(ProgressResponseExamples.InSiftEntered)
+
       (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).once().returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_COMPLETED).once().returningAsync
@@ -99,6 +103,8 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
       )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
+      (mockAppRepo.findProgress _).expects(AppId).returningAsync(ProgressResponseExamples.InSiftEntered)
+
       (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).once().returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_COMPLETED).never().returningAsync

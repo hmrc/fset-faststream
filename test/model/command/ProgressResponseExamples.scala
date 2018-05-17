@@ -35,4 +35,6 @@ object ProgressResponseExamples {
     "education_questionnaire", "occupation_questionnaire"))
   val InPreview: ProgressResponse = InQuestionnaire.copy(preview = true)
   val InSubmit: ProgressResponse = InPreview.copy(submitted = true)
+  val SiftEnteredProgressResponse = SiftProgressResponse(siftEntered = true)
+  val InSiftEntered: ProgressResponse = InPreview.copy(siftProgressResponse = SiftEnteredProgressResponse)
 }
