@@ -29,6 +29,9 @@ import testkit.ScalaMockImplicits._
 
 class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
 
+  val Commercial = Scheme(SchemeId("Commercial"), "CFS", "Commercial", civilServantEligible = true,
+    degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.NUMERIC_TEST),
+    fsbType = None, schemeGuide = None, schemeQuestion = None)
   val DaT = Scheme(SchemeId("DigitalAndTechnology"), "DaT", "Digital and Technology", civilServantEligible = false,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
@@ -50,7 +53,7 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockSiftAnswersRepo = mock[SiftAnswersRepository]
     val mockSchemeRepo = new SchemeRepository {
-      override lazy val schemes = DaT :: HoP :: Generalist :: HumanResources :: Sdip :: Nil
+      override lazy val schemes = Commercial :: DaT :: HoP :: Generalist :: HumanResources :: Sdip :: Nil
     }
     val service = new SiftAnswersService {
       def appRepo = mockAppRepo
@@ -108,6 +111,40 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
       (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).once().returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_COMPLETED).never().returningAsync
+
+      whenReady(service.submitAnswers(AppId)) { result =>
+        result mustBe unit
+      }
+    }
+
+    "update sift status to SIFT_READY when numeric test has already been completed and the results received" in new TestFixture {
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(Commercial.id, Green.toString), // Scheme requiring numeric test
+        SchemeEvaluationResult(DaT.id, Green.toString) // Scheme requiring form
+      )
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
+      (mockAppRepo.findProgress _).expects(AppId).returningAsync(ProgressResponseExamples.InSiftTestResultsReceived)
+
+      (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).once().returningAsync
+
+      whenReady(service.submitAnswers(AppId)) { result =>
+        result mustBe unit
+      }
+    }
+
+    "not update sift status to SIFT_READY when the candidate has a numeric test requirement, which has not been done" in new TestFixture {
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(Commercial.id, Green.toString), // Scheme requiring numeric test
+        SchemeEvaluationResult(DaT.id, Green.toString) // Scheme requiring form
+      )
+
+      (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
+      (mockAppRepo.findProgress _).expects(AppId).returningAsync(ProgressResponseExamples.InSiftTestInvited)
+
+      (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).never().returningAsync
 
       whenReady(service.submitAnswers(AppId)) { result =>
         result mustBe unit
