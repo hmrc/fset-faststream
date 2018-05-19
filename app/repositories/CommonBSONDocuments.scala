@@ -164,6 +164,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             siftTestInvited = getProgress(ProgressStatuses.SIFT_TEST_INVITED.key),
             siftTestStarted = getProgress(ProgressStatuses.SIFT_TEST_STARTED.key),
             siftTestCompleted = getProgress(ProgressStatuses.SIFT_TEST_COMPLETED.key),
+            siftFormsCompleteNumericTestPending = getProgress(ProgressStatuses.SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING.key),
             siftTestResultsReady = getProgress(ProgressStatuses.SIFT_TEST_RESULTS_READY.key),
             siftTestResultsReceived = getProgress(ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED.key),
             siftFirstReminder = getProgress(ProgressStatuses.SIFT_FIRST_REMINDER.key),

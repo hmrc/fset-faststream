@@ -97,6 +97,12 @@ class TestJobsController extends BaseController {
     }
   }
 
+  def processSiftNumericalResultsReceived: Action[AnyContent] = Action.async { implicit request =>
+    ProcessSiftNumericalResultsReceivedJob.tryExecute().map { _ =>
+      Ok("Process sift numerical results received job started")
+    }
+  }
+
   def processExpiredAtSift: Action[AnyContent] = Action.async { implicit request =>
     SiftExpiryJob.tryExecute().map { _ =>
       Ok("Sift expiry job started")

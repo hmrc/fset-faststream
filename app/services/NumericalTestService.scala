@@ -22,8 +22,7 @@ import connectors.CubiksGatewayClient
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration, TimeAdjustments }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.UnexpectedException
-import model.NumericalTestApplication
-import model.{ OnlineTestCommands, ProgressStatuses }
+import model._
 import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED, SIFT_TEST_RESULTS_READY }
 import model.exchange.CubiksTestResultReady
 import model.persisted.CubiksTest
@@ -31,6 +30,7 @@ import model.persisted.sift.{ SiftTestGroup, SiftTestGroupWithAppId }
 import model.stc.DataStoreEvents
 import play.api.Logger
 import play.api.mvc.RequestHeader
+import repositories.{ SchemeRepository, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
 import services.stc.{ EventSink, StcEventService }
@@ -38,7 +38,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
 
 object NumericalTestService extends NumericalTestService {
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
@@ -48,6 +47,7 @@ object NumericalTestService extends NumericalTestService {
   val tokenFactory = UUIDFactory
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val eventService: StcEventService = StcEventService
+  val schemeRepository = SchemeYamlRepository
 }
 
 trait NumericalTestService extends EventSink {
@@ -58,6 +58,7 @@ trait NumericalTestService extends EventSink {
   def testConfig: NumericalTestsConfig = gatewayConfig.numericalTests
   val cubiksGatewayClient: CubiksGatewayClient
   val dateTimeFactory: DateTimeFactory
+  def schemeRepository: SchemeRepository
 
   case class NumericalTestInviteData(application: NumericalTestApplication,
                                      scheduleId: Int,
@@ -267,6 +268,43 @@ trait NumericalTestService extends EventSink {
       eventualTestResults <- testResults
       _ <- insertTests(eventualTestResults)
       _ <- maybeUpdateProgressStatus(siftTestGroup.applicationId)
-    } yield {}
+    } yield ()
+  }
+
+  def nextApplicationWithResultsReceived(): Future[Option[String]] = {
+
+    (for {
+      applicationId <- applicationSiftRepo.nextApplicationWithResultsReceived
+    } yield {
+      //Option[Future[Option[String]]] - the getOrElse changes this to Future[Option[String]]]
+      val cc  = applicationId.map { appId =>
+          for {
+            progressResponse <- applicationRepo.findProgress(appId)
+            currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(appId)
+            schemesPassed = currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
+            schemesPassedRequiringSift = schemeRepository.schemes.filter( s =>
+              schemesPassed.contains(s.id) && s.siftRequirement.contains(SiftRequirement.FORM)
+            ).map(_.id).toSet
+          } yield {
+            if (schemesPassedRequiringSift.isEmpty) {
+              // Candidate has no schemes that require a form to be filled so we can process the candidate
+              Logger.info(s"**** Candidate $appId has no schemes that require a form to be filled so we will process this one")
+              applicationId
+            } else { // Candidate has schemes that require forms to be filled
+              if (progressResponse.siftProgressResponse.siftFormsCompleteNumericTestPending) {
+                // Forms have already been filled in so can process this candidate
+                Logger.info(s"**** Candidate $appId has schemes that require a form to be filled and has already " +
+                  "submitted the answers so we will process this one")
+                applicationId
+              } else {
+                Logger.info(s"**** Candidate $appId has schemes that require a form to be filled and has not yet submitted " +
+                  "the answers so not processing this one")
+                None
+              }
+            }
+          }
+      }.getOrElse(Future.successful(None))
+      cc
+    }).flatMap(identity) // to flatten Future[Future[Option[String]]]
   }
 }

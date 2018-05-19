@@ -64,6 +64,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(ProgressToSiftJobConfig, ProgressToSiftJob),
     maybeInitScheduler(SiftNumericalTestInvitationConfig, SiftNumericalTestInvitationJob),
     maybeInitScheduler(RetrieveSiftNumericalResultsJobConfig, RetrieveSiftNumericalResultsJob),
+    maybeInitScheduler(ProcessSiftNumericalResultsReceivedJobConfig, ProcessSiftNumericalResultsReceivedJob),
     maybeInitScheduler(ProgressToAssessmentCentreJobConfig, ProgressToAssessmentCentreJob),
     maybeInitScheduler(NotifyAssessorsOfNewEventsJobConfig, NotifyAssessorsOfNewEventsJob),
     maybeInitScheduler(FirstSiftReminderJobConfig, FirstSiftReminderJob),

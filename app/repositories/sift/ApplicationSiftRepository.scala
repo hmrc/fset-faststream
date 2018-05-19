@@ -82,6 +82,7 @@ trait ApplicationSiftRepository {
   def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit]
   def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]]
   def insertCubiksTestResult(appId: String, cubiksTest: CubiksTest, testResult: TestResult): Future[Unit]
+  def nextApplicationWithResultsReceived: Future[Option[String]]
 }
 
 class ApplicationSiftMongoRepository(
@@ -179,6 +180,21 @@ class ApplicationSiftMongoRepository(
     }
 
     selectOneRandom[SiftTestGroupWithAppId](query)
+  }
+
+  def nextApplicationWithResultsReceived: Future[Option[String]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> thisApplicationStatus),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$ne" -> true))
+    ))
+
+    selectOneRandom[BSONDocument](query).map {
+      _.map { doc =>
+        doc.getAs[String]("applicationId").get
+      }
+    }
   }
 
   def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String] = {

@@ -102,6 +102,7 @@ case class SiftProgressResponse(
                                  siftTestInvited: Boolean = false,
                                  siftTestStarted: Boolean = false,
                                  siftTestCompleted: Boolean = false,
+                                 siftFormsCompleteNumericTestPending: Boolean = false,
                                  siftTestResultsReady: Boolean = false,
                                  siftTestResultsReceived: Boolean = false,
                                  siftFirstReminder: Boolean = false,

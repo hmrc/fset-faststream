@@ -17,7 +17,7 @@
 package services.sift
 
 import model.EvaluationResults.{ Green, Withdrawn }
-import model.ProgressStatuses.{ SIFT_COMPLETED, SIFT_READY }
+import model.ProgressStatuses.{ SIFT_COMPLETED, SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING, SIFT_READY }
 import model.command.ProgressResponseExamples
 import model.persisted.SchemeEvaluationResult
 import model.{ Scheme, SchemeId, SiftRequirement }
@@ -134,7 +134,8 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
       }
     }
 
-    "not update sift status to SIFT_READY when the candidate has a numeric test requirement, which has not been done" in new TestFixture {
+    "update sift status to SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING when the candidate has a numeric test requirement, " +
+      "which has not been done" in new TestFixture {
       val currentSchemeStatus = Seq(
         SchemeEvaluationResult(Commercial.id, Green.toString), // Scheme requiring numeric test
         SchemeEvaluationResult(DaT.id, Green.toString) // Scheme requiring form
@@ -145,6 +146,7 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
 
       (mockSiftAnswersRepo.submitAnswers _).expects(AppId, *).returningAsync
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_READY).never().returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _).expects(AppId, SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING).once().returningAsync
 
       whenReady(service.submitAnswers(AppId)) { result =>
         result mustBe unit
