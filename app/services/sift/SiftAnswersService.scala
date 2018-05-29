@@ -86,13 +86,16 @@ trait SiftAnswersService {
       progressResponse <- appRepo.findProgress(applicationId)
       siftTestResultsReceived = progressResponse.siftProgressResponse.siftTestResultsReceived
 
-      _ <- maybeMoveToReady(applicationId, schemesPassed, siftTestResultsReceived)
+      _ <- maybeMoveToReadyOrTestPending(applicationId, schemesPassed, siftTestResultsReceived)
       _ <- maybeMoveToCompleted(applicationId, schemesPassed, schemesPassedNotRequiringSift)
     } yield {}
   }
 
   // Maybe move the candidate to SIFT_READY to indicate he/she is ready to be sifted for form based schemes
-  private def maybeMoveToReady(applicationId: String, schemesPassed: Set[SchemeId], siftTestResultsReceived: Boolean): Future[Unit] = {
+  // or to SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING to indicate the forms have been submitted and we are waiting
+  // for the numeric test to be completed
+  private def maybeMoveToReadyOrTestPending(applicationId: String,
+    schemesPassed: Set[SchemeId], siftTestResultsReceived: Boolean): Future[Unit] = {
 
     val hasNumericSchemes = schemeRepository.numericTestSiftRequirementSchemeIds.exists( s => schemesPassed.contains(s))
 
@@ -108,10 +111,10 @@ trait SiftAnswersService {
           s"taken the numeric test and received the results so moving to ${ProgressStatuses.SIFT_READY}")
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
       case (true, false) =>
-        // Numeric schemes and the test results have not been received so do not move the candidate
+        // Numeric schemes and the test results have not been received so move the candidate to NUMERIC_TEST_PENDING
         Logger.info(s"Candidate $applicationId has submitted sift forms, has numeric schemes but has " +
-          s"not received test results so not moving to ${ProgressStatuses.SIFT_READY}")
-        Future.successful(())
+          s"not received test results so now moving to ${ProgressStatuses.SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING}")
+        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING)
       case _ =>
         // Do not move the candidate
         Logger.info(s"Candidate $applicationId is not yet in a state to move to ${ProgressStatuses.SIFT_READY}")
