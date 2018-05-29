@@ -41,7 +41,7 @@ trait ProcessSiftNumericalResultsReceivedJob extends SingleInstanceScheduledJob[
     numericalTestService.nextApplicationWithResultsReceived.flatMap {
       case Some(applicationId) =>
         Logger.info(s"$intro - processing candidate with applicationId: $applicationId")
-        Future.successful(())
+        numericalTestService.progressToSiftReady(applicationId)
       case None =>
         Logger.info(s"$intro - found no candidates")
         Future.successful(())

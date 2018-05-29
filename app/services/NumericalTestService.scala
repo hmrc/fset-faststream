@@ -276,8 +276,7 @@ trait NumericalTestService extends EventSink {
     (for {
       applicationId <- applicationSiftRepo.nextApplicationWithResultsReceived
     } yield {
-      //Option[Future[Option[String]]] - the getOrElse changes this to Future[Option[String]]]
-      val cc  = applicationId.map { appId =>
+      applicationId.map { appId =>
           for {
             progressResponse <- applicationRepo.findProgress(appId)
             currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(appId)
@@ -288,23 +287,28 @@ trait NumericalTestService extends EventSink {
           } yield {
             if (schemesPassedRequiringSift.isEmpty) {
               // Candidate has no schemes that require a form to be filled so we can process the candidate
-              Logger.info(s"**** Candidate $appId has no schemes that require a form to be filled so we will process this one")
+              Logger.info(s"**** Candidate $appId has no schemes that require a form to be filled in so we will process this one")
               applicationId
             } else { // Candidate has schemes that require forms to be filled
               if (progressResponse.siftProgressResponse.siftFormsCompleteNumericTestPending) {
                 // Forms have already been filled in so can process this candidate
-                Logger.info(s"**** Candidate $appId has schemes that require a form to be filled and has already " +
+                Logger.info(s"**** Candidate $appId has schemes that require a form to be filled in and has already " +
                   "submitted the answers so we will process this one")
                 applicationId
               } else {
-                Logger.info(s"**** Candidate $appId has schemes that require a form to be filled and has not yet submitted " +
+                Logger.info(s"**** Candidate $appId has schemes that require a form to be filled in and has not yet submitted " +
                   "the answers so not processing this one")
                 None
               }
             }
           }
       }.getOrElse(Future.successful(None))
-      cc
-    }).flatMap(identity) // to flatten Future[Future[Option[String]]]
+    }).flatMap(identity)
+  }
+
+  def progressToSiftReady(applicationId: String): Future[Unit] = {
+    applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY).map { _ =>
+      Logger.info(s"Successfully moved $applicationId to ${ProgressStatuses.SIFT_READY}")
+    }
   }
 }
