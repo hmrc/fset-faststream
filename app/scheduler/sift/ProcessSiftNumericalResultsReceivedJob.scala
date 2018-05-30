@@ -17,12 +17,10 @@
 package scheduler.sift
 
 import config.WaitingScheduledJobConfig
-import model.EmptyRequestHeader
 import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.NumericalTestService
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 

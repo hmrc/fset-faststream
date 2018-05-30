@@ -271,8 +271,7 @@ trait NumericalTestService extends EventSink {
     } yield ()
   }
 
-  def nextApplicationWithResultsReceived(): Future[Option[String]] = {
-
+  def nextApplicationWithResultsReceived: Future[Option[String]] = {
     (for {
       applicationId <- applicationSiftRepo.nextApplicationWithResultsReceived
     } yield {
