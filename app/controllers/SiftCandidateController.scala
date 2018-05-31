@@ -42,6 +42,28 @@ trait SiftCandidateController extends BaseController {
     }
   }
 
+  def reset(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    //here
+//    withJsonBody[SiftExtension] { extension =>
+//      siftExpiryExtensionService.extendExpiryTime(applicationId, extension.extraDays, extension.actionTriggeredBy)
+//        .map( _ => Ok )
+//    }
+    Logger.info(s"**** reset called with applicationId = $applicationId")
+    scala.concurrent.Future.successful(Ok)
+  }
+
+/*
+  def resetPhase1OnlineTests(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
+      appRepository.getOnlineTestApplication(applicationId).flatMap {
+        case Some(onlineTestApp) => phase1TestService.resetTests(onlineTestApp, resetOnlineTest.tests, resetOnlineTest.actionTriggeredBy)
+          .map ( _ => Ok )
+        case _ => Future.successful(NotFound)
+      }
+    }
+  }
+*/
+
   def getSiftState(applicationId: String) = Action.async { implicit request =>
     applicationSiftService.getSiftState(applicationId) map {
       case Some(siftState) =>
