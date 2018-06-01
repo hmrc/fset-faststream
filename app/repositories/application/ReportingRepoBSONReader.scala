@@ -29,6 +29,7 @@ import model.OnlineTestCommands.TestResult
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.command._
 import model.persisted._
+import model.persisted.sift.SiftTestGroup
 import model.report._
 import play.api.Logger
 import play.api.libs.json.Json
@@ -302,12 +303,14 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     val (behaviouralTestResult, situationalTestResult) = toPhase1TestResults(testGroupsDoc)
     val etrayTestResult = toPhase2TestResults(applicationId, testGroupsDoc)
     val videoInterviewResults = toPhase3TestResults(testGroupsDoc)
+    val siftTestResults = toSiftTestResults(applicationId, testGroupsDoc)
 
     TestResultsForOnlineTestPassMarkReportItem(
       behaviouralTestResult,
       situationalTestResult,
       etrayTestResult,
       videoInterviewResults,
+      siftTestResults,
       None, None, None)
   }
 
@@ -373,5 +376,19 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   private[this] def toTestResult(tr: model.persisted.TestResult) = {
     TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
+  }
+
+  private[application] def toSiftTestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]): Option[TestResult] = {
+    val siftDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
+    siftDocOpt.flatMap { siftDoc =>
+      val siftTestProfile = SiftTestGroup.bsonHandler.read(siftDoc)
+      siftTestProfile.activeTests.size match {
+        case 1 => siftTestProfile.activeTests.head.testResult.map { tr => toTestResult(tr) }
+        case 0 => None
+        case s if s > 1 =>
+          Logger.error(s"There are $s active sift tests which is invalid for application id [$applicationId]")
+          None
+      }
+    }
   }
 }

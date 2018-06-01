@@ -34,12 +34,12 @@ import services.personaldetails.PersonalDetailsService
 import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
-import testkit.UnitSpec
+import testkit.{ ExtendedTimeout, UnitSpec }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class FastPassServiceSpec extends UnitSpec {
+class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "processFastPassCandidate" should {
     "process correctly an approved fast pass candidate" in new TextFixtureWithMockResponses {
