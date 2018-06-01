@@ -246,14 +246,14 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "testGroups.PHASE1" -> "1",
       "testGroups.PHASE2" -> "1",
       "testGroups.PHASE3.tests.callbacks.reviewed" -> 1,
+      "testGroups.SIFT_PHASE" -> "1",
       "progress-status" -> "1",
       "currentSchemeStatus" -> "1"
     )
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
   }
-
-
+  
   //scalastyle:off method.length
   override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]] = {
     val query = BSONDocument("$and" ->
