@@ -22,7 +22,9 @@ import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 // The tests are optional because it depends on the candidate having schemes that require a numeric test for the tests to be populated
-case class SiftTestGroup(expirationDate: DateTime, tests: Option[List[CubiksTest]])
+case class SiftTestGroup(expirationDate: DateTime, tests: Option[List[CubiksTest]]) {
+  def activeTests = tests.getOrElse(Nil).filter(_.usedForResults)
+}
 
 object SiftTestGroup {
   import repositories.BSONDateTimeHandler
