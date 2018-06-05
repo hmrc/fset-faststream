@@ -18,7 +18,6 @@ package scheduler.sift
 
 import config.WaitingScheduledJobConfig
 import model.EmptyRequestHeader
-import model.NumericalTestApplication
 import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -43,14 +42,19 @@ trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJob
     implicit val hc = HeaderCarrier()
     implicit val rh = EmptyRequestHeader
     Logger.info("Looking for candidates to invite to sift numerical test")
-    siftService.nextApplicationsReadyForNumericTestsInvitation(batchSize).map {
+    siftService.nextApplicationsReadyForNumericTestsInvitation(batchSize).flatMap {
       case Nil =>
         Logger.info("No application found for sift numerical test invitation")
         Future.successful(())
       case applications =>
         Logger.info(s"${applications.size} application(s) found for sift numerical test invitation")
         Logger.info(s"Inviting candidates to take a sift numerical test with IDs: ${applications.map(_.applicationId)}")
-        numericalTestService.registerAndInviteForTests(applications.toList)
+        numericalTestService.registerAndInviteForTests(applications.toList).map(_ => ())
+          .recover { case e: Throwable =>
+            val msg = s"Error occurred while registering and inviting candidates $applications " +
+              s"for sift numeric tests - $e. Caused by ${e.getCause}"
+            Logger.error(msg)
+          }
     }
   }
 }
