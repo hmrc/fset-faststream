@@ -16,15 +16,21 @@
 
 package services
 
-import config.{ CubiksGatewayConfig, NumericalTestsConfig }
-import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
+import config.{ CubiksGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
+import connectors.{ CubiksGatewayClient, EmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.Green
+import model.Exceptions.UnexpectedException
+import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ProgressResponseExamples
-import model.persisted.SchemeEvaluationResult
-import org.mockito.ArgumentMatchers.{ eq => eqTo }
+import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
+import model.persisted.{ ContactDetails, CubiksTest, SchemeEvaluationResult }
+import org.joda.time.DateTime
+import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
+import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -32,6 +38,9 @@ import repositories.sift.ApplicationSiftRepository
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
+import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionException
 
 class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -43,7 +52,9 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
     val mockEmailClient: EmailClient = mock[EmailClient]
 
     val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
-    val mockNumericalTestsConfig = mock[NumericalTestsConfig]
+    when(mockCubiksGatewayConfig.candidateAppUrl).thenReturn("localhost")
+    val mockNumericalTestsConfig = NumericalTestsConfig(Map("sample" -> NumericalTestSchedule(1, 1)))
+
     val mockCubiksGatewayClient: CubiksGatewayClient = mock[CubiksGatewayClient]
     val mockDateTimeFactory: DateTimeFactory = mock[DateTimeFactory]
 
@@ -73,6 +84,99 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     val appId = "appId"
+    implicit val hc = HeaderCarrier()
+    implicit val rh = mock[RequestHeader]
+    val invite = Invitation(userId = 1, "test@test.com", accessCode = "123", logonUrl = "", authenticateUrl = "",
+      participantScheduleId = 1)
+
+    val contactDetails = ContactDetails(outsideUk = false, Address("line1"), postCode = None, country = None,
+      email = "test@test.com", "0800900900")
+
+    val siftTestGroupNoTests = SiftTestGroup(expirationDate = DateTime.now(), tests = None)
+
+    val app = NumericalTestApplication(appId, "userId", ApplicationStatus.SIFT, needsOnlineAdjustments = false,
+      eTrayAdjustments = None, currentSchemeStatus = Seq(SchemeEvaluationResult("Commercial", Green.toString)))
+    val applications = List(app)
+  }
+
+  "NumericalTestService.registerAndInviteForTests" must {
+    "handle an empty list of applications" in new TestFixture {
+      service.registerAndInviteForTests(Nil).futureValue
+      verifyZeroInteractions(service.cubiksGatewayClient)
+    }
+
+    "throw an exception if no SIFT_PHASE test group is found" in new TestFixture {
+      when(mockCubiksGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
+
+      when(mockCubiksGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
+
+      when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(None) // This will result in exception being thrown
+
+      val failedFuture = service.registerAndInviteForTests(applications).failed.futureValue
+      failedFuture mustBe a[UnexpectedException]
+      failedFuture.getMessage mustBe s"Application $appId should have a SIFT_PHASE testGroup at this point"
+    }
+
+    //TODO: take a closer look at the NotImplementedError
+    "throw an exception if no SIFT_PHASE test group is found and the tests have already been populated" in new TestFixture {
+      when(mockCubiksGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
+
+      when(mockCubiksGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
+
+      val cubiksTest = CubiksTest(
+        scheduleId = 1,
+        usedForResults = true,
+        cubiksUserId = 2,
+        token = "abc",
+        testUrl = "test@test.com",
+        invitationDate = DateTime.now(),
+        participantScheduleId = 1
+      )
+
+      val siftTestGroup = SiftTestGroup(expirationDate = DateTime.now(), tests = Some(List(cubiksTest)))
+      when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroup)) // This will result in exception being thrown
+
+      val failedFuture = service.registerAndInviteForTests(applications).failed.futureValue
+      failedFuture mustBe a[ExecutionException]
+      failedFuture.getCause.getMessage mustBe "Test may have been reset, change the active test here"
+    }
+
+    "throw an exception if no notification expiring sift details are found" in new TestFixture {
+      when(mockCubiksGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
+
+      when(mockCubiksGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
+
+      when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
+      when(mockSiftRepo.insertNumericalTests(any[String], any[List[CubiksTest]])).thenReturnAsync()
+
+      when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(contactDetails)
+
+      when(mockSiftRepo.getNotificationExpiringSift(any[String])).thenReturnAsync(None) // This will result in exception being thrown
+
+      val failedFuture = service.registerAndInviteForTests(applications).failed.futureValue
+      failedFuture mustBe a[IllegalStateException]
+      failedFuture.getMessage mustBe s"No sift notification details found for candidate $appId"
+    }
+
+    "successfully process a candidate" in new TestFixture {
+      when(mockCubiksGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
+
+      when(mockCubiksGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
+
+      when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
+      when(mockSiftRepo.insertNumericalTests(any[String], any[List[CubiksTest]])).thenReturnAsync()
+
+      when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(contactDetails)
+
+      val notificationExpiringSift = NotificationExpiringSift(appId, "userId", "Jo", DateTime.now())
+      when(mockSiftRepo.getNotificationExpiringSift(any[String])).thenReturnAsync(Some(notificationExpiringSift))
+
+      when(mockEmailClient.sendSiftNumericTestInvite(any[String], any[String], any[DateTime])(any[HeaderCarrier])).thenReturnAsync()
+
+      when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+
+      service.registerAndInviteForTests(applications).futureValue
+    }
   }
 
   "NumericalTestService.nextApplicationWithResultsReceived" must {

@@ -74,10 +74,29 @@ trait NumericalTestService extends EventSink {
   def registerAndInviteForTests(applications: List[NumericalTestApplication])
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val schedule = testConfig.schedules("sample") //TODO: Update this schedule
-      registerAndInvite(applications, schedule).map(_ => ())
+    registerAndInvite(applications, schedule).map(_ => ())
   }
 
-  def registerApplicants(candidates: Seq[NumericalTestApplication], tokens: Seq[String])
+  private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    applications match {
+      case Nil => Future.successful(())
+      case candidates =>
+        val tokens = (1 to candidates.size).map(_ => tokenFactory.generateUUID())
+        for {
+          registeredApplicants <- registerApplicants(candidates, tokens)
+          invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
+          _ <- insertNumericalTest(invitedApplicants)
+          _ <- emailInvitedCandidates(invitedApplicants)
+          _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
+        } yield {
+          Logger.info(s"Successfully invited candidates to take a sift numerical test with Ids: " +
+            s"${invitedApplicants.map(_.application.applicationId)} - moved to $SIFT_TEST_INVITED")
+        }
+    }
+  }
+
+  private def registerApplicants(candidates: Seq[NumericalTestApplication], tokens: Seq[String])
                         (implicit hc: HeaderCarrier): Future[Map[Int, (NumericalTestApplication, String, Registration)]] = {
     cubiksGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map{
       case (registration, idx) =>
@@ -86,7 +105,7 @@ trait NumericalTestService extends EventSink {
     }.toMap)
   }
 
-  def inviteApplicants(candidateData: Map[Int, (NumericalTestApplication, String, Registration)],
+  private def inviteApplicants(candidateData: Map[Int, (NumericalTestApplication, String, Registration)],
                        schedule: NumericalTestSchedule)(implicit hc: HeaderCarrier): Future[List[NumericalTestInviteData]] = {
     val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/sift-test"
     val invites = candidateData.values.map {
@@ -106,7 +125,7 @@ trait NumericalTestService extends EventSink {
     })
   }
 
-  def insertNumericalTest(invitedApplicants: List[NumericalTestInviteData]): Future[Unit] = {
+  private def insertNumericalTest(invitedApplicants: List[NumericalTestInviteData]): Future[Unit] = {
     val invitedApplicantsOps = invitedApplicants.map { invite =>
       val tests = List(
         CubiksTest(
@@ -121,7 +140,7 @@ trait NumericalTestService extends EventSink {
       )
       upsertTests(invite.application, tests)
     }
-    Future.sequence(invitedApplicantsOps).map(_ => ())
+    Future.sequence(invitedApplicantsOps).map(_ => ()) // Process List[Future[Unit]] into Future[Unit]
   }
 
   private def calculateAbsoluteTimeWithAdjustments(application: NumericalTestApplication): Int = {
@@ -143,7 +162,6 @@ trait NumericalTestService extends EventSink {
           throw UnexpectedException(s"Application ${application.applicationId} should have a SIFT_PHASE testGroup at this point")
       }
     }
-
     for {
       currentTestGroupOpt <- applicationSiftRepo.getTestGroup(application.applicationId)
       updatedTestGroup <- upsert(application.applicationId, currentTestGroupOpt, newTests)
@@ -151,30 +169,10 @@ trait NumericalTestService extends EventSink {
     } yield ()
   }
 
-
-  def updateProgressStatuses(applicationIds: List[String], progressStatus: ProgressStatus): Future[Unit] = {
+  private def updateProgressStatuses(applicationIds: List[String], progressStatus: ProgressStatus): Future[Unit] = {
     Future.sequence(
       applicationIds.map(id => applicationRepo.addProgressStatusAndUpdateAppStatus(id, progressStatus))
     ).map(_ => ())
-  }
-
-  private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
-                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    applications match {
-      case Nil => Future.successful(())
-      case candidates =>
-        val tokens = (1 to candidates.size).map(_ => tokenFactory.generateUUID())
-        for {
-          registeredApplicants <- registerApplicants(candidates, tokens)
-          invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
-          _ <- insertNumericalTest(invitedApplicants)
-          _ <- emailInvitedCandidates(invitedApplicants)
-          _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
-        } yield {
-          Logger.info(s"Successfully invited candidates to take a sift numerical test with IDs: " +
-            s"${invitedApplicants.map(_.application.applicationId)} - moved to $SIFT_TEST_INVITED")
-        }
-    }
   }
 
   private def emailInvitedCandidates(invitedApplicants: List[NumericalTestInviteData]): Future[Unit] = {
