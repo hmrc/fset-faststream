@@ -17,7 +17,7 @@
 package services
 
 import config.{ CubiksGatewayConfig, NumericalTestsConfig }
-import connectors.{ CubiksGatewayClient, EmailClient }
+import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.Green
 import model._
@@ -68,6 +68,8 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       val dateTimeFactory: DateTimeFactory = mockDateTimeFactory
       override def schemeRepository: SchemeRepository = mockSchemeRepo
       val eventService = eventServiceMock
+      override def emailClient = mockEmailClient
+      override def contactDetailsRepo = mockContactDetailsRepo
     }
 
     val appId = "appId"

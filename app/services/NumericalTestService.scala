@@ -18,7 +18,7 @@ package services
 
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import config.{ CubiksGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
-import connectors.CubiksGatewayClient
+import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration, TimeAdjustments }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.UnexpectedException
@@ -32,6 +32,7 @@ import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.{ SchemeRepository, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
 import repositories.sift.ApplicationSiftRepository
 import services.stc.{ EventSink, StcEventService }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -48,6 +49,8 @@ object NumericalTestService extends NumericalTestService {
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val eventService: StcEventService = StcEventService
   val schemeRepository = SchemeYamlRepository
+  val emailClient: CSREmailClient = CSREmailClient
+  val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
 }
 
 trait NumericalTestService extends EventSink {
@@ -59,6 +62,8 @@ trait NumericalTestService extends EventSink {
   val cubiksGatewayClient: CubiksGatewayClient
   val dateTimeFactory: DateTimeFactory
   def schemeRepository: SchemeRepository
+  def emailClient: EmailClient
+  def contactDetailsRepo: ContactDetailsRepository
 
   case class NumericalTestInviteData(application: NumericalTestApplication,
                                      scheduleId: Int,
@@ -163,11 +168,30 @@ trait NumericalTestService extends EventSink {
           registeredApplicants <- registerApplicants(candidates, tokens)
           invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
           _ <- insertNumericalTest(invitedApplicants)
+          _ <- emailInvitedCandidates(invitedApplicants)
           _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
-          _ = Logger.info(s"Successfully invited candidates to take a sift numerical test with IDs: " +
+        } yield {
+          Logger.info(s"Successfully invited candidates to take a sift numerical test with IDs: " +
             s"${invitedApplicants.map(_.application.applicationId)} - moved to $SIFT_TEST_INVITED")
-        } yield ()
+        }
     }
+  }
+
+  private def emailInvitedCandidates(invitedApplicants: List[NumericalTestInviteData]): Future[Unit] = {
+    val emailFutures = invitedApplicants.map { applicant =>
+      (for {
+        emailAddress <- contactDetailsRepo.find(applicant.application.userId).map(_.email)
+        notificationExpiringSiftOpt <- applicationSiftRepo.getNotificationExpiringSift(applicant.application.applicationId)
+      } yield {
+        implicit val hc = HeaderCarrier()
+        val msg = s"Sending sift numeric test invite email to candidate ${applicant.application.applicationId}..."
+        Logger.info(msg)
+        notificationExpiringSiftOpt.map { notification =>
+          emailClient.sendSiftNumericTestInvite(emailAddress, notification.preferredName, notification.expiryDate)
+        }.getOrElse(throw new IllegalStateException(s"No sift notification details found for candidate ${applicant.application.applicationId}"))
+      }).flatMap(identity)
+    }
+    Future.sequence(emailFutures).map(_ => ()) // Process the List[Future[Unit]] into single Future[Unit]
   }
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
