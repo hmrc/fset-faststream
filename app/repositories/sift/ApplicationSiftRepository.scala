@@ -83,6 +83,7 @@ trait ApplicationSiftRepository {
   def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]]
   def insertCubiksTestResult(appId: String, cubiksTest: CubiksTest, testResult: TestResult): Future[Unit]
   def nextApplicationWithResultsReceived: Future[Option[String]]
+  def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]]
 }
 
 class ApplicationSiftMongoRepository(
@@ -278,6 +279,13 @@ class ApplicationSiftMongoRepository(
 
     implicit val reader = bsonReader(x => NotificationExpiringSift.fromBson(x, phaseName))
     selectOneRandom[NotificationExpiringSift](query)
+  }
+
+  def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    collection.find(query).one[BSONDocument] map {
+      _.map(doc => NotificationExpiringSift.fromBson(doc, phaseName))
+    }
   }
 
   def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]] = {
