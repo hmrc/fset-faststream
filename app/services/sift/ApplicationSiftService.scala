@@ -175,7 +175,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   def expireCandidate(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
     applicationRepo
       .addProgressStatusAndUpdateAppStatus(appForExpiry.applicationId, ProgressStatuses.SIFT_EXPIRED)
-      .map(_ => Logger.info(s"Expiring Application: $appForExpiry"))
+      .map(_ => Logger.info(s"Expired SIFT application: $appForExpiry"))
   }
 
   def expireCandidates(appsForExpiry: Seq[ApplicationForSiftExpiry]): Future[Unit] = {
