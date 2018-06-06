@@ -67,4 +67,9 @@ object ProgressResponseExamples {
   val siftEntered = phase3TestsPassed.copy(siftProgressResponse = SiftProgressResponse(
     siftEntered = true
   ))
+
+  val siftExpired = phase3TestsPassed.copy(siftProgressResponse = SiftProgressResponse(
+    siftEntered = true,
+    siftExpired = true
+  ))
 }

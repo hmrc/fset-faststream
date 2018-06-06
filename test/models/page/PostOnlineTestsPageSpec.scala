@@ -28,6 +28,7 @@ import helpers.{ CachedUserWithSchemeData, CurrentSchemeStatus }
 import models.ApplicationData.ApplicationStatus
 import models._
 import models.events.AllocationStatuses
+import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
 import org.joda.time.DateTime
 
 class PostOnlineTestsPageSpec extends UnitSpec {
@@ -187,6 +188,44 @@ class PostOnlineTestsPageSpec extends UnitSpec {
       val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = true, List.empty, None)
 
       page.isFinalFailure mustBe true
+    }
+
+    "enable the steps according to the sift visibility rules" in {
+      val schemeResults = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Red.toString) :: Nil
+
+      val siftUserDataWithApp = userDataWithApp.copy(
+        application = ApplicationData(randUUID, randUUID,
+          ApplicationStatus.SIFT, ApplicationRoute.Faststream, ProgressResponseExamples.siftExpired,
+          civilServiceExperienceDetails = None, edipCompleted = None, overriddenSubmissionDeadline = None
+        )
+      )
+
+      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, siftUserDataWithApp.application, selectedSchemes,
+        Schemes.AllSchemes, None, None, schemeResults)
+
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty, None)
+
+      page.secondStepVisibility mustBe ProgressInactiveDisabled
+      page.fourthStepVisibility mustBe ProgressInactiveDisabled
+    }
+
+    "disable the steps according to the sift visibility rules" in {
+      val schemeResults = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Red.toString) :: Nil
+
+      val siftUserDataWithApp = userDataWithApp.copy(
+        application = ApplicationData(randUUID, randUUID,
+          ApplicationStatus.SIFT, ApplicationRoute.Faststream, ProgressResponseExamples.siftEntered,
+          civilServiceExperienceDetails = None, edipCompleted = None, overriddenSubmissionDeadline = None
+        )
+      )
+
+      val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, siftUserDataWithApp.application, selectedSchemes,
+        Schemes.AllSchemes, None, None, schemeResults)
+
+      val page = PostOnlineTestsPage(cachedUserMetadata, Seq.empty, None, hasAnalysisExercise = false, List.empty, None)
+
+      page.secondStepVisibility mustBe ProgressActive
+      page.fourthStepVisibility mustBe ProgressActive
     }
   }
 }
