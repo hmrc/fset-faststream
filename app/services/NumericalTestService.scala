@@ -74,7 +74,7 @@ trait NumericalTestService extends EventSink {
   def registerAndInviteForTests(applications: List[NumericalTestApplication])
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val schedule = testConfig.schedules("sample") //TODO: Update this schedule
-    registerAndInvite(applications, schedule).map(_ => ())
+    registerAndInvite(applications, schedule)
   }
 
   private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
