@@ -136,7 +136,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    applicationSiftRepo.siftResultsExistsForScheme(applicationId, result.schemeId).map { siftResultsExists =>
+    applicationSiftRepo.siftResultsExistsForScheme(applicationId, result.schemeId).flatMap { siftResultsExists =>
       if(siftResultsExists) {
         throw SiftResultsAlreadyExistsException(s"Sift result already exists for appId $applicationId and scheme ${result.schemeId}")
       } else {
@@ -154,13 +154,13 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   def processExpiredCandidates(batchSize: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     def processApplication(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
       expireCandidate(appForExpiry)
-        .map(_ => notifyExpiredCandidate(appForExpiry.applicationId))
+        .flatMap(_ => notifyExpiredCandidate(appForExpiry.applicationId))
     }
 
     nextApplicationsForExpiry(batchSize)
       .flatMap {
         case Nil =>
-          Logger.info("No application found for SIFT expiry")
+          Logger.info("No applications found for SIFT expiry")
           Future.successful(())
         case applications: Seq[ApplicationForSiftExpiry] =>
           Logger.info(s"${applications.size} applications found for SIFT expiry -- $applications")

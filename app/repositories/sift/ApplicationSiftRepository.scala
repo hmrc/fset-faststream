@@ -292,6 +292,7 @@ class ApplicationSiftMongoRepository(
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"testGroups.$phaseName.expirationDate" -> BSONDocument("$lte" -> DateTimeFactory.nowLocalTimeZone))
     ))
