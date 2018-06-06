@@ -271,7 +271,7 @@
         </li>
 
         @if(page.userDataWithSchemes.requiresAssessmentCentre && !page.isOnlySdipGreen) {
-            <li class="second-step">
+            <li class="second-step @activateByStep(page.secondStepVisibility)">
             @renderAssessmentCentre
             </li>
         }

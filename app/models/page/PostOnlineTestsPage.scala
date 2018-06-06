@@ -229,10 +229,18 @@ case class PostOnlineTestsPage(
       timeNow.isAfter(sessionDateTime)
     }
 
+  val secondStepVisibility: Flags.ProgressStepVisibility = {
+    if(userDataWithSchemes.application.isSiftExpired) {
+      ProgressInactiveDisabled
+    } else {
+      ProgressActive
+    }
+  }
+
   val fourthStepVisibility: Flags.ProgressStepVisibility = {
     userDataWithSchemes.application.progress.assessmentCentre match {
-      case a if a.failedToAttend | a.failed => ProgressInactiveDisabled
-      case _                                => ProgressActive
+      case a if a.failedToAttend | a.failed | userDataWithSchemes.application.isSiftExpired => ProgressInactiveDisabled
+      case _  => ProgressActive
     }
   }
 }
