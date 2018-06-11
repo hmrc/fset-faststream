@@ -129,7 +129,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
-      applicationStatus.status mustBe SUBMITTED.toString
+      applicationStatus.applicationStatus mustBe SUBMITTED.toString
       timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
 
@@ -157,7 +157,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
-      applicationStatus.status mustBe WITHDRAWN.toString
+      applicationStatus.applicationStatus mustBe WITHDRAWN.toString
       timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
   }

@@ -22,13 +22,14 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions._
 import model.ProgressStatuses._
-import model.command.{ WithdrawApplication, WithdrawRequest, WithdrawScheme }
+import model.command.{ ProgressResponse, WithdrawApplication, WithdrawRequest, WithdrawScheme }
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.{ CandidateAllocation, ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ProgressStatuses, _ }
 import model.exchange.SchemeEvaluationResultWithFailureDetails
+import model.exchange.sift.SiftAnswersStatus
 import model.persisted.eventschedules.EventType
 import org.joda.time.DateTime
 import play.api.Logger
@@ -52,7 +53,7 @@ import services.stc.{ EventSink, StcEventService }
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
-import services.sift.ApplicationSiftService
+import services.sift.{ ApplicationSiftService, SiftAnswersService }
 
 import scala.collection.immutable.ListMap
 import scala.concurrent.{ ExecutionContext, Future }
@@ -70,6 +71,7 @@ object ApplicationService extends ApplicationService with CurrentSchemeStatusHel
   val evaluateP2ResultService = EvaluatePhase2ResultService
   val evaluateP3ResultService = EvaluatePhase3ResultService
   val siftService = ApplicationSiftService
+  val siftAnswersService = SiftAnswersService
   val schemesRepo = SchemeYamlRepository
   val phase1TestRepo = repositories.phase1TestRepository
   val phase2TestRepository = repositories.phase2TestRepository
@@ -103,6 +105,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def evaluateP2ResultService: EvaluateOnlineTestResultService[Phase2PassMarkSettings]
   def evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
   def siftService: ApplicationSiftService
+  def siftAnswersService: SiftAnswersService
   def schemesRepo: SchemeRepository
   def phase1TestRepo: Phase1TestRepository
   def phase2TestRepository: Phase2TestRepository
@@ -142,7 +145,6 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
           }
       }
     }) flatMap identity
-
   }
 
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatus): Future[Unit] = {
@@ -212,20 +214,69 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       } else { Future.successful(Nil) }
     }
 
-    // move the candidate to SIFT_READY if the candidate is in SIFT_ENTERED and withdraws from all schemes requiring a
-    // form to be filled in and is still in the running for schemes that require a sift
-    def maybeProgressToSiftReady(schemeStatus: Seq[SchemeEvaluationResult], latestProgressStatus: Option[ProgressStatus]) = {
+    def requirementSatisfied(req1: Boolean, req2: Boolean) = (req1, req2) match {
+      case (false, _) => true // eg no numeric test needed/form to be filled
+      case (true, true) => true // eg numeric test needed/form to be filled and the test has been done/form has been submitted
+      case _ => false // Everything else
+    }
+
+    // Move the candidate to SIFT_READY if the candidate is in SIFT_ENTERED and after withdrawal, the numeric test requirements are
+    // satisfied, the form requirements are satisfied and the candidate still has at least one scheme that needs an evaluation
+    def maybeProgressToSiftReady(schemeStatus: Seq[SchemeEvaluationResult],
+      progressResponse: ProgressResponse, applicationStatus: ApplicationStatus, siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
+
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
 
-      val atLeastOneNumericTestScheme = greenSchemes.exists( s => schemesRepo.numericTestSiftRequirementSchemeIds.contains(s) )
+      val numericTestRequired = greenSchemes.exists( s => schemesRepo.numericTestSiftRequirementSchemeIds.contains(s) )
+      val numericTestCompleted = progressResponse.siftProgressResponse.siftTestResultsReceived
+      val numericTestRequirementSatisfied = requirementSatisfied(numericTestRequired, numericTestCompleted)
 
-      val shouldProgressCandidate = latestProgressStatus.contains(ProgressStatuses.SIFT_ENTERED) &&
-        (greenSchemes subsetOf (schemesRepo.noSiftEvaluationRequiredSchemeIds ++ schemesRepo.numericTestSiftRequirementSchemeIds).toSet) &&
-        atLeastOneNumericTestScheme
+      val formMustBeFilledIn = greenSchemes.exists( s => schemesRepo.formMustBeFilledInSchemeIds.contains(s) )
+      val formsHaveBeenFilledIn = siftAnswersStatus.contains(SiftAnswersStatus.SUBMITTED)
+      val formRequirementSatisfied = requirementSatisfied(formMustBeFilledIn, formsHaveBeenFilledIn)
+
+      // we have at least one scheme that needs an evaluation
+      val siftEvaluationNeeded = greenSchemes.exists( s => schemesRepo.siftableAndEvaluationRequiredSchemeIds.contains(s) )
+
+      val shouldProgressCandidate = applicationStatus == ApplicationStatus.SIFT &&
+        progressResponse.siftProgressResponse.siftEntered &&
+        !progressResponse.siftProgressResponse.siftReady && !progressResponse.siftProgressResponse.siftCompleted &&
+        numericTestRequirementSatisfied && formRequirementSatisfied && siftEvaluationNeeded
 
       if (shouldProgressCandidate) {
+        Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to SIFT_READY")
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY).map { _ => }
-      } else { Future.successful(()) }
+      } else {
+        Logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to SIFT_READY")
+        Future.successful(()) }
+    }
+
+    // Move the candidate to SIFT_COMPLETED if none of the remaining schemes need a sift evaluation and forms requirements
+    // are satisfied. We don't bother checking numeric test requirements as these need a sift evaluation and we only process
+    // the candidate if no sift evaluation is needed
+    def maybeProgressToSiftCompleted(schemeStatus: Seq[SchemeEvaluationResult],
+      progressResponse: ProgressResponse, applicationStatus: ApplicationStatus, siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
+
+      val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
+
+      // do we have schemes that that need a form to be filled in?
+      val formMustBeFilledIn = greenSchemes.exists( s => schemesRepo.formMustBeFilledInSchemeIds.contains(s) )
+      val formsHaveBeenFilledIn = siftAnswersStatus.contains(SiftAnswersStatus.SUBMITTED)
+      val formRequirementSatisfied = requirementSatisfied(formMustBeFilledIn, formsHaveBeenFilledIn)
+
+      val noSiftEvaluationNeeded = greenSchemes.forall( s => schemesRepo.noSiftEvaluationRequiredSchemeIds.contains(s) )
+
+      val shouldProgressCandidate = applicationStatus == ApplicationStatus.SIFT &&
+        progressResponse.siftProgressResponse.siftEntered && !progressResponse.siftProgressResponse.siftReady &&
+        !progressResponse.siftProgressResponse.siftCompleted &&
+        noSiftEvaluationNeeded && formRequirementSatisfied
+
+      if (shouldProgressCandidate) {
+        Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to SIFT_COMPLETED")
+        appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED).map { _ => }
+      } else {
+        Logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to SIFT_COMPLETED")
+        Future.successful(()) }
     }
 
     for {
@@ -234,7 +285,13 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       appStatuses <- appRepository.findStatus(applicationId)
       _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, latestSchemeStatus)
       _ <- maybeProgressToFSAC(latestSchemeStatus, appStatuses.latestProgressStatus)
-      _ <- maybeProgressToSiftReady(latestSchemeStatus, appStatuses.latestProgressStatus)
+
+      progressResponse <- appRepository.findProgress(applicationId)
+      siftAnswersStatus <- siftAnswersService.findSiftAnswersStatus(applicationId)
+      _ <- maybeProgressToSiftReady(latestSchemeStatus, progressResponse,
+        ApplicationStatus.withName(appStatuses.applicationStatus), siftAnswersStatus)
+      _ <- maybeProgressToSiftCompleted(latestSchemeStatus, progressResponse,
+        ApplicationStatus.withName(appStatuses.applicationStatus), siftAnswersStatus)
     } yield {
       DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
         AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
@@ -590,9 +647,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       } yield ()
     }
 
-
     def updateEvaluationResults(prevPhaseRepo: OnlineTestRepository, nextPhaseRepo: OnlineTestRepository): Future[Unit] = {
-      prevPhaseRepo.getTestGroup(applicationId).map { prevPhaseTestGroupOpt =>
+      prevPhaseRepo.getTestGroup(applicationId).flatMap { prevPhaseTestGroupOpt =>
         prevPhaseTestGroupOpt.map { prevPhaseTestGroup =>
           val newSchemeEvaluationResults = setToRedExceptSdip(prevPhaseTestGroup.evaluation.map(_.result))
           val newPassmarkEvaluationResult = prevPhaseTestGroup.evaluation
