@@ -55,6 +55,17 @@ object ProgressResponseExamples {
   )
   val InSiftTestResultsReceived: ProgressResponse = InPreview.copy(siftProgressResponse = SiftTestResultsReceivedProgress)
 
+  val SiftCompletedProgress = SiftProgressResponse(
+    siftEntered = true,
+    siftTestInvited = true,
+    siftTestStarted = true,
+    siftTestCompleted = true,
+    siftTestResultsReady = true,
+    siftTestResultsReceived = true,
+    siftCompleted = true
+  )
+  val InSiftCompleted: ProgressResponse = InPreview.copy(siftProgressResponse = SiftCompletedProgress)
+
   val SiftFormsCompleteNumericTestPendingProgress = SiftProgressResponse(
     siftEntered = true,
     siftFormsCompleteNumericTestPending = true

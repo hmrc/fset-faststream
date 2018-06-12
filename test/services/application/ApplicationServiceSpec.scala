@@ -193,7 +193,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     "update the submission deadline in the repository" in new TestFixture {
       val newDeadline = new DateTime(2016, 5, 21, 23, 59, 59)
 
-      when(appRepositoryMock.updateSubmissionDeadline(applicationId, newDeadline)).thenReturn(Future.successful(()))
+      when(appRepositoryMock.updateSubmissionDeadline(applicationId, newDeadline)).thenReturnAsync()
 
       underTest.overrideSubmissionDeadline(applicationId, newDeadline)
 
@@ -220,7 +220,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock).withdraw(applicationId, withdraw)
     }
 
-    "withdraw from a scheme and stay in sift when a siftable scheme is left which requires a form to be filled in " +
+    "withdraw from a scheme and stay in sift (not progress) when a siftable scheme is left which requires a form to be filled in " +
       "and we have not filled in the form for that scheme" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
@@ -250,13 +250,16 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
     "withdraw from a scheme and progress to FSAC when a siftable scheme is left (not sdip) which requires a form to be filled in " +
       "and we have filled in the form and submitted that scheme" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
-      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
       when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
@@ -282,13 +285,16 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
-    "not progress the candidate to FSAC after withdrawing from a scheme after filling in the forms and a single scheme is left " +
-      "which requires evaluation and it has not been evaluated (sifted)" in new TestFixture {
+    "not progress the candidate to FSAC after withdrawing from a scheme after filling in the forms and a single numeric scheme is left " +
+      "which requires evaluation and a test and it has not been evaluated" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
-      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
       when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
@@ -316,12 +322,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
     }
 
-    "not progress the candidate to FSAC if the candidate is awaiting allocation and withdraws from a scheme when a siftable scheme is left " +
+    "leave the candidate in FSAC if the candidate is awaiting allocation and withdraws from a scheme when a siftable scheme is left " +
       "which requires a form to be filled in and we have filled in the form for that scheme (we are in FSAC)" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
       when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
-      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftTestResultsReceived)
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
@@ -347,9 +353,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
-    "progress to FSAC allocation if only non-siftable schemes are left and we have not filled in forms (SIFT_ENTERED)" in new TestFixture {
+    "progress to FSAC allocation if only non-evaluation schemes are left and we have not filled in forms" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
       when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
@@ -377,9 +386,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
-    "progress to FSAC allocation if only non-siftable schemes are left and we have filled in forms (SIFT_READY)" in new TestFixture {
+    "progress to FSAC allocation if only non-evaluation schemes are left and we have filled in forms" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
       when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
@@ -407,20 +419,21 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
     "not progress to FSAC allocation if I have one scheme which requires a form to be filled in but I have not completed the form " +
-      "(SIFT_ENTERED) and I have other schemes which require numeric test and I withdraw from those" in new TestFixture {
+      "and I have other schemes which require numeric test and I withdraw from those" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
       when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
       when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
 
-
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         // DiplomaticService - Form to be filled in, evaluation required (will stop us moving to FSAC)
-        SchemeEvaluationResult(SchemeId(diplomaticService), "Green"),
+        SchemeEvaluationResult(SchemeId(diplomaticService), "Green"), // form to be filled in, evaluation required
         SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
@@ -440,11 +453,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
-    "progress to FSAC allocation if I have one scheme which requires a form to be filled in and I have completed the forms " +
-      "(SIFT_READY) and no evaluation is required and I have other schemes which require numeric test and " +
-      "I withdraw from those" in new TestFixture {
+    "progress to FSAC allocation if I have one scheme which requires a form to be filled in but no evaluation is needed and I have submitted " +
+      "the forms and I have other schemes which require numeric test and I withdraw from those" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
       when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
@@ -472,13 +487,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
     "progress to FSAC allocation if I am an sdip faststream candidate with the two non-sift schemes and I have not completed the " +
-      "sdip form (SIFT_ENTERED) and I withdraw from the sdip scheme" in new TestFixture {
+      "sdip form and I withdraw from the sdip scheme" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
-      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
       when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
@@ -504,10 +521,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
     "progress to FSAC allocation if I am a sdip faststream candidate with 1 other scheme which requires a form to be filled in " +
-      "but no evaluation and I have completed the form (SIFT_READY) and I then withdraw from sdip" in new TestFixture {
+      "but no evaluation and I have completed the form and I then withdraw from sdip" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
       when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
@@ -524,7 +543,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
-        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream, Some(ProgressStatuses.SIFT_READY), None, None))
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
       val withdraw = WithdrawScheme(SchemeId(sdip), "reason", "Candidate")
 
@@ -535,14 +554,18 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
-    "progress to FSAC allocation if I am a sdip faststream candidate with 1 other scheme which requires a numeric test " +
-      "and evaluation and I have completed the form and been sifted (SIFT_COMPLETED) and I then withdraw from sdip" in new TestFixture {
+    //Sdip scheme should never go to assessment centre
+    "not progress to FSAC allocation if I am a sdip faststream candidate with 1 other scheme which requires a numeric test and " +
+      "evaluation and I have completed the sdip form and the test and been sifted (SIFT_COMPLETED) and I then withdraw from " +
+      "sdip" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
       when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
-      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftCompleted)
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
@@ -566,14 +589,16 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
     "progress sdip faststream candidate to fsb awaiting allocation who is awaiting allocation to an assessment centre after withdrawing from " +
       "all fast stream schemes and just leaving sdip" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
-      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
-      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftCompleted)
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
@@ -598,13 +623,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.FSB_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
     "progress sdip faststream candidate to fsb awaiting allocation who has been sifted in for sdip but has not yet been invited to an " +
       "assessment centre after withdrawing from all fast stream schemes (or being sifted with a fail) and just leaving sdip" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
-      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
       when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
@@ -631,6 +658,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.FSB_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
     }
 
     "not progress sdip faststream candidate out of sift who has been sifted in for all schemes that require a sift but who also has" +
@@ -671,7 +700,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       "numeric schemes and schemes that require no sift and the numeric test has been completed" in  new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
-      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
       when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftTestResultsReceived)
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
@@ -698,9 +727,6 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
-
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
-        eqTo(ProgressStatuses.SIFT_COMPLETED))
     }
 
     "progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from all form based schemes but is still in the running for " +
@@ -735,11 +761,46 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         eqTo(ProgressStatuses.SIFT_READY))
 
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
-        eqTo(ProgressStatuses.SIFT_COMPLETED))
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
     }
 
-    "progress candidate to SIFT_COMPLETED who is in SIFT_ENTERED and has withdrawn from all form based schemes and is only in the running " +
-      "for schemes that require no sift" in  new TestFixture {
+    "progress candidate to SIFT_READY who has completed a numeric test and submitted forms, which need no evaluation, withdraws from " +
+      "the numeric schemes and is only in the running for schemes that need evaluation" in  new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(Some(SiftAnswersStatus.SUBMITTED)) // Form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(SchemeId(commercial), "Green"),       // numeric test, evaluation required
+        SchemeEvaluationResult(SchemeId(diplomaticService), "Green") // form to be filled in, evaluation required
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+        any[Seq[SchemeEvaluationResult]]
+      )).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.SIFT_TEST_RESULTS_READY), None, None))
+
+      val withdraw = WithdrawScheme(SchemeId(commercial), "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
+        any[Seq[SchemeEvaluationResult]]
+      )
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+    }
+
+    "progress candidate to FSAC allocation who is in SIFT_ENTERED and has withdrawn from all form based schemes and is only " +
+      "in the running for schemes that require no sift" in  new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
       when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
@@ -766,11 +827,11 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
         any[Seq[SchemeEvaluationResult]]
       )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
-        eqTo(ProgressStatuses.SIFT_READY))
-
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
-        eqTo(ProgressStatuses.SIFT_COMPLETED))
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+          eqTo(ProgressStatuses.SIFT_READY))
     }
 
     "not progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from a form based scheme but is still in the running " +
@@ -1084,7 +1145,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       override lazy val nonSiftableSchemeIds = Seq(SchemeId(generalist), SchemeId(humanResources))
       override lazy val numericTestSiftRequirementSchemeIds = Seq(SchemeId(commercial), SchemeId(finance))
-      override lazy val formMustBeFilledInSchemeIds = Seq(SchemeId(diplomaticService))
+      override lazy val formMustBeFilledInSchemeIds = Seq(SchemeId(digitalAndTechnology), SchemeId(diplomaticService))
       override lazy val siftableAndEvaluationRequiredSchemeIds = Seq(SchemeId(commercial), SchemeId(diplomaticService))
     }
 
@@ -1117,9 +1178,6 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val candidateAllocationService = candidateAllocationServiceMock
     }
 
-    implicit val hc = HeaderCarrier()
-    implicit val rh = mock[RequestHeader]
-
     val userId = "userId"
     val applicationId = "appId"
     val frameworkId = ""
@@ -1144,4 +1202,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val getApplicationsToFixEmpty: Future[List[Candidate]] = Future.successful(Nil)
     val success = Future.successful(())
   }
+
+  implicit val hc = HeaderCarrier() // Moved out of the trait to here as not getting picked up by the withdraw tests if they are run in isolation
+  implicit val rh = mock[RequestHeader] // with all other tests commented out
 }
