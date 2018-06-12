@@ -332,6 +332,10 @@ object RoleUtils {
       cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
   )
 
+  def isInSiftPhase(implicit user: CachedData): Boolean = user.application.exists { app =>
+    app.applicationStatus == ApplicationStatus.SIFT
+  }
+
   def isSiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftEntered)
 
   def isSiftTestInvited(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftTestInvited)
