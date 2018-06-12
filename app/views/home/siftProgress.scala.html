@@ -48,7 +48,6 @@
             <ul class="list-text list-withicons" data-extrainfolist=""><li><i class="fa fa-check the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()">View your submitted answers</a></li></ul>
         }
     </section>
-
 }
 
 @renderNumericTest = {
@@ -242,7 +241,8 @@
             @renderCompletedSectionOne
         }
     }
-    @if(isSiftEntered(page.userDataWithSchemes.toCachedData) && !isSiftReady(page.userDataWithSchemes.toCachedData)) {
+    @if(isInSiftPhase(page.userDataWithSchemes.toCachedData) && isSiftEntered(page.userDataWithSchemes.toCachedData) &&
+            !isSiftReady(page.userDataWithSchemes.toCachedData)) {
         @renderSiftTimeRemaining
     }
  }
