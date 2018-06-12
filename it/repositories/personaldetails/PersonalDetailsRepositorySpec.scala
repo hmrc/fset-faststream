@@ -32,7 +32,7 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
       val applicationStatus = appRepository.findStatus(AppId).futureValue
 
       personalDetails mustBe JohnDoe
-      applicationStatus.applicationStatus mustBe IN_PROGRESS.toString
+      applicationStatus.status mustBe IN_PROGRESS.toString
       timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
 

@@ -465,7 +465,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       app.progressResponse.phase1ProgressResponse.phase1TestsStarted mustBe true
 
       val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
-      appStatusDetails.applicationStatus mustBe ApplicationStatus.PHASE1_TESTS.toString
+      appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
 
     "update progress status should not update if the Application Status is different from that which is being set" in {
