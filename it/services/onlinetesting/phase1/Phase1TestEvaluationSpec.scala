@@ -97,7 +97,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       expSchemeResults: (SchemeId , Result)*): TestFixture = {
       passMarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation(applicationReadyForEvaluation.applicationId).futureValue
       val applicationDetails = applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue
-      val applicationStatus = ApplicationStatus.withName(applicationDetails.applicationStatus)
+      val applicationStatus = ApplicationStatus.withName(applicationDetails.status)
       val progressStatus = applicationDetails.latestProgressStatus
 
       val schemeResults = passMarkEvaluation.result.map {

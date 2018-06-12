@@ -269,7 +269,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
       progressResponse <- appRepository.findProgress(applicationId)
       _ <- maybeProgressToSiftReady(latestSchemeStatus, progressResponse,
-        ApplicationStatus.withName(appStatuses.applicationStatus), siftAnswersStatus)
+        ApplicationStatus.withName(appStatuses.status), siftAnswersStatus)
     } yield {
       DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
         AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::

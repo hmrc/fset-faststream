@@ -211,7 +211,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     def mustResultIn(expApplicationStatus: ApplicationStatus.ApplicationStatus, expSchemeResults: (SchemeId, Result)*): TestFixture = {
       passMarkEvaluation = phase3EvaluationRepo.getPassMarkEvaluation(applicationReadyForEvaluation.applicationId).futureValue
       val applicationStatus = ApplicationStatus.withName(
-        applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue.applicationStatus)
+        applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue.status)
 
       val schemeResults = passMarkEvaluation.result.map {
         SchemeEvaluationResult.unapply(_).map {
