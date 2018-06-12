@@ -178,40 +178,48 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       }
   }
 
-  //scalastyle:off method.length
+  //scalastyle:off method.length cyclomatic.complexity
   private def withdrawFromScheme(applicationId: String, withdrawRequest: WithdrawScheme) = {
 
     def buildLatestSchemeStatus(current: Seq[SchemeEvaluationResult], withdrawal: WithdrawScheme)  = {
       calculateCurrentSchemeStatus(current, SchemeEvaluationResult(withdrawRequest.schemeId, EvaluationResults.Withdrawn.toString) :: Nil)
     }
 
-    def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult], latestProgressStatus: Option[ProgressStatus]) = {
+    def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult], latestProgressStatus: Option[ProgressStatus],
+      siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
 
       // we only have generalist or human resources
       val onlyNonSiftableSchemesLeft = greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet
 
-      // only schemes with no evaluation requirement and form filled in (SIFT_READY) This set of schemes all require you to fill in a form
-      val onlyNoSiftEvaluationRequiredSchemesWithFormFilled = latestProgressStatus.contains(ProgressStatuses.SIFT_READY) &&
+      // only schemes with no evaluation requirement and form filled in. This set of schemes all require you to fill in a form
+      val onlyNoSiftEvaluationRequiredSchemesWithFormFilled = siftAnswersStatus.contains(SiftAnswersStatus.SUBMITTED) &&
         (greenSchemes subsetOf schemesRepo.noSiftEvaluationRequiredSchemeIds.toSet)
 
-      val shouldProgressToFSAC = onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled
+      val shouldProgressToFSAC = onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled &&
+        !latestProgressStatus.contains(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
 
       // sdip faststream candidate who is awaiting allocation to an assessment centre or is in sift completed (not yet picked
       // up by the assessment centre invite job) and has withdrawn from all fast stream schemes (or been sifted out) and only has sdip left
       val shouldProgressSdipFaststreamCandidateToFsb = greenSchemes == Set(Scheme.SdipId) && schemeStatus.size > 1 &&
         (latestProgressStatus.contains(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION) ||
-        latestProgressStatus.contains(ProgressStatuses.SIFT_COMPLETED))
+          latestProgressStatus.contains(ProgressStatuses.SIFT_COMPLETED))
 
       if (shouldProgressSdipFaststreamCandidateToFsb) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FSB_AWAITING_ALLOCATION).map { _ =>
+          Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.FSB_AWAITING_ALLOCATION}")
           AuditEvents.AutoProgressedToFSB(Map("applicationId" -> applicationId, "reason" -> "last fast stream scheme withdrawn")) :: Nil
         }
       } else if (shouldProgressToFSAC) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map { _ =>
+          Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION}")
           AuditEvents.AutoProgressedToFSAC(Map("applicationId" -> applicationId, "reason" -> "last siftable scheme withdrawn")) :: Nil
         }
-      } else { Future.successful(Nil) }
+      } else {
+        Logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to " +
+          s"${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION}")
+        Future.successful(())
+      }
     }
 
     def requirementSatisfied(req1: Boolean, req2: Boolean) = (req1, req2) match {
@@ -224,7 +232,6 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     // satisfied, the form requirements are satisfied and the candidate still has at least one scheme that needs an evaluation
     def maybeProgressToSiftReady(schemeStatus: Seq[SchemeEvaluationResult],
       progressResponse: ProgressResponse, applicationStatus: ApplicationStatus, siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
-
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
 
       val numericTestRequired = greenSchemes.exists( s => schemesRepo.numericTestSiftRequirementSchemeIds.contains(s) )
@@ -244,38 +251,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         numericTestRequirementSatisfied && formRequirementSatisfied && siftEvaluationNeeded
 
       if (shouldProgressCandidate) {
-        Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to SIFT_READY")
+        Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.SIFT_READY}")
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY).map { _ => }
       } else {
-        Logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to SIFT_READY")
-        Future.successful(()) }
-    }
-
-    // Move the candidate to SIFT_COMPLETED if none of the remaining schemes need a sift evaluation and forms requirements
-    // are satisfied. We don't bother checking numeric test requirements as these need a sift evaluation and we only process
-    // the candidate if no sift evaluation is needed
-    def maybeProgressToSiftCompleted(schemeStatus: Seq[SchemeEvaluationResult],
-      progressResponse: ProgressResponse, applicationStatus: ApplicationStatus, siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
-
-      val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
-
-      // do we have schemes that that need a form to be filled in?
-      val formMustBeFilledIn = greenSchemes.exists( s => schemesRepo.formMustBeFilledInSchemeIds.contains(s) )
-      val formsHaveBeenFilledIn = siftAnswersStatus.contains(SiftAnswersStatus.SUBMITTED)
-      val formRequirementSatisfied = requirementSatisfied(formMustBeFilledIn, formsHaveBeenFilledIn)
-
-      val noSiftEvaluationNeeded = greenSchemes.forall( s => schemesRepo.noSiftEvaluationRequiredSchemeIds.contains(s) )
-
-      val shouldProgressCandidate = applicationStatus == ApplicationStatus.SIFT &&
-        progressResponse.siftProgressResponse.siftEntered && !progressResponse.siftProgressResponse.siftReady &&
-        !progressResponse.siftProgressResponse.siftCompleted &&
-        noSiftEvaluationNeeded && formRequirementSatisfied
-
-      if (shouldProgressCandidate) {
-        Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to SIFT_COMPLETED")
-        appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED).map { _ => }
-      } else {
-        Logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to SIFT_COMPLETED")
+        Logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to ${ProgressStatuses.SIFT_READY}")
         Future.successful(()) }
     }
 
@@ -284,13 +263,12 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       latestSchemeStatus = buildLatestSchemeStatus(currentSchemeStatus, withdrawRequest)
       appStatuses <- appRepository.findStatus(applicationId)
       _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, latestSchemeStatus)
-      _ <- maybeProgressToFSAC(latestSchemeStatus, appStatuses.latestProgressStatus)
+
+      siftAnswersStatus <- siftAnswersService.findSiftAnswersStatus(applicationId)
+      _ <- maybeProgressToFSAC(latestSchemeStatus, appStatuses.latestProgressStatus, siftAnswersStatus)
 
       progressResponse <- appRepository.findProgress(applicationId)
-      siftAnswersStatus <- siftAnswersService.findSiftAnswersStatus(applicationId)
       _ <- maybeProgressToSiftReady(latestSchemeStatus, progressResponse,
-        ApplicationStatus.withName(appStatuses.applicationStatus), siftAnswersStatus)
-      _ <- maybeProgressToSiftCompleted(latestSchemeStatus, progressResponse,
         ApplicationStatus.withName(appStatuses.applicationStatus), siftAnswersStatus)
     } yield {
       DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
