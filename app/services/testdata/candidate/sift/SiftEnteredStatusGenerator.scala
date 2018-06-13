@@ -45,6 +45,7 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
         candidateInPreviousStatus.userId,
         ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         candidateInPreviousStatus.phase3TestGroup.get.schemeResult.get.result)))
+      _ <- siftService.saveSiftExpiryDate(candidateInPreviousStatus.applicationId.get)
     } yield {
 
       val greenSchemes = candidateInPreviousStatus.phase3TestGroup.flatMap(tg =>
