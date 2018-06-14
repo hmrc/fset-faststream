@@ -21,11 +21,14 @@ import model.persisted.SchemeEvaluationResult
 import model._
 import model.stc.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
 import model.stc.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
+import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.stc.{ EventSink, StcEventService }
 import services.personaldetails.PersonalDetailsService
 import services.scheme.SchemePreferencesService
@@ -45,6 +48,8 @@ object FastPassService extends FastPassService {
   override val schemePreferencesService = SchemePreferencesService
   override val schemesRepository = SchemeYamlRepository
   override val applicationSiftService = ApplicationSiftService
+  override val adjustmentsManagementService = AdjustmentsManagementService
+  override val assistanceDetailsRepository = faststreamAssistanceDetailsRepository
 
   override val fastPassDetails = CivilServiceExperienceDetails(
     applicable = true,
@@ -52,7 +57,6 @@ object FastPassService extends FastPassService {
     fastPassAccepted = Some(true),
     certificateNumber = Some("0000000")
   )
-
 }
 
 trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
@@ -66,6 +70,8 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
   val schemePreferencesService: SchemePreferencesService
   val schemesRepository: SchemeRepository
   val applicationSiftService: ApplicationSiftService
+  val adjustmentsManagementService: AdjustmentsManagementService
+  val assistanceDetailsRepository: AssistanceDetailsRepository
 
   val fastPassDetails: CivilServiceExperienceDetails
 
@@ -91,6 +97,7 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  //scalastyle:off method.length
   private def autoProgressToSiftOrFSAC(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     def notifySiftEntered(siftStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
       if(siftStatus == ProgressStatuses.SIFT_ENTERED) {
@@ -100,25 +107,60 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
       }
     }
 
-    val res = for {
-      preferences <- schemePreferencesService.find(applicationId)
-    } yield {
-      val hasSiftableScheme = schemesRepository.siftableSchemeIds.intersect(preferences.schemes).nonEmpty
-      if (hasSiftableScheme) {
-        val siftStatus = applicationSiftService.progressStatusForSiftStage(preferences.schemes)
-        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, siftStatus).flatMap { _ =>
-          val startExpiry = if(siftStatus == ProgressStatuses.SIFT_ENTERED) {
-            applicationSiftService.saveSiftExpiryDate(applicationId)
-          } else {
-            Future.successful(())
-          }
-          startExpiry.flatMap(_ => notifySiftEntered(siftStatus).map(_ => ()))
+    def progressCandidate(schemes: SelectedSchemes): Future[Unit] = {
+      val siftStatus = applicationSiftService.progressStatusForSiftStage(schemes.schemes)
+      appRepo.addProgressStatusAndUpdateAppStatus(applicationId, siftStatus).flatMap { _ =>
+        val startExpiry = if (siftStatus == ProgressStatuses.SIFT_ENTERED) {
+          applicationSiftService.saveSiftExpiryDate(applicationId)
+        } else {
+          Future.successful(())
         }
-      } else {
-        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+        startExpiry.flatMap(_ => notifySiftEntered(siftStatus).map(_ => ()))
       }
     }
-    res.flatMap(identity)
+
+    (for {
+      selectedSchemes <- schemePreferencesService.find(applicationId)
+    } yield {
+      val intro = "fastpass service"
+      val hasSiftableScheme = schemesRepository.siftableSchemeIds.intersect(selectedSchemes.schemes).nonEmpty
+      if (hasSiftableScheme) {
+        val hasSiftNumericSchemes = schemesRepository.numericTestSiftRequirementSchemeIds.intersect(selectedSchemes.schemes).nonEmpty
+        if(hasSiftNumericSchemes) {
+
+          (for {
+            assistanceDetails <- assistanceDetailsRepository.find(applicationId)
+            adjustmentsOpt <- adjustmentsManagementService.find(applicationId)
+          } yield {
+            val adjustmentDetails = assistanceDetails.needsSupportForOnlineAssessment.getOrElse(false) ->
+              adjustmentsOpt.flatMap(_.adjustmentsConfirmed).getOrElse(false)
+            adjustmentDetails match {
+              case (false, _) => // Candidate has no adjustments
+                Logger.info(s"$intro - candidate $applicationId has sift numeric schemes and no adjustments " +
+                  s"so moving to ${ProgressStatuses.SIFT_ENTERED}")
+                progressCandidate(selectedSchemes)
+              case (true, true) => // Candidate has adjustments and they have been applied
+                Logger.info(s"$intro - candidate $applicationId has sift numeric schemes and adjustments, which " +
+                  s"have been applied so moving to ${ProgressStatuses.SIFT_ENTERED}")
+                progressCandidate(selectedSchemes)
+              case _ => // Everything else eg. has adjustments but they haven't been applied
+                Logger.info(s"$intro - candidate $applicationId has sift numeric schemes but adjustments are not in a " +
+                  s"state to progress to ${ProgressStatuses.SIFT_ENTERED}")
+                Future.successful(())
+            }
+          }).flatMap(identity)
+
+        } else {
+          Logger.info(s"$intro - candidate $applicationId has siftable schemes but no numeric schemes so moving " +
+            s"to ${ProgressStatuses.SIFT_ENTERED}")
+          progressCandidate(selectedSchemes)
+        }
+      } else {
+        Logger.info(s"$intro - candidate $applicationId has no siftable schemes so moving " +
+          s"to ${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION}")
+        appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+      }
+    }).flatMap(identity)
   }
 
   def createCurrentSchemeStatus(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit] = {
