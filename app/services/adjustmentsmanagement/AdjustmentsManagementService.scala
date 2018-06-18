@@ -83,12 +83,12 @@ trait AdjustmentsManagementService extends EventSink {
         } else {
           Logger.info(s"$intro - candidate $applicationId has siftable schemes but no numeric schemes so moving " +
             s"to ${ProgressStatuses.SIFT_ENTERED}")
-          progressCandidateToSift(selectedSchemes)
+          progressCandidateToSift(selectedSchemes).map(_ => ())
         }
       } else {
         Logger.info(s"$intro - candidate $applicationId has no siftable schemes so moving " +
           s"to ${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION}")
-        appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+        appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map(_ => ())
       }
     }).flatMap(identity)
   }
