@@ -225,9 +225,12 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   private def notifyExpiredCandidate(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     applicationRepo.find(applicationId).flatMap {
-      case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
-        emailClient.sendSiftExpired(contactDetails.email, candidate.name).map(_ => ())
-      }
+      case Some(candidate) =>
+        for {
+          contactDetails <- contactDetailsRepo.find(candidate.userId)
+          _ <- emailClient.sendSiftExpired(contactDetails.email, candidate.name)
+          - <- applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_EXPIRED_NOTIFIED)
+        } yield ()
       case None => throw CouldNotFindCandidateWithApplication(applicationId)
     }
   }
