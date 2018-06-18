@@ -27,4 +27,8 @@ object AdjustmentsExamples {
   )
   val EmptyAdjustments = Adjustments(None, adjustmentsConfirmed = Some(true), etray = None, video = None)
 
+  val ETrayTimeAdjustments = Adjustments(
+    adjustments = Some(List("etrayTimeExtension")), adjustmentsConfirmed = None, etray = Some(AdjustmentDetail(timeNeeded = Some(10))),
+    video = None
+  )
 }

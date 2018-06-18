@@ -16,18 +16,26 @@
 
 package services.adjustmentsmanagement
 
-import model.Adjustments
 import model.CandidateExamples._
 import model.Exceptions.ApplicationNotFound
+import model.ProgressStatuses.ProgressStatus
+import model._
+import model.command.ApplicationStatusDetails
 import model.persisted.ContactDetailsExamples._
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.BaseServiceSpec
+import services.scheme.SchemePreferencesService
+import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import services.testdata.examples.AdjustmentsExamples._
+import testkit.MockitoImplicits._
 import testkit.ShortTimeout
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -40,10 +48,74 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ShortTimeout
       ex mustBe a[ApplicationNotFound]
     }
 
-    "confirm new adjustments" in new TestFixture {
+    "confirm new adjustments for non-fast pass candidate and no attempt is made to progress the candidate" in new TestFixture {
+      when(mockAppRepository.findStatus(AppId)).thenReturnAsync(applicationStatusDetails)
+
       service.confirmAdjustment(AppId, InvigilatedETrayAdjustments).futureValue
 
+      verify(mockSchemePreferencesService, never()).find(AppId)
       verify(mockAppRepository).confirmAdjustments(AppId, InvigilatedETrayAdjustments)
+      verifyDataStoreEvent("ManageAdjustmentsUpdated")
+      verifyAuditEvent("AdjustmentsConfirmed")
+      verifyEmailEvent("AdjustmentsConfirmed")
+    }
+
+    "confirm new adjustments and progress to FSAC for fast pass candidate whose fast pass has been accepted and has no siftable schemes" in
+      new TestFixture {
+      when(mockAppRepository.findStatus(AppId)).thenReturnAsync(
+        applicationStatusDetails.copy(status = ApplicationStatus.FAST_PASS_ACCEPTED.toString)
+      )
+
+      val schemes = SelectedSchemes(List(generalist, humanResources), orderAgreed = true, eligible = true)
+      when(mockSchemePreferencesService.find(AppId)).thenReturnAsync(schemes)
+
+      service.confirmAdjustment(AppId, InvigilatedETrayAdjustments).futureValue
+
+      verify(mockAppRepository).addProgressStatusAndUpdateAppStatus(AppId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+      verify(mockAppRepository).confirmAdjustments(AppId, InvigilatedETrayAdjustments)
+      verifyDataStoreEvent("ManageAdjustmentsUpdated")
+      verifyAuditEvent("AdjustmentsConfirmed")
+      verifyEmailEvent("AdjustmentsConfirmed")
+    }
+
+    "confirm new adjustments and not progress fast pass candidate whose fast pass has been accepted, has siftable schemes" +
+      "but no time adjustments specified" in new TestFixture {
+      when(mockAppRepository.findStatus(AppId)).thenReturnAsync(
+        applicationStatusDetails.copy(status = ApplicationStatus.FAST_PASS_ACCEPTED.toString)
+      )
+
+      val schemes = SelectedSchemes(List(commercial), orderAgreed = true, eligible = true)
+      when(mockSchemePreferencesService.find(AppId)).thenReturnAsync(schemes)
+
+      service.confirmAdjustment(AppId, InvigilatedETrayAdjustments).futureValue
+
+      verify(mockAppRepository, never()).addProgressStatusAndUpdateAppStatus(AppId, ProgressStatuses.SIFT_ENTERED)
+      verify(mockApplicationSiftService, never()).sendSiftEnteredNotification(AppId) //check email was not sent
+      verify(mockAppRepository).confirmAdjustments(AppId, InvigilatedETrayAdjustments)
+      verifyDataStoreEvent("ManageAdjustmentsUpdated")
+      verifyAuditEvent("AdjustmentsConfirmed")
+      verifyEmailEvent("AdjustmentsConfirmed")
+    }
+
+    "confirm new adjustments and progress to SIFT for fast pass candidate whose fast pass has been accepted, has siftable schemes " +
+      "and has time adjustments specified" in new TestFixture {
+      when(mockAppRepository.findStatus(AppId)).thenReturnAsync(
+        applicationStatusDetails.copy(status = ApplicationStatus.FAST_PASS_ACCEPTED.toString)
+      )
+
+      val schemes = SelectedSchemes(List(commercial), orderAgreed = true, eligible = true)
+      when(mockSchemePreferencesService.find(AppId)).thenReturnAsync(schemes)
+
+      when(mockAppRepository.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(mockApplicationSiftService.saveSiftExpiryDate(any[String], any[DateTime])).thenReturnAsync()
+      when(mockApplicationSiftService.sendSiftEnteredNotification(any[String])(any[HeaderCarrier])).thenReturnAsync()
+
+      service.confirmAdjustment(AppId, ETrayTimeAdjustments).futureValue
+
+      verify(mockAppRepository).addProgressStatusAndUpdateAppStatus(AppId, ProgressStatuses.SIFT_ENTERED)
+      verify(mockApplicationSiftService).saveSiftExpiryDate(any[String], any[DateTime])
+      verify(mockApplicationSiftService).sendSiftEnteredNotification(AppId) //check email was sent
+      verify(mockAppRepository).confirmAdjustments(AppId, ETrayTimeAdjustments)
       verifyDataStoreEvent("ManageAdjustmentsUpdated")
       verifyAuditEvent("AdjustmentsConfirmed")
       verifyEmailEvent("AdjustmentsConfirmed")
@@ -51,6 +123,8 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ShortTimeout
 
     "update adjustments" in new TestFixture {
       when(mockAppRepository.findAdjustments(AppId)).thenReturn(Future.successful(Some(ETrayTimeExtensionAdjustments)))
+      when(mockAppRepository.findStatus(AppId)).thenReturnAsync(applicationStatusDetails)
+
       service.confirmAdjustment(AppId, InvigilatedETrayAdjustments).futureValue
 
       verify(mockAppRepository).confirmAdjustments(AppId, InvigilatedETrayAdjustments)
@@ -61,6 +135,8 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ShortTimeout
 
     "remove adjustments"in new TestFixture {
       when(mockAppRepository.findAdjustments(AppId)).thenReturn(Future.successful(Some(ETrayTimeExtensionAdjustments)))
+      when(mockAppRepository.findStatus(AppId)).thenReturnAsync(applicationStatusDetails)
+
       service.confirmAdjustment(AppId, EmptyAdjustments).futureValue
 
       verify(mockAppRepository).confirmAdjustments(AppId, EmptyAdjustments)
@@ -73,16 +149,36 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ShortTimeout
   trait TestFixture extends StcEventServiceFixture {
     val mockAppRepository = mock[GeneralApplicationRepository]
     val mockCdRepository = mock[ContactDetailsRepository]
+    val mockSchemePreferencesService = mock[SchemePreferencesService]
+    val mockSchemeRepository = mock[SchemeRepository]
+    val mockApplicationSiftService = mock[ApplicationSiftService]
 
-    when(mockCdRepository.find(UserId)).thenReturn(Future.successful(ContactDetailsUK))
-    when(mockAppRepository.find(AppId)).thenReturn(Future.successful(Some(minCandidate(UserId))))
-    when(mockAppRepository.findAdjustments(AppId)).thenReturn(Future.successful(None))
-    when(mockAppRepository.confirmAdjustments(any[String], any[Adjustments])).thenReturn(Future.successful(()))
+    val commercial = SchemeId("Commercial") // sift numeric scheme, evaluation required
+    val finance = SchemeId("Finance") // sift numeric scheme, evaluation required
+    val generalist = SchemeId("Generalist") // no sift requirement
+    val humanResources = SchemeId("HumanResources") // no sift requirement
+    val digitalAndTechnology = SchemeId("DigitalAndTechnology") // sift form, no evaluation
+
+    val applicationStatusDetails = ApplicationStatusDetails(
+      status = ApplicationStatus.SUBMITTED.toString,
+      applicationRoute = ApplicationRoute.Faststream,
+      latestProgressStatus = None,
+      overrideSubmissionDeadline = None)
+
+    when(mockCdRepository.find(UserId)).thenReturnAsync(ContactDetailsUK)
+    when(mockAppRepository.find(AppId)).thenReturnAsync(Some(minCandidate(UserId)))
+    when(mockAppRepository.findAdjustments(AppId)).thenReturnAsync(None)
+    when(mockAppRepository.confirmAdjustments(any[String], any[Adjustments])).thenReturnAsync()
+    when(mockSchemeRepository.siftableSchemeIds).thenReturn(Seq(commercial, finance, digitalAndTechnology))
+    when(mockSchemeRepository.numericTestSiftRequirementSchemeIds).thenReturn(Seq(commercial, finance))
 
     val service = new AdjustmentsManagementService {
       val appRepository = mockAppRepository
       val cdRepository = mockCdRepository
       override val eventService = eventServiceMock
+      val schemePreferencesService = mockSchemePreferencesService
+      val schemesRepository = mockSchemeRepository
+      val applicationSiftService = mockApplicationSiftService
     }
   }
 }
