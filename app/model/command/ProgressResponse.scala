@@ -110,6 +110,7 @@ case class SiftProgressResponse(
                                  siftReady: Boolean = false,
                                  siftCompleted: Boolean = false,
                                  siftExpired: Boolean = false,
+                                 siftExpiredNotified: Boolean = false,
                                  sdipFailedAtSift: Boolean = false,
                                  failedAtSift: Boolean = false,
                                  failedAtSiftNotified: Boolean = false,

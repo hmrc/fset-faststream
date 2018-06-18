@@ -18,25 +18,25 @@ package services.sift
 
 import connectors.EmailClient
 import factories.{ DateTimeFactory, DateTimeFactoryMock }
+import model.ApplicationStatus.{ ApplicationStatus => _ }
 import model.ProgressStatuses.{ ProgressStatus, SIFT_ENTERED }
 import model._
-import model.command.ApplicationForSift
+import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.exchange.sift.SiftState
 import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
 import model.persisted.{ ContactDetails, ContactDetailsExamples, SchemeEvaluationResult }
 import model.sift.{ FixUserStuckInSiftEntered, SiftFirstReminder, SiftSecondReminder }
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.BSONDocument
-import repositories.{ BSONDateTimeHandler, SchemeRepository }
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
+import repositories.{ BSONDateTimeHandler, SchemeRepository }
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitWithAppSpec
-
-import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.Future
 import scala.concurrent.duration.TimeUnit
 
 class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
@@ -416,6 +416,29 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }
   }
+
+  "expired sift candidates" must {
+    "be processed correctly" in new TestFixture {
+      val applicationForSiftExpiry = ApplicationForSiftExpiry(appId, "userId", ApplicationStatus.SIFT)
+      val candidate: Candidate = CandidateExamples.minCandidate("userId")
+      val contactDetails: ContactDetails = ContactDetailsExamples.ContactDetailsUK
+
+      (mockSiftRepo.nextApplicationsForSiftExpiry(_ : Int)).expects(*).returningAsync(List(applicationForSiftExpiry))
+
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus(_ : String, _: ProgressStatus)).expects(appId, ProgressStatuses.SIFT_EXPIRED)
+        .returningAsync
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus(_ : String, _: ProgressStatus)).expects(appId, ProgressStatuses.SIFT_EXPIRED_NOTIFIED)
+        .returningAsync
+
+      (mockAppRepo.find(_ : String)).expects(appId).returningAsync(Some(candidate))
+      (mockContactDetailsRepo.find _ ).expects("userId").returningAsync(contactDetails)
+      (mockEmailClient.sendSiftExpired(_: String, _: String)(_: HeaderCarrier))
+        .expects(contactDetails.email, candidate.name, *).returningAsync
+
+      whenReady(service.processExpiredCandidates(1)(HeaderCarrier())) { result => result mustBe unit }
+    }
+  }
+
 
   "sendSiftEnteredNotification" must {
     "send email to the right candidate" in new TestFixture {
