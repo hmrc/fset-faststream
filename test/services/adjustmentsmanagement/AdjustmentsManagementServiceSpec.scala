@@ -34,12 +34,12 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import services.testdata.examples.AdjustmentsExamples._
 import testkit.MockitoImplicits._
-import testkit.ExtendedTimeout
+import testkit.ShortTimeout
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTimeout {
+class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ShortTimeout {
 
   "confirm adjustment" should {
     "throw an exception when there is no application" in new TestFixture {

@@ -74,7 +74,7 @@ trait AdjustmentsManagementService extends EventSink {
           if(timeAdjustmentsSpecified) {
             Logger.info(s"$intro - candidate $applicationId has sift numeric schemes and adjustments, which " +
               s"have been applied so moving to ${ProgressStatuses.SIFT_ENTERED}")
-            progressCandidateToSift(selectedSchemes)
+            progressCandidateToSift(selectedSchemes).map(_ => ())
           } else {
             Logger.info(s"$intro - candidate $applicationId has sift numeric schemes but no time adjustments " +
               s"so not progressing to ${ProgressStatuses.SIFT_ENTERED}")
