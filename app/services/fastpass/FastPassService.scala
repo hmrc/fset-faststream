@@ -132,8 +132,9 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
             assistanceDetails <- assistanceDetailsRepository.find(applicationId)
             adjustmentsOpt <- adjustmentsManagementService.find(applicationId)
           } yield {
-            val adjustmentDetails = assistanceDetails.needsSupportForOnlineAssessment.getOrElse(false) ->
-              adjustmentsOpt.flatMap(_.adjustmentsConfirmed).getOrElse(false)
+            val timeAdjustmentsSpecified = adjustmentsOpt.exists(a => a.etray.exists(_.timeNeeded.isDefined))
+            val adjustmentDetails = assistanceDetails.needsSupportForOnlineAssessment.getOrElse(false) -> timeAdjustmentsSpecified
+
             adjustmentDetails match {
               case (false, _) => // Candidate has no adjustments
                 Logger.info(s"$intro - candidate $applicationId has sift numeric schemes and no adjustments " +

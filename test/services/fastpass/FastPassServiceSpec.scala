@@ -129,7 +129,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
         val adjustments = Adjustments(
           adjustments = None,
           adjustmentsConfirmed = Some(true),
-          etray = None,
+          etray = Some(AdjustmentDetail(timeNeeded = Some(10))),
           video = None
         )
 
@@ -160,6 +160,40 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
           assistanceDetails.copy(needsSupportForOnlineAssessment = Some(true))
         )
         when(adjustmentsManagementServiceMock.find(any[String])).thenReturnAsync(None)
+
+        val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
+
+        verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
+        verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+        verify(appRepoMock, never()).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED)
+        verify(schemePreferencesServiceMock, atLeastTimes(2)).find(appId)
+        verify(schemesRepositoryMock).siftableSchemeIds
+        verify(personalDetailsServiceMock).find(appId, userId)
+        verify(cdRepositoryMock).find(userId)
+        verify(emailClientMock).sendEmailWithName(
+          eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+        verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+    }
+
+    "not progress candidate with NUMERIC_TEST only schemes to SIFT_ENTERED who needs adjustments, which have not been applied " +
+      "but not time based ones" in new TestFixtureWithMockResponses {
+        val schemes = SelectedSchemes(List(commercial, finance), orderAgreed = true, eligible = true)
+        when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
+        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String], any[DateTime])).thenReturn(Future.successful(unit))
+        when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
+
+        when(assistanceDetailsRepositoryMock.find(any[String])).thenReturnAsync(
+          assistanceDetails.copy(needsSupportForOnlineAssessment = Some(true))
+        )
+
+        val adjustments = Adjustments(
+          adjustments = None,
+          adjustmentsConfirmed = Some(true),
+          etray = Some(AdjustmentDetail(invigilatedInfo = Some("Invigilated info"))),
+          video = None
+        )
+
+        when(adjustmentsManagementServiceMock.find(any[String])).thenReturnAsync(Some(adjustments))
 
         val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
 
