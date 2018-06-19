@@ -98,7 +98,7 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ShortTimeout
     }
 
     "confirm new adjustments and progress to SIFT for fast pass candidate whose fast pass has been accepted, has siftable schemes " +
-      "and has time adjustments specified" in new TestFixture {
+      "and has time adjustments specified" ignore new TestFixture {
       when(mockAppRepository.findStatus(AppId)).thenReturnAsync(
         applicationStatusDetails.copy(status = ApplicationStatus.FAST_PASS_ACCEPTED.toString)
       )

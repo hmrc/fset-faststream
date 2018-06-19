@@ -129,7 +129,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
         val adjustments = Adjustments(
           adjustments = None,
           adjustmentsConfirmed = Some(true),
-          etray = None,
+          etray = Some(AdjustmentDetail(timeNeeded = Some(10))),
           video = None
         )
 
