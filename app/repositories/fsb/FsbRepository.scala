@@ -18,17 +18,16 @@ package repositories.fsb
 
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
-import model.EvaluationResults.{Amber, Green, Red}
-import model.Exceptions.{AlreadyEvaluatedForSchemeException, ApplicationNotFound}
-import model.ProgressStatuses.{ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION, ProgressStatus}
+import model.EvaluationResults.{ Amber, Green, Red }
+import model.Exceptions.{ AlreadyEvaluatedForSchemeException, ApplicationNotFound }
+import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION }
 import model._
 import model.command.ApplicationForProgression
-import model.persisted.fsac.AssessmentCentreTests
-import model.persisted.{FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult}
+import model.persisted.fsb.ScoresAndFeedback
+import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import org.joda.time.DateTime
-import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSON, BSONArray, BSONDocument, BSONObjectID}
+import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
 import repositories._
 import repositories.assessmentcentre.AssessmentCentreRepository
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -43,6 +42,8 @@ trait FsbRepository {
   def progressToFsb(application: ApplicationForProgression): Future[Unit]
   def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
   def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  def findScoresAndFeedback(applicationId: String): Future[Option[ScoresAndFeedback]]
+  def saveScoresAndFeedback(applicationId: String, scoresAndFeedback: ScoresAndFeedback): Future[Unit]
   def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit]
   def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
@@ -159,6 +160,31 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     collection.update(selector, modifier) map validator
   }
 
+  override def findScoresAndFeedback(applicationId: String): Future[Option[ScoresAndFeedback]] = {
+    val query = BSONDocument(APPLICATION_ID -> applicationId)
+    val projection = BSONDocument(s"$FSB_TEST_GROUPS.scoresAndFeedback" -> true)
+
+    collection.find(query, projection).one[BSONDocument].map { docOpt =>
+      docOpt.flatMap { doc =>
+        for {
+          testGroups <- doc.getAs[BSONDocument]("testGroups")
+          fsb <- testGroups.getAs[BSONDocument]("FSB")
+          scoresAndFeedback <- fsb.getAs[ScoresAndFeedback]("scoresAndFeedback")
+        } yield scoresAndFeedback
+      }
+    }
+  }
+
+  override def saveScoresAndFeedback(applicationId: String, scoresAndFeedback: ScoresAndFeedback): Future[Unit] = {
+    val query = BSONDocument(APPLICATION_ID -> applicationId)
+    val modifier = BSONDocument(
+      "$set" -> BSONDocument(
+        s"$FSB_TEST_GROUPS.scoresAndFeedback" -> scoresAndFeedback
+      )
+    )
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"saving fsb scores and feedback")
+    collection.update(query, modifier) map validator
+  }
 
   override def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
     val saveEvaluationResultsDoc = BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result)

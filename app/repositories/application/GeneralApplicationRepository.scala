@@ -34,6 +34,7 @@ import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventRes
 import model.persisted._
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.EventType.EventType
+import model.persisted.fsb.ScoresAndFeedback
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
@@ -899,7 +900,8 @@ class GeneralApplicationMongoRepository(
       "assistance-details.needsSupportAtVenue" -> true,
       "assistance-details.needsSupportForOnlineAssessment" -> true,
       "progress-status-timestamp" -> true,
-      "fsac-indicator" -> true
+      "fsac-indicator" -> true,
+      "testGroups.FSB.scoresAndFeedback" -> true
     )
 
     collection.find(query, projection).cursor[BSONDocument]().collect[List]()
@@ -1008,12 +1010,22 @@ class GeneralApplicationMongoRepository(
     val needsAdjustment = needsSupportAtVenue || needsSupportForOnlineTests
     val dateReady = doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](ApplicationStatus.PHASE3_TESTS_PASSED))
     val fsacIndicator = doc.getAs[model.persisted.FSACIndicator]("fsac-indicator").get
+    val scoresAndFeedbackOpt = for {
+      testGroups <- doc.getAs[BSONDocument]("testGroups")
+      fsb <- testGroups.getAs[BSONDocument]("FSB")
+      scoresAndFeedback <- fsb.getAs[ScoresAndFeedback]("scoresAndFeedback")
+    } yield scoresAndFeedback
+    val fsbScoresAndFeedbackSubmitted = scoresAndFeedbackOpt match {
+      case Some(scoresAndFeedback) => true
+      case _ => false
+    }
 
     CandidateEligibleForEvent(
       applicationId,
       firstName,
       lastName,
       needsAdjustment,
+      fsbScoresAndFeedbackSubmitted,
       model.FSACIndicator(fsacIndicator),
       dateReady.getOrElse(DateTime.now()))
   }

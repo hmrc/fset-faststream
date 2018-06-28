@@ -19,7 +19,6 @@ package model.exchange
 import model.persisted.eventschedules.SkillType._
 import play.api.libs.json.{ Json, OFormat }
 
-
 case class AssessorSkill(name: SkillType, displayText: String)
 
 object AssessorSkill {
@@ -39,6 +38,8 @@ object AssessorSkill {
     AssessorSkill(SEFS_ASSESSOR, "SEFS Assessor"),
     AssessorSkill(EDIP_ASSESSOR, "EDIP Assessor"),
     AssessorSkill(SDIP_ASSESSOR, "SDIP Assessor"),
+    AssessorSkill(SDIP_QAC, "SDIP QAC"),
+    AssessorSkill(EDIP_QAC, "EDIP QAC"),
     AssessorSkill(SRAC_ASSESSOR, "SRAC Assessor"),
     AssessorSkill(ORAC_ASSESSOR, "ORAC Assessor"),
     AssessorSkill(DEPARTMENTAL_ASSESSOR, "Departmental Assessor"),

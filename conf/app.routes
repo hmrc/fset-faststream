@@ -216,6 +216,8 @@ GET         /candidate-allocations/add-new-attributes                           
 
 POST          /assessments/fsb-scheme/results                                             controllers.FsbTestGroupController.savePerScheme()
 GET           /assessments/fsb-events/results                                             controllers.FsbTestGroupController.find(applicationIds: List[String], fsbType: Option[String])
+GET           /assessments/fsb/scoresAndFeedback/:applicationId                           controllers.FsbTestGroupController.findScoresAndFeedback(applicationId: String)
+POST          /assessments/fsb/scoresAndFeedback/:applicationId                           controllers.FsbTestGroupController.saveScoresAndFeedback(applicationId: String)
 
 # Day aggregate events
 GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
