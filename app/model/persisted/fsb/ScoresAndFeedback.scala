@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package controllers.reference
+package model.persisted.fsb
 
-import model.exchange.AssessorSkill
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import reactivemongo.bson.Macros
 
-object SkillTypeController extends SkillTypeController
+case class ScoresAndFeedback(overallScore: Double, feedback: String)
 
-trait SkillTypeController extends BaseController {
-
-  def allSkills: Action[AnyContent] = Action { implicit request =>
-    Ok(Json.toJson(AssessorSkill.AllSkillsWithLabels))
-  }
+object ScoresAndFeedback {
+  implicit val scoresAndFeedbackFormat = Json.format[ScoresAndFeedback]
+  implicit val scoresAndFeedbackHandler = Macros.handler[ScoresAndFeedback]
 }

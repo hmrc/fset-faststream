@@ -92,8 +92,10 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
     "return all candidates except no-shows" in new TestFixture {
 
       private val fsacIndicator = model.FSACIndicator("","")
-      private val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsacIndicator, DateTime.now())
-      private val c2 = CandidateEligibleForEvent("app2", "", "", needsAdjustment = true, fsacIndicator, DateTime.now())
+      private val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
+        fsacIndicator, DateTime.now())
+      private val c2 = CandidateEligibleForEvent("app2", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
+        fsacIndicator, DateTime.now())
       private val loc = "London"
       private val eventType = EventType.FSAC
       private val desc = "ORAC"
@@ -128,10 +130,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
           )
         )
       )
-
     }
   }
-
 
   trait TestFixture {
     val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
@@ -175,5 +175,4 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       )
     }
   }
-
 }

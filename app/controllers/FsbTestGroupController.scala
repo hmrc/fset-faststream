@@ -18,7 +18,7 @@ package controllers
 
 import model.{ EvaluationResults, SchemeId }
 import model.Exceptions.{ AlreadyEvaluatedForSchemeException, SchemeNotFoundException }
-import model.exchange.FsbEvaluationResults
+import model.exchange.{ FsbEvaluationResults, FsbScoresAndFeedback }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import services.application.FsbService
@@ -57,4 +57,17 @@ trait FsbTestGroupController extends BaseController {
     }
   }
 
+  def findScoresAndFeedback(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    fsbService.findScoresAndFeedback(applicationId).map {
+      case Some(scoresAndFeedback) => Ok(Json.toJson(scoresAndFeedback))
+      case None => NotFound(s"Cannot find scores and feedback for applicationId: $applicationId")
+    }
+  }
+
+  def saveScoresAndFeedback(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[FsbScoresAndFeedback] { fsbScoresAndFeedback: FsbScoresAndFeedback =>
+      fsbService.saveScoresAndFeedback(applicationId, fsbScoresAndFeedback)
+        .map { _ => Ok }
+    }
+  }
 }

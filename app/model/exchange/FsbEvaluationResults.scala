@@ -17,8 +17,8 @@
 package model.exchange
 
 import model.SchemeId
-import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+import play.api.libs.json.{ Format, Json }
+import reactivemongo.bson.Macros
 
 case class ApplicationResult(applicationId: String, result: String)
 
@@ -32,4 +32,13 @@ case class FsbEvaluationResults(schemeId: SchemeId, applicationResults: List[App
 object FsbEvaluationResults {
   implicit val format = Json.format[FsbEvaluationResults]
   implicit val bsonHandler = Macros.handler[FsbEvaluationResults]
+}
+
+case class FsbScoresAndFeedback(
+  overallScore: Double,
+  feedback: String
+)
+
+object FsbScoresAndFeedback {
+  implicit val jsonFormat: Format[FsbScoresAndFeedback] = Json.format[FsbScoresAndFeedback]
 }
