@@ -17,17 +17,19 @@
 package services.application
 
 import connectors.EmailClient
-import model.EvaluationResults.{Green, Red}
-import model.persisted.{ContactDetails, FsbTestGroup, SchemeEvaluationResult}
+import model.EvaluationResults.{ Green, Red }
+import model.persisted.{ ContactDetails, FsbTestGroup, SchemeEvaluationResult }
 import model._
+import model.exchange.FsbScoresAndFeedback
+import model.persisted.fsb.ScoresAndFeedback
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
-import repositories.{SchemeRepository, SchemeYamlRepository}
+import repositories.{ SchemeRepository, SchemeYamlRepository }
 import testkit.MockitoImplicits._
-import testkit.{ExtendedTimeout, UnitSpec}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import testkit.{ ExtendedTimeout, UnitSpec }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import services.scheme.SchemePreferencesService
 
 import scala.concurrent.Await
@@ -36,6 +38,19 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
 
+  "find scores and feedback" must {
+    "handle no data" in new TestFixture {
+      when(mockFsbRepo.findScoresAndFeedback(any[String])).thenReturnAsync(None)
+      val result = service.findScoresAndFeedback(appId).futureValue
+      result mustBe None
+    }
+
+    "handle data" in new TestFixture {
+      when(mockFsbRepo.findScoresAndFeedback(any[String])).thenReturnAsync(Some(ScoresAndFeedback(1.12, "feedback")))
+      val result = service.findScoresAndFeedback(appId).futureValue
+      result mustBe Some(FsbScoresAndFeedback(1.12, "feedback"))
+    }
+  }
 
   "fsb evaluation" must {
     "evaluate scheme to Eligible for Job Offer if results are Green" in new TestFixture {
@@ -78,7 +93,6 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
         Await.result(service.evaluateFsbCandidate(uid)(hc), 1.second)
       }
     }
-
 
     "evaluate DS as failed, and then GES_DS as failed too, but do not evaluate GES as EAC evaluation hasn't happened yet" in new TestFixture {
       val curSchemeStatus = List(
@@ -172,8 +186,8 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
   trait TestFixture {
 
     val hc = HeaderCarrier()
-
     val uid = UniqueIdentifier.randomUniqueIdentifier
+    val appId = "appId"
 
     val mockFsbRepo = mock[FsbRepository]
     val mockApplicationRepo = mock[GeneralApplicationMongoRepository]
@@ -203,5 +217,4 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
   }
-
 }

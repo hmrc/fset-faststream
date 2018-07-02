@@ -210,10 +210,12 @@ trait FsbService extends CurrentSchemeStatusHelper {
     } yield ()
   }
 
-  def findScoresAndFeedback(applicationId: String): Future[Option[ScoresAndFeedback]] = {
+  def findScoresAndFeedback(applicationId: String): Future[Option[FsbScoresAndFeedback]] = {
     for {
       scoresAndFeedbackOpt <- fsbRepo.findScoresAndFeedback(applicationId)
-    } yield scoresAndFeedbackOpt
+    } yield {
+      scoresAndFeedbackOpt.map( saf => FsbScoresAndFeedback(saf.overallScore, saf.feedback) )
+    }
   }
 
   def saveScoresAndFeedback(applicationId: String, data: FsbScoresAndFeedback): Future[Unit] = {
