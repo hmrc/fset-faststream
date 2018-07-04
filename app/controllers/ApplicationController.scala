@@ -54,5 +54,4 @@ abstract class ApplicationController(applicationClient: ApplicationClient)
     implicit user =>
       Future.successful(Ok(views.html.index.helpdesk()))
   }
-
 }
