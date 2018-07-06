@@ -16,13 +16,12 @@
 
 package services.campaignmanagement
 
-import java.util.UUID
-
 import factories.UUIDFactory
 import model.exchange.campaignmanagement.{ AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused }
 import model.persisted.CampaignManagementAfterDeadlineCode
 import org.joda.time.DateTime
-import repositories.campaignManagementAfterDeadlineSignupCodeRepository
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
+import repositories._
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
 
 import scala.concurrent.Future
@@ -31,11 +30,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object CampaignManagementService extends CampaignManagementService{
   val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository = campaignManagementAfterDeadlineSignupCodeRepository
   val uuidFactory = UUIDFactory
+  val appRepo: GeneralApplicationMongoRepository = applicationRepository
 }
 
 trait CampaignManagementService {
   val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository
   val uuidFactory: UUIDFactory
+  val appRepo: GeneralApplicationRepository
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Future[AfterDeadlineSignupCodeUnused] = {
     afterDeadlineCodeRepository.findUnusedValidCode(code).map(storedCodeOpt =>
@@ -57,5 +58,13 @@ trait CampaignManagementService {
     afterDeadlineCodeRepository.save(newCode).map { _ =>
       AfterDeadlineSignupCode(newCode.code)
     }
+  }
+
+  def listCollections: Future[String] = {
+    appRepo.listCollections.map(_.mkString("\n"))
+  }
+
+  def removeCollection(name: String): Future[Unit] = {
+    appRepo.removeCollection(name)
   }
 }
