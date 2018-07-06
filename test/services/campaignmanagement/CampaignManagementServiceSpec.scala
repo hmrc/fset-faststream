@@ -23,11 +23,10 @@ import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers.any
+import repositories.application.GeneralApplicationRepository
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
 import services.BaseServiceSpec
 import testkit.MockitoImplicits._
-
-import scala.concurrent.Future
 
 class CampaignManagementServiceSpec extends BaseServiceSpec {
 
@@ -68,10 +67,12 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
   trait TestFixture  {
     val mockAfterDeadlineCodeRepository = mock[CampaignManagementAfterDeadlineSignupCodeRepository]
     val mockUuidFactory = mock[UUIDFactory]
+    val mockApplicationRepository = mock[GeneralApplicationRepository]
 
     val service = new CampaignManagementService {
       val afterDeadlineCodeRepository = mockAfterDeadlineCodeRepository
       val uuidFactory = mockUuidFactory
+      val appRepo = mockApplicationRepository
     }
   }
 }
