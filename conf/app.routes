@@ -271,5 +271,8 @@ GET         /reference/locations-with-venues                             control
 
 GET         /reference/fsac/assessment-centres                           controllers.reference.FsacIndicatorController.getAssessmentCentres
 
+GET         /campaign-reset/listCollections                              controllers.CampaignManagementController.listCollections
+GET         /campaign-reset/removeCollection                             controllers.CampaignManagementController.removeCollection(name: String)
+
 # Metrics endpoints
 GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatusCounts

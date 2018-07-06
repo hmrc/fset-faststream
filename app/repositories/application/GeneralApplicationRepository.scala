@@ -40,9 +40,10 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
-import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.api.{ DB, DefaultDB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, document, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
+import reactivemongo.json.collection.JSONCollection
 import repositories._
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
@@ -51,7 +52,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Success, Try }
 
 // TODO FAST STREAM
@@ -167,6 +168,10 @@ trait GeneralApplicationRepository {
   def removeWithdrawReason(applicationId: String): Future[Unit]
 
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
+
+  def listCollections(implicit ec: ExecutionContext): Future[List[String]]
+
+  def removeCollection(name: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -174,7 +179,7 @@ trait GeneralApplicationRepository {
 class GeneralApplicationMongoRepository(
   val dateTimeFactory: DateTimeFactory,
   gatewayConfig: CubiksGatewayConfig
-)(implicit mongo: () => DB)
+)(implicit mongo: () => DefaultDB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     CreateApplicationRequest.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
@@ -1104,5 +1109,13 @@ class GeneralApplicationMongoRepository(
         doc.getAs[String]("applicationId").get
       }
     }
+  }
+
+  override def listCollections(implicit ec: ExecutionContext): Future[List[String]] = {
+     mongo().collectionNames
+  }
+
+  override def removeCollection(name: String): Future[Unit] = {
+    mongo().collection[JSONCollection](name).drop()
   }
 }

@@ -42,5 +42,12 @@ trait CampaignManagementController extends BaseController {
   def markSignupCodeAsUsed(code: String, applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     campaignManagementService.markSignupCodeAsUsed(code, applicationId).map(_ => Ok)
   }
-}
 
+  def listCollections: Action[AnyContent] = Action.async { implicit request =>
+    campaignManagementService.listCollections.map(Ok(_))
+  }
+
+  def removeCollection(name: String): Action[AnyContent] = Action.async { implicit request =>
+    campaignManagementService.removeCollection(name).map(_ => Ok)
+  }
+}
