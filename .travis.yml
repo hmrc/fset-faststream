@@ -32,5 +32,6 @@ before_script:
   - sudo service mongod restart
   - sleep 15 #mongo may not respond immediately. See http://docs.travis-ci.com/user/database-setup/#MongoDB
   - mongo --version
-  - ps aux | grep "[m]ongod"
+#  - ps aux | grep "[m]ongod"
+  - ps axf | grep mongod
   - sudo netstat -apn
