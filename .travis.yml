@@ -5,7 +5,8 @@ scala:
 - 2.11.8
 script:
 # run unit tests and all ITs except the test tagged with TravisIgnore
-  - sbt test "it:test-only -- -l TravisIgnore"
+#  - sbt test "it:test-only -- -l TravisIgnore"
+  - sbt "it:test-only repositories.event.EventsRepositorySpec"
 jdk:
 - oraclejdk8
 cache:
@@ -31,3 +32,5 @@ before_script:
   - sudo service mongod restart
   - sleep 15 #mongo may not respond immediately. See http://docs.travis-ci.com/user/database-setup/#MongoDB
   - mongo --version
+  - ps axf | grep mongo
+  - sudo netstat -apn
