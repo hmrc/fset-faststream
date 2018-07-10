@@ -5,18 +5,33 @@ scala:
 - 2.11.8
 script:
 # run unit tests and all ITs except the test tagged with TravisIgnore
-  - sbt test "it:test-only -- -l TravisIgnore"
+#  - sbt test "it:test-only -- -l TravisIgnore"
+  - sbt "it:test-only repositories.event.EventsRepositorySpec"
 jdk:
 - oraclejdk8
 cache:
   directories:
     - '$HOME/.ivy2/cache'
+
 addons:
   apt:
     sources:
       - mongodb-3.2-precise
-    packages:
-      - mongodb-org=3.2.10
 
 before_script:
+#  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+#  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+
+#  - echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+#  - echo "deb http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+
+  - sudo apt-get update
+#  - sudo apt-get install --allow-unauthenticated --allow-downgrades -y mongodb-org
+  - sudo apt-get install --allow-unauthenticated --allow-downgrades -y mongodb-org=3.2.10 mongodb-org-server=3.2.10 mongodb-org-shell=3.2.10 mongodb-org-mongos=3.2.10 mongodb-org-tools=3.2.10
+
   - sudo service mongod restart
+  - sleep 15 #mongo may not respond immediately. See http://docs.travis-ci.com/user/database-setup/#MongoDB
+  - mongo --version
+#  - ps aux | grep "[m]ongod"
+  - ps axf | grep mongod
+  - sudo netstat -apn
