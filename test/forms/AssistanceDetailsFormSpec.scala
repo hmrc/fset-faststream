@@ -16,10 +16,9 @@
 
 package forms
 
-import controllers.UnitSpec
-import testkit.UnitWithAppSpec
 import forms.AssistanceDetailsForm.Data
 import play.api.data.Form
+import testkit.UnitWithAppSpec
 
 class AssistanceDetailsFormSpec extends UnitWithAppSpec {
 
@@ -47,7 +46,7 @@ class AssistanceDetailsFormSpec extends UnitWithAppSpec {
 
     "be invalid when venue adjustments are not selected for a fast-stream application" in new Fixture {
       assertFormError(Seq(
-        "Tell us if you need extra support when you visit any of our venues"
+        "Tell us if you need any support when you visit any of our venues"
       ), AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "needsSupportAtVenue")
     }
 
@@ -58,7 +57,7 @@ class AssistanceDetailsFormSpec extends UnitWithAppSpec {
     "be invalid edip application when adjustments are not selected for phone interview" in new Fixture {
       val invalidRequest = AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsEdipMap - "needsSupportForPhoneInterview"
       assertFormError(Seq(
-        "Tell us if you need extra support for your phone interview"
+        "Tell us if you need any support for your phone interview"
       ), invalidRequest)
     }
 
@@ -69,7 +68,7 @@ class AssistanceDetailsFormSpec extends UnitWithAppSpec {
     "be invalid sdip application when adjustments are not selected for phone interview" in new Fixture {
       val invalidRequest = AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsSdipMap - "needsSupportForPhoneInterview"
       assertFormError(Seq(
-        "Tell us if you need extra support for your phone interview"
+        "Tell us if you need any support for your phone interview"
       ), invalidRequest)
     }
 
@@ -81,7 +80,7 @@ class AssistanceDetailsFormSpec extends UnitWithAppSpec {
     "be valid when application route and adjustments are not selected" in new Fixture {
       val invalidRequest = AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "applicationRoute" - "needsSupportForOnlineAssessment"
       assertFormError(Seq(
-        "Tell us if you will need extra support for your online tests"
+        "Tell us if you will need any support for your online tests"
       ), invalidRequest)
     }
   }

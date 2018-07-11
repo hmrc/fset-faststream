@@ -20,9 +20,9 @@
 
 @displaySupportForOnlineTestsLabel = @{
     if(isEdip(user)) {
-        "Will you need extra support?"
+        "Will you need any support?"
     } else {
-        "Will you need extra support for your e-tray or video interview?"
+        "Will you need any support for your e-tray, video interview or numerical test?"
     }
 }
 
@@ -52,7 +52,7 @@
     </section>
     @assistanceDetails.needsSupportForOnlineAssessment.map { needsSupportForOnlineAssessment =>
         <section>
-            <h3 class="heading-small">Will you need extra support for your e-tray or video interview?</h3>
+            <h3 class="heading-small">Will you need any support for your e-tray, video interview or numerical test?</h3>
             @needsSupportForOnlineAssessment match {
                 case true => {
                     <p id="needsSupportForOnlineAssessment">Yes</p>
@@ -66,7 +66,7 @@
     }
     @assistanceDetails.needsSupportAtVenue.map { needsSupportAtVenue =>
         <section>
-            <h3 class="heading-small">Will you need any extra support at the assessment centre?</h3>
+            <h3 class="heading-small">Will you need any support at the assessment centre?</h3>
             @needsSupportAtVenue match {
                 case true => {
                     <p id="needsSupportAtVenue">Yes</p>
@@ -80,7 +80,7 @@
     }
     @assistanceDetails.needsSupportForPhoneInterview.map { needsSupportForPhoneInterview =>
         <section>
-            <h3 class="heading-small">Will you need any extra support for your phone interview?</h3>
+            <h3 class="heading-small">Will you need any support for your phone interview?</h3>
             @needsSupportForPhoneInterview match {
                 case true => {
                     <p id="needsSupportForPhoneInterview">Yes</p>

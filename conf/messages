@@ -120,13 +120,13 @@ error.needsEdipCompleted.required = Tell us if you have completed EDIP
 error.hasDisability.required=Tell us if you consider yourself to have a disability
 error.hasDisabilityDescription.required=
 error.guaranteedInterview.required = Tell us if you wish to apply under the Guaranteed interview scheme
-error.needsSupportForOnlineAssessment.required = Tell us if you will need extra support for your online tests
+error.needsSupportForOnlineAssessment.required = Tell us if you will need any support for your online tests
 error.needsSupportForOnlineAssessmentDescription.required = Tell us what adjustments you need for your online tests
 error.needsSupportForOnlineAssessmentDescription.maxLength = You have exceeded the maximum number of characters allowed (2048) for extra online tests support description
-error.needsSupportAtVenue.required = Tell us if you need extra support when you visit any of our venues
+error.needsSupportAtVenue.required = Tell us if you need any support when you visit any of our venues
 error.needsSupportAtVenueDescription.required = Tell us what adjustments you need at any of our venues
 error.needsSupportAtVenueDescription.maxLength = You have exceeded the maximum number of characters allowed (2048) for extra support at venue description
-error.needsSupportForPhoneInterview.required = Tell us if you need extra support for your phone interview
+error.needsSupportForPhoneInterview.required = Tell us if you need any support for your phone interview
 error.needsSupportForPhoneInterviewDescription.required = Tell us what adjustments you need for your phone interview
 error.needsSupportForPhoneInterviewDescription.maxLength = You have exceeded the maximum number of characters allowed (2048) for extra phone interview support description
 
