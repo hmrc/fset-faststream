@@ -21,11 +21,10 @@
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.radioBoxHorizontal
 
-
 <section>
     <fieldset class="form-group">
-        <h2 class="form-label">Will you need any extra support for your phone interview?</h2>
-        <legend class="visuallyhidden">Will you need any extra support for your phone interview?</legend>
+        <h2 class="form-label">Will you need any support for your phone interview?</h2>
+        <legend class="visuallyhidden">Will you need any support for your phone interview?</legend>
         @radioBoxHorizontal(form("needsSupportForPhoneInterview"), options = List(("yes", "Yes", true), ("no", "No", false)),
             optionTrigger = "needsSupportForOnlineAssessment-describe")
         <div id="needsSupportForOnlineAssessment-describe" class="toggle-content" aria-hidden="true">

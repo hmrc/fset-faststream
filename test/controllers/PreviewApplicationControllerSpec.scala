@@ -49,7 +49,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content must include(s"""<p id="fastPassApplicable">No</p>""")
       content must include("""<ul id="schemePreferenceList" class="list-text">""")
-      content must include("Will you need extra support for your e-tray or video interview?")
+      content must include(onlineTestText)
     }
 
     "load preview page for existing edip application" in new TestFixture {
@@ -61,7 +61,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       content must include("<title>Check your application")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content mustNot include("""<ul id="schemePreferenceList" class="list-text">""")
-      content must include("Will you need any extra support for your phone interview?")
+      content must include(phoneText)
     }
 
     "load preview page for existing sdip application" in new TestFixture {
@@ -76,7 +76,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       content must include("<title>Check your application")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content mustNot include("""<ul id="schemePreferenceList" class="list-text">""")
-      content must include("Will you need any extra support for your phone interview?")
+      content must include(phoneText)
       content must include("<p id=\"edipCompleted\">Yes</p>")
       content must include("Have you completed the Early Diversity Internship Programme (EDIP)?")
     }
@@ -124,6 +124,9 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
   }
 
   trait TestFixture {
+    val phoneText = "Will you need any support for your phone interview?"
+    val onlineTestText = "Will you need any support for your e-tray, video interview or numerical test?"
+
     val mockApplicationClient = mock[ApplicationClient]
     val mockSchemeClient = mock[SchemeClient]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]

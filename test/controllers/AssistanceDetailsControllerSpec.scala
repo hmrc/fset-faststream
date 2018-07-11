@@ -50,7 +50,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
-      content must include("Will you need extra support for your e-tray or video interview?")
+      content must include(onlineTestText)
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
     }
 
@@ -63,7 +63,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
-      content must include("Will you need extra support for your e-tray or video interview?")
+      content must include(onlineTestText)
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content must include("Some adjustment")
     }
@@ -76,7 +76,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
-      content must include("Will you need any extra support for your phone interview?")
+      content must include(phoneText)
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
     }
 
@@ -89,7 +89,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
-      content must include("Will you need any extra support for your phone interview?")
+      content must include(phoneText)
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content must include("Some adjustment")
     }
@@ -144,6 +144,9 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     val mockApplicationClient = mock[ApplicationClient]
     val mockUserService = mock[UserCacheService]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
+
+    val phoneText = "Will you need any support for your phone interview?"
+    val onlineTestText = "Will you need any support for your e-tray, video interview or numerical test?"
 
     class TestableAssistanceDetailsController extends AssistanceDetailsController(mockApplicationClient)
       with TestableSecureActions {
