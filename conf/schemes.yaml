@@ -12,7 +12,7 @@
   name: Digital, Data & Technology
   civilServantEligible: true
   degree:
-    required: Degree_21_PostGrad
+    required: Degree_22
     specificRequirement: false
   siftRequirement: FORM
   siftEvaluationRequired: false
