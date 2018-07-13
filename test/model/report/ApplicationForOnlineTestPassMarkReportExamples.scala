@@ -28,9 +28,9 @@ object ApplicationForOnlineTestPassMarkReportExamples {
   lazy val application2 = newApplicationForOnlineTestPassMarkReport(TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
 
   lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReport(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None, None))
   lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReport(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None, None))
 
   def newApplicationForOnlineTestPassMarkReport(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
     ApplicationForOnlineTestPassMarkReport(

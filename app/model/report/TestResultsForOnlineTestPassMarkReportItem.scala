@@ -20,6 +20,7 @@ import model.OnlineTestCommands.TestResult
 import play.api.libs.json.Json
 import model.OnlineTestCommands.Implicits._
 import model.assessmentscores.AssessmentScoresAllExercises
+import model.persisted.fsb.ScoresAndFeedback
 
 case class TestResultsForOnlineTestPassMarkReportItem(
                                                       behavioural: Option[TestResult],
@@ -29,7 +30,8 @@ case class TestResultsForOnlineTestPassMarkReportItem(
                                                       siftTestResult: Option[TestResult],
                                                       fsac: Option[AssessmentScoresAllExercises],
                                                       overallFsacScore: Option[Double],
-                                                      sift: Option[SiftPhaseReportItem]
+                                                      sift: Option[SiftPhaseReportItem],
+                                                      fsb: Option[ScoresAndFeedback]
                                                      )
 
 object TestResultsForOnlineTestPassMarkReportItem {
