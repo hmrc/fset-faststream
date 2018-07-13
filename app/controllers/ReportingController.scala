@@ -420,7 +420,9 @@ trait ReportingController extends BaseController {
         applications <- reportingRepository.onlineTestPassMarkReport
         siftResults <- applicationSiftRepository.findAllResults
         fsacResults <- assessmentScoresRepository.findAll
-        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
+        appIds = applications.map(_.applicationId)
+        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(appIds)
+        fsbScoresAndFeedback <- fsbRepository.findScoresAndFeedback(appIds)
       } yield {
         for {
           application <- applications
@@ -429,8 +431,10 @@ trait ReportingController extends BaseController {
           overallFsacScoreOpt = fsac.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
           sift = siftResults.find(_.applicationId == application.applicationId)
           q <- questionnaires.get(application.applicationId)
-        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(application, fsac, overallFsacScoreOpt, sift), q)
+          fsb <- fsbScoresAndFeedback.get(application.applicationId)
+        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(application, fsac, overallFsacScoreOpt, sift, fsb), q)
       }
+
     reports.map { list =>
       Ok(Json.toJson(list))
     }

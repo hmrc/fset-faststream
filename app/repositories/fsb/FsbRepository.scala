@@ -26,7 +26,7 @@ import model.command.ApplicationForProgression
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import org.joda.time.DateTime
-import reactivemongo.api.DB
+import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
 import repositories._
 import repositories.assessmentcentre.AssessmentCentreRepository
@@ -43,6 +43,7 @@ trait FsbRepository {
   def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
   def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def findScoresAndFeedback(applicationId: String): Future[Option[ScoresAndFeedback]]
+  def findScoresAndFeedback(applicationIds: List[String]): Future[Map[String, Option[ScoresAndFeedback]]]
   def saveScoresAndFeedback(applicationId: String, scoresAndFeedback: ScoresAndFeedback): Future[Unit]
   def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit]
@@ -165,14 +166,33 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     val projection = BSONDocument(s"$FSB_TEST_GROUPS.scoresAndFeedback" -> true)
 
     collection.find(query, projection).one[BSONDocument].map { docOpt =>
-      docOpt.flatMap { doc =>
-        for {
-          testGroups <- doc.getAs[BSONDocument]("testGroups")
-          fsb <- testGroups.getAs[BSONDocument]("FSB")
-          scoresAndFeedback <- fsb.getAs[ScoresAndFeedback]("scoresAndFeedback")
-        } yield scoresAndFeedback
-      }
+      docOpt.flatMap(processScoresAndFeedback)
     }
+  }
+
+  override def findScoresAndFeedback(applicationIds: List[String]): Future[Map[String, Option[ScoresAndFeedback]]] = {
+
+    def docToReport(document: BSONDocument): (String, Option[ScoresAndFeedback]) = {
+      val applicationId = document.getAs[String]("applicationId").get
+      val scoresAndFeedbackOpt = processScoresAndFeedback(document)
+
+      applicationId -> scoresAndFeedbackOpt
+    }
+
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+
+    implicit val reader = bsonReader(docToReport)
+    val queryResult = bsonCollection.find(query)
+      .cursor[(String, Option[ScoresAndFeedback])](ReadPreference.nearest).collect[List]()
+    queryResult.map(_.toMap)
+  }
+
+  private def processScoresAndFeedback(doc: BSONDocument): Option[ScoresAndFeedback] = {
+    for {
+      testGroups <- doc.getAs[BSONDocument]("testGroups")
+      fsb <- testGroups.getAs[BSONDocument]("FSB")
+      scoresAndFeedback <- fsb.getAs[ScoresAndFeedback]("scoresAndFeedback")
+    } yield scoresAndFeedback
   }
 
   override def saveScoresAndFeedback(applicationId: String, scoresAndFeedback: ScoresAndFeedback): Future[Unit] = {
