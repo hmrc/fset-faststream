@@ -21,6 +21,7 @@ import factories.DateTimeFactory
 import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
 import model.{ CivilServiceExperienceType, InternshipType, ProgressStatuses }
 import model.persisted.FSACIndicator
+import model.persisted.fsb.ScoresAndFeedback
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
@@ -87,10 +88,13 @@ trait PreviousYearCandidatesDetailsRepository {
     "Situational testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId," +
     "reportLinkURL," +
     "Situational T-score,Situational Percentile,Situational Raw,Situational STEN," +
-    "PHASE_2 scheduleId,cubiksUserId,token,testUrl,invitiationDate,participantScheduleId,startedDateTime,completedDateTime,reportLinkURL,reportId," +
-    "e-Tray T-score,e-Tray Raw,PHASE 3 interviewId,token,candidateId,customCandidateId,comment,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
+    "PHASE_2 scheduleId,cubiksUserId,token,testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportLinkURL,reportId," +
+    "e-Tray T-score,e-Tray Raw," +
+    "PHASE 3 interviewId,token,candidateId,customCandidateId,comment,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
+    "Sift scheduleId,cubiksUserId,token,testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,Sift tScore,Sift raw," +
+    "Fsb overall score,Fsb feedback" +
     appTestStatuses +
     fsacCompetencyHeaders +
     appTestResults +
@@ -135,7 +139,6 @@ trait PreviousYearCandidatesDetailsRepository {
       s"$assessor $exercise attended,updatedBy,submittedDate,${assessmentScoresNumericFieldsMap(exercise)},${assessmentScoresFeedbackFieldsMap(exercise)}"
     }.mkString(",") + s",$assessor Final feedback,updatedBy,acceptedDate"
   }
-
 
   def applicationDetailsStream(): Enumerator[CandidateDetailsReportItem]
 
@@ -244,6 +247,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             onlineTestResults("sjq") :::
             onlineTestResults("etray") :::
             videoInterview(doc) :::
+            onlineTestResults("sift") :::
+            fsbScoresAndFeedback(doc) :::
             progressStatusTimestamps(doc) :::
             fsacCompetency(doc) :::
             testEvaluations(doc) :::
@@ -648,6 +653,18 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     code.flatMap(c => if (russellGroupUnis.contains(c)) Y else N)
   }
 
+  private def fsbScoresAndFeedback(doc: BSONDocument): List[Option[String]] = {
+    val scoresAndFeedbackOpt = for {
+      testGroups <- doc.getAs[BSONDocument]("testGroups")
+      fsb <- testGroups.getAs[BSONDocument]("FSB")
+      scoresAndFeedback <- fsb.getAs[ScoresAndFeedback]("scoresAndFeedback")
+    } yield scoresAndFeedback
+
+    scoresAndFeedbackOpt.map { saf =>
+      List(Some(saf.overallScore.toString), Some(saf.feedback))
+    }.getOrElse( List(None, None) )
+  }
+
   private def videoInterview(doc: BSONDocument): List[Option[String]] = {
     val testGroups = doc.getAs[BSONDocument]("testGroups")
     val videoTestSection = testGroups.getAs[BSONDocument]("PHASE3")
@@ -782,6 +799,14 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       _.getAs[BSONDocument]("testResult")
     }
 
+    val siftTestSection = testGroups.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
+    val siftTests = siftTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
+
+    val siftTest = siftTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == cubiksGatewayConfig.numericalTests.schedules("sample").scheduleId && test.getAs[Boolean]("usedForResults").getOrElse(false)))
+    val siftTestResults = siftTest.flatMap {
+      _.getAs[BSONDocument]("testResult")
+    }
+
     Map(
       "bq" ->
         List(
@@ -831,6 +856,20 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           etrayTest.getAsStr[String]("reportLinkURL"),
           etrayResults.getAsStr[Double]("tScore"),
           etrayResults.getAsStr[Double]("raw")
+        ),
+      "sift" ->
+        List(
+          siftTest.getAsStr[Int]("scheduleId"),
+          siftTest.getAsStr[Int]("cubiksUserId"),
+          siftTest.getAsStr[String]("token"),
+          siftTest.getAsStr[String]("testUrl"),
+          siftTest.getAsStr[DateTime]("invitationDate"),
+          siftTest.getAsStr[Int]("participantScheduleId"),
+          siftTest.getAsStr[DateTime]("startedDateTime"),
+          siftTest.getAsStr[DateTime]("completedDateTime"),
+          siftTest.getAsStr[Int]("reportId"),
+          siftTestResults.getAsStr[Double]("tScore"),
+          siftTestResults.getAsStr[Double]("raw")
         )
     )
   }
