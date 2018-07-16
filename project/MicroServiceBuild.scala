@@ -24,7 +24,7 @@ object MicroServiceBuild extends Build with MicroService {
 
 private object Versions {
 
-  val microserviceBootstrapVersion  = "6.13.0"
+  val microserviceBootstrapVersion  = "6.18.0"
   val ficus                         = "1.1.2"
   val playHealthVersion             = "2.1.0"
   val playConfigVersion             = "4.2.0"
