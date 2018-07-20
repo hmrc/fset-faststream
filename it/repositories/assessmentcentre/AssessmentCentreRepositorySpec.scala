@@ -93,21 +93,21 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       insertApplicationWithSiftComplete("appId1",
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
           SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
-          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
+          SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Red.toString)))
       insertApplicationWithSiftComplete("appId2",
         List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString),
           SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
-          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))
+          SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Red.toString)))
       insertApplicationWithSiftComplete("appId3",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
           SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
-          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString)))
+          SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString)))
 
       whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(1)) { result =>
         result mustBe ApplicationForProgression("appId3", ApplicationStatus.SIFT,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
             SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
-            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))
+            SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))
         ) :: Nil
       }
     }
@@ -116,7 +116,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       insertApplicationWithSiftComplete("appId11",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
           SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
-          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString)))
+          SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString)))
 
 
       val nextResults = assessmentCentreRepository.nextApplicationForAssessmentCentre(1).futureValue
@@ -124,7 +124,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
         ApplicationForProgression("appId11", ApplicationStatus.SIFT,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
             SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
-            SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))
+            SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))
         )
       )
 

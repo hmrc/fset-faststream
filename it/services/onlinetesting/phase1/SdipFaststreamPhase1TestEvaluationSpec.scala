@@ -4,7 +4,6 @@ import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults._
 import model.{ ApplicationStatus => _, _ }
 
-
 class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
   "phase1 evaluation process" should {
@@ -62,7 +61,6 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Red)
     }
 
-
     "re-evaluate sdip scheme to Red for SdipFaststream candidate after changing passmarks" in new TestFixture {
       applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
         (ApplicationRoute.SdipFaststream)
@@ -97,7 +95,6 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Green)
     }
 
-
     "progress candidate to PHASE1_TESTS_PASSED with faststream schemes in RED and sdip in GREEN " +
       "when candidate is in sdipFaststream route and only sdip scheme score is passing the passmarks" in new TestFixture {
       val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable,
@@ -112,5 +109,4 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Green)
     }
   }
-
 }

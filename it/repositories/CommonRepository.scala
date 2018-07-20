@@ -37,12 +37,12 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   val mockLaunchpadConfig = mock[LaunchpadGatewayConfig]
 
-  val European: SchemeId = SchemeId("European")
+  val DiplomaticServiceEconomists: SchemeId = SchemeId("DiplomaticServiceEconomists")
   val Finance = SchemeId("Finance")
-  val DiplomaticService = SchemeId("Diplomatic Service")
+  val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService")
   val Sdip = SchemeId("Sdip")
   val Edip = SchemeId("Edip")
-  val siftableSchemeDefinitions = List(European, Finance, DiplomaticService, Edip, Sdip)
+  val siftableSchemeDefinitions = List(DiplomaticServiceEconomists, Finance, GovernmentEconomicsService, Sdip)
 
   def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, mockGatewayConfig)
 
