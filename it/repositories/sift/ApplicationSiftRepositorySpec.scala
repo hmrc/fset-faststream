@@ -30,14 +30,14 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     "ignore applications in incorrect statuses and return only the PhaseX Passed_Notified applications that are eligible for sift" in {
 
       insertApplicationWithPhase3TestNotifiedResults("appId1",
-        List(SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId2",
         List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId2", ApplicationStatus.PHASE3_TESTS_FAILED)
 
       insertApplicationWithPhase3TestNotifiedResults("appId3",
-        List(SchemeEvaluationResult(European, EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(DiplomaticServiceEconomists, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId4",
         List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
@@ -63,9 +63,9 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
       appsForSift must contain theSameElementsAs List(
         ApplicationForSift("appId1", "appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(DiplomaticService, EvaluationResults.Green.toString))),
+          List(SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))),
         ApplicationForSift("appId3", "appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(European, EvaluationResults.Green.toString))),
+          List(SchemeEvaluationResult(DiplomaticServiceEconomists, EvaluationResults.Green.toString))),
         ApplicationForSift("appId4", "appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))),
         ApplicationForSift("appId6", "appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
@@ -133,7 +133,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     "eligible for other schema after sifting on one" in {
       createSiftEligibleCandidates("appId14")
-      repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(European, "Red")).futureValue
+      repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(DiplomaticServiceEconomists, "Red")).futureValue
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
     }
@@ -143,7 +143,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     "return candidates who are all red at the end of sift" in {
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
-        SchemeEvaluationResult(European, Withdrawn.toString),
+        SchemeEvaluationResult(DiplomaticServiceEconomists, Withdrawn.toString),
         SchemeEvaluationResult(Generalist, Red.toString)
       )
       createSiftEligibleCandidates("appId", schemeStatus)
@@ -158,7 +158,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     "ignore candidates who are not all red at the end of sift" in {
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
-        SchemeEvaluationResult(European, Green.toString),
+        SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),
         SchemeEvaluationResult(Generalist, Red.toString)
       )
       createSiftEligibleCandidates("appId", schemeStatus)
@@ -172,7 +172,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
     SchemeEvaluationResult(Commercial, Green.toString),
-    SchemeEvaluationResult(European, Green.toString),
+    SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),
     SchemeEvaluationResult(Generalist, Red.toString)
   )
   ) = {
@@ -181,7 +181,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     insertApplication(appAndUserId,
       ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
       Some(phase3TestWithResult),
-      schemes = List(Commercial, European),
+      schemes = List(Commercial, DiplomaticServiceEconomists),
       phase2Evaluation = Some(phase2Evaluation))
 
     val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,

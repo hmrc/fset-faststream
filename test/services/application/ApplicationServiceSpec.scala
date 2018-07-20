@@ -432,8 +432,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        // DiplomaticService - Form to be filled in, evaluation required (will stop us moving to FSAC)
-        SchemeEvaluationResult(SchemeId(diplomaticService), "Green"), // form to be filled in, evaluation required
+        // GovernmentEconomicsService - Form to be filled in, evaluation required (will stop us moving to FSAC)
+        SchemeEvaluationResult(SchemeId(governmentEconomicsService), "Green"), // form to be filled in, evaluation required
         SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
@@ -774,7 +774,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(commercial), "Green"),       // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(diplomaticService), "Green") // form to be filled in, evaluation required
+        SchemeEvaluationResult(SchemeId(governmentEconomicsService), "Green") // form to be filled in, evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -844,7 +844,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(generalist), "Green"),          // nothing required
-        SchemeEvaluationResult(SchemeId(diplomaticService), "Green"),   // form to be filled in, evaluation required
+        SchemeEvaluationResult(SchemeId(governmentEconomicsService), "Green"),   // form to be filled in, evaluation required
         SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
         SchemeEvaluationResult(SchemeId(digitalAndTechnology), "Green") // form to be filled in, no evaluation required
       ))
@@ -899,7 +899,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(commercial), "Green"),
-        SchemeEvaluationResult(SchemeId(diplomaticService), "Green")
+        SchemeEvaluationResult(SchemeId(governmentEconomicsService), "Green")
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -1125,7 +1125,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val business = "Business"
     val commercial = "Commercial"
     val digitalAndTechnology = "DigitalAndTechnology"
-    val diplomaticService = "DiplomaticService"
+    val governmentEconomicsService = "GovernmentEconomicsService"
     val edip = "Edip"
     val finance = "Finance"
     val generalist = "Generalist"
@@ -1138,15 +1138,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val sdip = "Sdip"
 
     val mockSchemeRepo = new SchemeRepository {
-      override lazy val siftableSchemeIds = Seq(SchemeId(commercial), SchemeId(digitalAndTechnology), SchemeId(diplomaticService))
+      override lazy val siftableSchemeIds = Seq(SchemeId(commercial), SchemeId(digitalAndTechnology), SchemeId(governmentEconomicsService))
       override lazy val noSiftEvaluationRequiredSchemeIds = Seq(SchemeId(digitalAndTechnology), SchemeId(edip), SchemeId(generalist),
         SchemeId(governmentCommunicationService), SchemeId(housesOfParliament), SchemeId(humanResources), SchemeId(projectDelivery),
         SchemeId(scienceAndEngineering)
       )
       override lazy val nonSiftableSchemeIds = Seq(SchemeId(generalist), SchemeId(humanResources))
       override lazy val numericTestSiftRequirementSchemeIds = Seq(SchemeId(commercial), SchemeId(finance))
-      override lazy val formMustBeFilledInSchemeIds = Seq(SchemeId(digitalAndTechnology), SchemeId(diplomaticService))
-      override lazy val siftableAndEvaluationRequiredSchemeIds = Seq(SchemeId(commercial), SchemeId(diplomaticService))
+      override lazy val formMustBeFilledInSchemeIds = Seq(SchemeId(digitalAndTechnology), SchemeId(governmentEconomicsService))
+      override lazy val siftableAndEvaluationRequiredSchemeIds = Seq(SchemeId(commercial), SchemeId(governmentEconomicsService))
     }
 
     val underTest = new ApplicationService with StcEventServiceFixture {
