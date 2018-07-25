@@ -46,7 +46,7 @@ trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator with M
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
-    val schemes = SchemeYamlRepository.faststreamSchemes.map(_.id).toList
+    val schemes = SchemeYamlRepository.schemes.map(_.id).toList
     val dummyPassmarks = AssessmentCentrePassMarkSettings(
       schemes.map(id => AssessmentCentrePassMark(id, AssessmentCentrePassMarkThresholds(PassMarkThreshold(0.2, 0.4)))),
       version.toString(),
