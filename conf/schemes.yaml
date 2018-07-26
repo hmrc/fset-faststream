@@ -27,7 +27,7 @@
     required: Degree_22
     specificRequirement: true
   siftRequirement: FORM
-  siftEvaluationRequired: false
+  siftEvaluationRequired: true
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/1232/fco-guide.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1246/scheme-questions-fco.rtf
