@@ -14,16 +14,17 @@
  * limitations under the License.
  *@
 
+@import connectors.exchange.referencedata.Scheme.civilServantSchemesRequiringQualifications
+
 <div id="civilServiceExperienceDetails_civilServiceExperienceType_CivilServantViaFastTrack-panel" class="toggle-content" aria-hidden="true">
     <h3 class="heading-medium">Fast Track</h3>
     <div class="text">
         <p>As a current civil servant or Fast Track applicant you're eligible for most of the schemes without a degree.</p>
         <p>The schemes you'll need specific qualifications for are:</p>
         <ul>
-            <li>Diplomatic Service (Economists)</li>
-            <li>Government Economic Service</li>
-            <li>Government Operational Research Service</li>
-            <li>Government Social Research Service</li>
+            @civilServantSchemesRequiringQualifications.map{ schemeName =>
+                <li>@schemeName</li>
+            }
         </ul>
         <p>Check the <a href="https://www.faststream.gov.uk/faqs/" rel="external" target="_blank">eligibility requirements</a>for more information.</p>
     </div>
