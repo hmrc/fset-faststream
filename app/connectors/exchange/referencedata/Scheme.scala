@@ -82,4 +82,12 @@ object Scheme {
 
   val GESDS = "DiplomaticServiceEconomists"
   val GESDSId = SchemeId(GESDS)
+
+  // TODO: this is only temporary so the list is in one place instead of in civilServantsContent and fastTrackContent
+  // TODO: the proper fix should be to read the data from ref data schemes
+  // All schemes whose civilServantEligible setting = false
+  val civilServantSchemesRequiringQualifications = Seq(
+    "Diplomatic Service (Economists)", "Government Economics Service" ,"Government Operational Research Service",
+      "Government Social Research Service", "Government Statistical Service", "Science and Engineering"
+  )
 }

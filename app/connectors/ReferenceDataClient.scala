@@ -16,8 +16,9 @@
 
 package connectors
 
-import config.{ CSRHttp, WSHttp }
-import connectors.exchange.referencedata.{ ReferenceData, Scheme }
+import config.{CSRHttp, WSHttp}
+import connectors.exchange.referencedata.{ReferenceData, Scheme}
+import play.api.Logger
 import play.api.libs.json.OFormat
 //import uk.gov.hmrc.play.http.ws.WSHttp
 import play.api.http.Status.OK
@@ -45,11 +46,13 @@ trait ReferenceDataClient {
     key: String,
     endpointPath: String)(implicit hc: HeaderCarrier, jsonFormat: OFormat[T]): Future[List[T]] = {
     val values: List[T] = referenceDataCache.getOrElse(key, List.empty[T]).asInstanceOf[List[T]]
+    Logger.info(s"Values successfully fetched from reference data cache for key: $key = $values")
     if (values.isEmpty) {
       http.GET(s"$apiBaseUrl$endpointPath").map { response =>
         if (response.status == OK) {
           val dataResponse = response.json.as[List[T]]
           referenceDataCache.update(key, dataResponse)
+          Logger.info(s"Reference data cache is empty for key: $key. It will be populated with the following data: $dataResponse")
           dataResponse
         } else {
           throw new Exception(s"Error retrieving $key for")
