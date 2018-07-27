@@ -99,7 +99,7 @@
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
-  civilServantEligible: true
+  civilServantEligible: false
   degree:
     required: Degree_SocialScience
     specificRequirement: true
@@ -155,7 +155,7 @@
 - id: ScienceAndEngineering
   code: SEFS
   name: Science and Engineering
-  civilServantEligible: true
+  civilServantEligible: false
   degree:
     required: Degree_CharteredEngineer
     specificRequirement: true
