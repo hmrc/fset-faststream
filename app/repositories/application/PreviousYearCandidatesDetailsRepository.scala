@@ -16,21 +16,22 @@
 
 package repositories.application
 
+import config.NumericalTestsConfig
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
-import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
-import model.{ CivilServiceExperienceType, InternshipType, ProgressStatuses }
+import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
+import model.{CivilServiceExperienceType, InternshipType, ProgressStatuses}
 import model.persisted.FSACIndicator
 import model.persisted.fsb.ScoresAndFeedback
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
-import reactivemongo.api.{ DB, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, BSONReader, BSONValue }
+import reactivemongo.api.{DB, ReadPreference}
+import reactivemongo.bson.{BSONDocument, BSONReader, BSONValue}
 import reactivemongo.json.ImplicitBSONHandlers._
 import reactivemongo.json.collection.JSONCollection
-import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository }
+import repositories.{BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository}
 import services.reporting.SocioEconomicCalculator
 import repositories.withdrawHandler
 
@@ -802,7 +803,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val siftTestSection = testGroups.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
     val siftTests = siftTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
-    val siftTest = siftTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == cubiksGatewayConfig.numericalTests.schedules("sample").scheduleId && test.getAs[Boolean]("usedForResults").getOrElse(false)))
+    val siftTest = siftTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get ==
+      cubiksGatewayConfig.numericalTests.schedules(NumericalTestsConfig.numericalTestScheduleName).scheduleId
+      && test.getAs[Boolean]("usedForResults").getOrElse(false)))
     val siftTestResults = siftTest.flatMap {
       _.getAs[BSONDocument]("testResult")
     }
