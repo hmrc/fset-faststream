@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@(form: Form[_root_.forms.PersonalDetailsForm.Data])(implicit messages: Messages)
+@(form: Form[_root_.forms.PersonalDetailsForm.Data], schemesRequiringQualifications: Seq[String])(implicit messages: Messages)
 
 @import forms.FastPassForm
 @import views.html.widgets.radioGroupWithTogglePanels
@@ -23,8 +23,8 @@
     @radioGroupWithTogglePanels(form("civilServiceExperienceDetails.civilServiceExperienceType"), FastPassForm.CivilServiceExperienceTypes,
         'id -> "civilServiceExperienceDetails.civilServiceExperienceType",
         '_label -> "Which of these applies?") {
-        @civilServantsContent()
-        @fastTrackContent()
+        @civilServantsContent(schemesRequiringQualifications)
+        @fastTrackContent(schemesRequiringQualifications)
         @internshipTypesPanel(form)
     }
 </div>

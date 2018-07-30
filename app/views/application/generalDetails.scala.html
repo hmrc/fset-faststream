@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@(details: Form[_root_.forms.PersonalDetailsForm.Data], updateStatus: Boolean)(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, messages: Messages)
+@(details: Form[_root_.forms.PersonalDetailsForm.Data], updateStatus: Boolean, schemesRequiringQualifications: Seq[String])(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @import views.html.application.personalDetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
@@ -42,9 +42,9 @@
         @contactDetails(details, isLastSection = optCachedData.exists(cachedData => isEdip(optCachedData)))
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) && isFaststream(optCachedData)){
             @if(optCachedData.exists(cachedData => isSdipFaststream(cachedData))) {
-                @sdipFsCivilServiceExperienceDetailsPanel(details)
+                @sdipFsCivilServiceExperienceDetailsPanel(details, schemesRequiringQualifications)
             } else {
-                @civilServiceExperienceDetailsPanel(details)
+                @civilServiceExperienceDetailsPanel(details, schemesRequiringQualifications)
             }
         }
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
