@@ -60,7 +60,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     ),
     phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90,
       Map("daro" -> Phase2ScheduleExamples.DaroSchedule)),
-    numericalTests = NumericalTestsConfig(Map("sample" -> NumericalTestSchedule(12345, 123))), // TODO: Update this schedule
+    numericalTests = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(12345, 123))),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"

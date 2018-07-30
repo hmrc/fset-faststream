@@ -114,6 +114,10 @@ case class Phase2TestsConfig(expiryTimeInDays: Int,
 case class NumericalTestSchedule(scheduleId: Int, assessmentId: Int)
 case class NumericalTestsConfig(schedules: Map[String, NumericalTestSchedule])
 
+case object NumericalTestsConfig {
+  val numericalTestScheduleName = "numericalTest"
+}
+
 trait CubiksGatewayAssessment {
   val assessmentId: Int
 }

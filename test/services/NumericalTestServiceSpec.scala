@@ -53,7 +53,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
     when(mockCubiksGatewayConfig.candidateAppUrl).thenReturn("localhost")
-    val mockNumericalTestsConfig = NumericalTestsConfig(Map("sample" -> NumericalTestSchedule(1, 1)))
+    val mockNumericalTestsConfig = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(1, 1)))
 
     val mockCubiksGatewayClient: CubiksGatewayClient = mock[CubiksGatewayClient]
     val mockDateTimeFactory: DateTimeFactory = mock[DateTimeFactory]
