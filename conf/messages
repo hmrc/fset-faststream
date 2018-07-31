@@ -223,7 +223,8 @@ error.currentUniversity.required = You must tell us the name of your current uni
 error.universityDegreeCategory.required = You must tell us which category best describes your degree, or choose ''prefer not to say''
 
 # Parental Questionnaire error messages
-error.required.parentsDegree = You must tell us if your parent/guardian has a degree, or choose ''prefer not to say''
+error.required.socioEconomicBackground = You must tell us if you think you come from a lower socio-economic background, or choose ''prefer not to say''
+error.required.parentsDegree = You must tell us if your parent/guardian completed a university degree course, or qualifications below degree level, by the time you were 18, or choose ''prefer not to say''
 error.required.employmentStatus = You must tell us the employment status of your highest-earning parent/guardian, or choose ''prefer not to say''
 error.required.parentsOccupation = You must tell us what type of work your highest-earning parent/guardian did
 error.required.employee = You must tell us if your parent/guardian was either employed or self-employed, or choose ''prefer not to say''
@@ -246,9 +247,10 @@ university.question = What is the name of the university you received your degre
 edip.university.question = What is the name of your current university?
 universityDegreeCategory.question = Which category best describes your degree?
 
+socioEconomic.question = Do you consider yourself to come from a lower socio-economic background?
 employedParent.question = When you were 14, was your highest-earning parent or guardian employed?
 parentsOccupation.question = When you were 14, what kind of work did your highest-earning parent or guardian do?
-parentsDegree.question = Do you have a parent or guardian that has completed a university degree course or equivalent?
+parentsDegree.question = Do you have a parent or guardian that completed a university degree course, or qualifications below degree level, by the time you were 18?
 employee.question = Did they work as an employee or were they self-employed?
 organizationSize.question = Which size would best describe their place of work?
 supervise.question = Did they supervise employees?
