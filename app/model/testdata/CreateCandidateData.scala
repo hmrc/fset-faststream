@@ -83,7 +83,6 @@ object CreateCandidateData {
         parentalCompanySize = o.parentalCompanySize
       )
     }
-
   }
 
   trait TestDates {
