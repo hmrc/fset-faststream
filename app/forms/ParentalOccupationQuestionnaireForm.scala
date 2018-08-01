@@ -43,6 +43,7 @@ object ParentalOccupationQuestionnaireForm {
 
   val form = Form(
     mapping(
+      "socioEconomicBackground" -> Mappings.nonEmptyTrimmedText("error.required.socioEconomicBackground", 256),
       "parentsDegree" -> Mappings.nonEmptyTrimmedText("error.required.parentsDegree", 256),
       "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.employmentStatus", 256),
       "parentsOccupation" -> of(employedDependentFormatter),
@@ -53,6 +54,7 @@ object ParentalOccupationQuestionnaireForm {
   )
 
   case class Data(
+                   socioEconomicBackground: String,
                    parentsDegree: String,
                    employedParent: String,
                    parentsOccupation: Option[String],
@@ -64,6 +66,7 @@ object ParentalOccupationQuestionnaireForm {
       val occupation = if (employedParent == "Employed") parentsOccupation else Some(employedParent)
 
       Questionnaire(List(
+        Question(Messages("socioEconomic.question"), Answer(Some(socioEconomicBackground), None, None)),
         Question(Messages("parentsDegree.question"), Answer(Some(parentsDegree), None, None)),
         Question(Messages("parentsOccupation.question"), Answer(occupation.sanitize, None, None)),
         Question(Messages("employee.question"), Answer(employee, None, None)),

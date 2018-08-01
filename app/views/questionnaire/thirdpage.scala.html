@@ -34,13 +34,22 @@
     </div>
     @helper.form(action = routes.QuestionnaireController.submitThirdPage(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
+        <section>
+            <div class="text">
+                <fieldset>
+                    <h2 class="form-label">@Messages("socioEconomic.question")</h2>
+                    <legend class="visuallyhidden">@Messages("")</legend>
+                    @radioBoxHorizontal(questionnaireForm("socioEconomicBackground"), options = SimpleAnswerOptions.list)
+                </fieldset>
+            </div>
+        </section>
 
         <section>
             <div class="text">
                 <fieldset>
                     <h2 class="form-label">@Messages("parentsDegree.question")</h2>
                     <legend class="visuallyhidden">@Messages("parentsDegree.question")</legend>
-                    @radioBoxHorizontal(questionnaireForm("parentsDegree"), options = SimpleAnswerOptions.list)
+                    @radioBoxVertical(questionnaireForm("parentsDegree"), options = models.view.questionnaire.ParentQualifications.seq)
                 </fieldset>
             </div>
         </section>

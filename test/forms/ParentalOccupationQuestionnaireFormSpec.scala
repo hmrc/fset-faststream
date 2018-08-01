@@ -16,7 +16,6 @@
 
 package forms
 
-import controllers.UnitSpec
 import forms.ParentalOccupationQuestionnaireForm.{ Data, form }
 import testkit.UnitWithAppSpec
 
@@ -29,6 +28,14 @@ class ParentalOccupationQuestionnaireFormSpec extends UnitWithAppSpec {
       val expectedData = validFormData
       val actualData = validForm.get
       actualData mustBe expectedData
+    }
+
+    "fail when no socio-economic background" in new Fixture {
+      assertFieldRequired(expectedError = "socioEconomicBackground", "socioEconomicBackground")
+    }
+
+    "fail when no parents degree" in new Fixture {
+      assertFieldRequired(expectedError = "parentsDegree", "parentsDegree")
     }
 
     "fail when no employedParent" in new Fixture {
@@ -56,20 +63,20 @@ class ParentalOccupationQuestionnaireFormSpec extends UnitWithAppSpec {
 
     "transform properly to a question list" in new Fixture {
       val questionList = validFormData.exchange.questions
-      questionList.size must be(5)
+      questionList.size must be(6)
       questionList(0).answer.answer must be(Some("Yes"))
-      questionList(1).answer.answer must be(Some("Some occupation"))
-      questionList(2).answer.answer must be(Some("Some employee"))
-      questionList(3).answer.answer must be(Some("Org size"))
-      questionList(4).answer.answer must be(Some("Yes"))
+      questionList(1).answer.answer must be(Some("Degree level qualification"))
+      questionList(2).answer.answer must be(Some("Some occupation"))
+      questionList(3).answer.answer must be(Some("Some employee"))
+      questionList(4).answer.answer must be(Some("Org size"))
+      questionList(5).answer.answer must be(Some("Yes"))
     }
-
   }
 
   trait Fixture {
-
     val validFormData = Data(
       "Yes",
+      "Degree level qualification",
       "Employed",
       Some("Some occupation"),
       Some("Some employee"),
@@ -78,7 +85,8 @@ class ParentalOccupationQuestionnaireFormSpec extends UnitWithAppSpec {
     )
 
     val validFormValues = Map(
-      "parentsDegree" -> "Yes",
+      "socioEconomicBackground" -> "Yes",
+      "parentsDegree" -> "Degree level qualification",
       "employedParent" -> "Employed",
       "parentsOccupation" -> "Some occupation",
       "employee" -> "Some employee",
@@ -88,6 +96,7 @@ class ParentalOccupationQuestionnaireFormSpec extends UnitWithAppSpec {
 
     val validFormDataUnemployed = Data(
       "No",
+      "No formal qualifications",
       "Unemployed",
       None,
       None,
@@ -96,7 +105,8 @@ class ParentalOccupationQuestionnaireFormSpec extends UnitWithAppSpec {
     )
 
     val validFormValuesUnemployed = Map(
-      "parentsDegree" -> "No",
+      "socioEconomicBackground" -> "No",
+      "parentsDegree" -> "No formal qualifications",
       "employedParent" -> "Unemployed",
       "parentsOccupation" -> "",
       "employee" -> "",
