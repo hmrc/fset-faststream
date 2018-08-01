@@ -635,6 +635,13 @@ abstract class DataFaker(schemeRepo: SchemeRepository) {
 
     def sizeOfPlaceOfWork = randOne(List("Small (1 - 24 employees)", "Large (over 24 employees)"))
 
+    def parentsDegree = randOne(List(
+      "Degree level qualification",
+      "Qualifications below degree level",
+      "No formal qualifications",
+      "I don't know/prefer not to say"
+    ))
+
     def parentsOccupation = randOne(List(
       "Unemployed but seeking work",
       "Unemployed",
