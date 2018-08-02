@@ -109,7 +109,7 @@ trait PreviousYearCandidatesDetailsRepository {
 
   val questionnaireDetailsHeader: String = "Gender Identity,Sexual Orientation,Ethnic Group,Live in UK between 14-18?,Home postcode at 14," +
     "Name of school 14-16,Which type of school was this?,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
-    "Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
+    "Lower socio-economic background?,Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
     "Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
   val mediaHeader = "How did you hear about us?"
@@ -480,7 +480,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           getAnswer("Were you at any time eligible for free school meals?", questionsDoc),
           universityName,
           getAnswer("Which category best describes your degree?", questionsDoc),
-          getAnswer("Do you have a parent or guardian that has completed a university degree course or equivalent?", questionsDoc),
+          getAnswer("Do you consider yourself to come from a lower socio-economic background?", questionsDoc),
+          getAnswer("Do you have a parent or guardian that completed a university degree course, or qualifications below degree level, by the time you were 18?", questionsDoc),
           getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?", questionsDoc),
           getAnswer("Did they work as an employee or were they self-employed?", questionsDoc),
 
