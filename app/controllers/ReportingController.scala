@@ -119,7 +119,8 @@ trait ReportingController extends BaseController {
 
   def streamPreviousYearCandidatesDetailsReport: Action[AnyContent] = Action.async { implicit request =>
     enrichPreviousYearCandidateDetails {
-      (contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) =>
+      (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+       siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) =>
       {
         val header = Enumerator(
           (prevYearCandidatesDetailsRepository.applicationDetailsHeader ::
@@ -133,7 +134,7 @@ trait ReportingController extends BaseController {
             Nil).mkString(",") + "\n"
         )
         var counter = 0
-        val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream().map { app =>
+        val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes).map { app =>
           val ret = createCandidateInfoBackUpRecord(
             app,
             contactDetails,
@@ -153,7 +154,7 @@ trait ReportingController extends BaseController {
   }
 
   private def enrichPreviousYearCandidateDetails(
-    block: (CsvExtract[String], CsvExtract[String],
+    block: (Int, CsvExtract[String], CsvExtract[String],
       CsvExtract[String], CsvExtract[String],
       CsvExtract[String], CsvExtract[String],
       CsvExtract[String]) => Result
@@ -167,7 +168,7 @@ trait ReportingController extends BaseController {
       assessorAssessmentScores <- prevYearCandidatesDetailsRepository.findAssessorAssessmentScores()
       reviewerAssessmentScores <- prevYearCandidatesDetailsRepository.findReviewerAssessmentScores()
     } yield {
-      block(contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
+      block(schemeRepo.schemes.size, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
         assessorAssessmentScores, reviewerAssessmentScores)
     }
   }
@@ -497,5 +498,4 @@ trait ReportingController extends BaseController {
       }
     }
   }
-
 }

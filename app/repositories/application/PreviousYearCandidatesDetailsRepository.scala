@@ -77,11 +77,14 @@ trait PreviousYearCandidatesDetailsRepository {
     }
       .mkString(",")
 
-  val applicationDetailsHeader = "applicationId,userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
+  val applicationDetailsHeader = "applicationId,userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth," +
+    "Are you eligible,Terms and Conditions," +
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
     "EDIP,SDIP,Fast Pass,Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
     "Do you want to defer,Deferal selections,Do you have a disability,Provide more info,GIS,Extra support online tests," +
-    "What adjustments will you need,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need,E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes,Video other notes,Additional comments,Adjustments confirmed,I understand this wont affect application," +
+    "What adjustments will you need,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
+    "E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes," +
+    "Video other notes,Additional comments,Adjustments confirmed,I understand this wont affect application," +
     "PHASE1 tests behavioural scheduleId,cubiksUserId,Cubiks token," +
     "Behavioural testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,reportLinkURL," +
     "Behavioural T-score," +
@@ -141,7 +144,7 @@ trait PreviousYearCandidatesDetailsRepository {
     }.mkString(",") + s",$assessor Final feedback,updatedBy,acceptedDate"
   }
 
-  def applicationDetailsStream(): Enumerator[CandidateDetailsReportItem]
+  def applicationDetailsStream(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
 
   def findContactDetails(): Future[CsvExtract[String]]
 
@@ -186,7 +189,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
   private var adsCounter = 0
 
-  override def applicationDetailsStream(): Enumerator[CandidateDetailsReportItem] = {
+  override def applicationDetailsStream(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
     adsCounter = 0
 
     val projection = Json.obj("_id" -> 0)
@@ -253,7 +256,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             progressStatusTimestamps(doc) :::
             fsacCompetency(doc) :::
             testEvaluations(doc) :::
-            currentSchemeStatus(doc) :::
+            currentSchemeStatus(doc, numOfSchemes) :::
             List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
             List(withdrawalInfo.map(_.reason)) :::
             List(withdrawalInfo.map(_.otherReason.getOrElse(""))) :::
@@ -767,13 +770,12 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     ).map { f => competencyAvg.getAs[Double](f) map (_.toString) }
   }
 
-  private def currentSchemeStatus(doc: BSONDocument): List[Option[String]] = {
+  private def currentSchemeStatus(doc: BSONDocument, numOfSchemes: Int): List[Option[String]] = {
     val testEvalResults = doc.getAs[List[BSONDocument]]("currentSchemeStatus")
     val evalResultsMap = testEvalResults.map(getSchemeResults)
     val schemeResults = evalResultsMap.getOrElse(Nil)
-    schemeResults.map(Option(_)) ::: (1 to (18 - schemeResults.size)).toList.map(_ => Some(""))
+    schemeResults.map(Option(_)) ::: (1 to (numOfSchemes - schemeResults.size)).toList.map(_ => Some(""))
   }
-
 
   private def onlineTests(doc: BSONDocument): Map[String, List[Option[String]]] = {
     val testGroups = doc.getAs[BSONDocument]("testGroups")
