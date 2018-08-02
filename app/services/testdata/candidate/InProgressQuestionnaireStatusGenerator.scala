@@ -121,9 +121,11 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-  def getSizeParentsEmployer(occupation: Option[String]) = occupation.map { occ =>
-      QuestionnaireQuestion("Which size would best describe their place of work?",
-        QuestionnaireAnswer(Some(occ), None, None))
+    def getSizeParentsEmployer(occupation: Option[String]) = occupation.flatMap { occ =>
+      if (occ == "Employed") {
+        Some(QuestionnaireQuestion("Which size would best describe their place of work?",
+          QuestionnaireAnswer(Some(Random.sizeOfPlaceOfWork), None, None)))
+      } else { None }
     }
 
     def getSuperviseEmployees(parentsOccupation: Option[String]) = parentsOccupation.flatMap { occ =>
