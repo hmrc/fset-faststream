@@ -187,5 +187,4 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
   }
-
 }
