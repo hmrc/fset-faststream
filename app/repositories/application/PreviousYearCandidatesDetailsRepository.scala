@@ -80,7 +80,7 @@ trait PreviousYearCandidatesDetailsRepository {
   val applicationDetailsHeader = "applicationId,userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth," +
     "Are you eligible,Terms and Conditions," +
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
-    "EDIP,SDIP,Fast Pass,Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
+    "EDIP,SDIP,Eligible for Fast Pass,Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
     "Do you want to defer,Deferal selections,Do you have a disability,Provide more info,GIS,Extra support online tests," +
     "What adjustments will you need,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
     "E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes," +
@@ -924,7 +924,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     (
       csExperienceDetails.getAs[String]("civilServiceExperienceType"),
       csExperienceDetails.getAs[List[String]]("internshipTypes"),
-      csExperienceDetails.getAs[String]("certificateNumber")
+      Option(csExperienceDetails.getAs[String]("certificateNumber").getOrElse("No"))
     )
   }
 

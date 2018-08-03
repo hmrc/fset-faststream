@@ -19,12 +19,12 @@ package model.persisted
 import play.api.libs.json.Json
 
 case class CivilServiceExperienceDetailsForDiversityReport(
-                                                    isCivilServant: Option[String],
-                                                    isFastTrack: Option[String],
-                                                    isEDIP: Option[String],
-                                                    isSDIPPre2016: Option[String],
-                                                    isSDIP2016: Option[String],
-                                                    fastPassCertificate: Option[String])
+                                                            isCivilServant: Option[String],
+                                                            isFastTrack: Option[String],
+                                                            isEDIP: Option[String],
+                                                            isSDIP: Option[String],
+                                                            isEligibleForFastPass: Option[String],
+                                                            fastPassCertificate: Option[String])
 
 object CivilServiceExperienceDetailsForDiversityReport {
   implicit val civilServiceExperienceDetailsForDiversityReportFormat = Json.format[CivilServiceExperienceDetailsForDiversityReport]
