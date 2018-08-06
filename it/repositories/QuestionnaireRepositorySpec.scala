@@ -71,10 +71,10 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
           Some("Male"), Some("Straight"), Some("Black"), Some("Unemployed"), None, None,
-          None, "SES Score", Some("W01-USW")),
+          None, None, "SES Score", Some("W01-USW")),
         applicationId2 -> QuestionnaireReportItem(
           Some("Female"), Some("Lesbian"), Some("White"), Some("Employed"), Some("Modern professional"), Some("Part-time employed"),
-          Some("Large (26-500)"), "SES Score", Some("W17-WARR"))
+          Some("Large (26-500)"), Some("No"), "SES Score", Some("W17-WARR"))
       )
     }
 
@@ -89,7 +89,8 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         "What is your sexual orientation?" -> "Straight",
         "What is your ethnic group?" -> "Black",
         "What is the name of the university you received your degree from?" -> "W01-USW",
-        "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed"
+        "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed",
+        "Do you consider yourself to come from a lower socio-economic background?" -> "Unknown"
       ))
     }
 
@@ -102,12 +103,12 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
           Some("Male"), Some("Straight"), Some("Black"), Some("Unemployed"), None, None,
-          None, "SES Score", Some("W01-USW")),
+          None, None, "SES Score", Some("W01-USW")),
         applicationId2 -> QuestionnaireReportItem(
           Some("Female"), Some("Lesbian"), Some("White"), Some("Employed"), Some("Modern professional"), Some("Part-time employed"),
-          Some("Large (26-500)"), "SES Score", Some("W17-WARR")),
+          Some("Large (26-500)"), Some("No"), "SES Score", Some("W17-WARR")),
         applicationId3 -> QuestionnaireReportItem(
-          Some("Female"), Some("Lesbian"), Some("White"), None, None, None,
+          Some("Female"), Some("Lesbian"), Some("White"), None, None, None, None,
           None, "", None)
       )
     }
@@ -124,7 +125,9 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       QuestionnaireQuestion("What is the name of the university you received your degree from?",
         QuestionnaireAnswer(Some("W01-USW"), None, None)),
       QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-        QuestionnaireAnswer(Some("Unemployed"), None, None))
+        QuestionnaireAnswer(Some("Unemployed"), None, None)),
+      QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?",
+        QuestionnaireAnswer(None, None, None))
     )
     val submittedQuestionnaire2 = List(
       QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), None, None)),
@@ -136,7 +139,9 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         QuestionnaireAnswer(Some("Modern professional"), None, None)),
       QuestionnaireQuestion("Did they work as an employee or were they self-employed?",
         QuestionnaireAnswer(Some("Part-time employed"), None, None)),
-      QuestionnaireQuestion("Which size would best describe their place of work?", QuestionnaireAnswer(Some("Large (26-500)"), None, None))
+      QuestionnaireQuestion("Which size would best describe their place of work?", QuestionnaireAnswer(Some("Large (26-500)"), None, None)),
+      QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?",
+        QuestionnaireAnswer(Some("No"), None, None))
     )
     val partiallyCompleteQuestionnaire = List(
       QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), None, None)),
