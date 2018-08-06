@@ -42,6 +42,7 @@ trait QuestionnaireRepository {
   val SexualOrientationQuestionText = "What is your sexual orientation?"
   val EthnicityQuestionText = "What is your ethnic group?"
   val UniversityQuestionText = "What is the name of the university you received your degree from?"
+  val socioEconomicQuestionText = "Do you consider yourself to come from a lower socio-economic background?"
   val EmploymentStatusQuestionText = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
   val ParentEmployedOrSelfEmployedQuestionText = "Did they work as an employee or were they self-employed?"
   val ParentCompanySizeQuestionText = "Which size would best describe their place of work?"
@@ -144,6 +145,8 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
 
     val university = getAnswer(UniversityQuestionText)
 
+    val socioEconomic = getAnswer(socioEconomicQuestionText)
+
     val employmentStatus = getAnswer(EmploymentStatusQuestionText)
     val isEmployed = employmentStatus.exists (s => !s.startsWith(UnemployedAnswerText) && !s.startsWith(UnknownAnswerText))
 
@@ -169,6 +172,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
       parentOccupation,
       parentEmployedOrSelf,
       parentCompanySize,
+      socioEconomic,
       socioEconomicScore,
       university
     ))

@@ -20,17 +20,17 @@ import scala.util.Random
 
 object QuestionnaireReportItemExamples {
   val NoParentOccupation1 = QuestionnaireReportItem(Some("Male"), Some("Heterosexual/straight"), Some("Irish"),
-      None, None, None, None, "SE-1", Some("W76-WIN"))
+      None, None, None, None, Some("No"), "SE-1", Some("W76-WIN"))
   val NoParentOccupation2 = QuestionnaireReportItem(Some("Female"), Some("Bisexual"), Some("Other White background"),
-      None, None, None, None, "SE-2", Some("O33-OXF"))
+      None, None, None, None, Some("No"), "SE-2", Some("O33-OXF"))
 
   val questionnaire1 = newQuestionnaire
   val questionnaire2 = newQuestionnaire
 
   def newQuestionnaire =
     QuestionnaireReportItem(someRnd("Gender"), someRnd("Orientation"), someRnd("Ethnicity"),
-      someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"), rnd("SES"),
-      someRnd("university"))
+      someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"),
+      someRnd("SocioEconomicBackground"), rnd("SES"), someRnd("university"))
 
   def someRnd(prefix: String): Option[String] = Some(rnd(prefix))
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
