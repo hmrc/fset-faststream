@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.{ CivilServiceExperienceDetailsExamples, GeneralDetailsExamples, SelectedSchemes }
-import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
+import connectors._
 import forms.PersonalDetailsFormExamples._
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationRoute._
@@ -29,8 +29,9 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.Request
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserCacheService, UserService }
+import security.{ SilhouetteComponent, UserCacheService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.MockitoImplicits._
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -39,11 +40,12 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]
   val mockSchemeClient = mock[SchemeClient]
   val mockUserManagementClient = mock[UserManagementClient]
+  val mockRefDataClient = mock[ReferenceDataClient]
   val userService = mock[UserCacheService]
   val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
   class TestablePersonalDetailsController extends PersonalDetailsController(mockApplicationClient, mockSchemeClient,
-    mockUserManagementClient)
+    mockUserManagementClient, mockRefDataClient)
     with TestableSecureActions {
     val http: CSRHttp = CSRHttp
     override val env = mockSecurityEnvironment
@@ -62,6 +64,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+
       val result = controller.presentAndContinue()(fakeRequest)
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
@@ -74,6 +78,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+
       val result = controller(currentCandidateWithEdipApp).presentAndContinue()(fakeRequest)
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
@@ -85,6 +91,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load sdip personal details page for the new user and generate return to dashboard link" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
+
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller(currentCandidateWithSdipApp).presentAndContinue()(fakeRequest)
       assertPageTitle(result, "Personal details")
@@ -101,6 +109,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+
       val result = controller.presentAndContinue()(fakeRequest)
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
@@ -112,6 +122,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load personal details page for the already created personal details" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
+
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller.present()(fakeRequest)
 
@@ -125,6 +137,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+
       val result = controller(currentCandidateWithEdipApp).presentAndContinue()(fakeRequest)
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
@@ -137,6 +151,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
 
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
 
       assertPageTitle(result, "Personal details")
@@ -148,6 +164,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load sdip personal details page for the new user and generate submit link for continue the journey" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
+
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller(currentCandidateWithSdipApp).presentAndContinue()(fakeRequest)
       assertPageTitle(result, "Personal details")
@@ -162,6 +180,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
 
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+
       val result = controller(currentCandidateWithSdipApp).present()(fakeRequest)
 
       assertPageTitle(result, "Personal details")
@@ -175,6 +195,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
   "submit personal details" should {
     when(mockUserManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
       eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+
+    when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
     "update candidate's details and return to scheme preferences" in {
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))

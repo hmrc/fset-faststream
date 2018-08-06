@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@import connectors.exchange.referencedata.Scheme.civilServantSchemesRequiringQualifications
+@(schemesRequiringQualifications: Seq[String])(implicit messages: Messages)
 
 <div id="civilServiceExperienceDetails_civilServiceExperienceType_CivilServantViaFastTrack-panel" class="toggle-content" aria-hidden="true">
     <h3 class="heading-medium">Fast Track</h3>
@@ -22,7 +22,7 @@
         <p>As a current civil servant or Fast Track applicant you're eligible for most of the schemes without a degree.</p>
         <p>The schemes you'll need specific qualifications for are:</p>
         <ul>
-            @civilServantSchemesRequiringQualifications.map{ schemeName =>
+            @schemesRequiringQualifications.map{ schemeName =>
                 <li>@schemeName</li>
             }
         </ul>

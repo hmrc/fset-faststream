@@ -16,33 +16,34 @@
 
 package controllers
 
-import forms.FastPassForm._
 import _root_.forms.PersonalDetailsForm
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.CivilServiceExperienceDetails._
 import connectors.exchange.{ CivilServiceExperienceDetails, SelectedSchemes }
-import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
+import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, UserManagementClient }
+import forms.FastPassForm._
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.{ ApplicationRoute, CachedDataWithApp }
 import org.joda.time.LocalDate
+import play.api.Play.current
 import play.api.data.Form
+import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{ Request, Result }
 import security.Roles.{ EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole }
-
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, UserManagementClient) {
+import scala.concurrent.Future
+
+object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, UserManagementClient, ReferenceDataClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class PersonalDetailsController(applicationClient: ApplicationClient,
-                                schemeClient: SchemeClient,
-                                userManagementClient: UserManagementClient)
+                                         schemeClient: SchemeClient,
+                                         userManagementClient: UserManagementClient,
+                                         refDataClient: ReferenceDataClient)
   extends BaseController with PersonalDetailsToExchangeConverter {
 
   private sealed trait OnSuccess
@@ -59,12 +60,23 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
       personalDetails(afterSubmission = RedirectToTheDashboard)
   }
 
+  private def getCivilServantSchemeNamesRequiringQualifications(implicit hc: HeaderCarrier) = {
+    for {
+      allSchemes <- refDataClient.allSchemes()
+    } yield {
+      allSchemes.collect{ case s if !s.civilServantEligible => s.name }
+    }
+  }
+
   private def personalDetails(afterSubmission: OnSuccess)
                              (implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Result] = {
     implicit val now: LocalDate = LocalDate.now
     val continueToTheNextStep = continuetoTheNextStep(afterSubmission)
 
-    applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
+    (for {
+      schemesRequiringQualifications <- getCivilServantSchemeNamesRequiringQualifications
+      gd <- applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
+    } yield {
       val form = PersonalDetailsForm.form.fill(PersonalDetailsForm.Data(
         gd.firstName,
         gd.lastName,
@@ -78,25 +90,26 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
         gd.civilServiceExperienceDetails,
         gd.edipCompleted.map(_.toString)
       ))
-      Ok(views.html.application.generalDetails(form, continueToTheNextStep))
-
-    }.recover {
-      case e: PersonalDetailsNotFound =>
-        val formFromUser = PersonalDetailsForm.form.fill(PersonalDetailsForm.Data(
-          user.user.firstName,
-          user.user.lastName,
-          user.user.firstName,
-          DayMonthYear.emptyDate,
-          outsideUk = None,
-          address = Address.EmptyAddress,
-          postCode = None,
-          country = None,
-          phone = None,
-          civilServiceExperienceDetails = EmptyCivilServiceExperienceDetails,
-          edipCompleted = None
-        ))
-        Ok(views.html.application.generalDetails(formFromUser, continueToTheNextStep))
-    }
+      Future.successful(Ok(views.html.application.generalDetails(form, continueToTheNextStep, schemesRequiringQualifications)))
+    }).recover {
+      case _: PersonalDetailsNotFound =>
+        getCivilServantSchemeNamesRequiringQualifications.map{ schemesRequiringQualifications =>
+          val formFromUser = PersonalDetailsForm.form.fill(PersonalDetailsForm.Data(
+            user.user.firstName,
+            user.user.lastName,
+            user.user.firstName,
+            DayMonthYear.emptyDate,
+            outsideUk = None,
+            address = Address.EmptyAddress,
+            postCode = None,
+            country = None,
+            phone = None,
+            civilServiceExperienceDetails = EmptyCivilServiceExperienceDetails,
+            edipCompleted = None
+          ))
+          Ok(views.html.application.generalDetails(formFromUser, continueToTheNextStep, schemesRequiringQualifications))
+        }
+    }.flatMap( identity )
   }
 
   def submitPersonalDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
@@ -125,9 +138,12 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
                     (implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
 
     val handleFormWithErrors = (errorForm:Form[PersonalDetailsForm.Data]) => {
-      Future.successful(Ok(views.html.application.generalDetails(
-        personalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess)))
-      )
+      getCivilServantSchemeNamesRequiringQualifications.map { schemesRequiringQualifications =>
+        Ok(views.html.application.generalDetails(
+          personalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess),
+          schemesRequiringQualifications)
+        )
+      }
     }
 
     val handleValidForm = (form: PersonalDetailsForm.Data) => {

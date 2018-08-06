@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@(form: Form[_root_.forms.PersonalDetailsForm.Data])(implicit messages: Messages)
+@(form: Form[_root_.forms.PersonalDetailsForm.Data], schemesRequiringQualifications: Seq[String])(implicit messages: Messages)
 
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.{checkbox, yesNoRadioWithTogglePanel}
@@ -28,6 +28,6 @@
         '_help ->
           """The internship that applies is the
             Early Diversity Internship Programme (EDIP)""".stripMargin) {
-        @sdipFsCivilServiceExperienceTypesPanel(form)
+        @sdipFsCivilServiceExperienceTypesPanel(form, schemesRequiringQualifications)
     }
 </section>

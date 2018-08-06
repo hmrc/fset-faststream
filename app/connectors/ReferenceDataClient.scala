@@ -81,5 +81,4 @@ trait ReferenceDataClient {
       case Some(referenceData) => Future.successful(referenceData)
     }
   }
-
 }
