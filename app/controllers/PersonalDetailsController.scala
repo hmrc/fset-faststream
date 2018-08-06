@@ -16,25 +16,25 @@
 
 package controllers
 
-import forms.FastPassForm._
 import _root_.forms.PersonalDetailsForm
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.CivilServiceExperienceDetails._
-import connectors.exchange.{CivilServiceExperienceDetails, SelectedSchemes}
-import connectors.{ApplicationClient, ReferenceDataClient, SchemeClient, UserManagementClient}
+import connectors.exchange.{ CivilServiceExperienceDetails, SelectedSchemes }
+import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, UserManagementClient }
+import forms.FastPassForm._
 import helpers.NotificationType._
-import mappings.{Address, DayMonthYear}
-import models.{ApplicationRoute, CachedDataWithApp}
+import mappings.{ Address, DayMonthYear }
+import models.{ ApplicationRoute, CachedDataWithApp }
 import org.joda.time.LocalDate
-import play.api.data.Form
-import play.api.mvc.{Request, Result}
-import security.Roles.{EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole}
-
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import play.api.data.Form
+import play.api.i18n.Messages.Implicits._
+import play.api.mvc.{ Request, Result }
+import security.Roles.{ EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole }
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.Future
 
 object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, UserManagementClient, ReferenceDataClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
