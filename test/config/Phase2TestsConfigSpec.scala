@@ -38,13 +38,13 @@ class Phase2TestsConfigSpec extends UnitSpec {
 
   "schedule for invigilated e-tray" should {
     "return daro" in {
-      val config = Phase2TestsConfig(10, 20, Map("irad" -> IradSchedule, "daro" -> DaroSchedule))
+      val config = Phase2TestsConfig(10, 20, Map("oria" -> OriaSchedule, "daro" -> DaroSchedule))
       config.scheduleForInvigilatedETray mustBe DaroSchedule
     }
 
     "throw an exception when there is no daro schedule" in {
       an[IllegalArgumentException] must be thrownBy {
-        Phase2TestsConfig(10, 20, Map("irad" -> IradSchedule))
+        Phase2TestsConfig(10, 20, Map("oria" -> OriaSchedule))
       }
     }
   }

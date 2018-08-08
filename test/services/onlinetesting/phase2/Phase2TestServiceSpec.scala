@@ -882,7 +882,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     when(clock.nowLocalTimeZone).thenReturn(now)
 
     val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase2"
-    def availableSchedules = Map("irad" -> IradSchedule, "daro" -> DaroSchedule)
+    def availableSchedules = Map("oria" -> OriaSchedule, "daro" -> DaroSchedule)
     val gatewayConfigMock =  CubiksGatewayConfig(
       "",
       Phase1TestsConfig(expiryTimeInDays = 5,
@@ -969,7 +969,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         authenticateUrl = authenticateUrl, participantScheduleId = 888
     ))
 
-    val phase2Test = CubiksTest(scheduleId = IradSchedule.scheduleId,
+    val phase2Test = CubiksTest(scheduleId = OriaSchedule.scheduleId,
       usedForResults = true,
       cubiksUserId = cubiksUserId,
       token = token,

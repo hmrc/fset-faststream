@@ -91,6 +91,18 @@ class TestJobsController extends BaseController {
     }
   }
 
+  def retrievePhase1Results: Action[AnyContent] = Action.async { implicit request =>
+    RetrievePhase1ResultsJob.tryExecute().map { _ =>
+      Ok("Retrieve phase 1 results job started")
+    }
+  }
+
+  def retrievePhase2Results: Action[AnyContent] = Action.async { implicit request =>
+    RetrievePhase2ResultsJob.tryExecute().map { _ =>
+      Ok("Retrieve phase 2 results job started")
+    }
+  }
+
   def retrieveSiftNumericalResults: Action[AnyContent] = Action.async { implicit request =>
     RetrieveSiftNumericalResultsJob.tryExecute().map { _ =>
       Ok("Retrieve sift numerical results job started")

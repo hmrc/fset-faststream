@@ -32,7 +32,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
     }
 
     "return a schedule randomly" in {
-      val schedules = Map("daro" -> DaroSchedule, "irad" -> IradSchedule, "ward" -> WardSchedule)
+      val schedules = Map("daro" -> DaroSchedule, "oria" -> OriaSchedule, "ward" -> WardSchedule)
       val selector = createSelector(schedules)
       val randomSchedules = 1 to 1000 map (_ => selector.getNextSchedule())
 
@@ -40,7 +40,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
     }
 
     "return a schedule randomly for the first n schedules defined and then repeat those schedules in subsequent calls" in {
-      val schedules = Map("daro" -> DaroSchedule, "irad" -> IradSchedule, "ward" -> WardSchedule)
+      val schedules = Map("daro" -> DaroSchedule, "oria" -> OriaSchedule, "ward" -> WardSchedule)
       val selector = createSelector(schedules)
 
       def createSchedules(startingSchedule: List[(String, Phase2Schedule)]) = {
