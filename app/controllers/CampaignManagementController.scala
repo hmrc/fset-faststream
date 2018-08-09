@@ -16,12 +16,14 @@
 
 package controllers
 
+import model.command.SetTScoreRequest
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import services.campaignmanagement.CampaignManagementService
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object CampaignManagementController extends CampaignManagementController {
   val campaignManagementService: CampaignManagementService.type = CampaignManagementService
@@ -49,5 +51,24 @@ trait CampaignManagementController extends BaseController {
 
   def removeCollection(name: String): Action[AnyContent] = Action.async { implicit request =>
     campaignManagementService.removeCollection(name).map(_ => Ok)
+  }
+
+  def setTScore = Action.async(parse.json) { implicit request =>
+    withJsonBody[SetTScoreRequest] { tScoreRequest =>
+      tScoreRequest.phase.toUpperCase match {
+        case "PHASE1" =>
+          campaignManagementService.setPhase1TScore(tScoreRequest).map(_ => Ok)
+            .recover{
+              case e: Exception => Forbidden(e.getMessage)
+            }
+        case "PHASE2" =>
+          campaignManagementService.setPhase2TScore(tScoreRequest).map(_ => Ok)
+            .recover{
+              case e: Exception => Forbidden(e.getMessage)
+            }
+        case _ =>
+          Future.successful(BadRequest(s"${tScoreRequest.phase} is not a valid value"))
+      }
+    }
   }
 }
