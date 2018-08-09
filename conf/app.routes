@@ -273,6 +273,7 @@ GET         /reference/fsac/assessment-centres                           control
 
 GET         /campaign-reset/listCollections                              controllers.CampaignManagementController.listCollections
 GET         /campaign-reset/removeCollection                             controllers.CampaignManagementController.removeCollection(name: String)
+POST        /campaign-reset/setTScore                                    controllers.CampaignManagementController.setTScore
 
 # Metrics endpoints
 GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatusCounts
