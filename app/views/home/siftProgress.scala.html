@@ -131,7 +131,7 @@
     @page.fsbEventScheme(a).map { schemeConfig =>
         @schemeConfig.schemeGuide.map { schemeGuideLink =>
             <p><a href="@schemeGuideLink" rel="external" target="_blank">
-                Find out more about the assessment centre</a>
+                Find out more about the final selection board</a>
                 @* TODO: Add this link to configuration *@
                 @if(schemeConfig.id.value.toString == SchemeType.Sdip.toString) {
                     <br />
@@ -285,14 +285,14 @@
                             Keep an eye on your email inbox, including your junk mail.</p>
                     }
                     case PostOnlineTestsStage.CONFIRMED_FOR_EVENT => {
-                        <p>Your assessment centre is booked.</p>
+                        <p>Your final selection board is booked</p>
                         @renderEventType(page.fsbAllocation)
                         @renderEventDetails(page.fsbAllocation)
                         @renderCannotAttend
                         @renderFindMoreAboutFsbDay(page.fsbAllocation)
                     }
                     case PostOnlineTestsStage.ALLOCATED_TO_EVENT => {
-                        <p>Confirm you can attend this assessment centre</p>
+                        <p>Confirm you can attend this final selection board</p>
                         @renderEventType(page.fsbAllocation)
                         @renderEventDetails(page.fsbAllocation)
 
