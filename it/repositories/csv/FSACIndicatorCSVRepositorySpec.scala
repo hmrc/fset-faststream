@@ -12,7 +12,7 @@ class FSACIndicatorCSVRepositorySpec extends UnitWithAppSpec with ShortTimeout {
   "North South Indicator Repository" should {
     "parse file with expected number of post code areas" in {
       val result = FSACIndicatorCSVRepository.indicators
-      result.size mustBe 123
+      result.size mustBe 127
     }
   }
 
