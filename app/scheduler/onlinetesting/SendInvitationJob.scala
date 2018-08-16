@@ -31,26 +31,34 @@ import uk.gov.hmrc.http.HeaderCarrier
 object SendPhase1InvitationJob extends SendInvitationJob {
   val onlineTestingService = Phase1TestService
   val config = SendPhase1InvitationJobConfig
+  val phase = "PHASE1"
 }
 
 object SendPhase2InvitationJob extends SendInvitationJob {
   val onlineTestingService = Phase2TestService
   val config = SendPhase2InvitationJobConfig
+  val phase = "PHASE2"
 }
 
 object SendPhase3InvitationJob extends SendInvitationJob {
   val onlineTestingService = Phase3TestService
   val config = SendPhase3InvitationJobConfig
+  val phase = "PHASE3"
 }
 
 trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val onlineTestingService: OnlineTestService
+  val phase: String
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationsReadyForOnlineTesting(config.conf.batchSize.getOrElse(1)).flatMap {
       case Nil =>
         Future.successful(())
       case applications =>
+        val applicationIds = applications.map( _.applicationId ).mkString(",")
+        play.api.Logger.info(
+          s"Inviting the following candidates to phase $phase: $applicationIds"
+        )
         implicit val hc = HeaderCarrier()
         implicit val rh = EmptyRequestHeader
         onlineTestingService.registerAndInviteForTestGroup(applications)
