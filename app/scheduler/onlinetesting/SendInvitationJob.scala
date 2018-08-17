@@ -18,6 +18,7 @@ package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
 import model.EmptyRequestHeader
+import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
@@ -53,12 +54,11 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationsReadyForOnlineTesting(config.conf.batchSize.getOrElse(1)).flatMap {
       case Nil =>
+        Logger.info(s"No candidates found to invite to phase $phase")
         Future.successful(())
       case applications =>
         val applicationIds = applications.map( _.applicationId ).mkString(",")
-        play.api.Logger.info(
-          s"Inviting the following candidates to phase $phase: $applicationIds"
-        )
+        Logger.info(s"Inviting the following candidates to phase $phase: $applicationIds")
         implicit val hc = HeaderCarrier()
         implicit val rh = EmptyRequestHeader
         onlineTestingService.registerAndInviteForTestGroup(applications)
