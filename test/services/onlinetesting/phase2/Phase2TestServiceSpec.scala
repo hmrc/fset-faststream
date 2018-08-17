@@ -627,7 +627,6 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       an[CannotResetPhase2Tests] must be thrownBy
         Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
     }
-
   }
 
   "Extend time for expired test" should {
@@ -890,7 +889,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         List("sjq", "bq"),
         List("sjq")
       ),
-      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, availableSchedules),
+      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, availableSchedules, None),
       numericalTests = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(12345, 123))),
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",
