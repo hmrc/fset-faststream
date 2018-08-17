@@ -14,13 +14,7 @@
  * limitations under the License.
  *@
 
-@import security.RoleUtils._
 @(cachedUserData: CachedData)
 
-@dateLabel = @{
-    if(isEdip(cachedUserData)) "February 2018"
-    else if(isSdip(cachedUserData)) "April 2018"
-}
-
 <h2 class="heading-medium ">4. Final stages</h2>
-<p>We aim to let you know the outcome of your phone interview by @dateLabel.</p>
+<p>We aim to let you know the outcome of your phone interview as soon as possible.</p>
