@@ -20,13 +20,13 @@ import java.io.File
 
 import com.github.ghik.silencer.silent
 import com.typesafe.config.ConfigFactory
-import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.eventschedules.{ Location, Venue }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
-import play.api.Play
-import play.api.Play.{configuration, current}
+import play.api.{ Logger, Play }
+import play.api.Play.{ configuration, current }
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.config.{ RunMode, ServicesConfig }
 
 case class FrameworksConfig(yamlFilePath: String)
 
@@ -97,8 +97,13 @@ case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
                              expiryTimeInDaysForInvigilatedETray: Int,
-                             schedules: Map[String, Phase2Schedule]) {
+                             schedules: Map[String, Phase2Schedule],
+                             alwaysChooseSchedule: Option[String]) {
   require(schedules.contains("daro"), "Daro schedule must be present as it is used for the invigilated e-tray applications")
+  alwaysChooseSchedule.foreach { s =>
+    require(schedules.contains(s), s"The alwaysChooseSchedule value: $s is not in the schedule names: ${schedules.keys}")
+    Logger.info(s"The alwaysChooseSchedule key is configured so phase2 invitation job will always invite candidates to take $s Etray")
+  }
 
   def scheduleNameByScheduleId(scheduleId: Int): String = {
     val scheduleNameOpt = schedules.find { case (_, s) =>
