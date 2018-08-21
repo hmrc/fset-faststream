@@ -2546,7 +2546,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-19
@@ -2636,7 +2636,7 @@
       endTime: 17:45
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-20
@@ -2726,7 +2726,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-21
@@ -2816,7 +2816,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-22
@@ -2906,7 +2906,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-23
@@ -2996,7 +2996,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-26
@@ -3086,7 +3086,7 @@
       endTime: 17:45
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-27
@@ -3176,7 +3176,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-28
@@ -3266,7 +3266,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-29
@@ -3356,7 +3356,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-11-30
@@ -3446,7 +3446,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3491,7 +3491,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3536,7 +3536,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3581,7 +3581,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3626,7 +3626,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3671,7 +3671,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3716,7 +3716,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3761,7 +3761,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3806,7 +3806,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3851,7 +3851,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3896,7 +3896,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -3958,7 +3958,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4003,7 +4003,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4048,7 +4048,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4093,7 +4093,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4138,7 +4138,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4183,7 +4183,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4228,7 +4228,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4273,7 +4273,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4318,7 +4318,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4363,7 +4363,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-03
@@ -4436,7 +4436,7 @@
       endTime: 17:45
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4481,7 +4481,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4526,7 +4526,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4571,7 +4571,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4616,7 +4616,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4661,7 +4661,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4706,7 +4706,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4751,7 +4751,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4796,7 +4796,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4841,7 +4841,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4886,7 +4886,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4948,7 +4948,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -4993,7 +4993,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -5038,7 +5038,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -5083,7 +5083,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -5128,7 +5128,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -5173,7 +5173,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -5218,7 +5218,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -5263,7 +5263,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -5308,7 +5308,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -5353,7 +5353,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-04
@@ -5426,7 +5426,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5471,7 +5471,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5516,7 +5516,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5561,7 +5561,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5606,7 +5606,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5651,7 +5651,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5696,7 +5696,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5741,7 +5741,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5786,7 +5786,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5831,7 +5831,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5876,7 +5876,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5938,7 +5938,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -5983,7 +5983,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -6028,7 +6028,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -6073,7 +6073,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -6118,7 +6118,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -6163,7 +6163,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -6208,7 +6208,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -6253,7 +6253,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -6298,7 +6298,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -6343,7 +6343,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-05
@@ -6416,7 +6416,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6461,7 +6461,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6506,7 +6506,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6551,7 +6551,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6596,7 +6596,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6641,7 +6641,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6686,7 +6686,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6731,7 +6731,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6776,7 +6776,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6821,7 +6821,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6866,7 +6866,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6928,7 +6928,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -6973,7 +6973,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -7018,7 +7018,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -7063,7 +7063,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -7108,7 +7108,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -7153,7 +7153,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -7198,7 +7198,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -7243,7 +7243,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -7288,7 +7288,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -7333,7 +7333,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-06
@@ -7406,7 +7406,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7451,7 +7451,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7496,7 +7496,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7541,7 +7541,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7586,7 +7586,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7631,7 +7631,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7676,7 +7676,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7721,7 +7721,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7766,7 +7766,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7811,7 +7811,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7856,7 +7856,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7918,7 +7918,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -7963,7 +7963,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -8008,7 +8008,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -8053,7 +8053,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -8098,7 +8098,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -8143,7 +8143,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -8188,7 +8188,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -8233,7 +8233,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -8278,7 +8278,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -8323,7 +8323,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-07
@@ -8396,7 +8396,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8441,7 +8441,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8486,7 +8486,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8531,7 +8531,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8576,7 +8576,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8621,7 +8621,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8666,7 +8666,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8711,7 +8711,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8756,7 +8756,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8801,7 +8801,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8846,7 +8846,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8908,7 +8908,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8953,7 +8953,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -8998,7 +8998,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -9043,7 +9043,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -9088,7 +9088,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -9133,7 +9133,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -9178,7 +9178,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -9223,7 +9223,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -9268,7 +9268,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -9313,7 +9313,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-10
@@ -9435,7 +9435,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9480,7 +9480,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9525,7 +9525,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9570,7 +9570,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9615,7 +9615,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9660,7 +9660,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9705,7 +9705,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9750,7 +9750,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9795,7 +9795,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9840,7 +9840,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9885,7 +9885,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9947,7 +9947,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -9992,7 +9992,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -10037,7 +10037,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -10082,7 +10082,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -10127,7 +10127,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -10172,7 +10172,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -10217,7 +10217,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -10262,7 +10262,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -10307,7 +10307,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -10352,7 +10352,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-11
@@ -10505,7 +10505,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10550,7 +10550,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10595,7 +10595,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10640,7 +10640,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10685,7 +10685,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10730,7 +10730,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10775,7 +10775,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10820,7 +10820,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10865,7 +10865,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10910,7 +10910,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -10955,7 +10955,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11017,7 +11017,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11062,7 +11062,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11107,7 +11107,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11152,7 +11152,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11197,7 +11197,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11242,7 +11242,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11287,7 +11287,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11332,7 +11332,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11377,7 +11377,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11422,7 +11422,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-12
@@ -11587,7 +11587,7 @@
       endTime: 17:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -11632,7 +11632,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -11677,7 +11677,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -11722,7 +11722,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -11767,7 +11767,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -11812,7 +11812,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -11857,7 +11857,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -11902,7 +11902,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -11947,7 +11947,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -11992,7 +11992,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12037,7 +12037,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12099,7 +12099,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12144,7 +12144,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12189,7 +12189,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12234,7 +12234,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12279,7 +12279,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12324,7 +12324,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12369,7 +12369,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12414,7 +12414,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12459,7 +12459,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12504,7 +12504,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-13
@@ -12575,7 +12575,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -12620,7 +12620,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -12665,7 +12665,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -12710,7 +12710,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -12755,7 +12755,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -12800,7 +12800,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -12845,7 +12845,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -12890,7 +12890,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -12935,7 +12935,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -12980,7 +12980,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13025,7 +13025,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13087,7 +13087,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13132,7 +13132,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13177,7 +13177,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13222,7 +13222,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13267,7 +13267,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13312,7 +13312,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13357,7 +13357,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13402,7 +13402,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13447,7 +13447,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13492,7 +13492,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-14
@@ -13651,7 +13651,7 @@
       endTime: 17:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -13696,7 +13696,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -13741,7 +13741,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -13786,7 +13786,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -13831,7 +13831,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -13876,7 +13876,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -13921,7 +13921,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -13966,7 +13966,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14011,7 +14011,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14056,7 +14056,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14101,7 +14101,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14146,7 +14146,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14191,7 +14191,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14236,7 +14236,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14281,7 +14281,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14326,7 +14326,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14371,7 +14371,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14416,7 +14416,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14461,7 +14461,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14506,7 +14506,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-17
@@ -14615,7 +14615,7 @@
       endTime: 17:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -14660,7 +14660,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -14705,7 +14705,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -14750,7 +14750,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -14795,7 +14795,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -14840,7 +14840,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -14885,7 +14885,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -14930,7 +14930,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -14975,7 +14975,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15020,7 +15020,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15065,7 +15065,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15110,7 +15110,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15155,7 +15155,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15200,7 +15200,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15245,7 +15245,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15290,7 +15290,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15335,7 +15335,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15380,7 +15380,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15425,7 +15425,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15470,7 +15470,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-18
@@ -15541,7 +15541,7 @@
       endTime: 17:45
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15586,7 +15586,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15631,7 +15631,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15676,7 +15676,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15721,7 +15721,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15766,7 +15766,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15811,7 +15811,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15856,7 +15856,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15901,7 +15901,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15946,7 +15946,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -15991,7 +15991,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16036,7 +16036,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16081,7 +16081,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16126,7 +16126,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16171,7 +16171,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16216,7 +16216,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16261,7 +16261,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16306,7 +16306,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16351,7 +16351,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16396,7 +16396,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-19
@@ -16468,7 +16468,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16513,7 +16513,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16558,7 +16558,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16603,7 +16603,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16648,7 +16648,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16693,7 +16693,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16738,7 +16738,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16783,7 +16783,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16828,7 +16828,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16873,7 +16873,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16918,7 +16918,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -16963,7 +16963,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -17008,7 +17008,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -17053,7 +17053,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -17098,7 +17098,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -17143,7 +17143,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -17188,7 +17188,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -17233,7 +17233,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -17278,7 +17278,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -17323,7 +17323,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-20
@@ -17396,7 +17396,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17441,7 +17441,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17486,7 +17486,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17531,7 +17531,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17576,7 +17576,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17621,7 +17621,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17666,7 +17666,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17711,7 +17711,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17756,7 +17756,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17801,7 +17801,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17846,7 +17846,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17891,7 +17891,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17936,7 +17936,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -17981,7 +17981,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -18026,7 +18026,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -18071,7 +18071,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -18116,7 +18116,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -18161,7 +18161,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -18206,7 +18206,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -18251,7 +18251,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2018-12-21
@@ -18322,7 +18322,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18367,7 +18367,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18412,7 +18412,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18457,7 +18457,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18502,7 +18502,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18547,7 +18547,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18592,7 +18592,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18637,7 +18637,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18682,7 +18682,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18727,7 +18727,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18772,7 +18772,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18817,7 +18817,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18862,7 +18862,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18907,7 +18907,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18952,7 +18952,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -18997,7 +18997,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -19042,7 +19042,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -19087,7 +19087,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -19132,7 +19132,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -19177,7 +19177,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-02
@@ -19249,7 +19249,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19294,7 +19294,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19339,7 +19339,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19384,7 +19384,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19429,7 +19429,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19474,7 +19474,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19519,7 +19519,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19564,7 +19564,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19609,7 +19609,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19654,7 +19654,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19699,7 +19699,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19761,7 +19761,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19823,7 +19823,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19868,7 +19868,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19913,7 +19913,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -19958,7 +19958,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -20003,7 +20003,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -20048,7 +20048,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -20093,7 +20093,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -20138,7 +20138,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -20183,7 +20183,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -20228,7 +20228,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-03
@@ -20301,7 +20301,7 @@
       endTime: 17:35
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20346,7 +20346,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20391,7 +20391,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20436,7 +20436,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20481,7 +20481,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20526,7 +20526,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20571,7 +20571,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20616,7 +20616,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20661,7 +20661,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20706,7 +20706,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20751,7 +20751,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20796,7 +20796,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20841,7 +20841,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20886,7 +20886,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20931,7 +20931,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -20976,7 +20976,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -21021,7 +21021,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -21066,7 +21066,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -21111,7 +21111,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -21156,7 +21156,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-04
@@ -21266,7 +21266,7 @@
       endTime: 17:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21311,7 +21311,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21356,7 +21356,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21401,7 +21401,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21446,7 +21446,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21491,7 +21491,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21536,7 +21536,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21581,7 +21581,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21626,7 +21626,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21671,7 +21671,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21716,7 +21716,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21778,7 +21778,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21823,7 +21823,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21868,7 +21868,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21913,7 +21913,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -21958,7 +21958,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -22003,7 +22003,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -22048,7 +22048,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -22093,7 +22093,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -22138,7 +22138,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -22183,7 +22183,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-07
@@ -22292,7 +22292,7 @@
       endTime: 17:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22337,7 +22337,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22382,7 +22382,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22427,7 +22427,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22472,7 +22472,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22517,7 +22517,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22562,7 +22562,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22607,7 +22607,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22652,7 +22652,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22697,7 +22697,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22742,7 +22742,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22804,7 +22804,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22849,7 +22849,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22894,7 +22894,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22939,7 +22939,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -22984,7 +22984,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -23029,7 +23029,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -23074,7 +23074,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -23119,7 +23119,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -23164,7 +23164,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -23209,7 +23209,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-08
@@ -23254,7 +23254,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23299,7 +23299,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23344,7 +23344,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23389,7 +23389,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23434,7 +23434,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23479,7 +23479,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23524,7 +23524,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23569,7 +23569,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23614,7 +23614,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23659,7 +23659,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23704,7 +23704,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23766,7 +23766,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23811,7 +23811,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23856,7 +23856,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23901,7 +23901,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23946,7 +23946,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -23991,7 +23991,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -24036,7 +24036,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -24081,7 +24081,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -24126,7 +24126,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -24171,7 +24171,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-09
@@ -24298,7 +24298,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24343,7 +24343,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24388,7 +24388,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24433,7 +24433,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24478,7 +24478,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24523,7 +24523,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24568,7 +24568,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24613,7 +24613,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24658,7 +24658,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24703,7 +24703,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24748,7 +24748,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24810,7 +24810,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24855,7 +24855,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24900,7 +24900,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24945,7 +24945,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -24990,7 +24990,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -25035,7 +25035,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -25080,7 +25080,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -25125,7 +25125,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -25170,7 +25170,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -25215,7 +25215,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-10
@@ -25342,7 +25342,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25387,7 +25387,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25432,7 +25432,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25477,7 +25477,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25522,7 +25522,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25567,7 +25567,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25612,7 +25612,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25657,7 +25657,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25702,7 +25702,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25747,7 +25747,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25824,7 +25824,7 @@
       endTime: 15:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25920,7 +25920,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -25965,7 +25965,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -26010,7 +26010,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -26055,7 +26055,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -26100,7 +26100,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -26145,7 +26145,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -26190,7 +26190,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -26235,7 +26235,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -26280,7 +26280,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -26325,7 +26325,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-11
@@ -26370,7 +26370,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26415,7 +26415,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26460,7 +26460,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26505,7 +26505,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26550,7 +26550,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26595,7 +26595,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26640,7 +26640,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26685,7 +26685,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26730,7 +26730,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26775,7 +26775,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26852,7 +26852,7 @@
       endTime: 15:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26948,7 +26948,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -26993,7 +26993,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -27038,7 +27038,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -27083,7 +27083,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -27128,7 +27128,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -27173,7 +27173,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -27218,7 +27218,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -27263,7 +27263,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -27308,7 +27308,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -27353,7 +27353,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-14
@@ -27436,7 +27436,7 @@
       endTime: 17:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27481,7 +27481,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27526,7 +27526,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27571,7 +27571,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27616,7 +27616,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27661,7 +27661,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27706,7 +27706,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27751,7 +27751,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27796,7 +27796,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27841,7 +27841,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27886,7 +27886,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27948,7 +27948,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -27993,7 +27993,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -28038,7 +28038,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -28083,7 +28083,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -28128,7 +28128,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -28173,7 +28173,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -28218,7 +28218,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -28263,7 +28263,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -28308,7 +28308,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -28353,7 +28353,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-15
@@ -28398,7 +28398,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28443,7 +28443,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28488,7 +28488,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28533,7 +28533,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28578,7 +28578,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28623,7 +28623,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28668,7 +28668,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28713,7 +28713,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28758,7 +28758,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28803,7 +28803,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28914,7 +28914,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -28976,7 +28976,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29021,7 +29021,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29066,7 +29066,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29111,7 +29111,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29156,7 +29156,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29201,7 +29201,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29246,7 +29246,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29291,7 +29291,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29336,7 +29336,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29381,7 +29381,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-16
@@ -29464,7 +29464,7 @@
       endTime: 17:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29509,7 +29509,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29554,7 +29554,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29599,7 +29599,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29644,7 +29644,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29689,7 +29689,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29734,7 +29734,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29779,7 +29779,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29824,7 +29824,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29869,7 +29869,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29914,7 +29914,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -29976,7 +29976,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30021,7 +30021,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30066,7 +30066,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30111,7 +30111,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30156,7 +30156,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30201,7 +30201,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30246,7 +30246,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30291,7 +30291,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30336,7 +30336,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30381,7 +30381,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-17
@@ -30464,7 +30464,7 @@
       endTime: 17:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30509,7 +30509,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30554,7 +30554,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30599,7 +30599,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30644,7 +30644,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30689,7 +30689,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30734,7 +30734,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30779,7 +30779,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30824,7 +30824,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30869,7 +30869,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30914,7 +30914,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -30976,7 +30976,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31021,7 +31021,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31066,7 +31066,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31111,7 +31111,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31156,7 +31156,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31201,7 +31201,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31246,7 +31246,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31291,7 +31291,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31336,7 +31336,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31381,7 +31381,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-18
@@ -31426,7 +31426,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31471,7 +31471,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31516,7 +31516,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31561,7 +31561,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31606,7 +31606,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31651,7 +31651,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31696,7 +31696,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31741,7 +31741,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31786,7 +31786,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31831,7 +31831,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31876,7 +31876,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31938,7 +31938,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -31983,7 +31983,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -32028,7 +32028,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -32073,7 +32073,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -32118,7 +32118,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -32163,7 +32163,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -32208,7 +32208,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -32253,7 +32253,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -32298,7 +32298,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -32343,7 +32343,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-21
@@ -32420,7 +32420,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32465,7 +32465,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32510,7 +32510,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32555,7 +32555,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32600,7 +32600,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32645,7 +32645,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32690,7 +32690,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32735,7 +32735,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32780,7 +32780,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32825,7 +32825,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32870,7 +32870,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32932,7 +32932,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -32977,7 +32977,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -33022,7 +33022,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -33067,7 +33067,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -33112,7 +33112,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -33157,7 +33157,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -33202,7 +33202,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -33247,7 +33247,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -33292,7 +33292,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -33337,7 +33337,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-22
@@ -33414,7 +33414,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33459,7 +33459,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33504,7 +33504,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33549,7 +33549,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33594,7 +33594,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33639,7 +33639,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33684,7 +33684,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33729,7 +33729,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33774,7 +33774,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33819,7 +33819,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33898,7 +33898,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -33960,7 +33960,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34005,7 +34005,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34050,7 +34050,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34095,7 +34095,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34140,7 +34140,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34185,7 +34185,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34230,7 +34230,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34275,7 +34275,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34320,7 +34320,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34365,7 +34365,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-23
@@ -34410,7 +34410,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34455,7 +34455,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34500,7 +34500,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34545,7 +34545,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34590,7 +34590,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34635,7 +34635,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34680,7 +34680,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34725,7 +34725,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34770,7 +34770,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34815,7 +34815,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34892,7 +34892,7 @@
       endTime: 15:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -34988,7 +34988,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35033,7 +35033,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35078,7 +35078,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35123,7 +35123,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35168,7 +35168,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35213,7 +35213,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35258,7 +35258,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35303,7 +35303,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35348,7 +35348,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35393,7 +35393,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-24
@@ -35438,7 +35438,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35483,7 +35483,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35528,7 +35528,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35573,7 +35573,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35618,7 +35618,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35663,7 +35663,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35708,7 +35708,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35753,7 +35753,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35798,7 +35798,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35843,7 +35843,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -35920,7 +35920,7 @@
       endTime: 15:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36016,7 +36016,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36061,7 +36061,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36106,7 +36106,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36151,7 +36151,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36196,7 +36196,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36241,7 +36241,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36286,7 +36286,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36331,7 +36331,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36376,7 +36376,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36421,7 +36421,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-25
@@ -36466,7 +36466,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36511,7 +36511,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36556,7 +36556,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36601,7 +36601,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36646,7 +36646,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36691,7 +36691,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36736,7 +36736,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36781,7 +36781,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36826,7 +36826,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36871,7 +36871,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -36950,7 +36950,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37012,7 +37012,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37057,7 +37057,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37102,7 +37102,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37147,7 +37147,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37192,7 +37192,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37237,7 +37237,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37282,7 +37282,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37327,7 +37327,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37372,7 +37372,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37417,7 +37417,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-28
@@ -37462,7 +37462,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37507,7 +37507,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37552,7 +37552,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37597,7 +37597,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37642,7 +37642,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37687,7 +37687,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37732,7 +37732,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37777,7 +37777,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37822,7 +37822,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37867,7 +37867,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -37912,7 +37912,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38008,7 +38008,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38053,7 +38053,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38098,7 +38098,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38143,7 +38143,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38188,7 +38188,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38233,7 +38233,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38278,7 +38278,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38323,7 +38323,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38368,7 +38368,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38413,7 +38413,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-29
@@ -38458,7 +38458,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38503,7 +38503,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38548,7 +38548,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38593,7 +38593,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38638,7 +38638,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38683,7 +38683,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38728,7 +38728,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38773,7 +38773,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38818,7 +38818,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38863,7 +38863,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -38908,7 +38908,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39004,7 +39004,7 @@
       endTime: 16:05
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39049,7 +39049,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39094,7 +39094,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39139,7 +39139,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39184,7 +39184,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39229,7 +39229,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39274,7 +39274,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39319,7 +39319,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39364,7 +39364,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39409,7 +39409,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-30
@@ -39454,7 +39454,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39499,7 +39499,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39544,7 +39544,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39589,7 +39589,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39634,7 +39634,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39679,7 +39679,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39724,7 +39724,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39769,7 +39769,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39814,7 +39814,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39859,7 +39859,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39904,7 +39904,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -39966,7 +39966,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40011,7 +40011,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40056,7 +40056,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40101,7 +40101,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40146,7 +40146,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40191,7 +40191,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40236,7 +40236,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40281,7 +40281,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40326,7 +40326,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40371,7 +40371,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-01-31
@@ -40416,7 +40416,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40461,7 +40461,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40506,7 +40506,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40551,7 +40551,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40596,7 +40596,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40641,7 +40641,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40686,7 +40686,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40731,7 +40731,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40776,7 +40776,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40821,7 +40821,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40866,7 +40866,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40928,7 +40928,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -40973,7 +40973,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -41018,7 +41018,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -41063,7 +41063,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -41108,7 +41108,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -41153,7 +41153,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -41198,7 +41198,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -41243,7 +41243,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -41288,7 +41288,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -41333,7 +41333,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-01
@@ -41378,7 +41378,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41423,7 +41423,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41468,7 +41468,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41513,7 +41513,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41558,7 +41558,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41603,7 +41603,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41648,7 +41648,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41693,7 +41693,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41738,7 +41738,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41783,7 +41783,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41828,7 +41828,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41890,7 +41890,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41935,7 +41935,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -41980,7 +41980,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -42025,7 +42025,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -42070,7 +42070,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -42115,7 +42115,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -42160,7 +42160,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -42205,7 +42205,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -42250,7 +42250,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -42295,7 +42295,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-04
@@ -42340,7 +42340,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42385,7 +42385,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42430,7 +42430,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42475,7 +42475,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42520,7 +42520,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42565,7 +42565,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42610,7 +42610,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42655,7 +42655,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42700,7 +42700,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42745,7 +42745,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42790,7 +42790,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42852,7 +42852,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42897,7 +42897,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42942,7 +42942,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -42987,7 +42987,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -43032,7 +43032,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -43077,7 +43077,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -43122,7 +43122,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -43167,7 +43167,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -43212,7 +43212,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -43257,7 +43257,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-05
@@ -43302,7 +43302,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43347,7 +43347,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43392,7 +43392,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43437,7 +43437,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43482,7 +43482,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43527,7 +43527,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43572,7 +43572,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43617,7 +43617,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43662,7 +43662,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43707,7 +43707,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43752,7 +43752,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43814,7 +43814,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43859,7 +43859,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43904,7 +43904,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43949,7 +43949,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -43994,7 +43994,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -44039,7 +44039,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -44084,7 +44084,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -44129,7 +44129,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -44174,7 +44174,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -44219,7 +44219,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-06
@@ -44264,7 +44264,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44309,7 +44309,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44354,7 +44354,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44399,7 +44399,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44444,7 +44444,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44489,7 +44489,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44534,7 +44534,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44579,7 +44579,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44624,7 +44624,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44669,7 +44669,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44714,7 +44714,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44776,7 +44776,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44821,7 +44821,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44866,7 +44866,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44911,7 +44911,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -44956,7 +44956,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -45001,7 +45001,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -45046,7 +45046,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -45091,7 +45091,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -45136,7 +45136,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -45181,7 +45181,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-07
@@ -45226,7 +45226,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45271,7 +45271,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45316,7 +45316,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45361,7 +45361,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45406,7 +45406,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45451,7 +45451,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45496,7 +45496,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45541,7 +45541,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45586,7 +45586,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45631,7 +45631,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: EDIP
+  description: EDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45676,7 +45676,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45738,7 +45738,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45783,7 +45783,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45828,7 +45828,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45873,7 +45873,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45918,7 +45918,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -45963,7 +45963,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -46008,7 +46008,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -46053,7 +46053,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -46098,7 +46098,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -46143,7 +46143,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: SDIP
+  description: SDIP - Telephone interview
   location: London
   venue: VIRTUAL
   date: 2019-02-08
@@ -46188,7 +46188,7 @@
       endTime: 17:00
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-11
@@ -46250,7 +46250,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-12
@@ -46312,7 +46312,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-13
@@ -46374,7 +46374,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-14
@@ -46436,7 +46436,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-15
@@ -46498,7 +46498,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-18
@@ -46560,7 +46560,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-19
@@ -46622,7 +46622,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-20
@@ -46684,7 +46684,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-21
@@ -46746,7 +46746,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-22
@@ -46808,7 +46808,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-25
@@ -46870,7 +46870,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-26
@@ -46932,7 +46932,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-27
@@ -46994,7 +46994,7 @@
       endTime: 16:15
 
 - eventType: FSB
-  description: PDFS
+  description: PDFS - Skype interview
   location: London
   venue: VIRTUAL
   date: 2019-02-28
