@@ -2,8 +2,8 @@
 
 error_reporting(E_ALL);
 
-//$csv = array_map('str_getcsv', file('./spreadsheets/2018-2019v2/newcastle.csv'));
-$csv = array_map('str_getcsv', file('./spreadsheets/2018-2019v2/london.csv'));
+//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v2/newcastle.csv'));
+$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v2/london.csv'));
 
 // This file reads input csv and generates yaml, which can be bulk uploaded into the system to create calendar events
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
@@ -16,17 +16,29 @@ $csv = array_map('str_getcsv', file('./spreadsheets/2018-2019v2/london.csv'));
 // if any line has no skills specified we report an error to stdout eg.
 // ERROR - line number: 4 has no skills specified bulk upload will not accept this
 //
+// Note also the descriptions are important. If they are not defined as below the events will not display in the calendar
+// although they will bulk upload:
+// PDFS -> PDFS - Skype interview
+// EDIP -> EDIP - Telephone interview
+// SDIP -> SDIP - Telephone interview
+
 // Once you are happy with the output turn off the debugging
 // and run the following commands so you generate the files for newcastle and london:
 //
-// php convert.php > output/newcastle.yaml
-// php convert.php > output/london.yaml
+// php convert.php > ../../fs-calendar-events/output/newcastle.yaml
+// php convert.php > ../../fs-calendar-events/output/london.yaml
 //
 // cd output
 // cat newcastle.yaml london.yaml > event-schedule.yaml
-// cp event-schedule.yaml ~/dev/csr/fset-faststream/conf
+// cp event-schedule.yaml ../../fset-faststream/conf
 //
 // the event-schedule.yaml file is what the system uses during the bulk upload
+//
+// upload urls:
+// http://localhost:9289/fset-fast-stream-admin/assessment-events/save
+//
+// hit the backend directly:
+// http POST :8101/candidate-application/events/save
 
 $debug = false;
 
@@ -57,6 +69,14 @@ function includeSkillIfNotZero($skill, $skillValue) {
     console("Reading skills from csv - $skill: $skillValue");
     if ($skillValue >= 1) {
         return '    '.$skill.': '.$skillValue."\n";
+    }
+}
+
+function checkVirtualDescription($lineCount, $eventDesc) {
+    $descriptions = array("PDFS"=>"PDFS - Skype interview", "EDIP"=>"EDIP - Telephone interview", "SDIP"=>"SDIP - Telephone interview");
+
+    if (array_key_exists($eventDesc , $descriptions)) {
+        console("ERROR - line number: $lineCount event description $eventDesc is invalid. It should be <<$descriptions[$eventDesc]>>");
     }
 }
 
@@ -95,6 +115,7 @@ foreach ($csv as $line) {
     $eventType = $line[$i++];
     if (trim($eventType) != '') {
         $eventDesc = $line[$i++];
+        checkVirtualDescription($lineCount, $eventDesc);
         if ($eventDesc == '-' || $eventDesc == '') {
             if ($eventType == 'FSAC') {
                 $eventDesc = 'Fast Stream Assessment Centre';
