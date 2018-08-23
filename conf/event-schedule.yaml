@@ -1820,6 +1820,7 @@
       startTime: 13:50
       endTime: 17:05
 
+
 - eventType: FSAC
   description: Fast Stream Assessment Centre
   location: London
@@ -2547,7 +2548,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-19
   capacity: 36
@@ -2637,7 +2638,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-20
   capacity: 36
@@ -2727,7 +2728,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-21
   capacity: 36
@@ -2817,7 +2818,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-22
   capacity: 36
@@ -2907,7 +2908,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-23
   capacity: 36
@@ -2997,7 +2998,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-26
   capacity: 36
@@ -3087,7 +3088,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-27
   capacity: 36
@@ -3177,7 +3178,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-28
   capacity: 36
@@ -3267,7 +3268,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-29
   capacity: 36
@@ -3357,7 +3358,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-11-30
   capacity: 36
@@ -3447,7 +3448,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3492,7 +3493,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3537,7 +3538,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3582,7 +3583,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3627,7 +3628,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3672,7 +3673,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3717,7 +3718,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3762,7 +3763,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3807,7 +3808,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3852,7 +3853,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3897,7 +3898,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -3959,7 +3960,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4004,7 +4005,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4049,7 +4050,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4094,7 +4095,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4139,7 +4140,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4184,7 +4185,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4229,7 +4230,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4274,7 +4275,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4319,7 +4320,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4364,7 +4365,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-03
   capacity: 36
@@ -4437,7 +4438,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4482,7 +4483,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4527,7 +4528,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4572,7 +4573,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4617,7 +4618,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4662,7 +4663,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4707,7 +4708,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4752,7 +4753,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4797,7 +4798,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4842,7 +4843,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4887,7 +4888,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4949,7 +4950,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -4994,7 +4995,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -5039,7 +5040,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -5084,7 +5085,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -5129,7 +5130,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -5174,7 +5175,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -5219,7 +5220,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -5264,7 +5265,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -5309,7 +5310,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -5354,7 +5355,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-04
   capacity: 36
@@ -5427,7 +5428,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5472,7 +5473,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5517,7 +5518,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5562,7 +5563,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5607,7 +5608,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5652,7 +5653,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5697,7 +5698,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5742,7 +5743,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5787,7 +5788,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5832,7 +5833,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5877,7 +5878,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5939,7 +5940,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -5984,7 +5985,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -6029,7 +6030,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -6074,7 +6075,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -6119,7 +6120,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -6164,7 +6165,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -6209,7 +6210,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -6254,7 +6255,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -6299,7 +6300,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -6344,7 +6345,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-05
   capacity: 36
@@ -6417,7 +6418,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6462,7 +6463,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6507,7 +6508,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6552,7 +6553,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6597,7 +6598,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6642,7 +6643,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6687,7 +6688,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6732,7 +6733,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6777,7 +6778,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6822,7 +6823,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6867,7 +6868,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6929,7 +6930,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -6974,7 +6975,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -7019,7 +7020,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -7064,7 +7065,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -7109,7 +7110,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -7154,7 +7155,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -7199,7 +7200,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -7244,7 +7245,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -7289,7 +7290,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -7334,7 +7335,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-06
   capacity: 36
@@ -7407,7 +7408,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7452,7 +7453,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7497,7 +7498,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7542,7 +7543,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7587,7 +7588,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7632,7 +7633,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7677,7 +7678,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7722,7 +7723,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7767,7 +7768,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7812,7 +7813,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7857,7 +7858,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7919,7 +7920,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -7964,7 +7965,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -8009,7 +8010,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -8054,7 +8055,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -8099,7 +8100,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -8144,7 +8145,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -8189,7 +8190,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -8234,7 +8235,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -8279,7 +8280,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -8324,7 +8325,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-07
   capacity: 36
@@ -8397,7 +8398,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8442,7 +8443,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8487,7 +8488,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8532,7 +8533,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8577,7 +8578,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8622,7 +8623,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8667,7 +8668,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8712,7 +8713,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8757,7 +8758,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8802,7 +8803,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8847,7 +8848,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8909,7 +8910,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8954,7 +8955,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -8999,7 +9000,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -9044,7 +9045,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -9089,7 +9090,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -9134,7 +9135,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -9179,7 +9180,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -9224,7 +9225,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -9269,7 +9270,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -9314,7 +9315,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-10
   capacity: 36
@@ -9436,7 +9437,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9481,7 +9482,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9526,7 +9527,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9571,7 +9572,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9616,7 +9617,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9661,7 +9662,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9706,7 +9707,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9751,7 +9752,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9796,7 +9797,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9841,7 +9842,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9886,7 +9887,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9948,7 +9949,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -9993,7 +9994,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -10038,7 +10039,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -10083,7 +10084,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -10128,7 +10129,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -10173,7 +10174,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -10218,7 +10219,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -10263,7 +10264,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -10308,7 +10309,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -10353,7 +10354,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-11
   capacity: 36
@@ -10506,7 +10507,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10551,7 +10552,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10596,7 +10597,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10641,7 +10642,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10686,7 +10687,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10731,7 +10732,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10776,7 +10777,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10821,7 +10822,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10866,7 +10867,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10911,7 +10912,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -10956,7 +10957,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11018,7 +11019,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11063,7 +11064,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11108,7 +11109,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11153,7 +11154,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11198,7 +11199,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11243,7 +11244,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11288,7 +11289,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11333,7 +11334,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11378,7 +11379,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11423,7 +11424,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-12
   capacity: 36
@@ -11588,7 +11589,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -11633,7 +11634,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -11678,7 +11679,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -11723,7 +11724,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -11768,7 +11769,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -11813,7 +11814,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -11858,7 +11859,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -11903,7 +11904,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -11948,7 +11949,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -11993,7 +11994,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12038,7 +12039,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12100,7 +12101,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12145,7 +12146,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12190,7 +12191,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12235,7 +12236,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12280,7 +12281,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12325,7 +12326,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12370,7 +12371,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12415,7 +12416,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12460,7 +12461,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12505,7 +12506,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-13
   capacity: 36
@@ -12576,7 +12577,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -12621,7 +12622,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -12666,7 +12667,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -12711,7 +12712,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -12756,7 +12757,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -12801,7 +12802,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -12846,7 +12847,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -12891,7 +12892,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -12936,7 +12937,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -12981,7 +12982,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13026,7 +13027,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13088,7 +13089,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13133,7 +13134,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13178,7 +13179,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13223,7 +13224,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13268,7 +13269,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13313,7 +13314,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13358,7 +13359,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13403,7 +13404,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13448,7 +13449,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13493,7 +13494,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-14
   capacity: 36
@@ -13652,7 +13653,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -13697,7 +13698,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -13742,7 +13743,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -13787,7 +13788,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -13832,7 +13833,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -13877,7 +13878,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -13922,7 +13923,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -13967,7 +13968,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14012,7 +14013,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14057,7 +14058,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14102,7 +14103,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14147,7 +14148,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14192,7 +14193,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14237,7 +14238,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14282,7 +14283,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14327,7 +14328,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14372,7 +14373,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14417,7 +14418,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14462,7 +14463,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14507,7 +14508,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-17
   capacity: 36
@@ -14616,7 +14617,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -14661,7 +14662,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -14706,7 +14707,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -14751,7 +14752,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -14796,7 +14797,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -14841,7 +14842,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -14886,7 +14887,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -14931,7 +14932,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -14976,7 +14977,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15021,7 +15022,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15066,7 +15067,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15111,7 +15112,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15156,7 +15157,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15201,7 +15202,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15246,7 +15247,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15291,7 +15292,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15336,7 +15337,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15381,7 +15382,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15426,7 +15427,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15471,7 +15472,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-18
   capacity: 36
@@ -15542,7 +15543,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15587,7 +15588,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15632,7 +15633,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15677,7 +15678,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15722,7 +15723,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15767,7 +15768,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15812,7 +15813,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15857,7 +15858,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15902,7 +15903,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15947,7 +15948,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -15992,7 +15993,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16037,7 +16038,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16082,7 +16083,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16127,7 +16128,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16172,7 +16173,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16217,7 +16218,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16262,7 +16263,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16307,7 +16308,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16352,7 +16353,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16397,7 +16398,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-19
   capacity: 36
@@ -16469,7 +16470,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16514,7 +16515,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16559,7 +16560,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16604,7 +16605,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16649,7 +16650,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16694,7 +16695,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16739,7 +16740,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16784,7 +16785,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16829,7 +16830,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16874,7 +16875,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16919,7 +16920,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -16964,7 +16965,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -17009,7 +17010,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -17054,7 +17055,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -17099,7 +17100,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -17144,7 +17145,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -17189,7 +17190,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -17234,7 +17235,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -17279,7 +17280,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -17324,7 +17325,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-20
   capacity: 36
@@ -17397,7 +17398,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17442,7 +17443,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17487,7 +17488,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17532,7 +17533,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17577,7 +17578,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17622,7 +17623,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17667,7 +17668,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17712,7 +17713,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17757,7 +17758,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17802,7 +17803,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17847,7 +17848,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17892,7 +17893,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17937,7 +17938,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -17982,7 +17983,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -18027,7 +18028,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -18072,7 +18073,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -18117,7 +18118,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -18162,7 +18163,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -18207,7 +18208,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -18252,7 +18253,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2018-12-21
   capacity: 36
@@ -18295,35 +18296,9 @@
       startTime: 16:00
       endTime: 17:00
 
-- eventType: FSAC
-  description: Contingency
-  location: London
-  venue: LONDON_FSAC
-  date: 2019-01-02
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
-  startTime: 08:30
-  endTime: 18:15
-  skillRequirements:
-    ASSESSOR: 18
-  sessions:
-    - description: Session 1
-      capacity: 36
-      minViableAttendees: 18
-      attendeeSafetyMargin: 18
-      startTime: 08:00
-      endTime: 12:50
-    - description: Session 2
-      capacity: 36
-      minViableAttendees: 18
-      attendeeSafetyMargin: 18
-      startTime: 12:30
-      endTime: 17:35
-
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18368,7 +18343,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18413,7 +18388,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18458,7 +18433,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18503,7 +18478,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18548,7 +18523,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18593,7 +18568,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18638,7 +18613,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18683,7 +18658,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18728,7 +18703,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18773,7 +18748,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18818,7 +18793,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18863,7 +18838,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18908,7 +18883,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18953,7 +18928,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -18998,7 +18973,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -19043,7 +19018,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -19088,7 +19063,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -19133,7 +19108,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -19178,7 +19153,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-02
   capacity: 36
@@ -19220,37 +19195,10 @@
       attendeeSafetyMargin: 1
       startTime: 16:00
       endTime: 17:00
-
-- eventType: FSAC
-  description: Contingency
-  location: London
-  venue: LONDON_FSAC
-  date: 2019-01-03
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
-  startTime: 08:30
-  endTime: 18:15
-  skillRequirements:
-    ASSESSOR: 18
-    EXERCISE_MARKER: 6
-  sessions:
-    - description: Session 1
-      capacity: 36
-      minViableAttendees: 18
-      attendeeSafetyMargin: 18
-      startTime: 08:00
-      endTime: 12:50
-    - description: Session 2
-      capacity: 36
-      minViableAttendees: 18
-      attendeeSafetyMargin: 18
-      startTime: 12:30
-      endTime: 17:35
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19295,7 +19243,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19340,7 +19288,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19385,7 +19333,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19430,7 +19378,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19475,7 +19423,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19520,7 +19468,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19565,7 +19513,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19610,7 +19558,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19655,7 +19603,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19700,7 +19648,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19762,7 +19710,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19824,7 +19772,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19869,7 +19817,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19914,7 +19862,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -19959,7 +19907,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -20004,7 +19952,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -20049,7 +19997,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -20094,7 +20042,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -20139,7 +20087,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -20184,7 +20132,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -20229,7 +20177,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-03
   capacity: 36
@@ -20272,37 +20220,9 @@
       startTime: 16:00
       endTime: 17:00
 
-- eventType: FSAC
-  description: Contingency
-  location: London
-  venue: LONDON_FSAC
-  date: 2019-01-04
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
-  startTime: 08:30
-  endTime: 18:15
-  skillRequirements:
-    ASSESSOR: 18
-    EXERCISE_MARKER: 6
-    QUALITY_ASSURANCE_COORDINATOR: 4
-  sessions:
-    - description: Session 1
-      capacity: 36
-      minViableAttendees: 18
-      attendeeSafetyMargin: 18
-      startTime: 08:00
-      endTime: 12:50
-    - description: Session 2
-      capacity: 36
-      minViableAttendees: 18
-      attendeeSafetyMargin: 18
-      startTime: 12:30
-      endTime: 17:35
-
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20347,7 +20267,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20392,7 +20312,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20437,7 +20357,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20482,7 +20402,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20527,7 +20447,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20572,7 +20492,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20617,7 +20537,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20662,7 +20582,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20707,7 +20627,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20752,7 +20672,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20797,7 +20717,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20842,7 +20762,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20887,7 +20807,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20932,7 +20852,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -20977,7 +20897,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -21022,7 +20942,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -21067,7 +20987,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -21112,7 +21032,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -21157,7 +21077,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-04
   capacity: 36
@@ -21199,33 +21119,6 @@
       attendeeSafetyMargin: 1
       startTime: 16:00
       endTime: 17:00
-
-- eventType: FSAC
-  description: Contingency
-  location: London
-  venue: LONDON_FSAC
-  date: 2019-01-07
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
-  startTime: 08:30
-  endTime: 18:15
-  skillRequirements:
-    EXERCISE_MARKER: 6
-    QUALITY_ASSURANCE_COORDINATOR: 4
-  sessions:
-    - description: Session 1
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 08:00
-      endTime: 12:50
-    - description: Session 2
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 12:30
-      endTime: 17:35
 
 - eventType: FSB
   description: EAC
@@ -21267,7 +21160,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21312,7 +21205,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21357,7 +21250,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21402,7 +21295,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21447,7 +21340,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21492,7 +21385,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21537,7 +21430,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21582,7 +21475,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21627,7 +21520,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21672,7 +21565,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21717,7 +21610,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21779,7 +21672,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21824,7 +21717,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21869,7 +21762,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21914,7 +21807,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -21959,7 +21852,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -22004,7 +21897,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -22049,7 +21942,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -22094,7 +21987,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -22139,7 +22032,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -22184,7 +22077,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-07
   capacity: 36
@@ -22226,32 +22119,6 @@
       attendeeSafetyMargin: 1
       startTime: 16:00
       endTime: 17:00
-
-- eventType: FSAC
-  description: Contingency
-  location: London
-  venue: LONDON_FSAC
-  date: 2019-01-08
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
-  startTime: 08:30
-  endTime: 18:15
-  skillRequirements:
-    QUALITY_ASSURANCE_COORDINATOR: 4
-  sessions:
-    - description: Session 1
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 08:00
-      endTime: 12:50
-    - description: Session 2
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 12:30
-      endTime: 17:35
 
 - eventType: FSB
   description: EAC
@@ -22293,7 +22160,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22338,7 +22205,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22383,7 +22250,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22428,7 +22295,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22473,7 +22340,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22518,7 +22385,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22563,7 +22430,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22608,7 +22475,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22653,7 +22520,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22698,7 +22565,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22743,7 +22610,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22805,7 +22672,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22850,7 +22717,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22895,7 +22762,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22940,7 +22807,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -22985,7 +22852,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -23030,7 +22897,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -23075,7 +22942,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -23120,7 +22987,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -23165,7 +23032,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -23210,7 +23077,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-08
   capacity: 36
@@ -23255,7 +23122,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23300,7 +23167,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23345,7 +23212,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23390,7 +23257,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23435,7 +23302,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23480,7 +23347,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23525,7 +23392,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23570,7 +23437,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23615,7 +23482,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23660,7 +23527,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23705,7 +23572,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23767,7 +23634,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23812,7 +23679,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23857,7 +23724,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23902,7 +23769,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23947,7 +23814,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -23992,7 +23859,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -24037,7 +23904,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -24082,7 +23949,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -24127,7 +23994,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -24172,7 +24039,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-09
   capacity: 36
@@ -24299,7 +24166,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24344,7 +24211,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24389,7 +24256,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24434,7 +24301,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24479,7 +24346,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24524,7 +24391,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24569,7 +24436,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24614,7 +24481,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24659,7 +24526,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24704,7 +24571,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24749,7 +24616,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24811,7 +24678,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24856,7 +24723,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24901,7 +24768,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24946,7 +24813,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -24991,7 +24858,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -25036,7 +24903,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -25081,7 +24948,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -25126,7 +24993,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -25171,7 +25038,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -25216,7 +25083,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-10
   capacity: 36
@@ -25343,7 +25210,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25388,7 +25255,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25433,7 +25300,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25478,7 +25345,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25523,7 +25390,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25568,7 +25435,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25613,7 +25480,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25658,7 +25525,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25703,7 +25570,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25748,7 +25615,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25825,7 +25692,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25921,7 +25788,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -25966,7 +25833,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -26011,7 +25878,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -26056,7 +25923,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -26101,7 +25968,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -26146,7 +26013,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -26191,7 +26058,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -26236,7 +26103,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -26281,7 +26148,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -26326,7 +26193,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-11
   capacity: 36
@@ -26371,7 +26238,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26416,7 +26283,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26461,7 +26328,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26506,7 +26373,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26551,7 +26418,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26596,7 +26463,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26641,7 +26508,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26686,7 +26553,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26731,7 +26598,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26776,7 +26643,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26853,7 +26720,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26949,7 +26816,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -26994,7 +26861,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -27039,7 +26906,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -27084,7 +26951,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -27129,7 +26996,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -27174,7 +27041,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -27219,7 +27086,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -27264,7 +27131,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -27309,7 +27176,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -27354,7 +27221,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-14
   capacity: 36
@@ -27437,7 +27304,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27482,7 +27349,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27527,7 +27394,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27572,7 +27439,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27617,7 +27484,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27662,7 +27529,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27707,7 +27574,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27752,7 +27619,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27797,7 +27664,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27842,7 +27709,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27887,7 +27754,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27949,7 +27816,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -27994,7 +27861,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -28039,7 +27906,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -28084,7 +27951,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -28129,7 +27996,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -28174,7 +28041,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -28219,7 +28086,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -28264,7 +28131,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -28309,7 +28176,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -28354,7 +28221,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-15
   capacity: 36
@@ -28399,7 +28266,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28444,7 +28311,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28489,7 +28356,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28534,7 +28401,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28579,7 +28446,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28624,7 +28491,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28669,7 +28536,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28714,7 +28581,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28759,7 +28626,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28804,7 +28671,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28915,7 +28782,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -28977,7 +28844,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29022,7 +28889,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29067,7 +28934,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29112,7 +28979,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29157,7 +29024,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29202,7 +29069,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29247,7 +29114,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29292,7 +29159,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29337,7 +29204,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29382,7 +29249,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-16
   capacity: 36
@@ -29465,7 +29332,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29510,7 +29377,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29555,7 +29422,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29600,7 +29467,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29645,7 +29512,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29690,7 +29557,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29735,7 +29602,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29780,7 +29647,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29825,7 +29692,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29870,7 +29737,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29915,7 +29782,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -29977,7 +29844,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30022,7 +29889,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30067,7 +29934,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30112,7 +29979,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30157,7 +30024,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30202,7 +30069,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30247,7 +30114,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30292,7 +30159,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30337,7 +30204,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30382,7 +30249,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-17
   capacity: 36
@@ -30465,7 +30332,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30510,7 +30377,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30555,7 +30422,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30600,7 +30467,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30645,7 +30512,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30690,7 +30557,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30735,7 +30602,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30780,7 +30647,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30825,7 +30692,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30870,7 +30737,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30915,7 +30782,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -30977,7 +30844,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31022,7 +30889,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31067,7 +30934,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31112,7 +30979,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31157,7 +31024,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31202,7 +31069,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31247,7 +31114,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31292,7 +31159,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31337,7 +31204,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31382,7 +31249,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-18
   capacity: 36
@@ -31427,7 +31294,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31472,7 +31339,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31517,7 +31384,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31562,7 +31429,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31607,7 +31474,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31652,7 +31519,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31697,7 +31564,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31742,7 +31609,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31787,7 +31654,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31832,7 +31699,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31877,7 +31744,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31939,7 +31806,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -31984,7 +31851,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -32029,7 +31896,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -32074,7 +31941,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -32119,7 +31986,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -32164,7 +32031,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -32209,7 +32076,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -32254,7 +32121,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -32299,7 +32166,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -32344,7 +32211,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-21
   capacity: 36
@@ -32421,7 +32288,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32466,7 +32333,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32511,7 +32378,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32556,7 +32423,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32601,7 +32468,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32646,7 +32513,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32691,7 +32558,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32736,7 +32603,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32781,7 +32648,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32826,7 +32693,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32871,7 +32738,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32933,7 +32800,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -32978,7 +32845,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -33023,7 +32890,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -33068,7 +32935,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -33113,7 +32980,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -33158,7 +33025,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -33203,7 +33070,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -33248,7 +33115,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -33293,7 +33160,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -33338,7 +33205,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-22
   capacity: 36
@@ -33415,7 +33282,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33460,7 +33327,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33505,7 +33372,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33550,7 +33417,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33595,7 +33462,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33640,7 +33507,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33685,7 +33552,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33730,7 +33597,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33775,7 +33642,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33820,7 +33687,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33899,7 +33766,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -33961,7 +33828,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34006,7 +33873,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34051,7 +33918,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34096,7 +33963,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34141,7 +34008,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34186,7 +34053,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34231,7 +34098,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34276,7 +34143,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34321,7 +34188,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34366,7 +34233,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-23
   capacity: 36
@@ -34411,7 +34278,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34456,7 +34323,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34501,7 +34368,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34546,7 +34413,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34591,7 +34458,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34636,7 +34503,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34681,7 +34548,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34726,7 +34593,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34771,7 +34638,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34816,7 +34683,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34893,7 +34760,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -34989,7 +34856,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35034,7 +34901,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35079,7 +34946,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35124,7 +34991,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35169,7 +35036,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35214,7 +35081,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35259,7 +35126,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35304,7 +35171,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35349,7 +35216,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35394,7 +35261,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-24
   capacity: 36
@@ -35439,7 +35306,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35484,7 +35351,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35529,7 +35396,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35574,7 +35441,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35619,7 +35486,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35664,7 +35531,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35709,7 +35576,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35754,7 +35621,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35799,7 +35666,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35844,7 +35711,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -35921,7 +35788,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36017,7 +35884,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36062,7 +35929,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36107,7 +35974,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36152,7 +36019,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36197,7 +36064,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36242,7 +36109,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36287,7 +36154,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36332,7 +36199,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36377,7 +36244,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36422,7 +36289,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-25
   capacity: 36
@@ -36467,7 +36334,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36512,7 +36379,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36557,7 +36424,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36602,7 +36469,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36647,7 +36514,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36692,7 +36559,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36737,7 +36604,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36782,7 +36649,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36827,7 +36694,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36872,7 +36739,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -36951,7 +36818,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37013,7 +36880,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37058,7 +36925,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37103,7 +36970,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37148,7 +37015,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37193,7 +37060,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37238,7 +37105,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37283,7 +37150,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37328,7 +37195,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37373,7 +37240,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37418,7 +37285,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-28
   capacity: 36
@@ -37463,7 +37330,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37508,7 +37375,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37553,7 +37420,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37598,7 +37465,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37643,7 +37510,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37688,7 +37555,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37733,7 +37600,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37778,7 +37645,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37823,7 +37690,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37868,7 +37735,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -37913,7 +37780,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38009,7 +37876,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38054,7 +37921,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38099,7 +37966,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38144,7 +38011,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38189,7 +38056,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38234,7 +38101,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38279,7 +38146,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38324,7 +38191,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38369,7 +38236,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38414,7 +38281,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-29
   capacity: 36
@@ -38459,7 +38326,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38504,7 +38371,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38549,7 +38416,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38594,7 +38461,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38639,7 +38506,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38684,7 +38551,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38729,7 +38596,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38774,7 +38641,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38819,7 +38686,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38864,7 +38731,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -38909,7 +38776,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39005,7 +38872,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39050,7 +38917,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39095,7 +38962,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39140,7 +39007,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39185,7 +39052,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39230,7 +39097,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39275,7 +39142,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39320,7 +39187,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39365,7 +39232,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39410,7 +39277,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-30
   capacity: 36
@@ -39455,7 +39322,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39500,7 +39367,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39545,7 +39412,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39590,7 +39457,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39635,7 +39502,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39680,7 +39547,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39725,7 +39592,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39770,7 +39637,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39815,7 +39682,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39860,7 +39727,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39905,7 +39772,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -39967,7 +39834,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40012,7 +39879,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40057,7 +39924,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40102,7 +39969,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40147,7 +40014,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40192,7 +40059,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40237,7 +40104,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40282,7 +40149,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40327,7 +40194,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40372,7 +40239,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-01-31
   capacity: 36
@@ -40417,7 +40284,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40462,7 +40329,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40507,7 +40374,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40552,7 +40419,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40597,7 +40464,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40642,7 +40509,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40687,7 +40554,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40732,7 +40599,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40777,7 +40644,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40822,7 +40689,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40867,7 +40734,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40929,7 +40796,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -40974,7 +40841,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -41019,7 +40886,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -41064,7 +40931,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -41109,7 +40976,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -41154,7 +41021,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -41199,7 +41066,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -41244,7 +41111,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -41289,7 +41156,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -41334,7 +41201,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-01
   capacity: 36
@@ -41379,7 +41246,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41424,7 +41291,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41469,7 +41336,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41514,7 +41381,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41559,7 +41426,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41604,7 +41471,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41649,7 +41516,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41694,7 +41561,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41739,7 +41606,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41784,7 +41651,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41829,7 +41696,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41891,7 +41758,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41936,7 +41803,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -41981,7 +41848,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -42026,7 +41893,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -42071,7 +41938,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -42116,7 +41983,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -42161,7 +42028,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -42206,7 +42073,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -42251,7 +42118,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -42296,7 +42163,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-04
   capacity: 36
@@ -42341,7 +42208,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42386,7 +42253,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42431,7 +42298,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42476,7 +42343,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42521,7 +42388,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42566,7 +42433,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42611,7 +42478,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42656,7 +42523,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42701,7 +42568,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42746,7 +42613,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42791,7 +42658,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42853,7 +42720,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42898,7 +42765,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42943,7 +42810,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -42988,7 +42855,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -43033,7 +42900,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -43078,7 +42945,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -43123,7 +42990,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -43168,7 +43035,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -43213,7 +43080,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -43258,7 +43125,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-05
   capacity: 36
@@ -43303,7 +43170,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43348,7 +43215,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43393,7 +43260,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43438,7 +43305,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43483,7 +43350,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43528,7 +43395,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43573,7 +43440,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43618,7 +43485,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43663,7 +43530,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43708,7 +43575,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43753,7 +43620,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43815,7 +43682,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43860,7 +43727,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43905,7 +43772,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43950,7 +43817,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -43995,7 +43862,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -44040,7 +43907,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -44085,7 +43952,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -44130,7 +43997,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -44175,7 +44042,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -44220,7 +44087,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-06
   capacity: 36
@@ -44265,7 +44132,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44310,7 +44177,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44355,7 +44222,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44400,7 +44267,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44445,7 +44312,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44490,7 +44357,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44535,7 +44402,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44580,7 +44447,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44625,7 +44492,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44670,7 +44537,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44715,7 +44582,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44777,7 +44644,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44822,7 +44689,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44867,7 +44734,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44912,7 +44779,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -44957,7 +44824,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -45002,7 +44869,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -45047,7 +44914,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -45092,7 +44959,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -45137,7 +45004,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -45182,7 +45049,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-07
   capacity: 36
@@ -45227,7 +45094,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45272,7 +45139,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45317,7 +45184,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45362,7 +45229,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45407,7 +45274,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45452,7 +45319,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45497,7 +45364,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45542,7 +45409,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45587,7 +45454,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45632,7 +45499,7 @@
 
 - eventType: FSB
   description: EDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45677,7 +45544,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45739,7 +45606,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45784,7 +45651,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45829,7 +45696,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45874,7 +45741,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45919,7 +45786,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -45964,7 +45831,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -46009,7 +45876,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -46054,7 +45921,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -46099,7 +45966,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -46144,7 +46011,7 @@
 
 - eventType: FSB
   description: SDIP - Telephone interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-08
   capacity: 36
@@ -46189,7 +46056,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-11
   capacity: 36
@@ -46251,7 +46118,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-12
   capacity: 36
@@ -46313,7 +46180,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-13
   capacity: 36
@@ -46375,7 +46242,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-14
   capacity: 36
@@ -46437,7 +46304,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-15
   capacity: 36
@@ -46499,7 +46366,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-18
   capacity: 36
@@ -46561,7 +46428,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-19
   capacity: 36
@@ -46623,7 +46490,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-20
   capacity: 36
@@ -46685,7 +46552,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-21
   capacity: 36
@@ -46747,7 +46614,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-22
   capacity: 36
@@ -46809,7 +46676,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-25
   capacity: 36
@@ -46871,7 +46738,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-26
   capacity: 36
@@ -46933,7 +46800,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-27
   capacity: 36
@@ -46995,7 +46862,7 @@
 
 - eventType: FSB
   description: PDFS - Skype interview
-  location: London
+  location: Virtual
   venue: VIRTUAL
   date: 2019-02-28
   capacity: 36
@@ -47055,56 +46922,4 @@
       startTime: 15:45
       endTime: 16:15
 
-- eventType: FSAC
-  description: Contingency
-  location: London
-  venue: LONDON_FSAC
-  date: 2019-12-24
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
-  startTime: 08:30
-  endTime: 18:15
-  skillRequirements:
-    EXERCISE_MARKER: 6
-    QUALITY_ASSURANCE_COORDINATOR: 4
-  sessions:
-    - description: Session 1
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 08:00
-      endTime: 12:50
-    - description: Session 2
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 12:30
-      endTime: 17:35
-
-- eventType: FSAC
-  description: Contingency
-  location: London
-  venue: LONDON_FSAC
-  date: 2019-12-27
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
-  startTime: 08:30
-  endTime: 18:15
-  skillRequirements:
-    QUALITY_ASSURANCE_COORDINATOR: 4
-  sessions:
-    - description: Session 1
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 08:00
-      endTime: 12:50
-    - description: Session 2
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 12:30
-      endTime: 17:35
 

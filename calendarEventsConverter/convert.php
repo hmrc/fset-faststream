@@ -80,6 +80,12 @@ function checkVirtualDescription($lineCount, $eventDesc) {
     }
 }
 
+function checkVirtualLocation($lineCount, $venueName, $locationName) {
+    if ($venueName == 'Skype' || $venueName == 'Telephone' && $locationName != "Virtual") {
+        console("ERROR - line number: $lineCount location $locationName is invalid. It should be <<Virtual>>");
+    }
+}
+
 function allSkillsZero($skillValues) {
     for($i = 0; $i < count($skillValues); $i++) {
         if ($skillValues[$i] != 0) return false;
@@ -123,6 +129,7 @@ foreach ($csv as $line) {
         }
         $eventLocation = $line[$i++];
         $eventVenue = $line[$i++];
+        checkVirtualLocation($lineCount, $eventVenue, $eventLocation);
         $eventDate = $line[$i++];
         $eventStartTime = formatTime($line[$i++]);
         $eventEndTime = formatTime($line[$i++]);
