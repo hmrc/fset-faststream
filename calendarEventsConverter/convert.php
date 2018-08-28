@@ -2,8 +2,8 @@
 
 error_reporting(E_ALL);
 
-//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v3/newcastle.csv'));
-$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v3/london.csv'));
+//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v4/newcastle.csv'));
+$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v4/london.csv'));
 
 // This file reads input csv and generates yaml, which can be bulk uploaded into the system to create calendar events
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
@@ -28,7 +28,7 @@ $csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-
 // php convert.php > ../../fs-calendar-events/output/newcastle.yaml
 // php convert.php > ../../fs-calendar-events/output/london.yaml
 //
-// cd output
+// cd ../../fs-calendar-events/output
 // cat newcastle.yaml london.yaml > event-schedule.yaml
 // cp event-schedule.yaml ../../fset-faststream/conf
 //
@@ -76,13 +76,13 @@ function checkVirtualDescription($lineCount, $eventDesc) {
     $descriptions = array("PDFS"=>"PDFS - Skype interview", "EDIP"=>"EDIP - Telephone interview", "SDIP"=>"SDIP - Telephone interview");
 
     if (array_key_exists($eventDesc , $descriptions)) {
-        console("ERROR - line number: $lineCount event description $eventDesc is invalid. It should be <<$descriptions[$eventDesc]>>");
+        console("ERROR - line number: $lineCount event description <<$eventDesc>> is invalid. It should be <<$descriptions[$eventDesc]>>");
     }
 }
 
 function checkVirtualLocation($lineCount, $venueName, $locationName) {
-    if ($venueName == 'Skype' || $venueName == 'Telephone' && $locationName != "Virtual") {
-        console("ERROR - line number: $lineCount location $locationName is invalid. It should be <<Virtual>>");
+    if (($venueName == 'Skype' || $venueName == 'Telephone') && $locationName != "Virtual") {
+        console("ERROR - line number: $lineCount location <<$locationName>> is invalid. It should be <<Virtual>>");
     }
 }
 

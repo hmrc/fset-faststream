@@ -214,7 +214,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: FSAC
+  description: RA - One session only in the AM
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-10-26
@@ -348,7 +348,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: FSAC
+  description: RA - One session only in the AM
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-11-02
@@ -482,7 +482,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: FSAC
+  description: RA - One session only in the AM
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-11-09
@@ -616,7 +616,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: FSAC
+  description: RA - One session only in the AM
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-11-16
@@ -750,7 +750,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: FSAC
+  description: RA - One session only in the AM
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-11-23
@@ -884,7 +884,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: FSAC
+  description: RA - One session only in the AM
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-11-30
@@ -1018,7 +1018,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: FSAC
+  description: RA - One session only in the AM
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-12-07
@@ -1147,7 +1147,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: FSAC
+  description: RA - One session only in the AM
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-12-14
@@ -1252,7 +1252,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: FSAC
+  description: RA - One session only in the AM
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-12-20
@@ -2323,7 +2323,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: Fast Stream Assessment Centre
+  description: RA PM Sessions
   location: London
   venue: LONDON_FSAC
   date: 2018-11-08
@@ -2463,7 +2463,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: Fast Stream Assessment Centre
+  description: RA PM Sessions
   location: London
   venue: LONDON_FSAC
   date: 2018-11-15
@@ -2609,7 +2609,7 @@
       endTime: 16:15
 
 - eventType: FSAC
-  description: Fast Stream Assessment Centre
+  description: RA PM Sessions
   location: London
   venue: LONDON_FSAC
   date: 2018-11-20
@@ -3059,7 +3059,7 @@
       endTime: 16:15
 
 - eventType: FSAC
-  description: Fast Stream Assessment Centre
+  description: RA PM Sessions
   location: London
   venue: LONDON_FSAC
   date: 2018-11-27
@@ -4409,7 +4409,7 @@
       endTime: 17:00
 
 - eventType: FSAC
-  description: Fast Stream Assessment Centre
+  description: RA PM Sessions
   location: London
   venue: LONDON_FSAC
   date: 2018-12-04
@@ -10425,7 +10425,7 @@
     - description: Session 3
       capacity: 1
       minViableAttendees: 1
-      attendeeSafetyMargin: 5
+      attendeeSafetyMargin: 1
       startTime: 10:00
       endTime: 12:55
     - description: Session 4
@@ -11495,7 +11495,7 @@
     - description: Session 3
       capacity: 1
       minViableAttendees: 1
-      attendeeSafetyMargin: 0
+      attendeeSafetyMargin: 1
       startTime: 10:00
       endTime: 12:55
     - description: Session 4
@@ -15516,7 +15516,7 @@
       endTime: 17:00
 
 - eventType: FSAC
-  description: Fast Stream Assessment Centre
+  description: RA PM Sessions
   location: London
   venue: LONDON_FSAC
   date: 2018-12-19
@@ -25781,8 +25781,8 @@
       endTime: 13:35
     - description: Session 3
       capacity: 8
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
       startTime: 12:50
       endTime: 16:05
 
@@ -26809,8 +26809,8 @@
       endTime: 13:35
     - description: Session 3
       capacity: 8
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
       startTime: 12:50
       endTime: 16:05
 
@@ -34849,8 +34849,8 @@
       endTime: 13:35
     - description: Session 3
       capacity: 8
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
       startTime: 12:50
       endTime: 16:05
 
@@ -35877,8 +35877,8 @@
       endTime: 13:35
     - description: Session 3
       capacity: 8
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
       startTime: 12:50
       endTime: 16:05
 
@@ -37869,8 +37869,8 @@
       endTime: 13:35
     - description: Session 3
       capacity: 8
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
       startTime: 12:50
       endTime: 16:05
 
@@ -38865,8 +38865,8 @@
       endTime: 13:35
     - description: Session 3
       capacity: 8
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
       startTime: 12:50
       endTime: 16:05
 
