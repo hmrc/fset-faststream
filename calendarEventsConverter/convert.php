@@ -2,8 +2,8 @@
 
 error_reporting(E_ALL);
 
-//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v3/newcastle.csv'));
-$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v3/london.csv'));
+//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v5/newcastle.csv'));
+$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v5/london.csv'));
 
 // This file reads input csv and generates yaml, which can be bulk uploaded into the system to create calendar events
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
@@ -28,7 +28,7 @@ $csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-
 // php convert.php > ../../fs-calendar-events/output/newcastle.yaml
 // php convert.php > ../../fs-calendar-events/output/london.yaml
 //
-// cd output
+// cd ../../fs-calendar-events/output
 // cat newcastle.yaml london.yaml > event-schedule.yaml
 // cp event-schedule.yaml ../../fset-faststream/conf
 //
@@ -76,18 +76,28 @@ function checkVirtualDescription($lineCount, $eventDesc) {
     $descriptions = array("PDFS"=>"PDFS - Skype interview", "EDIP"=>"EDIP - Telephone interview", "SDIP"=>"SDIP - Telephone interview");
 
     if (array_key_exists($eventDesc , $descriptions)) {
-        console("ERROR - line number: $lineCount event description $eventDesc is invalid. It should be <<$descriptions[$eventDesc]>>");
+        console("ERROR - line number: $lineCount event description <<$eventDesc>> is invalid. It should be <<$descriptions[$eventDesc]>>");
     }
 }
 
 function checkVirtualLocation($lineCount, $venueName, $locationName) {
-    if ($venueName == 'Skype' || $venueName == 'Telephone' && $locationName != "Virtual") {
-        console("ERROR - line number: $lineCount location $locationName is invalid. It should be <<Virtual>>");
+    if (($venueName == 'Skype' || $venueName == 'Telephone') && $locationName != "Virtual") {
+        console("ERROR - line number: $lineCount location <<$locationName>> is invalid. It should be <<Virtual>>");
     }
 }
 
+function allSessionsEmpty($sessions) {
+    for ($i = 0; $i < count($sessions); $i++) {
+        $oneSession = $sessions[$i];
+        if (!($oneSession[0] == "" && $oneSession[1] == "" && $oneSession[2] == 0 && $oneSession[3] == 0 && $oneSession[4] == 0)) {
+           return false;
+        }
+    }
+    return true;
+}
+
 function allSkillsZero($skillValues) {
-    for($i = 0; $i < count($skillValues); $i++) {
+    for ($i = 0; $i < count($skillValues); $i++) {
         if ($skillValues[$i] != 0) return false;
     }
     return true;
@@ -178,11 +188,14 @@ foreach ($csv as $line) {
         $sessions = array($session1,$session2,$session3,$session4,$session5,$session6,$session7,$session8);
 //        $sessions = array($session1,$session2,$session3,$session4,$session5,$session6);
 
+        if (allSessionsEmpty($sessions)) {
+            console("ERROR - line number: $lineCount has no sessions specified - bulk upload will not accept this");
+        }
         if (allSkillsZero(array($fsacAssessors, $chairAssessors, $departmentAssessors, $writtenExerciseAssessors, $datAssessors, $fcoAssessors,
             $gcfsAssessors, $eacAssessors, $eacDsAssessors, $sacAssessors, $sacExerciseMarkers, $sacSams, $hopAssessors, $pdfsAssessors,
             $sefsAssessors, $edipAssessors, $sdipAssessors, $sracAssessors, $oracAssessors, $oracExerciseMarkers, $oracQacs, $qacAssessors,
             $sifterAssessors, $sdipQacs, $edipQacs))) {
-            console("ERROR - line number: $lineCount has no skills specified bulk upload will not accept this");
+            console("ERROR - line number: $lineCount has no skills specified bulk - upload will not accept this");
         };
 
         $out =
