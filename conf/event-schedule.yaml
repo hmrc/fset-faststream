@@ -214,7 +214,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: RA - One session only in the AM
+  description: FSAC
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-10-26
@@ -348,7 +348,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: RA - One session only in the AM
+  description: FSAC
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-11-02
@@ -482,7 +482,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: RA - One session only in the AM
+  description: FSAC
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-11-09
@@ -750,7 +750,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: RA - One session only in the AM
+  description: FSAC
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-11-23
@@ -1252,7 +1252,7 @@
       endTime: 17:35
 
 - eventType: FSAC
-  description: RA - One session only in the AM
+  description: FSAC
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-12-20
@@ -9369,7 +9369,7 @@
   startTime: 09:30
   endTime: 17:00
   skillRequirements:
-    SEFS_ASSESSOR: 3
+    SEFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 1
@@ -10408,7 +10408,7 @@
   startTime: 09:30
   endTime: 17:00
   skillRequirements:
-    SEFS_ASSESSOR: 3
+    SEFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 1
@@ -11478,7 +11478,7 @@
   startTime: 09:30
   endTime: 17:00
   skillRequirements:
-    SEFS_ASSESSOR: 3
+    SEFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 1
@@ -13548,7 +13548,7 @@
   startTime: 09:30
   endTime: 17:00
   skillRequirements:
-    SEFS_ASSESSOR: 3
+    SEFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 1
@@ -17396,6 +17396,47 @@
       startTime: 12:30
       endTime: 17:35
 
+- eventType: FSAC
+  description: Fast Stream Assessment Centre
+  location: London
+  venue: LONDON_FSAC
+  date: 2018-12-24
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 08:00
+      endTime: 12:50
+
+- eventType: FSAC
+  description: Fast Stream Assessment Centre
+  location: London
+  venue: LONDON_FSAC
+  date: 2018-12-24
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 08:00
+      endTime: 12:50
+
 - eventType: FSB
   description: EDIP - Telephone interview
   location: Virtual
@@ -24093,7 +24134,7 @@
   startTime: 09:30
   endTime: 17:00
   skillRequirements:
-    SEFS_ASSESSOR: 3
+    SEFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 1
@@ -25137,7 +25178,7 @@
   startTime: 09:30
   endTime: 17:00
   skillRequirements:
-    SEFS_ASSESSOR: 3
+    SEFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 1
@@ -25669,7 +25710,7 @@
   startTime: 09:00
   endTime: 16:10
   skillRequirements:
-    GCFS_ASSESSOR: 5
+    GCFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 4
@@ -26697,7 +26738,7 @@
   startTime: 09:00
   endTime: 16:10
   skillRequirements:
-    GCFS_ASSESSOR: 5
+    GCFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 4
@@ -28725,7 +28766,7 @@
   startTime: 09:00
   endTime: 16:10
   skillRequirements:
-    GCFS_ASSESSOR: 5
+    GCFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 4
@@ -34737,7 +34778,7 @@
   startTime: 09:00
   endTime: 16:10
   skillRequirements:
-    GCFS_ASSESSOR: 5
+    GCFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 4
@@ -35765,7 +35806,7 @@
   startTime: 09:00
   endTime: 16:10
   skillRequirements:
-    GCFS_ASSESSOR: 5
+    GCFS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 4
