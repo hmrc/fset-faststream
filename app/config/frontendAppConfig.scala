@@ -28,7 +28,7 @@ import play.api.Play
 import play.api.Play.{ configuration, current }
 import uk.gov.hmrc.play.config.ServicesConfig
 
-case class AuthConfig(host: String, port: Int, serviceName: String)
+case class AuthConfig(serviceName: String)
 
 case class EmailConfig(url: EmailUrl, templates: EmailTemplates)
 
@@ -61,8 +61,6 @@ object ApplicationRouteFrontendConfig {
 trait AppConfig {
   val analyticsToken: String
   val analyticsHost: String
-  val reportAProblemPartialUrl: String
-  val reportAProblemNonJSUrl: String
   val emailConfig: EmailConfig
   val authConfig: AuthConfig
   val userManagementConfig: UserManagementConfig
@@ -78,13 +76,8 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
   val feedbackUrl = configuration.getString("feedback.url").getOrElse("")
 
-  private val contactHost = configuration.getString(s"microservice.services.contact-frontend.host").getOrElse("")
-  private val contactFormServiceIdentifier = "CSRFastStream"
-
   override lazy val analyticsToken = loadConfig("microservice.services.google-analytics.token")
   override lazy val analyticsHost = loadConfig("microservice.services.google-analytics.host")
-  override lazy val reportAProblemPartialUrl = s"$contactHost/contact/problem_reports_ajax?service=$contactFormServiceIdentifier"
-  override lazy val reportAProblemNonJSUrl = s"$contactHost/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier"
 
   override lazy val emailConfig = configuration.underlying.as[EmailConfig]("microservice.services.email")
   override lazy val authConfig = configuration.underlying.as[AuthConfig](s"microservice.services.auth")
