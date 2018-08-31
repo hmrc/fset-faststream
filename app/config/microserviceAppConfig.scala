@@ -36,7 +36,7 @@ case class EventsConfig(scheduleFilePath: String, fsacGuideUrl: String, daysBefo
 
 case class EventSubtypeConfig(yamlFilePath: String)
 
-case class AuthConfig(host: String, port: Int, serviceName: String)
+case class AuthConfig(serviceName: String)
 
 case class EmailConfig(url: String)
 
