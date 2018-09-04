@@ -1067,58 +1067,76 @@
       startTime: 12:15
       endTime: 17:35
 
-- eventType: FSAC
-  description: FSAC
+- eventType: FSB
+  description: SAC
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-12-11
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  startTime: 08:30
-  endTime: 18:15
+  startTime: 09:30
+  endTime: 17:00
   skillRequirements:
     EXERCISE_MARKER: 6
+    SAC_ASSESSOR: 16
+    SAC_EM_ASSESSOR: 2
+    SAC_SAM_ASSESSOR: 2
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
     - description: Session 1
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 07:45
-      endTime: 12:50
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 08:10
+      endTime: 11:25
     - description: Session 2
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 12:15
-      endTime: 17:35
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 10:20
+      endTime: 13:35
+    - description: Session 3
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 12:50
+      endTime: 16:05
 
-- eventType: FSAC
-  description: FSAC
+- eventType: FSB
+  description: SAC
   location: Newcastle
   venue: NEWCASTLE_FSAC
   date: 2018-12-12
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  startTime: 08:30
-  endTime: 18:15
+  startTime: 09:30
+  endTime: 17:00
   skillRequirements:
+    SAC_ASSESSOR: 16
+    SAC_EM_ASSESSOR: 2
+    SAC_SAM_ASSESSOR: 2
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
     - description: Session 1
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 07:45
-      endTime: 12:50
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 08:10
+      endTime: 11:25
     - description: Session 2
-      capacity: 0
-      minViableAttendees: 0
-      attendeeSafetyMargin: 0
-      startTime: 12:15
-      endTime: 17:35
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 10:20
+      endTime: 13:35
+    - description: Session 3
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 12:50
+      endTime: 16:05
 
 - eventType: FSAC
   description: FSAC
