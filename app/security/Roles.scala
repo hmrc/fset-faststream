@@ -121,8 +121,13 @@ object Roles {
   }
 
   object AssessmentCentreRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) = {
+      play.api.Logger.warn("**** Checking AssessmentCentreRole.isAuthorized...")
+      play.api.Logger.warn(s"**** user = $user")
+      play.api.Logger.warn(s"**** activeUserWithActiveApp(user) = ${activeUserWithActiveApp(user)}")
+      play.api.Logger.warn(s"**** statusIn(user)(ASSESSMENT_CENTRE) = ${statusIn(user)(ASSESSMENT_CENTRE)}")
       activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE)
+    }
   }
 
   object WithdrawnApplicationRole extends CsrAuthorization {
