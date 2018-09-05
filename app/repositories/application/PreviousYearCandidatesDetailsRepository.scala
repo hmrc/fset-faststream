@@ -98,7 +98,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
     "Sift scheduleId,cubiksUserId,token,testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,Sift tScore,Sift raw," +
-    "Fsb overall score,Fsb feedback" +
+    "Fsb overall score,Fsb feedback," +
     appTestStatuses +
     fsacCompetencyHeaders +
     appTestResults +
