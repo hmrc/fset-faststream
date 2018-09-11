@@ -4,6 +4,7 @@
 GET         /                                                       controllers.ApplicationController.index
 GET         /terms                                                  controllers.ApplicationController.terms
 GET         /helpdesk                                               controllers.ApplicationController.helpdesk
+GET         /cookies                                                controllers.ApplicationController.cookies
 GET         /privacy                                                controllers.ApplicationController.privacy
 
 # Account lock

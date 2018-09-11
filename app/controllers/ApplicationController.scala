@@ -45,6 +45,11 @@ abstract class ApplicationController(applicationClient: ApplicationClient)
       Future.successful(Ok(views.html.index.terms()))
   }
 
+  def cookies = CSRUserAwareAction { implicit request =>
+    implicit user =>
+      Future.successful(Ok(views.html.index.cookies()))
+  }
+
   def privacy = CSRUserAwareAction { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.index.privacy()))

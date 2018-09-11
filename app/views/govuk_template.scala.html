@@ -71,7 +71,7 @@
                 <div id="global-cookie-message" class="cookie-banner">
                     <div class="content-container" role="alert">
                         <span class="copy-16">GOV.UK uses cookies to make the site simpler.
-                            <a href="@routes.ApplicationController.privacy()">Find out more about cookies</a>
+                            <a href="@routes.ApplicationController.cookies()">Find out more about cookies</a>
                         </span>
                     </div>
                 </div>
@@ -122,13 +122,15 @@
                                     <a class="footer__link bold-medium" href="@feedbackUrl" target="_blank" rel="external">Give feedback</a>
                                 </div>
                             </li>
-                            <li class="footer__link"><a href="@routes.ApplicationController.privacy()">Privacy and cookies</a>
+                            <li class="footer__link"><a href="@routes.ApplicationController.privacy()">Privacy Notice</a>
+                            </li>
+                            <li class="footer__link"><a href="@routes.ApplicationController.cookies()">Cookies</a>
                             </li>
                             <li class="footer__link"><a href="@routes.ApplicationController.terms()">Terms and conditions</a>
                             </li>
                             <li class="footer__link">Built by <a href="https://www.gov.uk/government/organisations/civil-service-resourcing"
                             target="_blank">Civil Service Resourcing</a>
-            </li>
+                            </li>
                             <li class="footer__ogl hide-print"><a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3"
                             class="ir ogl-logo" target="_blank">OGL</a>
                                 All content is available under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3" target="_blank">Open Government Licence v3.0</a>
