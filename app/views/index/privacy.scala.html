@@ -16,142 +16,265 @@
 
 @()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
-@main_template(title = "Privacy and cookies") {
-    <h1 class="heading-xlarge">Privacy and cookies</h1>
-
-	
-	<section class="text">
-	  <h2 class="heading-large">Privacy</h2>
-	  <p>
-	    This service is run by Civil Service Human Resources (CSHR). We'll handle the information you give to us in accordance with the <a href="https://www.gov.uk/data-protection/the-data-protection-act" rel="external" target="_blank">Data Protection Act</a>. Our <a href="@routes.ApplicationController.terms()">terms and conditions</a> apply.
-	  </p>
-	  <p>When you create an account on the service, the personal information you give us will be used:</p>
-	  <ul>
-	    <li>so you can apply for the Civil Service Fast Stream</li>
-	    <li>so that we can contact you about your application</li>
-	    <li>for administration and research purposes</li>
-	  </ul>
-	  <p>If you're successful we will use your personal information for onboarding, induction and purposes related to your employment contract, such as carrying out security checks.</p>
-	  <p>If you're unsuccessful, we may use your data to assess your suitability for other available opportunities. We may contact you about these opportunities. </p>
-	  <p>We may contact you to ask you for feedback about our service and/or to invite you to be part of a test group for research purposes.</p>
-	</section>
-
-	<section class="text">
-	  <h2 class="heading-medium">How long we hold your data</h2>
-	  <p>If you haven't signed in for 12 months or activated your account within 30 days of registering we'll delete your account and remove your personal details. You'll need to create another account to use the service.</p>
-	  <p>We'll hold your personal data for the duration of the Fast Stream campaign, typically a year. Your personal data will be held for longer for staff management purposes if you are successful.</p>
-	  <p>We'll continue to hold anonymised data for up to 5 years for research and administrative purposes. This won't contain your personal information.</p>
-	</section>
-
-	<section class="text">
-	  <h2 class="heading-large">Cookies</h2>
-	  <p>This service puts small files (known as 'cookies') on to your computer. Most websites do this. These cookies are used to:</p>
-	  <ul>
-	    <li>help us understand how you use the service, so we can improve it</li>
-	    <li>remember what notifications you've seen so you're not shown them again</li>
-	    <li>temporarily store the information you enter (eg informational messages)</li>
-	  </ul>
-	  <p>The cookies aren't used to identify you personally. They're put on to your computer to make the service work better for you. You can edit or delete the cookies.</p>
-	  <p>Find out how to <a rel="external" target="_blank" href="http://www.aboutcookies.org/">edit and delete cookies</a>.</p>
-	</section>
-
-	<section class="text">
-	  <h2 class="heading-medium">Google Analytics cookie</h2>
-	  <p>We use Google Analytics to collect information about how you use the service. This information helps us to make improvements.</p>
-	  <p>The Google Analytics cookie collects and stores information about:</p>
-	  <ul>
-	    <li>the pages you visit</li>
-	    <li>how long you spend on each page</li>
-	    <li>how you got to the service</li>
-	    <li>what you click on while you're using the service</li>
-	  </ul>
-	  <p>Google Analytics isn't allowed to use or share our analytics data with anyone, but you can <a href="https://tools.google.com/dlpage/gaoptout" rel="external" target="_blank">opt out</a> if you wish.</p>
-	  <table>
-	    <colgroup>
-	      <col class="t20">
-	      <col class="t60">
-	      <col class="t20">
-	      <col>
-	    </colgroup>
-	    <thead>
-	      <tr>
-	        <th>
-	            Name
-	        </th>
-	        <th>
-	            Purpose
-	        </th>
-	        <th>
-	            Expires
-	        </th>
-	      </tr>
-	    </thead>
-	    <tbody>
-	      <tr>
-	        <td>
-	            _ga
-	        </td>
-	        <td>
-	            This helps us identify how you use GOV.UK so we can make the site better
-	        </td>
-	        <td>
-	            2 years
-	        </td>
-	      </tr>
-	    </tbody>
-	  </table>
-	</section>
-
-	<section class="text">
-	  <h2 class="heading-medium">Session cookies</h2>
-	  <p>We store session cookies on your computer to help keep your information secure while you use the service.</p>
-	  <table>
-	    <thead>
-	      <tr>
-	        <th>Name</th>
-	        <th>Purpose</th>
-	        <th>Expires</th>
-	      </tr>
-	    </thead>
-	    <tbody>
-	      <tr>
-	        <td>PLAY_FLASH</td>
-	        <td>Stores session data</td>
-	        <td>When you navigate to another page</td>
-	      </tr>
-	      <tr>
-	        <td>mdtp</td>
-	        <td>Stores session data</td>
-	        <td>When you close your browser</td>
-	      </tr>
-	      <tr>
-	        <td>mdtpdi</td>
-	        <td>Creates a unique ID for your device to prevent unauthorised access to the service</td>
-	        <td>10 years</td>
-	      </tr>
-	    </tbody>
-	  </table>
-	</section>
-
-	<section class="text">
-	  <h2 class="heading-medium">Introductory message cookies</h2>
-	  <p>You may see a pop-up welcome message when you first visit. A cookie is stored so that your computer knows you’ve seen it and knows not to show it again.</p>
-	  <table>
-	    <thead>
-	      <tr>
-	        <th scope="col">Name</th>
-	        <th scope="col">Purpose</th>
-	        <th scope="col">Expires</th>
-	      </tr>
-	    </thead>
-	    <tbody>
-	    <tr>
-	      <td>cookies‑banner‑shown</td>
-	      <td>Saves a message to let us know that you have seen our cookie message</td>
-	      <td>20&nbsp;years</td>
-	    </tr>
-	    </tbody>
-	  </table>
-	</section>
+@faststreamEmail = {
+    <a href="mailto:FastStream@@parity.net">FastStream@@parity.net</a>
 }
 
+@main_template(title = "Privacy and cookies") {
+    <h1 class="heading-xlarge">Fast Stream Privacy Notice</h1>
+
+    <section class="text">
+        <p>
+            This notice sets out how we will use your personal data, and your rights. It is made under Articles 13 and/or 14 of the General Data Protection Regulation (GDPR).
+        </p>
+    </section>
+
+	<section class="text">
+        <h2 class="heading-medium">Your data</h2>
+        <p><strong>The data</strong></p>
+	    <p>We will process the following personal data:</p>
+	    <p>When you create an account:</p>
+	    <ul>
+            <li>name</li>
+            <li>email address</li>
+        </ul>
+	</section>
+
+	<section class="text">
+	    <p>When you make an application to the Fast Stream we ask for:</p>
+        <ul>
+            <li>full contact details, including address and telephone number</li>
+            <li>eligibility – nationality and immigration status</li>
+            <li>scheme preferences </li>
+            <li>disability information</li>
+            <li>Guaranteed Interview Scheme and reasonable adjustment requirements</li>
+            <li>diversity and inclusion information, including</li>
+            <ul>
+                <li>gender, sexual orientation and ethnicity</li>
+                <li>type of school attended</li>
+                <li>university attended</li>
+                <li>receipt of free school meals </li>
+                <li>level of parent education and type of work</li>
+            </ul>
+        </ul>
+	</section>
+
+	<section class="text">
+	    <p>If you pass the online tests we may ask for:</p>
+        <ul>
+            <li>proof of nationality and immigration status</li>
+            <li>degree and detailed module information</li>
+            <li>personal statement</li>
+            <li>qualifications, licences, professional memberships</li>
+        </ul>
+	</section>
+
+	<section class="text">
+	    <p>When you are invited to an interview we may ask you to provide:</p>
+        <ul>
+            <li>evidence of your identity and right to work in the UK - such as your passport, utility bills or other documentation</li>
+        </ul>
+	</section>
+
+	<section class="text">
+	    <p>When you undergo pre-employment checks we may ask for:</p>
+        <ul>
+            <li>contact details for your referees</li>
+            <li>National Insurance number</li>
+            <li>date of birth</li>
+            <li>public sector pension history</li>
+            <li>health declaration</li>
+            <li>character declaration - including details of unspent convictions, motoring offences, police cautions, insolvency, bankruptcy, time spent outside of the UK and self-employment</li>
+        </ul>
+        <p>The list above only applies for applications made through the Fast Stream system. Some advertisers may use their own application systems, when their privacy notice will apply.</p>
+	</section>
+
+	<section class="text">
+	    <p>For applicants who are current civil servants we also ask for:</p>
+        <ul>
+            <li>Work email address</li>
+            <li>Line manager’s email address</li>
+            <li>Employer</li>
+            <li>Previous Fast Track or Diversity Internship details</li>
+        </ul>
+	</section>
+
+	<section class="text">
+	    <p>When you contact us with feedback or an enquiry we will process:</p>
+        <ul>
+            <li>your email address</li>
+            <li>the details of your request</li>
+        </ul>
+	</section>
+
+	<section class="text">
+    	<h2 class="heading-medium">Purpose</h2>
+	    <p>The purposes for which we are processing your personal data are:</p>
+        <ul>
+            <li>to manage recruitment for Civil Service organisations and non-departmental public bodies. This includes an online application service, online tests and sift tests.</li>
+            <li>to enable the creation of user accounts</li>
+            <li>to provide technical support to candidates</li>
+            <li>to monitor the effectiveness of recruitment processes - this could include statistical analysis of system usage, or research into the experience of applicants and other system users</li>
+        </ul>
+	</section>
+
+	<section class="text">
+    	<h2 class="heading-medium">Legal basis of processing</h2>
+	    <p>The legal basis for processing your personal data is:</p>
+        <ul>
+            <li>Contractual: it is necessary for the performance of a contract to which you are a party - an employment contract</li>
+            <li>Contractual: it is necessary in order to take steps at your request prior to entering into a contract for employment</li>
+            <li>Legal obligation: it is necessary to comply with a legal obligation placed on us as the data controller - we are required to report on equality of opportunity; and onboarding processes have specific requirements</li>
+            <li>Public task: processing is necessary for the performance of a task carried out in the public interest or in the exercise of official authority vested in the data controller. Civil Service Fast Stream facilitates recruitment of high-quality candidates to roles across government departments, agencies and other public bodies. It provides recruitment tools and processes that support Civil Service recruitment strategy</li>
+        </ul>
+        <p>Sensitive personal data is personal data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, or trade union membership, and the processing of genetic data, biometric data for the purpose of uniquely identifying a natural person, data concerning health or data concerning a natural person's sex life or sexual orientation.</p>
+	</section>
+
+	<section class="text">
+	    <p>The legal basis for processing your sensitive personal data is:</p>
+        <ul>
+            <li>it is necessary for reasons of substantial public interest for the exercise of a function of the Crown, a Minister of the Crown, or a government department; the exercise of a function conferred on a person by an enactment. Civil Service Fast Stream facilitates recruitment of high-quality candidates to roles across government departments, agencies and other public bodies. It provides recruitment tools and processes that support Civil Service Fast Stream recruitment strategy.</li>
+            <li>it is necessary for the purposes of performing or exercising our obligations or rights as the controller, or your obligations or rights as the data subject, under employment law, social security law or the law relating to social protection. External recruitment is required to follow the Civil Service Commission Recruitment Principles. Personal data is processed to ensure that these requirements are met. We are required under the Equality Act 2010 to make appropriate reasonable adjustments for candidates with a disability.</li>
+            <li>processing is of a specific category of personal data and it is necessary for the purposes of identifying or keeping under review the existence or absence of equality of opportunity or treatment between groups of people with a view to enabling such equality to be promoted or maintained. Diversity and inclusion data is used anonymously: ethnicity, religion, and sexual orientation.</li>
+            <li>it is necessary for statistical purposes, and it is in the public interest. Analysis of applications and recruitment outcomes (including online tests), impact on protected groups, timescales for recruitment, and other research may be carried out.</li>
+        </ul>
+	</section>
+
+	<section class="text">
+	    <p>The processing by us of personal data relating to criminal convictions and offences or related security measures is not carried out under official authority, but is authorised because it meets the following condition:</p>
+        <ul>
+            <li>it is necessary for reasons of substantial public interest for the exercise of a function of the Crown, a Minister of the Crown, or a government department; the exercise of a function conferred on a person by an enactment.</li>
+        </ul>
+	</section>
+
+    <section class="text">
+        <h2 class="heading-medium">Recipients</h2>
+        <p>Your personal data will be shared by us with:</p>
+        <p>Account data:</p>
+        <ul>
+            <li>our technical suppliers and their approved staff</li>
+        </ul>
+    </section>
+
+    <section class="text">
+        <p>Once you have made an application, your information may be shared with:</p>
+        <ul>
+            <li>approved staff managing vacancies (including recruiters and interview panel members)</li>
+            <li>Fast Stream recruitment team </li>
+            <li>the recruiting departments or profession</li>
+            <li>Our online video interview supplier</li>
+            <li>Capita</li>
+            <li>Parity</li>
+            <li>Customer relationship management system</li>
+        </ul>
+    </section>
+
+    <section class="text">
+        <p>If you request support with your application or for a technical issue:</p>
+        <ul>
+            <li>approved staff from Cabinet Office </li>
+            <li>our technical suppliers and their approved staff</li>
+            <li>Parity</li>
+            <li>Customer relationship management system</li>
+            <li>Technical suppliers of online tests</li>
+        </ul>
+        <p>As your personal data will be stored on our IT infrastructure it will also be shared with our data processors who provide email and document management and storage services to us.</p>
+    </section>
+
+    <section class="text">
+        <h2 class="heading-medium">Retention</h2>
+        <p>Your personal data will be kept by us in for the following durations:
+            Application records and associated files (including CVs, letters, emails, comment and feedback) will be kept for 1 year. After 1 year your data is anonymised and kept for a period of up to 5 years for research and analysis purposes.
+        </p>
+        <p>Candidate accounts – will remain open and accessible for up to 12 months from the date the account was created. After a recruitment campaign has finished the account will be closed and deleted. Once an account has been closed and deleted it can no longer be accessed.</p>
+    </section>
+
+    <section class="text">
+        <h2 class="heading-medium">Automated decision making</h2>
+        <p>Your personal data will be subject to automated decision making when online psychometric tests are used.</p>
+        <p>The Fast Stream use online psychometric tests. in the early stages of recruitment.</p>
+        <p>Decisions are made on who to invite to later stages based on automated scoring and sifting processes. In addition, test scores and other applicant data are regularly captured for statistical and research analysis purposes.</p>
+        <p>Your score is calculated from the responses you give during the test, and no other information about you is used. We compare your score to those gained by a peer group who previously took the test, to give you a percentile. The Fast Stream will have a minimum percentile requirement, and if your score is lower than this, you will be rejected and your application will not be considered further.</p>
+    </section>
+
+    <section class="text">
+        <h2 class="heading-medium">Your rights</h2>
+        <p>You have the right to request information about how your personal data is processed, and to request a copy of that personal data.
+            You have the right to request a copy of any personal data you have provided, and for this to be provided in a structured, commonly used and machine-readable format.
+        </p>
+        <ul>
+            <li>your personal data except diversity data is available to view in your online account at any time</li>
+            <li>you can request a copy of your personal data, in machine-readable format, by emailing @faststreamEmail - this request may take up to four weeks to process</li>
+        </ul>
+        <p>You have the right to request that any inaccuracies in your personal data are rectified without delay.</p>
+        <p>You have the right to request that any incomplete personal data are completed.</p>
+        <p>You have the right to request that your personal data is erased if there is no longer a justification for it to be processed.</p>
+        <p>You have the right in certain circumstances (for example, where accuracy is contested) to request that the processing of your personal data is restricted.</p>
+        <ul>
+            <li>if your data is restricted from processing, you cannot be considered for a job</li>
+        </ul>
+        <p>You have the right to object to the processing of your personal data where it is processed for direct marketing purposes.</p>
+        <ul>
+            <li>your data is not processed for direct marketing purposes</li>
+        </ul>
+        <p>You have the right to object to the processing of your personal data.</p>
+        <ul>
+            <li>you can object to processing, although you will then be unable to be considered for a job</li>
+        </ul>
+        <p>You have the right, in relation to automatic profiling, to obtain human intervention in the outcome, to express your point of view, and to contest the decision reached by automatic profiling.</p>
+        <ul>
+            <li>you can email @faststreamEmail</li>
+        </ul>
+    </section>
+
+	<section class="text">
+	    <h2 class="heading-medium">International transfers</h2>
+	    <p>As your personal data is stored on our IT infrastructure, and shared with our data processors who provide email, and document management and storage services, it may be transferred and stored securely outside the European Economic Area. Where that is the case it will be subject to equivalent legal protection through the use of Model Contract Clauses.</p>
+	</section>
+
+	<p class="text">
+	    <h2 class="heading-medium">Complaints</h2>
+	    <p>
+            If you consider that your personal data has been misused or mishandled, you may make a complaint to the Information Commissioner, who is an independent regulator. The Information Commissioner can be contacted at:</br>
+            Information Commissioner's Office</br>
+            Wycliffe House</br>
+            Water Lane</br>
+            Wilmslow</br>
+            Cheshire</br>
+            SK9 5AF</br>
+            0303 123 1113</br>
+            <a href="mailto:casework@@ico.org.uk">casework@@ico.org.uk</a>
+        </p>
+    <p>Any complaint to the Information Commissioner is without prejudice to your right to seek redress through the courts.</p>
+	</section>
+
+    <section class="text">
+        <h2 class="heading-medium">Contact details</h2>
+        <p>Cabinet Office is the data controller for your account details, and for any applications you have not yet submitted.</p>
+        <p>Cabinet Office and the department you apply to are joint data controllers for your personal data within your submitted applications.</p>
+        <p>
+            The data controller for your personal data is the Cabinet Office. The contact details for the data controller are:</br>
+            Cabinet Office</br>
+            70 Whitehall</br>
+            London</br>
+            SW1A 2AS</br>
+            or 0207 276 1234, or <a href="mailto:publiccorrespondence@@cabinetoffice.gov.uk">publiccorrespondence@@cabinetoffice.gov.uk</a>
+        </p>
+        <p>
+            The contact details for Cabinet Office’s Data Protection Officer (DPO) are:</br>
+            Stephen Jones</br>
+            DPO</br>
+            Cabinet Office</br>
+            70 Whitehall</br>
+            London</br>
+            SW1A 2AS</br>
+            <a href="mailto:dpo@@cabinetoffice.gov.uk">dpo@@cabinetoffice.gov.uk</a>
+        </p>
+        <p>The Data Protection Officer provides independent advice and monitoring of Cabinet Office’s use of personal information.</p>
+    </section>
+
+    <section class="text">
+        <h2 class="heading-medium">Updates to this notice</h2>
+        <p>If this privacy notice changes in any way, we will place an updated version on this page. Regularly reviewing this page ensures you are always aware of what information we collect, how we use it, and under what circumstances we will share it with other parties. Last updated: 04 Jul 2018</p>
+    </section>
+}
