@@ -2,8 +2,8 @@
 
 error_reporting(E_ALL);
 
-//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v6/newcastle.csv'));
-$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v6/london.csv'));
+//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v7/newcastle.csv'));
+$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v7/london.csv'));
 
 // This file reads input csv and generates yaml, which can be bulk uploaded into the system to create calendar events
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
