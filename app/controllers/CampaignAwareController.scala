@@ -75,6 +75,6 @@ trait CampaignAwareController {
 
   def getApplicationStartDate(implicit applicationRoute: ApplicationRoute = Faststream): String =
     appRouteConfigMap.get(applicationRoute)
-      .flatMap(_.applicationsStartDate.map(_.format(DateTimeFormatter.ofPattern("dd MMM YYYY"))))
+      .flatMap(_.applicationsStartDate.map(_.format(DateTimeFormatter.ofPattern("dd MMM YYYY HH:mm:ss a"))))
       .getOrElse("")
 }
