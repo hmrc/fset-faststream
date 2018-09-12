@@ -187,7 +187,7 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val result = controller(appRouteConfigMap).signUp(None)(Request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SignUpController.present(None).url))
-      flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are opened from 06 Dec 2016"))
+      flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are opened from 06 Dec 2016 00:00:00 AM"))
     }
   }
 
