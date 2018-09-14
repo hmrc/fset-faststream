@@ -9,7 +9,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 24
@@ -35,8 +37,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 24
@@ -62,7 +65,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -117,6 +120,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
+    EXERCISE_MARKER: 1
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
     - description: Session 1
@@ -143,7 +147,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 24
@@ -169,8 +175,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 24
@@ -196,7 +203,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -224,7 +231,7 @@
   startTime: 08:30
   endTime: 13:30
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -246,7 +253,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 3
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -274,7 +281,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 2
   sessions:
@@ -302,7 +309,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -330,7 +337,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -358,7 +365,7 @@
   startTime: 08:30
   endTime: 13:30
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -380,7 +387,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 3
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -408,7 +415,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 2
   sessions:
@@ -436,7 +443,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -464,7 +471,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -492,7 +499,7 @@
   startTime: 08:30
   endTime: 13:30
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -514,7 +521,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 3
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -542,7 +549,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 2
   sessions:
@@ -570,7 +577,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -598,7 +605,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -626,7 +633,7 @@
   startTime: 09:30
   endTime: 15:05
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 20
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -648,7 +655,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 3
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -676,7 +683,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 2
   sessions:
@@ -704,7 +711,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -732,7 +739,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -760,7 +767,7 @@
   startTime: 08:30
   endTime: 13:30
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -782,7 +789,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 3
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -810,7 +817,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 2
   sessions:
@@ -838,7 +845,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -866,7 +873,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -894,7 +901,7 @@
   startTime: 09:30
   endTime: 15:05
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 20
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -916,7 +923,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 3
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -944,7 +951,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 2
   sessions:
@@ -972,7 +979,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -1000,7 +1007,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -1028,7 +1035,7 @@
   startTime: 09:30
   endTime: 15:05
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 20
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -1050,7 +1057,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 3
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -1149,7 +1156,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 36
@@ -1175,8 +1184,9 @@
   startTime: 09:30
   endTime: 15:05
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 20
     EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 36
@@ -1196,7 +1206,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 3
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -1224,7 +1234,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 2
   sessions:
@@ -1252,7 +1262,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -1280,7 +1290,7 @@
   startTime: 08:30
   endTime: 13:30
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -1323,6 +1333,7 @@
   startTime: 08:30
   endTime: 13:30
   skillRequirements:
+    EXERCISE_MARKER: 1
     QUALITY_ASSURANCE_COORDINATOR: 2
   sessions:
     - description: Session 1
@@ -1343,7 +1354,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 36
@@ -1369,8 +1382,9 @@
   startTime: 08:30
   endTime: 13:30
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 36
@@ -1390,7 +1404,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 3
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -1445,6 +1459,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
+    EXERCISE_MARKER: 1
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
     - description: Session 1
@@ -1850,7 +1865,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 24
@@ -1876,8 +1893,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 24
@@ -1903,7 +1921,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -1931,7 +1949,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -1959,7 +1977,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -1987,7 +2005,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -2015,7 +2033,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -2043,7 +2061,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -2071,7 +2089,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -2099,7 +2117,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 12
+    ASSESSOR: 15
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -2127,7 +2145,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 4
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -2155,7 +2173,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
@@ -2183,7 +2201,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2211,7 +2229,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2239,7 +2257,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2267,7 +2285,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2295,7 +2313,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2323,7 +2341,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2351,7 +2369,7 @@
   startTime: 08:30
   endTime: 18:25
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2379,7 +2397,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2407,7 +2425,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2435,7 +2453,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2463,7 +2481,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2491,7 +2509,7 @@
   startTime: 08:30
   endTime: 18:25
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2519,7 +2537,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2547,7 +2565,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2637,7 +2655,7 @@
   startTime: 08:30
   endTime: 18:25
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2727,7 +2745,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2817,7 +2835,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2907,7 +2925,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -2997,7 +3015,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -3087,7 +3105,7 @@
   startTime: 08:30
   endTime: 18:25
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -3177,7 +3195,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -3267,7 +3285,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -3357,7 +3375,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -3447,7 +3465,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -4437,7 +4455,7 @@
   startTime: 08:30
   endTime: 18:25
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -5427,7 +5445,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -6417,7 +6435,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -7407,7 +7425,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -8397,7 +8415,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -10508,6 +10526,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
+    EXERCISE_MARKER: 1
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
     - description: Session 1
@@ -12578,7 +12597,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 36
@@ -13617,6 +13638,7 @@
   endTime: 18:15
   skillRequirements:
     EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 0
@@ -14580,6 +14602,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
+    EXERCISE_MARKER: 1
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
     - description: Session 1
@@ -15544,7 +15567,9 @@
   startTime: 08:30
   endTime: 18:25
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 36
@@ -16470,8 +16495,9 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
       capacity: 36
@@ -17397,7 +17423,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
-    ASSESSOR: 18
+    ASSESSOR: 22
     EXERCISE_MARKER: 6
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
@@ -17446,6 +17472,7 @@
   startTime: 08:30
   endTime: 18:15
   skillRequirements:
+    EXERCISE_MARKER: 1
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
     - description: Session 1
