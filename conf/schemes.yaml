@@ -30,7 +30,7 @@
   siftEvaluationRequired: false
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/1232/fco-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1246/scheme-questions-fco.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1313/scheme-questions-fco.rtf
 - id: DiplomaticServiceEconomists
   code: GES-DS
   name: Diplomatic Service (Economists)
@@ -163,7 +163,7 @@
   siftEvaluationRequired: true
   fsbType: SEFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/1238/sefs-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1254/scheme-questions-sefs.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1315/scheme-questions-sefs.rtf
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
