@@ -43,7 +43,7 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
     } yield {
       val sjqResult = evaluateTestResult(schemePassmark.schemeThresholds.situational)(sjqTestResult.tScore)
       val bqResult = bqTestResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.behavioural)).getOrElse(Green)
-      Logger.info(s"**** Processing scheme $schemeToEvaluate, " +
+      Logger.info(s"Processing scheme $schemeToEvaluate, " +
         s"sjq score = ${sjqTestResult.tScore}, " +
         s"sjq fail = ${schemePassmark.schemeThresholds.situational.failThreshold}, " +
         s"sqj pass = ${schemePassmark.schemeThresholds.situational.passThreshold}, " +

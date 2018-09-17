@@ -59,7 +59,8 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
     val allQuestionsReviewed = optLatestReviewed.exists(_.allQuestionsReviewed)
 
     if (launchpadGWConfig.phase3Tests.verifyAllScoresArePresent && !allQuestionsReviewed) {
-      Logger.info(s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId}")
+      val msg = s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId} so terminating evaluation"
+      Logger.info(msg)
       Future.successful(())
     } else {
       val schemeResults = (optLatestReviewed, application.prevPhaseEvaluation) match {

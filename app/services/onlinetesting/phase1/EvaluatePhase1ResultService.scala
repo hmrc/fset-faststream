@@ -42,7 +42,7 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
       Logger.info(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
     } else {
-      Logger.info(s"**** Evaluating Phase1 appId=${application.applicationId}")
+      Logger.info(s"Evaluating Phase1 appId=${application.applicationId}")
 
       val activeTests = application.activeCubiksTests
       require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
