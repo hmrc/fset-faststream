@@ -42,7 +42,7 @@
   siftEvaluationRequired: true
   fsbType: EAC_DS
   schemeGuide: https://www.faststream.gov.uk/media/1234/ges_ds-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1246/scheme-questions-fco.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1316/scheme-questions-ges-ds.docx
 - id: Finance
   code: FIFS
   name: Finance
