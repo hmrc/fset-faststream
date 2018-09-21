@@ -71,13 +71,14 @@ trait PreviousYearCandidatesDetailsRepository {
 
   val fsacCompetencyHeaders = "FSAC passedMinimumCompetencyLevel,analysisAndDecisionMakingAverage,buildingProductiveRelationshipsAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage,overallScore,"
 
-  private val appTestResults =
+  private def appTestResults(numOfSchemes: Int) = {
+    val otherColumns = "result," * (numOfSchemes - 2) + "result"
     List("PHASE 1", "PHASE 2", "PHASE 3", "SIFT", "FSAC", "FSB", "Current Scheme Status").map { s =>
-      s"$s result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result,result"
-    }
-      .mkString(",")
+      s"$s result,$otherColumns"
+    }.mkString(",")
+  }
 
-  val applicationDetailsHeader = "applicationId,userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth," +
+  def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth," +
     "Are you eligible,Terms and Conditions," +
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
     "EDIP,SDIP,Eligible for Fast Pass,Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
@@ -101,7 +102,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "Fsb overall score,Fsb feedback," +
     appTestStatuses +
     fsacCompetencyHeaders +
-    appTestResults +
+    appTestResults(numOfSchemes) +
   ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal,Admin comment," +
   "FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
 
@@ -255,7 +256,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             fsbScoresAndFeedback(doc) :::
             progressStatusTimestamps(doc) :::
             fsacCompetency(doc) :::
-            testEvaluations(doc) :::
+            testEvaluations(doc, numOfSchemes) :::
             currentSchemeStatus(doc, numOfSchemes) :::
             List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
             List(withdrawalInfo.map(_.reason)) :::
@@ -276,7 +277,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
       }
     }
-
   }
 
   private def progressStatusTimestamps(doc: BSONDocument): List[Option[String]] = {
@@ -739,7 +739,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     result => result.getAs[String]("schemeId").getOrElse("") + ": " + result.getAs[String]("result").getOrElse("")
   }
 
-  private def testEvaluations(doc: BSONDocument): List[Option[String]] = {
+  private def testEvaluations(doc: BSONDocument, numOfSchemes: Int): List[Option[String]] = {
     val testGroups = doc.getAs[BSONDocument]("testGroups")
 
     List("PHASE1", "PHASE2", "PHASE3", "SIFT_PHASE", "FSAC", "FSB").flatMap { sectionName => {
@@ -748,10 +748,19 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       val testEvalResults = testsEvaluation.getAs[List[BSONDocument]]("result")
         .orElse(testsEvaluation.getAs[List[BSONDocument]]("schemes-evaluation"))
       val evalResultsMap = testEvalResults.map(getSchemeResults)
-      val schemeResults = evalResultsMap.getOrElse(Nil)
-      schemeResults.map(Option(_)) ::: (1 to (18 - schemeResults.size)).toList.map(_ => Some(""))
-    }
-    }
+      padResults(evalResultsMap, numOfSchemes)
+    }}
+  }
+
+  private def currentSchemeStatus(doc: BSONDocument, numOfSchemes: Int): List[Option[String]] = {
+    val testEvalResults = doc.getAs[List[BSONDocument]]("currentSchemeStatus")
+    val evalResultsMap = testEvalResults.map(getSchemeResults)
+    padResults(evalResultsMap, numOfSchemes)
+  }
+
+  private def padResults(evalResultsMap: Option[List[String]], numOfSchemes: Int) = {
+    val schemeResults = evalResultsMap.getOrElse(Nil)
+    schemeResults.map(Option(_)) ::: (1 to (numOfSchemes - schemeResults.size)).toList.map(_ => Some(""))
   }
 
   private def fsacCompetency(doc: BSONDocument): List[Option[String]] = {
@@ -769,13 +778,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       "strategicApproachToObjectivesAverage",
       "overallScore"
     ).map { f => competencyAvg.getAs[Double](f) map (_.toString) }
-  }
-
-  private def currentSchemeStatus(doc: BSONDocument, numOfSchemes: Int): List[Option[String]] = {
-    val testEvalResults = doc.getAs[List[BSONDocument]]("currentSchemeStatus")
-    val evalResultsMap = testEvalResults.map(getSchemeResults)
-    val schemeResults = evalResultsMap.getOrElse(Nil)
-    schemeResults.map(Option(_)) ::: (1 to (numOfSchemes - schemeResults.size)).toList.map(_ => Some(""))
   }
 
   private def onlineTests(doc: BSONDocument): Map[String, List[Option[String]]] = {
