@@ -123,7 +123,7 @@ trait ReportingController extends BaseController {
        siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) =>
       {
         val header = Enumerator(
-          (prevYearCandidatesDetailsRepository.applicationDetailsHeader ::
+          (prevYearCandidatesDetailsRepository.applicationDetailsHeader(numOfSchemes) ::
             prevYearCandidatesDetailsRepository.contactDetailsHeader ::
             prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
             prevYearCandidatesDetailsRepository.mediaHeader ::
