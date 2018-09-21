@@ -1080,10 +1080,13 @@ class GeneralApplicationMongoRepository(
     val query = BSONDocument("applicationId" -> applicationId)
 
     collection.find(query, projection).one[BSONDocument].map {
-      case Some(doc) => doc.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.map {
-        case (progressStatus: String, bsonDateTime: BSONDateTime) =>
-          progressStatus -> bsonDateTime.as[DateTime]
-      }
+      case Some(doc) =>
+        doc.getAs[BSONDocument]("progress-status-timestamp").map { timestamps =>
+          timestamps.elements.toList.map {
+            case (progressStatus: String, bsonDateTime: BSONDateTime) =>
+              progressStatus -> bsonDateTime.as[DateTime]
+          }
+        }.getOrElse(Nil)
       case _ => Nil
     }
   }
