@@ -31,7 +31,7 @@
 
         @if(!page.haveAdditionalQuestionsBeenSubmitted) {
             <p>At least one of your scheme preferences require you to answer some additional questions.</p>
-            <p>You should complete this within 7 days from the date of your email. Failure to do this will hold up your application.</p>
+            <p>You should complete this within 7 days from the date of your email. Failure to do this will cause your application to expire.</p>
             <ul class="list-text list-withicons" data-extrainfolist>
                 <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions()">Nationality and higher education</a></li>
                 @for(curSiftableScheme <- page.userDataWithSchemes.schemesForSiftForms) {
