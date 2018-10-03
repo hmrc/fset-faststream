@@ -26,7 +26,7 @@ import net.ceedubs.ficus.readers.ValueReader
 import play.api.{ Logger, Play }
 import play.api.Play.{ configuration, current }
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.config.{ RunMode, ServicesConfig }
+import uk.gov.hmrc.play.config.ServicesConfig
 
 case class FrameworksConfig(yamlFilePath: String)
 
@@ -152,7 +152,7 @@ object AssessmentEvaluationMinimumCompetencyLevel {
 
 object MicroserviceAppConfig extends MicroserviceAppConfig
 
-trait MicroserviceAppConfig extends ServicesConfig with RunMode {
+trait MicroserviceAppConfig extends ServicesConfig {
   import net.ceedubs.ficus.readers.ArbitraryTypeReader._
   @silent lazy val app = play.api.Play.current
   @silent lazy val underlyingConfiguration = configuration.underlying
