@@ -17,11 +17,8 @@
 import sbt._
 
 object FrontendBuild extends Build with MicroService {
-  import scala.util.Properties.envOrElse
 
   val appName = "fset-faststream-frontend"
-  val appVersion = envOrElse("FSET_FASTSTREAM_FRONTEND_VERSION", "999-SNAPSHOT")
-
   override lazy val appDependencies: Seq[ModuleID] = AppDependencies()
 }
 
