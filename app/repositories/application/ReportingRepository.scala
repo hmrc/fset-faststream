@@ -479,6 +479,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "applicationId" -> true,
       "userId" -> true,
       "applicationStatus" -> true,
+      "applicationRoute" -> true,
       "progress-status" -> "2"
     )
 
@@ -488,9 +489,10 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
         val applicationId = document.getAs[String]("applicationId").get
         val userId = document.getAs[String]("userId").get
         val applicationStatus = document.getAs[String]("applicationStatus").get
+        val applicationRoute = document.getAs[String]("applicationRoute").get
         val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
         val latestProgressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses))
-        ApplicationIdsAndStatus(applicationId, userId, applicationStatus, latestProgressStatus)
+        ApplicationIdsAndStatus(applicationId, userId, applicationStatus, applicationRoute, latestProgressStatus)
       })
   }
 
