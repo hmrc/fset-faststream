@@ -16,6 +16,9 @@
 
 
 $(function() {
+    var otherLabel = "Other";
+    var otherValue = "Others";
+
     var universities = [
         {"label":"Abingdon and Witney College", "hiddenValue":"A14-AWC"},
         {"label":"University of Aberdeen", "hiddenValue":"A20-ABRDN"},
@@ -409,33 +412,29 @@ $(function() {
         {"label":"The University of York", "hiddenValue":"Y50-YORK"},
         {"label":"York College (York)", "hiddenValue":"Y70-YCOLL"},
         {"label":"York St John University", "hiddenValue":"Y75-YSJ"},
-        {"label":"Other", "hiddenValue":"Others"}
+        {"label":otherLabel, "hiddenValue":otherValue}
     ];
 
-    var TAB_KEY = $.ui.keyCode.TAB;
-    var ENTER_KEY = $.ui.keyCode.ENTER;
-    var UP_KEY = $.ui.keyCode.UP;
-    var DOWN_KEY = $.ui.keyCode.DOWN;
+    function setData(label, value) {
+        $('#universityAttended').val(label);
+        $('#university').val(value);
+    }
 
     $( "#universityAttended" ).autocomplete({
         source: universities,
 
         select: function(e, ui) {
-            $('#universityAttended').attr('value', ui.item.label);
-            $('#university').attr('value', ui.item.hiddenValue);
+            setData(ui.item.label, ui.item.hiddenValue);
         },
         response: function(event, ui) {
             if (ui.content.length === 0) {
-                $('#universityAttended').attr('value', 'Other');
-                $('#university').attr('value', 'Others');
+                setData(otherLabel, otherValue);
+            }
+        },
+        change: function (event, ui) {
+            if(!ui.item){
+                setData('', '');
             }
         }
-
-    }).on('keydown', function(e) {
-        if(e.which === UP_KEY || e.which === DOWN_KEY) {
-            $(this).data('uiAutocomplete')._trigger('click');
-        } else if(e.which !== ENTER_KEY && e.which !== TAB_KEY) {
-            $('#university').val('');
-        }
-    });
+    })
 });
