@@ -412,12 +412,17 @@ $(function() {
         {"label":"Other", "hiddenValue":"Others"}
     ];
 
+    var TAB_KEY = $.ui.keyCode.TAB;
+    var ENTER_KEY = $.ui.keyCode.ENTER;
+    var UP_KEY = $.ui.keyCode.UP;
+    var DOWN_KEY = $.ui.keyCode.DOWN;
+
     $( "#universityAttended" ).autocomplete({
         source: universities,
 
         select: function(e, ui) {
-            $('#universityAttended').attr('value', ui.item.label)
-            $('#university').attr('value', ui.item.hiddenValue)
+            $('#universityAttended').attr('value', ui.item.label);
+            $('#university').attr('value', ui.item.hiddenValue);
         },
         response: function(event, ui) {
             if (ui.content.length === 0) {
@@ -427,7 +432,9 @@ $(function() {
         }
 
     }).on('keydown', function(e) {
-        if(e.which !== 13) {
+        if(e.which === UP_KEY || e.which === DOWN_KEY) {
+            $(this).data('uiAutocomplete')._trigger('click');
+        } else if(e.which !== ENTER_KEY && e.which !== TAB_KEY) {
             $('#university').val('');
         }
     });
