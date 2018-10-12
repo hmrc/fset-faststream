@@ -27,7 +27,7 @@ import play.api.mvc.Results._
 import play.api.mvc.{ RequestHeader, Result, _ }
 import play.twirl.api.Html
 import uk.gov.hmrc.crypto.ApplicationCrypto
-import uk.gov.hmrc.play.config.{ AppName, ControllerConfig, RunMode }
+import uk.gov.hmrc.play.config.{ AppName, ControllerConfig }
 import uk.gov.hmrc.play.frontend.bootstrap.DefaultFrontendGlobal
 
 import scala.concurrent.Future
@@ -63,7 +63,7 @@ object LoggingFilter extends FrontendLoggingFilter with MicroserviceFilterSuppor
   override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
 
-object AuditFilter extends FrontendAuditFilter with RunMode with AppName with MicroserviceFilterSupport {
+object AuditFilter extends FrontendAuditFilter with AppName with MicroserviceFilterSupport {
 
   override lazy val maskedFormFields = Seq(
     SignInForm.passwordField,

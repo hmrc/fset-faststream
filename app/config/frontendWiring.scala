@@ -34,7 +34,7 @@ import play.api.mvc.Results.{ Forbidden, NotImplemented, Redirect }
 import play.api.mvc.{ Call, RequestHeader, Result }
 import security.{ CsrCredentialsProvider, UserCacheService }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.config.{ AppName, RunMode, ServicesConfig }
+import uk.gov.hmrc.play.config.{ AppName, ServicesConfig }
 import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.whitelist.AkamaiWhitelistFilter
 
@@ -98,7 +98,7 @@ trait SecurityEnvironmentImpl extends Environment[security.SecurityEnvironment] 
 
 object SecurityEnvironmentImpl extends SecurityEnvironmentImpl
 
-object WhitelistFilter extends AkamaiWhitelistFilter with RunMode with MicroserviceFilterSupport {
+object WhitelistFilter extends AkamaiWhitelistFilter with MicroserviceFilterSupport {
 
   // Whitelist Configuration
   private def whitelistConfig(key: String): Seq[String] =

@@ -26,12 +26,13 @@ import play.sbt.PlayImport._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import uk.gov.hmrc.versioning.SbtGitVersioning
+import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 import play.sbt.routes.RoutesKeys.routesGenerator
 
 trait MicroService {
 
   import uk.gov.hmrc._
-  import DefaultBuildSettings._
+  import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
   import TestPhases._
   import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
@@ -40,13 +41,15 @@ trait MicroService {
   val appName: String
   val appDependencies : Seq[ModuleID]
 
-  lazy val plugins : Seq[Plugins] = Seq(play.sbt.PlayScala, SbtWeb, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  lazy val plugins : Seq[Plugins] = Seq.empty
   lazy val playSettings : Seq[Setting[_]] = Seq(routesImport ++= Seq("binders.CustomBinders._", "models._"))
 
   lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 
   lazy val microservice = Project(appName, file("."))
     .enablePlugins(plugins : _*)
+    .enablePlugins(Seq(play.sbt.PlayScala, SbtWeb, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory) ++ plugins : _*)
+    .settings(majorVersion := 0)
     .settings(playSettings : _*)
     .settings(scalaSettings: _*)
     .settings(publishingSettings ++ (publishArtifact in(Compile, packageDoc) := false))
