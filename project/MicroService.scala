@@ -24,11 +24,12 @@ import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import uk.gov.hmrc.versioning.SbtGitVersioning
+import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
 trait MicroService {
 
   import uk.gov.hmrc._
-  import DefaultBuildSettings._
+  import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
   import TestPhases._
   import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
   import play.sbt.routes.RoutesKeys.{ routesImport, routesGenerator }
@@ -44,7 +45,8 @@ trait MicroService {
   lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 
   lazy val microservice = Project(appName, file("."))
-    .enablePlugins(Seq(play.sbt.PlayScala) ++ plugins : _*)
+    .enablePlugins(Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory) ++ plugins : _*)
+    .settings(majorVersion := 1)
     .settings(playSettings : _*)
     .settings(scalaSettings: _*)
     .settings(publishingSettings)
