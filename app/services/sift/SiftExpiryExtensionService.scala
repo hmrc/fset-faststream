@@ -17,7 +17,7 @@
 package services.sift
 
 import factories.DateTimeFactory
-import model.ProgressStatuses.{ ProgressStatus, SIFT_EXPIRED, SIFT_FIRST_REMINDER, SIFT_SECOND_REMINDER }
+import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
@@ -98,6 +98,7 @@ object SiftExpiryExtensionServiceImpl {
   def getProgressStatusesToRemove(progress: ProgressResponse): Option[List[ProgressStatus]] = {
 
     val progressStatusList = (Set.empty[ProgressStatus]
+      ++ cond(progress.siftProgressResponse.siftExpired, SIFT_EXPIRED_NOTIFIED)
       ++ cond(progress.siftProgressResponse.siftExpired, SIFT_EXPIRED)
       ++ cond(progress.siftProgressResponse.siftSecondReminder, SIFT_SECOND_REMINDER)
       ++ cond(progress.siftProgressResponse.siftFirstReminder, SIFT_FIRST_REMINDER)
