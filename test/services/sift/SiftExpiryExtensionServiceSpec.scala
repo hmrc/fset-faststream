@@ -41,7 +41,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
         when(mockAppRepository.findProgress(applicationId)).thenReturnAsync(
           // We are adding 2 days onto expiry. Both reminders have been sent out
           createProgressResponse(SiftProgressResponse(
-            siftEntered = true, siftExpired = true, siftFirstReminder = true, siftSecondReminder = true)
+            siftEntered = true, siftExpired = true, siftExpiredNotified = true, siftFirstReminder = true, siftSecondReminder = true)
           )
         )
         when(mockSiftRepository.getTestGroup(applicationId)).thenReturnAsync(siftTestGroup)
@@ -60,7 +60,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
         verify(mockSiftRepository).updateExpiryTime(eqTo(applicationId), eqTo(now.plusDays(twoDays)))
         // Expect sift expired and both reminder statuses to be removed
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId),
-          eqTo(List(SIFT_EXPIRED, SIFT_SECOND_REMINDER, SIFT_FIRST_REMINDER))
+          eqTo(List(SIFT_EXPIRED_NOTIFIED, SIFT_EXPIRED, SIFT_SECOND_REMINDER, SIFT_FIRST_REMINDER))
         )
 
         verifyAuditEvents(1, "ExpiredSiftExtended")
@@ -158,7 +158,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
       "remove progress statuses returns an error and no audit event is emitted" in new TestFixture {
         when(mockAppRepository.findProgress(applicationId)).thenReturnAsync(
-          createProgressResponse(SiftProgressResponse(siftEntered = true, siftExpired = true))
+          createProgressResponse(SiftProgressResponse(siftEntered = true, siftExpired = true, siftExpiredNotified = true))
         )
         when(mockSiftRepository.getTestGroup(applicationId)).thenReturnAsync(siftTestGroup)
 
@@ -172,7 +172,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
           e mustBe dummyError
         }
 
-        verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(List(SIFT_EXPIRED)))
+        verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(List(SIFT_EXPIRED_NOTIFIED, SIFT_EXPIRED)))
         verifyNoMoreInteractions(auditEventHandlerMock, dataStoreEventHandlerMock)
       }
     }
@@ -189,16 +189,16 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
       }
 
       "the progress response indicates we are expired and have received all reminders" in new TestFixture {
-        when(mockProgressResponse.siftProgressResponse).thenReturn(new SiftProgressResponse(
-          siftEntered = true, siftFirstReminder = true, siftSecondReminder = true, siftExpired = true
+        when(mockProgressResponse.siftProgressResponse).thenReturn(SiftProgressResponse(
+          siftEntered = true, siftFirstReminder = true, siftSecondReminder = true, siftExpired = true, siftExpiredNotified = true
         ))
 
         val result = getProgressStatusesToRemove(mockProgressResponse)
-        result mustBe Some(List(SIFT_EXPIRED, SIFT_SECOND_REMINDER, SIFT_FIRST_REMINDER))
+        result mustBe Some(List(SIFT_EXPIRED_NOTIFIED, SIFT_EXPIRED, SIFT_SECOND_REMINDER, SIFT_FIRST_REMINDER))
       }
 
       "the progress response indicates we have only received the first reminder" in new TestFixture {
-        when(mockProgressResponse.siftProgressResponse).thenReturn(new SiftProgressResponse(
+        when(mockProgressResponse.siftProgressResponse).thenReturn(SiftProgressResponse(
           siftEntered = true, siftFirstReminder = true
         ))
 
@@ -207,7 +207,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
       }
 
       "the progress response indicates we have not expired and have received both reminders" in new TestFixture {
-        when(mockProgressResponse.siftProgressResponse).thenReturn(new SiftProgressResponse(
+        when(mockProgressResponse.siftProgressResponse).thenReturn(SiftProgressResponse(
           siftEntered = true, siftFirstReminder = true, siftSecondReminder = true
         ))
 
