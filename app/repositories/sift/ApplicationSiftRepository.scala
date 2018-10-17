@@ -50,7 +50,7 @@ trait ApplicationSiftRepository {
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int): Future[Seq[NumericalTestApplication]]
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int, numericSchemes: Seq[SchemeId]): Future[Seq[NumericalTestApplication]]
   def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]]
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]]
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
@@ -324,14 +324,21 @@ class ApplicationSiftMongoRepository(
     }
   }
 
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int): Future[Seq[NumericalTestApplication]] = {
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int, numericSchemes: Seq[SchemeId]): Future[Seq[NumericalTestApplication]] = {
+
+    val greenNumericSchemes = numericSchemes.map { scheme =>
+      BSONDocument("currentSchemeStatus" ->
+        BSONDocument("$elemMatch" -> BSONDocument("schemeId" -> scheme.toString, "result" -> Green.toString)))
+    }
+
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_TEST_INVITED}" -> BSONDocument("$exists" -> false))
+      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_TEST_INVITED}" -> BSONDocument("$exists" -> false)),
+      BSONDocument("$or" -> BSONArray(greenNumericSchemes))
     ))
 
     selectRandom[BSONDocument](query, batchSize).map {

@@ -90,7 +90,7 @@ trait NumericalTestService extends EventSink {
           _ <- emailInvitedCandidates(invitedApplicants)
           _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
         } yield {
-          Logger.info(s"Successfully invited candidates to take a sift numerical test with Ids: " +
+          Logger.warn(s"Successfully invited candidates to take a sift numerical test with Ids: " +
             s"${invitedApplicants.map(_.application.applicationId)} - moved to $SIFT_TEST_INVITED")
         }
     }
