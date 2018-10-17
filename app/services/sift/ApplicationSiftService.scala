@@ -78,12 +78,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication]] = {
     val numericalSchemeIds = schemeRepo.numericTestSiftRequirementSchemeIds
-    def isEligibleForNumericTest(app: NumericalTestApplication): Boolean = {
-      app.currentSchemeStatus.exists(schemeRes =>
-        Result(schemeRes.result) == Green && numericalSchemeIds.contains(schemeRes.schemeId)
-      )
-    }
-    applicationSiftRepo.nextApplicationsReadyForNumericTestsInvitation(batchSize).map(_.filter(isEligibleForNumericTest))
+    applicationSiftRepo.nextApplicationsReadyForNumericTestsInvitation(batchSize, numericalSchemeIds)
   }
 
   def sendReminderNotification(expiringSift: NotificationExpiringSift,

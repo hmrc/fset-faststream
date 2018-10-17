@@ -62,7 +62,7 @@ trait SchemeRepository {
   private lazy val schemesByFsb: Map[String, Scheme] = schemes.flatMap(s => s.fsbType.map(ft => ft.key -> s)).toMap
 
   def getSchemeForFsb(fsb: String): Scheme = {
-    schemesByFsb.getOrElse(fsb, throw SchemeNotFoundException(s"Can not find scheme for FSB: $fsb"))
+    schemesByFsb.getOrElse(fsb, throw SchemeNotFoundException(s"Cannot find scheme for FSB: $fsb"))
   }
 
   def faststreamSchemes: Seq[Scheme] = schemes.filterNot(s => s.isSdip || s.isEdip)
