@@ -74,6 +74,10 @@ trait CampaignManagementService {
     appRepo.removeCollection(name)
   }
 
+  def removeCandidate(applicationId: String): Future[Unit] = {
+    appRepo.removeCandidate(applicationId)
+  }
+
   private def verifyPhase1TestScoreData(tScoreRequest: SetTScoreRequest): Future[Boolean] = {
     for {
       phase1TestProfileOpt <- phase1TestRepo.getTestGroup(tScoreRequest.applicationId)

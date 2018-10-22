@@ -18,6 +18,7 @@ package services.search
 
 import connectors.AuthProviderClient
 import model.Exceptions.ContactDetailsNotFound
+import model.exchange.CandidateToRemove
 import model.{ Candidate, SearchCandidate }
 import model.persisted.ContactDetailsWithId
 import org.joda.time.LocalDate
@@ -49,6 +50,14 @@ trait SearchForApplicantService {
 
     case SearchCandidate(firstOrPreferredName, lastName, dateOfBirth, postCode) =>
       searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName, lastName, dateOfBirth, postCode)
+  }
+
+  def findCandidateByUserId(userId: String): Future[Option[CandidateToRemove]] = {
+    appRepository.findCandidateByUserId(userId).map(_.map { candidate =>
+      CandidateToRemove(candidate)
+    }).recover {
+      case _: ContactDetailsNotFound => None
+    }
   }
 
   private def searchByPostCode(postCode: String): Future[List[Candidate]] =
