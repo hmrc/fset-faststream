@@ -24,7 +24,7 @@ object CandidateToRemove {
   implicit val format: OFormat[CandidateToRemove] = Json.format[CandidateToRemove]
 
   def apply(persistedCandidate: model.Candidate): CandidateToRemove = {
-    new CandidateToRemove(
+    CandidateToRemove(
       userId = persistedCandidate.userId,
       applicationId = persistedCandidate.applicationId.getOrElse(""),
       applicationStatus = persistedCandidate.applicationStatus.getOrElse("")
