@@ -21,17 +21,20 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import services.campaignmanagement.CampaignManagementService
+import services.search.SearchForApplicantService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object CampaignManagementController extends CampaignManagementController {
   val campaignManagementService: CampaignManagementService.type = CampaignManagementService
+  val searchForApplicantService: SearchForApplicantService = SearchForApplicantService
 }
 
 trait CampaignManagementController extends BaseController {
 
   val campaignManagementService: CampaignManagementService
+  val searchForApplicantService: SearchForApplicantService
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Action[AnyContent] = Action.async { implicit request =>
     campaignManagementService.afterDeadlineSignupCodeUnusedAndValid(code).map(response => Ok(Json.toJson(response)))
@@ -70,5 +73,16 @@ trait CampaignManagementController extends BaseController {
           Future.successful(BadRequest(s"${tScoreRequest.phase} is not a valid value"))
       }
     }
+  }
+
+  def findCandidateByUserId(userId: String): Action[AnyContent] = Action.async { implicit request =>
+    searchForApplicantService.findCandidateByUserId(userId).map {
+      case None => NotFound
+      case Some(candidate) => Ok(Json.toJson(candidate))
+    }
+  }
+
+  def removeCandidate(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    campaignManagementService.removeCandidate(applicationId).map(_ => Ok)
   }
 }

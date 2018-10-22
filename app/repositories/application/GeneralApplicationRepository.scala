@@ -172,6 +172,8 @@ trait GeneralApplicationRepository {
   def listCollections(implicit ec: ExecutionContext): Future[List[String]]
 
   def removeCollection(name: String): Future[Unit]
+
+  def removeCandidate(applicationId: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -1120,5 +1122,10 @@ class GeneralApplicationMongoRepository(
 
   override def removeCollection(name: String): Future[Unit] = {
     mongo().collection[JSONCollection](name).drop()
+  }
+
+  override def removeCandidate(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    collection.remove(query, firstMatchOnly = true).map(_ => ())
   }
 }

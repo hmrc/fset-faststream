@@ -275,5 +275,8 @@ GET         /campaign-reset/listCollections                              control
 GET         /campaign-reset/removeCollection                             controllers.CampaignManagementController.removeCollection(name: String)
 POST        /campaign-reset/setTScore                                    controllers.CampaignManagementController.setTScore
 
+GET         /management/findCandidateByUserId                            controllers.CampaignManagementController.findCandidateByUserId(userId: String)
+DELETE      /management/removeCandidate                                  controllers.CampaignManagementController.removeCandidate(applicationId: String)
+
 # Metrics endpoints
 GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatusCounts
