@@ -50,20 +50,25 @@ object SendPhase3InvitationJob extends SendInvitationJob {
 trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val onlineTestingService: OnlineTestService
   val phase: String
+  lazy val batchSize = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    onlineTestingService.nextApplicationsReadyForOnlineTesting(config.conf.batchSize.getOrElse(1)).flatMap {
+    log(s"Looking for candidates to invite to phase $phase test with a batch size of $batchSize")
+    onlineTestingService.nextApplicationsReadyForOnlineTesting(batchSize).flatMap {
       case Nil =>
-        Logger.info(s"No candidates found to invite to phase $phase")
+        log(s"No candidates found to invite to phase $phase")
         Future.successful(())
       case applications =>
         val applicationIds = applications.map( _.applicationId ).mkString(",")
-        Logger.info(s"Inviting the following candidates to phase $phase: $applicationIds")
+        log(s"Inviting the following candidates to phase $phase: $applicationIds")
         implicit val hc = HeaderCarrier()
         implicit val rh = EmptyRequestHeader
         onlineTestingService.registerAndInviteForTestGroup(applications)
     }
   }
+
+  // Logging set to WARN so we can see it in PROD
+  private def log(msg: String) = Logger.warn(msg)
 }
 
 object SendPhase1InvitationJobConfig extends BasicJobConfig[ScheduledJobConfig](
