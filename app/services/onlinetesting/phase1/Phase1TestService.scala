@@ -136,7 +136,11 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     Future.sequence(applications.map { application =>
       registerAndInviteForTestGroup(application)
-    }).map(_ => ())
+    }).map{ _ =>
+      applications.foreach { app =>
+        play.api.Logger.warn(s"Successfully invited ${app.applicationId} to PHASE1 test")
+      }
+    }
   }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {

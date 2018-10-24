@@ -252,6 +252,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
       eventSink {
         Future.successful {
           candidatesToProgress.flatMap(candidate => {
+            play.api.Logger.warn(s"Successfully invited ${candidate.applicationId} to PHASE2 test")
             // TODO LT: This events should be emit one level down to also be logged by reset path
             DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId) ::
               AuditEvents.Phase2TestInvitationProcessComplete(Map(
