@@ -234,7 +234,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val query = BSONDocument(
       "$or" -> BSONArray(
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
-        BSONDocument(s"progress-status.${ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED}" -> true)
+        BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
       )
     ) ++ extraQuery
 
