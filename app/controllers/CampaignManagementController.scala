@@ -82,7 +82,7 @@ trait CampaignManagementController extends BaseController {
     }
   }
 
-  def removeCandidate(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
-    campaignManagementService.removeCandidate(applicationId).map(_ => Ok)
+  def removeCandidate(applicationId: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
+    campaignManagementService.removeCandidate(applicationId, userId).map(_ => Ok)
   }
 }
