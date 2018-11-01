@@ -51,6 +51,8 @@ trait ContactDetailsRepository {
   def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
 
   def findEmails: Future[List[UserIdWithEmail]]
+
+  def removeContactDetails(userId: String): Future[Unit]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -177,5 +179,10 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
       UserIdWithEmail(id, email)
     })
+  }
+
+  override def removeContactDetails(userId: String): Future[Unit] = {
+    val query = BSONDocument("userId" -> userId)
+    collection.remove(query, firstMatchOnly = true).map(_ => ())
   }
 }

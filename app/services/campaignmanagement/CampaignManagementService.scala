@@ -24,6 +24,7 @@ import org.joda.time.DateTime
 import repositories._
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.{ Phase1TestRepository, Phase2TestRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,10 +32,13 @@ import scala.concurrent.Future
 
 object CampaignManagementService extends CampaignManagementService{
   val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository = campaignManagementAfterDeadlineSignupCodeRepository
-  val uuidFactory = UUIDFactory
+  val uuidFactory: UUIDFactory = UUIDFactory
   val appRepo: GeneralApplicationMongoRepository = applicationRepository
   val phase1TestRepo: Phase1TestRepository = phase1TestRepository
   val phase2TestRepo: Phase2TestRepository = phase2TestRepository
+  val questionnaireRepo: QuestionnaireRepository = questionnaireRepository
+  val mediaRepo: MediaRepository = mediaRepository
+  val contactDetailsRepo: ContactDetailsRepository = faststreamContactDetailsRepository
 }
 
 trait CampaignManagementService {
@@ -43,6 +47,9 @@ trait CampaignManagementService {
   val appRepo: GeneralApplicationRepository
   val phase1TestRepo: Phase1TestRepository
   val phase2TestRepo: Phase2TestRepository
+  val questionnaireRepo: QuestionnaireRepository
+  val mediaRepo: MediaRepository
+  val contactDetailsRepo: ContactDetailsRepository
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Future[AfterDeadlineSignupCodeUnused] = {
     afterDeadlineCodeRepository.findUnusedValidCode(code).map(storedCodeOpt =>
@@ -74,8 +81,13 @@ trait CampaignManagementService {
     appRepo.removeCollection(name)
   }
 
-  def removeCandidate(applicationId: String): Future[Unit] = {
-    appRepo.removeCandidate(applicationId)
+  def removeCandidate(applicationId: String, userId: String): Future[Unit] = {
+    for {
+      _ <- appRepo.removeCandidate(applicationId)
+      _ <- contactDetailsRepo.removeContactDetails(userId)
+      _ <- mediaRepo.removeMedia(userId)
+      _ <- questionnaireRepo.removeQuestions(applicationId)
+    } yield ()
   }
 
   private def verifyPhase1TestScoreData(tScoreRequest: SetTScoreRequest): Future[Boolean] = {
