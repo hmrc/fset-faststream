@@ -597,6 +597,9 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ = if (!latestProgressStatus.startsWith("PHASE2") && !latestProgressStatus.startsWith("PHASE3")) {
         throw new Exception("User must be in a Phase2 or Phase3 progress status")
       }
+      _ = if (!latestProgressStatus.startsWith("PHASE3_TESTS_COMPLETED") ) {
+        throw new Exception("User must be in a PHASE3_TESTS_COMPLETED")
+      }
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       _ <- siftService.sendSiftEnteredNotification(candidate.applicationId.get).map(_ => ())
     } yield ()
