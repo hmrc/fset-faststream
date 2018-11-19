@@ -18,9 +18,9 @@ package controllers.fixdata
 
 import factories.UUIDFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.NotFoundException
+import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
-import model.SchemeId
+import model.{ ProgressStatuses, SchemeId }
 import model.command.FastPassPromotion
 import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.ApplicationService
@@ -28,6 +28,7 @@ import services.assessmentcentre.AssessmentCentreService
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.fastpass.FastPassService
 import services.sift.ApplicationSiftService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -279,6 +280,27 @@ trait FixDataConsistencyController extends BaseController {
     applicationService.markSiftSchemeAsGreen(applicationId, schemeId).map(_ =>
       Ok(s"Successfully marked ${schemeId.value} as green for $applicationId")
     )
+  }
+
+  def createSiftStructure(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.findStatus(applicationId).flatMap { applicationStatus =>
+      if (applicationStatus.latestProgressStatus.contains(ProgressStatuses.SIFT_ENTERED)) {
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        for {
+          _ <- siftService.saveSiftExpiryDate(applicationId)
+          _ <- siftService.sendSiftEnteredNotification(applicationId)
+        } yield {
+          Ok(s"Successfully created sift structure for $applicationId")
+        }
+      } else {
+          Future.successful {
+            Ok(s"Cannot create sift structure for $applicationId because the latest progress status is " +
+              s"${applicationStatus.latestProgressStatus.getOrElse("NO-STATUS")}")
+          }
+      }
+    }.recover {
+      case e: ApplicationNotFound => NotFound(s"Cannot retrieve application status details for application: $applicationId")
+    }
   }
 
   def markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
