@@ -22,7 +22,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions._
 import model.ProgressStatuses._
-import model.command.{ ProgressResponse, WithdrawApplication, WithdrawRequest, WithdrawScheme }
+import model.command._
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
@@ -891,6 +891,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         SchemeEvaluationResultWithFailureDetails(result)
       )
     }
+  }
+
+  def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
+    appRepository.findStatus(applicationId)
   }
 
   private def extractFirstRedResults(
