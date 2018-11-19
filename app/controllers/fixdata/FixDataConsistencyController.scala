@@ -294,7 +294,7 @@ trait FixDataConsistencyController extends BaseController {
         }
       } else {
           Future.successful {
-            Ok(s"Cannot create sift structure for $applicationId because the latest progress status is " +
+            BadRequest(s"Cannot create sift structure for $applicationId because the latest progress status is " +
               s"${applicationStatus.latestProgressStatus.getOrElse("NO-STATUS")}")
           }
       }
