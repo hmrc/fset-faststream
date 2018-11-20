@@ -285,7 +285,8 @@ trait FixDataConsistencyController extends BaseController {
   def createSiftStructure(applicationId: String): Action[AnyContent] = Action.async {
     applicationService.findStatus(applicationId).flatMap { applicationStatus =>
       if (applicationStatus.latestProgressStatus.contains(ProgressStatuses.SIFT_ENTERED) ||
-        applicationStatus.latestProgressStatus.contains(ProgressStatuses.SIFT_READY)) {
+        applicationStatus.latestProgressStatus.contains(ProgressStatuses.SIFT_READY) ||
+        applicationStatus.latestProgressStatus.contains(ProgressStatuses.WITHDRAWN)) {
         implicit val hc: HeaderCarrier = HeaderCarrier()
         for {
           _ <- siftService.saveSiftExpiryDate(applicationId)
