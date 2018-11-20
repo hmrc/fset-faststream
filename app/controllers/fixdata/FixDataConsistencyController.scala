@@ -288,7 +288,6 @@ trait FixDataConsistencyController extends BaseController {
         implicit val hc: HeaderCarrier = HeaderCarrier()
         for {
           _ <- siftService.saveSiftExpiryDate(applicationId)
-          _ <- siftService.sendSiftEnteredNotification(applicationId)
         } yield {
           Ok(s"Successfully created sift structure for $applicationId")
         }
