@@ -28,7 +28,6 @@ import services.assessmentcentre.AssessmentCentreService
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.fastpass.FastPassService
 import services.sift.ApplicationSiftService
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -284,10 +283,10 @@ trait FixDataConsistencyController extends BaseController {
 
   def createSiftStructure(applicationId: String): Action[AnyContent] = Action.async {
     applicationService.findStatus(applicationId).flatMap { applicationStatus =>
-      if (applicationStatus.latestProgressStatus.contains(ProgressStatuses.SIFT_ENTERED) ||
-        applicationStatus.latestProgressStatus.contains(ProgressStatuses.SIFT_READY) ||
-        applicationStatus.latestProgressStatus.contains(ProgressStatuses.WITHDRAWN)) {
-        implicit val hc: HeaderCarrier = HeaderCarrier()
+      val statuses = Seq(SIFT_ENTERED, SIFT_READY, WITHDRAWN)
+      val canProceed = statuses.exists( s => applicationStatus.latestProgressStatus.contains(s) )
+
+      if (canProceed) {
         for {
           _ <- siftService.saveSiftExpiryDate(applicationId)
         } yield {
