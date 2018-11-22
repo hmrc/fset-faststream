@@ -118,6 +118,7 @@ trait ReportingController extends BaseController {
   }
 
   def streamPreviousYearCandidatesDetailsReport: Action[AnyContent] = Action.async { implicit request =>
+    def log(msg: String)= play.api.Logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
     enrichPreviousYearCandidateDetails {
       (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
        siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) =>
@@ -159,18 +160,128 @@ trait ReportingController extends BaseController {
       CsvExtract[String], CsvExtract[String],
       CsvExtract[String]) => Result
   ) = {
-    for {
+    def log(msg: String)= play.api.Logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
+    log(s"started enriching data at ${org.joda.time.DateTime.now}")
+    val data = for {
       contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails()
+      _ = log(s"enriching data - contactDetails = ${contactDetails.header}, size = ${contactDetails.records.size}")
       questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetails()
+      _ = log(s"enriching data - questionnaireDetails = ${questionnaireDetails.header}, size = ${questionnaireDetails.records.size}")
       mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails()
+      _ = log(s"enriching data - mediaDetails = ${mediaDetails.header}, size = ${mediaDetails.records.size}")
       eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails()
+      _ = log(s"enriching data - eventsDetails = ${eventsDetails.header}, size = ${eventsDetails.records.size}")
       siftAnswers <- prevYearCandidatesDetailsRepository.findSiftAnswers()
+      _ = log(s"enriching data - siftAnswers = ${siftAnswers.header}, size = ${siftAnswers.records.size}")
       assessorAssessmentScores <- prevYearCandidatesDetailsRepository.findAssessorAssessmentScores()
+      _ = log(s"enriching data - assessorAssessmentScores = ${assessorAssessmentScores.header}, size = ${assessorAssessmentScores.records.size}")
       reviewerAssessmentScores <- prevYearCandidatesDetailsRepository.findReviewerAssessmentScores()
+      _ = log(s"enriching data - reviewerAssessmentScores = ${reviewerAssessmentScores.header}, size = ${reviewerAssessmentScores.records.size}")
     } yield {
-      block(schemeRepo.schemes.size, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
+      val res = block(schemeRepo.schemes.size, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
         assessorAssessmentScores, reviewerAssessmentScores)
+      log(s"result = $res")
+      log(s"finished enriching data at ${org.joda.time.DateTime.now} ")
+      res
     }
+    data
+  }
+
+  //scalastyle:off
+  def streamOnlineTestPassMarkReportWip: Action[AnyContent] = Action.async { implicit request =>
+    def log(msg: String)= play.api.Logger.warn(s"onlineTestPassMarkStreamedReportWip: $msg")
+    // this calls the method with the implementation of the function passed as an argument
+    enrichOnlineTestPassMark {
+//      (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+//       siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) =>
+      (numOfSchemes, questionnaireDetails) =>
+      {
+
+        val preferencesHeader = "Preference 1,Preference 2,Preference 3,Preference 4,Preference 5,Preference 6,Preference 7,Preference 8," +
+          "Preference 9,Preference 10,Preference 11,Preference 12,Preference 13,Preference 14,Preference 15,Preference 16,Preference 17"
+        val header = Enumerator(
+          ("applicationId,userId,Candidate Progress" ::
+            preferencesHeader ::
+            "Disability,GIS,Adjustments" ::
+            "Behavioural T-score,Behavioural Percentile,Behavioural Raw,Behavioural STEN" ::
+            "Situational T-score,Situational Percentile,Situational Raw,Situational STEN" ::
+            "e-Tray T-score,e-Tray Raw" ::
+            "Gender,Ethnicity,University,Oxbridge,Russell Group,SE 1-5,SES" ::
+            Nil
+          ).mkString(",") + "\n"
+
+/*
+          (prevYearCandidatesDetailsRepository.applicationDetailsHeader(numOfSchemes) ::
+            prevYearCandidatesDetailsRepository.contactDetailsHeader ::
+            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+            prevYearCandidatesDetailsRepository.mediaHeader ::
+            prevYearCandidatesDetailsRepository.eventsDetailsHeader ::
+            prevYearCandidatesDetailsRepository.siftAnswersHeader ::
+            prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Assessor") ::
+            prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Reviewer") ::
+            Nil).mkString(",") + "\n"
+*/
+        )
+//        var counter = 0
+        val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStreamWip(numOfSchemes).map { app =>
+          val ret = createPassMarkRecord(
+            app,
+//            contactDetails,
+            questionnaireDetails//,
+//            mediaDetails,
+//            eventsDetails,
+//            siftAnswers,
+//            assessorAssessmentScores,
+//            reviewerAssessmentScores
+          ) + "\n"
+//          counter += 1
+          ret
+        }
+        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+      }
+    }
+  }
+  //scalastyle:on
+
+  private def createPassMarkRecord(
+                                    candidateDetails: CandidateDetailsReportItem,
+//                                    contactDetails: CsvExtract[String],
+                                    questionnaireDetails: CsvExtract[String]//,
+//                                    mediaDetails: CsvExtract[String],
+//                                    eventsDetails: CsvExtract[String],
+//                                    siftAnswersDetails: CsvExtract[String],
+//                                    assessorAssessmentScoresDetails: CsvExtract[String],
+//                                    reviewerAssessmentScoresDetails: CsvExtract[String]
+                                  ) = {
+    (candidateDetails.csvRecord ::
+//      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
+      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+//      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
+//      eventsDetails.records.getOrElse(candidateDetails.appId, eventsDetails.emptyRecord) ::
+//      siftAnswersDetails.records.getOrElse(candidateDetails.appId, siftAnswersDetails.emptyRecord) ::
+//      assessorAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, assessorAssessmentScoresDetails.emptyRecord) ::
+//      reviewerAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, reviewerAssessmentScoresDetails.emptyRecord) ::
+      Nil).mkString(",")
+  }
+
+
+  // this method fetches all of the additional data (not from application collection, which is fetched separately)
+  // it is called with an empty tuple, which has place holders for all the additional data
+  private def enrichOnlineTestPassMark(
+                                                  block: (Int, CsvExtract[String]) => Result
+                                                ) = {
+    def log(msg: String)= play.api.Logger.warn(s"enrichOnlineTestPassMark: $msg")
+    log(s"started enriching data at ${org.joda.time.DateTime.now}")
+    val data = for {
+      questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetailsWip()
+      _ = log(s"enriching data - questionnaireDetails = ${questionnaireDetails.header}, size = ${questionnaireDetails.records.size}")
+    } yield {
+      val res = block(schemeRepo.schemes.size, questionnaireDetails)
+      log(s"result = $res")
+      log(s"finished enriching data at ${org.joda.time.DateTime.now} ")
+      res
+    }
+    data
   }
 
   private def createCandidateInfoBackUpRecord(
