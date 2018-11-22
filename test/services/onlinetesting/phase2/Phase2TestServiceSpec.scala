@@ -195,7 +195,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
   }
 
   "processNextExpiredTest" should {
-    "do nothing if there are no expired application to process" in new Phase2TestServiceFixture {
+    "do nothing if there is no expired application to process" in new Phase2TestServiceFixture {
       when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(None))
       phase2TestService.processNextExpiredTest(Phase2ExpirationEvent).futureValue mustBe unit
     }
@@ -204,7 +204,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.Faststream))
-      val results = List(SchemeEvaluationResult("Sdip", "Green"))
+      val results = List(SchemeEvaluationResult("Commercial", "Green"))
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
 
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
@@ -222,42 +222,12 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
     }
 
-    "progress SdipFS application to SIFT_ENTERED if Sdip is GREEN and tests have expired" in new Phase2TestServiceFixture {
+    "update progress status and send an email to the user when an sdip faststream application is expired" in new Phase2TestServiceFixture {
       when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
-      val results = List(SchemeEvaluationResult("Sdip", "Green"))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
-      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(success)
-      when(otRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(success)
+      val results = List(SchemeEvaluationResult("Sdip", "Green"), SchemeEvaluationResult("Commercial", "Green"))
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
-      when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(success)
-
-      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
-
-      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent)
-
-      result.futureValue mustBe unit
-
-      verify(cdRepositoryMock).find(userId)
-      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE2_TESTS_EXPIRED)
-      verify(appRepositoryMock, times(1)).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
-      verify(appRepositoryMock, times(1)).getCurrentSchemeStatus(applicationId)
-      verify(appRepositoryMock, times(1)).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, times(1)).sendSiftEnteredNotification(applicationId)
-      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
-    }
-
-    "not progress SdipFS application to SIFT_ENTERED if Sdip is RED and tests have expired" in new Phase2TestServiceFixture {
-      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
-      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
-      val results = List(SchemeEvaluationResult("Sdip", "Red"))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
-      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(success)
-      when(otRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(success)
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
-      when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(success)
 
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
@@ -268,13 +238,12 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(cdRepositoryMock).find(userId)
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE2_TESTS_EXPIRED)
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
-      verify(appRepositoryMock, times(1)).getCurrentSchemeStatus(applicationId)
-      verify(appRepositoryMock, times(1)).updateCurrentSchemeStatus(applicationId, results)
+      verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
+      verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
       verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
     }
   }
-
 
   "mark as started" should {
     "change progress to started" in new Phase2TestServiceFixture {
