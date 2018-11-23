@@ -794,6 +794,24 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  private def updateCurrentSchemeStatus(applicationId: String, evaluation: Option[Seq[SchemeEvaluationResult]]) = {
+    evaluation.map { evaluationResults =>
+      for {
+        _ <- appRepository.updateCurrentSchemeStatus(applicationId, evaluationResults)
+      } yield ()
+    }.getOrElse(throw new Exception(s"Error no evaluation results found for $applicationId"))
+  }
+
+  def rollbackToPhase2ExpiredFromSift(applicationId: String): Future[Unit] = {
+    val statusesToRollback = List(ProgressStatuses.SIFT_ENTERED)
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statusesToRollback)
+      _ <- phase2TestRepository.removeTestGroupEvaluation(applicationId)
+      evaluationOpt <- phase1TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+    } yield ()
+  }
+
   def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId, newResult: model.EvaluationResults.Result): Future[Unit] = {
     for {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)

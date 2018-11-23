@@ -294,4 +294,30 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.update(query, update) map validator
   }
+
+  def removeTestGroupEvaluation(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val update = BSONDocument("$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> ""))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing test group evaluation")
+
+    collection.update(query, update) map validator
+  }
+
+  def findEvaluation(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument(
+      "_id" -> false,
+      s"testGroups.$phaseName.evaluation.result" -> true
+    )
+
+    collection.find(query, projection).one[BSONDocument].map { optDocument =>
+      optDocument.flatMap {_.getAs[BSONDocument](s"testGroups")
+        .flatMap(_.getAs[BSONDocument](phaseName))
+        .flatMap(_.getAs[BSONDocument]("evaluation"))
+        .flatMap(_.getAs[Seq[SchemeEvaluationResult]]("result"))
+      }
+    }
+  }
 }
