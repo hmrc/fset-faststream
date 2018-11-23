@@ -152,6 +152,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
   protected def processExpiredTest(expiringTest: ExpiringOnlineTest, expiryType: TestExpirationEvent)
                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
       _ <- commitProgressStatus(expiringTest.applicationId, expiryType.expiredStatus)

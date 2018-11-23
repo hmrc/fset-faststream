@@ -139,6 +139,8 @@ GET         /diagnostic/findUsersStuckInAssessmentScoresAccepted                
 GET         /diagnostic/findUsersEligibleForJobOfferButFsbApplicationStatus                            controllers.fixdata.FixDataConsistencyController.findUsersEligibleForJobOfferButFsbApplicationStatus
 GET         /diagnostic/fixUsersEligibleForJobOfferButFsbApplicationStatus                             controllers.fixdata.FixDataConsistencyController.fixUsersEligibleForJobOfferButFsbApplicationStatus
 GET         /diagnostic/application/:applicationId/setUsedForResults/:newUsedForResults                controllers.fixdata.FixDataConsistencyController.setUsedForResults(applicationId: String, newUsedForResults: Boolean, token: String)
+GET         /diagnostic/rollbackToPhase2TestExpiredFromSift                                            controllers.fixdata.FixDataConsistencyController.rollbackToPhase2TestExpiredFromSift(applicationId: String)
+
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
