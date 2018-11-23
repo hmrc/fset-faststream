@@ -91,6 +91,10 @@ trait SiftAnswersService {
     } yield {}
   }
 
+  def removeAnswers(applicationId: String): Future[Unit] = {
+    siftAnswersRepo.removeSiftAnswers(applicationId)
+  }
+
   // Maybe move the candidate to SIFT_READY to indicate he/she is ready to be sifted for form based schemes
   // or to SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING to indicate the forms have been submitted and we are waiting
   // for the numeric test to be completed

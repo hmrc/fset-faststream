@@ -39,6 +39,7 @@ trait SiftAnswersRepository {
   def findGeneralQuestionsAnswers(applicationId: String): Future[Option[GeneralQuestionsAnswers]]
   def findSiftAnswersStatus(applicationId: String): Future[Option[SiftAnswersStatus.Value]]
   def submitAnswers(applicationId: String, requiredSchemes: Set[SchemeId]): Future[Unit]
+  def removeSiftAnswers(applicationId: String): Future[Unit]
 }
 
 class SiftAnswersMongoRepository()(implicit mongo: () => DB)
@@ -145,6 +146,11 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
         BSONDocument("$set" -> BSONDocument("status" -> SiftAnswersStatus.SUBMITTED))
       ) map validator
     }
+  }
+
+  override def removeSiftAnswers(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    collection.remove(query).map(_ => ())
   }
 
   private def failWithSubmitted(applicationId: String)(action: => Future[Unit]): Future[Unit] = {
