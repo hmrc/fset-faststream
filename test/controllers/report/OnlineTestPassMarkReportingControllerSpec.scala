@@ -177,7 +177,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
         QuestionnaireReportItemExamples.questionnaire2)
 
     def request = {
-      FakeRequest(Helpers.GET, controllers.routes.ReportingController.onlineTestPassMarkReport(frameworkId).url, FakeHeaders(), "")
+      FakeRequest(Helpers.GET, controllers.routes.ReportingController.onlineTestPassMarkReportFsOnly(frameworkId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
 
