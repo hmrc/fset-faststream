@@ -43,11 +43,11 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
 
   "Online test pass mark report" should {
     "return nothing if no application exists" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(Nil)
+      when(mockReportRepository.onlineTestPassMarkReportFsOnly).thenReturnAsync(Nil)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(Map.empty)
       when(mockFsbRepo.findScoresAndFeedback(any[List[String]]())).thenReturnAsync(Map.empty)
 
-      val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
+      val response = controller.onlineTestPassMarkReportFsOnly(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
@@ -55,11 +55,11 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return nothing if applications exist, but no questionnaires" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(applications)
+      when(mockReportRepository.onlineTestPassMarkReportFsOnly).thenReturnAsync(applications)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(Map.empty)
       when(mockFsbRepo.findScoresAndFeedback(any[List[String]]())).thenReturnAsync(Map.empty)
 
-      val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
+      val response = controller.onlineTestPassMarkReportFsOnly(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
@@ -67,7 +67,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications and questionnaires if applications and questionnaires exist, but no test results" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(applicationsWithNoTestResults)
+      when(mockReportRepository.onlineTestPassMarkReportFsOnly).thenReturnAsync(applicationsWithNoTestResults)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(questionnairesForNoTestResults)
 
@@ -78,7 +78,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
         )
       )
 
-      val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
+      val response = controller.onlineTestPassMarkReportFsOnly(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
@@ -92,7 +92,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications with questionnaire and test results" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReport).thenReturnAsync(applications)
+      when(mockReportRepository.onlineTestPassMarkReportFsOnly).thenReturnAsync(applications)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(questionnaires)
 
@@ -103,7 +103,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
         )
       )
 
-      val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
+      val response = controller.onlineTestPassMarkReportFsOnly(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK

@@ -44,7 +44,9 @@ trait ReportingRepository {
 
   def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
 
-  def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]]
+  def onlineTestPassMarkReportFsOnly: Future[List[ApplicationForOnlineTestPassMarkReport]]
+
+  def onlineTestPassMarkReportNonFs: Future[List[ApplicationForOnlineTestPassMarkReport]]
 
   def onlineTestPassMarkReportByIds(applicationIds: Seq[String]): Future[List[ApplicationForOnlineTestPassMarkReport]]
 
@@ -220,8 +222,37 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     reportQueryWithProjectionsBSON[ApplicationForNumericTestExtractReport](query, projection)
   }
 
-  override def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+  override def onlineTestPassMarkReportFsOnly: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
     onlineTestPassMarkReportWithQuery(BSONDocument.empty)
+  }
+
+  override def onlineTestPassMarkReportNonFs: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> BSONDocument("$in" ->
+        Seq(ApplicationRoute.Edip.toString, ApplicationRoute.Sdip.toString, ApplicationRoute.SdipFaststream.toString))
+      ),
+      BSONDocument(
+        "$or" -> BSONArray(
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+        )
+      )))
+
+    val projection = BSONDocument(
+      "userId" -> "1",
+      "applicationId" -> "1",
+      "applicationRoute" -> "1",
+      "scheme-preferences.schemes" -> "1",
+      "assistance-details" -> "1",
+      "testGroups.PHASE1" -> "1",
+      "testGroups.PHASE2" -> "1",
+      "testGroups.PHASE3.tests.callbacks.reviewed" -> 1,
+      "testGroups.SIFT_PHASE" -> "1",
+      "progress-status" -> "1",
+      "currentSchemeStatus" -> "1"
+    )
+
+    reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
   }
 
   def onlineTestPassMarkReportByIds(applicationIds: Seq[String]): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
