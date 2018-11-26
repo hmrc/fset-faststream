@@ -85,6 +85,7 @@ GET         /report/analytical-schemes/:frameworkId                      control
 GET         /report/numeric-test-extract                                 controllers.ReportingController.numericTestExtractReport()
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
 GET         /report/candidates-details-stream/previous-year              controllers.ReportingController.streamPreviousYearCandidatesDetailsReport()
+GET         /report/streamed/online-test-pass-mark                       controllers.ReportingController.streamOnlineTestPassMarkReportWip()
 GET         /report/assessor-allocation                                  controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                 controllers.ReportingController.candidateAcceptanceReport()
 

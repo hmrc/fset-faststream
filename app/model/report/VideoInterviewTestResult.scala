@@ -26,14 +26,29 @@ case class VideoInterviewTestResult(question1: VideoInterviewQuestionTestResult,
                                     question6: VideoInterviewQuestionTestResult,
                                     question7: VideoInterviewQuestionTestResult,
                                     question8: VideoInterviewQuestionTestResult,
-                                    overallTotal: Double)
+                                    overallTotal: Double) {
+  def toStreamedContent = {
+    question1.toStreamedContent :::
+    question2.toStreamedContent :::
+    question3.toStreamedContent :::
+    question4.toStreamedContent :::
+    question5.toStreamedContent :::
+    question6.toStreamedContent :::
+    question7.toStreamedContent :::
+    question8.toStreamedContent :::
+    List(Some(overallTotal.toString))
+  }
+}
 
-case class VideoInterviewQuestionTestResult(capability: Option[Double], engagement: Option[Double])
+case class VideoInterviewQuestionTestResult(capability: Option[Double], engagement: Option[Double]) {
+  def toStreamedContent: List[Option[String]] = List(capability.map(_.toString), engagement.map(_.toString))
+}
 
 object VideoInterviewQuestionTestResult {
   implicit val videoInterviewQuestionTestResultFormats = Json.format[VideoInterviewQuestionTestResult]
 }
 
 object VideoInterviewTestResult {
+  val empty = List(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   implicit val videoInterviewTestResultFormats = Json.format[VideoInterviewTestResult]
 }
