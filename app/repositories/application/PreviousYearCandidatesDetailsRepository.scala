@@ -235,8 +235,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
         val adDoc = doc.getAs[BSONDocument]("assistance-details")
         val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
-        val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview")).map(booleanTranslator)
-        val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
+        val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview")).map(booleanYnTranslator)
+        val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanYnTranslator)
 //        val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
         def toTestResult(tr: model.persisted.TestResult) = {
