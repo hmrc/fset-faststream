@@ -24,7 +24,8 @@ import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse,
 import model._
 import model.persisted.{ FSACIndicator, Phase1TestProfile, Phase2TestGroup }
 import model.persisted.fsb.ScoresAndFeedback
-import model.report.ProgressStatusesReportLabels
+import model.persisted.sift.SiftTestGroup
+import model.report.{ ProgressStatusesReportLabels, VideoInterviewQuestionTestResult, VideoInterviewTestResult }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
@@ -198,14 +199,12 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   private var adsCounter = 0
 
   override def applicationDetailsStreamWip(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
-//    val query = BSONDocument(
-//      "$or" -> BSONArray(
-//        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
-//        BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
-//      )
-//    )
-
-    val query = BSONDocument("applicationId" -> "b5a809b8-6042-4ea1-9e19-5d1ea2dc0c06")
+    val query = BSONDocument(
+      "$or" -> BSONArray(
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+        BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+      )
+    )
 
     val projection = BSONDocument(
       "userId" -> true,
@@ -214,13 +213,13 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       "scheme-preferences.schemes" -> true,
       "assistance-details" -> true,
       "testGroups.PHASE1" -> true,
-      "testGroups.PHASE2" -> true
-
-//      "testGroups.PHASE3.tests.callbacks.reviewed" -> 1,
-//      "testGroups.SIFT_PHASE" -> "1",
+      "testGroups.PHASE2" -> true,
+      "testGroups.PHASE3.tests.callbacks.reviewed" -> true,
+      "testGroups.SIFT_PHASE" -> true
     )
 
     applicationDetailsCollection.find(query, projection)
+//    applicationDetailsCollection.find(Json.obj(), projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .enumerate().map { doc =>
 
@@ -286,8 +285,62 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           }
         }
 
-        val empty = List(None, None, None, None)
+        val empty = List(None, None)
         val phase2TestResultsProcessed = phase2TestResults.map { s =>
+          List(s.tScore.map(_.toString), s.raw.map(_.toString))
+        }.getOrElse(empty)
+
+        def toPhase3TestResults(testGroupsDoc: Option[BSONDocument]): Option[VideoInterviewTestResult] = {
+          def getLatestReviewed(reviewCallBacks: List[ReviewedCallbackRequest]): Option[ReviewedCallbackRequest] =
+            reviewCallBacks.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption
+
+          def toVideoInterviewQuestionTestResult(question: ReviewSectionQuestionRequest) = {
+            VideoInterviewQuestionTestResult(
+              question.reviewCriteria1.score,
+              question.reviewCriteria2.score)
+          }
+
+          val reviewedDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE3))
+           .flatMap(_.getAs[BSONArray]("tests")).flatMap(_.getAs[BSONDocument](0))
+           .flatMap(_.getAs[BSONDocument]("callbacks")).flatMap(_.getAs[List[BSONDocument]]("reviewed"))
+
+          val reviewed = reviewedDocOpt.map (_.map(ReviewedCallbackRequest.bsonHandler.read))
+          val latestReviewedOpt = reviewed.flatMap(getLatestReviewed)
+
+          latestReviewedOpt.map { latestReviewed =>
+            VideoInterviewTestResult(
+              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question1),
+              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question2),
+              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question3),
+              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question4),
+              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question5),
+              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question6),
+              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question7),
+              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question8),
+              latestReviewed.calculateTotalScore()
+            )
+          }
+        }
+
+        val phase3TestResultsOpt = toPhase3TestResults(testGroupsDoc)
+        val phase3TestResultsProcessed = phase3TestResultsOpt.map(_.toStreamedContent).getOrElse(VideoInterviewTestResult.empty)
+
+        def toSiftTestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]): Option[TestResult] = {
+          val siftDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
+          siftDocOpt.flatMap { siftDoc =>
+            val siftTestProfile = SiftTestGroup.bsonHandler.read(siftDoc)
+            siftTestProfile.activeTests.size match {
+              case 1 => siftTestProfile.activeTests.head.testResult.map { tr => toTestResult(tr) }
+              case 0 => None
+              case s if s > 1 =>
+                Logger.error(s"There are $s active sift tests which is invalid for application id [$applicationId]")
+                None
+            }
+          }
+        }
+
+        val siftTestResultsOpt = toSiftTestResults(applicationId, testGroupsDoc)
+        val siftTestResultsProcessed = siftTestResultsOpt.map { s =>
           List(s.tScore.map(_.toString), s.raw.map(_.toString))
         }.getOrElse(empty)
 
@@ -298,7 +351,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             schemes :::
             List(disability, gis, onlineAdjustments) :::
             phase1TestResultsProcessed :::
-            phase2TestResultsProcessed
+            phase2TestResultsProcessed :::
+            phase3TestResultsProcessed :::
+            siftTestResultsProcessed
             : _*
         )
 
@@ -572,7 +627,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       CsvExtract(contactDetailsHeader, csvRecords.toMap)
     }
   }
-////
+
   def findQuestionnaireDetailsWip(): Future[CsvExtract[String]] = {
 
     def getAnswer(question: String, doc: Option[BSONDocument]) = {
@@ -580,49 +635,19 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       val isUnknown = questionDoc.flatMap(_.getAs[Boolean]("unknown")).contains(true)
       isUnknown match {
         case true =>
-//          println("**** 1")
           Some("Unknown")
         case _ => questionDoc.flatMap(q => q.getAs[String]("answer") match {
           case None =>
-//            println("**** 2")
-            q.getAs[String]("otherDetails")
-          case Some(answer) if List("Other", "Other ethnic group").contains(answer) =>
-//            println("**** 3")
             q.getAs[String]("otherDetails")
           case Some(answer) =>
-//            println("**** 4")
             Some(answer)
         })
       }
     }
-
-    def getAnswer1(question: String, doc: Option[BSONDocument]) = {
-      val questionDoc = doc.flatMap(_.getAs[BSONDocument](question))
-      val isUnknown = questionDoc.flatMap(_.getAs[Boolean]("unknown")).contains(true)
-      isUnknown match {
-        case true =>
-          println("**** 1")
-          Some("Unknown")
-        case _ => questionDoc.flatMap(q => q.getAs[String]("answer") match {
-          case None =>
-            println("**** 2")
-            q.getAs[String]("otherDetails")
-          case Some(answer) if List("Other", "Other ethnic group").contains(answer) =>
-            println("**** 3333")
-            q.getAs[String]("otherDetails")
-          case Some(answer) =>
-            println("**** 4")
-            Some(answer)
-        })
-      }
-    }
-
-    val query = BSONDocument("applicationId" -> "b5a809b8-6042-4ea1-9e19-5d1ea2dc0c06")
 
     val projection = Json.obj("_id" -> false)
 
-//    questionnaireCollection.find(Json.obj(), projection)
-    questionnaireCollection.find(query, projection)
+    questionnaireCollection.find(Json.obj(), projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map { docs =>
       val csvRecords = docs.map { doc =>
@@ -635,12 +660,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             (question, answer)
         }.toMap
 
-        println(s"**** start")
-        val gender = getAnswer1("What is your gender identity?", questionsDoc)
-        println(s"**** finished Gender = $gender")
-
         val csvRecord = makeRow(
-          getAnswer1("What is your gender identity?", questionsDoc),
+          getAnswer("What is your gender identity?", questionsDoc),
           getAnswer("What is your ethnic group?", questionsDoc),
           universityName,
           isOxbridge(universityName),
@@ -655,7 +676,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       CsvExtract(questionnaireDetailsHeader, csvRecords.toMap)
     }
   }
-////
+
   def findQuestionnaireDetails(): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
 

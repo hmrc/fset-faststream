@@ -192,7 +192,7 @@ trait ReportingController extends BaseController {
     def log(msg: String)= play.api.Logger.warn(s"onlineTestPassMarkStreamedReportWip: $msg")
     // this calls the method with the implementation of the function passed as an argument
     enrichOnlineTestPassMark {
-//      (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+//      (numOfSchemes, contactDetails, questionnaireDetails,
 //       siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) =>
       (numOfSchemes, questionnaireDetails) =>
       {
@@ -206,7 +206,10 @@ trait ReportingController extends BaseController {
             "Behavioural T-score,Behavioural Percentile,Behavioural Raw,Behavioural STEN" ::
             "Situational T-score,Situational Percentile,Situational Raw,Situational STEN" ::
             "e-Tray T-score,e-Tray Raw" ::
-            "Gender,Ethnicity,University,Oxbridge,Russell Group,SE 1-5,SES" ::
+            "Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability,Q3 Engagement,Q4 Capability,Q4 Engagement," +
+            "Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability,Q7 Engagement,Q8 Capability,8 Engagement, Overall total" ::
+            "Sift T-score,Sift Raw" ::
+            "Gender,Ethnicity,University,Oxbridge,Russell Group,Lower socio-economic background?,SES" ::
             Nil
           ).mkString(",") + "\n"
 
@@ -222,19 +225,14 @@ trait ReportingController extends BaseController {
             Nil).mkString(",") + "\n"
 */
         )
-//        var counter = 0
+
         val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStreamWip(numOfSchemes).map { app =>
           val ret = createPassMarkRecord(
             app,
-//            contactDetails,
             questionnaireDetails//,
-//            mediaDetails,
-//            eventsDetails,
-//            siftAnswers,
 //            assessorAssessmentScores,
 //            reviewerAssessmentScores
           ) + "\n"
-//          counter += 1
           ret
         }
         Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
@@ -243,33 +241,19 @@ trait ReportingController extends BaseController {
   }
   //scalastyle:on
 
-  private def createPassMarkRecord(
-                                    candidateDetails: CandidateDetailsReportItem,
-//                                    contactDetails: CsvExtract[String],
+  private def createPassMarkRecord(candidateDetails: CandidateDetailsReportItem,
                                     questionnaireDetails: CsvExtract[String]//,
-//                                    mediaDetails: CsvExtract[String],
-//                                    eventsDetails: CsvExtract[String],
-//                                    siftAnswersDetails: CsvExtract[String],
 //                                    assessorAssessmentScoresDetails: CsvExtract[String],
 //                                    reviewerAssessmentScoresDetails: CsvExtract[String]
                                   ) = {
     (candidateDetails.csvRecord ::
-//      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
       questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
-//      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
-//      eventsDetails.records.getOrElse(candidateDetails.appId, eventsDetails.emptyRecord) ::
-//      siftAnswersDetails.records.getOrElse(candidateDetails.appId, siftAnswersDetails.emptyRecord) ::
 //      assessorAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, assessorAssessmentScoresDetails.emptyRecord) ::
 //      reviewerAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, reviewerAssessmentScoresDetails.emptyRecord) ::
       Nil).mkString(",")
   }
 
-
-  // this method fetches all of the additional data (not from application collection, which is fetched separately)
-  // it is called with an empty tuple, which has place holders for all the additional data
-  private def enrichOnlineTestPassMark(
-                                                  block: (Int, CsvExtract[String]) => Result
-                                                ) = {
+  private def enrichOnlineTestPassMark(block: (Int, CsvExtract[String]) => Result)= {
     def log(msg: String)= play.api.Logger.warn(s"enrichOnlineTestPassMark: $msg")
     log(s"started enriching data at ${org.joda.time.DateTime.now}")
     val data = for {
