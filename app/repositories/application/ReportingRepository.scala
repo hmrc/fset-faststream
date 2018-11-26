@@ -229,14 +229,15 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     onlineTestPassMarkReportWithQuery(query)
   }
 
-
   private def onlineTestPassMarkReportWithQuery(extraQuery: BSONDocument): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
-    val query = BSONDocument(
-      "$or" -> BSONArray(
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
-        BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
-      )
-    ) ++ extraQuery
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"applicationRoute" -> ApplicationRoute.Faststream),
+      BSONDocument(
+        "$or" -> BSONArray(
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+        )
+      ))) ++ extraQuery
 
     val projection = BSONDocument(
       "userId" -> "1",
