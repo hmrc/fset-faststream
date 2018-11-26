@@ -510,13 +510,54 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def onlineTestPassMarkReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
-    def log(msg: String)= play.api.Logger.warn(s"onlineTestPassMarkReport: $msg")
+  def onlineTestPassMarkReportFsOnly(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+    def log(msg: String)= play.api.Logger.warn(s"onlineTestPassMarkReportFsOnly: $msg")
 
     log(s"started fetching data at ${org.joda.time.DateTime.now}")
     val reports =
       for {
-        applications <- reportingRepository.onlineTestPassMarkReport
+        applications <- reportingRepository.onlineTestPassMarkReportFsOnly
+        _ = log(s"applications fetched = ${applications.size}")
+        siftResults <- applicationSiftRepository.findAllResults
+        _ = log(s"sift results fetched = ${siftResults.size}")
+        fsacResults <- assessmentScoresRepository.findAll
+        _ = log(s"fsac results fetched = ${fsacResults.size}")
+        appIds = applications.map(_.applicationId)
+        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(appIds)
+        _ = log(s"questionnaires fetched = ${questionnaires.size}")
+        fsbScoresAndFeedback <- fsbRepository.findScoresAndFeedback(appIds)
+        _ = log(s"fsb scores and feedback fetched = ${fsbScoresAndFeedback.size}")
+      } yield {
+        val data = for {
+          application <- applications
+          appId = UniqueIdentifier(application.applicationId)
+          fsac = fsacResults.find(_.applicationId == appId)
+          overallFsacScoreOpt = fsac.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
+          sift = siftResults.find(_.applicationId == application.applicationId)
+          q <- questionnaires.get(application.applicationId)
+          fsb <- fsbScoresAndFeedback.get(application.applicationId)
+        } yield OnlineTestPassMarkReportItem(
+          ApplicationForOnlineTestPassMarkReportItem.create(application, fsac, overallFsacScoreOpt, sift, fsb), q
+        )
+        log(s"finished fetching data at ${org.joda.time.DateTime.now}")
+        data
+      }
+
+    reports.map { list =>
+      log(s"Json conversion started at ${org.joda.time.DateTime.now}")
+      val jsonData = Json.toJson(list)
+      log(s"Json conversion finished at ${org.joda.time.DateTime.now}")
+      Ok(jsonData)
+    }
+  }
+
+  def onlineTestPassMarkReportNonFs(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+    def log(msg: String)= play.api.Logger.warn(s"onlineTestPassMarkReportNonFs: $msg")
+
+    log(s"started fetching data at ${org.joda.time.DateTime.now}")
+    val reports =
+      for {
+        applications <- reportingRepository.onlineTestPassMarkReportNonFs
         _ = log(s"applications fetched = ${applications.size}")
         siftResults <- applicationSiftRepository.findAllResults
         _ = log(s"sift results fetched = ${siftResults.size}")
