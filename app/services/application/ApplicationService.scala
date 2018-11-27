@@ -588,6 +588,15 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
   // scalastyle:on
 
+  def findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview: Future[Seq[String]] = {
+    for {
+      candidates <-
+        appRepository.findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview(SchemeYamlRepository.faststreamSchemes.map(_.id))
+    } yield {
+      candidates
+    }
+  }
+
   def moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       allAffectedUsers <- findSdipFaststreamFailedFaststreamInvitedToVideoInterview
@@ -808,6 +817,17 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statusesToRollback)
       _ <- phase2TestRepository.removeTestGroupEvaluation(applicationId)
       evaluationOpt <- phase1TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+      _ <- siftAnswersService.removeAnswers(applicationId)
+    } yield ()
+  }
+
+  def rollbackToPhase3ExpiredFromSift(applicationId: String): Future[Unit] = {
+    val statusesToRollback = List(ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_READY)
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE3_TESTS, statusesToRollback)
+      _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)
+      evaluationOpt <- phase2TestRepository.findEvaluation(applicationId)
       _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
       _ <- siftAnswersService.removeAnswers(applicationId)
     } yield ()
