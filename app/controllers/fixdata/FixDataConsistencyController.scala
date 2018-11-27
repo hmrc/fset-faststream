@@ -303,6 +303,16 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
+  def findSdipFaststreamCandidatesInSiftWhoShouldBeRolledBackToVideoInterview: Action[AnyContent] = Action.async {
+    applicationService.findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview.map { resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("applicationId") ++ resultList.map { applicationId => applicationId }).mkString("\n"))
+      }
+    }
+  }
+
   def markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
     applicationService.markFsbSchemeAsRed(applicationId, schemeId).map(_ =>
       Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")

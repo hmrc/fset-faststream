@@ -153,6 +153,8 @@ trait GeneralApplicationRepository {
 
   def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]]
 
+  def findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview(faststreamSchemeIds: Seq[SchemeId]): Future[Seq[String]]
+
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 
   def getLatestProgressStatuses: Future[List[String]]
@@ -377,6 +379,35 @@ class GeneralApplicationMongoRepository(
       "applicationStatus" -> true, "personal-details" -> true)
 
     bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
+  }
+
+  override def findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview(faststreamSchemeIds: Seq[SchemeId]): Future[Seq[String]] = {
+    val phase2 = "PHASE2"
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_EXPIRED}" -> BSONDocument("$exists" -> true)),
+
+      BSONDocument(s"testGroups.$phase2.evaluation.result" -> BSONDocument("$elemMatch" ->
+        BSONDocument("schemeId" -> BSONDocument("$in" -> faststreamSchemeIds),
+          "result" -> EvaluationResults.Green.toString)
+      )),
+      BSONDocument(s"testGroups.$phase2.evaluation.result" -> BSONDocument("$elemMatch" ->
+        BSONDocument("schemeId" -> "Sdip",
+          "result" -> EvaluationResults.Green.toString)
+      )),
+
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> BSONDocument("$exists" -> true)),
+        BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> true))
+      ))
+    ))
+
+    val projection = BSONDocument("_id" -> false, "applicationId" -> true)
+
+    bsonCollection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docList =>
+      docList.map( _.getAs[String]("applicationId").get )
+    }
   }
 
   override def submit(applicationId: String): Future[Unit] = {

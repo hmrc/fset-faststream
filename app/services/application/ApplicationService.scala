@@ -588,6 +588,15 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
   // scalastyle:on
 
+  def findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview: Future[Seq[String]] = {
+    for {
+      candidates <-
+        appRepository.findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview(SchemeYamlRepository.faststreamSchemes.map(_.id))
+    } yield {
+      candidates
+    }
+  }
+
   def moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       allAffectedUsers <- findSdipFaststreamFailedFaststreamInvitedToVideoInterview
