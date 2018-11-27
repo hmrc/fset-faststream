@@ -223,7 +223,16 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
   }
 
   override def onlineTestPassMarkReportFsOnly: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
-    onlineTestPassMarkReportWithQuery(BSONDocument.empty)
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"applicationRoute" -> ApplicationRoute.Faststream),
+      BSONDocument(
+        "$or" -> BSONArray(
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+        )
+      )))
+
+    commonOnlineTestPassMarkReport(query)
   }
 
   override def onlineTestPassMarkReportNonFs: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
@@ -238,38 +247,19 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
         )
       )))
 
-    val projection = BSONDocument(
-      "userId" -> "1",
-      "applicationId" -> "1",
-      "applicationRoute" -> "1",
-      "scheme-preferences.schemes" -> "1",
-      "assistance-details" -> "1",
-      "testGroups.PHASE1" -> "1",
-      "testGroups.PHASE2" -> "1",
-      "testGroups.PHASE3.tests.callbacks.reviewed" -> 1,
-      "testGroups.SIFT_PHASE" -> "1",
-      "progress-status" -> "1",
-      "currentSchemeStatus" -> "1"
-    )
-
-    reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
+    commonOnlineTestPassMarkReport(query)
   }
 
   def onlineTestPassMarkReportByIds(applicationIds: Seq[String]): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-    onlineTestPassMarkReportWithQuery(query)
+    val query = BSONDocument("$or" -> BSONArray(
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+    )) ++ BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+
+    commonOnlineTestPassMarkReport(query)
   }
 
-  private def onlineTestPassMarkReportWithQuery(extraQuery: BSONDocument): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument(s"applicationRoute" -> ApplicationRoute.Faststream),
-      BSONDocument(
-        "$or" -> BSONArray(
-          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
-          BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
-        )
-      ))) ++ extraQuery
-
+  private def commonOnlineTestPassMarkReport(query: BSONDocument): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
     val projection = BSONDocument(
       "userId" -> "1",
       "applicationId" -> "1",
@@ -286,7 +276,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
   }
-  
+
   //scalastyle:off method.length
   override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]] = {
     val query = BSONDocument("$and" ->
