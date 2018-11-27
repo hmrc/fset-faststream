@@ -822,6 +822,17 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def rollbackToPhase3ExpiredFromSift(applicationId: String): Future[Unit] = {
+    val statusesToRollback = List(ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_READY)
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE3_TESTS, statusesToRollback)
+      _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)
+      evaluationOpt <- phase2TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+      _ <- siftAnswersService.removeAnswers(applicationId)
+    } yield ()
+  }
+
   def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId, newResult: model.EvaluationResults.Result): Future[Unit] = {
     for {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)

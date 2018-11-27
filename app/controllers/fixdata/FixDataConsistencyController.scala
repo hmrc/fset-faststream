@@ -423,7 +423,17 @@ trait FixDataConsistencyController extends BaseController {
   def rollbackToPhase2TestExpiredFromSift(applicationId: String): Action[AnyContent] =
     Action.async { implicit request =>
       applicationService.rollbackToPhase2ExpiredFromSift(applicationId).map(_ =>
-        Ok(s"Successfully fixed $applicationId")
+        Ok(s"Successfully rolled back to phase2 expired $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def rollbackToPhase3TestExpiredFromSift(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.rollbackToPhase3ExpiredFromSift(applicationId).map(_ =>
+        Ok(s"Successfully rolled back to phase3 expired $applicationId")
       ).recover {
         case ex: Throwable =>
           BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
