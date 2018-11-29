@@ -322,6 +322,25 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
+  def findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift: Action[AnyContent] = Action.async {
+    applicationService.findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift.map { resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("Email,Preferred Name (or first name if no preferred),Application ID," +
+          "Latest Progress Status,online test results") ++
+          resultList.map { case (user, contactDetails, latestProgressStatus, onlineTestResults) =>
+            val onlineTestResultsAsString = "\"[" + onlineTestResults.result.map(schemeResult =>
+              s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
+            ).mkString(", ") + "]\""
+
+            s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
+              s"${latestProgressStatus.toString},$onlineTestResultsAsString"
+          }).mkString("\n"))
+      }
+    }
+  }
+
   def markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
     applicationService.markFsbSchemeAsRed(applicationId, schemeId).map(_ =>
       Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")
