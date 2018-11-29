@@ -155,6 +155,8 @@ trait GeneralApplicationRepository {
 
   def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]]
 
+  def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]]
+
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 
   def getLatestProgressStatuses: Future[List[String]]
@@ -387,6 +389,22 @@ class GeneralApplicationMongoRepository(
       BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_EXPIRED}" -> BSONDocument("$exists" -> true)),
       BSONDocument(s"testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" ->
+        BSONDocument("schemeId" -> "Sdip", "result" -> EvaluationResults.Green.toString)
+      ))
+    ))
+
+    val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
+      "applicationStatus" -> true, "personal-details" -> true)
+
+    bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
+  }
+
+  override def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_EXPIRED}" -> BSONDocument("$exists" -> true)),
+      BSONDocument(s"testGroups.PHASE2.evaluation.result" -> BSONDocument("$elemMatch" ->
         BSONDocument("schemeId" -> "Sdip", "result" -> EvaluationResults.Green.toString)
       ))
     ))
