@@ -588,13 +588,34 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
   // scalastyle:on
 
-  def findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview: Future[Seq[String]] = {
-    for {
-      candidates <-
-        appRepository.findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview(SchemeYamlRepository.faststreamSchemes.map(_.id))
-    } yield {
-      candidates
+  def findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift:
+  Future[Seq[(Candidate, ContactDetails, ProgressStatus, PassmarkEvaluation)]] = {
+
+    def liftToOption(passMarkFetch: String => Future[PassmarkEvaluation], applicationId: String): Future[Option[PassmarkEvaluation]] = {
+      passMarkFetch(applicationId).map(Some(_)).recover { case _: PassMarkEvaluationNotFound => None }
     }
+
+    (for {
+      potentialAffectedUsers <- appRepository.findSdipFaststreamExpiredPhase2InvitedToSift
+    } yield for {
+      potentialAffectedUser <- potentialAffectedUsers
+    } yield for {
+      phase1SchemeStatusOpt <- liftToOption(evaluateP1ResultService.getPassmarkEvaluation _, potentialAffectedUser.applicationId.get)
+      applicationDetails <- appRepository.findStatus(potentialAffectedUser.applicationId.get)
+      contactDetails <- cdRepository.find(potentialAffectedUser.userId)
+    } yield for {
+      phase1SchemeStatus <- phase1SchemeStatusOpt
+    } yield {
+      val failedAtOnlineExercises = phase1SchemeStatus.result.forall(schemeResult =>
+        schemeResult.result == Red.toString ||
+          (schemeResult.schemeId == Scheme.SdipId && schemeResult.result == Green.toString))
+
+      if (failedAtOnlineExercises) {
+        Some((potentialAffectedUser, contactDetails, applicationDetails.latestProgressStatus.get, phase1SchemeStatus))
+      } else {
+        None
+      }
+    }).map(Future.sequence(_)).flatMap(identity).map(_.map(_.flatten)).map(_.flatten)
   }
 
   def moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
