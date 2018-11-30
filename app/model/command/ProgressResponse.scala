@@ -63,7 +63,8 @@ case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   sdipFSFailedNotified: Boolean = false,
   sdipFSSuccessful: Boolean = false,
   sdipFSSuccessfulNotified: Boolean = false,
-  phase1TestsFailedSdipAmber: Boolean = false
+  phase1TestsFailedSdipAmber: Boolean = false,
+  phase1TestsFailedSdipGreen: Boolean = false
 )
 
 case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
@@ -79,7 +80,8 @@ case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
   phase2TestsPassed: Boolean = false,
   phase2TestsFailed: Boolean = false,
   phase2TestsFailedNotified: Boolean = false,
-  phase2TestsFailedSdipAmber: Boolean = false
+  phase2TestsFailedSdipAmber: Boolean = false,
+  phase2TestsFailedSdipGreen: Boolean = false
 )
 
 case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
@@ -94,7 +96,8 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
   phase3TestsFailed: Boolean = false,
   phase3TestsFailedNotified: Boolean = false,
   phase3TestsSuccessNotified: Boolean = false,
-  phase3TestsFailedSdipAmber: Boolean = false
+  phase3TestsFailedSdipAmber: Boolean = false,
+  phase3TestsFailedSdipGreen: Boolean = false
 )
 
 case class SiftProgressResponse(
