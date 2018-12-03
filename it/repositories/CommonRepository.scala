@@ -31,7 +31,7 @@ import scala.concurrent.Future
 trait CommonRepository extends CurrentSchemeStatusHelper {
   this: MongoRepositorySpec with ScalaFutures =>
 
-  import reactivemongo.json.ImplicitBSONHandlers._
+  import reactivemongo.play.json.ImplicitBSONHandlers._
 
   val mockGatewayConfig = mock[CubiksGatewayConfig]
 

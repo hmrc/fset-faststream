@@ -22,6 +22,7 @@ import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.BSONObjectID
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats

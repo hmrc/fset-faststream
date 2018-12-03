@@ -14,9 +14,9 @@ cache:
 addons:
   apt:
     sources:
-      - mongodb-3.2-precise
+      - mongodb-3.4-precise
     packages:
-      - mongodb-org=3.2.10
+      - mongodb-org-server
 
 before_script:
   - sudo service mongod restart

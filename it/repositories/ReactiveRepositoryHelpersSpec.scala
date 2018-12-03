@@ -5,6 +5,7 @@ import play.api.libs.json.Json
 import reactivemongo.bson._
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
