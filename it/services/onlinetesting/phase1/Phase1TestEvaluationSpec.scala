@@ -12,8 +12,8 @@ import org.joda.time.DateTime
 import org.mockito.Mockito.when
 import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
-import reactivemongo.json.collection.JSONCollection
+import reactivemongo.play.json.ImplicitBSONHandlers
+import reactivemongo.play.json.collection.JSONCollection
 import repositories.onlinetesting.Phase1EvaluationMongoRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import repositories.{ CollectionNames, CommonRepository }

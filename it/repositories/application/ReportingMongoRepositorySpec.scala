@@ -29,6 +29,7 @@ import model.command.{ ProgressResponse, WithdrawApplication }
 import model.persisted._
 import model.testdata.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
 import _root_.services.testdata.candidate.CandidateStatusGeneratorFactory
 import testkit.MongoRepositorySpec
@@ -325,7 +326,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   private def create(application: UserApplicationProfile) = {
     import repositories.BSONLocalDateHandler
-    import reactivemongo.json.ImplicitBSONHandlers._
 
     repository.collection.insert(BSONDocument(
       "applicationId" -> application.userId,
@@ -343,7 +343,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   private def createWithoutPersonalDetails(userId: String, latestProgressStatus: String) = {
     import repositories.BSONLocalDateHandler
-    import reactivemongo.json.ImplicitBSONHandlers._
 
     repository.collection.insert(BSONDocument(
       "userId" -> userId,
