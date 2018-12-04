@@ -30,7 +30,7 @@ private object Versions {
   val ficus                            = "1.1.2"
   val playHealthVersion                = "2.1.0"
   val playConfigVersion                = "4.2.0"
-  val playReactivemongoVersion         = "6.2.0"
+  val playReactivemongoVersion         = "5.2.0"
 
   val mockito                          = "2.2.17"
   val scalatestplus                    = "2.0.1"

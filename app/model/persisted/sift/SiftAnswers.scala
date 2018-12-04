@@ -18,9 +18,10 @@ package model.persisted.sift
 
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONDocument, BSONElement, BSONHandler, BSONString, Macros }
+import reactivemongo.bson.{ BSON, BSONDocument, BSONHandler, BSONString, Macros }
 
 import scala.util.Try
+
 
 object SiftAnswersStatus extends Enumeration {
   type SiftAnswersStatus = Value
@@ -43,20 +44,18 @@ case class SiftAnswers(applicationId: String,
   generalAnswers: Option[GeneralQuestionsAnswers],
   schemeAnswers: Map[String, SchemeSpecificAnswer])
 
-//TODO: Ian mongo 3.2 -> 3.4
 object SiftAnswers
 {
   implicit object siftAnswersMapHandler extends BSONHandler[BSONDocument, Map[String, SchemeSpecificAnswer]] {
-
     override def read(bson: BSONDocument): Map[String, SchemeSpecificAnswer] = {
-      bson.elements.map { bsonElement =>
-        bsonElement.name -> SchemeSpecificAnswer.schemeSpecificAnswerHandler.read(bsonElement.value.asInstanceOf[BSONDocument])
+      bson.elements.map {
+        case (key, value) => key -> SchemeSpecificAnswer.schemeSpecificAnswerHandler.read(value.asInstanceOf[BSONDocument])
       }.toMap
     }
 
     override def write(t: Map[String, SchemeSpecificAnswer]): BSONDocument = {
-      val stream: Stream[Try[BSONElement]] = t.map {
-        case (key, value) => Try(BSONElement(key, SchemeSpecificAnswer.schemeSpecificAnswerHandler.write(value)))
+      val stream: Stream[Try[(String, BSONDocument)]] = t.map {
+        case (key, value) => Try((key, SchemeSpecificAnswer.schemeSpecificAnswerHandler.write(value)))
       }.toStream
       BSONDocument(stream)
     }

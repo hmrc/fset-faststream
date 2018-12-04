@@ -9,9 +9,10 @@ import model.persisted._
 import model.persisted.phase3tests.Phase3TestGroup
 import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
 import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+import reactivemongo.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
+
 
 class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository {
 

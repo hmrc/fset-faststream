@@ -29,8 +29,8 @@ import play.api.libs.json.Json
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.DefaultDB
 import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
-import reactivemongo.play.json.collection.JSONCollection
+import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.play.test.WithFakeApplication
 

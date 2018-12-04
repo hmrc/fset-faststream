@@ -29,9 +29,7 @@ import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{BSONDocument, _}
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
-import repositories.BSONDateTimeHandler
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
