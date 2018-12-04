@@ -283,8 +283,9 @@ trait FixDataConsistencyController extends BaseController {
 
   def createSiftStructure(applicationId: String): Action[AnyContent] = Action.async {
     applicationService.findStatus(applicationId).flatMap { applicationStatus =>
-      val statuses = Seq(SIFT_ENTERED, SIFT_READY, WITHDRAWN)
-      val canProceed = statuses.exists( s => applicationStatus.latestProgressStatus.contains(s) )
+//      val statuses = Seq(SIFT_ENTERED, SIFT_READY, WITHDRAWN)
+//      val canProceed = statuses.exists( s => applicationStatus.latestProgressStatus.contains(s) )
+      val canProceed = true
 
       if (canProceed) {
         for {
