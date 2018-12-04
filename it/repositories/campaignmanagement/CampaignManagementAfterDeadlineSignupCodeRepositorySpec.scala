@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import reactivemongo.json.ImplicitBSONHandlers._
 import repositories._
 
 class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepositorySpec {

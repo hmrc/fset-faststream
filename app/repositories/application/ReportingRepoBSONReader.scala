@@ -234,6 +234,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   implicit val toApplicationForNumericTestExtractReport: BSONDocumentReader[ApplicationForNumericTestExtractReport] = bsonReader {
     (doc: BSONDocument) => {
+      import reactivemongo.json._
+
       val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)

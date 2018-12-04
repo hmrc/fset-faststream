@@ -22,7 +22,6 @@ import model.persisted.eventschedules.{ Event, Location }
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson._
 import uk.gov.hmrc.mongo.ReactiveRepository

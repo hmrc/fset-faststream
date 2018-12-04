@@ -207,7 +207,6 @@ package object repositories {
     }
   }
 
-  //TODO: Ian mongo 3.2 -> 3.4
   implicit object BSONMapOfListOfLocalDateHandler extends BSONHandler[BSONDocument, Map[String, List[LocalDate]]] {
     import Producer._
 
@@ -221,8 +220,9 @@ package object repositories {
     }
 
     override def read(bson: BSONDocument): Map[String, List[LocalDate]] = {
-      val elements = bson.elements.map { bsonElement =>
-        bsonElement.name -> bsonElement.value.seeAsTry[List[LocalDate]].get
+      val elements = bson.elements.map {
+        case (key, value) =>
+          key -> value.seeAsTry[List[LocalDate]].get
       }
       elements.toMap
     }

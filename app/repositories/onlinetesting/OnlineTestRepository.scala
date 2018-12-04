@@ -26,9 +26,7 @@ import model.exchange.CubiksTestResultReady
 import model.persisted._
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.{ BSONDocument, _ }
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
-import repositories.BSONDateTimeHandler
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global

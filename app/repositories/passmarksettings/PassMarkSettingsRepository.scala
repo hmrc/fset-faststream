@@ -21,7 +21,6 @@ import model.exchange.passmarksettings._
 import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.DB
 import reactivemongo.bson._
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 

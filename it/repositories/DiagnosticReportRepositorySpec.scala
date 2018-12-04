@@ -18,7 +18,7 @@ package repositories
 
 import model.Exceptions.ApplicationNotFound
 import reactivemongo.bson.{ BSONBoolean, BSONDocument }
-import reactivemongo.play.json.ImplicitBSONHandlers
+import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
 import config.MicroserviceAppConfig._
 import factories.DateTimeFactory
