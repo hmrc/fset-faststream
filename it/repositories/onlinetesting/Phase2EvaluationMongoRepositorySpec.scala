@@ -8,7 +8,7 @@ import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mockito.MockitoSugar
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 

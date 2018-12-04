@@ -552,13 +552,13 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     }.flatMap(_ => applicationIdsFut.map(_.length))
   }
 
+  private def liftToOption(passMarkFetch: String => Future[PassmarkEvaluation], applicationId: String): Future[Option[PassmarkEvaluation]] = {
+    passMarkFetch(applicationId).map(Some(_)).recover { case _: PassMarkEvaluationNotFound => None }
+  }
+
   // scalastyle:off cyclomatic.complexity
   def findSdipFaststreamFailedFaststreamInvitedToVideoInterview:
   Future[Seq[(Candidate, ContactDetails, String, ProgressStatus, PassmarkEvaluation, PassmarkEvaluation)]] = {
-
-    def liftToOption(passMarkFetch: String => Future[PassmarkEvaluation], applicationId: String): Future[Option[PassmarkEvaluation]] = {
-      passMarkFetch(applicationId).map(Some(_)).recover { case _: PassMarkEvaluationNotFound => None }
-    }
 
     (for {
       potentialAffectedUsers <- appRepository.findSdipFaststreamInvitedToVideoInterview
@@ -591,13 +591,56 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
   // scalastyle:on
 
-  def findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview: Future[Seq[String]] = {
-    for {
-      candidates <-
-        appRepository.findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview(SchemeYamlRepository.faststreamSchemes.map(_.id))
+  def findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift:
+  Future[Seq[(Candidate, ContactDetails, ProgressStatus, PassmarkEvaluation)]] = {
+
+    (for {
+      potentialAffectedUsers <- appRepository.findSdipFaststreamExpiredPhase2InvitedToSift
+    } yield for {
+      potentialAffectedUser <- potentialAffectedUsers
+    } yield for {
+      phase1SchemeStatusOpt <- liftToOption(evaluateP1ResultService.getPassmarkEvaluation _, potentialAffectedUser.applicationId.get)
+      applicationDetails <- appRepository.findStatus(potentialAffectedUser.applicationId.get)
+      contactDetails <- cdRepository.find(potentialAffectedUser.userId)
+    } yield for {
+      phase1SchemeStatus <- phase1SchemeStatusOpt
     } yield {
-      candidates
-    }
+      val failedAtOnlineExercises = phase1SchemeStatus.result.forall(schemeResult =>
+        schemeResult.result == Red.toString ||
+          (schemeResult.schemeId == Scheme.SdipId && schemeResult.result == Green.toString))
+
+      if (failedAtOnlineExercises) {
+        Some((potentialAffectedUser, contactDetails, applicationDetails.latestProgressStatus.get, phase1SchemeStatus))
+      } else {
+        None
+      }
+    }).map(Future.sequence(_)).flatMap(identity).map(_.map(_.flatten)).map(_.flatten)
+  }
+
+  def findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift:
+  Future[Seq[(Candidate, ContactDetails, ProgressStatus, PassmarkEvaluation)]] = {
+
+    (for {
+      potentialAffectedUsers <- appRepository.findSdipFaststreamExpiredPhase3InvitedToSift
+    } yield for {
+      potentialAffectedUser <- potentialAffectedUsers
+    } yield for {
+      phase2SchemeStatusOpt <- liftToOption(evaluateP2ResultService.getPassmarkEvaluation _, potentialAffectedUser.applicationId.get)
+      applicationDetails <- appRepository.findStatus(potentialAffectedUser.applicationId.get)
+      contactDetails <- cdRepository.find(potentialAffectedUser.userId)
+    } yield for {
+      phase2SchemeStatus <- phase2SchemeStatusOpt
+    } yield {
+      val failedAtOnlineExercises = phase2SchemeStatus.result.forall(schemeResult =>
+        schemeResult.result == Red.toString ||
+          (schemeResult.schemeId == Scheme.SdipId && schemeResult.result == Green.toString))
+
+      if (failedAtOnlineExercises) {
+        Some((potentialAffectedUser, contactDetails, applicationDetails.latestProgressStatus.get, phase2SchemeStatus))
+      } else {
+        None
+      }
+    }).map(Future.sequence(_)).flatMap(identity).map(_.map(_.flatten)).map(_.flatten)
   }
 
   def moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {

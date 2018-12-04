@@ -143,7 +143,8 @@ GET         /diagnostic/fixUsersEligibleForJobOfferButFsbApplicationStatus      
 GET         /diagnostic/application/:applicationId/setUsedForResults/:newUsedForResults                controllers.fixdata.FixDataConsistencyController.setUsedForResults(applicationId: String, newUsedForResults: Boolean, token: String)
 GET         /diagnostic/rollbackToPhase2TestExpiredFromSift                                            controllers.fixdata.FixDataConsistencyController.rollbackToPhase2TestExpiredFromSift(applicationId: String)
 GET         /diagnostic/rollbackToPhase3TestExpiredFromSift                                            controllers.fixdata.FixDataConsistencyController.rollbackToPhase3TestExpiredFromSift(applicationId: String)
-GET         /diagnostic/findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview                  controllers.fixdata.FixDataConsistencyController.findSdipFaststreamCandidatesInSiftWhoShouldBeRolledBackToVideoInterview
+GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift           controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift
+GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift           controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

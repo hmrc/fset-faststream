@@ -32,8 +32,8 @@ import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONReader, BSONValue }
-import reactivemongo.json.ImplicitBSONHandlers._
-import reactivemongo.json.collection.JSONCollection
+import reactivemongo.play.json.ImplicitBSONHandlers._
+import reactivemongo.play.json.collection.JSONCollection
 import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository }
 import services.reporting.SocioEconomicCalculator
 import repositories.withdrawHandler
@@ -657,10 +657,11 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         val questionsDoc = doc.getAs[BSONDocument]("questions")
         val universityName = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
 
-        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map {
-          case (question, _) =>
-            val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
-            (question, answer)
+        //TODO: Ian mongo 3.2 -> 3.4
+        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
+          val question = bsonElement.name
+          val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
+          question -> answer
         }.toMap
 
         val csvRecord = makeRow(
@@ -703,10 +704,11 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         val questionsDoc = doc.getAs[BSONDocument]("questions")
         val universityName = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
 
-        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map {
-          case (question, _) =>
-            val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
-            (question, answer)
+        //TODO: Ian mongo 3.2 -> 3.4
+        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
+          val question = bsonElement.name
+          val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
+          question -> answer
         }.toMap
 
         val csvRecord = makeRow(

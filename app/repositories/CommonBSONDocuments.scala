@@ -21,7 +21,7 @@ import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
 import model.command._
 import model.{ ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType }
-import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader }
+import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader, BSONReader, BSONValue }
 
 import scala.language.implicitConversions
 
@@ -90,9 +90,10 @@ trait CommonBSONDocuments extends BaseBSONReader {
             .getOrElse(false)
         }
 
+        //TODO: Ian mongo 3.2 -> 3.4
         def questionnaire = root.getAs[BSONDocument]("questionnaire").map { doc =>
           doc.elements.collect {
-            case (name, BSONBoolean(true)) => name
+            case bsonElement => bsonElement.name
           }.toList
         }.getOrElse(Nil)
 

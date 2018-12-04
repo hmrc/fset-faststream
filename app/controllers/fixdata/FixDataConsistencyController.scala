@@ -303,12 +303,40 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
-  def findSdipFaststreamCandidatesInSiftWhoShouldBeRolledBackToVideoInterview: Action[AnyContent] = Action.async {
-    applicationService.findSdipFaststreamInSiftWhoShouldBeRolledBackToVideoInterview.map { resultList =>
+  def findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift: Action[AnyContent] = Action.async {
+    applicationService.findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift.map { resultList =>
       if (resultList.isEmpty) {
         Ok("No candidates found")
       } else {
-        Ok((Seq("applicationId") ++ resultList.map { applicationId => applicationId }).mkString("\n"))
+        Ok((Seq("Email,Preferred Name (or first name if no preferred),Application ID," +
+          "Latest Progress Status,online test results") ++
+          resultList.map { case (user, contactDetails, latestProgressStatus, onlineTestResults) =>
+            val onlineTestResultsAsString = "\"[" + onlineTestResults.result.map(schemeResult =>
+              s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
+            ).mkString(", ") + "]\""
+
+            s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
+              s"${latestProgressStatus.toString},$onlineTestResultsAsString"
+          }).mkString("\n"))
+      }
+    }
+  }
+
+  def findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift: Action[AnyContent] = Action.async {
+    applicationService.findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift.map { resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("Email,Preferred Name (or first name if no preferred),Application ID," +
+          "Latest Progress Status,online test results") ++
+          resultList.map { case (user, contactDetails, latestProgressStatus, onlineTestResults) =>
+            val onlineTestResultsAsString = "\"[" + onlineTestResults.result.map(schemeResult =>
+              s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
+            ).mkString(", ") + "]\""
+
+            s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
+              s"${latestProgressStatus.toString},$onlineTestResultsAsString"
+          }).mkString("\n"))
       }
     }
   }
