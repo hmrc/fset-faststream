@@ -129,8 +129,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             sdipFSFailed = getProgress(FailedSdipFsTestType.progressStatus),
             sdipFSFailedNotified = getProgress(FailedSdipFsTestType.notificationProgress),
             sdipFSSuccessful = getProgress(SuccessfulSdipFsTestType.progressStatus),
-            phase1TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER.key),
-            phase1TestsFailedSdipGreen = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN.key)
+            phase1TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER.key)
           ),
           phase2ProgressResponse = Phase2ProgressResponse(
             phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
@@ -144,8 +143,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
             phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key),
             phase2TestsFailedNotified = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED.key),
-            phase2TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER.key),
-            phase2TestsFailedSdipGreen = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN.key)
+            phase2TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER.key)
           ),
           phase3ProgressResponse = Phase3ProgressResponse(
             phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
@@ -160,8 +158,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase3TestsSuccessNotified = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED.key),
             phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString),
             phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key),
-            phase3TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER.key),
-            phase3TestsFailedSdipGreen = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN.key)
+            phase3TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER.key)
           ),
           siftProgressResponse = SiftProgressResponse(
             siftEntered = getProgress(ProgressStatuses.SIFT_ENTERED.key),

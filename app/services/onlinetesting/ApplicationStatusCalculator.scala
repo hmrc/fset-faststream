@@ -48,24 +48,21 @@ trait ApplicationStatusCalculator {
     val fsResults = evaluatedSchemes.filterNot(_.schemeId == SchemeId(sdip)).map(s => Result(s.result))
     val fsOverallResult = faststreamCalc(phase, originalAppStatus, fsResults)
 
-    def toResultWhenPhase1SdipFaststreamNotFailed(sdipResult: model.EvaluationResults.Result) =
-      sdipResult match {
+    def toResultWhenPhase1SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
+      result match {
         case Amber => Some(PHASE1_TESTS_FAILED_SDIP_AMBER)
-        case Green => Some(PHASE1_TESTS_FAILED_SDIP_GREEN)
         case _ => Some(PHASE1_TESTS_PASSED)
       }
 
-    def toResultWhenPhase2SdipFaststreamNotFailed(sdipResult: model.EvaluationResults.Result) =
-      sdipResult match {
+    def toResultWhenPhase2SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
+      result match {
         case Amber => Some(PHASE2_TESTS_FAILED_SDIP_AMBER)
-        case Green => Some(PHASE2_TESTS_FAILED_SDIP_GREEN)
         case _ => Some(PHASE2_TESTS_PASSED)
       }
 
-    def toResultWhenPhase3SdipFaststreamNotFailed(sdipResult: model.EvaluationResults.Result) =
-      sdipResult match {
+    def toResultWhenPhase3SdipFaststreamNotFailed(result: model.EvaluationResults.Result) =
+      result match {
         case Amber => Some(PHASE3_TESTS_FAILED_SDIP_AMBER)
-        case Green => Some(PHASE3_TESTS_FAILED_SDIP_GREEN)
         case _ => Some(PHASE3_TESTS_PASSED)
       }
 

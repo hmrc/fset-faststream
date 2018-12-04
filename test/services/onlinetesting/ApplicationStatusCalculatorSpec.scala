@@ -39,10 +39,10 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
       newStatus mustBe Some(PHASE1_TESTS_FAILED)
     }
 
-    "not fail application for all faststream Reds and SDIP green" in {
+    "promote the application for all faststream Reds and SDIP green" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
         List(red, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE1)
-      newStatus mustBe Some(PHASE1_TESTS_FAILED_SDIP_GREEN)
+      newStatus mustBe Some(PHASE1_TESTS_PASSED)
     }
 
     "not fail application for all faststream Reds and SDIP amber" in {
@@ -53,10 +53,10 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   }
 
   "determine SDIP with Faststream phase 2 application status" must {
-    "not fail the application with all faststream Reds and SDIP green" in {
+    "promote the the application with all faststream Reds and SDIP green" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE2_TESTS,
         List(red, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE2)
-      newStatus mustBe Some(PHASE2_TESTS_FAILED_SDIP_GREEN)
+      newStatus mustBe Some(PHASE2_TESTS_PASSED)
     }
 
     "not fail application for all faststream Reds and SDIP amber" in {
@@ -67,10 +67,10 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   }
 
   "determine SDIP with Faststream phase 3 application status" must {
-    "not fail the application with all faststream reds and SDIP green" in {
+    "promote the application with all faststream reds and SDIP green" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE3_TESTS,
         List(red, SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)), Phase.PHASE3)
-      newStatus mustBe Some(PHASE3_TESTS_FAILED_SDIP_GREEN)
+      newStatus mustBe Some(PHASE3_TESTS_PASSED)
     }
 
     "promote the application with faststream greens and reds and SDIP red" in {

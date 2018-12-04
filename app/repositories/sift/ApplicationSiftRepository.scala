@@ -211,26 +211,12 @@ class ApplicationSiftMongoRepository(
     }
   }
 
+
   def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
-    val fsQuery = () => BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationRoute" -> ApplicationRoute.Faststream),
+    val fsQuery = (route: ApplicationRoute) => BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> route),
       BSONDocument("applicationStatus" -> prevPhase),
       BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
-        BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
-        "result" -> EvaluationResults.Green.toString)
-    ))))
-
-    val sdipFsQuery = () => BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
-      BSONDocument("applicationStatus" -> BSONDocument("$in" ->
-        Seq(ApplicationStatus.PHASE1_TESTS.toString, ApplicationStatus.PHASE3_TESTS.toString, ApplicationStatus.PHASE3_TESTS.toString))
-      ),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN}" -> true),
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN}" -> true),
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN}" -> true)
-      )),
-      BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" ->
         BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
         "result" -> EvaluationResults.Green.toString)
     ))))
@@ -243,14 +229,14 @@ class ApplicationSiftMongoRepository(
     lazy val eligibleForSiftQuery =
       if (MicroserviceAppConfig.disableSdipFaststreamForSift) { // FSET-1803. Disable sdipfaststream in sift temporarily
         BSONDocument("$or" -> BSONArray(
-          fsQuery(),
+          fsQuery(ApplicationRoute.Faststream),
           xdipQuery(ApplicationRoute.Edip),
           xdipQuery(ApplicationRoute.Sdip)
         ))
       } else {
         BSONDocument("$or" -> BSONArray(
-          fsQuery(),
-          sdipFsQuery(),
+          fsQuery(ApplicationRoute.Faststream),
+          fsQuery(ApplicationRoute.SdipFaststream),
           xdipQuery(ApplicationRoute.Edip),
           xdipQuery(ApplicationRoute.Sdip)
         ))

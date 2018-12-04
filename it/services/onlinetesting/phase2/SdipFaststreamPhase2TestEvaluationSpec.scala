@@ -50,7 +50,7 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Red)
     }
 
-    "not fail SdipFastStream with failed faststream when sdip scheme is green and faststream schemes are red" in new TestFixture {
+    "give pass for SdipFastStream with failed faststream when sdip scheme is green and faststream schemes are red" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
         List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
           SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
@@ -59,7 +59,7 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
         "phase1-version1-res", None)
       applicationEvaluation("application-1", 10, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
       )(ApplicationRoute.SdipFaststream) mustResultIn(
-        PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN),
+        PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Green)
     }
 
