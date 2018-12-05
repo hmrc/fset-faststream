@@ -39,11 +39,12 @@ import testkit.MockitoImplicits._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
+import testkit.ExtendedTimeout
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class CandidateAllocationServiceSpec extends BaseServiceSpec {
+class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout{
   "Allocate candidate" must {
     "save allocation if non already exists" in new TestFixture {
       val eventId = "E1"

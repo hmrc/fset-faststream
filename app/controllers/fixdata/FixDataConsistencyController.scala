@@ -260,9 +260,17 @@ trait FixDataConsistencyController extends BaseController {
       siftService.fixUserInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId).map(_ => Ok)
     }
 
+  // This does not handle SDIP candidates, who do not sit P2, P3 tests
   def fixUserSiftedWithAFailByMistake(applicationId: String): Action[AnyContent] =
     Action.async {
-      siftService.fixUserSiftedWithAFailByMistake(applicationId).map(_ => Ok(s"Successfully fixed $applicationId"))
+      siftService.fixUserSiftedWithAFailByMistake(applicationId).flatMap(_ =>
+        applicationService.setCurrentSchemeStatusToPhase3Evaluation(applicationId).map(_ =>
+          Ok(s"Successfully fixed $applicationId")
+        )
+      ).recover {
+        case ex: Throwable =>
+          InternalServerError(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
     }
 
   def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>

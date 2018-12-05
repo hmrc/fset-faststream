@@ -31,12 +31,13 @@ import repositories.AssessorAllocationMongoRepository
 import services.BaseServiceSpec
 import services.events.EventsService
 import services.stc.StcEventService
+import testkit.ExtendedTimeout
 
 import scala.concurrent.Future
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
-class AssessorAllocationServiceSpec extends BaseServiceSpec {
+class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout {
 
   "Allocate assessors" must {
     "save allocations if none already exist" in new TestFixture {
