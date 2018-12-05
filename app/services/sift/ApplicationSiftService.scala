@@ -33,6 +33,7 @@ import play.api.Logger
 import reactivemongo.bson.BSONDocument
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
+import repositories.onlinetesting.Phase3TestRepository
 import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
 import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
@@ -51,6 +52,7 @@ object ApplicationSiftService extends ApplicationSiftService {
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val emailClient: CSREmailClient = CSREmailClient
   val SiftExpiryWindowInDays: Int = 7
+  val phase3TestRepository = repositories.phase3TestRepository
 }
 
 // scalastyle:off number.of.methods
@@ -63,6 +65,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   def contactDetailsRepo: ContactDetailsRepository
   def schemeRepo: SchemeRepository
   def emailClient: EmailClient
+  def phase3TestRepository: Phase3TestRepository
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
@@ -422,11 +425,23 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }).flatMap(identity)
   }
 
+  // This does not handle SDIP candidates, who do not sit P2, P3 tests
   def fixUserSiftedWithAFailByMistake(applicationId: String): Future[Unit] = {
+
+    def updateCurrentSchemeStatus(applicationId: String, evaluation: Option[Seq[SchemeEvaluationResult]]) = {
+      evaluation.map { evaluationResults =>
+        for {
+          _ <- applicationRepo.updateCurrentSchemeStatus(applicationId, evaluationResults)
+        } yield ()
+      }.getOrElse(throw new Exception(s"Error no evaluation results found for $applicationId"))
+    }
+
     for {
       _ <- applicationSiftRepo.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId)
       _ <- applicationRepo.removeProgressStatuses(applicationId,
         List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
+      evaluationOpt <- phase3TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
     } yield ()
   }
 }
