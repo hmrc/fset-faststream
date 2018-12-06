@@ -1,7 +1,7 @@
 package repositories
 
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import model.persisted.Media
 import testkit.MongoRepositorySpec
 

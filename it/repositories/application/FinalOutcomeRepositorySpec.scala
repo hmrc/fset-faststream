@@ -1,10 +1,10 @@
 package repositories.application
 
 import factories.UUIDFactory
-import reactivemongo.json.ImplicitBSONHandlers._
 import model.ProgressStatuses
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
@@ -75,5 +75,4 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
     ).futureValue
     applicationId
   }
-
 }

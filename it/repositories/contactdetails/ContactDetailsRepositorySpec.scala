@@ -5,7 +5,7 @@ import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail
 import model.persisted.{ ContactDetails, UserIdWithEmail }
 import model.persisted.ContactDetailsExamples._
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
@@ -141,11 +141,9 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
         UserIdWithEmail("2", ContactDetailsOutsideUK.email)
       )
     }
-
   }
 
   def insert(doc: BSONDocument) = repository.collection.insert(doc)
 
   def insert(userId: String, cd: ContactDetails) = repository.update(userId, cd).futureValue
-
 }

@@ -25,7 +25,7 @@ import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import testkit.MongoRepositorySpec
@@ -33,8 +33,6 @@ import testkit.MongoRepositorySpec
 import scala.concurrent.Await
 
 class ApplicationRepositorySpec extends MongoRepositorySpec {
-
-  import ImplicitBSONHandlers._
 
   val frameworkId = "FastStream-2016"
 

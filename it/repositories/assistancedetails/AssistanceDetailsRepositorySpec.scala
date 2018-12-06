@@ -3,7 +3,7 @@ package repositories.assistancedetails
 import model.Exceptions.AssistanceDetailsNotFound
 import model.persisted.AssistanceDetailsExamples
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 

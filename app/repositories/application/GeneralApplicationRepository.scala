@@ -42,9 +42,11 @@ import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
 import reactivemongo.api.{ DB, DefaultDB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, document, _ }
-import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
-import reactivemongo.json.collection.JSONCollection
+import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
+import reactivemongo.play.json.collection.JSONCollection
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
+import repositories.BSONDateTimeHandler
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.TimeZoneService
@@ -1112,17 +1114,23 @@ class GeneralApplicationMongoRepository(
   }
 
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = {
-    import BSONDateTimeHandler._
 
-    val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
+    //TODO Ian mongo 3.2 -> 3.4
+    implicit object BSONDateTimeHandler extends BSONReader[BSONValue, DateTime] {
+      def read(time: BSONValue) = time match {
+        case BSONDateTime(value) => new DateTime(value, org.joda.time.DateTimeZone.UTC)
+        case _ => throw new RuntimeException("Error trying to read date time value when processing progress status time stamps")
+      }
+    }
+
+    val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> true)
     val query = BSONDocument("applicationId" -> applicationId)
 
     collection.find(query, projection).one[BSONDocument].map {
       case Some(doc) =>
         doc.getAs[BSONDocument]("progress-status-timestamp").map { timestamps =>
-          timestamps.elements.toList.map {
-            case (progressStatus: String, bsonDateTime: BSONDateTime) =>
-              progressStatus -> bsonDateTime.as[DateTime]
+          timestamps.elements.toList.map { bsonElement =>
+            bsonElement.name -> bsonElement.value.as[DateTime]
           }
         }.getOrElse(Nil)
       case _ => Nil
