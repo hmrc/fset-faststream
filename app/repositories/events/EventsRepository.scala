@@ -26,6 +26,7 @@ import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.DateTime
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats

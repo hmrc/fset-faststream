@@ -32,6 +32,7 @@ import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{ BSONDateTimeHandler, CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
 import repositories.adjustmentDetailHandler
@@ -210,12 +211,26 @@ class ApplicationSiftMongoRepository(
     }
   }
 
-
   def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
-    val fsQuery = (route: ApplicationRoute) => BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationRoute" -> route),
+    val fsQuery = () => BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> ApplicationRoute.Faststream),
       BSONDocument("applicationStatus" -> prevPhase),
       BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
+        BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
+        "result" -> EvaluationResults.Green.toString)
+    ))))
+
+    val sdipFsQuery = () => BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument("applicationStatus" -> BSONDocument("$in" ->
+        Seq(ApplicationStatus.PHASE1_TESTS.toString, ApplicationStatus.PHASE3_TESTS.toString, ApplicationStatus.PHASE3_TESTS.toString))
+      ),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN}" -> true),
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN}" -> true),
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN}" -> true)
+      )),
+      BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" ->
         BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
         "result" -> EvaluationResults.Green.toString)
     ))))
@@ -228,14 +243,14 @@ class ApplicationSiftMongoRepository(
     lazy val eligibleForSiftQuery =
       if (MicroserviceAppConfig.disableSdipFaststreamForSift) { // FSET-1803. Disable sdipfaststream in sift temporarily
         BSONDocument("$or" -> BSONArray(
-          fsQuery(ApplicationRoute.Faststream),
+          fsQuery(),
           xdipQuery(ApplicationRoute.Edip),
           xdipQuery(ApplicationRoute.Sdip)
         ))
       } else {
         BSONDocument("$or" -> BSONArray(
-          fsQuery(ApplicationRoute.Faststream),
-          fsQuery(ApplicationRoute.SdipFaststream),
+          fsQuery(),
+          sdipFsQuery(),
           xdipQuery(ApplicationRoute.Edip),
           xdipQuery(ApplicationRoute.Sdip)
         ))

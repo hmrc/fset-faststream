@@ -76,6 +76,7 @@ object ProgressStatuses {
   case object PHASE1_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
   case object PHASE1_TESTS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
   case object PHASE1_TESTS_FAILED_SDIP_AMBER extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+  case object PHASE1_TESTS_FAILED_SDIP_GREEN extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
 
   case object PHASE2_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
@@ -89,6 +90,7 @@ object ProgressStatuses {
   case object PHASE2_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_FAILED)
   case object PHASE2_TESTS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_FAILED)
   case object PHASE2_TESTS_FAILED_SDIP_AMBER extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+  case object PHASE2_TESTS_FAILED_SDIP_GREEN extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
 
   case object PHASE3_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
@@ -102,6 +104,7 @@ object ProgressStatuses {
   case object PHASE3_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
   case object PHASE3_TESTS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
   case object PHASE3_TESTS_FAILED_SDIP_AMBER extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_FAILED_SDIP_GREEN extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
 
   // Edip and Sdip status only
   case object PHASE1_TESTS_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)

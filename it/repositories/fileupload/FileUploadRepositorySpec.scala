@@ -11,7 +11,7 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
   lazy val repository: FileUploadMongoRepository = new FileUploadMongoRepository()
 
   "add" must {
-    "store a file with contentType" taggedAs TravisIgnore ignore {
+    "store a file with contentType" taggedAs TravisIgnore in {
       val testContent = "Test contents".toCharArray.map(_.toByte)
       val testContentType = "application/pdf"
       val id = repository.add(testContentType, testContent).futureValue
@@ -22,7 +22,7 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
   }
 
   "retrieve" must {
-    "retrieve a file by id" taggedAs TravisIgnore ignore {
+    "retrieve a file by id" taggedAs TravisIgnore in {
       val testContent = "Test contents".toCharArray.map(_.toByte)
       val testContentType = "application/pdf"
       val id = repository.add(testContentType, testContent).futureValue

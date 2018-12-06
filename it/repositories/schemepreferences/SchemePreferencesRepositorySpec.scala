@@ -4,7 +4,7 @@ import model.ApplicationStatus._
 import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.SelectedSchemesExamples._
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import config.MicroserviceAppConfig._
 import factories.ITDateTimeFactoryMock

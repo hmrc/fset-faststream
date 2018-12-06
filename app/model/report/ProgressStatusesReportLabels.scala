@@ -46,6 +46,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase1ProgressResponse.phase1TestsResultsReceived, 160, Phase1TestsResultsReceived),
     (progress.phase1ProgressResponse.phase1TestsExpired, 170, Phase1TestsExpired),
     (progress.phase1ProgressResponse.phase1TestsFailedSdipAmber, 175, Phase1TestsFailedSdipAmber),
+    (progress.phase1ProgressResponse.phase1TestsFailedSdipGreen, 176, Phase1TestsFailedSdipGreen),
     (progress.phase1ProgressResponse.phase1TestsPassed, 180, Phase1TestsPassed),
     (progress.phase1ProgressResponse.phase1TestsSuccessNotified, 185, Phase1TestsPassedNotified),
     (progress.phase1ProgressResponse.phase1TestsFailed, 190, Phase1TestsFailed),
@@ -64,6 +65,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase2ProgressResponse.phase2TestsResultsReceived, 260, Phase2TestsResultsReceived),
     (progress.phase2ProgressResponse.phase2TestsExpired, 270, Phase2TestsExpired),
     (progress.phase2ProgressResponse.phase2TestsFailedSdipAmber, 275, Phase2TestsFailedSdipAmber),
+    (progress.phase2ProgressResponse.phase2TestsFailedSdipGreen, 276, Phase2TestsFailedSdipGreen),
     (progress.phase2ProgressResponse.phase2TestsPassed, 280, Phase2TestsPassed),
     (progress.phase2ProgressResponse.phase2TestsFailed, 290, Phase2TestsFailed),
     (progress.phase2ProgressResponse.phase2TestsFailedNotified, 295, Phase2TestsFailedNotified),
@@ -76,6 +78,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsResultsReceived, 350, Phase3TestsResultsReceived),
     (progress.phase3ProgressResponse.phase3TestsExpired, 360, Phase3TestsExpired),
     (progress.phase3ProgressResponse.phase3TestsFailedSdipAmber, 365, Phase3TestsFailedSdipAmber),
+    (progress.phase3ProgressResponse.phase3TestsFailedSdipGreen, 366, Phase3TestsFailedSdipGreen),
     (progress.phase3ProgressResponse.phase3TestsPassedWithAmber, 370, Phase3TestsPassedWithAmber),
     (progress.phase3ProgressResponse.phase3TestsPassed, 380, Phase3TestsPassed),
     (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 385, Phase3TestsPassedNotified),
@@ -186,6 +189,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase1TestsFailedNotified = "phase1_tests_failed_notified"
   val Phase1TestsPassedNotified = "phase1_tests_passed_notified"
   val Phase1TestsFailedSdipAmber = "phase1_tests_failed_sdip_amber"
+  val Phase1TestsFailedSdipGreen = "phase1_tests_failed_sdip_green"
 
   val Phase2TestsInvited = "phase2_tests_invited"
   val Phase2TestsFirstReminder = "phase2_tests_first_reminder"
@@ -199,6 +203,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase2TestsFailed = "phase2_tests_failed"
   val Phase2TestsFailedNotified = "phase2_tests_failed_notified"
   val Phase2TestsFailedSdipAmber = "phase2_tests_failed_sdip_amber"
+  val Phase2TestsFailedSdipGreen = "phase2_tests_failed_sdip_green"
 
   val Phase3TestsInvited = "phase3_tests_invited"
   val Phase3TestsFirstReminder = "phase3_tests_first_reminder"
@@ -213,6 +218,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsPassedNotified = "phase3_tests_passed_notified"
   val Phase3TestsFailedSdipAmber = "phase3_tests_failed_sdip_amber"
+  val Phase3TestsFailedSdipGreen = "phase3_tests_failed_sdip_green"
 
   val AssessmentCentreAwaitingAllocation = "assessment_centre_awaiting_allocation"
   val AssessmentCentreAllocationConfirmed = "assessment_centre_allocation_confirmed"

@@ -20,7 +20,7 @@ import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.Exceptions.NotFoundException
 import model.FlagCandidatePersistedObject.FlagCandidate
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import config.MicroserviceAppConfig._
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec

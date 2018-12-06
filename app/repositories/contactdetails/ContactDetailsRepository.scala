@@ -26,6 +26,7 @@ import play.api.libs.json.Reads._
 import play.api.libs.json._
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats

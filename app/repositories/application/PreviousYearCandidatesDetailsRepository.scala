@@ -32,8 +32,8 @@ import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONReader, BSONValue }
-import reactivemongo.json.ImplicitBSONHandlers._
-import reactivemongo.json.collection.JSONCollection
+import reactivemongo.play.json.ImplicitBSONHandlers._
+import reactivemongo.play.json.collection.JSONCollection
 import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository }
 import services.reporting.SocioEconomicCalculator
 import repositories.withdrawHandler
@@ -57,12 +57,12 @@ trait PreviousYearCandidatesDetailsRepository {
   // scalastyle:off
 
   private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,partner-graduate-programmes,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
-    "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE1_TESTS_PASSED_NOTIFIED,PHASE1_TESTS_FAILED,PHASE1_TESTS_FAILED_NOTIFIED,PHASE1_TESTS_FAILED_SDIP_AMBER," +
+    "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE1_TESTS_PASSED_NOTIFIED,PHASE1_TESTS_FAILED,PHASE1_TESTS_FAILED_NOTIFIED,PHASE1_TESTS_FAILED_SDIP_AMBER,PHASE1_TESTS_FAILED_SDIP_GREEN," +
     "PHASE2_TESTS_INVITED,PHASE2_TESTS_FIRST_REMINDER," +
     "PHASE2_TESTS_SECOND_REMINDER,PHASE2_TESTS_STARTED,PHASE2_TESTS_COMPLETED,PHASE2_TESTS_EXPIRED,PHASE2_TESTS_RESULTS_READY," +
-    "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE2_TESTS_FAILED,PHASE2_TESTS_FAILED_NOTIFIED,PHASE2_TESTS_FAILED_SDIP_AMBER,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
+    "PHASE2_TESTS_RESULTS_RECEIVED,PHASE2_TESTS_PASSED,PHASE2_TESTS_FAILED,PHASE2_TESTS_FAILED_NOTIFIED,PHASE2_TESTS_FAILED_SDIP_AMBER,PHASE2_TESTS_FAILED_SDIP_GREEN,PHASE3_TESTS_INVITED,PHASE3_TESTS_FIRST_REMINDER," +
     "PHASE3_TESTS_SECOND_REMINDER,PHASE3_TESTS_STARTED,PHASE3_TESTS_COMPLETED,PHASE3_TESTS_EXPIRED,PHASE3_TESTS_RESULTS_RECEIVED," +
-    "PHASE3_TESTS_PASSED_WITH_AMBER,PHASE3_TESTS_PASSED,PHASE3_TESTS_PASSED_NOTIFIED,PHASE3_TESTS_FAILED,PHASE3_TESTS_FAILED_NOTIFIED,PHASE3_TESTS_FAILED_SDIP_AMBER," +
+    "PHASE3_TESTS_PASSED_WITH_AMBER,PHASE3_TESTS_PASSED,PHASE3_TESTS_PASSED_NOTIFIED,PHASE3_TESTS_FAILED,PHASE3_TESTS_FAILED_NOTIFIED,PHASE3_TESTS_FAILED_SDIP_AMBER,PHASE3_TESTS_FAILED_SDIP_GREEN," +
     "SIFT_ENTERED,SIFT_TEST_INVITED,SIFT_TEST_STARTED,SIFT_TEST_COMPLETED,SIFT_FIRST_REMINDER,SIFT_SECOND_REMINDER,SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING," +
     "SIFT_TEST_RESULTS_READY,SIFT_TEST_RESULTS_RECEIVED,SIFT_READY,SIFT_COMPLETED,SIFT_EXPIRED,SIFT_EXPIRED_NOTIFIED,FAILED_AT_SIFT,FAILED_AT_SIFT_NOTIFIED," +
     "SDIP_FAILED_AT_SIFT,SIFT_FASTSTREAM_FAILED_SDIP_GREEN," +
@@ -502,6 +502,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         ProgressStatuses.PHASE1_TESTS_FAILED,
         ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
         ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER,
+        ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN,
         ProgressStatuses.PHASE2_TESTS_INVITED,
         ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER,
         ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER,
@@ -514,6 +515,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         ProgressStatuses.PHASE2_TESTS_FAILED,
         ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
         ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
+        ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN,
         ProgressStatuses.PHASE3_TESTS_INVITED,
         ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER,
         ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
@@ -526,7 +528,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED,
         ProgressStatuses.PHASE3_TESTS_FAILED,
         ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED,
-        ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER
+        ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER,
+        ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN
       ).map(timestampFor) ++
       List(
         ProgressStatuses.SIFT_ENTERED,
@@ -654,10 +657,11 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         val questionsDoc = doc.getAs[BSONDocument]("questions")
         val universityName = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
 
-        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map {
-          case (question, _) =>
-            val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
-            (question, answer)
+        //TODO: Ian mongo 3.2 -> 3.4
+        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
+          val question = bsonElement.name
+          val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
+          question -> answer
         }.toMap
 
         val csvRecord = makeRow(
@@ -700,10 +704,11 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         val questionsDoc = doc.getAs[BSONDocument]("questions")
         val universityName = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
 
-        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map {
-          case (question, _) =>
-            val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
-            (question, answer)
+        //TODO: Ian mongo 3.2 -> 3.4
+        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
+          val question = bsonElement.name
+          val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
+          question -> answer
         }.toMap
 
         val csvRecord = makeRow(
