@@ -5,7 +5,7 @@ import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetailsExamples._
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._

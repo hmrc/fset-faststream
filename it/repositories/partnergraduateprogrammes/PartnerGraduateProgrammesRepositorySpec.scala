@@ -3,7 +3,7 @@ package repositories.partnergraduateprogrammes
 import model.Exceptions.PartnerGraduateProgrammesNotFound
 import model.persisted.PartnerGraduateProgrammesExamples
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 

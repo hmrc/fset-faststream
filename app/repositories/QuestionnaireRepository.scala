@@ -22,6 +22,7 @@ import play.api.libs.json._
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import services.reporting.SocioEconomicScoreCalculator
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -134,6 +135,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     }
   }
 
+  //scalastyle:off method.length
   private def docToReport(document: BSONDocument): (String, QuestionnaireReportItem) = {
     val questionsDoc = document.getAs[BSONDocument]("questions")
 
@@ -161,10 +163,11 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     val parentEmployedOrSelf = getAnswer(ParentEmployedOrSelfEmployedQuestionText)
     val parentCompanySize = getAnswer(ParentCompanySizeQuestionText)
 
-    val qAndA = questionsDoc.toList.flatMap(_.elements).map {
-      case (question, _) =>
-        val answer = getAnswer(question).getOrElse(UnknownAnswerText)
-        (question, answer)
+    //TODO: Ian mongo 3.2 -> 3.4
+    val qAndA = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
+      val question = bsonElement.name
+      val answer = getAnswer(question).getOrElse(UnknownAnswerText)
+      question -> answer
     }.toMap
 
     val socioEconomicScore = employmentStatus.map(_ => socioEconomicCalculator.calculate(qAndA)).getOrElse("")

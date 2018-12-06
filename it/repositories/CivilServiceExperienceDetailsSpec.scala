@@ -4,13 +4,11 @@ import model.ApplicationStatus._
 import model.Exceptions.{ CannotUpdateCivilServiceExperienceDetails, CivilServiceExperienceDetailsNotFound }
 import model.CivilServiceExperienceDetailsExamples._
 import reactivemongo.bson._
-import reactivemongo.json._
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import testkit.MongoRepositorySpec
 
 class CivilServiceExperienceDetailsSpec extends MongoRepositorySpec {
-
-  import ImplicitBSONHandlers._
 
   override val collectionName: String = CollectionNames.APPLICATION
 
