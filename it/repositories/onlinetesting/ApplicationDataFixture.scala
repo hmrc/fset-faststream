@@ -9,7 +9,7 @@ import reactivemongo.bson.{ BSONArray, BSONDocument }
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
-import reactivemongo.play.json.ImplicitBSONHandlers
+import reactivemongo.json.ImplicitBSONHandlers
 
 import scala.concurrent.Future
 import config.MicroserviceAppConfig.cubiksGatewayConfig

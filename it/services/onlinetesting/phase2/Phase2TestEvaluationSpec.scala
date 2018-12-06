@@ -12,8 +12,8 @@ import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.scalatest.prop._
 import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
-import reactivemongo.play.json.collection.JSONCollection
+import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.json.collection.JSONCollection
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.onlinetesting.Phase2EvaluationMongoRepository
 import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository

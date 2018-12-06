@@ -19,8 +19,7 @@ package repositories
 import reactivemongo.api.QueryOpts
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
-import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.{ ExecutionContext, Future }

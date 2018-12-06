@@ -27,7 +27,6 @@ import model.{ ApplicationStatus, Phase => _, _ }
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ BaseBSONReader, CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper }
 import repositories.{ RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository

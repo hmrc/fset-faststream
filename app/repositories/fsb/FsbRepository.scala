@@ -28,7 +28,6 @@ import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import org.joda.time.DateTime
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
 import repositories.assessmentcentre.AssessmentCentreRepository
 import uk.gov.hmrc.mongo.ReactiveRepository

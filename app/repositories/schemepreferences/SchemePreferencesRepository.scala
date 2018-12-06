@@ -20,7 +20,6 @@ import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFou
 import model.{ SchemeId, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats

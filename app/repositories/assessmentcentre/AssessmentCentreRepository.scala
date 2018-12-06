@@ -28,7 +28,6 @@ import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
 import repositories.application.GeneralApplicationRepoBSONReader
 import uk.gov.hmrc.mongo.ReactiveRepository

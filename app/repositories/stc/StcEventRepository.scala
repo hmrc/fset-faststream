@@ -20,7 +20,6 @@ import model.persisted.StcEvent
 import reactivemongo.api.DB
 import repositories.CollectionNames
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 

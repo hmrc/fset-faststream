@@ -23,7 +23,6 @@ import model.persisted.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, Sif
 import reactivemongo.api.DB
 import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ BaseBSONReader, CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
