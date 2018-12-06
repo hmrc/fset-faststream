@@ -440,7 +440,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
-  def allOnlineTestsPhases: Seq[ProgressStatus] = {
+  private def allOnlineTestsPhases: Seq[ProgressStatus] = {
     Seq(
       ProgressStatuses.PHASE1_TESTS_INVITED,
       ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER,
@@ -453,6 +453,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED,
       ProgressStatuses.PHASE1_TESTS_FAILED,
       ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN,
       ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
       ProgressStatuses.PHASE1_TESTS_EXPIRED,
 
@@ -467,6 +468,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.PHASE2_TESTS_PASSED,
       ProgressStatuses.PHASE2_TESTS_FAILED,
       ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN,
       ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
       ProgressStatuses.PHASE2_TESTS_EXPIRED,
 
@@ -481,6 +483,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED,
       ProgressStatuses.PHASE3_TESTS_FAILED,
       ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN,
       ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED,
       ProgressStatuses.PHASE3_TESTS_EXPIRED
     )
