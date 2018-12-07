@@ -46,7 +46,9 @@ trait ReportingRepository {
 
   def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
 
-  def onlineTestPassMarkReportFsOnly: Future[List[ApplicationForOnlineTestPassMarkReport]]
+  def onlineTestPassMarkReportFsPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]]
+
+  def onlineTestPassMarkReportFsNotPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]]
 
   def onlineTestPassMarkReportNonFs: Future[List[ApplicationForOnlineTestPassMarkReport]]
 
@@ -224,9 +226,25 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     reportQueryWithProjectionsBSON[ApplicationForNumericTestExtractReport](query, projection)
   }
 
-  override def onlineTestPassMarkReportFsOnly: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+  override def onlineTestPassMarkReportFsPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"applicationRoute" -> ApplicationRoute.Faststream),
+      BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE1_TESTS_FAILED),
+      BSONDocument(
+        "$or" -> BSONArray(
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+        )
+      )))
+
+    commonOnlineTestPassMarkReport(query)
+  }
+
+  override def onlineTestPassMarkReportFsNotPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"applicationRoute" -> ApplicationRoute.Faststream),
+      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.PHASE1_TESTS_FAILED)),
+
       BSONDocument(
         "$or" -> BSONArray(
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),

@@ -43,11 +43,11 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
 
   "Online test pass mark report" should {
     "return nothing if no application exists" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReportFsOnly).thenReturnAsync(Nil)
+      when(mockReportRepository.onlineTestPassMarkReportFsPhase1Failed).thenReturnAsync(Nil)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(Map.empty)
       when(mockFsbRepo.findScoresAndFeedback(any[List[String]]())).thenReturnAsync(Map.empty)
 
-      val response = controller.onlineTestPassMarkReportFsOnly(frameworkId)(request).run
+      val response = controller.onlineTestPassMarkReportFsPhase1Failed(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
@@ -55,11 +55,11 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return nothing if applications exist, but no questionnaires" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReportFsOnly).thenReturnAsync(applications)
+      when(mockReportRepository.onlineTestPassMarkReportFsPhase1Failed).thenReturnAsync(applications)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(Map.empty)
       when(mockFsbRepo.findScoresAndFeedback(any[List[String]]())).thenReturnAsync(Map.empty)
 
-      val response = controller.onlineTestPassMarkReportFsOnly(frameworkId)(request).run
+      val response = controller.onlineTestPassMarkReportFsPhase1Failed(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
@@ -67,7 +67,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications and questionnaires if applications and questionnaires exist, but no test results" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReportFsOnly).thenReturnAsync(applicationsWithNoTestResults)
+      when(mockReportRepository.onlineTestPassMarkReportFsPhase1Failed).thenReturnAsync(applicationsWithNoTestResults)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(questionnairesForNoTestResults)
 
@@ -78,7 +78,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
         )
       )
 
-      val response = controller.onlineTestPassMarkReportFsOnly(frameworkId)(request).run
+      val response = controller.onlineTestPassMarkReportFsPhase1Failed(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
@@ -92,7 +92,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications with questionnaire and test results" in new TestFixture {
-      when(mockReportRepository.onlineTestPassMarkReportFsOnly).thenReturnAsync(applications)
+      when(mockReportRepository.onlineTestPassMarkReportFsPhase1Failed).thenReturnAsync(applications)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport(any[List[String]]())).thenReturnAsync(questionnaires)
 
@@ -103,7 +103,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
         )
       )
 
-      val response = controller.onlineTestPassMarkReportFsOnly(frameworkId)(request).run
+      val response = controller.onlineTestPassMarkReportFsPhase1Failed(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
@@ -177,7 +177,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
         QuestionnaireReportItemExamples.questionnaire2)
 
     def request = {
-      FakeRequest(Helpers.GET, controllers.routes.ReportingController.onlineTestPassMarkReportFsOnly(frameworkId).url, FakeHeaders(), "")
+      FakeRequest(Helpers.GET, controllers.routes.ReportingController.onlineTestPassMarkReportFsPhase1Failed(frameworkId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
 
