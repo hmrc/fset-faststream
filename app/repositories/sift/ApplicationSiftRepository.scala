@@ -223,7 +223,7 @@ class ApplicationSiftMongoRepository(
     val sdipFsQuery = () => BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
       BSONDocument("applicationStatus" -> BSONDocument("$in" ->
-        Seq(ApplicationStatus.PHASE1_TESTS.toString, ApplicationStatus.PHASE3_TESTS.toString, ApplicationStatus.PHASE3_TESTS.toString))
+        Seq(ApplicationStatus.PHASE1_TESTS.toString, ApplicationStatus.PHASE2_TESTS.toString, ApplicationStatus.PHASE3_TESTS.toString))
       ),
       BSONDocument("$or" -> BSONArray(
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN}" -> true),
