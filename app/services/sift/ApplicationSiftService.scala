@@ -426,7 +426,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     for {
       _ <- applicationSiftRepo.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId)
       _ <- applicationRepo.removeProgressStatuses(applicationId,
-        List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
+        List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.SDIP_FAILED_AT_SIFT,
+          ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
     } yield ()
   }
 }
