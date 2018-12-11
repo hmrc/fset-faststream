@@ -476,5 +476,13 @@ trait FixDataConsistencyController extends BaseController {
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT testgroup for  $applicationId"))
   }
+
+  def updateApplicationStatus(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
+    applicationService.updateApplicationStatus(applicationId, newApplicationStatus).map { _ =>
+      Ok(s"Successfully updated $applicationId application status to $newApplicationStatus")
+    } recover {
+      case _: ApplicationNotFound => NotFound
+    }
+  }
 }
 // scalastyle:on

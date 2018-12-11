@@ -318,6 +318,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def updateApplicationStatus(applicationId: String, newApplicationStatus: ApplicationStatus): Future[Unit] = {
+    for {
+      application <- appRepository.find(applicationId)
+      _ = application.getOrElse(throw ApplicationNotFound(applicationId))
+      _ <- appRepository.updateStatus(applicationId, newApplicationStatus)
+    } yield ()
+  }
+
   def fixDataByRemovingETray(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     appRepository.fixDataByRemovingETray(appId)
   }
