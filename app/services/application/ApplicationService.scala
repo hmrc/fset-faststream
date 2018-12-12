@@ -887,6 +887,40 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def rollbackToPhase1TestsPassedFromSift(applicationId: String): Future[Unit] = {
+
+    val statusesToRollback = List(
+      ProgressStatuses.PHASE2_TESTS_INVITED,
+      ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_STARTED,
+      ProgressStatuses.PHASE2_TESTS_COMPLETED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_READY,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE2_TESTS_PASSED,
+      ProgressStatuses.PHASE3_TESTS_INVITED,
+      ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_STARTED,
+      ProgressStatuses.PHASE3_TESTS_COMPLETED,
+      ProgressStatuses.SIFT_ENTERED,
+      ProgressStatuses.SIFT_FIRST_REMINDER,
+      ProgressStatuses.SIFT_SECOND_REMINDER,
+      ProgressStatuses.SIFT_EXPIRED,
+      ProgressStatuses.SIFT_EXPIRED_NOTIFIED
+    )
+
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE1_TESTS_PASSED, statusesToRollback)
+      _ <- siftAnswersService.removeAnswers(applicationId)
+      _ <- appSiftRepository.removeTestGroup(applicationId)
+      _ <- phase3TestRepository.removePhase3TestGroup(applicationId)
+      _ <- phase2TestRepository.removeTestGroup(applicationId)
+      evaluationOpt <- phase1TestRepo.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+    } yield ()
+  }
+
   def setCurrentSchemeStatusToPhase3Evaluation(applicationId: String): Future[Unit] = {
     for {
       evaluationOpt <- phase3TestRepository.findEvaluation(applicationId)

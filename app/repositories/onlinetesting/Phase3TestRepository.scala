@@ -60,6 +60,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
+
+  def removePhase3TestGroup(applicationId: String): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -117,6 +119,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     upsertTestGroupEvaluationResult(applicationId, passmarkEvaluation)
   }
 
+  // Note this overrides the default impl in OnlineTestRepository. Maybe rename this method so we have the default available
   override def removeTestGroup(applicationId: String): Future[Unit] = {
     val appStatuses = List(ApplicationStatus.PHASE3_TESTS,
       ApplicationStatus.PHASE3_TESTS_FAILED,
@@ -137,6 +140,12 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(applicationId, "removing test group", ApplicationNotFound(applicationId))
     collection.update(query, updateQuery, upsert = false) map validator
+  }
+
+  // Note this is the same impl as the default removeTestGroup in OnlineTestRepository. Provided here because
+  // the default impl is overriden above
+  override def removePhase3TestGroup(applicationId: String): Future[Unit] = {
+    super.removeTestGroup(applicationId)
   }
 
   override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = {
