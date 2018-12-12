@@ -473,6 +473,16 @@ trait FixDataConsistencyController extends BaseController {
       }
     }
 
+  def rollbackToPhase1TestsPassedFromSift(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.rollbackToPhase1TestsPassedFromSift(applicationId).map(_ =>
+        Ok(s"Successfully rolled back to phase1 tests passed $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT testgroup for  $applicationId"))
   }
