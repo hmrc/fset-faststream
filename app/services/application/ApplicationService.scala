@@ -897,6 +897,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.PHASE2_TESTS_COMPLETED,
       ProgressStatuses.PHASE2_TESTS_RESULTS_READY,
       ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN,
       ProgressStatuses.PHASE2_TESTS_PASSED,
       ProgressStatuses.PHASE3_TESTS_INVITED,
       ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER,
@@ -907,7 +909,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.SIFT_FIRST_REMINDER,
       ProgressStatuses.SIFT_SECOND_REMINDER,
       ProgressStatuses.SIFT_EXPIRED,
-      ProgressStatuses.SIFT_EXPIRED_NOTIFIED
+      ProgressStatuses.SIFT_EXPIRED_NOTIFIED,
+      ProgressStatuses.SIFT_READY
     )
 
     for {
