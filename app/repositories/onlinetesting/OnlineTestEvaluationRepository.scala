@@ -152,6 +152,7 @@ class Phase1EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(impl
     BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
       BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
       BSONDocument("$or" -> BSONArray(
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
@@ -185,6 +186,7 @@ class Phase2EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(impl
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
         BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN}" -> BSONDocument("$exists" -> false)),
         BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
         BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
         BSONDocument("$or" -> BSONArray(
@@ -231,6 +233,7 @@ class Phase3EvaluationMongoRepository(
     BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
       BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
       BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
       BSONDocument(s"testGroups.$phase.tests" ->
