@@ -24,7 +24,7 @@ import model.command.{ CandidateDetailsReportItem, CsvExtract }
 import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
 import model.persisted.eventschedules.Event
 import model.report._
-import model.{ ApplicationStatus, SiftRequirement, UniqueIdentifier }
+import model.{ ApplicationRoute, ApplicationStatus, SiftRequirement, UniqueIdentifier }
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
@@ -43,6 +43,7 @@ import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import common.Joda._
+import model.ApplicationRoute.{ ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream }
 
 object ReportingController extends ReportingController {
   val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
@@ -117,65 +118,73 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def streamPreviousYearCandidatesDetailsReport: Action[AnyContent] = Action.async { implicit request =>
-    def log(msg: String)= play.api.Logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
-    enrichPreviousYearCandidateDetails {
-      (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
-       siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) =>
-      {
-        val header = Enumerator(
-          (prevYearCandidatesDetailsRepository.applicationDetailsHeader(numOfSchemes) ::
-            prevYearCandidatesDetailsRepository.contactDetailsHeader ::
-            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
-            prevYearCandidatesDetailsRepository.mediaHeader ::
-            prevYearCandidatesDetailsRepository.eventsDetailsHeader ::
-            prevYearCandidatesDetailsRepository.siftAnswersHeader ::
-            prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Assessor") ::
-            prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Reviewer") ::
-            Nil).mkString(",") + "\n"
-        )
-        var counter = 0
-        val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes).map { app =>
-          val ret = createCandidateInfoBackUpRecord(
-            app,
-            contactDetails,
-            questionnaireDetails,
-            mediaDetails,
-            eventsDetails,
-            siftAnswers,
-            assessorAssessmentScores,
-            reviewerAssessmentScores
-          ) + "\n"
-          counter += 1
-          ret
-        }
-        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
-      }
-    }
+  def streamPreviousYearFaststreamCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(Seq(Faststream))
   }
 
-  private def enrichPreviousYearCandidateDetails(
-    block: (Int, CsvExtract[String], CsvExtract[String],
-      CsvExtract[String], CsvExtract[String],
-      CsvExtract[String], CsvExtract[String],
-      CsvExtract[String]) => Result
-  ) = {
+  def streamPreviousYearNonFaststreamCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(Seq(SdipFaststream, Sdip, Edip))
+  }
+
+  private def streamPreviousYearCandidatesDetailsReport(applicationRoutes: Seq[ApplicationRoute]): Action[AnyContent] =
+    Action.async { implicit request =>
+      prevYearCandidatesDetailsRepository.findApplicationIdsFor(applicationRoutes).flatMap { candidates =>
+        val appIds = candidates.flatMap(_.applicationId)
+
+        enrichPreviousYearCandidateDetails(appIds) {
+          (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+           siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
+            val header = buildHeaders(numOfSchemes)
+            var counter = 0
+            val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
+              app =>
+                val ret = createCandidateInfoBackUpRecord(
+                  app, contactDetails, questionnaireDetails, mediaDetails,
+                  eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
+                ) + "\n"
+                counter += 1
+                ret
+            }
+            Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+          }
+        }
+      }
+  }
+
+  private def buildHeaders(numOfSchemes: Int): Enumerator[String] = {
+    Enumerator(
+      (prevYearCandidatesDetailsRepository.applicationDetailsHeader(numOfSchemes) ::
+        prevYearCandidatesDetailsRepository.contactDetailsHeader ::
+        prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+        prevYearCandidatesDetailsRepository.mediaHeader ::
+        prevYearCandidatesDetailsRepository.eventsDetailsHeader ::
+        prevYearCandidatesDetailsRepository.siftAnswersHeader ::
+        prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Assessor") ::
+        prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Reviewer") ::
+        Nil).mkString(",") + "\n"
+    )
+  }
+
+  type ReportStreamBlockType = (Int, CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String],
+    CsvExtract[String],CsvExtract[String], CsvExtract[String]) => Result
+
+  private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String])(block: ReportStreamBlockType) = {
     def log(msg: String)= play.api.Logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
     log(s"started enriching data at ${org.joda.time.DateTime.now}")
     val data = for {
-      contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails()
+      contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails(applicationIds)
       _ = log(s"enriching data - contactDetails = ${contactDetails.header}, size = ${contactDetails.records.size}")
-      questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetails()
+      questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetails(applicationIds)
       _ = log(s"enriching data - questionnaireDetails = ${questionnaireDetails.header}, size = ${questionnaireDetails.records.size}")
-      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails()
+      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails(applicationIds)
       _ = log(s"enriching data - mediaDetails = ${mediaDetails.header}, size = ${mediaDetails.records.size}")
-      eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails()
+      eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails(applicationIds)
       _ = log(s"enriching data - eventsDetails = ${eventsDetails.header}, size = ${eventsDetails.records.size}")
-      siftAnswers <- prevYearCandidatesDetailsRepository.findSiftAnswers()
+      siftAnswers <- prevYearCandidatesDetailsRepository.findSiftAnswers(applicationIds)
       _ = log(s"enriching data - siftAnswers = ${siftAnswers.header}, size = ${siftAnswers.records.size}")
-      assessorAssessmentScores <- prevYearCandidatesDetailsRepository.findAssessorAssessmentScores()
+      assessorAssessmentScores <- prevYearCandidatesDetailsRepository.findAssessorAssessmentScores(applicationIds)
       _ = log(s"enriching data - assessorAssessmentScores = ${assessorAssessmentScores.header}, size = ${assessorAssessmentScores.records.size}")
-      reviewerAssessmentScores <- prevYearCandidatesDetailsRepository.findReviewerAssessmentScores()
+      reviewerAssessmentScores <- prevYearCandidatesDetailsRepository.findReviewerAssessmentScores(applicationIds)
       _ = log(s"enriching data - reviewerAssessmentScores = ${reviewerAssessmentScores.header}, size = ${reviewerAssessmentScores.records.size}")
     } yield {
       val res = block(schemeRepo.schemes.size, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,

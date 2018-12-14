@@ -19,6 +19,7 @@ package repositories.application
 import config.NumericalTestsConfig
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
+import model.ApplicationRoute.ApplicationRoute
 import model.OnlineTestCommands.TestResult
 import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse, WithdrawApplication }
 import model._
@@ -149,25 +150,34 @@ trait PreviousYearCandidatesDetailsRepository {
     }.mkString(",") + s",$assessor Final feedback,updatedBy,acceptedDate"
   }
 
-  def applicationDetailsStream(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
+  def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem]
 
   def applicationDetailsStreamWip(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
 
+  def findApplicationIdsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]]
+
   def findContactDetails(): Future[CsvExtract[String]]
+  def findContactDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
   def findQuestionnaireDetails(): Future[CsvExtract[String]]
+  def findQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
   def findQuestionnaireDetailsWip(): Future[CsvExtract[String]]
 
   def findMediaDetails(): Future[CsvExtract[String]]
+  def findMediaDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
   def findAssessorAssessmentScores(): Future[CsvExtract[String]]
+  def findAssessorAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
   def findReviewerAssessmentScores(): Future[CsvExtract[String]]
+  def findReviewerAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
   def findEventsDetails(): Future[CsvExtract[String]]
+  def findEventsDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
   def findSiftAnswers(): Future[CsvExtract[String]]
+  def findSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]]
 }
 
 class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
@@ -369,12 +379,18 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  override def applicationDetailsStream(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
+  override def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])
+  : Enumerator[CandidateDetailsReportItem] = {
     adsCounter = 0
 
+    val query = if(applicationIds.nonEmpty) {
+      BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    } else {
+      BSONDocument()
+    }
     val projection = Json.obj("_id" -> 0)
 
-    applicationDetailsCollection.find(Json.obj(), projection)
+    applicationDetailsCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .enumerate().map { doc =>
 
@@ -604,11 +620,24 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     )
   }
 
+  def findApplicationIdsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]] = {
+    val query = BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes))
+    applicationDetailsCollection.find(query).cursor[Candidate]().collect[List]()
+  }
+
   override def findContactDetails(): Future[CsvExtract[String]] = {
+    findContactDetails(Seq.empty[String])
+  }
 
+  def findContactDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
+    val query = if(applicationIds.nonEmpty) {
+      BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    } else {
+      BSONDocument()
+    }
 
-    contactDetailsCollection.find(Json.obj(), projection)
+    contactDetailsCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map { docs =>
       val csvRecords = docs.map { doc =>
@@ -682,14 +711,24 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   def findQuestionnaireDetails(): Future[CsvExtract[String]] = {
+    findQuestionnaireDetails(Seq.empty[String])
+  }
+
+  def findQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
+    val query = if(applicationIds.nonEmpty) {
+      BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    } else {
+      BSONDocument()
+    }
 
     def getAnswer(question: String, doc: Option[BSONDocument]) = {
       val questionDoc = doc.flatMap(_.getAs[BSONDocument](question))
       val isUnknown = questionDoc.flatMap(_.getAs[Boolean]("unknown")).contains(true)
-      isUnknown match {
-        case true => Some("Unknown")
-        case _ => questionDoc.flatMap(q => q.getAs[String]("answer") match {
+      if (isUnknown) {
+        Some("Unknown")
+      } else {
+        questionDoc.flatMap(q => q.getAs[String]("answer") match {
           case None => q.getAs[String]("otherDetails")
           case Some(answer) if List("Other", "Other ethnic group").contains(answer) => q.getAs[String]("otherDetails")
           case Some(answer) => Some(answer)
@@ -697,7 +736,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       }
     }
 
-    questionnaireCollection.find(Json.obj(), projection)
+    questionnaireCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map { docs =>
       val csvRecords = docs.map { doc =>
@@ -741,9 +780,18 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   def findSiftAnswers(): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
+    findSiftAnswers(Seq.empty[String])
+  }
 
-    siftAnswersCollection.find(Json.obj(), projection)
+  def findSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+    val projection = Json.obj("_id" -> 0)
+    val query = if(applicationIds.nonEmpty) {
+      BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    } else {
+      BSONDocument()
+    }
+
+    siftAnswersCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map { docs =>
       val csvRecords = docs.map { doc =>
@@ -776,14 +824,21 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       }.toMap
       CsvExtract(siftAnswersHeader, csvRecords)
     }
-
-
   }
 
   def findEventsDetails(): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
+    findEventsDetails(Seq.empty[String])
+  }
 
-    val allEventsFut = eventCollection.find(Json.obj(), projection)
+  def findEventsDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+    val projection = Json.obj("_id" -> 0)
+    val query = if(applicationIds.nonEmpty) {
+      BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    } else {
+      BSONDocument()
+    }
+
+    val allEventsFut = eventCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map { docs =>
       docs.map { doc =>
@@ -823,13 +878,21 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         CsvExtract(eventsDetailsHeader, csvRecords)
       }
     }
-
   }
 
   def findMediaDetails(): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
+    findMediaDetails(Seq.empty[String])
+  }
 
-    mediaCollection.find(Json.obj(), projection)
+  def findMediaDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+    val projection = Json.obj("_id" -> 0)
+    val query = if(applicationIds.nonEmpty) {
+      BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    } else {
+      BSONDocument()
+    }
+
+    mediaCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map { docs =>
       val csvRecords = docs.map { doc =>
@@ -842,16 +905,28 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
+  def findAssessorAssessmentScores(): Future[CsvExtract[String]] =
+    findAssessmentScores("Assessor", assessorAssessmentScoresCollection, Seq.empty[String])
 
-  def findAssessorAssessmentScores(): Future[CsvExtract[String]] = findAssessmentScores("Assessor", assessorAssessmentScoresCollection)
+  def findAssessorAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]] =
+    findAssessmentScores("Assessor", assessorAssessmentScoresCollection, applicationIds)
 
-  def findReviewerAssessmentScores(): Future[CsvExtract[String]] = findAssessmentScores("Reviewer", reviewerAssessmentScoresCollection)
+  def findReviewerAssessmentScores(): Future[CsvExtract[String]] =
+    findAssessmentScores("Reviewer", reviewerAssessmentScoresCollection, Seq.empty[String])
 
-  private def findAssessmentScores(name: String, col: JSONCollection): Future[CsvExtract[String]] = {
+  def findReviewerAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]] =
+    findAssessmentScores("Reviewer", reviewerAssessmentScoresCollection, applicationIds)
 
+  private def findAssessmentScores(name: String, col: JSONCollection, applicationIds: Seq[String]): Future[CsvExtract[String]] = {
     val exerciseSections = assessmentScoresNumericFields.map(_._1)
     val projection = Json.obj("_id" -> 0)
-    col.find(Json.obj(), projection)
+    val query = if(applicationIds.nonEmpty) {
+      BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    } else {
+      BSONDocument()
+    }
+
+    col.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map { docs =>
       val csvRecords = docs.map { doc =>
