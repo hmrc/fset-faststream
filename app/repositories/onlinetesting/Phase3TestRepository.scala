@@ -62,6 +62,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 
   def removePhase3TestGroup(applicationId: String): Future[Unit]
+
+  def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -146,6 +148,17 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   // the default impl is overriden above
   override def removePhase3TestGroup(applicationId: String): Future[Unit] = {
     super.removeTestGroup(applicationId)
+  }
+
+  override def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
+
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.expirationDate" -> expiryDate
+    ))
+
+    val validator = singleUpdateValidator(applicationId, "setting phase3 expiration date", ApplicationNotFound(applicationId))
+    collection.update(query, update, upsert = false) map validator
   }
 
   override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = {

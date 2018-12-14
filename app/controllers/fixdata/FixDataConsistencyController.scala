@@ -483,6 +483,16 @@ trait FixDataConsistencyController extends BaseController {
       }
     }
 
+  def enablePhase3CandidateToBeEvaluated(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.enablePhase3CandidateToBeEvaluated(applicationId).map(_ =>
+        Ok(s"Successfully updated phase3 state so candidate $applicationId can be evaluated ")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT testgroup for  $applicationId"))
   }
