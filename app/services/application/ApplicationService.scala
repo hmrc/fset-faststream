@@ -924,6 +924,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def enablePhase3CandidateToBeEvaluated(applicationId: String): Future[Unit] = {
+    for {
+      _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(1))
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
+    } yield ()
+  }
+
   def setCurrentSchemeStatusToPhase3Evaluation(applicationId: String): Future[Unit] = {
     for {
       evaluationOpt <- phase3TestRepository.findEvaluation(applicationId)

@@ -148,6 +148,7 @@ GET         /diagnostic/rollbackToPhase3TestExpiredFromSift                     
 GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift           controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift
 GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift           controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift
 GET         /diagnostic/rollbackToPhase1TestsPassedFromSift                                            controllers.fixdata.FixDataConsistencyController.rollbackToPhase1TestsPassedFromSift(applicationId: String)
+GET         /diagnostic/enablePhase3CandidateToBeEvaluated                                             controllers.fixdata.FixDataConsistencyController.enablePhase3CandidateToBeEvaluated(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
