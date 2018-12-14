@@ -223,12 +223,14 @@ class ApplicationSiftMongoRepository(
     val sdipFsQuery = () => BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
       BSONDocument("applicationStatus" -> BSONDocument("$in" ->
-        Seq(ApplicationStatus.PHASE1_TESTS.toString, ApplicationStatus.PHASE2_TESTS.toString, ApplicationStatus.PHASE3_TESTS.toString))
+        Seq(ApplicationStatus.PHASE1_TESTS.toString, ApplicationStatus.PHASE2_TESTS.toString,
+          ApplicationStatus.PHASE3_TESTS.toString, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toString))
       ),
       BSONDocument("$or" -> BSONArray(
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN}" -> true),
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN}" -> true),
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN}" -> true)
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN}" -> true),
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED}" -> true)
       )),
       BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" ->
         BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),

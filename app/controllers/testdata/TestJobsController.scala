@@ -73,6 +73,12 @@ class TestJobsController extends BaseController {
     }
   }
 
+  def processSuccessPhase3SdipTestJob: Action[AnyContent] = Action.async { implicit request =>
+    SuccessPhase3SdipFsTestJob.tryExecute().map { _ =>
+      Ok("Success phase 3 sdip test job started")
+    }
+  }
+
   def progressCandidatesToSift: Action[AnyContent] = Action.async { implicit request =>
     ProgressToSiftJob.tryExecute().map { _ =>
       Ok("Progress to sift result job started")
