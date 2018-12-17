@@ -19,16 +19,16 @@ package repositories.onlinetesting
 import common.Phase3TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ApplicationNotFound, NotFoundException}
+import model.Exceptions.{ ApplicationNotFound, NotFoundException, TokenNotFound }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted.phase3tests.Phase3TestGroup
-import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId}
-import model.{ApplicationStatus, ProgressStatuses, ReminderNotice}
+import model.persisted.{ NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId }
+import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
 import repositories.BSONDateTimeHandler
@@ -62,6 +62,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 
   def removePhase3TestGroup(applicationId: String): Future[Unit]
+
+  def removeReviewedCallbacks(token: String): Future[Unit]
 
   def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
 }
@@ -148,6 +150,18 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   // the default impl is overriden above
   override def removePhase3TestGroup(applicationId: String): Future[Unit] = {
     super.removeTestGroup(applicationId)
+  }
+
+  override def removeReviewedCallbacks(token: String): Future[Unit] = {
+    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+    val update = BSONDocument(
+      "$unset" -> BSONDocument(s"testGroups.$phaseName.tests.$$.callbacks.reviewed" -> "")
+    )
+
+    val validator = singleUpdateValidator(token, "removing reviewed callbacks", TokenNotFound(token))
+    collection.update(query, update, upsert = false) map validator
   }
 
   override def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
