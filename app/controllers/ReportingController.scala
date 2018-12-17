@@ -24,7 +24,7 @@ import model.command.{ CandidateDetailsReportItem, CsvExtract }
 import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
 import model.persisted.eventschedules.Event
 import model.report._
-import model.{ ApplicationRoute, ApplicationStatus, SiftRequirement, UniqueIdentifier }
+import model._
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
@@ -118,18 +118,33 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def streamPreviousYearFaststreamCandidatesDetailsReport: Action[AnyContent] = {
-    streamPreviousYearCandidatesDetailsReport(Seq(Faststream))
+  def streamPreviousYearFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      (c: Candidate) => c.applicationStatus.get == ApplicationStatus.PHASE1_TESTS_FAILED.toString
+    )
+  }
+
+  def streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      (c: Candidate) => c.applicationStatus.get != ApplicationStatus.PHASE1_TESTS_FAILED.toString
+    )
   }
 
   def streamPreviousYearNonFaststreamCandidatesDetailsReport: Action[AnyContent] = {
-    streamPreviousYearCandidatesDetailsReport(Seq(SdipFaststream, Sdip, Edip))
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(SdipFaststream, Sdip, Edip),
+      _ => true
+    )
   }
 
-  private def streamPreviousYearCandidatesDetailsReport(applicationRoutes: Seq[ApplicationRoute]): Action[AnyContent] =
-    Action.async { implicit request =>
+  private def streamPreviousYearCandidatesDetailsReport(
+    applicationRoutes: Seq[ApplicationRoute],
+    filter: Candidate => Boolean
+    ): Action[AnyContent] = Action.async { implicit request =>
       prevYearCandidatesDetailsRepository.findApplicationIdsFor(applicationRoutes).flatMap { candidates =>
-        val appIds = candidates.flatMap(_.applicationId)
+        val appIds = candidates.collect { case c if filter(c) => c.applicationId }.flatten
 
         enrichPreviousYearCandidateDetails(appIds) {
           (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
