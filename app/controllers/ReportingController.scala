@@ -129,26 +129,18 @@ trait ReportingController extends BaseController {
     )
   }
 
-  def streamPreviousYearFaststreamSIFTCandidatesDetailsReport: Action[AnyContent] = {
+  def streamPreviousYearFaststreamP2P3CandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
-      Seq(ApplicationStatus.SIFT, ApplicationStatus.FAILED_AT_SIFT)
+      Seq(
+        ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_PASSED,
+        ApplicationStatus.PHASE2_TESTS_FAILED, ApplicationStatus.PHASE3_TESTS,
+        ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER, ApplicationStatus.PHASE3_TESTS_PASSED,
+        ApplicationStatus.PHASE3_TESTS_FAILED, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
+      )
     )
   }
 
-  def streamPreviousYearFaststreamFSACCandidatesDetailsReport: Action[AnyContent] = {
-    streamPreviousYearCandidatesDetailsReport(
-      Seq(Faststream),
-      Seq(ApplicationStatus.ASSESSMENT_CENTRE)
-    )
-  }
-
-  def streamPreviousYearFaststreamFSBCandidatesDetailsReport: Action[AnyContent] = {
-    streamPreviousYearCandidatesDetailsReport(
-      Seq(Faststream),
-      Seq(ApplicationStatus.FSB)
-    )
-  }
   def streamPreviousYearFaststreamSIFTCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
