@@ -44,6 +44,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import common.Joda._
 import model.ApplicationRoute.{ ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream }
+import model.ApplicationStatus.ApplicationStatus
 
 object ReportingController extends ReportingController {
   val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
@@ -63,6 +64,8 @@ object ReportingController extends ReportingController {
   val fsbRepository = repositories.fsbRepository
   val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
 }
+
+// scalastyle:off number.of.methods
 
 trait ReportingController extends BaseController {
 
@@ -118,6 +121,15 @@ trait ReportingController extends BaseController {
     }
   }
 
+  def streamPreviousYearFaststreamP1CandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_FAILED,
+        ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+    )
+  }
+
+
   def streamPreviousYearFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
@@ -141,9 +153,36 @@ trait ReportingController extends BaseController {
 
   private def streamPreviousYearCandidatesDetailsReport(
     applicationRoutes: Seq[ApplicationRoute],
+    applicationStatuses: Seq[ApplicationStatus]
+    ): Action[AnyContent] = Action.async { implicit request =>
+      prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
+        val appIds = candidates.flatMap(_.applicationId)
+
+        enrichPreviousYearCandidateDetails(appIds) {
+          (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+           siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
+            val header = buildHeaders(numOfSchemes)
+            var counter = 0
+            val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
+              app =>
+                val ret = createCandidateInfoBackUpRecord(
+                  app, contactDetails, questionnaireDetails, mediaDetails,
+                  eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
+                ) + "\n"
+                counter += 1
+                ret
+            }
+            Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+          }
+        }
+      }
+  }
+
+  private def streamPreviousYearCandidatesDetailsReport(
+    applicationRoutes: Seq[ApplicationRoute],
     filter: Candidate => Boolean
     ): Action[AnyContent] = Action.async { implicit request =>
-      prevYearCandidatesDetailsRepository.findApplicationIdsFor(applicationRoutes).flatMap { candidates =>
+      prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
         val appIds = candidates.collect { case c if filter(c) => c.applicationId }.flatten
 
         enrichPreviousYearCandidateDetails(appIds) {
