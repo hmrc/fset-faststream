@@ -149,6 +149,26 @@ trait ReportingController extends BaseController {
       Seq(ApplicationStatus.FSB)
     )
   }
+  def streamPreviousYearFaststreamSIFTCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.SIFT, ApplicationStatus.FAILED_AT_SIFT)
+    )
+  }
+
+  def streamPreviousYearFaststreamFSACCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.ASSESSMENT_CENTRE)
+    )
+  }
+
+  def streamPreviousYearFaststreamFSBCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.FSB)
+    )
+  }
 
   def streamPreviousYearFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
