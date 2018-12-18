@@ -90,6 +90,9 @@ GET         /report/duplicate-applications                               control
 GET         /report/fs-p1-candidates-details-stream/previous-year        controllers.ReportingController.streamPreviousYearFaststreamP1CandidatesDetailsReport()
 GET         /report/fs-p2-p3-candidates-details-stream/previous-year     controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
 
+GET         /report/fs-sift-candidates-details-stream/previous-year            controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
+GET         /report/fs-fsac-candidates-details-stream/previous-year            controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()
+GET         /report/fs-fsb-candidates-details-stream/previous-year            controllers.ReportingController.streamPreviousYearFaststreamFSBCandidatesDetailsReport()
 GET         /report/fs-p1-failed-candidates-details-stream/previous-year              controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
 GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year          controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
 GET         /report/nonfs-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearNonFaststreamCandidatesDetailsReport()
