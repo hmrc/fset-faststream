@@ -887,6 +887,73 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def rollbackToRetakePhase3FromSift(applicationId: String, token: String): Future[Unit] = {
+    val statusesToRollback = List(
+      ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER, ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_STARTED, ProgressStatuses.PHASE3_TESTS_COMPLETED,
+      ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED, ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED,
+      ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_FIRST_REMINDER,
+      ProgressStatuses.SIFT_SECOND_REMINDER, ProgressStatuses.SIFT_READY,
+      ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN,
+      ProgressStatuses.FSB_AWAITING_ALLOCATION
+    )
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE3_TESTS, statusesToRollback)
+      _ <- siftAnswersService.removeAnswers(applicationId)
+      _ <- appSiftRepository.removeTestGroup(applicationId)
+      _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(7))
+      _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)
+      _ <- phase3TestRepository.removeReviewedCallbacks(token)
+      evaluationOpt <- phase2TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+    } yield ()
+  }
+
+  def rollbackToPhase1TestsPassedFromSift(applicationId: String): Future[Unit] = {
+
+    val statusesToRollback = List(
+      ProgressStatuses.PHASE2_TESTS_INVITED,
+      ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_STARTED,
+      ProgressStatuses.PHASE2_TESTS_COMPLETED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_READY,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN,
+      ProgressStatuses.PHASE2_TESTS_PASSED,
+      ProgressStatuses.PHASE3_TESTS_INVITED,
+      ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_STARTED,
+      ProgressStatuses.PHASE3_TESTS_COMPLETED,
+      ProgressStatuses.SIFT_ENTERED,
+      ProgressStatuses.SIFT_FIRST_REMINDER,
+      ProgressStatuses.SIFT_SECOND_REMINDER,
+      ProgressStatuses.SIFT_EXPIRED,
+      ProgressStatuses.SIFT_EXPIRED_NOTIFIED,
+      ProgressStatuses.SIFT_READY
+    )
+
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE1_TESTS_PASSED, statusesToRollback)
+      _ <- siftAnswersService.removeAnswers(applicationId)
+      _ <- appSiftRepository.removeTestGroup(applicationId)
+      _ <- phase3TestRepository.removePhase3TestGroup(applicationId)
+      _ <- phase2TestRepository.removeTestGroup(applicationId)
+      evaluationOpt <- phase1TestRepo.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+    } yield ()
+  }
+
+  def enablePhase3CandidateToBeEvaluated(applicationId: String): Future[Unit] = {
+    for {
+      _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(1))
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
+    } yield ()
+  }
+
   def setCurrentSchemeStatusToPhase3Evaluation(applicationId: String): Future[Unit] = {
     for {
       evaluationOpt <- phase3TestRepository.findEvaluation(applicationId)

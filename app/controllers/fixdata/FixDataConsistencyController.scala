@@ -473,6 +473,36 @@ trait FixDataConsistencyController extends BaseController {
       }
     }
 
+  def rollbackToPhase1TestsPassedFromSift(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.rollbackToPhase1TestsPassedFromSift(applicationId).map(_ =>
+        Ok(s"Successfully rolled back to phase1 tests passed $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def enablePhase3CandidateToBeEvaluated(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.enablePhase3CandidateToBeEvaluated(applicationId).map(_ =>
+        Ok(s"Successfully updated phase3 state so candidate $applicationId can be evaluated ")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def rollbackToRetakePhase3FromSift(applicationId: String, token: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.rollbackToRetakePhase3FromSift(applicationId, token).map(_ =>
+        Ok(s"Successfully rolled back candidate $applicationId from sift so can retake video interview")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT testgroup for  $applicationId"))
   }
