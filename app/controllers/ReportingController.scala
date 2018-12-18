@@ -124,7 +124,7 @@ trait ReportingController extends BaseController {
   def streamPreviousYearFaststreamP1CandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
-      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED,
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_FAILED,
         ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
     )
   }
