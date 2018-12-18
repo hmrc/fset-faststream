@@ -121,6 +121,14 @@ trait ReportingController extends BaseController {
     }
   }
 
+  def streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.CREATED, ApplicationStatus.IN_PROGRESS,
+        ApplicationStatus.SUBMITTED, ApplicationStatus.WITHDRAWN)
+    )
+  }
+
   def streamPreviousYearFaststreamP1CandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),

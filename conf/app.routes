@@ -87,6 +87,7 @@ GET         /report/analytical-schemes/:frameworkId                      control
 GET         /report/numeric-test-extract                                 controllers.ReportingController.numericTestExtractReport()
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
 
+GET         /report/fs-presubmitted-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport()
 GET         /report/fs-p1-candidates-details-stream/previous-year        controllers.ReportingController.streamPreviousYearFaststreamP1CandidatesDetailsReport()
 GET         /report/fs-p2-p3-candidates-details-stream/previous-year     controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
 
