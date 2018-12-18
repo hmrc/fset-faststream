@@ -86,7 +86,10 @@ GET         /report/internship/:frameworkId                              control
 GET         /report/analytical-schemes/:frameworkId                      controllers.ReportingController.analyticalSchemesReport(frameworkId: String)
 GET         /report/numeric-test-extract                                 controllers.ReportingController.numericTestExtractReport()
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
-GET         /report/fs-p1-candidates-details-stream/previous-year              controllers.ReportingController.streamPreviousYearFaststreamP1CandidatesDetailsReport()
+
+GET         /report/fs-p1-candidates-details-stream/previous-year        controllers.ReportingController.streamPreviousYearFaststreamP1CandidatesDetailsReport()
+GET         /report/fs-p2-p3-candidates-details-stream/previous-year     controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
+
 GET         /report/fs-p1-failed-candidates-details-stream/previous-year              controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
 GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year          controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
 GET         /report/nonfs-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearNonFaststreamCandidatesDetailsReport()
