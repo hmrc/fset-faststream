@@ -20,6 +20,7 @@ import config.NumericalTestsConfig
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
+import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.TestResult
 import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse, WithdrawApplication }
 import model._
@@ -154,7 +155,9 @@ trait PreviousYearCandidatesDetailsRepository {
 
   def applicationDetailsStreamWip(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
 
-  def findApplicationIdsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]]
+  def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]]
+  def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
+                          appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]]
 
   def findContactDetails(): Future[CsvExtract[String]]
   def findContactDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
@@ -620,8 +623,17 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     )
   }
 
-  def findApplicationIdsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]] = {
+  def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]] = {
     val query = BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes))
+    applicationDetailsCollection.find(query).cursor[Candidate]().collect[List]()
+  }
+
+  def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
+                            appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]] = {
+    val query = BSONDocument(
+      "applicationRoute" -> BSONDocument("$in" -> appRoutes),
+      "applicationStatus" -> BSONDocument("$in" -> appStatuses)
+    )
     applicationDetailsCollection.find(query).cursor[Candidate]().collect[List]()
   }
 
