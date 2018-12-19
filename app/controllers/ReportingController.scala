@@ -125,7 +125,9 @@ trait ReportingController extends BaseController {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
       Seq(ApplicationStatus.CREATED, ApplicationStatus.IN_PROGRESS,
-        ApplicationStatus.SUBMITTED, ApplicationStatus.WITHDRAWN)
+        ApplicationStatus.SUBMITTED, ApplicationStatus.WITHDRAWN,
+        ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER
+      )
     )
   }
 
@@ -197,8 +199,9 @@ trait ReportingController extends BaseController {
     ): Action[AnyContent] = Action.async { implicit request =>
       prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
         val appIds = candidates.flatMap(_.applicationId)
+        val userIds = candidates.map(_.userId)
 
-        enrichPreviousYearCandidateDetails(appIds) {
+        enrichPreviousYearCandidateDetails(appIds, userIds) {
           (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
            siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
             val header = buildHeaders(numOfSchemes)
@@ -262,15 +265,15 @@ trait ReportingController extends BaseController {
   type ReportStreamBlockType = (Int, CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String],
     CsvExtract[String],CsvExtract[String], CsvExtract[String]) => Result
 
-  private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String])(block: ReportStreamBlockType) = {
+  private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String], userIds: Seq[String] = Nil)(block: ReportStreamBlockType) = {
     def log(msg: String)= play.api.Logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
     log(s"started enriching data at ${org.joda.time.DateTime.now}")
     val data = for {
-      contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails(applicationIds)
+      contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails(userIds)
       _ = log(s"enriching data - contactDetails = ${contactDetails.header}, size = ${contactDetails.records.size}")
       questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetails(applicationIds)
       _ = log(s"enriching data - questionnaireDetails = ${questionnaireDetails.header}, size = ${questionnaireDetails.records.size}")
-      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails(applicationIds)
+      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails(userIds)
       _ = log(s"enriching data - mediaDetails = ${mediaDetails.header}, size = ${mediaDetails.records.size}")
       eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails(applicationIds)
       _ = log(s"enriching data - eventsDetails = ${eventsDetails.header}, size = ${eventsDetails.records.size}")
