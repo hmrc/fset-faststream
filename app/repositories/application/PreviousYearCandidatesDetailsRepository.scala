@@ -637,9 +637,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     findContactDetails(Seq.empty[String])
   }
 
-  def findContactDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+  def findContactDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
 
     contactDetailsCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
@@ -876,9 +876,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     findMediaDetails(Seq.empty[String])
   }
 
-  def findMediaDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+  def findMediaDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
 
     mediaCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
