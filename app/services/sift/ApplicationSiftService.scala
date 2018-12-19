@@ -430,5 +430,14 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
           ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
     } yield ()
   }
+
+  def fixUserSiftedWithAFailToSiftCompleted(applicationId: String): Future[Unit] = {
+    for {
+      _ <- applicationRepo.removeProgressStatuses(applicationId,
+        List(ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.SDIP_FAILED_AT_SIFT,
+          ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
+      _ <- applicationRepo.updateApplicationStatusOnly(applicationId, ApplicationStatus.SIFT)
+    } yield ()
+  }
 }
 // scalastyle:off
