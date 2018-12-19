@@ -125,7 +125,9 @@ trait ReportingController extends BaseController {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
       Seq(ApplicationStatus.CREATED, ApplicationStatus.IN_PROGRESS,
-        ApplicationStatus.SUBMITTED, ApplicationStatus.WITHDRAWN)
+        ApplicationStatus.SUBMITTED, ApplicationStatus.WITHDRAWN,
+        ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER
+      )
     )
   }
 
