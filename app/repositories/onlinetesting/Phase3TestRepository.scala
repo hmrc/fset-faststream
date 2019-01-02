@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,11 +157,11 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       "$elemMatch" -> BSONDocument("token" -> token)
     ))
     val update = BSONDocument(
-      "$unset" -> BSONDocument(s"testGroups.$phaseName.tests.$$.callbacks.reviewed" -> "")
+      "$set" -> BSONDocument(s"testGroups.$phaseName.tests.$$.callbacks.reviewed" -> List.empty[String])
     )
 
     val validator = singleUpdateValidator(token, "removing reviewed callbacks", TokenNotFound(token))
-    collection.update(query, update, upsert = false) map validator
+    collection.update(query, update, upsert = false, multi = true) map validator
   }
 
   override def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
