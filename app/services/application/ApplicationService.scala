@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -893,6 +893,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.PHASE3_TESTS_STARTED, ProgressStatuses.PHASE3_TESTS_COMPLETED,
       ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED, ProgressStatuses.PHASE3_TESTS_PASSED,
       ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED,
+      ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN,
       ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_FIRST_REMINDER,
       ProgressStatuses.SIFT_SECOND_REMINDER, ProgressStatuses.SIFT_READY,
       ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN,
