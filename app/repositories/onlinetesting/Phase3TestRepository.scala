@@ -157,7 +157,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       "$elemMatch" -> BSONDocument("token" -> token)
     ))
     val update = BSONDocument(
-      "$set" -> BSONDocument(s"testGroups.$phaseName.tests.$$.callbacks.reviewed" -> "")
+      "$set" -> BSONDocument(s"testGroups.$phaseName.tests.$$.callbacks.reviewed" -> List.empty[String])
     )
 
     val validator = singleUpdateValidator(token, "removing reviewed callbacks", TokenNotFound(token))
