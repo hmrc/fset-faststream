@@ -473,6 +473,16 @@ trait FixDataConsistencyController extends BaseController {
       }
     }
 
+  def fixPhase2PartialCallbackCandidate(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fixPhase2PartialCallbackCandidate(applicationId).map(_ =>
+        Ok(s"Successfully fixed partial callback candidate $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix partial callback candidate $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
   def rollbackToPhase3TestExpiredFromSift(applicationId: String): Action[AnyContent] =
     Action.async { implicit request =>
       applicationService.rollbackToPhase3ExpiredFromSift(applicationId).map(_ =>
