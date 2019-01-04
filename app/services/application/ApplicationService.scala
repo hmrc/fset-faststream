@@ -26,7 +26,7 @@ import model.command._
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted._
 import model.{ ProgressStatuses, _ }
 import model.exchange.SchemeEvaluationResultWithFailureDetails
 import model.exchange.sift.SiftAnswersStatus
@@ -874,6 +874,48 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
       _ <- siftAnswersService.removeAnswers(applicationId)
     } yield ()
+  }
+
+  def fixPhase2PartialCallbackCandidate(applicationId: String): Future[Unit] = {
+    for {
+      _ <- phase2TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase2TestRepository.phaseName)
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE2_TESTS_EXPIRED))
+
+      phase2TestGroupOpt <- phase2TestRepository.getTestGroup(applicationId)
+      cubiksUserId = extractCubiksUserId(applicationId, phase2TestGroupOpt)
+
+      // Now re-run the partially executed callbacks
+      testProfile <- phase2TestRepository.getTestProfileByCubiksId(cubiksUserId)
+      _ <- fixPartiallyExecutedCompletedCallback(cubiksUserId, testProfile)
+      _ <- fixPartiallyExecutedResultsReadyCallback(cubiksUserId, testProfile)
+    } yield ()
+  }
+
+  private def extractCubiksUserId(applicationId: String, phase2TestGroupOpt: Option[Phase2TestGroup]) = {
+    phase2TestGroupOpt.map { p2TestGroup =>
+      val msg = s"Active tests cannot be found when marking phase2 test complete for applicationId: $applicationId"
+      require(p2TestGroup.activeTests.nonEmpty, msg)
+      p2TestGroup.activeTests.head.cubiksUserId
+    }.getOrElse(throw new Exception(s"Failed to find phase2 cubiks user id for application id: $applicationId"))
+  }
+
+  private def fixPartiallyExecutedCompletedCallback(cubiksUserId: Int, phase2TestGroup: Phase2TestGroupWithAppId) = {
+    val msg = s"Active tests cannot be found when marking phase2 test complete for cubiksId: $cubiksUserId"
+    require(phase2TestGroup.testGroup.activeTests.nonEmpty, msg)
+    val activeTestsCompleted = phase2TestGroup.testGroup.activeTests forall (_.completedDateTime.isDefined)
+    if (activeTestsCompleted) {
+      phase2TestRepository.updateProgressStatus(phase2TestGroup.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED)
+    } else {
+      Future.failed(new Exception(s"No active completed phase2 tests found for applicationId: ${phase2TestGroup.applicationId}"))
+    }
+  }
+
+  private def fixPartiallyExecutedResultsReadyCallback(cubiksUserId: Int, phase2TestGroup: Phase2TestGroupWithAppId) = {
+    if (phase2TestGroup.testGroup.activeTests forall (_.resultsReadyToDownload)) {
+      phase2TestRepository.updateProgressStatus(phase2TestGroup.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
+    } else {
+      Future.failed(new Exception(s"No active results ready phase2 tests found for applicationId: ${phase2TestGroup.applicationId}"))
+    }
   }
 
   def rollbackToPhase3ExpiredFromSift(applicationId: String): Future[Unit] = {
