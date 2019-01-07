@@ -838,6 +838,24 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def fsacResetFastPassCandidate(applicationId: String): Future[Unit] = {
+    val exercisesToRemove = List("analysisExercise", "groupExercise", "leadershipExercise", "finalFeedback")
+    val statuses = List(
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
+    )
+
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
+      _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+      _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
+      _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
+      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+    } yield ()
+  }
+
   def rollbackToFsacAllocationConfirmedFromFsb(applicationId: String): Future[Unit] = {
     val exercisesToRemove = List("analysisExercise", "groupExercise", "leadershipExercise", "finalFeedback")
     val statuses = List(
