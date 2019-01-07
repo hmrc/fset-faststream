@@ -162,6 +162,7 @@ GET         /diagnostic/rollbackToPhase1TestsPassedFromSift                     
 GET         /diagnostic/enablePhase3CandidateToBeEvaluated                                             controllers.fixdata.FixDataConsistencyController.enablePhase3CandidateToBeEvaluated(applicationId: String)
 GET         /diagnostic/rollbackToRetakePhase3FromSift                                                 controllers.fixdata.FixDataConsistencyController.rollbackToRetakePhase3FromSift(applicationId: String, token: String)
 GET         /diagnostic/fixPhase2PartialCallbackCandidate                                              controllers.fixdata.FixDataConsistencyController.fixPhase2PartialCallbackCandidate(applicationId: String)
+GET         /diagnostic/fsac/resetFastPassCandidate                                                    controllers.fixdata.FixDataConsistencyController.fsacResetFastPassCandidate(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

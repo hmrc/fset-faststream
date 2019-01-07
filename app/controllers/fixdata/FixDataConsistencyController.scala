@@ -534,5 +534,14 @@ trait FixDataConsistencyController extends BaseController {
       case _: ApplicationNotFound => NotFound
     }
   }
+
+  def fsacResetFastPassCandidate(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fsacResetFastPassCandidate(applicationId).map { _ =>
+        Ok(s"Successfully reset fsac fast pass candidate $applicationId. Remember to update the current scheme status")
+      } recover {
+        case _: NotFoundException => NotFound
+      }
+    }
 }
 // scalastyle:on
