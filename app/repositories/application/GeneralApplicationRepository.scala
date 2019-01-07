@@ -996,7 +996,7 @@ class GeneralApplicationMongoRepository(
         val ascending = JsNumber(1)
         // Eligible candidates should be sorted based on when they passed PHASE 3
         val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
-        collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List]()
+        collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List](50)
           .map { docList =>
             docList.map { doc =>
               bsonDocToCandidatesEligibleForEvent(doc)
