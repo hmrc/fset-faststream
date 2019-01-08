@@ -856,6 +856,18 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def fsacRollbackWithdraw(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.WITHDRAWN,
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION
+    )
+
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
+      _ <- appRepository.removeWithdrawReason(applicationId)
+    } yield ()
+  }
+
   def rollbackToFsacAllocationConfirmedFromFsb(applicationId: String): Future[Unit] = {
     val exercisesToRemove = List("analysisExercise", "groupExercise", "leadershipExercise", "finalFeedback")
     val statuses = List(

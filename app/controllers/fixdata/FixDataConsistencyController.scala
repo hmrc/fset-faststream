@@ -543,5 +543,14 @@ trait FixDataConsistencyController extends BaseController {
         case _: NotFoundException => NotFound
       }
     }
+
+  def fsacRollbackWithdraw(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fsacRollbackWithdraw(applicationId).map { _ =>
+        Ok(s"Successfully rolled back withdraw for fsac candidate $applicationId")
+      } recover {
+        case _: NotFoundException => NotFound
+      }
+    }
 }
 // scalastyle:on
