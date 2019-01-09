@@ -223,12 +223,12 @@ trait ReportingController extends BaseController {
 
   private def streamPreviousYearCandidatesDetailsReport(
     applicationRoutes: Seq[ApplicationRoute],
-    filter: Candidate => Boolean
-    ): Action[AnyContent] = Action.async { implicit request =>
+    filter: Candidate => Boolean): Action[AnyContent] = Action.async { implicit request =>
       prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
         val appIds = candidates.collect { case c if filter(c) => c.applicationId }.flatten
+        val userIds = candidates.collect { case c if filter(c) => c.userId }
 
-        enrichPreviousYearCandidateDetails(appIds) {
+        enrichPreviousYearCandidateDetails(appIds, userIds) {
           (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
            siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
             val header = buildHeaders(numOfSchemes)
