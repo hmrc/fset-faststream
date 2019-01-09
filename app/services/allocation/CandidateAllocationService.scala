@@ -100,8 +100,8 @@ trait CandidateAllocationService extends EventSink {
     }
   }
 
-  def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation])
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+  def unAllocateCandidates(allocations: List[model.persisted.CandidateAllocation],
+                           eligibleForReallocation: Boolean = true)(implicit hc: HeaderCarrier): Future[Unit] = {
     val checkedAllocs = allocations.map { allocation =>
       candidateAllocationRepo.isAllocationExists(allocation.id, allocation.eventId, allocation.sessionId, Some(allocation.version))
         .map { ex =>
@@ -114,8 +114,10 @@ trait CandidateAllocationService extends EventSink {
         eventsService.getEvent(allocation.eventId).flatMap { event =>
         candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
           ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
-            case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id, event.eventType)
-            case _ => applicationRepo.resetApplicationAllocationStatus(allocation.id, event.eventType)
+            case Some(true) =>
+              applicationRepo.setFailedToAttendAssessmentStatus(allocation.id, event.eventType)
+            case _ if eligibleForReallocation =>
+              applicationRepo.resetApplicationAllocationStatus(allocation.id, event.eventType)
           } ).flatMap { _ =>
             notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
           }
