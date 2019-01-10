@@ -921,6 +921,15 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def fixPhase3ExpiredCandidate(applicationId: String): Future[Unit] = {
+    for {
+      _ <- phase3TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase3TestRepository.phaseName)
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
+      _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
+      _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+    } yield ()
+  }
+
   private def extractCubiksUserId(applicationId: String, phase2TestGroupOpt: Option[Phase2TestGroup]) = {
     phase2TestGroupOpt.map { p2TestGroup =>
       val msg = s"Active tests cannot be found when marking phase2 test complete for applicationId: $applicationId"

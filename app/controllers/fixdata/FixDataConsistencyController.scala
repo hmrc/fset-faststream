@@ -483,6 +483,16 @@ trait FixDataConsistencyController extends BaseController {
       }
     }
 
+  def fixPhase3ExpiredCandidate(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fixPhase3ExpiredCandidate(applicationId).map(_ =>
+        Ok(s"Successfully fixed p3 expired candidate $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix p3 expired candidate $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
   def rollbackToPhase3TestExpiredFromSift(applicationId: String): Action[AnyContent] =
     Action.async { implicit request =>
       applicationService.rollbackToPhase3ExpiredFromSift(applicationId).map(_ =>
