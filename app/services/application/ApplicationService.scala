@@ -923,12 +923,13 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
 
   def fixPhase3ExpiredCandidate(applicationId: String): Future[Unit] = {
-    for {
+    (for {
       _ <- phase3TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase3TestRepository.phaseName)
       _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
+    } yield for {
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
-    } yield ()
+    } yield ()).flatMap(identity)
   }
 
   private def extractCubiksUserId(applicationId: String, phase2TestGroupOpt: Option[Phase2TestGroup]) = {
