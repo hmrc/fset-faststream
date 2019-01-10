@@ -151,9 +151,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     appRepository.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus)
   }
 
-  def removeFromAllEvents(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  private def removeFromAllEvents(applicationId: String, eligibleForReallocation: Boolean)
+                         (implicit hc: HeaderCarrier): Future[Unit] = {
     candidateAllocationService.allocationsForApplication(applicationId).flatMap { allocations =>
-      candidateAllocationService.unAllocateCandidates(allocations.toList).map(_ => ())
+      candidateAllocationService.unAllocateCandidates(allocations.toList, eligibleForReallocation).map(_ => ())
     }
   }
 
@@ -164,7 +165,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   private def withdrawFromApplication(applicationId: String, withdrawRequest: WithdrawApplication)
     (candidate: Candidate, cd: ContactDetails)(implicit hc: HeaderCarrier) = {
       appRepository.withdraw(applicationId, withdrawRequest).flatMap { _ =>
-        removeFromAllEvents(applicationId).map { _ =>
+        removeFromAllEvents(applicationId, eligibleForReallocation = false).map { _ =>
           val commonEventList =
             DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
               AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::

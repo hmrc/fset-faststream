@@ -211,7 +211,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
       when(appRepositoryMock.withdraw(any[String], any[WithdrawApplication])).thenReturnAsync()
       when(candidateAllocationServiceMock.allocationsForApplication(any[String])(any[HeaderCarrier])).thenReturnAsync(Nil)
-      when(candidateAllocationServiceMock.unAllocateCandidates(any[List[model.persisted.CandidateAllocation]])(any[HeaderCarrier]))
+      when(candidateAllocationServiceMock
+        .unAllocateCandidates(any[List[model.persisted.CandidateAllocation]], eligibleForReallocation = anyBoolean())
+      (any[HeaderCarrier]))
         .thenReturnAsync()
       val withdraw = WithdrawApplication("reason", None, "Candidate")
 
