@@ -58,6 +58,7 @@ trait AssessmentCentreRepository {
     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
   def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
+  def removeFsacTestGroup(applicationId: String): Future[Unit]
   def removeFsacEvaluation(applicationId: String): Future[Unit]
   def findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]]
 }
@@ -247,12 +248,27 @@ class AssessmentCentreMongoRepository (
     collection.update(query, update) map validator
   }
 
-  override def removeFsacEvaluation(applicationId: String): Future[Unit] = {
+  override def removeFsacTestGroup(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val updateOp = bsonCollection.updateModifier(
       BSONDocument(
         "$unset" -> BSONDocument(s"testGroups.$fsacKey" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map{ result =>
+      if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
+  }
+
+  override def removeFsacEvaluation(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$unset" -> BSONDocument(s"testGroups.$fsacKey.evaluation" -> "")
       )
     )
 

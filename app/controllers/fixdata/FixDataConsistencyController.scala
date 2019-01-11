@@ -562,5 +562,14 @@ trait FixDataConsistencyController extends BaseController {
         case _: NotFoundException => NotFound
       }
     }
+
+  def fsacRemoveEvaluation(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fsacRemoveEvaluation(applicationId).map { _ =>
+        Ok(s"Successfully removed evaluation for fsac candidate $applicationId")
+      } recover {
+        case _: NotFoundException => NotFound
+      }
+    }
 }
 // scalastyle:on
