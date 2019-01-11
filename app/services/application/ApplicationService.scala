@@ -808,7 +808,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     for {
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), reviewerExercisesToRemove)
-      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+      _ <- fsacRepo.removeFsacTestGroup(applicationId)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
       phase3ResultsOpt <- getPhase3Results
       phase3Results = phase3ResultsOpt.getOrElse(throw new RuntimeException("No phase 3 video results found"))
@@ -831,7 +831,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     )
 
     for {
-      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+      _ <- fsacRepo.removeFsacTestGroup(applicationId)
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
@@ -853,6 +853,12 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
+      _ <- fsacRepo.removeFsacTestGroup(applicationId)
+    } yield ()
+  }
+
+  def fsacRemoveEvaluation(applicationId: String): Future[Unit] = {
+    for {
       _ <- fsacRepo.removeFsacEvaluation(applicationId)
     } yield ()
   }
@@ -880,7 +886,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     )
 
     for {
-      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+      _ <- fsacRepo.removeFsacTestGroup(applicationId)
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)

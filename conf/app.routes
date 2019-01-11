@@ -165,6 +165,7 @@ GET         /diagnostic/fixPhase2PartialCallbackCandidate                       
 GET         /diagnostic/fixPhase3ExpiredCandidate                                                      controllers.fixdata.FixDataConsistencyController.fixPhase3ExpiredCandidate(applicationId: String)
 GET         /diagnostic/fsac/resetFastPassCandidate                                                    controllers.fixdata.FixDataConsistencyController.fsacResetFastPassCandidate(applicationId: String)
 GET         /diagnostic/fsac/rollbackWithdraw                                                          controllers.fixdata.FixDataConsistencyController.fsacRollbackWithdraw(applicationId: String)
+GET         /diagnostic/fsac/removeEvaluation                                                          controllers.fixdata.FixDataConsistencyController.fsacRemoveEvaluation(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
