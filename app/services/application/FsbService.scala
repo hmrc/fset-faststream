@@ -91,7 +91,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
     }
   }
 
-  private def getResultsForScheme(schemeId: SchemeId, results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
+  private def getResultsForScheme(appId: String, schemeId: SchemeId, results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
     import DSSchemeIds._
     val r = schemeId match {
       case DiplomaticServiceEconomists =>
@@ -100,7 +100,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
           results.find(_.schemeId == DiplomaticService)
         ).flatten
         Logger.info(s">>>>>>> Results for GES-DS: $res")
-        require(res.size == 2 || res.exists(_.result == Red.toString), s"$DiplomaticServiceEconomists require EAC && FCO test results")
+        require(res.size == 2 || res.exists(_.result == Red.toString), s"$DiplomaticServiceEconomists requires EAC && FCO test results - $appId")
         res
       case GovernmentEconomicsService =>
         results.find(r => EacSchemes.contains(r.schemeId)).toSeq
@@ -138,10 +138,10 @@ trait FsbService extends CurrentSchemeStatusHelper {
     firstResidualPreferenceOpt: Option[SchemeEvaluationResult],
     currentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
 
-    require(fsbEvaluation.isDefined, "Evaluation for scheme must be defined to reach this stage, unexpected error.")
-    require(firstResidualPreferenceOpt.isDefined, "First residual preference must be defined to reach this stage, unexpected error.")
+    require(fsbEvaluation.isDefined, s"Evaluation for scheme must be defined to reach this stage, unexpected error for $appId")
+    require(firstResidualPreferenceOpt.isDefined, s"First residual preference must be defined to reach this stage, unexpected error for $appId")
 
-    val firstResidualInEvaluation = getResultsForScheme(firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)
+    val firstResidualInEvaluation = getResultsForScheme(appId, firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)
 
     if (firstResidualInEvaluation.result == Green.toString) {
       for {
