@@ -101,7 +101,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "Situational T-score,Situational Percentile,Situational Raw,Situational STEN," +
     "PHASE_2 scheduleId,cubiksUserId,token,testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportLinkURL,reportId," +
     "e-Tray T-score,e-Tray Raw," +
-    "PHASE 3 interviewId,token,candidateId,customCandidateId,comment,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
+    "PHASE_3 interviewId,token,candidateId,customCandidateId,comment,PHASE_3 last reviewed callback,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
     "Sift scheduleId,cubiksUserId,token,testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,Sift tScore,Sift raw," +
@@ -1017,6 +1017,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       activeVideoTest.getAsStr[String]("candidateId"),
       activeVideoTest.getAsStr[String]("customCandidateId"),
       latestReviewer.flatMap(_.comment),
+      latestAVTRCallback.map(_.received.toString),
       latestReviewer.flatMap(_.question1.reviewCriteria1.score.map(_.toString)),
       latestReviewer.flatMap(_.question1.reviewCriteria2.score.map(_.toString)),
       latestReviewer.flatMap(_.question2.reviewCriteria1.score.map(_.toString)),
