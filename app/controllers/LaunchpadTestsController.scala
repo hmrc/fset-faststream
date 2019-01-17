@@ -20,6 +20,7 @@ import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import controllers.LaunchpadTestsController.CannotFindTestByLaunchpadInviteId
 import model.Exceptions.NotFoundException
+import play.api.libs.json.Json
 import play.api.Logger
 import play.api.mvc.{ Action, Result }
 import services.stc.StcEventService
@@ -57,42 +58,42 @@ trait LaunchpadTestsController extends BaseController {
 
   def setupProcessCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[SetupProcessCallbackRequest] { jsonBody =>
-      Logger.info("Launchpad: Received setup process callback request -> " + jsonBody)
+      Logger.info(s"Launchpad: Received setup process callback request -> ${Json.toJson(jsonBody).toString}")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
 
   def viewPracticeQuestionCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ViewPracticeQuestionCallbackRequest] { jsonBody =>
-      Logger.info("Launchpad: Received view practice question callback request -> " + jsonBody)
+      Logger.info(s"Launchpad: Received view practice question callback request -> ${Json.toJson(jsonBody).toString}")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
 
   def questionCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[QuestionCallbackRequest] { jsonBody =>
-      Logger.info("Launchpad: Received question request -> " + jsonBody)
+      Logger.info(s"Launchpad: Received question request -> ${Json.toJson(jsonBody).toString}")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
 
   def finalCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FinalCallbackRequest] { jsonBody =>
-      Logger.info("Launchpad: Received final callback request -> " + jsonBody)
+      Logger.info(s"Launchpad: Received final callback request -> ${Json.toJson(jsonBody).toString}")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
 
   def finishedCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FinishedCallbackRequest] { jsonBody =>
-      Logger.info("Launchpad: Received finished callback request -> " + jsonBody)
+      Logger.info(s"Launchpad: Received finished callback request -> ${Json.toJson(jsonBody).toString}")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
 
   def reviewedCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ReviewedCallbackRequest] { jsonBody =>
-      Logger.info("Launchpad: Received reviewed callback request -> " + jsonBody)
+      Logger.info(s"Launchpad: Received reviewed callback request -> ${Json.toJson(jsonBody).toString}")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
