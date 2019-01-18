@@ -523,6 +523,16 @@ trait FixDataConsistencyController extends BaseController {
       }
     }
 
+  def removePhase3TestAndSetOtherToActive(removeTestToken: String, markTestAsActiveToken: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.removePhase3TestAndSetOtherToActive(removeTestToken, markTestAsActiveToken).map(_ =>
+        Ok(s"Successfully removed phase3 test for token $removeTestToken and set other test to active for token $markTestAsActiveToken ")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix candidate - message: ${ex.getMessage}")
+      }
+    }
+
   def rollbackToRetakePhase3FromSift(applicationId: String, token: String): Action[AnyContent] =
     Action.async { implicit request =>
       applicationService.rollbackToRetakePhase3FromSift(applicationId, token).map(_ =>
