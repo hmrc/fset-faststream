@@ -65,6 +65,10 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
 
   def removeReviewedCallbacks(token: String): Future[Unit]
 
+  def removeTest(token: String): Future[Unit]
+
+  def markTestAsActive(token: String): Future[Unit]
+
   def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
 }
 
@@ -162,6 +166,34 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(token, "removing reviewed callbacks", TokenNotFound(token))
     collection.update(query, update, upsert = false, multi = true) map validator
+  }
+
+  override def removeTest(token: String): Future[Unit] = {
+    val removePredicate = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+
+    val removeDoc = BSONDocument(
+      "$pull" -> BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument("token" -> token))
+    )
+
+    val validator = singleUpdateValidator(token, "removing test", TokenNotFound(s"Failed to remove P3 test for $token"))
+
+    collection.update(removePredicate, removeDoc, upsert = false) map validator
+  }
+
+  override def markTestAsActive(token: String) = {
+    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.usedForResults" -> true
+    ))
+
+    val validator = singleUpdateValidator(token, "setting P3 test active", TokenNotFound(s"Failed to set P3 test active for $token"))
+
+    collection.update(query, update, upsert = false) map validator
   }
 
   override def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
