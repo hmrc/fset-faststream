@@ -1000,6 +1000,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def removePhase3TestEvaluation(applicationId: String): Future[Unit] = {
+    for {
+      _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)
+      evaluationOpt <- phase2TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+    } yield ()
+  }
+
   def rollbackToPhase1TestsPassedFromSift(applicationId: String): Future[Unit] = {
 
     val statusesToRollback = List(
