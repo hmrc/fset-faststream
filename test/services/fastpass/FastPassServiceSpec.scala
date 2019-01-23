@@ -45,7 +45,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "processFastPassCandidate" should {
-    "correctly process an approved fast pass candidate who has numeric schemes and no adjustments" in new TestFixtureWithMockResponses {
+    "correctly process an approved fast pass candidate with a submitted application who has numeric schemes and no adjustments" in
+      new TestFixtureWithMockResponses {
       when(assistanceDetailsRepositoryMock.find(any[String])).thenReturnAsync(assistanceDetails)
       when(adjustmentsManagementServiceMock.find(any[String])).thenReturnAsync(None)
 
@@ -76,12 +77,23 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
-    "refuse to process an approved fast pass candidate who has not submitted their application" in new TestFixtureWithMockResponses {
+    "refuse to accept an approved fast pass candidate who has not submitted their application" in new TestFixtureWithMockResponses {
       when(appRepoMock.findProgress(any[String])).thenReturn(Future.successful(notSubmittedProgressResponse))
 
       val failedFuture = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue
       failedFuture mustBe a[IllegalStateException]
-      failedFuture.getMessage mustBe s"Candidate $appId cannot have their fast pass approved because their " +
+      failedFuture.getMessage mustBe s"Candidate $appId cannot have their fast pass accepted/rejected because their " +
+        "application has not been submitted"
+
+      verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+    }
+
+    "refuse to reject a fast pass candidate who has not submitted their application" in new TestFixtureWithMockResponses {
+      when(appRepoMock.findProgress(any[String])).thenReturn(Future.successful(notSubmittedProgressResponse))
+
+      val failedFuture = underTest.processFastPassCandidate(userId, appId, rejected, triggeredBy).failed.futureValue
+      failedFuture mustBe a[IllegalStateException]
+      failedFuture.getMessage mustBe s"Candidate $appId cannot have their fast pass accepted/rejected because their " +
         "application has not been submitted"
 
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
@@ -221,7 +233,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
         verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
-    "process correctly a rejected fast pass candidate" in new TestFixtureWithMockResponses {
+    "process correctly a rejected fast pass candidate with a submitted application" in new TestFixtureWithMockResponses {
       val (name, surname) = underTest.processFastPassCandidate(userId, appId, rejected, triggeredBy).futureValue
 
       name mustBe completeGeneralDetails.firstName
@@ -235,6 +247,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
         List("FastPassUserRejected")
       )
 
+      verify(appRepoMock).findProgress(appId)
       verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = false)
       verify(personalDetailsServiceMock).find(appId, userId)
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock)
