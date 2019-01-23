@@ -16,7 +16,8 @@
 
 package controllers
 
-import model.command.{ FastPassEvaluation, ProcessedFastPassCandidate}
+import model.command.{ FastPassEvaluation, ProcessedFastPassCandidate }
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.fastpass.FastPassService
@@ -34,10 +35,14 @@ trait FastPassApprovalController extends BaseController {
 
   def processFastPassCandidate(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FastPassEvaluation] { req =>
-      fastPassService.processFastPassCandidate(userId, applicationId, req.accepted, req.triggeredBy).map {
-        fullName => Ok(Json.toJson(ProcessedFastPassCandidate(fullName._1, fullName._2)))
+      fastPassService.processFastPassCandidate(userId, applicationId, req.accepted, req.triggeredBy).map { fullName =>
+        val (firstName, lastName) = fullName
+        Ok(Json.toJson(ProcessedFastPassCandidate(firstName, lastName)))
+      }.recover {
+        case ex : IllegalStateException =>
+          Logger.warn(ex.getMessage)
+          Forbidden(ex.getMessage)
       }
     }
   }
-
 }
