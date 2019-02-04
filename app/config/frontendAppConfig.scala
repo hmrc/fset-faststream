@@ -24,7 +24,8 @@ import controllers.{ ApplicationRouteState, ApplicationRouteStateImpl }
 import models.ApplicationRoute._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-import play.api.Play
+import play.api.Mode.Mode
+import play.api.{ Configuration, Play }
 import play.api.Play.{ configuration, current }
 import uk.gov.hmrc.play.config.ServicesConfig
 
@@ -71,6 +72,9 @@ trait AppConfig {
 }
 
 object FrontendAppConfig extends AppConfig with ServicesConfig {
+
+  override def mode: Mode = Play.current.mode
+  override def runModeConfiguration: Configuration = Play.current.configuration
 
   private def loadConfig(key: String) = configuration.getString(key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
 

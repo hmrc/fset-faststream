@@ -18,11 +18,11 @@ package config
 
 import java.util.Base64
 
-import akka.util.Crypt
 import com.mohiva.play.silhouette.api.{ Environment, EventBus }
-import com.mohiva.play.silhouette.api.crypto.Base64AuthenticatorEncoder
+import com.mohiva.play.silhouette.api.crypto.{ Base64AuthenticatorEncoder, Hash }
 import com.mohiva.play.silhouette.api.util.{ Clock, FingerprintGenerator }
 import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticatorService, SessionAuthenticatorSettings }
+import com.typesafe.config.Config
 import connectors.{ ApplicationClient, UserManagementClient }
 import helpers.WSBinaryPost
 import play.api.Play
@@ -54,6 +54,8 @@ trait WSHttp extends HttpGet with WSGet
 trait CSRHttp extends WSHttp with WSBinaryPost {
   override val hooks = NoneRequired
   //val wS = WS
+  override val appNameConfiguration = Play.current.configuration
+  override lazy val configuration: Option[Config] = Option(Play.current.configuration.underlying)
 }
 
 object CSRHttp extends CSRHttp
@@ -61,7 +63,7 @@ object CSRHttp extends CSRHttp
 object CaseInSensitiveFingerPrintGenerator extends  FingerprintGenerator {
   import play.api.http.HeaderNames._
   def generate(implicit request: RequestHeader) = {
-    Crypt.sha1(new StringBuilder()
+    Hash.sha1(new StringBuilder()
       .append(request.headers.get(USER_AGENT).map(x => x.toLowerCase).getOrElse("")).append(":")
       .append(request.headers.get(ACCEPT_LANGUAGE).map(_.toLowerCase).getOrElse("")).append(":")
       .append(request.headers.get(ACCEPT_CHARSET).map(_.toLowerCase).getOrElse("")).append(":")
