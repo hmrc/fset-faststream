@@ -65,6 +65,8 @@ object LoggingFilter extends FrontendLoggingFilter with MicroserviceFilterSuppor
 
 object AuditFilter extends FrontendAuditFilter with AppName with MicroserviceFilterSupport {
 
+  override def appNameConfiguration: Configuration = Play.current.configuration
+
   override lazy val maskedFormFields = Seq(
     SignInForm.passwordField,
     SignUpForm.passwordField,
