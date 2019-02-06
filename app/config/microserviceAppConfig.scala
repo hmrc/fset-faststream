@@ -187,10 +187,6 @@ trait MicroserviceAppConfig extends ServicesConfig {
   lazy val parityExportJobConfig =
     underlyingConfiguration.as[ScheduledJobConfig]("scheduling.parity-export-job")
 
-  override def mode = Play.current.mode
-
-  override def runModeConfiguration = Play.current.configuration
-
   private val secretsFileCubiksUrlKey = "microservice.services.cubiks-gateway.testdata.url"
   lazy val testDataGeneratorCubiksSecret = app.configuration.getString(secretsFileCubiksUrlKey).
     getOrElse(fetchSecretConfigKeyFromFile("cubiks.url"))
