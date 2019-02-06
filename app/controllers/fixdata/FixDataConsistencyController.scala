@@ -597,7 +597,7 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
     Action.async { implicit request =>
       assessmentCentreService.nextSpecificCandidateReadyForEvaluation(applicationId).flatMap { candidateResults =>
         if (candidateResults.isEmpty) {
-          Future.successful(Ok("No candidate found to evaluate at FSAC. Please check the candidate's state in the diagnostic report"))
+          Future.successful(BadRequest("No candidate found to evaluate at FSAC. Please check the candidate's state in the diagnostic report"))
         } else {
           val candidateFutures = candidateResults.map { candidateResult =>
 
@@ -611,7 +611,7 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
           }
           Future.sequence(candidateFutures).map(_ => Ok(s"Successfully evaluated candidate $applicationId at FSAC"))
             .recover {
-              case ex: Throwable => Ok(ex.getMessage)
+              case ex: Throwable => BadRequest(ex.getMessage)
             }
         }
       }
