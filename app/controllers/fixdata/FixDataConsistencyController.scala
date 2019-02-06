@@ -23,6 +23,7 @@ import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
 import model.{ ProgressStatuses, SchemeId }
 import model.command.FastPassPromotion
 import play.api.mvc.{ Action, AnyContent, Result }
+import scheduler.assessment.MinimumCompetencyLevelConfig
 import services.application.ApplicationService
 import services.assessmentcentre.AssessmentCentreService
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
@@ -41,7 +42,7 @@ object FixDataConsistencyController extends FixDataConsistencyController {
 }
 
 // scalastyle:off number.of.methods
-trait FixDataConsistencyController extends BaseController {
+trait FixDataConsistencyController extends BaseController with MinimumCompetencyLevelConfig {
   val applicationService: ApplicationService
   val fastPassService: FastPassService
   val siftService: ApplicationSiftService
@@ -589,6 +590,30 @@ trait FixDataConsistencyController extends BaseController {
         Ok(s"Successfully removed evaluation for fsac candidate $applicationId")
       } recover {
         case _: NotFoundException => NotFound
+      }
+    }
+
+  def fsacEvaluateCandidate(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      assessmentCentreService.nextSpecificCandidateReadyForEvaluation(applicationId).flatMap { candidateResults =>
+        if (candidateResults.isEmpty) {
+          Future.successful(Ok("No candidate found to evaluate at FSAC. Please check the candidate's state in the diagnostic report"))
+        } else {
+          val candidateFutures = candidateResults.map { candidateResult =>
+
+            if (candidateResult.schemes.isEmpty) {
+              val msg = s"FSAC candidate $applicationId has no eligible schemes so will not evaluate"
+              play.api.Logger.warn(msg)
+              Future.failed(new Exception(msg))
+            } else {
+              assessmentCentreService.evaluateAssessmentCandidate(candidateResult, minimumCompetencyLevelConfig)
+            }
+          }
+          Future.sequence(candidateFutures).map(_ => Ok(s"Successfully evaluated candidate $applicationId at FSAC"))
+            .recover {
+              case ex: Throwable => Ok(ex.getMessage)
+            }
+        }
       }
     }
 }
