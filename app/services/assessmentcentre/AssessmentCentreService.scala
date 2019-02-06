@@ -93,6 +93,25 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     }
   }
 
+  def nextSpecificCandidateReadyForEvaluation(applicationId: String): Future[Seq[AssessmentPassMarksSchemesAndScores]] = {
+    passmarkService.getLatestPassMarkSettings.flatMap {
+      case Some(passmark) =>
+        Logger.debug(s"$logPrefix Assessment evaluation found pass marks - $passmark")
+        assessmentCentreRepo.nextSpecificApplicationReadyForAssessmentScoreEvaluation(passmark.version, applicationId).flatMap {
+          case appIds if appIds.nonEmpty =>
+            Logger.warn(
+              s"$logPrefix Assessment evaluation found ${appIds.size} candidates to process - applicationIds = [${appIds.mkString(",")}]")
+            Future.sequence(appIds.map(appId => tryToFindEvaluationData(appId, passmark))).map(_.flatten)
+          case Nil =>
+            Logger.warn(s"$logPrefix Assessment evaluation completed - no candidates found")
+            Future.successful(Seq.empty)
+        }
+      case None =>
+        Logger.debug(s"$logPrefix Assessment centre pass marks have not been set")
+        Future.successful(Seq.empty)
+    }
+  }
+
   // Find existing evaluation data: 1. assessment centre pass marks, 2. the schemes to evaluate and 3. the scores awarded by the reviewer
   def tryToFindEvaluationData(appId: UniqueIdentifier,
     passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
