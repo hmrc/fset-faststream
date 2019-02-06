@@ -16,9 +16,8 @@
 
 package config
 
-import com.typesafe.config.Config
-import play.api.Play
 import play.api.Play.current
+import play.api.libs.json.Writes
 import play.api.libs.ws.{ WS, WSClient }
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -26,12 +25,12 @@ import uk.gov.hmrc.play.config.AppName
 import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.play.microservice.config.LoadAuditingConfig
 
+import scala.concurrent.{ ExecutionContext, Future }
+
 trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete with AppName {
   // Disable implicit _outbound_ auditing.
   override val hooks = NoneRequired
   lazy val playWS: WSClient = WS.client
-  override def configuration: Option[Config] = Option(Play.current.configuration.underlying)
-  override def appNameConfiguration = Play.current.configuration
 }
 
 object WSHttp extends WSHttp
