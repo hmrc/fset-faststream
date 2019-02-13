@@ -144,11 +144,13 @@ trait FsbService extends CurrentSchemeStatusHelper {
     val firstResidualInEvaluation = getResultsForScheme(appId, firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)
 
     if (firstResidualInEvaluation.result == Green.toString) {
-      for {
+      // These futures need to be in sequence one after the other
+      (for {
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
+      } yield for {
         // There are no notifications before going to eligible but we want audit trail to show we've passed
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
-      } yield ()
+      } yield ()).flatMap(identity)
 
     } else {
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED).flatMap { _ =>
