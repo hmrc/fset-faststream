@@ -24,6 +24,8 @@ import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.DateTime
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.{ JsValue, Json }
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -48,6 +50,7 @@ trait EventsRepository {
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
   def updateEvent(updatedEvent: Event): Future[Unit]
+  def findAllForExtract(): Enumerator[JsValue]
 }
 
 class EventsMongoRepository(implicit mongo: () => DB)
@@ -129,5 +132,13 @@ class EventsMongoRepository(implicit mongo: () => DB)
   def updateStructure(): Future[Unit] = {
     val updateQuery = BSONDocument("$set" -> BSONDocument("wasBulkUploaded" -> false, "createdAt" -> DateTime.now.getMillis))
     collection.update(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
+  }
+
+  def findAllForExtract(): Enumerator[JsValue] = {
+    val projection = Json.obj("_id" -> false)
+
+    collection.find(Json.obj(), projection)
+      .cursor[JsValue](ReadPreference.primaryPreferred)
+      .enumerate()
   }
 }
