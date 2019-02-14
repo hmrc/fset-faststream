@@ -26,6 +26,7 @@ import play.api.libs.streams.Streams
 import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.DiagnosticReportingRepository
+import repositories.events.EventsMongoRepository
 import services.assessor.AssessorService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -35,6 +36,7 @@ object DiagnosticReportController extends DiagnosticReportController {
   val drRepository: DiagnosticReportingRepository = diagnosticReportRepository
   val assessorAssessmentCentreScoresRepo: AssessorAssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
   val reviewerAssessmentCentreScoresRepo: ReviewerAssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
+  val eventsRepo: EventsMongoRepository = repositories.eventsRepository
   val authProvider: AuthProviderClient = AuthProviderClient
   val assessorService: AssessorService = AssessorService
 }
@@ -44,6 +46,7 @@ trait DiagnosticReportController extends BaseController {
   def drRepository: DiagnosticReportingRepository
   def assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
   def reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
+  def eventsRepo: EventsMongoRepository
   def authProvider: AuthProviderClient
   def assessorService: AssessorService
 
@@ -86,6 +89,11 @@ trait DiagnosticReportController extends BaseController {
 
   def getAllApplications = Action { implicit request =>
     val response = Source.fromPublisher(Streams.enumeratorToPublisher(drRepository.findAll()))
+    Ok.chunked(response)
+  }
+
+  def getAllEvents = Action { implicit request =>
+    val response = Source.fromPublisher(Streams.enumeratorToPublisher(eventsRepo.findAllForExtract()))
     Ok.chunked(response)
   }
 }
