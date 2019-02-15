@@ -856,7 +856,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           val csvRecord = makeRow(
             Some(List(
               allEvents.get(eventId).map(e => s"Event: $e"),
-              doc.getAs[String]("sessionId").map(s => s"session: $s"),
+              doc.getAs[String]("sessionId").map(s => s"session: $eventId/$s"),
               doc.getAs[String]("status"),
               doc.getAs[String]("removeReason"),
               doc.getAs[String]("createdAt").map(d => s"on $d")
