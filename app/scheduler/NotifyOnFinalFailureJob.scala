@@ -40,7 +40,9 @@ trait NotifyOnFinalFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
     service.nextApplicationsFinalFailNotification(batchSize).flatMap {
-      case Nil => Future.successful(())
+      case Nil =>
+        Logger.info("Progress to final failure notified complete - no candidates found")
+        Future.successful(())
       case applications => service.progressApplicationsToFinalFailureNotified(applications).map { result =>
         Logger.info(
           s"Progress to final failure notified complete - ${result.successes.size} updated and ${result.failures.size} failed to update"

@@ -19,9 +19,10 @@ package scheduler
 import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import ProgressToAssessmentCentreJobConfig.conf
+import play.api.Logger
 import services.assessmentcentre.AssessmentCentreService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 object ProgressToAssessmentCentreJob extends ProgressToAssessmentCentreJob {
   val assessmentCentreService = AssessmentCentreService
@@ -35,9 +36,11 @@ trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobC
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     assessmentCentreService.nextApplicationsForAssessmentCentre(batchSize).flatMap {
-      case Nil => Future.successful(())
+      case Nil =>
+        Logger.info("Progress to assessment centre complete - no candidates found")
+        Future.successful(())
       case applications => assessmentCentreService.progressApplicationsToAssessmentCentre(applications).map { result =>
-        play.api.Logger.info(
+        Logger.info(
           s"Progress to assessment centre complete - ${result.successes.size} updated and ${result.failures.size} failed to update"
         )
       }
