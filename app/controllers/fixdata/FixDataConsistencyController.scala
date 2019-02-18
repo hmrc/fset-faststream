@@ -25,10 +25,11 @@ import model.command.FastPassPromotion
 import play.api.mvc.{ Action, AnyContent, Result }
 import scheduler.assessment.MinimumCompetencyLevelConfig
 import services.application.ApplicationService
-import services.assessmentcentre.AssessmentCentreService
+import services.assessmentcentre.{ AssessmentCentreService, AssessmentCentreToFsbOrOfferProgressionService }
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.fastpass.FastPassService
 import services.sift.ApplicationSiftService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,6 +40,7 @@ object FixDataConsistencyController extends FixDataConsistencyController {
   override val fastPassService = FastPassService
   override val siftService = ApplicationSiftService
   override val assessmentCentreService = AssessmentCentreService
+  override val assessmentCentreToFsbOrOfferService = AssessmentCentreToFsbOrOfferProgressionService
 }
 
 // scalastyle:off number.of.methods
@@ -47,6 +49,7 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
   val fastPassService: FastPassService
   val siftService: ApplicationSiftService
   val assessmentCentreService: AssessmentCentreService
+  val assessmentCentreToFsbOrOfferService: AssessmentCentreToFsbOrOfferProgressionService
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -614,6 +617,22 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
               case ex: Throwable => BadRequest(ex.getMessage)
             }
         }
+      }
+    }
+
+  def progressCandidateToFsbOrOfferJob(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      implicit val hc = HeaderCarrier()
+      assessmentCentreToFsbOrOfferService.nextApplicationForFsbOrJobOffer(applicationId).flatMap {
+        case Nil =>
+          val msg = "No candidate found to progress to fsb or offer job. Please check the candidate's state in the diagnostic report"
+          Future.successful(BadRequest(msg))
+        case application =>
+          assessmentCentreToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(application).map { result =>
+            val msg = s"Progress to fsb or job offer complete - ${result.successes.size} processed successfully " +
+              s"and ${result.failures.size} failed to update"
+            Ok(msg)
+          }
       }
     }
 }

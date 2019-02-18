@@ -63,6 +63,10 @@ trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatus
     fsbRepo.nextApplicationForFsbOrJobOfferProgression(batchSize)
   }
 
+  def nextApplicationForFsbOrJobOffer(applicationId: String): Future[Seq[ApplicationForProgression]] = {
+    fsbRepo.nextApplicationForFsbOrJobOfferProgression(applicationId)
+  }
+
   // scalastyle:off method.length
   def progressApplicationsToFsbOrJobOffer(applications: Seq[ApplicationForProgression])(implicit hc: HeaderCarrier)
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
