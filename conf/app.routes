@@ -170,6 +170,9 @@ GET         /diagnostic/fsac/resetFastPassCandidate                             
 GET         /diagnostic/fsac/rollbackWithdraw                                                          controllers.fixdata.FixDataConsistencyController.fsacRollbackWithdraw(applicationId: String)
 GET         /diagnostic/fsac/removeEvaluation                                                          controllers.fixdata.FixDataConsistencyController.fsacRemoveEvaluation(applicationId: String)
 GET         /diagnostic/fsac/evaluateCandidate                                                         controllers.fixdata.FixDataConsistencyController.fsacEvaluateCandidate(applicationId: String)
+GET         /diagnostic/progress-candidate-to-fsb-or-offer-job                                         controllers.fixdata.FixDataConsistencyController.progressCandidateToFsbOrOfferJob(applicationId: String)
+
+
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

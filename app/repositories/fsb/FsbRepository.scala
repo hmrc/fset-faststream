@@ -40,6 +40,7 @@ import scala.concurrent.Future
 trait FsbRepository {
   def nextApplicationReadyForFsbEvaluation: Future[Option[UniqueIdentifier]]
   def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]]
+  def nextApplicationForFsbOrJobOfferProgression(applicationId: String): Future[Seq[ApplicationForProgression]]
   def progressToFsb(application: ApplicationForProgression): Future[Unit]
   def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
   def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
@@ -124,6 +125,50 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     ))
 
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
+  }
+
+  def nextApplicationForFsbOrJobOfferProgression(applicationId: String): Future[Seq[ApplicationForProgression]] = {
+    import AssessmentCentreRepository.applicationForFsacBsonReads
+    val xdipQuery = (route: ApplicationRoute) => BSONDocument(
+      "applicationId" -> applicationId,
+      "applicationRoute" -> route,
+      "applicationStatus" -> ApplicationStatus.SIFT,
+      s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
+      "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument("result" -> Green.toString))
+    )
+
+    val query = BSONDocument("$or" -> BSONArray(
+      BSONDocument(
+        "applicationId" -> applicationId,
+        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
+        s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_PASSED}" -> true
+      ),
+      BSONDocument(
+        "applicationId" -> applicationId,
+        "applicationStatus" -> ApplicationStatus.FSB,
+        s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
+        s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)
+      ),
+      BSONDocument(
+        "applicationId" -> applicationId,
+        "applicationRoute" -> ApplicationRoute.SdipFaststream,
+        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
+        s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED}" -> true
+      ),
+      BSONDocument(
+        "applicationId" -> applicationId,
+        "applicationRoute" -> ApplicationRoute.SdipFaststream,
+        "applicationStatus" -> ApplicationStatus.SIFT,
+        s"progress-status.${ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN}" -> true
+      ),
+      xdipQuery(ApplicationRoute.Sdip),
+      xdipQuery(ApplicationRoute.Edip)
+    ))
+
+    collection.find(query).one[BSONDocument].map {
+      case Some(doc) => List(applicationForFsacBsonReads(doc))
+      case _ => Nil
+    }
   }
 
   def progressToFsb(application: ApplicationForProgression): Future[Unit] = {
