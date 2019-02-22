@@ -44,7 +44,11 @@ object FsbOverallFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[Wa
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     service.processApplicationsFailedAtFsb(batchSize).map { result =>
-      play.api.Logger.info(s"FSB failure job complete - ${result.successes.size} updated and ${result.failures.size} failed to update")
+      val successfulAppIds = result.successes.map( _.applicationId )
+      val failedAppIds = result.failures.map( _.applicationId )
+      val msg = s"FSB failure job complete - ${result.successes.size} updated, appIds: ${successfulAppIds.mkString(",")} " +
+        s"and ${result.failures.size} failed to update, appIds: ${failedAppIds.mkString(",")}"
+      play.api.Logger.warn(msg)
     }
   }
 }

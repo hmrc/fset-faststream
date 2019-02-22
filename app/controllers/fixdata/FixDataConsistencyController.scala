@@ -22,9 +22,10 @@ import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
 import model.{ ProgressStatuses, SchemeId }
 import model.command.FastPassPromotion
+import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Result }
 import scheduler.assessment.MinimumCompetencyLevelConfig
-import services.application.ApplicationService
+import services.application.{ ApplicationService, FsbService }
 import services.assessmentcentre.{ AssessmentCentreService, AssessmentCentreToFsbOrOfferProgressionService }
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.fastpass.FastPassService
@@ -41,6 +42,7 @@ object FixDataConsistencyController extends FixDataConsistencyController {
   override val siftService = ApplicationSiftService
   override val assessmentCentreService = AssessmentCentreService
   override val assessmentCentreToFsbOrOfferService = AssessmentCentreToFsbOrOfferProgressionService
+  override val fsbService = FsbService
 }
 
 // scalastyle:off number.of.methods
@@ -50,6 +52,7 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
   val siftService: ApplicationSiftService
   val assessmentCentreService: AssessmentCentreService
   val assessmentCentreToFsbOrOfferService: AssessmentCentreToFsbOrOfferProgressionService
+  val fsbService: FsbService
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -606,7 +609,7 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
 
             if (candidateResult.schemes.isEmpty) {
               val msg = s"FSAC candidate $applicationId has no eligible schemes so will not evaluate"
-              play.api.Logger.warn(msg)
+              Logger.warn(msg)
               Future.failed(new Exception(msg))
             } else {
               assessmentCentreService.evaluateAssessmentCandidate(candidateResult, minimumCompetencyLevelConfig)
@@ -633,6 +636,24 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
               s"and ${result.failures.size} failed to update"
             Ok(msg)
           }
+      }
+    }
+
+  def progressCandidateFailedAtFsb(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      fsbService.processApplicationFailedAtFsb(applicationId).map { result =>
+        val successfulAppIds = result.successes.map( _.applicationId )
+        val failedAppIds = result.failures.map( _.applicationId )
+        val msg = s"Progress candidate failed at FSB complete - ${result.successes.size} updated, appIds: ${successfulAppIds.mkString(",")} " +
+          s"and ${result.failures.size} failed to update, appIds: ${failedAppIds.mkString(",")}"
+        Logger.warn(msg)
+        if (result.failures.nonEmpty) {
+          BadRequest(s"Failed to update candidate, appId: ${failedAppIds.mkString(",")}")
+        } else if (result.successes.isEmpty) {
+          BadRequest(s"No candidate found to update, appId: $applicationId. Please check the candidate's status")
+        } else {
+          Ok(msg)
+        }
       }
     }
 }
