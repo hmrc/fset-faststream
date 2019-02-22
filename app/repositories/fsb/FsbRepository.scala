@@ -53,6 +53,7 @@ trait FsbRepository {
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
   def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
   def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]]
+  def nextApplicationFailedAtFsb(applicationId: String): Future[Seq[ApplicationForProgression]]
   def removeTestGroup(applicationId: String): Future[Unit]
 }
 
@@ -77,18 +78,32 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     )
   }
 
-  def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+  val commonFailedAtFsbPredicate = BSONDocument(
+    "applicationStatus" -> ApplicationStatus.FSB,
+    s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
+    s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$ne" -> true),
+    s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$ne" -> true),
+    "currentSchemeStatus.result" -> Red.toString,
+    "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
+  )
+
+  override def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+    import AssessmentCentreRepository.applicationForFsacBsonReads
+
+    selectRandom[BSONDocument](commonFailedAtFsbPredicate, batchSize).map(_.map(doc => doc: ApplicationForProgression))
+  }
+
+  override def nextApplicationFailedAtFsb(applicationId: String): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
     val predicate = BSONDocument(
-      "applicationStatus" -> ApplicationStatus.FSB,
-      s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
-      s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$ne" -> true),
-      "currentSchemeStatus.result" -> Red.toString,
-      "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
-    )
+      "applicationId" -> applicationId
+    ) ++ commonFailedAtFsbPredicate
 
-    selectRandom[BSONDocument](predicate, batchSize).map(_.map(doc => doc: ApplicationForProgression))
+    collection.find(predicate).one[BSONDocument].map {
+      case Some(doc) => List(applicationForFsacBsonReads(doc))
+      case _ => Nil
+    }
   }
 
   def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {

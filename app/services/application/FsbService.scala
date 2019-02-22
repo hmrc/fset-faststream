@@ -73,6 +73,18 @@ trait FsbService extends CurrentSchemeStatusHelper {
     }
   }
 
+  def processApplicationFailedAtFsb(applicationId: String): Future[SerialUpdateResult[ApplicationForProgression]] = {
+    fsbRepo.nextApplicationFailedAtFsb(applicationId).flatMap { applications =>
+      val updates = FutureEx.traverseSerial(applications) { application =>
+        FutureEx.futureToEither(application,
+          applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
+        )
+      }
+
+      updates.map(SerialUpdateResult.fromEither)
+    }
+  }
+
   def evaluateFsbCandidate(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     Logger.debug(s"$logPrefix running for application $applicationId")
