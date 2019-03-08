@@ -140,6 +140,7 @@ GET         /diagnostic/sift/createSiftStructure                                
 
 GET         /diagnostic/fsb/markFsbSchemeAsRed/:schemeId                                               controllers.fixdata.FixDataConsistencyController.markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId)
 GET         /diagnostic/fsb/markFsbSchemeAsGreen/:schemeId                                             controllers.fixdata.FixDataConsistencyController.markFsbSchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
+GET         /diagnostic/fsb/removeTestGroup                                                            controllers.fixdata.FixDataConsistencyController.removeFsbTestGroup(applicationId: String)
 GET         /diagnostic/findSdipFaststreamFailedFaststreamInvitedToVideoInterview                      controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInvitedToVideoInterview
 GET         /diagnostic/moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift                controllers.fixdata.FixDataConsistencyController.moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)
 GET         /diagnostic/application/fixSdipFaststreamCandidateWhoExpiredInOnlineTests                  controllers.fixdata.FixDataConsistencyController.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String)

@@ -372,8 +372,13 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
 
   def removeTestGroup(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val update = BSONDocument("$unset" -> BSONDocument(FSB_TEST_GROUPS -> ""))
+    val update = collection.updateModifier(
+      BSONDocument("$unset" -> BSONDocument(FSB_TEST_GROUPS -> ""))
+    )
 
-    collection.update(query, update).map(_ => ())
+    collection.findAndModify(query, update).map{ result =>
+      if (result.value.isEmpty) { throw ApplicationNotFound(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
   }
 }

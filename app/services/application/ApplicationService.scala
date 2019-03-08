@@ -782,6 +782,12 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def removeFsbTestGroup(applicationId: String): Future[Unit] = {
+    for {
+      _ <- fsbRepo.removeTestGroup(applicationId)
+    } yield ()
+  }
+
   def removeSiftTestGroup(application: String): Future[Unit] = {
     appSiftRepository.removeTestGroup(application).map(_ => ())
   }
