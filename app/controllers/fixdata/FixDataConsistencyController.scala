@@ -561,7 +561,15 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
     }
 
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
-    applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT testgroup for  $applicationId"))
+    applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT test group for $applicationId"))
+  }
+
+  def removeFsbTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    applicationService.removeFsbTestGroup(applicationId).map { _ =>
+      Ok(s"Successfully removed FSB test group for $applicationId")
+    } recover {
+      case _: ApplicationNotFound => NotFound
+    }
   }
 
   def updateApplicationStatus(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
