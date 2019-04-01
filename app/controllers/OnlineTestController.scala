@@ -124,6 +124,7 @@ trait OnlineTestController extends BaseController {
 
   def resetPhase1OnlineTests(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
+      play.api.Logger.debug(s"resetPhase1OnlineTests - request=${play.api.libs.json.Json.toJson(resetOnlineTest).toString}")
       appRepository.getOnlineTestApplication(applicationId).flatMap {
         case Some(onlineTestApp) => phase1TestService.resetTests(onlineTestApp, resetOnlineTest.tests, resetOnlineTest.actionTriggeredBy)
           .map ( _ => Ok )
@@ -134,7 +135,7 @@ trait OnlineTestController extends BaseController {
 
   def resetPhase2OnlineTest(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
-
+      play.api.Logger.debug(s"resetPhase2OnlineTests - request=${play.api.libs.json.Json.toJson(resetOnlineTest).toString}")
       def reset(onlineTestApp: OnlineTestApplication, actionTriggeredBy: String) =
         phase2TestService.resetTests(onlineTestApp, actionTriggeredBy)
           .map(_ => Ok)
