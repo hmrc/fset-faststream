@@ -173,13 +173,16 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     // The approach to fixing it here is to generate futures that return Try[A] and then all futures will be
     // traversed. Afterward, we look at the results and clear up the mess
     // We space out calls to Cubiks because it appears they fail when they are too close together.
+    // After zipWithIndex scheduleNames = ( ("sjq", 0), ("bq", 1) )
+
     val registerAndInvite = FutureEx.traverseToTry(scheduleNames.zipWithIndex) {
       case (scheduleName, delayModifier) =>
-        val scheduleId = scheduleIdByName(scheduleName)
+        val scheduleId = scheduleIdByName(scheduleName) // sjq = 16196, bq = 16194
         val delay = (delayModifier * delaySecsBetweenRegistrations).second
-        akka.pattern.after(delay, actor.scheduler)(
+        akka.pattern.after(delay, actor.scheduler) {
+          play.api.Logger.debug(s"Phase1TestService - about to call registerAndInviteApplicant with scheduleId - $scheduleId")
           registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
-        )
+        }
     }
 
     val registerAndInviteProcess = registerAndInvite.flatMap { phase1TestsRegs =>
@@ -257,7 +260,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     }
   }
 
-  def registerApplicant(application: OnlineTestApplication, token: String)(implicit hc: HeaderCarrier): Future[Int] = {
+  private def registerApplicant(application: OnlineTestApplication, token: String)(implicit hc: HeaderCarrier): Future[Int] = {
     val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
     val registerApplicant = RegisterApplicant(preferredName, "", token + "@" + gatewayConfig.emailDomain)
     cubiksGatewayClient.registerApplicant(registerApplicant).map { registration =>

@@ -206,7 +206,8 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     }
   }
 
-  def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
+  // Not private so tests can access
+  protected[phase2] def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
                         (implicit hc: HeaderCarrier): Future[Map[Int, (OnlineTestApplication, String, Registration)]] = {
     cubiksGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map { case (registration, idx) =>
       val candidate = candidates(idx)
@@ -215,7 +216,8 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     }.toMap)
   }
 
-  def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)],
+  // Not private so tests can access
+  protected[phase2] def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)],
                       schedule: Phase2Schedule)
                       (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
     val invites = candidateData.values.map { case (application, token, registration) =>

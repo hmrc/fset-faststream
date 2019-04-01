@@ -232,6 +232,7 @@ trait NumericalTestService extends EventSink {
         val tests = updatedTestGroup.tests.get
         require(tests.exists(_.usedForResults), "Active tests cannot be found")
 
+        // TODO: should we be checking resultsReadyToDownload here and not completedDateTime - see p1 & p2 impl ?
         val activeCompletedTest = tests.forall(_.completedDateTime.isDefined)
         if (activeCompletedTest) {
           applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_RESULTS_READY).map { _ =>

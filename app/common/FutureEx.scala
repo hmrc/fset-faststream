@@ -23,7 +23,6 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.language.higherKinds
 import scala.util.Try
 
-
 object FutureEx {
   /**
    * Serial alternative to Future.traverse. Transforms a `TraversableOnce[A]` into a `Future[TraversableOnce[B]]` using
@@ -43,7 +42,6 @@ object FutureEx {
       } yield previousResult += newFutureResult
     }.map(_.result())
 
-
   /**
     * Create futures of Try[B] so that filtering/processing can be carried out later
     * http://stackoverflow.com/questions/15775824/how-to-carry-on-executing-future-sequence-despite-failure
@@ -61,7 +59,6 @@ object FutureEx {
     Future.traverse( seq )( f andThen mapValue )
   }
 
-
   def futureToEither[T](updateReq: T, result: Future[Unit])(implicit ex: ExecutionContext): Future[Either[T, T]] = {
     result.map { _ => Right(updateReq) }.recover { case _: Exception => Left(updateReq) }
   }
@@ -69,7 +66,6 @@ object FutureEx {
   def withErrLogging[T](logPrefix: String)(f: Future[T])(implicit ec: ExecutionContext): Future[T] = {
     f.recoverWith { case ex => Logger.warn(s"$logPrefix: ${ex.getMessage}"); f }
   }
-
 }
 
 object TryEx {

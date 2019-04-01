@@ -23,6 +23,7 @@ import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands._
 import play.api.http.Status._
+import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -38,8 +39,11 @@ trait CubiksGatewayClient {
   implicit def blankedHeaderCarrier = HeaderCarrier()
 
   def registerApplicants(batchSize: Int): Future[List[Registration]] = {
+    Logger.debug(s"$root registerApplicants E-tray/numeric test GET request - $url/$root/faststream/register/$batchSize")
+
     http.GET(s"$url/$root/faststream/register/$batchSize").map { response =>
       if (response.status == OK) {
+        Logger.debug(s"$root registerApplicants response - ${response.json.toString}")
         response.json.as[List[Registration]]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
@@ -48,8 +52,11 @@ trait CubiksGatewayClient {
   }
 
   def registerApplicant(registerApplicant: RegisterApplicant): Future[Registration] = {
+    Logger.debug(s"$root registerApplicant POST request, body=${play.api.libs.json.Json.toJson(registerApplicant).toString}")
+
     http.POST(s"$url/$root/faststream/register", registerApplicant).map { response =>
       if (response.status == OK) {
+        Logger.debug(s"$root registerApplicant response - ${response.json.toString}")
         response.json.as[Registration]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
@@ -58,8 +65,11 @@ trait CubiksGatewayClient {
   }
 
   def inviteApplicant(inviteApplicant: InviteApplicant): Future[Invitation] = {
+    Logger.debug(s"$root inviteApplicant POST request, body=${play.api.libs.json.Json.toJson(inviteApplicant).toString}")
+
     http.POST(s"$url/$root/faststream/invite", inviteApplicant).map { response =>
       if (response.status == OK) {
+        Logger.debug(s"inviteApplicant response - ${response.json.toString}")
         response.json.as[Invitation]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
@@ -67,18 +77,25 @@ trait CubiksGatewayClient {
     }
   }
 
-  def inviteApplicants(invitations: List[InviteApplicant]): Future[List[Invitation]] =
+  def inviteApplicants(invitations: List[InviteApplicant]): Future[List[Invitation]] = {
+    Logger.debug(s"$root inviteApplicants POST request, body=${play.api.libs.json.Json.toJson(invitations).toString}")
+
     http.POST(s"$url/$root/faststream/batchInvite", invitations).map { response =>
       if (response.status == OK) {
+        Logger.debug(s"$root inviteApplicants response - ${response.json.toString}")
         response.json.as[List[Invitation]]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
+  }
 
   def downloadXmlReport(reportId: Int): Future[TestResult] = {
+    Logger.debug(s"$root downloadXmlReport GET request - $url/$root/faststream/report-xml/$reportId")
+
     http.GET(s"$url/$root/faststream/report-xml/$reportId").map { response =>
       if (response.status == OK) {
+        Logger.debug(s"$root downloadXmlReport response - ${response.json.toString}")
         response.json.as[TestResult]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
