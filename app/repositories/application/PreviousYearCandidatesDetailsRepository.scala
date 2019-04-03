@@ -84,6 +84,14 @@ trait PreviousYearCandidatesDetailsRepository {
     }.mkString(",")
   }
 
+  def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
+    "applicationId,Application status,Route,Currently Civil Servant,Currently Civil Service via Fast Track,Eligible for Fast Pass," +
+    "Fast Pass No,Scheme preferences,Do you have a disability," +
+    appTestStatuses +
+    appTestResults(numOfSchemes) +
+    ",FSAC Indicator area,FSAC Indicator Assessment Centre"
+
+
   def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth," +
     "Are you eligible,Terms and Conditions," +
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
@@ -152,6 +160,8 @@ trait PreviousYearCandidatesDetailsRepository {
   }
 
   def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem]
+
+  def dataAnalystApplicationDetailsStream(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
 
   def applicationDetailsStreamWip(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
 
@@ -468,6 +478,50 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       } catch {
         case ex: Throwable =>
           Logger.error("Previous year candidate report generation exception", ex)
+          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
+      }
+    }
+  }
+
+  override def dataAnalystApplicationDetailsStream(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
+
+    val projection = Json.obj("_id" -> 0)
+
+    applicationDetailsCollection.find(Json.obj(), projection)
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .enumerate().map { doc =>
+
+      try {
+        val (civilServiceExperienceType, civilServiceInternshipTypes, fastPassCertificateNo) = civilServiceExperience(doc)
+        val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
+        val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
+        val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
+
+        val applicationIdOpt = doc.getAs[String]("applicationId")
+        val csvContent = makeRow(
+          List(applicationIdOpt) :::
+            List(doc.getAs[String]("applicationStatus")) :::
+            List(doc.getAs[String]("applicationRoute")) :::
+            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServant.toString) :::
+            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServantViaFastTrack.toString) :::
+            civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPCurrentYear.toString) :::
+            List(fastPassCertificateNo) :::
+            List(schemePrefsAsString) :::
+            hasDisability(doc) :::
+            progressStatusTimestamps(doc) :::
+            testEvaluations(doc, numOfSchemes) :::
+            currentSchemeStatus(doc, numOfSchemes) :::
+            List(fsacIndicator.map(_.area)) :::
+            List(fsacIndicator.map(_.assessmentCentre))
+            : _*
+        )
+        CandidateDetailsReportItem(
+          doc.getAs[String]("applicationId").getOrElse(""),
+          doc.getAs[String]("userId").getOrElse(""), csvContent
+        )
+      } catch {
+        case ex: Throwable =>
+          Logger.error("Data analyst Previous year candidate report generation exception", ex)
           CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
       }
     }
@@ -1212,6 +1266,11 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       assistanceDetails.getAs[String]("adjustmentsComment"),
       if (assistanceDetails.getAs[Boolean]("adjustmentsConfirmed").getOrElse(false)) Y else N
     )
+  }
+
+  private def hasDisability(doc: BSONDocument): List[Option[String]] = {
+    val assistanceDetails = doc.getAs[BSONDocument]("assistance-details")
+    List(assistanceDetails.getAs[String]("hasDisability"))
   }
 
   private def personalDetails(doc: BSONDocument) = {
