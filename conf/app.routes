@@ -88,18 +88,21 @@ GET         /report/numeric-test-extract                                 control
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
 
 GET         /report/fs-presubmitted-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport()
-GET         /report/fs-p1-candidates-details-stream/previous-year        controllers.ReportingController.streamPreviousYearFaststreamP1CandidatesDetailsReport()
-GET         /report/fs-p2-p3-candidates-details-stream/previous-year     controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
+GET         /report/fs-p1-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearFaststreamP1CandidatesDetailsReport()
+GET         /report/fs-p2-p3-candidates-details-stream/previous-year        controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
 
-GET         /report/fs-sift-candidates-details-stream/previous-year            controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
-GET         /report/fs-fsac-candidates-details-stream/previous-year            controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()
-GET         /report/fs-fsb-candidates-details-stream/previous-year            controllers.ReportingController.streamPreviousYearFaststreamFSBCandidatesDetailsReport()
-GET         /report/fs-p1-failed-candidates-details-stream/previous-year              controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
-GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year          controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
+GET         /report/fs-sift-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
+GET         /report/fs-fsac-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()
+GET         /report/fs-fsb-candidates-details-stream/previous-year          controllers.ReportingController.streamPreviousYearFaststreamFSBCandidatesDetailsReport()
+GET         /report/fs-p1-failed-candidates-details-stream/previous-year    controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
+GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
 GET         /report/nonfs-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearNonFaststreamCandidatesDetailsReport()
-GET         /report/streamed/online-test-pass-mark                       controllers.ReportingController.streamOnlineTestPassMarkReportWip()
-GET         /report/assessor-allocation                                  controllers.ReportingController.assessorAllocationReport()
-GET         /report/candidate-acceptance                                 controllers.ReportingController.candidateAcceptanceReport()
+
+GET         /report/streamed/online-test-pass-mark                          controllers.ReportingController.streamOnlineTestPassMarkReportWip()
+GET         /report/streamed/data-analyst-report                            controllers.ReportingController.streamDataAnalystReport()
+
+GET         /report/assessor-allocation                                     controllers.ReportingController.assessorAllocationReport()
+GET         /report/candidate-acceptance                                    controllers.ReportingController.candidateAcceptanceReport()
 
 GET         /campaign-management/afterDeadlineSignupCodeUnusedAndValid   controllers.CampaignManagementController.afterDeadlineSignupCodeUnusedAndValid(code: String)
 GET         /campaign-management/generateAfterDeadlineSignupCode         controllers.CampaignManagementController.generateAfterDeadlineSignupCode(createdByUserId: String,expiryInHours: Int)

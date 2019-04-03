@@ -292,8 +292,26 @@ trait ReportingController extends BaseController {
     }
     data
   }
+  
+  def streamDataAnalystReport: Action[AnyContent] = Action.async { implicit request =>
+    enrichDataAnalystReport(
+      (numOfSchemes, questionnaireDetails) => {
 
-  //scalastyle:off
+        val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStream(numOfSchemes).map { app =>
+          val ret = createDataAnalystRecord(app, questionnaireDetails) + "\n"
+          ret
+        }
+
+        val header = Enumerator(
+          (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
+//            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+            Nil).mkString(",") + "\n"
+        )
+        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+      }
+    )
+  }
+
   def streamOnlineTestPassMarkReportWip: Action[AnyContent] = Action.async { implicit request =>
     def log(msg: String)= play.api.Logger.warn(s"onlineTestPassMarkStreamedReportWip: $msg")
     // this calls the method with the implementation of the function passed as an argument
@@ -345,17 +363,20 @@ trait ReportingController extends BaseController {
       }
     }
   }
-  //scalastyle:on
 
   private def createPassMarkRecord(candidateDetails: CandidateDetailsReportItem,
-                                    questionnaireDetails: CsvExtract[String]//,
-//                                    assessorAssessmentScoresDetails: CsvExtract[String],
-//                                    reviewerAssessmentScoresDetails: CsvExtract[String]
+                                    questionnaireDetails: CsvExtract[String]
                                   ) = {
     (candidateDetails.csvRecord ::
       questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
-//      assessorAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, assessorAssessmentScoresDetails.emptyRecord) ::
-//      reviewerAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, reviewerAssessmentScoresDetails.emptyRecord) ::
+      Nil).mkString(",")
+  }
+
+  private def createDataAnalystRecord(candidateDetails: CandidateDetailsReportItem,
+                                    questionnaireDetails: CsvExtract[String]
+                                  ) = {
+    (candidateDetails.csvRecord ::
+//      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
       Nil).mkString(",")
   }
 
@@ -369,6 +390,19 @@ trait ReportingController extends BaseController {
       val res = block(schemeRepo.schemes.size, questionnaireDetails)
       log(s"result = $res")
       log(s"finished enriching data at ${org.joda.time.DateTime.now} ")
+      res
+    }
+    data
+  }
+
+  private def enrichDataAnalystReport(block: (Int, CsvExtract[String]) => Result)= {
+    val data = for {
+//      questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetailsWip()
+      questionnaireDetails <- Future.successful(CsvExtract("", Map.empty[String, String]))
+    } yield {
+      val maxNumberOfSchemes = 4
+//      val res = block(schemeRepo.schemes.size, questionnaireDetails)
+      val res = block(maxNumberOfSchemes, questionnaireDetails)
       res
     }
     data
