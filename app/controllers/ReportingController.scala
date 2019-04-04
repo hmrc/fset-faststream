@@ -292,19 +292,20 @@ trait ReportingController extends BaseController {
     }
     data
   }
-  
+
   def streamDataAnalystReport: Action[AnyContent] = Action.async { implicit request =>
     enrichDataAnalystReport(
-      (numOfSchemes, questionnaireDetails) => {
+      (numOfSchemes, contactDetails, questionnaireDetails) => {
 
         val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStream(numOfSchemes).map { app =>
-          val ret = createDataAnalystRecord(app, questionnaireDetails) + "\n"
+          val ret = createDataAnalystRecord(app, contactDetails, questionnaireDetails) + "\n"
           ret
         }
 
         val header = Enumerator(
           (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
-//            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+            prevYearCandidatesDetailsRepository.dataAnalystContactDetailsHeader ::
+            prevYearCandidatesDetailsRepository.dataAnalystQuestionnaireDetailsHeader ::
             Nil).mkString(",") + "\n"
         )
         Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
@@ -373,10 +374,12 @@ trait ReportingController extends BaseController {
   }
 
   private def createDataAnalystRecord(candidateDetails: CandidateDetailsReportItem,
-                                    questionnaireDetails: CsvExtract[String]
+                                      contactDetails: CsvExtract[String],
+                                      questionnaireDetails: CsvExtract[String]
                                   ) = {
     (candidateDetails.csvRecord ::
-//      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
+      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
       Nil).mkString(",")
   }
 
@@ -395,14 +398,12 @@ trait ReportingController extends BaseController {
     data
   }
 
-  private def enrichDataAnalystReport(block: (Int, CsvExtract[String]) => Result)= {
+  private def enrichDataAnalystReport(block: (Int, CsvExtract[String], CsvExtract[String]) => Result)= {
     val data = for {
-//      questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetailsWip()
-      questionnaireDetails <- Future.successful(CsvExtract("", Map.empty[String, String]))
+      contactDetails <- prevYearCandidatesDetailsRepository.findDataAnalystContactDetails
+      questionnaireDetails <- prevYearCandidatesDetailsRepository.findDataAnalystQuestionnaireDetails
     } yield {
-      val maxNumberOfSchemes = 4
-//      val res = block(schemeRepo.schemes.size, questionnaireDetails)
-      val res = block(maxNumberOfSchemes, questionnaireDetails)
+      val res = block(schemeRepo.maxNumberOfSchemes, contactDetails, questionnaireDetails)
       res
     }
     data
