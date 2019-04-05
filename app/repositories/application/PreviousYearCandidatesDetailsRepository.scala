@@ -31,7 +31,7 @@ import model.report.{ ProgressStatusesReportLabels, VideoInterviewQuestionTestRe
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsObject, Json }
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONReader, BSONValue }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -85,7 +85,7 @@ trait PreviousYearCandidatesDetailsRepository {
   }
 
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
-    "applicationId,Application status,Route,Currently Civil Servant,Currently Civil Service via Fast Track,Eligible for Fast Pass," +
+    "ApplicationId,Application status,Route,Currently Civil Servant,Currently Civil Service via Fast Track,Eligible for Fast Pass," +
     "Fast Pass No,Scheme preferences,Do you have a disability," +
     appTestStatuses +
     appTestResults(numOfSchemes) +
@@ -129,7 +129,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "Lower socio-economic background?,Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
     "Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
-  val dataAnalystQuestionnaireDetailsHeader: String = "Gender Identity,Sexual Orientation,Ethnic Group,Live in UK between 14-18?,Home postcode at 14," +
+  val dataAnalystQuestionnaireDetailsHeader: String = "Gender identity,Sexual orientation,Ethnic group,Live in UK between 14-18?,Home postcode at 14," +
     "Name of school 14 - 16,Which type of school was this?,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
     "Lower socio-economic background?,Parent guardian completed Uni?,Parents job at 14,Employee?,Size,Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
@@ -142,6 +142,9 @@ trait PreviousYearCandidatesDetailsRepository {
   val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
     "undergrad degree name,classification,graduationYear,moduleDetails," +
     "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
+
+
+  val dataAnalystSiftAnswersHeader: String = "Nationality,Undergrad degree name,Classification,Graduation year"
 
   val assessmentScoresNumericFields = Seq(
     "analysisExercise" -> "analysisAndDecisionMakingAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage",
@@ -184,7 +187,7 @@ trait PreviousYearCandidatesDetailsRepository {
   def findQuestionnaireDetailsWip(): Future[CsvExtract[String]]
   def findDataAnalystQuestionnaireDetails: Future[CsvExtract[String]]
 
-  def findMediaDetails(): Future[CsvExtract[String]]
+  def findMediaDetails: Future[CsvExtract[String]]
   def findMediaDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
   def findAssessorAssessmentScores(): Future[CsvExtract[String]]
@@ -198,6 +201,7 @@ trait PreviousYearCandidatesDetailsRepository {
 
   def findSiftAnswers(): Future[CsvExtract[String]]
   def findSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]]
+  def findDataAnalystSiftAnswers: Future[CsvExtract[String]]
 }
 
 class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
@@ -959,6 +963,33 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
+  override def findDataAnalystSiftAnswers: Future[CsvExtract[String]] = {
+    val query = BSONDocument()
+    val projection = Json.obj("_id" -> 0)
+
+    siftAnswersCollection.find(query, projection)
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .collect[List]().map { docs =>
+      val csvRecords = docs.map { doc =>
+
+        val generalAnswers = doc.getAs[BSONDocument]("generalAnswers")
+        val undergradDegree = generalAnswers.getAs[BSONDocument]("undergradDegree")
+
+        val csvRecord = makeRow(
+          List(
+            doc.getAs[String]("status"),
+            generalAnswers.getAsStr[String]("nationality"),
+            undergradDegree.getAsStr[String]("name"),
+            undergradDegree.getAsStr[String]("classification"),
+            undergradDegree.getAsStr[String]("graduationYear")
+          ): _*
+        )
+        doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
+      }.toMap
+      CsvExtract(dataAnalystSiftAnswersHeader, csvRecords)
+    }
+  }
+
   def findEventsDetails(): Future[CsvExtract[String]] = {
     findEventsDetails(Seq.empty[String])
   }
@@ -1009,14 +1040,21 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  def findMediaDetails(): Future[CsvExtract[String]] = {
-    findMediaDetails(Seq.empty[String])
+  def findMediaDetails: Future[CsvExtract[String]] = {
+    val query = BSONDocument()
+    val projection = Json.obj("_id" -> 0)
+
+    commonFindMediaDetails(query, projection)
   }
 
   def findMediaDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
     val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+    val projection = Json.obj("_id" -> 0)
 
+    commonFindMediaDetails(query, projection)
+  }
+
+  private def commonFindMediaDetails(query: BSONDocument, projection: JsObject) = {
     mediaCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List]().map { docs =>
