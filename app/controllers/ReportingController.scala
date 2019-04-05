@@ -295,10 +295,10 @@ trait ReportingController extends BaseController {
 
   def streamDataAnalystReport: Action[AnyContent] = Action.async { implicit request =>
     enrichDataAnalystReport(
-      (numOfSchemes, contactDetails, questionnaireDetails) => {
+      (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, siftDetails) => {
 
         val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStream(numOfSchemes).map { app =>
-          val ret = createDataAnalystRecord(app, contactDetails, questionnaireDetails) + "\n"
+          val ret = createDataAnalystRecord(app, contactDetails, questionnaireDetails, mediaDetails, siftDetails) + "\n"
           ret
         }
 
@@ -306,6 +306,8 @@ trait ReportingController extends BaseController {
           (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
             prevYearCandidatesDetailsRepository.dataAnalystContactDetailsHeader ::
             prevYearCandidatesDetailsRepository.dataAnalystQuestionnaireDetailsHeader ::
+            prevYearCandidatesDetailsRepository.mediaHeader ::
+            prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
         )
         Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
@@ -375,11 +377,15 @@ trait ReportingController extends BaseController {
 
   private def createDataAnalystRecord(candidateDetails: CandidateDetailsReportItem,
                                       contactDetails: CsvExtract[String],
-                                      questionnaireDetails: CsvExtract[String]
+                                      questionnaireDetails: CsvExtract[String],
+                                      mediaDetails: CsvExtract[String],
+                                      siftDetails: CsvExtract[String]
                                   ) = {
     (candidateDetails.csvRecord ::
       contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
       questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
+      siftDetails.records.getOrElse(candidateDetails.appId, siftDetails.emptyRecord) ::
       Nil).mkString(",")
   }
 
@@ -398,12 +404,14 @@ trait ReportingController extends BaseController {
     data
   }
 
-  private def enrichDataAnalystReport(block: (Int, CsvExtract[String], CsvExtract[String]) => Result)= {
+  private def enrichDataAnalystReport(block: (Int, CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result)= {
     val data = for {
       contactDetails <- prevYearCandidatesDetailsRepository.findDataAnalystContactDetails
       questionnaireDetails <- prevYearCandidatesDetailsRepository.findDataAnalystQuestionnaireDetails
+      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails
+      siftDetails <- prevYearCandidatesDetailsRepository.findDataAnalystSiftAnswers
     } yield {
-      val res = block(schemeRepo.maxNumberOfSchemes, contactDetails, questionnaireDetails)
+      val res = block(schemeRepo.maxNumberOfSchemes, contactDetails, questionnaireDetails, mediaDetails, siftDetails)
       res
     }
     data
