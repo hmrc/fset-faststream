@@ -99,7 +99,8 @@ GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year con
 GET         /report/nonfs-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearNonFaststreamCandidatesDetailsReport()
 
 GET         /report/streamed/online-test-pass-mark                          controllers.ReportingController.streamOnlineTestPassMarkReportWip()
-GET         /report/streamed/data-analyst-report                            controllers.ReportingController.streamDataAnalystReport()
+GET         /report/streamed/data-analyst-report-pt1                        controllers.ReportingController.streamDataAnalystReportPt1()
+GET         /report/streamed/data-analyst-report-pt2                        controllers.ReportingController.streamDataAnalystReportPt2()
 
 GET         /report/assessor-allocation                                     controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                    controllers.ReportingController.candidateAcceptanceReport()

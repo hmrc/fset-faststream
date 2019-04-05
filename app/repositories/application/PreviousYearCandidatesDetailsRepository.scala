@@ -170,7 +170,8 @@ trait PreviousYearCandidatesDetailsRepository {
 
   def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem]
 
-  def dataAnalystApplicationDetailsStream(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
+  def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
+  def dataAnalystApplicationDetailsStreamPt2: Enumerator[CandidateDetailsReportItem]
 
   def applicationDetailsStreamWip(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
 
@@ -494,11 +495,11 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  override def dataAnalystApplicationDetailsStream(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
-
+  override def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
+    val query = BSONDocument()
     val projection = Json.obj("_id" -> 0)
 
-    applicationDetailsCollection.find(Json.obj(), projection)
+    applicationDetailsCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
       .enumerate().map { doc =>
 
@@ -525,6 +526,31 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             List(fsacIndicator.map(_.area)) :::
             List(fsacIndicator.map(_.assessmentCentre))
             : _*
+        )
+        CandidateDetailsReportItem(
+          doc.getAs[String]("applicationId").getOrElse(""),
+          doc.getAs[String]("userId").getOrElse(""), csvContent
+        )
+      } catch {
+        case ex: Throwable =>
+          Logger.error("Data analyst Previous year candidate report generation exception", ex)
+          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
+      }
+    }
+  }
+
+  override def dataAnalystApplicationDetailsStreamPt2: Enumerator[CandidateDetailsReportItem] = {
+    val query = BSONDocument()
+    val projection = Json.obj("_id" -> 0)
+
+    applicationDetailsCollection.find(query, projection)
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .enumerate().map { doc =>
+
+      try {
+        val applicationIdOpt = doc.getAs[String]("applicationId")
+        val csvContent = makeRow(
+          List(applicationIdOpt): _*
         )
         CandidateDetailsReportItem(
           doc.getAs[String]("applicationId").getOrElse(""),
@@ -833,8 +859,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           getAnswer("Did you live in the UK between the ages of 14 and 18?", questionsDoc),
           getAnswer("What was your home postcode when you were 14?", questionsDoc),
           getAnswer("Aged 14 to 16 what was the name of your school?", questionsDoc),
-          getAnswer("What type of school was this?", questionsDoc),
-          getAnswer("Aged 16 to 18 what was the name of your school?", questionsDoc),
+          getAnswer("Which type of school was this?", questionsDoc),
+          getAnswer("Aged 16 to 18 what was the name of your school or college? (if applicable)", questionsDoc),
           getAnswer("Were you at any time eligible for free school meals?", questionsDoc),
           universityName,
           getAnswer("Which category best describes your degree?", questionsDoc),
@@ -977,7 +1003,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
         val csvRecord = makeRow(
           List(
-            doc.getAs[String]("status"),
             generalAnswers.getAsStr[String]("nationality"),
             undergradDegree.getAsStr[String]("name"),
             undergradDegree.getAsStr[String]("classification"),
