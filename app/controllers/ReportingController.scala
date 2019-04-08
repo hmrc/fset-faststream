@@ -353,19 +353,18 @@ trait ReportingController extends BaseController {
       Nil).mkString(",")
   }
 
-  // Includes data from the following collections: application, contact-details and questionnaire
+  // Includes data from the following collections: application and contact-details
   def streamDataAnalystReportPt1: Action[AnyContent] = Action.async { implicit request =>
     enrichDataAnalystReportPt1(
-      (numOfSchemes, contactDetails, questionnaireDetails) => {
+      (numOfSchemes, contactDetails) => {
 
         val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStreamPt1(numOfSchemes).map { app =>
-          createDataAnalystRecordPt1(app, contactDetails, questionnaireDetails) + "\n"
+          createDataAnalystRecordPt1(app, contactDetails) + "\n"
         }
 
         val header = Enumerator(
           (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
             prevYearCandidatesDetailsRepository.dataAnalystContactDetailsHeader ::
-            prevYearCandidatesDetailsRepository.dataAnalystQuestionnaireDetailsHeader ::
             Nil).mkString(",") + "\n"
         )
         Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
@@ -373,36 +372,35 @@ trait ReportingController extends BaseController {
     )
   }
 
-  private def enrichDataAnalystReportPt1(block: (Int, CsvExtract[String], CsvExtract[String]) => Result)= {
+  private def enrichDataAnalystReportPt1(block: (Int, CsvExtract[String]) => Result)= {
     for {
       contactDetails <- prevYearCandidatesDetailsRepository.findDataAnalystContactDetails
-      questionnaireDetails <- prevYearCandidatesDetailsRepository.findDataAnalystQuestionnaireDetails
     } yield {
-      block(schemeRepo.maxNumberOfSchemes, contactDetails, questionnaireDetails)
+      // +1 to handle SdipFastStream candidates who automatically get the Sdip schemes in addition to the 4 selectable schemes
+      block(schemeRepo.maxNumberOfSelectableSchemes + 1, contactDetails)
     }
   }
 
   private def createDataAnalystRecordPt1(candidateDetails: CandidateDetailsReportItem,
-                                         contactDetails: CsvExtract[String],
-                                         questionnaireDetails: CsvExtract[String]
+                                         contactDetails: CsvExtract[String]
                                         ) = {
     (candidateDetails.csvRecord ::
       contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
-      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
       Nil).mkString(",")
   }
 
-  // Includes data from the following collections: application, media and sift-answers
+  // Includes data from the following collections: application, questionnaire, media and sift-answers
   def streamDataAnalystReportPt2: Action[AnyContent] = Action.async { implicit request =>
     enrichDataAnalystReportPt2(
-      (mediaDetails, siftDetails) => {
+      (questionnaireDetails, mediaDetails, siftDetails) => {
 
         val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStreamPt2.map { app =>
-          createDataAnalystRecordPt2(app, mediaDetails, siftDetails) + "\n"
+          createDataAnalystRecordPt2(app, questionnaireDetails, mediaDetails, siftDetails) + "\n"
         }
 
         val header = Enumerator(
           ("ApplicationId" ::
+            prevYearCandidatesDetailsRepository.dataAnalystQuestionnaireDetailsHeader ::
             prevYearCandidatesDetailsRepository.mediaHeader ::
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
@@ -412,20 +410,23 @@ trait ReportingController extends BaseController {
     )
   }
 
-  private def enrichDataAnalystReportPt2(block: (CsvExtract[String], CsvExtract[String]) => Result)= {
+  private def enrichDataAnalystReportPt2(block: (CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result)= {
     for {
+      questionnaireDetails <- prevYearCandidatesDetailsRepository.findDataAnalystQuestionnaireDetails
       mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails
       siftDetails <- prevYearCandidatesDetailsRepository.findDataAnalystSiftAnswers
     } yield {
-      block(mediaDetails, siftDetails)
+      block(questionnaireDetails, mediaDetails, siftDetails)
     }
   }
 
   private def createDataAnalystRecordPt2(candidateDetails: CandidateDetailsReportItem,
+                                         questionnaireDetails: CsvExtract[String],
                                          mediaDetails: CsvExtract[String],
                                          siftDetails: CsvExtract[String]
                                         ) = {
     (candidateDetails.csvRecord ::
+      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
       mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
       siftDetails.records.getOrElse(candidateDetails.appId, siftDetails.emptyRecord) ::
       Nil).mkString(",")

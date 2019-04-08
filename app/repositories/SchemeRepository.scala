@@ -95,7 +95,12 @@ trait SchemeRepository {
 
   def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
 
-  def maxNumberOfSchemes = 4 // Max number of schemes that a candidate can choose
+  /**
+    * Max number of schemes that a candidate can choose. Note that SdipFaststream max will be +1 eg. 5 because they automatically
+    * get Sdip in addition to the 4 selectable schemes
+    * @return the number of selectable schemes
+    */
+  def maxNumberOfSelectableSchemes = 4
 }
 
 object SchemeYamlRepository extends SchemeRepository
