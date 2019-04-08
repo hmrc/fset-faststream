@@ -173,8 +173,6 @@ trait PreviousYearCandidatesDetailsRepository {
   def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
   def dataAnalystApplicationDetailsStreamPt2: Enumerator[CandidateDetailsReportItem]
 
-  def applicationDetailsStreamWip(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
-
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]]
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
                           appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]]
@@ -184,8 +182,6 @@ trait PreviousYearCandidatesDetailsRepository {
 
   def findQuestionnaireDetails(): Future[CsvExtract[String]]
   def findQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
-
-  def findQuestionnaireDetailsWip(): Future[CsvExtract[String]]
   def findDataAnalystQuestionnaireDetails: Future[CsvExtract[String]]
 
   def findMediaDetails: Future[CsvExtract[String]]
@@ -232,177 +228,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   private val N = Some("No")
 
   private var adsCounter = 0
-
-  override def applicationDetailsStreamWip(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
-    val query = BSONDocument(
-      "$or" -> BSONArray(
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
-        BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
-      )
-    )
-
-    val projection = BSONDocument(
-      "userId" -> true,
-      "applicationId" -> true,
-      "progress-status" -> true,
-      "scheme-preferences.schemes" -> true,
-      "assistance-details" -> true,
-      "testGroups.PHASE1" -> true,
-      "testGroups.PHASE2" -> true,
-      "testGroups.PHASE3.tests.callbacks.reviewed" -> true,
-      "testGroups.SIFT_PHASE" -> true
-    )
-
-    applicationDetailsCollection.find(query, projection)
-//    applicationDetailsCollection.find(Json.obj(), projection)
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .enumerate().map { doc =>
-
-      try {
-        val applicationId = doc.getAs[String]("applicationId").get
-        val progressResponse: ProgressResponse = toProgressResponse(applicationId).read(doc)
-
-        val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
-
-        val wrappedSchemes = schemePrefs.map ( s => Some(s) )
-        val schemePadding = Array.fill(numOfSchemes - wrappedSchemes.size)(Option(""))
-        val schemes = wrappedSchemes ++ schemePadding
-
-        val adDoc = doc.getAs[BSONDocument]("assistance-details")
-        val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
-        val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview")).map(booleanYnTranslator)
-        val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanYnTranslator)
-//        val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
-
-        def toTestResult(tr: model.persisted.TestResult) = {
-          TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
-        }
-
-        val testGroupsDoc = doc.getAs[BSONDocument]("testGroups")
-        val phase1TestResults = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1)).map { phase1Doc =>
-          val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc)
-
-          val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
-          val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
-
-          def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
-            phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
-              phase1Test.testResult.map ( tr => toTestResult(tr) )
-            }
-          }
-
-          (getTestResult(phase1TestProfile, behaviouralScheduleId), getTestResult(phase1TestProfile, situationalScheduleId))
-        }.getOrElse((None, None))
-
-        def process(testResultOpt: Option[TestResult]) = {
-          val empty = List(None, None, None, None)
-          testResultOpt.map { s =>
-            List(s.tScore.map(_.toString), s.percentile.map(_.toString), s.raw.map(_.toString), s.sten.map(_.toString))
-          }.getOrElse(empty)
-        }
-
-        val phase1TestResultsProcessed = phase1TestResults match {
-          case(behaviouralScoresOpt, situationalScoresOpt) =>
-            val behavioural = process(behaviouralScoresOpt)
-            val situational = process(situationalScoresOpt)
-            behavioural ++ situational
-        }
-
-        val phase2DocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE2))
-        val phase2TestResults = phase2DocOpt.flatMap { phase2Doc =>
-          val phase2TestProfile = Phase2TestGroup.bsonHandler.read(phase2Doc)
-          phase2TestProfile.activeTests.size match {
-            case 1 => phase2TestProfile.activeTests.head.testResult.map { tr => toTestResult(tr) }
-            case 0 => None
-            case s if s > 1 =>
-              Logger.error(s"There are $s active tests which is invalid for application id [$applicationId]")
-              None
-          }
-        }
-
-        val empty = List(None, None)
-        val phase2TestResultsProcessed = phase2TestResults.map { s =>
-          List(s.tScore.map(_.toString), s.raw.map(_.toString))
-        }.getOrElse(empty)
-
-        def toPhase3TestResults(testGroupsDoc: Option[BSONDocument]): Option[VideoInterviewTestResult] = {
-          def getLatestReviewed(reviewCallBacks: List[ReviewedCallbackRequest]): Option[ReviewedCallbackRequest] =
-            reviewCallBacks.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption
-
-          def toVideoInterviewQuestionTestResult(question: ReviewSectionQuestionRequest) = {
-            VideoInterviewQuestionTestResult(
-              question.reviewCriteria1.score,
-              question.reviewCriteria2.score)
-          }
-
-          val reviewedDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE3))
-           .flatMap(_.getAs[BSONArray]("tests")).flatMap(_.getAs[BSONDocument](0))
-           .flatMap(_.getAs[BSONDocument]("callbacks")).flatMap(_.getAs[List[BSONDocument]]("reviewed"))
-
-          val reviewed = reviewedDocOpt.map (_.map(ReviewedCallbackRequest.bsonHandler.read))
-          val latestReviewedOpt = reviewed.flatMap(getLatestReviewed)
-
-          latestReviewedOpt.map { latestReviewed =>
-            VideoInterviewTestResult(
-              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question1),
-              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question2),
-              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question3),
-              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question4),
-              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question5),
-              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question6),
-              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question7),
-              toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question8),
-              latestReviewed.calculateTotalScore()
-            )
-          }
-        }
-
-        val phase3TestResultsOpt = toPhase3TestResults(testGroupsDoc)
-        val phase3TestResultsProcessed = phase3TestResultsOpt.map(_.toStreamedContent).getOrElse(VideoInterviewTestResult.empty)
-
-        def toSiftTestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]): Option[TestResult] = {
-          val siftDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
-          siftDocOpt.flatMap { siftDoc =>
-            val siftTestProfile = SiftTestGroup.bsonHandler.read(siftDoc)
-            siftTestProfile.activeTests.size match {
-              case 1 => siftTestProfile.activeTests.head.testResult.map { tr => toTestResult(tr) }
-              case 0 => None
-              case s if s > 1 =>
-                Logger.error(s"There are $s active sift tests which is invalid for application id [$applicationId]")
-                None
-            }
-          }
-        }
-
-        val siftTestResultsOpt = toSiftTestResults(applicationId, testGroupsDoc)
-        val siftTestResultsProcessed = siftTestResultsOpt.map { s =>
-          List(s.tScore.map(_.toString), s.raw.map(_.toString))
-        }.getOrElse(empty)
-
-        val csvContent = makeRow(
-          List(doc.getAs[String]("applicationId")) :::
-            List(doc.getAs[String]("userId")) :::
-            List(Option(ProgressStatusesReportLabels.progressStatusNameInReports(progressResponse))) :::
-            schemes :::
-            List(disability, gis, onlineAdjustments) :::
-            phase1TestResultsProcessed :::
-            phase2TestResultsProcessed :::
-            phase3TestResultsProcessed :::
-            siftTestResultsProcessed
-            : _*
-        )
-
-        CandidateDetailsReportItem(
-          doc.getAs[String]("applicationId").getOrElse(""),
-          doc.getAs[String]("userId").getOrElse(""), csvContent
-        )
-      } catch {
-        case ex: Throwable =>
-          Logger.error("TODO:FIXME report generation exception", ex)
-          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
-      }
-    }
-  }
 
   override def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])
   : Enumerator[CandidateDetailsReportItem] = {
@@ -767,56 +592,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         doc.getAs[String]("userId").getOrElse("") -> csvRecord
       }
       CsvExtract(contactDetailsHeader, csvRecords.toMap)
-    }
-  }
-
-  def findQuestionnaireDetailsWip(): Future[CsvExtract[String]] = {
-
-    def getAnswer(question: String, doc: Option[BSONDocument]) = {
-      val questionDoc = doc.flatMap(_.getAs[BSONDocument](question))
-      val isUnknown = questionDoc.flatMap(_.getAs[Boolean]("unknown")).contains(true)
-      isUnknown match {
-        case true =>
-          Some("Unknown")
-        case _ => questionDoc.flatMap(q => q.getAs[String]("answer") match {
-          case None =>
-            q.getAs[String]("otherDetails")
-          case Some(answer) =>
-            Some(answer)
-        })
-      }
-    }
-
-    val projection = Json.obj("_id" -> false)
-
-    questionnaireCollection.find(Json.obj(), projection)
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List]().map { docs =>
-      val csvRecords = docs.map { doc =>
-        val questionsDoc = doc.getAs[BSONDocument]("questions")
-        val universityName = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
-
-        //TODO: Ian mongo 3.2 -> 3.4
-        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
-          val question = bsonElement.name
-          val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
-          question -> answer
-        }.toMap
-
-        val csvRecord = makeRow(
-          getAnswer("What is your gender identity?", questionsDoc),
-          getAnswer("What is your ethnic group?", questionsDoc),
-          universityName,
-          isOxbridge(universityName),
-          isRussellGroup(universityName),
-          getAnswer("Do you consider yourself to come from a lower socio-economic background?", questionsDoc),
-          Some(SocioEconomicCalculator.calculate(allQuestionsAndAnswers))
-        )
-        doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
-      }
-
-      val questionnaireDetailsHeader: String = "Gender,Ethnicity,University,Oxbridge,Russell Group,SE 1-5,SES"
-      CsvExtract(questionnaireDetailsHeader, csvRecords.toMap)
     }
   }
 
