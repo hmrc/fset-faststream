@@ -129,10 +129,6 @@ trait PreviousYearCandidatesDetailsRepository {
     "Lower socio-economic background?,Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
     "Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
-  val dataAnalystQuestionnaireDetailsHeader: String = "Gender identity,Sexual orientation,Ethnic group,Live in UK between 14-18?,Home postcode at 14," +
-    "Name of school 14 - 16,Which type of school was this?,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
-    "Lower socio-economic background?,Parent guardian completed Uni?,Parents job at 14,Employee?,Size,Supervise employees,SE 1-5,Oxbridge,Russell Group"
-
   val mediaHeader = "How did you hear about us?"
 
   val eventsDetailsHeader = "Allocated events"
@@ -180,23 +176,23 @@ trait PreviousYearCandidatesDetailsRepository {
   def findDataAnalystContactDetails: Future[CsvExtract[String]]
   def findContactDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
-  def findQuestionnaireDetails(): Future[CsvExtract[String]]
+  def findQuestionnaireDetails: Future[CsvExtract[String]]
   def findQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
   def findDataAnalystQuestionnaireDetails: Future[CsvExtract[String]]
 
   def findMediaDetails: Future[CsvExtract[String]]
   def findMediaDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
-  def findAssessorAssessmentScores(): Future[CsvExtract[String]]
+  def findAssessorAssessmentScores: Future[CsvExtract[String]]
   def findAssessorAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
-  def findReviewerAssessmentScores(): Future[CsvExtract[String]]
+  def findReviewerAssessmentScores: Future[CsvExtract[String]]
   def findReviewerAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
-  def findEventsDetails(): Future[CsvExtract[String]]
+  def findEventsDetails: Future[CsvExtract[String]]
   def findEventsDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
-  def findSiftAnswers(): Future[CsvExtract[String]]
+  def findSiftAnswers: Future[CsvExtract[String]]
   def findSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]]
   def findDataAnalystSiftAnswers: Future[CsvExtract[String]]
 }
@@ -596,64 +592,10 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   override def findDataAnalystQuestionnaireDetails: Future[CsvExtract[String]] = {
-
-    def getAnswer(question: String, doc: Option[BSONDocument]) = {
-      val questionDoc = doc.flatMap(_.getAs[BSONDocument](question))
-      val isUnknown = questionDoc.flatMap(_.getAs[Boolean]("unknown")).contains(true)
-      if (isUnknown) {
-        Some("Unknown")
-      } else {
-        questionDoc.flatMap(q => q.getAs[String]("answer") match {
-          case None =>
-            q.getAs[String]("otherDetails")
-          case Some(answer) =>
-            Some(answer)
-        })
-      }
-    }
-
+    val query = BSONDocument()
     val projection = Json.obj("_id" -> false)
 
-    questionnaireCollection.find(Json.obj(), projection)
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List]().map { docs =>
-      val csvRecords = docs.map { doc =>
-        val questionsDoc = doc.getAs[BSONDocument]("questions")
-        val universityName = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
-
-        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
-          val question = bsonElement.name
-          val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
-          question -> answer
-        }.toMap
-
-        val csvRecord = makeRow(
-          getAnswer("What is your gender identity?", questionsDoc),
-          getAnswer("What is your sexual orientation?", questionsDoc),
-          getAnswer("What is your ethnic group?", questionsDoc),
-          getAnswer("Did you live in the UK between the ages of 14 and 18?", questionsDoc),
-          getAnswer("What was your home postcode when you were 14?", questionsDoc),
-          getAnswer("Aged 14 to 16 what was the name of your school?", questionsDoc),
-          getAnswer("Which type of school was this?", questionsDoc),
-          getAnswer("Aged 16 to 18 what was the name of your school or college? (if applicable)", questionsDoc),
-          getAnswer("Were you at any time eligible for free school meals?", questionsDoc),
-          universityName,
-          getAnswer("Which category best describes your degree?", questionsDoc),
-          getAnswer("Do you consider yourself to come from a lower socio-economic background?", questionsDoc),
-          getAnswer("Do you have a parent or guardian that completed a university degree course, or qualifications below degree level, by the time you were 18?", questionsDoc),
-          getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?", questionsDoc),
-          getAnswer("Did they work as an employee or were they self-employed?", questionsDoc),
-          getAnswer("Which size would best describe their place of work?", questionsDoc),
-          getAnswer("Did they supervise employees?", questionsDoc),
-          Some(SocioEconomicCalculator.calculate(allQuestionsAndAnswers)),
-          isOxbridge(universityName),
-          isRussellGroup(universityName)
-        )
-        doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
-      }
-
-      CsvExtract(dataAnalystQuestionnaireDetailsHeader, csvRecords.toMap)
-    }
+    commonFindQuestionnaireDetails(query, projection)
   }
 
   def findQuestionnaireDetails(): Future[CsvExtract[String]] = {
@@ -661,8 +603,13 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   def findQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val projection = Json.obj("_id" -> 0)
+
+    commonFindQuestionnaireDetails(query, projection)
+  }
+
+  private def commonFindQuestionnaireDetails(query: BSONDocument, projection: JsObject): Future[CsvExtract[String]] = {
 
     def getAnswer(question: String, doc: Option[BSONDocument]) = {
       val questionDoc = doc.flatMap(_.getAs[BSONDocument](question))
@@ -683,9 +630,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       .collect[List]().map { docs =>
       val csvRecords = docs.map { doc =>
         val questionsDoc = doc.getAs[BSONDocument]("questions")
-        val universityName = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
+        val universityNameAnswer = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
 
-        //TODO: Ian mongo 3.2 -> 3.4
         val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
           val question = bsonElement.name
           val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
@@ -700,20 +646,19 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           getAnswer("What was your home postcode when you were 14?", questionsDoc),
           getAnswer("Aged 14 to 16 what was the name of your school?", questionsDoc),
           getAnswer("Which type of school was this?", questionsDoc),
-          getAnswer("Aged 16 to 18 what was the name of your school or college?", questionsDoc),
+          getAnswer("Aged 16 to 18 what was the name of your school or college? (if applicable)", questionsDoc),
           getAnswer("Were you at any time eligible for free school meals?", questionsDoc),
-          universityName,
+          universityNameAnswer,
           getAnswer("Which category best describes your degree?", questionsDoc),
           getAnswer("Do you consider yourself to come from a lower socio-economic background?", questionsDoc),
           getAnswer("Do you have a parent or guardian that completed a university degree course, or qualifications below degree level, by the time you were 18?", questionsDoc),
           getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?", questionsDoc),
           getAnswer("Did they work as an employee or were they self-employed?", questionsDoc),
-
           getAnswer("Which size would best describe their place of work?", questionsDoc),
           getAnswer("Did they supervise employees?", questionsDoc),
           Some(SocioEconomicCalculator.calculate(allQuestionsAndAnswers)),
-          isOxbridge(universityName),
-          isRussellGroup(universityName)
+          isOxbridge(universityNameAnswer),
+          isRussellGroup(universityNameAnswer)
         )
         doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
       }
