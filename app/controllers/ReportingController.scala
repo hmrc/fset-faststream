@@ -340,7 +340,7 @@ trait ReportingController extends BaseController {
 
         val header = Enumerator(
           ("ApplicationId" ::
-            prevYearCandidatesDetailsRepository.dataAnalystQuestionnaireDetailsHeader ::
+            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
             prevYearCandidatesDetailsRepository.mediaHeader ::
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
