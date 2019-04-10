@@ -284,7 +284,7 @@ trait ReportingController extends BaseController {
       reviewerAssessmentScores <- prevYearCandidatesDetailsRepository.findReviewerAssessmentScores(applicationIds)
       _ = log(s"enriching data - reviewerAssessmentScores = ${reviewerAssessmentScores.header}, size = ${reviewerAssessmentScores.records.size}")
     } yield {
-      val res = block(schemeRepo.schemes.size, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
+      val res = block(maxSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
         assessorAssessmentScores, reviewerAssessmentScores)
       log(s"result = $res")
       log(s"finished enriching data at ${org.joda.time.DateTime.now} ")
@@ -292,6 +292,9 @@ trait ReportingController extends BaseController {
     }
     data
   }
+
+  // +1 to handle SdipFastStream candidates who automatically get the Sdip schemes in addition to the 4 selectable schemes
+  private def maxSchemes = schemeRepo.maxNumberOfSelectableSchemes + 1
 
   // Includes data from the following collections: application and contact-details
   def streamDataAnalystReportPt1: Action[AnyContent] = Action.async { implicit request =>
@@ -316,8 +319,7 @@ trait ReportingController extends BaseController {
     for {
       contactDetails <- prevYearCandidatesDetailsRepository.findDataAnalystContactDetails
     } yield {
-      // +1 to handle SdipFastStream candidates who automatically get the Sdip schemes in addition to the 4 selectable schemes
-      block(schemeRepo.maxNumberOfSelectableSchemes + 1, contactDetails)
+      block(maxSchemes, contactDetails)
     }
   }
 

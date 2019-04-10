@@ -21,13 +21,10 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.OnlineTestCommands.TestResult
-import model.command.{ CandidateDetailsReportItem, CsvExtract, ProgressResponse, WithdrawApplication }
+import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
 import model._
-import model.persisted.{ FSACIndicator, Phase1TestProfile, Phase2TestGroup }
+import model.persisted.FSACIndicator
 import model.persisted.fsb.ScoresAndFeedback
-import model.persisted.sift.SiftTestGroup
-import model.report.{ ProgressStatusesReportLabels, VideoInterviewQuestionTestResult, VideoInterviewTestResult }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
@@ -198,7 +195,7 @@ trait PreviousYearCandidatesDetailsRepository {
 }
 
 class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
-  extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments {
+  extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments with DiversityQuestionsText {
 
   import config.MicroserviceAppConfig._
 
@@ -531,12 +528,12 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     )
   }
 
-  def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]] = {
+  override def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]] = {
     val query = BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes))
     applicationDetailsCollection.find(query).cursor[Candidate]().collect[List]()
   }
 
-  def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
+  override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
                             appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]] = {
     val query = BSONDocument( "$and" -> BSONArray(
       BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
@@ -545,7 +542,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     applicationDetailsCollection.find(query).cursor[Candidate]().collect[List]()
   }
 
-  override def findDataAnalystContactDetails(): Future[CsvExtract[String]] = {
+  override def findDataAnalystContactDetails: Future[CsvExtract[String]] = {
     val query = Json.obj()
     val projection = Json.obj("_id" -> 0)
 
@@ -564,7 +561,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  def findContactDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
+  override def findContactDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
     val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
 
@@ -598,11 +595,11 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     commonFindQuestionnaireDetails(query, projection)
   }
 
-  def findQuestionnaireDetails(): Future[CsvExtract[String]] = {
+  override def findQuestionnaireDetails: Future[CsvExtract[String]] = {
     findQuestionnaireDetails(Seq.empty[String])
   }
 
-  def findQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+  override def findQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     val projection = Json.obj("_id" -> 0)
 
@@ -639,23 +636,23 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         }.toMap
 
         val csvRecord = makeRow(
-          getAnswer("What is your gender identity?", questionsDoc),
-          getAnswer("What is your sexual orientation?", questionsDoc),
-          getAnswer("What is your ethnic group?", questionsDoc),
-          getAnswer("Did you live in the UK between the ages of 14 and 18?", questionsDoc),
-          getAnswer("What was your home postcode when you were 14?", questionsDoc),
-          getAnswer("Aged 14 to 16 what was the name of your school?", questionsDoc),
-          getAnswer("Which type of school was this?", questionsDoc),
-          getAnswer("Aged 16 to 18 what was the name of your school or college? (if applicable)", questionsDoc),
-          getAnswer("Were you at any time eligible for free school meals?", questionsDoc),
+          getAnswer(genderIdentity, questionsDoc),
+          getAnswer(sexualOrientation, questionsDoc),
+          getAnswer(ethnicGroup, questionsDoc),
+          getAnswer(liveInUkAged14to18, questionsDoc),
+          getAnswer(postcodeAtAge14, questionsDoc),
+          getAnswer(schoolNameAged14to16, questionsDoc),
+          getAnswer(schoolTypeAged14to16, questionsDoc),
+          getAnswer(schoolNameAged16to18, questionsDoc),
+          getAnswer(eligibleForFreeSchoolMeals, questionsDoc),
           universityNameAnswer,
-          getAnswer("Which category best describes your degree?", questionsDoc),
-          getAnswer("Do you consider yourself to come from a lower socio-economic background?", questionsDoc),
-          getAnswer("Do you have a parent or guardian that completed a university degree course, or qualifications below degree level, by the time you were 18?", questionsDoc),
-          getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?", questionsDoc),
-          getAnswer("Did they work as an employee or were they self-employed?", questionsDoc),
-          getAnswer("Which size would best describe their place of work?", questionsDoc),
-          getAnswer("Did they supervise employees?", questionsDoc),
+          getAnswer(categoryOfDegree, questionsDoc),
+          getAnswer(lowerSocioEconomicBackground, questionsDoc),
+          getAnswer(parentOrGuardianQualificationsAtAge18, questionsDoc),
+          getAnswer(highestEarningParentOrGuardianTypeOfWorkAtAge14, questionsDoc),
+          getAnswer(employeeOrSelfEmployed, questionsDoc),
+          getAnswer(sizeOfPlaceOfWork, questionsDoc),
+          getAnswer(superviseEmployees, questionsDoc),
           Some(SocioEconomicCalculator.calculate(allQuestionsAndAnswers)),
           isOxbridge(universityNameAnswer),
           isRussellGroup(universityNameAnswer)
@@ -666,11 +663,11 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  def findSiftAnswers(): Future[CsvExtract[String]] = {
+  override def findSiftAnswers: Future[CsvExtract[String]] = {
     findSiftAnswers(Seq.empty[String])
   }
 
-  def findSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+  override def findSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
 
@@ -735,11 +732,11 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  def findEventsDetails(): Future[CsvExtract[String]] = {
+  override def findEventsDetails: Future[CsvExtract[String]] = {
     findEventsDetails(Seq.empty[String])
   }
 
-  def findEventsDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+  override def findEventsDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
 
@@ -785,14 +782,14 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  def findMediaDetails: Future[CsvExtract[String]] = {
+  override def findMediaDetails: Future[CsvExtract[String]] = {
     val query = BSONDocument()
     val projection = Json.obj("_id" -> 0)
 
     commonFindMediaDetails(query, projection)
   }
 
-  def findMediaDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
+  override def findMediaDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
     val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
     val projection = Json.obj("_id" -> 0)
 
@@ -813,16 +810,16 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  def findAssessorAssessmentScores(): Future[CsvExtract[String]] =
+  override def findAssessorAssessmentScores: Future[CsvExtract[String]] =
     findAssessmentScores("Assessor", assessorAssessmentScoresCollection, Seq.empty[String])
 
-  def findAssessorAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]] =
+  override def findAssessorAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]] =
     findAssessmentScores("Assessor", assessorAssessmentScoresCollection, applicationIds)
 
-  def findReviewerAssessmentScores(): Future[CsvExtract[String]] =
+  override def findReviewerAssessmentScores: Future[CsvExtract[String]] =
     findAssessmentScores("Reviewer", reviewerAssessmentScoresCollection, Seq.empty[String])
 
-  def findReviewerAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]] =
+  override def findReviewerAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]] =
     findAssessmentScores("Reviewer", reviewerAssessmentScoresCollection, applicationIds)
 
   private def findAssessmentScores(name: String, col: JSONCollection, applicationIds: Seq[String]): Future[CsvExtract[String]] = {
@@ -870,13 +867,12 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  val russellGroupUnis = List(
-    "B32-BIRM", "B78-BRISL", "C05-CAM", "C15-CARDF", "D86-DUR", "E56-EDINB", "E81-EXCO", "G28-GLASG", "I50-IMP", "K60-KCL",
-    "L23-LEEDS", "L41-LVRPL", "L72-LSE", "M20-MANU", "N21-NEWC", "N84-NOTTM", "O33-OXF", "Q75-QBELF", "S18-SHEFD",
-    "S27-SOTON", "U80-UCL", "W20-WARWK", "Y50-YORK"
-  )
-
   private def isRussellGroup(code: Option[String]): Option[String] = {
+    val russellGroupUnis = List(
+      "B32-BIRM", "B78-BRISL", "C05-CAM", "C15-CARDF", "D86-DUR", "E56-EDINB", "E81-EXCO", "G28-GLASG", "I50-IMP", "K60-KCL",
+      "L23-LEEDS", "L41-LVRPL", "L72-LSE", "M20-MANU", "N21-NEWC", "N84-NOTTM", "O33-OXF", "Q75-QBELF", "S18-SHEFD",
+      "S27-SOTON", "U80-UCL", "W20-WARWK", "Y50-YORK"
+    )
     code.flatMap(c => if (russellGroupUnis.contains(c)) Y else N)
   }
 
