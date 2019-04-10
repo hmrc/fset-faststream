@@ -67,9 +67,10 @@ abstract class DataFaker(schemeRepo: SchemeRepository) {
       }
     }
 
-    // Purposefully always at least two
-    def randNumberOfSchemes() = {
-      randOne(List(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17))
+    // Purposefully always at least 2 and max of 4. SdipFaststream candidates actually can have 5 -
+    // 4 selectable schemes plus Sdip, which is assigned automatically, but we just support 4 here
+    def randNumberOfSchemes = {
+      randOne(List(2, 3, 4))
     }
 
     def upperLetter: Char = randOne(( 'A' to 'Z' ).toList)
@@ -153,7 +154,7 @@ abstract class DataFaker(schemeRepo: SchemeRepository) {
     }
     */
 
-    def schemeTypes = randList(schemeRepo.schemes.toList, randNumberOfSchemes())
+    def schemeTypes = randList(schemeRepo.schemes.toList, randNumberOfSchemes)
 
     def gender = randOne(List(
       "Male",
