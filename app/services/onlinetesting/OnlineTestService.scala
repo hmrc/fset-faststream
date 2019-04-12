@@ -62,6 +62,9 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  // Temporary provide a default implementation so we dont have to implement this for all phases
+  def registerAndInviteForPsi(applications: List[OnlineTestApplication])
+                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
   def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]

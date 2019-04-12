@@ -19,9 +19,11 @@ package connectors
 import java.util.UUID
 
 import connectors.AuthProviderClient.UserRole
+import helpers.TitleCaseJsonNaming
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ Format, Json, OFormat }
+import play.api.libs.json._
 
+// scalastyle:off
 object ExchangeObjects {
 
   val frameworkId = "FastStream-2016"
@@ -103,4 +105,28 @@ object ExchangeObjects {
     Json.format[FindByFirstNameLastNameRequest]
   }
 
+  case class AssessmentOrderAcknowledgementBody(customerId: String,
+                                                receiptId: String,
+                                                orderId: String,
+                                                testLaunchUrl: String,
+                                                status: String,
+                                                statusDetails: String,
+                                                statusDate: LocalDate)
+
+  case class AssessmentOrderAcknowledgement(assessmentOrderAcknowledgement: AssessmentOrderAcknowledgementBody)
+
+  object Implicits {
+
+    implicit val localDateFormat: Format[LocalDate] = new Format[LocalDate] {
+      override def reads(json: JsValue): JsResult[LocalDate] =
+        json.validate[String].map(LocalDate.parse)
+
+      override def writes(o: LocalDate): JsValue = Json.toJson(o.toString)
+    }
+
+    implicit val assessmentOrderAcknowledgementBodyFormat: OFormat[AssessmentOrderAcknowledgementBody] =
+      Json.format[AssessmentOrderAcknowledgementBody]
+    implicit val assessmentOrderAcknowledgementFormat: Format[AssessmentOrderAcknowledgement] =
+      TitleCaseJsonNaming.titleCase(Json.format[AssessmentOrderAcknowledgement])
+  }
 }

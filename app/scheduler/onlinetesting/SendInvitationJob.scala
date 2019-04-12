@@ -61,7 +61,8 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
         Logger.info(s"Inviting the following candidates to phase $phase: $applicationIds")
         implicit val hc = HeaderCarrier()
         implicit val rh = EmptyRequestHeader
-        onlineTestingService.registerAndInviteForTestGroup(applications)
+//        onlineTestingService.registerAndInviteForTestGroup(applications)
+        onlineTestingService.registerAndInviteForPsi(applications)
     }
   }
 }

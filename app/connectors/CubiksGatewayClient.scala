@@ -18,9 +18,10 @@ package connectors
 
 import config.MicroserviceAppConfig._
 import _root_.config.WSHttp
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration }
+import connectors.ExchangeObjects._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.Implicits._
+import ExchangeObjects.Implicits._
 import model.OnlineTestCommands._
 import play.api.http.Status._
 import play.api.Logger
@@ -58,6 +59,16 @@ trait CubiksGatewayClient {
       if (response.status == OK) {
         Logger.debug(s"$root registerApplicant response - ${response.json.toString}")
         response.json.as[Registration]
+      } else {
+        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
+      }
+    }
+  }
+
+  def psiRegisterApplicant() = {
+    http.POST(url = s"$url/$root/faststream/psi-register", "").map { response =>
+      if (response.status == OK) {
+        response.json.as[AssessmentOrderAcknowledgement]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }

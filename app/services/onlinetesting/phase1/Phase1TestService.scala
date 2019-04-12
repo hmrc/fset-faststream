@@ -30,6 +30,7 @@ import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, TestResult => _, _ }
 import model._
 import org.joda.time.DateTime
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
@@ -67,6 +68,16 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
   val delaySecsBetweenRegistrations = 1
+
+
+  override def registerAndInviteForPsi(applications: List[OnlineTestApplication])
+                                      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    cubiksGatewayClient.psiRegisterApplicant().map { response =>
+      Logger.info("==================================================")
+      Logger.info(s"Response from gateway: $response")
+      ()
+    }
+  }
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] =
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize)
@@ -198,8 +209,10 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     } yield audit("OnlineTestInvitationProcessComplete", application.userId)
   }
 
-  private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int, invitationDate: DateTime,
-    expirationDate: DateTime)(implicit hc: HeaderCarrier): Future[CubiksTest] = {
+  private def registerAndInviteApplicant(application: OnlineTestApplication,
+                                         scheduleId: Int, invitationDate: DateTime,
+                                         expirationDate: DateTime)
+                                        (implicit hc: HeaderCarrier): Future[CubiksTest] = {
     val authToken = tokenFactory.generateUUID()
 
     for {
