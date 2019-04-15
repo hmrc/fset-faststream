@@ -32,7 +32,7 @@ import uk.gov.hmrc.play.http._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse }
 
-class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
+class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
 
   val FirstName = "firstName"
   val LastName = "lastName"
@@ -68,17 +68,17 @@ class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
   "register applicant" should {
     "return a ConnectorException when Cubiks gateway returns HTTP status Bad Gateway" in new GatewayTest {
       mockPost[RegisterApplicant].thenReturn(Future.successful(HttpResponse(BAD_GATEWAY)))
-      val result = cubiksGatewayClient.registerApplicant(registerApplicant)
+      val result = onlineTestsGatewayClient.registerApplicant(registerApplicant)
       result.failed.futureValue mustBe a[ConnectorException]
     }
     "return an Exception when there is an exception when calling cubiks gateway" in new GatewayTest {
       mockPost[RegisterApplicant].thenReturn(Future.failed(new Exception))
-      val result = cubiksGatewayClient.registerApplicant(registerApplicant)
+      val result = onlineTestsGatewayClient.registerApplicant(registerApplicant)
       result.failed.futureValue mustBe an[Exception]
     }
     "register an applicant and return a Registration when successful" in new GatewayTest {
       mockPost[RegisterApplicant].thenReturn(Future.successful(registrationHttpResponse))
-      val result = cubiksGatewayClient.registerApplicant(registerApplicant)
+      val result = onlineTestsGatewayClient.registerApplicant(registerApplicant)
       result.futureValue.userId must be(CubiksUserId)
     }
   }
@@ -86,17 +86,17 @@ class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
   "invite application" should {
     "return a ConnectorException when cubiks gateway returns HTTP status Bad Gateway" in new GatewayTest {
       mockPost[InviteApplicant].thenReturn(Future.successful(HttpResponse(BAD_GATEWAY)))
-      val result = cubiksGatewayClient.inviteApplicant(inviteApplicant)
+      val result = onlineTestsGatewayClient.inviteApplicant(inviteApplicant)
       result.failed.futureValue mustBe a[ConnectorException]
     }
     "throw an Exception when there is an exception when calling cubiks gateway" in new GatewayTest {
       mockPost[InviteApplicant].thenReturn(Future.failed(new Exception))
-      val result = cubiksGatewayClient.inviteApplicant(inviteApplicant)
+      val result = onlineTestsGatewayClient.inviteApplicant(inviteApplicant)
       result.failed.futureValue mustBe an[Exception]
     }
     "invite an applicant and return an Invitation when successful" in new GatewayTest {
       mockPost[InviteApplicant].thenReturn(Future.successful(invitationHttpResponse))
-      val result = cubiksGatewayClient.inviteApplicant(inviteApplicant)
+      val result = onlineTestsGatewayClient.inviteApplicant(inviteApplicant)
       result.futureValue must be(invitation)
     }
   }
@@ -124,7 +124,7 @@ class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
       )
     }
 
-    val cubiksGatewayClient = new CubiksGatewayClient {
+    val onlineTestsGatewayClient = new OnlineTestsGatewayClient {
       override val http = mockWSHttp
       override val url = "http://localhost"
     }

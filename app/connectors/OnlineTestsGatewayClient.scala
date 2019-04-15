@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-trait CubiksGatewayClient {
+trait OnlineTestsGatewayClient {
   val http: WSHttp
   val url: String
   val root = "fset-online-tests-gateway"
@@ -65,9 +65,12 @@ trait CubiksGatewayClient {
     }
   }
 
-  def psiRegisterApplicant() = {
+  def psiRegisterApplicant(): Future[AssessmentOrderAcknowledgement] = {
+    Logger.debug(s"$root psi registerApplicant POST request, no body specified")
+
     http.POST(url = s"$url/$root/faststream/psi-register", "").map { response =>
       if (response.status == OK) {
+        Logger.debug(s"$root psiRegisterApplicant response - ${response.json.toString}")
         response.json.as[AssessmentOrderAcknowledgement]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
@@ -115,7 +118,7 @@ trait CubiksGatewayClient {
   }
 }
 
-object CubiksGatewayClient extends CubiksGatewayClient {
+object OnlineTestsGatewayClient extends OnlineTestsGatewayClient {
   val http: WSHttp = WSHttp
-  val url: String = cubiksGatewayConfig.url
+  val url: String = onlineTestsGatewayConfig.url
 }

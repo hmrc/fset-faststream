@@ -1,6 +1,6 @@
 package services.onlinetesting.phase1
 
-import config.{ CubiksGatewayConfig, Phase1TestsConfig }
+import config.{ OnlineTestsGatewayConfig, Phase1TestsConfig }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
@@ -31,7 +31,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   def phase1TestEvaluationService = new EvaluatePhase1ResultService {
     val evaluationRepository: Phase1EvaluationMongoRepository = phase1EvaluationRepo
-    val gatewayConfig: CubiksGatewayConfig = mockGatewayConfig
+    val gatewayConfig: OnlineTestsGatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository = phase1PassMarkSettingRepo
     val phase1TestsConfigMock: Phase1TestsConfig = mock[Phase1TestsConfig]
     val phase = Phase.PHASE1

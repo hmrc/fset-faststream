@@ -16,9 +16,9 @@
 
 package services
 
-import config.MicroserviceAppConfig.cubiksGatewayConfig
-import config.{ CubiksGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
-import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
+import config.MicroserviceAppConfig.onlineTestsGatewayConfig
+import config.{ OnlineTestsGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
+import connectors.{ CSREmailClient, OnlineTestsGatewayClient, EmailClient }
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration, TimeAdjustments }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.UnexpectedException
@@ -43,8 +43,8 @@ import scala.concurrent.Future
 object NumericalTestService extends NumericalTestService {
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
   val applicationSiftRepo: ApplicationSiftRepository = repositories.applicationSiftRepository
-  val cubiksGatewayClient = CubiksGatewayClient
-  val gatewayConfig = cubiksGatewayConfig
+  val onlineTestsGatewayClient = OnlineTestsGatewayClient
+  val gatewayConfig = onlineTestsGatewayConfig
   val tokenFactory = UUIDFactory
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val eventService: StcEventService = StcEventService
@@ -57,9 +57,9 @@ trait NumericalTestService extends EventSink {
   def applicationRepo: GeneralApplicationRepository
   def applicationSiftRepo: ApplicationSiftRepository
   val tokenFactory: UUIDFactory
-  val gatewayConfig: CubiksGatewayConfig
+  val gatewayConfig: OnlineTestsGatewayConfig
   def testConfig: NumericalTestsConfig = gatewayConfig.numericalTests
-  val cubiksGatewayClient: CubiksGatewayClient
+  val onlineTestsGatewayClient: OnlineTestsGatewayClient
   val dateTimeFactory: DateTimeFactory
   def schemeRepository: SchemeRepository
   def emailClient: EmailClient
@@ -98,7 +98,7 @@ trait NumericalTestService extends EventSink {
 
   private def registerApplicants(candidates: Seq[NumericalTestApplication], tokens: Seq[String])
                         (implicit hc: HeaderCarrier): Future[Map[Int, (NumericalTestApplication, String, Registration)]] = {
-    cubiksGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map{
+    onlineTestsGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map{
       case (registration, idx) =>
         val candidate = candidates(idx)
         (registration.userId, (candidate, tokens(idx), registration))
@@ -119,7 +119,7 @@ trait NumericalTestService extends EventSink {
         InviteApplicant(schedule.scheduleId, registration.userId, completionUrl, timeAdjustments = timeAdjustments)
     }.toList
 
-    cubiksGatewayClient.inviteApplicants(invites).map(_.map { invitation =>
+    onlineTestsGatewayClient.inviteApplicants(invites).map(_.map { invitation =>
       val (application, token, registration) = candidateData(invitation.userId)
       NumericalTestInviteData(application, schedule.scheduleId, token, registration, invitation)
     })
@@ -283,7 +283,7 @@ trait NumericalTestService extends EventSink {
 
     val testResults = Future.sequence(siftTestGroup.activeTests.flatMap { test =>
       test.reportId.map { reportId =>
-        cubiksGatewayClient.downloadXmlReport(reportId)
+        onlineTestsGatewayClient.downloadXmlReport(reportId)
       }.map( cubiksTestResult => cubiksTestResult.map( cubiksTestResult => cubiksTestResult -> test ))
     })
 

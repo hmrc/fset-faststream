@@ -1006,17 +1006,17 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val etrayTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE2"))
     val etrayTests = etrayTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
-    val bqTest = onlineTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == cubiksGatewayConfig.phase1Tests.scheduleIds("bq") && test.getAs[Boolean]("usedForResults").getOrElse(false)))
+    val bqTest = onlineTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == onlineTestsGatewayConfig.phase1Tests.scheduleIds("bq") && test.getAs[Boolean]("usedForResults").getOrElse(false)))
     val bqTestResults = bqTest.flatMap {
       _.getAs[BSONDocument]("testResult")
     }
 
-    val sjqTest = onlineTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == cubiksGatewayConfig.phase1Tests.scheduleIds("sjq") && test.getAs[Boolean]("usedForResults").getOrElse(false)))
+    val sjqTest = onlineTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == onlineTestsGatewayConfig.phase1Tests.scheduleIds("sjq") && test.getAs[Boolean]("usedForResults").getOrElse(false)))
     val sjqTestResults = sjqTest.flatMap {
       _.getAs[BSONDocument]("testResult")
     }
 
-    val validEtrayScheduleIds = cubiksGatewayConfig.phase2Tests.schedules.values.map(_.scheduleId).toList
+    val validEtrayScheduleIds = onlineTestsGatewayConfig.phase2Tests.schedules.values.map(_.scheduleId).toList
 
     val etrayTest = etrayTests.flatMap(_.find(test => validEtrayScheduleIds.contains(test.getAs[Int]("scheduleId").get) && test.getAs[Boolean]("usedForResults").getOrElse(false)))
 
@@ -1028,7 +1028,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val siftTests = siftTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
     val siftTest = siftTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get ==
-      cubiksGatewayConfig.numericalTests.schedules(NumericalTestsConfig.numericalTestScheduleName).scheduleId
+      onlineTestsGatewayConfig.numericalTests.schedules(NumericalTestsConfig.numericalTestScheduleName).scheduleId
       && test.getAs[Boolean]("usedForResults").getOrElse(false)))
     val siftTestResults = siftTest.flatMap {
       _.getAs[BSONDocument]("testResult")

@@ -41,7 +41,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def repository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, onlineTestsGatewayConfig)
   def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock)
   def phase2TestRepo = new Phase2TestMongoRepository(ITDateTimeFactoryMock)
   def testDataRepo = new TestDataMongoRepository()

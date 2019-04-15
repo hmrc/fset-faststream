@@ -79,13 +79,13 @@ object WaitingScheduledJobConfig {
   }
 }
 
-case class CubiksGatewayConfig(url: String,
-  phase1Tests: Phase1TestsConfig,
-  phase2Tests: Phase2TestsConfig,
-  numericalTests: NumericalTestsConfig,
-  reportConfig: ReportConfig,
-  candidateAppUrl: String,
-  emailDomain: String
+case class OnlineTestsGatewayConfig(url: String,
+                                    phase1Tests: Phase1TestsConfig,
+                                    phase2Tests: Phase2TestsConfig,
+                                    numericalTests: NumericalTestsConfig,
+                                    reportConfig: ReportConfig,
+                                    candidateAppUrl: String,
+                                    emailDomain: String
 )
 
 case class Phase1TestsConfig(expiryTimeInDays: Int,
@@ -165,7 +165,7 @@ trait MicroserviceAppConfig extends ServicesConfig {
   lazy val schemeConfig = underlyingConfiguration.as[SchemeConfig]("microservice.schemes")
   lazy val eventsConfig = underlyingConfiguration.as[EventsConfig]("microservice.events")
   lazy val userManagementConfig = underlyingConfiguration.as[UserManagementConfig]("microservice.services.user-management")
-  lazy val cubiksGatewayConfig = underlyingConfiguration.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val onlineTestsGatewayConfig = underlyingConfiguration.as[OnlineTestsGatewayConfig]("microservice.services.cubiks-gateway")
   lazy val launchpadGatewayConfig = underlyingConfiguration.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
   lazy val disableSdipFaststreamForSift = underlyingConfiguration.as[Boolean]("microservice.services.disableSdipFaststreamForSift")
   lazy val maxNumberOfDocuments = underlyingConfiguration.as[Int]("maxNumberOfDocuments")

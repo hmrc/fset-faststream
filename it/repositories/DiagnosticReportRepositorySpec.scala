@@ -32,7 +32,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   override val collectionName = CollectionNames.APPLICATION
   
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository()
-  def helperRepo = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(DateTimeFactory, onlineTestsGatewayConfig)
 
 
   "Find by user id" should {

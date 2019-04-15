@@ -19,9 +19,9 @@ package services.onlinetesting.phase1
 import services.AuditService
 import akka.actor.ActorSystem
 import common.{ FutureEx, Phase1TestConcern }
-import config.CubiksGatewayConfig
+import config.OnlineTestsGatewayConfig
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, CubiksGatewayClient }
+import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
@@ -50,12 +50,12 @@ object Phase1TestService extends Phase1TestService {
   val appRepository = applicationRepository
   val cdRepository = faststreamContactDetailsRepository
   val testRepository = phase1TestRepository
-  val cubiksGatewayClient = CubiksGatewayClient
+  val onlineTestsGatewayClient = OnlineTestsGatewayClient
   val tokenFactory = UUIDFactory
   val dateTimeFactory = DateTimeFactory
   val emailClient = CSREmailClient
   val auditService = AuditService
-  val gatewayConfig = cubiksGatewayConfig
+  val gatewayConfig = onlineTestsGatewayConfig
   val actor = ActorSystem()
   val eventService = StcEventService
   val siftService = ApplicationSiftService
@@ -65,14 +65,14 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   type TestRepository = Phase1TestRepository
   val actor: ActorSystem
   val testRepository: Phase1TestRepository
-  val cubiksGatewayClient: CubiksGatewayClient
-  val gatewayConfig: CubiksGatewayConfig
+  val onlineTestsGatewayClient: OnlineTestsGatewayClient
+  val gatewayConfig: OnlineTestsGatewayConfig
   val delaySecsBetweenRegistrations = 1
 
 
   override def registerAndInviteForPsi(applications: List[OnlineTestApplication])
                                       (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    cubiksGatewayClient.psiRegisterApplicant().map { response =>
+    onlineTestsGatewayClient.psiRegisterApplicant().map { response =>
       Logger.info("==================================================")
       Logger.info(s"Response from gateway: $response")
       ()
@@ -260,7 +260,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
 
     val testResults = Future.sequence(testsWithoutTestResult.flatMap { test =>
       test.reportId.map { reportId =>
-        cubiksGatewayClient.downloadXmlReport(reportId)
+        onlineTestsGatewayClient.downloadXmlReport(reportId)
       }.map(_.map(_ -> test))
     })
 
@@ -276,7 +276,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   private def registerApplicant(application: OnlineTestApplication, token: String)(implicit hc: HeaderCarrier): Future[Int] = {
     val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
     val registerApplicant = RegisterApplicant(preferredName, "", token + "@" + gatewayConfig.emailDomain)
-    cubiksGatewayClient.registerApplicant(registerApplicant).map { registration =>
+    onlineTestsGatewayClient.registerApplicant(registerApplicant).map { registration =>
       audit("UserRegisteredForOnlineTest", application.userId)
       registration.userId
     }
@@ -286,7 +286,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     (implicit hc: HeaderCarrier): Future[Invitation] = {
 
     val inviteApplicant = buildInviteApplication(application, authToken, userId, scheduleId)
-    cubiksGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
+    onlineTestsGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
       audit("UserInvitedToOnlineTest", application.userId)
       invitation
     }

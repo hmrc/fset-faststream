@@ -1,6 +1,6 @@
 package services.onlinetesting.phase2
 
-import config.{ CubiksGatewayConfig, Phase2TestsConfig }
+import config.{ OnlineTestsGatewayConfig, Phase2TestsConfig }
 import model.ApplicationRoute._
 import model.ApplicationStatus._
 import model.EvaluationResults._
@@ -32,7 +32,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   def phase2TestEvaluationService = new EvaluatePhase2ResultService {
     val evaluationRepository: Phase2EvaluationMongoRepository = phase2EvaluationRepo
-    val gatewayConfig: CubiksGatewayConfig = mockGatewayConfig
+    val gatewayConfig: OnlineTestsGatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository = phase2PassMarkSettingRepo
     val phase2TestsConfigMock: Phase2TestsConfig = mock[Phase2TestsConfig]
     val generalAppRepository: GeneralApplicationMongoRepository = applicationRepository

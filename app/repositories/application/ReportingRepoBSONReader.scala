@@ -316,8 +316,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1)).map { phase1Doc =>
       val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc)
 
-      val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
-      val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
+      val situationalScheduleId = onlineTestsGatewayConfig.phase1Tests.scheduleIds("sjq")
+      val behaviouralScheduleId = onlineTestsGatewayConfig.phase1Tests.scheduleIds("bq")
 
       def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
         phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>

@@ -45,7 +45,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   def repository = new ReportingMongoRepository(GBTimeZoneService, ITDateTimeFactoryMock)
 
-  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, onlineTestsGatewayConfig)
 
   def testDataRepo = new TestDataMongoRepository()
 

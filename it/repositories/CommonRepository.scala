@@ -1,7 +1,7 @@
 package repositories
 
 import common.FutureEx
-import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig }
+import config.{ OnlineTestsGatewayConfig, LaunchpadGatewayConfig }
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
@@ -33,7 +33,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   import reactivemongo.play.json.ImplicitBSONHandlers._
 
-  val mockGatewayConfig = mock[CubiksGatewayConfig]
+  val mockGatewayConfig = mock[OnlineTestsGatewayConfig]
 
   val mockLaunchpadConfig = mock[LaunchpadGatewayConfig]
 

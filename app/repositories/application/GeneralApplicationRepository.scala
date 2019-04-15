@@ -20,7 +20,7 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
-import config.CubiksGatewayConfig
+import config.OnlineTestsGatewayConfig
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
@@ -186,7 +186,7 @@ trait GeneralApplicationRepository {
 // scalastyle:off file.size.limit
 class GeneralApplicationMongoRepository(
   val dateTimeFactory: DateTimeFactory,
-  gatewayConfig: CubiksGatewayConfig
+  gatewayConfig: OnlineTestsGatewayConfig
 )(implicit mongo: () => DefaultDB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     CreateApplicationRequest.createApplicationRequestFormat,

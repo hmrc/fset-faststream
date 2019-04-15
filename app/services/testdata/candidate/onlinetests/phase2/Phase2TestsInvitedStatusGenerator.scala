@@ -18,8 +18,8 @@ package services.testdata.candidate.onlinetests.phase2
 
 import java.util.UUID
 
-import config.CubiksGatewayConfig
-import config.MicroserviceAppConfig.cubiksGatewayConfig
+import config.OnlineTestsGatewayConfig
+import config.MicroserviceAppConfig.onlineTestsGatewayConfig
 import model.Adjustments
 import model.exchange.testdata.CreateCandidateResponse.{ TestGroupResponse, TestResponse }
 import model.persisted.{ CubiksTest, Phase2TestGroup }
@@ -38,12 +38,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 object Phase2TestsInvitedStatusGenerator extends Phase2TestsInvitedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsPassedStatusGenerator
   override val otRepository = phase2TestRepository
-  override val gatewayConfig = cubiksGatewayConfig
+  override val gatewayConfig = onlineTestsGatewayConfig
 }
 
 trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase2TestRepository
-  val gatewayConfig: CubiksGatewayConfig
+  val gatewayConfig: OnlineTestsGatewayConfig
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
