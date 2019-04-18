@@ -18,9 +18,10 @@ package config
 
 import java.util.Base64
 
-import com.mohiva.play.silhouette.api.{ Environment, EventBus }
+import akka.actor.ActorSystem
 import com.mohiva.play.silhouette.api.crypto.{ Base64AuthenticatorEncoder, Hash }
 import com.mohiva.play.silhouette.api.util.{ Clock, FingerprintGenerator }
+import com.mohiva.play.silhouette.api.{ Environment, EventBus }
 import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticatorService, SessionAuthenticatorSettings }
 import com.typesafe.config.Config
 import connectors.{ ApplicationClient, UserManagementClient }
@@ -34,15 +35,15 @@ import play.api.mvc.Results.{ Forbidden, NotImplemented, Redirect }
 import play.api.mvc.{ Call, RequestHeader, Result }
 import security.{ CsrCredentialsProvider, UserCacheService }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.config.{ AppName, ServicesConfig }
+import uk.gov.hmrc.play.config.AppName
+import uk.gov.hmrc.play.frontend.config.LoadAuditingConfig
+import uk.gov.hmrc.play.frontend.filters.MicroserviceFilterSupport
 import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.whitelist.AkamaiWhitelistFilter
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import uk.gov.hmrc.play.frontend.config.LoadAuditingConfig
-import uk.gov.hmrc.play.frontend.filters.MicroserviceFilterSupport
 
 object FrontendAuditConnector extends AuditConnector {
   override lazy val auditingConfig = LoadAuditingConfig("auditing")
@@ -56,6 +57,7 @@ trait CSRHttp extends WSHttp with WSBinaryPost {
   //val wS = WS
   override val appNameConfiguration = Play.current.configuration
   override lazy val configuration: Option[Config] = Option(Play.current.configuration.underlying)
+  override lazy val actorSystem: ActorSystem = Play.current.actorSystem
 }
 
 object CSRHttp extends CSRHttp

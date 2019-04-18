@@ -34,7 +34,7 @@ private object AppDependencies {
   val compile = Seq(
     "com.iheart"                %% "ficus"                                    % "1.2.6",
     "uk.gov.hmrc"               %% "http-caching-client"                      % "7.1.0",
-    "uk.gov.hmrc"               %% "frontend-bootstrap"                       % "11.3.0",
+    "uk.gov.hmrc"               %% "frontend-bootstrap"                       % "12.7.0",
     "uk.gov.hmrc"               %% "play-whitelist-filter"                    % "2.0.0",
     "uk.gov.hmrc"               %% "url-builder"                              % "2.1.0",
     "org.apache.httpcomponents" %  "httpclient"                               % "4.5.3",
