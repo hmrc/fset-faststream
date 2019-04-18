@@ -16,6 +16,7 @@
 
 package config
 
+import akka.actor.ActorSystem
 import com.typesafe.config.Config
 import play.api.Play
 import play.api.Play.current
@@ -32,6 +33,7 @@ trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost wi
   lazy val playWS: WSClient = WS.client
   override def configuration: Option[Config] = Option(Play.current.configuration.underlying)
   override def appNameConfiguration = Play.current.configuration
+  override def actorSystem: ActorSystem = Play.current.actorSystem
 }
 
 object WSHttp extends WSHttp
