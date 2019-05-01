@@ -334,16 +334,18 @@ trait ReportingController extends BaseController {
   // Includes data from the following collections: application, questionnaire, media and sift-answers
   def streamDataAnalystReportPt2: Action[AnyContent] = Action.async { implicit request =>
     enrichDataAnalystReportPt2(
-      (questionnaireDetails, mediaDetails, siftDetails) => {
+//      (questionnaireDetails, mediaDetails, siftDetails) => {
+      (questionnaireDetails, siftDetails) => {
 
         val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStreamPt2.map { app =>
-          createDataAnalystRecordPt2(app, questionnaireDetails, mediaDetails, siftDetails) + "\n"
+//          createDataAnalystRecordPt2(app, questionnaireDetails, mediaDetails, siftDetails) + "\n"
+          createDataAnalystRecordPt2(app, questionnaireDetails, siftDetails) + "\n"
         }
 
         val header = Enumerator(
           ("ApplicationId" ::
             prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
-            prevYearCandidatesDetailsRepository.mediaHeader ::
+//            prevYearCandidatesDetailsRepository.mediaHeader ::
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
         )
@@ -352,24 +354,26 @@ trait ReportingController extends BaseController {
     )
   }
 
-  private def enrichDataAnalystReportPt2(block: (CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result)= {
+//  private def enrichDataAnalystReportPt2(block: (CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result)= {
+  private def enrichDataAnalystReportPt2(block: (CsvExtract[String], CsvExtract[String]) => Result)= {
     for {
       questionnaireDetails <- prevYearCandidatesDetailsRepository.findDataAnalystQuestionnaireDetails
-      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails
+//      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails
       siftDetails <- prevYearCandidatesDetailsRepository.findDataAnalystSiftAnswers
     } yield {
-      block(questionnaireDetails, mediaDetails, siftDetails)
+//      block(questionnaireDetails, mediaDetails, siftDetails)
+      block(questionnaireDetails, siftDetails)
     }
   }
 
   private def createDataAnalystRecordPt2(candidateDetails: CandidateDetailsReportItem,
                                          questionnaireDetails: CsvExtract[String],
-                                         mediaDetails: CsvExtract[String],
+//                                         mediaDetails: CsvExtract[String],
                                          siftDetails: CsvExtract[String]
                                         ) = {
     (candidateDetails.csvRecord ::
       questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
-      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
+//      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
       siftDetails.records.getOrElse(candidateDetails.appId, siftDetails.emptyRecord) ::
       Nil).mkString(",")
   }
