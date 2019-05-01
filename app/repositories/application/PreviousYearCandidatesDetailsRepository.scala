@@ -85,6 +85,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "ApplicationId,Application status,Route,Currently Civil Servant,Currently Civil Service via Fast Track,Eligible for Fast Pass," +
     "Fast Pass No,Scheme preferences,Do you have a disability," +
     appTestStatuses +
+    "Final Progress Status prior to withdrawal," +
     appTestResults(numOfSchemes) +
     ",FSAC Indicator area,FSAC Indicator Assessment Centre"
 
@@ -313,6 +314,87 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
+  private def lastProgressStatus(doc: BSONDocument): Option[String] = {
+    val progressStatusTimestamps = doc.getAs[BSONDocument]("progress-status-timestamp")
+
+    def timestampFor(progressStatus: ProgressStatuses.ProgressStatus) = {
+      progressStatusTimestamps.getAs[DateTime](progressStatus.toString)
+    }
+
+    val progressStatusesWithTimestamps = List(
+      ProgressStatuses.SUBMITTED, ProgressStatuses.FAST_PASS_ACCEPTED,
+      ProgressStatuses.PHASE1_TESTS_INVITED, ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER, ProgressStatuses.PHASE1_TESTS_STARTED,
+      ProgressStatuses.PHASE1_TESTS_COMPLETED, ProgressStatuses.PHASE1_TESTS_EXPIRED,
+      ProgressStatuses.PHASE1_TESTS_RESULTS_READY, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE1_TESTS_PASSED, ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED,
+      ProgressStatuses.PHASE1_TESTS_FAILED, ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER, ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN,
+
+      ProgressStatuses.PHASE2_TESTS_INVITED, ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER, ProgressStatuses.PHASE2_TESTS_STARTED,
+      ProgressStatuses.PHASE2_TESTS_COMPLETED, ProgressStatuses.PHASE2_TESTS_EXPIRED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_READY, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE2_TESTS_PASSED, ProgressStatuses.PHASE2_TESTS_FAILED,
+      ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED, ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN,
+
+      ProgressStatuses.PHASE3_TESTS_INVITED,
+      ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER, ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_STARTED, ProgressStatuses.PHASE3_TESTS_COMPLETED,
+      ProgressStatuses.PHASE3_TESTS_EXPIRED, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE3_TESTS_PASSED_WITH_AMBER, ProgressStatuses.PHASE3_TESTS_PASSED,
+      ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED, ProgressStatuses.PHASE3_TESTS_FAILED,
+      ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED, ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN,
+
+      ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_TEST_INVITED,
+      ProgressStatuses.SIFT_TEST_STARTED, ProgressStatuses.SIFT_TEST_COMPLETED,
+      ProgressStatuses.SIFT_FIRST_REMINDER, ProgressStatuses.SIFT_SECOND_REMINDER,
+      ProgressStatuses.SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING, ProgressStatuses.SIFT_TEST_RESULTS_READY,
+      ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED, ProgressStatuses.SIFT_READY,
+      ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.SIFT_EXPIRED,
+      ProgressStatuses.SIFT_EXPIRED_NOTIFIED, ProgressStatuses.FAILED_AT_SIFT,
+      ProgressStatuses.FAILED_AT_SIFT_NOTIFIED, ProgressStatuses.SDIP_FAILED_AT_SIFT,
+      ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN,
+
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED, ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED,
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION, ProgressStatuses.ASSESSMENT_CENTRE_PASSED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED,
+
+      ProgressStatuses.FSB_AWAITING_ALLOCATION, ProgressStatuses.FSB_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.FSB_ALLOCATION_CONFIRMED, ProgressStatuses.FSB_FAILED_TO_ATTEND,
+      ProgressStatuses.FSB_RESULT_ENTERED, ProgressStatuses.FSB_PASSED,
+      ProgressStatuses.FSB_FAILED, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED,
+      ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED_NOTIFIED,
+
+      ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED
+    ).map( status => status -> timestampFor(status)).filter{ case (_ , dt) => dt.isDefined }
+
+    val default = new DateTime(1970, 1, 1, 0, 0, 0, 0)
+    val sorted = progressStatusesWithTimestamps.sortBy{ case (_, dt) => dt}(Ordering.fromLessThan(_.getOrElse(default) isAfter _.getOrElse(default)))
+
+    if (sorted.nonEmpty) {
+      val (progressStatus, _) = sorted.head
+      Some(progressStatus.toString)
+    } else {
+      None
+    }
+  }
+
+  private def lastProgressStatusPriorToWithdrawal(doc: BSONDocument): Option[String] = {
+    doc.getAs[String]("applicationStatus").flatMap { status =>
+      if (ApplicationStatus.WITHDRAWN == ApplicationStatus.withName(status)) {
+        lastProgressStatus(doc)
+      } else {
+        None
+      }
+    }
+  }
+
   override def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
     val query = BSONDocument()
     val projection = Json.obj("_id" -> 0)
@@ -339,6 +421,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             List(schemePrefsAsString) :::
             hasDisability(doc) :::
             progressStatusTimestamps(doc) :::
+            List(lastProgressStatusPriorToWithdrawal(doc)) :::
             testEvaluations(doc, numOfSchemes) :::
             currentSchemeStatus(doc, numOfSchemes) :::
             List(fsacIndicator.map(_.area)) :::
