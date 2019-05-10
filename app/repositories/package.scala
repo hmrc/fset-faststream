@@ -76,6 +76,7 @@ package object repositories {
   lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, onlineTestsGatewayConfig)
   lazy val reportingRepository = new ReportingMongoRepository(timeZoneService, DateTimeFactory)
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
+  lazy val phase1TestRepository2 = new Phase1TestMongoRepository2(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()

@@ -23,6 +23,11 @@ abstract class CubiksTestProfile(
   def hasNotResultReadyToDownloadForAllTestsYet =  activeTests.exists(!_.resultsReadyToDownload)
 }
 
+abstract class PsiTestProfile(
+) extends TestProfile[PsiTest] {
+  def hasNotResultReadyToDownloadForAllTestsYet =  activeTests.exists(!_.resultsReadyToDownload)
+}
+
 trait TestProfile[T <: Test] {
   def expirationDate: DateTime
   def tests: List[T]
@@ -32,6 +37,7 @@ trait TestProfile[T <: Test] {
   def evaluation: Option[PassmarkEvaluation]
 }
 
+//TODO: look to see if we still need all members of this trait
 trait Test {
   def usedForResults: Boolean
   def testProvider: String

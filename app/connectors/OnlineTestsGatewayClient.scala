@@ -65,10 +65,23 @@ trait OnlineTestsGatewayClient {
     }
   }
 
-  def psiRegisterApplicant(): Future[AssessmentOrderAcknowledgement] = {
-    Logger.debug(s"$root psi registerApplicant POST request, no body specified")
+  /*
+send across body like this in RegisterCandidateRequest:
 
-    http.POST(url = s"$url/$root/faststream/psi-register", "").map { response =>
+{
+	"inventoryId": "16196",
+	"orderId": "7a49f9c4-cf70-4f5f-8075-5a6b14a2b656",
+	"accountId": "ZKIJ-8324",
+	"preferredName": "Joey",
+	"lastName" : "Barnes",
+	"redirectionUrl" : "http://localhost:9284/fset-fast-stream/online-tests/phase1/continue/7a49f9c4-cf70-4f5f-8075-5a6b14a2b656"
+}
+
+   */
+  def psiRegisterApplicant(request: RegisterCandidateRequest): Future[AssessmentOrderAcknowledgement] = {
+    Logger.debug(s"$root psi registerApplicant POST request, body=${play.api.libs.json.Json.toJson(request).toString}")
+
+    http.POST(url = s"$url/$root/faststream/psi-register", request).map { response =>
       if (response.status == OK) {
         Logger.debug(s"$root psiRegisterApplicant response - ${response.json.toString}")
         response.json.as[AssessmentOrderAcknowledgement]

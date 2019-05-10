@@ -178,6 +178,8 @@ GET         /diagnostic/progress-candidate-to-fsb-or-offer-job                  
 GET         /diagnostic/progress-candidate-failed-at-fsb                                               controllers.fixdata.FixDataConsistencyController.progressCandidateFailedAtFsb(applicationId: String)
 
 
+GET         /online-test/psi/phase1/candidate/:applicationId             controllers.OnlineTestController.getPhase1OnlineTest2(applicationId: String)
+
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
 GET         /online-test/phase3/candidate/:applicationId                 controllers.OnlineTestController.getPhase3OnlineTest(applicationId: String)
@@ -187,6 +189,10 @@ POST        /online-test/phase2/reset/:applicationId                     control
 POST        /online-test/phase3/reset/:applicationId                     controllers.OnlineTestController.resetPhase3OnlineTest(applicationId: String)
 
 POST        /online-test/phase2/verifyAccessCode                         controllers.OnlineTestController.verifyAccessCode()
+
+
+PUT         /psi/complete-by-orderId/:orderId                            controllers.PsiTestsController.completeTestByOrderId(orderId: String)
+
 
 PUT         /cubiks/:cubiksUserId/start                                  controllers.CubiksTestsController.start(cubiksUserId: Int)
 PUT         /cubiks/:cubiksUserId/complete                               controllers.CubiksTestsController.complete(cubiksUserId: Int)

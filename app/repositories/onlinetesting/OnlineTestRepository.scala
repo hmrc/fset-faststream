@@ -18,7 +18,7 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId }
+import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, CannotFindTestByOrderId }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
@@ -34,6 +34,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+//scalastyle:off number.of.methods
 trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
@@ -78,6 +79,76 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     ))
     findAndUpdateCubiksTest(cubiksUserId, update)
   }
+
+  /// psi specific code start
+  def markTestAsInactive2(psiOrderId: String) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.usedForResults" -> false
+    ))
+    findAndUpdatePsiTest(psiOrderId, update)
+  }
+
+  private def findAndUpdatePsiTest(orderId: String, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit] = {
+    val find = BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("orderId" -> orderId)
+      )
+    )
+
+    val validator = if (ignoreNotFound) {
+      singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
+    } else {
+      singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests",
+        CannotFindTestByCubiksId(s"Cannot find test group by orderId=$orderId"))
+    }
+
+    collection.update(find, update) map validator
+  }
+
+  def insertPsiTests(applicationId: String, newTestProfile: PsiTestProfile) = {
+//  def insertPsiTests[P <: PsiTestProfile](applicationId: String, newTestProfile: P) = {
+    val query = BSONDocument(
+      "applicationId" -> applicationId
+    )
+    val update = BSONDocument(
+      "$push" -> BSONDocument(
+        s"testGroups.$phaseName.tests" -> BSONDocument(
+          "$each" -> newTestProfile.tests
+        )),
+      "$set" -> BSONDocument(
+        s"testGroups.$phaseName.expirationDate" -> newTestProfile.expirationDate
+      )
+    )
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
+
+    collection.update(query, update) map validator
+  }
+
+  def getTestProfileByOrderId(orderId: String, phase: String = "PHASE1"): Future[T] = {
+    val query = BSONDocument(s"testGroups.$phase.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("orderId" -> orderId)
+    ))
+
+    phaseTestProfileByQuery(query, phase).map { x =>
+      x.getOrElse(cannotFindTestByOrderId(orderId))
+    }
+  }
+
+  def cannotFindTestByOrderId(orderId: String) = {
+    throw CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
+  }
+
+  def updateTestCompletionTime2(orderId: String, completedTime: DateTime) = {
+    import repositories.BSONDateTimeHandler
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
+    ))
+
+    findAndUpdatePsiTest(orderId, update, ignoreNotFound = true)
+  }
+
+  /// psi specific code end
 
   def insertCubiksTests[P <: CubiksTestProfile](applicationId: String, newTestProfile: P) = {
     val query = BSONDocument(
@@ -323,3 +394,4 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     }
   }
 }
+//scalastyle:on

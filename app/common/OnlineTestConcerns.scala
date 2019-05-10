@@ -25,6 +25,12 @@ trait Phase1TestConcern {
   type RichTestGroup = Phase1TestGroupWithUserIds
 }
 
+trait Phase1TestConcern2 {
+  type U = PsiTest
+  type T = Phase1TestProfile2
+//  type RichTestGroup = Phase1TestGroupWithUserIds
+}
+
 trait Phase2TestConcern {
   type U = CubiksTest
   type T = Phase2TestGroup
