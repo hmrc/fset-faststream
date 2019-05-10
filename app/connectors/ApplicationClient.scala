@@ -212,6 +212,22 @@ trait ApplicationClient {
       case Upstream4xxResponse(_, FORBIDDEN, _, _) => throw new TestForTokenExpiredException()
     }
 
+  // psi code start
+
+  def getPhase1TestProfile2(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames2] = {
+    http.GET(s"$apiBaseUrl/online-test/psi/phase1/candidate/$appId").map { response =>
+      response.json.as[Phase1TestGroupWithNames2]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
+
+  def completeTestByOrderId(orderId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"$apiBaseUrl/psi/complete-by-orderId/$orderId", "").map(_ => ())
+  }
+
+  // psi code end
+
   def getPhase1TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
     http.GET(s"$apiBaseUrl/online-test/phase1/candidate/$appId").map { response =>
       response.json.as[Phase1TestGroupWithNames]

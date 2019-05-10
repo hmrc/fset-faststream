@@ -37,6 +37,23 @@ object CubiksTest {
   implicit def phase1TestFormat = Json.format[CubiksTest]
 }
 
+case class PsiTest(usedForResults: Boolean,
+  testUrl: String,
+  orderId: UniqueIdentifier,
+  userId: String, //TODO: do we really need this now as the orderId is the data we need to identify a test?
+  invitationDate: DateTime,
+  startedDateTime: Option[DateTime] = None,
+  completedDateTime: Option[DateTime] = None,
+  resultsReadyToDownload: Boolean = false
+) {//extends Test {
+  def started = startedDateTime.isDefined
+  def completed = completedDateTime.isDefined
+}
+
+object PsiTest {
+  implicit def phase1TestFormat = Json.format[PsiTest]
+}
+
 case class Phase1TestGroup(expirationDate: DateTime,
   tests: List[CubiksTest]
 ) extends CubiksTestGroup

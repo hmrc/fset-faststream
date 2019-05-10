@@ -27,6 +27,14 @@ object Phase1TestGroupWithNames {
   implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames]
 }
 
+case class Phase1TestGroupWithNames2(expirationDate: DateTime, activeTests: Map[String, PsiTest]) {
+  def tests = activeTests.values
+}
+
+object Phase1TestGroupWithNames2 {
+  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames2]
+}
+
 case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest)
 
 object Phase2TestGroupWithActiveTest {

@@ -71,6 +71,9 @@ GET         /questionnaire/page/3                                   controllers.
 POST        /questionnaire/page/3                                   controllers.QuestionnaireController.submitThirdPage
 GET         /schools                                                controllers.SchoolsController.getSchools(item: String)
 
+POST        /online-tests/psi/phase1/start                          controllers.PsiTestController.startPhase1Tests
+GET         /online-tests/psi/phase1/continue/:orderId              controllers.PsiTestController.completeSjqAndContinuePhase1Tests(orderId: UniqueIdentifier)
+
 # Online Test
 POST        /online-tests/phase1/start                              controllers.CubiksTestController.startPhase1Tests
 POST        /online-tests/phase2/start                              controllers.CubiksTestController.startPhase2Tests

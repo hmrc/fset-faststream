@@ -28,3 +28,16 @@ object CubiksTestPage {
     )
   }
 }
+
+case class PsiTestPage(
+                        started: Boolean = false,
+                        completed: Boolean = false
+                      )
+
+object PsiTestPage {
+  def apply(test: connectors.exchange.PsiTest): PsiTestPage = {
+    PsiTestPage(started = test.started,
+      completed = test.completed
+    )
+  }
+}

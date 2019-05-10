@@ -20,8 +20,8 @@ import org.joda.time.DateTime
 
 case class Phase1TestsPage(
   expirationDate: DateTime,
-  sjq: Option[CubiksTestPage],
-  bq: Option[CubiksTestPage]
+  sjq: Option[PsiTestPage],
+  bq: Option[PsiTestPage]
 ) extends DurationFormatter {
 
   def areStarted: Boolean = {
@@ -37,10 +37,10 @@ case class Phase1TestsPage(
 
 object Phase1TestsPage {
 
-  def apply(profile: connectors.exchange.Phase1TestGroupWithNames): Phase1TestsPage = {
+  def apply(profile: connectors.exchange.Phase1TestGroupWithNames2): Phase1TestsPage = {
     Phase1TestsPage(expirationDate = profile.expirationDate,
-      sjq = profile.activeTests.get("sjq").map(CubiksTestPage.apply),
-      bq = profile.activeTests.get("bq").map(CubiksTestPage.apply)
+      sjq = profile.activeTests.get("sjq").map(PsiTestPage.apply),
+      bq = profile.activeTests.get("bq").map(PsiTestPage.apply)
     )
   }
 }

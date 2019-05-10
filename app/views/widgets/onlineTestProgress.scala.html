@@ -214,7 +214,7 @@
                     }</strong> to finish the online exercises</p>
                     <div id="testsButtonContainer">
 
-                        @helper.form(action = routes.CubiksTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
+                        @helper.form(action = routes.PsiTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
                             @helper.CSRF.formField
                             @{
                                 if(!tests.areStarted) {
