@@ -133,9 +133,8 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
       PsiTest(
         inventoryId = inventoryId,
         orderId = aoa.assessmentOrderAcknowledgement.orderId,
-        userId = aoa.assessmentOrderAcknowledgement.customerId,
+        accountId = aoa.assessmentOrderAcknowledgement.customerId,
         usedForResults = true,
-        token = "", //TODO look at this (no longer relevant for psi but specified in the Test trait)
         testUrl = aoa.assessmentOrderAcknowledgement.testLaunchUrl,
         invitationDate = invitationDate
       )

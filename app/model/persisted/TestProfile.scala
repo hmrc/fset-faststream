@@ -41,7 +41,6 @@ trait TestProfile[T <: Test] {
 trait Test {
   def usedForResults: Boolean
   def testProvider: String
-  def token: String
   def startedDateTime: Option[DateTime]
   def completedDateTime: Option[DateTime]
   def invigilatedAccessCode: Option[String]

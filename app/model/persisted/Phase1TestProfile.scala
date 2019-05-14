@@ -64,9 +64,8 @@ object Phase1TestProfile {
 case class PsiTest(
                     inventoryId: String,
                     orderId: String,
-                    userId: String,
+                    accountId: String,
                     usedForResults: Boolean,
-                    token: String,
                     testUrl: String,
                     testProvider: String = "psi",
                     invitationDate: DateTime,
