@@ -42,16 +42,17 @@ trait PsiTestsController extends BaseController {
 //  val numericalTestService: NumericalTestService
   val eventService: StcEventService
 
-/*
-  def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Cubiks userId $cubiksUserId assessment started")
-    phase1TestService.markAsStarted(cubiksUserId)
-      .recoverWith { case _: CannotFindTestByCubiksId =>
-        phase2TestService.markAsStarted(cubiksUserId)
-      }.map( _ => Ok )
-      .recover(recoverNotFound)
+
+  def start(orderId: String) = Action.async(parse.json) { implicit request =>
+    Logger.info(s"Order ID $orderId assessment started")
+    phase1TestService.markAsStarted2(orderId)
+      .map(_ => Ok)
+      .recover {
+        case e =>
+          Logger.warn(s"Something went wrong while saving start time: ${e.getMessage}")
+          InternalServerError
+      }
   }
-*/
 
 /*
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>

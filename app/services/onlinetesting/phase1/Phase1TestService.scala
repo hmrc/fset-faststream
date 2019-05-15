@@ -256,6 +256,15 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     }
   }
 
+  def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    updatePhase1Test2(orderId, testRepository.updateTestStartTime(_: String, startedTime)) flatMap { u =>
+      testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
+        DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
+      }
+    }
+  }
+
   private def updatePhase1Test2(orderId: String, updatePsiTest: String => Future[Unit]): Future[Phase1TestGroupWithUserIds2] = {
     for {
       _ <- updatePsiTest(orderId)

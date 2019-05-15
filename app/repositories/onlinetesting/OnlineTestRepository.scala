@@ -73,6 +73,13 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     findAndUpdateCubiksTest(cubiksUserId, update)
   }
 
+  def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
+    ))
+    findAndUpdateTest(orderId, update)
+  }
+
   def markTestAsInactive(cubiksUserId: Int) = {
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.usedForResults" -> false
@@ -304,6 +311,24 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     } else {
       singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests",
         CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId"))
+    }
+
+    collection.update(find, update) map validator
+  }
+
+  private def findAndUpdateTest(orderId: String, update: BSONDocument,
+                                ignoreNotFound: Boolean = false): Future[Unit] = {
+    val find = BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("orderId" -> orderId)
+      )
+    )
+
+    val validator = if (ignoreNotFound) {
+      singleUpdateValidator(orderId, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
+    } else {
+      singleUpdateValidator(orderId, actionDesc = s"updating $phaseName tests",
+        CannotFindTestByCubiksId(s"Cannot find test group by Order ID: $orderId"))
     }
 
     collection.update(find, update) map validator

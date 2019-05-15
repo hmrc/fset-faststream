@@ -199,6 +199,8 @@ PUT         /cubiks/:cubiksUserId/complete                               control
 PUT         /cubiks/complete-by-token/:token                             controllers.CubiksTestsController.completeTestByToken(token: String)
 PUT         /cubiks/:cubiksUserId/results-ready                          controllers.CubiksTestsController.markResultsReady(cubiksUserId: Int)
 
+PUT         /psi/:orderId/start                                          controllers.PsiTestsController.start(orderId: String)
+
 POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
 POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
 POST        /phase3-test-group/extend/:applicationId                     controllers.Phase3TestGroupController.extend(applicationId: String)
