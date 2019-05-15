@@ -44,7 +44,7 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
 
   private def startPsiTest(psiTests: Iterable[PsiTest])(implicit hc: HeaderCarrier) = {
     psiTests.find(!_.completed).map { testToStart =>
-//      applicationClient.startTest(testToStart.cubiksUserId) //TODO: make the call to fs backend with orderId
+      applicationClient.startTest(testToStart.orderId.toString)
       Future.successful(Redirect(testToStart.testUrl))
     }.getOrElse(Future.successful(NotFound))
   }

@@ -304,6 +304,10 @@ trait ApplicationClient {
     http.PUT(s"$apiBaseUrl/cubiks/$cubiksUserId/start", "").map(_ => ())
   }
 
+  def startTest(orderId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"$apiBaseUrl/psi/$orderId/start", "").map(_ => ())
+  }
+
   def startSiftTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"$apiBaseUrl/sift-test/$cubiksUserId/start", "").map(_ => ())
   }
