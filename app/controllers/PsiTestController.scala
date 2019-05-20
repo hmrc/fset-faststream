@@ -55,4 +55,11 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
         Ok(views.html.application.onlineTests.sjqComplete_continuePhase1Tests())
       }
   }
+
+  def completePhase1Tests(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
+    implicit user =>
+      applicationClient.completeTestByOrderId(orderId).map { _ =>
+        Ok(views.html.application.onlineTests.phase1TestsComplete())
+      }
+  }
 }
