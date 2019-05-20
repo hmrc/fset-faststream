@@ -21,10 +21,14 @@ import model.command.ProgressResponse
 import org.joda.time.DateTime
 import play.api.libs.json.{ Json, OFormat }
 
-case class ApplicationResponse(applicationId: String, applicationStatus: String,  applicationRoute: ApplicationRoute,
-                                 userId: String, progressResponse: ProgressResponse,
-                                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
-                                 overriddenSubmissionDeadline: Option[DateTime])
+case class ApplicationResponse(applicationId: String,
+                               applicationStatus: String,
+                               applicationRoute: ApplicationRoute,
+                               userId: String,
+                               testAccountId: String,
+                               progressResponse: ProgressResponse,
+                               civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
+                               overriddenSubmissionDeadline: Option[DateTime])
 
 object ApplicationResponse {
   implicit val applicationAddedFormat: OFormat[ApplicationResponse] = Json.format[ApplicationResponse]

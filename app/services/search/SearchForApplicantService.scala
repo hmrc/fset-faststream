@@ -139,6 +139,7 @@ trait SearchForApplicantService {
     Candidate(
       userId = exchangeCandidate.userId,
       applicationId = None,
+      testAccountId = None,
       email = Some(exchangeCandidate.email),
       firstName = Some(exchangeCandidate.firstName),
       lastName = Some(exchangeCandidate.lastName),

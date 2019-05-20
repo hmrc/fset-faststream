@@ -261,6 +261,7 @@ package object repositories {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[String]("applicationStatus").get
     val userId = doc.getAs[String]("userId").get
+    val testAccountId = doc.getAs[String]("testAccountId").get
 
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
@@ -274,7 +275,10 @@ package object repositories {
     val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
     val videoInterviewAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("video")
 
-    OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests,
-      needsAdjustmentsAtVenue, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments)
+    OnlineTestApplication(
+      applicationId, applicationStatus, userId, testAccountId, guaranteedInterview,
+      needsAdjustmentForOnlineTests, needsAdjustmentsAtVenue, preferredName, lastName,
+      etrayAdjustments, videoInterviewAdjustments
+    )
   }
 }

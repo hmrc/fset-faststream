@@ -195,16 +195,18 @@ class GeneralApplicationMongoRepository(
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
+    val testAccountId = UUID.randomUUID().toString
     val applicationBSON = BSONDocument(
       "applicationId" -> applicationId,
       "userId" -> userId,
+      "testAccountId" -> testAccountId,
       "frameworkId" -> frameworkId,
       "applicationStatus" -> CREATED,
       "applicationRoute" -> route
     )
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, CREATED, route, userId, p, None, None)
+        ApplicationResponse(applicationId, CREATED, route, userId, testAccountId, p, None, None)
       }
     }
   }
@@ -304,12 +306,16 @@ class GeneralApplicationMongoRepository(
     collection.find(query).one[BSONDocument] flatMap {
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
+        val testAccountId = document.getAs[String]("testAccountId").get
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
         val submissionDeadline = document.getAs[DateTime]("submissionDeadline")
         findProgress(applicationId).map { progress =>
-          ApplicationResponse(applicationId, applicationStatus, applicationRoute, userId, progress, fastPassReceived, submissionDeadline)
+          ApplicationResponse(
+            applicationId, applicationStatus, applicationRoute, userId, testAccountId,
+            progress, fastPassReceived, submissionDeadline
+          )
         }
       case None => throw ApplicationNotFound(userId)
     }

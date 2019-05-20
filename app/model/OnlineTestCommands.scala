@@ -25,6 +25,7 @@ object OnlineTestCommands {
   case class OnlineTestApplication(applicationId: String,
                                    applicationStatus: String,
                                    userId: String,
+                                   testAccountId: String = "", //TODO: Get rid of default value.
                                    guaranteedInterview: Boolean,
                                    needsOnlineAdjustments: Boolean,
                                    needsAtVenueAdjustments: Boolean,

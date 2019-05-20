@@ -145,14 +145,13 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
 
     val orderId = tokenFactory.generateUUID()
-    val accountId = tokenFactory.generateUUID() // TODO: assuming this is the userId - confirm with psi how this will work
     val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
     val lastName = CubiksSanitizer.sanitizeFreeText(application.lastName)
 
     val registerCandidateRequest = RegisterCandidateRequest(
       inventoryId = inventoryId, // Read from config to identify the test we are registering for
       orderId = orderId, // Identifier we generate to uniquely identify the test
-      accountId = accountId, // Candidate's account across all tests
+      accountId = application.testAccountId, // Candidate's account across all tests
       preferredName = preferredName,
       lastName = lastName,
       // The url psi will redirect to when the candidate completes the test
