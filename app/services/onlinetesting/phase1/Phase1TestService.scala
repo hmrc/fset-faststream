@@ -129,11 +129,11 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
                                   (implicit hc: HeaderCarrier): Future[PsiTest] = {
     for {
       aoa <- registerApplicant2(application, inventoryId)
+      //TODO: handle if the status coming back is not Acknowledged
     } yield {
       PsiTest(
         inventoryId = inventoryId,
         orderId = aoa.assessmentOrderAcknowledgement.orderId,
-        accountId = aoa.assessmentOrderAcknowledgement.customerId,
         usedForResults = true,
         testUrl = aoa.assessmentOrderAcknowledgement.testLaunchUrl,
         invitationDate = invitationDate
