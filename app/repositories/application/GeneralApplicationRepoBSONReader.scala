@@ -43,6 +43,7 @@ trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
     (doc: BSONDocument) => {
       val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId")
+      val testAccountId = doc.getAs[String]("testAccountId")
       // If the application does not have applicationRoute, it is legacy data
       // as it needs to be interpreted as Faststream
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
@@ -54,7 +55,7 @@ trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
       val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
       val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
 
-      Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None,
+      Candidate(userId, applicationId, testAccountId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None,
         Some(applicationRoute), applicationStatus)
     }
   }
