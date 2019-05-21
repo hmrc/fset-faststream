@@ -40,7 +40,6 @@ object CubiksTest {
 case class PsiTest(usedForResults: Boolean,
                    testUrl: String,
                    orderId: UniqueIdentifier,
-                   accountId: String, //TODO: do we really need this now as the orderId is the data we need to identify a test?
                    invitationDate: DateTime,
                    startedDateTime: Option[DateTime] = None,
                    completedDateTime: Option[DateTime] = None,
