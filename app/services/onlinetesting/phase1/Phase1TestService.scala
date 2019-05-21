@@ -30,6 +30,7 @@ import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames, Phase1T
 import model.persisted.{ CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, TestResult => _, _ }
 import model._
 import org.joda.time.DateTime
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.{ Phase1TestRepository, Phase1TestRepository2 }
@@ -129,15 +130,21 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
                                   (implicit hc: HeaderCarrier): Future[PsiTest] = {
     for {
       aoa <- registerApplicant2(application, inventoryId)
-      //TODO: handle if the status coming back is not Acknowledged
     } yield {
-      PsiTest(
-        inventoryId = inventoryId,
-        orderId = aoa.assessmentOrderAcknowledgement.orderId,
-        usedForResults = true,
-        testUrl = aoa.assessmentOrderAcknowledgement.testLaunchUrl,
-        invitationDate = invitationDate
-      )
+      if (aoa.assessmentOrderAcknowledgement.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
+        val msg = s"Received response status of ${aoa.assessmentOrderAcknowledgement.status} when registering candidate " +
+          s"${application.applicationId} to phase1 tests whose inventoryId=$inventoryId"
+        Logger.warn(msg)
+        throw new RuntimeException(msg)
+      } else {
+        PsiTest(
+          inventoryId = inventoryId,
+          orderId = aoa.assessmentOrderAcknowledgement.orderId,
+          usedForResults = true,
+          testUrl = aoa.assessmentOrderAcknowledgement.testLaunchUrl,
+          invitationDate = invitationDate
+        )
+      }
     }
   }
 

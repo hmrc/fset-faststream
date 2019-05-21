@@ -127,6 +127,9 @@ object ExchangeObjects {
                                                 statusDate: LocalDate)
 
   case class AssessmentOrderAcknowledgement(assessmentOrderAcknowledgement: AssessmentOrderAcknowledgementBody)
+  object AssessmentOrderAcknowledgement {
+    val acknowledgedStatus = "Acknowledged"
+  }
 
   object Implicits {
 
