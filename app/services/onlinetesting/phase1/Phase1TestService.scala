@@ -155,6 +155,9 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
     val lastName = CubiksSanitizer.sanitizeFreeText(application.lastName)
 
+    // TODO: This is for phase 2
+    val maybePercentage = application.eTrayAdjustments.flatMap(_.percentage)
+
     val registerCandidateRequest = RegisterCandidateRequest(
       inventoryId = inventoryId, // Read from config to identify the test we are registering for
       orderId = orderId, // Identifier we generate to uniquely identify the test

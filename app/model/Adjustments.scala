@@ -29,7 +29,8 @@ object Adjustments { implicit val adjustmentsFormat: OFormat[Adjustments] = Json
 case class AdjustmentDetail(
   timeNeeded: Option[Int] = None,
   invigilatedInfo: Option[String] = None,
-  otherInfo: Option[String] = None
+  otherInfo: Option[String] = None,
+  percentage: Option[Int] = None
 )
 object AdjustmentDetail { implicit val adjustmentDetailFormat: OFormat[AdjustmentDetail] = Json.format[AdjustmentDetail] }
 
