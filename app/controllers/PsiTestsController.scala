@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.CannotFindTestByCubiksId
+import model.Exceptions.CannotFindTestByOrderId
 import model.exchange.CubiksTestResultReady
 import play.api.Logger
 import play.api.libs.json.Json
@@ -103,7 +103,7 @@ trait PsiTestsController extends BaseController {
 */
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
-    case e @ CannotFindTestByCubiksId(msg) =>
+    case e @ CannotFindTestByOrderId(msg) =>
       Logger.warn(msg, e)
       NotFound
   }
