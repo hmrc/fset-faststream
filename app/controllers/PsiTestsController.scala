@@ -17,7 +17,7 @@
 package controllers
 
 import model.Exceptions.CannotFindTestByOrderId
-import model.exchange.CubiksTestResultReady
+import model.exchange.PsiTestResultReady
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, Result }
@@ -28,6 +28,7 @@ import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object PsiTestsController extends PsiTestsController {
   override val phase1TestService = Phase1TestService
@@ -85,22 +86,24 @@ trait PsiTestsController extends BaseController {
       .recover(recoverNotFound)
   }
 
-/*
-  def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    withJsonBody[CubiksTestResultReady] { testResultReady =>
-      Logger.info(s"Cubiks user $cubiksUserId has xml results report ready to download. " +
+  def markResultsReady(orderId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[PsiTestResultReady] { testResultReady =>
+      Logger.info(s"Psi test orderId=$orderId has results ready to download. " +
         s"Payload(json) = [${Json.toJson(testResultReady).toString}], (deserialized) = [$testResultReady]")
-      phase1TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
-        .recoverWith { case _: CannotFindTestByCubiksId =>
-          phase2TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady).recoverWith {
-            case _: CannotFindTestByCubiksId =>
-              numericalTestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
-          }
-        }.map( _ => Ok )
+      phase1TestService.markAsReportReadyToDownload2(orderId, testResultReady).map( _ => Ok )
         .recover(recoverNotFound)
+
+//      phase1TestService.markAsReportReadyToDownload2(orderId, testResultReady)
+//        .recoverWith { case _: CannotFindTestByCubiksId =>
+//          phase2TestService.markAsReportReadyToDownload(orderId, testResultReady).recoverWith {
+//            case _: CannotFindTestByCubiksId =>
+//              numericalTestService.markAsReportReadyToDownload(orderId, testResultReady)
+//          }
+//        }.map( _ => Ok )
+//        .recover(recoverNotFound)
+//      Future.successful(Ok)
     }
   }
-*/
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
     case e @ CannotFindTestByOrderId(msg) =>

@@ -26,7 +26,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
 import model.stc.{ AuditEvents, DataStoreEvents }
-import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames, Phase1TestGroupWithNames2 }
+import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames, Phase1TestGroupWithNames2, PsiTestResultReady }
 import model.persisted.{ CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, TestResult => _, _ }
 import model._
 import org.joda.time.DateTime
@@ -254,7 +254,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
       require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
       val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
       if (activeTestsCompleted) {
-        testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
+        testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
           DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
             DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
             Nil
@@ -267,8 +267,8 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
 
   def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase1Test2(orderId, testRepository.updateTestStartTime(_: String, startedTime)) flatMap { u =>
-      testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
+    updatePhase1Test2(orderId, testRepository2.updateTestStartTime(_: String, startedTime)) flatMap { u =>
+      testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
         DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
       }
     }
@@ -280,6 +280,17 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
       updated <- testRepository2.getTestGroupByOrderId(orderId)
     } yield {
       updated
+    }
+  }
+
+  def markAsReportReadyToDownload2(orderId: String, reportReady: PsiTestResultReady): Future[Unit] = {
+    updatePhase1Test2(orderId, testRepository2.updateTestReportReady2(_: String, reportReady)).flatMap { updated =>
+      val allResultReadyToDownload = updated.testGroup.activeTests forall (_.resultsReadyToDownload)
+      if (allResultReadyToDownload) {
+        testRepository2.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
+      } else {
+        Future.successful(())
+      }
     }
   }
 

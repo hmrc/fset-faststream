@@ -192,7 +192,7 @@ POST        /online-test/phase2/verifyAccessCode                         control
 
 
 PUT         /psi/complete-by-orderId/:orderId                            controllers.PsiTestsController.completeTestByOrderId(orderId: String)
-
+PUT         /psi/:orderId/results-ready                                   controllers.PsiTestsController.markResultsReady(orderId: String)
 
 PUT         /cubiks/:cubiksUserId/start                                  controllers.CubiksTestsController.start(cubiksUserId: Int)
 PUT         /cubiks/:cubiksUserId/complete                               controllers.CubiksTestsController.complete(cubiksUserId: Int)

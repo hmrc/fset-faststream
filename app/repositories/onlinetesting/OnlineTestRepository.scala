@@ -22,7 +22,7 @@ import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, CannotF
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
-import model.exchange.CubiksTestResultReady
+import model.exchange.{ CubiksTestResultReady, PsiTestResultReady }
 import model.persisted._
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -153,6 +153,15 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     ))
 
     findAndUpdatePsiTest(orderId, update, ignoreNotFound = true)
+  }
+
+  def updateTestReportReady2(orderId: String, reportReady: PsiTestResultReady) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.resultsReadyToDownload" -> (reportReady.reportStatus == "Ready"),
+      s"testGroups.$phaseName.tests.$$.reportId" -> reportReady.reportId,
+      s"testGroups.$phaseName.tests.$$.reportStatus" -> Some(reportReady.reportStatus)
+    ))
+    findAndUpdatePsiTest(orderId, update)
   }
 
   /// psi specific code end
