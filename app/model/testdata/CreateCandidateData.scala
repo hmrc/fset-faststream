@@ -254,6 +254,7 @@ object CreateCandidateData {
         schemeTypes = o.schemeTypes,
         isCivilServant = o.isCivilServant.getOrElse(Random.bool),
         hasDegree = o.hasDegree.getOrElse(Random.bool),
+        hasFastPass = o.hasFastPass.getOrElse(Random.bool),
         region = o.region,
         phase1TestData = o.phase1TestData.map(Phase1TestData.apply),
         phase2TestData = o.phase2TestData.map(Phase2TestData.apply),
