@@ -27,7 +27,7 @@ import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc._
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase1.{ Phase1TestService, Phase1TestService2 }
 import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.phase3.Phase3TestService
@@ -82,6 +82,7 @@ object UserIdWrapper {
 object OnlineTestController extends OnlineTestController {
   override val appRepository: GeneralApplicationRepository = applicationRepository
   override val phase1TestService = Phase1TestService
+  override val phase1TestService2 = Phase1TestService2
   override val phase2TestService = Phase2TestService
   override val phase3TestService = Phase3TestService
 }
@@ -89,6 +90,7 @@ object OnlineTestController extends OnlineTestController {
 trait OnlineTestController extends BaseController {
   val appRepository: GeneralApplicationRepository
   val phase1TestService: Phase1TestService
+  val phase1TestService2: Phase1TestService2
   val phase2TestService: Phase2TestService
   val phase3TestService: Phase3TestService
 
@@ -101,7 +103,7 @@ trait OnlineTestController extends BaseController {
   }
 
   def getPhase1OnlineTest2(applicationId: String) = Action.async { implicit request =>
-    phase1TestService.getTestGroup2(applicationId) map {
+    phase1TestService2.getTestGroup2(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
       case None => Logger.debug(s"No phase 1 tests found for applicationId '$applicationId'")
         NotFound

@@ -18,34 +18,42 @@
 package scheduler.onlinetesting
 
 import config.WaitingScheduledJobConfig
+import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase1.Phase1TestService2
 import services.onlinetesting.phase2.Phase2TestService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.{ ExecutionContext, Future }
+
 object RetrievePhase1ResultsJob extends RetrieveResultsJob {
-  val onlineTestingService = Phase1TestService
+  val onlineTestingService = Phase1TestService2
   val config = RetrievePhase1ResultsJobConfig
+  val phase = "PHASE1"
 }
 
 object RetrievePhase2ResultsJob extends RetrieveResultsJob {
   val onlineTestingService = Phase2TestService
   val config = RetrievePhase2ResultsJobConfig
+  val phase = "PHASE2"
 }
 
 trait RetrieveResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val onlineTestingService: OnlineTestService
+  val phase: String
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextTestGroupWithReportReady.flatMap {
       case Some(richTestGroup) =>
+        Logger.info(s"Now fetching results for candidate: ${richTestGroup.applicationId} in phase $phase")
         implicit val hc = HeaderCarrier()
         onlineTestingService.retrieveTestResult(richTestGroup)
-      case None => Future.successful(())
+      case None => {
+        Logger.info(s"No candidates found when looking to download results for phase $phase")
+        Future.successful(())
+      }
     }
   }
 }

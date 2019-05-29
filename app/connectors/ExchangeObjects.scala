@@ -131,6 +131,16 @@ object ExchangeObjects {
     val acknowledgedStatus = "Acknowledged"
   }
 
+  case class AssessmentResultBody(status: String, tScore: Double, raw: Double)
+  object AssessmentResultBody {
+    implicit val assessmentResultBodyFormat = TitleCaseJsonNaming.titleCase(Json.format[AssessmentResultBody])
+  }
+
+  case class AssessmentResult(assessmentResult: AssessmentResultBody)
+  object AssessmentResult {
+    implicit val assessmentResultFormat = TitleCaseJsonNaming.titleCase(Json.format[AssessmentResult])
+  }
+
   object Implicits {
 
     implicit val localDateFormat: Format[LocalDate] = new Format[LocalDate] {

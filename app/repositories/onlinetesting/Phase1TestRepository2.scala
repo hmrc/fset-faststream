@@ -44,6 +44,8 @@ trait Phase1TestRepository2 extends OnlineTestRepository with Phase1TestConcern2
 
   // Replacement for getTestProfileByCubiksId
   def getTestGroupByOrderId(orderId: String): Future[Phase1TestGroupWithUserIds2]
+
+  def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds2]]
 }
 
 class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -126,4 +128,19 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
       case _ => cannotFindTestByOrderId(orderId)
     }
   }
+
+  def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds2]] = {
+
+    implicit val reader = bsonReader { doc =>
+      val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
+      Phase1TestGroupWithUserIds2(
+        applicationId = doc.getAs[String]("applicationId").get,
+        userId = doc.getAs[String]("userId").get,
+        Phase1TestProfile2.bsonHandler.read(group)
+      )
+    }
+
+    nextTestGroupWithReportReady[Phase1TestGroupWithUserIds2]
+  }
+
 }

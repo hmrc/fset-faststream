@@ -65,19 +65,6 @@ trait OnlineTestsGatewayClient {
     }
   }
 
-  /*
-send across body like this in RegisterCandidateRequest:
-
-{
-	"inventoryId": "16196",
-	"orderId": "7a49f9c4-cf70-4f5f-8075-5a6b14a2b656",
-	"accountId": "ZKIJ-8324",
-	"preferredName": "Joey",
-	"lastName" : "Barnes",
-	"redirectionUrl" : "http://localhost:9284/fset-fast-stream/online-tests/phase1/continue/7a49f9c4-cf70-4f5f-8075-5a6b14a2b656"
-}
-
-   */
   def psiRegisterApplicant(request: RegisterCandidateRequest): Future[AssessmentOrderAcknowledgement] = {
     Logger.debug(s"$root psi registerApplicant POST request, body=${play.api.libs.json.Json.toJson(request).toString}")
 
@@ -85,6 +72,19 @@ send across body like this in RegisterCandidateRequest:
       if (response.status == OK) {
         Logger.debug(s"$root psiRegisterApplicant response - ${response.json.toString}")
         response.json.as[AssessmentOrderAcknowledgement]
+      } else {
+        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
+      }
+    }
+  }
+
+  def downloadPsiTestResults(reportId: Int): Future[PsiTestResult] = {
+    Logger.debug(s"$root downloadPsiTestResults GET request - $url/$root/faststream/psi-results/$reportId")
+
+    http.GET(s"$url/$root/faststream/psi-results/$reportId").map { response =>
+      if (response.status == OK) {
+        Logger.debug(s"$root downloadPsiTestResults response - ${response.json.toString}")
+        PsiTestResult(response.json.as[AssessmentResult])
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }

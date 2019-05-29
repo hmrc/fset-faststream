@@ -16,6 +16,7 @@
 
 package model
 
+import connectors.ExchangeObjects.AssessmentResult
 import model.PersistedObjects.CandidateTestReport
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import play.api.libs.json.Json
@@ -56,12 +57,20 @@ object OnlineTestCommands {
   case class TestResult(status: String, norm: String,
                         tScore: Option[Double], percentile: Option[Double], raw: Option[Double], sten: Option[Double])
 
+  case class PsiTestResult(status: String, tScore: Double, raw: Double)
+
+  object PsiTestResult {
+    def apply(assessmentResult: AssessmentResult): PsiTestResult = {
+      PsiTestResult(assessmentResult.assessmentResult.status, assessmentResult.assessmentResult.tScore, assessmentResult.assessmentResult.raw)
+    }
+  }
+
   object Implicits {
     implicit val TimeAdjustmentsOnlineTestApplicationFormats = Json.format[TimeAdjustmentsOnlineTestApplication]
     implicit val ApplicationForOnlineTestingFormats = Json.format[OnlineTestApplication]
     implicit val OnlineTestApplicationUserFormats = Json.format[OnlineTestApplicationWithCubiksUser]
     implicit val OnlineTestReportIdMRAFormats = Json.format[OnlineTestReportAvailability]
     implicit val testFormat = Json.format[TestResult]
+    implicit val psiTestFormat = Json.format[PsiTestResult]
   }
-
 }

@@ -23,7 +23,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, Result }
 import services.NumericalTestService
 import services.stc.StcEventService
-import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase1.{ Phase1TestService, Phase1TestService2 }
 import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -31,14 +31,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object PsiTestsController extends PsiTestsController {
-  override val phase1TestService = Phase1TestService
+  override val phase1TestService2 = Phase1TestService2
 //  override val phase2TestService = Phase2TestService
 //  val numericalTestService: NumericalTestService = NumericalTestService
   val eventService = StcEventService
 }
 
 trait PsiTestsController extends BaseController {
-  val phase1TestService: Phase1TestService
+  val phase1TestService2: Phase1TestService2
 //  val phase2TestService: Phase2TestService
 //  val numericalTestService: NumericalTestService
   val eventService: StcEventService
@@ -46,7 +46,7 @@ trait PsiTestsController extends BaseController {
 
   def start(orderId: String) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Order ID $orderId assessment started")
-    phase1TestService.markAsStarted2(orderId)
+    phase1TestService2.markAsStarted2(orderId)
       .map(_ => Ok)
       .recover {
         case e =>
@@ -76,7 +76,7 @@ trait PsiTestsController extends BaseController {
     */
   def completeTestByOrderId(orderId: String) = Action.async { implicit request =>
     Logger.info(s"Complete test by orderId=$orderId")
-    phase1TestService.markAsCompleted2(orderId).map( _ => Ok )
+    phase1TestService2.markAsCompleted2(orderId).map( _ => Ok )
 //      .recoverWith { case _: CannotFindTestByCubiksId =>
 //        phase2TestService.markAsCompleted(token).recoverWith {
 //          case _: CannotFindTestByCubiksId =>
@@ -90,7 +90,7 @@ trait PsiTestsController extends BaseController {
     withJsonBody[PsiTestResultReady] { testResultReady =>
       Logger.info(s"Psi test orderId=$orderId has results ready to download. " +
         s"Payload(json) = [${Json.toJson(testResultReady).toString}], (deserialized) = [$testResultReady]")
-      phase1TestService.markAsReportReadyToDownload2(orderId, testResultReady).map( _ => Ok )
+      phase1TestService2.markAsReportReadyToDownload2(orderId, testResultReady).map( _ => Ok )
         .recover(recoverNotFound)
 
 //      phase1TestService.markAsReportReadyToDownload2(orderId, testResultReady)

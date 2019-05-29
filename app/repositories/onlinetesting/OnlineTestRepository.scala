@@ -164,6 +164,35 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     findAndUpdatePsiTest(orderId, update)
   }
 
+  def insertTestResult2(appId: String, phase1Test: PsiTest, testResult: PsiTestResult): Future[Unit] = {
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("orderId" -> phase1Test.orderId)
+      )
+    )
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.testResult" -> PsiTestResult.testResultBsonHandler.write(testResult)
+    ))
+
+    val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test result")
+
+    collection.update(query, update) map validator
+  }
+
+  def nextTestGroupWithReportReady2[TestGroup](implicit reader: BSONDocumentReader[TestGroup]): Future[Option[TestGroup]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> thisApplicationStatus),
+      BSONDocument(s"progress-status.${phaseName}_TESTS_COMPLETED" -> true),
+      BSONDocument(s"progress-status.${phaseName}_TESTS_RESULTS_RECEIVED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"testGroups.$phaseName.tests" ->
+        BSONDocument("$elemMatch" -> BSONDocument("resultsReadyToDownload" -> true, "testResult" -> BSONDocument("$exists" -> false)))
+      )
+    ))
+
+    selectOneRandom[TestGroup](query)
+  }
+
   /// psi specific code end
 
   def insertCubiksTests[P <: CubiksTestProfile](applicationId: String, newTestProfile: P) = {

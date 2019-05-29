@@ -19,26 +19,14 @@ package model.persisted
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class TestResult(status: String,
-  norm: String,
-  tScore: Option[Double],
-  percentile: Option[Double],
-  raw: Option[Double],
-  sten: Option[Double]
-)
+case class PsiTestResult(status: String, tScore: Double, raw: Double)
 
-object TestResult {
+object PsiTestResult {
 
-  def fromCommandObject(o: model.OnlineTestCommands.TestResult): TestResult = {
-    TestResult(status = o.status,
-      norm = o.norm,
-      tScore = o.tScore,
-      percentile = o.percentile,
-      raw = o.raw,
-      sten = o.sten
-    )
+  def fromCommandObject(o: model.OnlineTestCommands.PsiTestResult): PsiTestResult = {
+    PsiTestResult(status = o.status, tScore = o.tScore, raw = o.raw)
   }
 
-  implicit def testResultFormat = Json.format[TestResult]
-  implicit def testResultBsonHandler: BSONHandler[BSONDocument, TestResult] = Macros.handler[TestResult]
+  implicit def testResultFormat = Json.format[PsiTestResult]
+  implicit def testResultBsonHandler: BSONHandler[BSONDocument, PsiTestResult] = Macros.handler[PsiTestResult]
 }
