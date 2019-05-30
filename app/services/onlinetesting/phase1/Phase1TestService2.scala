@@ -25,9 +25,9 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
 import model._
-import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames, Phase1TestGroupWithNames2, PsiTestResultReady }
-import model.persisted.{ CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, PsiTestResult => _, TestResult => _, _ }
-import model.stc.{ AuditEvents, DataStoreEvents }
+import model.exchange.{ Phase1TestGroupWithNames2, PsiTestResultReady }
+import model.persisted.{ CubiksTest, Phase1TestProfile, PsiTestResult => _, TestResult => _, _ }
+import model.stc.DataStoreEvents
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -64,7 +64,6 @@ object Phase1TestService2 extends Phase1TestService2 {
   val siftService = ApplicationSiftService
 }
 
-//scalastyle:off number.of.methods TODO:remove this later
 trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with ResetPhase1Test2 {
   type TestRepository = Phase1TestRepository
   val actor: ActorSystem
