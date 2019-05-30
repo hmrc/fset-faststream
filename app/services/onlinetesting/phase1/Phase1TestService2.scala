@@ -164,7 +164,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
       preferredName = preferredName,
       lastName = lastName,
       // The url psi will redirect to when the candidate completes the test
-      redirectionUrl = buildRedirectionUrl(application.guaranteedInterview, orderId, inventoryId)
+      redirectionUrl = buildRedirectionUrl(orderId, inventoryId)
     )
 
     onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest).map { response =>
@@ -177,17 +177,9 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     integrationGatewayConfig.phase1Tests.inventoryIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
-  private def buildRedirectionUrl(isGuaranteedInterviewScheme: Boolean, orderId: String, inventoryId: String) = {
+  private def buildRedirectionUrl(orderId: String, inventoryId: String) = {
     val scheduleCompletionBaseUrl = s"${integrationGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/psi/phase1"
-    if (isGuaranteedInterviewScheme) {
-      s"$scheduleCompletionBaseUrl/complete/$orderId"
-    } else {
-      if (inventoryIdByName("sjq") == inventoryId) {
-        s"$scheduleCompletionBaseUrl/continue/$orderId"
-      } else {
-        s"$scheduleCompletionBaseUrl/complete/$orderId"
-      }
-    }
+    s"$scheduleCompletionBaseUrl/complete/$orderId"
   }
 
   private def markAsInvited2(application: OnlineTestApplication)(newOnlineTestProfile: Phase1TestProfile2): Future[Unit] = for {
