@@ -22,6 +22,7 @@ import connectors.exchange.PsiTest
 import models.UniqueIdentifier
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import play.api.mvc.{ Action, AnyContent }
 import security.Roles.OnlineTestInvitedRole
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
@@ -52,6 +53,8 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
   def completeSjqAndContinuePhase1Tests(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByOrderId(orderId).map { _ =>
+
+        // TODO: In the combined world, we should render this template if there are more tests to be taken
         Ok(views.html.application.onlineTests.sjqComplete_continuePhase1Tests())
       }
   }
@@ -59,7 +62,39 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
   def completePhase1Tests(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByOrderId(orderId).map { _ =>
+        //TODO:
+        // We need to decide here if tests have been completed or not
+        // We need a way to know if there are more tests to be completed.
+        // Perhaps pull the test group here and check for active tests without completion date?
+        // -> Ask Vijay: Can we have multiple active tests? E.g Do we have sjq and bq at the same
+        // time in the test group?
+
+        // TODO: In the combined world, we should render this template when there is no longer an active test
         Ok(views.html.application.onlineTests.phase1TestsComplete())
       }
+  }
+
+  //TODO: Complete this and replace the one above
+  def completePhase1Tests2(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
+    implicit user =>
+//      applicationClient.completeTestByOrderId(orderId).map { _ =>
+//        user.flatMap(_.application.map(_.applicationId)).map { appId =>
+//          applicationClient.getPhase1Tests(appId).map { tests =>
+//            if (incompleteTestsExists(tests)) {
+//              //TODO: Redirect to page showing a test still exists
+//              Ok()
+//            } else {
+//              //TODO: Redirect to page showing tests are complete
+//              Ok()
+//            }
+//          }
+//        }
+//        //
+//      }
+      Future.successful(Ok(views.html.application.onlineTests.phase1TestsComplete()))
+  }
+
+  private def incompleteTestsExists(tests: Seq[PsiTest]): Boolean = {
+    tests.exists(test => test.usedForResults && test.completedDateTime.isDefined)
   }
 }
