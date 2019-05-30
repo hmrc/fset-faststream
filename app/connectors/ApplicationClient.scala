@@ -214,6 +214,14 @@ trait ApplicationClient {
 
   // psi code start
 
+  def getPhase1Tests(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Seq[PsiTest]] = {
+    http.GET(s"$apiBaseUrl/phase1-tests/$appId").map { response =>
+      response.json.as[Seq[PsiTest]]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
+
   def getPhase1TestProfile2(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames2] = {
     http.GET(s"$apiBaseUrl/online-test/psi/phase1/candidate/$appId").map { response =>
       response.json.as[Phase1TestGroupWithNames2]
