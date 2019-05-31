@@ -130,17 +130,17 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     for {
       aoa <- registerApplicant2(application, inventoryId)
     } yield {
-      if (aoa.assessmentOrderAcknowledgement.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
-        val msg = s"Received response status of ${aoa.assessmentOrderAcknowledgement.status} when registering candidate " +
+      if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
+        val msg = s"Received response status of ${aoa.status} when registering candidate " +
           s"${application.applicationId} to phase1 tests whose inventoryId=$inventoryId"
         Logger.warn(msg)
         throw new RuntimeException(msg)
       } else {
         PsiTest(
           inventoryId = inventoryId,
-          orderId = aoa.assessmentOrderAcknowledgement.orderId,
+          orderId = aoa.orderId,
           usedForResults = true,
-          testUrl = aoa.assessmentOrderAcknowledgement.testLaunchUrl,
+          testUrl = aoa.testLaunchUrl,
           invitationDate = invitationDate
         )
       }
@@ -316,12 +316,14 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
+  //TODO: psi only supports a single test at the moment so default all candidates to gis until they add the other tests
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
-    if (application.guaranteedInterview) {
-      integrationGatewayConfig.phase1Tests.gis
-    } else {
-      integrationGatewayConfig.phase1Tests.standard
-    }
+    integrationGatewayConfig.phase1Tests.gis
+//    if (application.guaranteedInterview) {
+//      integrationGatewayConfig.phase1Tests.gis
+//    } else {
+//      integrationGatewayConfig.phase1Tests.standard
+//    }
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds2]] = {

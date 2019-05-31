@@ -18,8 +18,6 @@ package connectors
 
 import java.util.UUID
 
-import connectors.AuthProviderClient.UserRole
-import helpers.TitleCaseJsonNaming
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json._
 
@@ -118,7 +116,7 @@ object ExchangeObjects {
     Json.format[FindByFirstNameLastNameRequest]
   }
 
-  case class AssessmentOrderAcknowledgementBody(customerId: String,
+  case class AssessmentOrderAcknowledgement(customerId: String,
                                                 receiptId: String,
                                                 orderId: String,
                                                 testLaunchUrl: String,
@@ -126,19 +124,11 @@ object ExchangeObjects {
                                                 statusDetails: String,
                                                 statusDate: LocalDate)
 
-  case class AssessmentOrderAcknowledgement(assessmentOrderAcknowledgement: AssessmentOrderAcknowledgementBody)
   object AssessmentOrderAcknowledgement {
     val acknowledgedStatus = "Acknowledged"
-  }
+    implicit val assessmentOrderAcknowledgementFormat: Format[AssessmentOrderAcknowledgement] =
+      Json.format[AssessmentOrderAcknowledgement]
 
-  case class AssessmentResultBody(status: String, tScore: Double, raw: Double)
-  object AssessmentResultBody {
-    implicit val assessmentResultBodyFormat = TitleCaseJsonNaming.titleCase(Json.format[AssessmentResultBody])
-  }
-
-  case class AssessmentResult(assessmentResult: AssessmentResultBody)
-  object AssessmentResult {
-    implicit val assessmentResultFormat = TitleCaseJsonNaming.titleCase(Json.format[AssessmentResult])
   }
 
   object Implicits {
@@ -149,10 +139,5 @@ object ExchangeObjects {
 
       override def writes(o: LocalDate): JsValue = Json.toJson(o.toString)
     }
-
-    implicit val assessmentOrderAcknowledgementBodyFormat: OFormat[AssessmentOrderAcknowledgementBody] =
-      Json.format[AssessmentOrderAcknowledgementBody]
-    implicit val assessmentOrderAcknowledgementFormat: Format[AssessmentOrderAcknowledgement] =
-      TitleCaseJsonNaming.titleCase(Json.format[AssessmentOrderAcknowledgement])
   }
 }
