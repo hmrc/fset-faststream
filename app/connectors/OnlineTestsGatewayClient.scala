@@ -84,7 +84,7 @@ trait OnlineTestsGatewayClient {
     http.GET(s"$url/$root/faststream/psi-results/$reportId").map { response =>
       if (response.status == OK) {
         Logger.debug(s"$root downloadPsiTestResults response - ${response.json.toString}")
-        PsiTestResult(response.json.as[AssessmentResult])
+        response.json.as[PsiTestResult]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
