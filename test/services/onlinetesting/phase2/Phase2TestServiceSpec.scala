@@ -899,6 +899,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
+      testAccountId = "testAccountId",
       guaranteedInterview = false,
       needsOnlineAdjustments = false,
       needsAtVenueAdjustments = false,

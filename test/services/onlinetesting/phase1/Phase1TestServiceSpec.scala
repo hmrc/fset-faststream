@@ -77,6 +77,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
     applicationStatus = ApplicationStatus.SUBMITTED,
     userId = userId,
+    testAccountId = "testAccountId",
     guaranteedInterview = false,
     needsOnlineAdjustments = false,
     needsAtVenueAdjustments = false,
@@ -127,9 +128,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     List(phase1Test)
   )
 
-  val candidate = model.Candidate(userId = "user123", firstName = Some("Cid"),
-    lastName = Some("Highwind"), preferredName = None, applicationId = Some("appId123"),
-    email = Some("test@test.com"), dateOfBirth = None, address = None, postCode = None, country = None,
+  val candidate = model.Candidate(userId = "user123", applicationId = Some("appId123"), testAccountId = Some("testAccountId"),
+    email = Some("test@test.com"), firstName = Some("Cid"),lastName = Some("Highwind"), preferredName = None,
+    dateOfBirth = None, address = None, postCode = None, country = None,
     applicationRoute = None, applicationStatus = None
   )
 

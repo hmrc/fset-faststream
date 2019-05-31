@@ -163,7 +163,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
     None
     )
 
-    val candidate0 = model.Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
+    val candidate0 = model.Candidate(userId, None, None, None, None, None, None, None, None, None, None, None, None)
 
     val candidate1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
     val applicationsToProgressToFsb = List(

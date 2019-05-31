@@ -98,7 +98,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "retrieve passed schemes for Faststream application" in new TestFixture {
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
-        userId,ProgressResponse(applicationId), None, None)
+        userId, testAccountId, ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None,
         List(SchemeEvaluationResult(SchemeId(commercial), "Green"),
           SchemeEvaluationResult(SchemeId(governmentOperationalResearchService), "Red")),
@@ -114,7 +114,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "retrieve passed schemes for Faststream application with fast pass approved" in new TestFixture {
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
-        userId,ProgressResponse(applicationId, fastPassAccepted = true), None, None)
+        userId, testAccountId, ProgressResponse(applicationId, fastPassAccepted = true), None, None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
       when(schemeRepositoryMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(List(SchemeId(commercial)),
@@ -126,7 +126,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "retrieve passed schemes for Edip application" in new TestFixture {
-      val edipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Edip, userId,
+      val edipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Edip, userId, testAccountId,
         ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId("Edip"), "Green")), "", None)
 
@@ -139,7 +139,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "retrieve passed schemes for Sdip application" in new TestFixture {
-      val sdipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Sdip, userId,
+      val sdipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Sdip, userId, testAccountId,
         ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId(sdip), "Green")), "", None)
 
@@ -152,7 +152,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "retrieve passed schemes for SdipFaststream application" in new TestFixture {
-      val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId,
+      val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId, testAccountId,
         ProgressResponse(applicationId), None, None
       )
       val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId(sdip), "Green"),
@@ -174,7 +174,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "retrieve schemes for SdipFaststream when the applicant has failed Faststream prior to Phase 3 tests" in new TestFixture {
-      val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId,
+      val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId, testAccountId,
         ProgressResponse(applicationId), None, None
       )
       val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId(sdip), "Green")), "", None)
@@ -1182,17 +1182,18 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val userId = "userId"
     val applicationId = "appId"
+    val testAccountId = "testAccountId"
     val frameworkId = ""
 
-    val candidate1 = Candidate(userId = "user123", applicationId = Some("appId234"), email = Some("test1@localhost"),
+    val candidate1 = Candidate(userId = "user123", applicationId = Some("appId234"), testAccountId = None, email = Some("test1@localhost"),
       None, None, None, None, None, None, None, None, None)
 
     val cd1 = ContactDetails(outsideUk = false, Address("line1"), None, None, "email@email.com", "123":PhoneNumber)
 
-    val candidate2 = Candidate(userId = "user456", applicationId = Some("appId4567"), email = Some("test2@localhost"),
+    val candidate2 = Candidate(userId = "user456", applicationId = Some("appId4567"), testAccountId = None, email = Some("test2@localhost"),
       None, None, None, None, None, None, None, None, None)
 
-    val candidate3 = Candidate(userId = "user569", applicationId = Some("appId84512"), email = Some("test3@localhost"),
+    val candidate3 = Candidate(userId = "user569", applicationId = Some("appId84512"), testAccountId = None, email = Some("test3@localhost"),
       None, None, None, None, None, None, None, None, None)
 
     val generalException = new RuntimeException("something went wrong")
