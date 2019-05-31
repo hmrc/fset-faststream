@@ -211,23 +211,11 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   }
 
   def getTestGroup2(applicationId: String): Future[Option[Phase1TestGroupWithNames2]] = {
-    val sjq = integrationGatewayConfig.phase1Tests.inventoryIds("sjq")
-    val bq = integrationGatewayConfig.phase1Tests.inventoryIds("bq")
-
     for {
       phase1Opt <- testRepository2.getTestGroup(applicationId)
     } yield {
-      phase1Opt.map { phase1 =>
-        val sjqTests = phase1.activeTests filter (_.inventoryId == sjq)
-        val bqTests = phase1.activeTests filter (_.inventoryId == bq)
-        require(sjqTests.length <= 1)
-        require(bqTests.length <= 1)
-
-        Phase1TestGroupWithNames2(
-          phase1.expirationDate, Map()
-            ++ (if (sjqTests.nonEmpty) Map("sjq" -> sjqTests.head) else Map())
-            ++ (if (bqTests.nonEmpty) Map("bq" -> bqTests.head) else Map())
-        )
+      phase1Opt.map { testProfile =>
+        Phase1TestGroupWithNames2(testProfile.expirationDate, testProfile.activeTests)
       }
     }
   }
@@ -330,9 +318,9 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
 
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
-      gatewayConfig.phase1Tests.gis
+      integrationGatewayConfig.phase1Tests.gis
     } else {
-      gatewayConfig.phase1Tests.standard
+      integrationGatewayConfig.phase1Tests.standard
     }
   }
 

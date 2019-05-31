@@ -18,7 +18,7 @@ package model.exchange
 
 import model.persisted.{ CubiksTest, PsiTest }
 import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 case class Phase1TestGroupWithNames(expirationDate: DateTime, activeTests: Map[String, CubiksTest])
 
@@ -26,8 +26,8 @@ object Phase1TestGroupWithNames {
   implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames]
 }
 
-case class Phase1TestGroupWithNames2(expirationDate: DateTime, activeTests: Map[String, PsiTest])
+case class Phase1TestGroupWithNames2(expirationDate: DateTime, activeTests: Seq[PsiTest])
 
 object Phase1TestGroupWithNames2 {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames2]
+  implicit val format: OFormat[Phase1TestGroupWithNames2] = Json.format[Phase1TestGroupWithNames2]
 }
