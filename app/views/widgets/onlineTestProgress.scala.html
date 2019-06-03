@@ -156,9 +156,9 @@
             }
         }
     }
-    case (_, _, Some(tests)) if cachedUserData.application.isDefined => {
+    case (_, _, Some(testsPage)) if cachedUserData.application.isDefined => {
         <ul class="list-text list-withicons">
-            @if(tests.allCompleted) {
+            @if(testsPage.allCompleted) {
                 <li>
                     <p class="med-btm-margin" id="testsHeading"><i class="fa fa-check the-icon"></i>
                         Online exercises</p>
@@ -179,45 +179,29 @@
                         Online exercises</p>
                     <ul class="list-text list-withicons" id="testsIndividual">
                         @{
-                            tests.sjq.map { sjq =>
-                                if(sjq.completed) {
-                                        <li>
-                                        <i class="fa fa-check the-icon"></i>
-                                        Situational judgement questionnaire (untimed)
-                                        </li>
-                                } else {
-                                        <li>
-                                        <i class="fa fa-minus the-icon"></i>
-                                        Situational judgement questionnaire (untimed)
-                                        </li>
-                                }
-                            }
-                        }
-                        @{
-                            tests.bq.map { bq =>
-                                if(bq.completed) {
-                                        <li>
-                                        <i class="fa fa-check the-icon"></i>
-                                        Behavioural questionnaire (untimed)
-                                        </li>
-                                } else {
-                                        <li>
-                                        <i class="fa fa-minus the-icon"></i>
-                                        Behavioural questionnaire (untimed)
-                                        </li>
-                                }
+                            testsPage.tests.map { test =>
+                              if(test.completed) {
+                                <li>
+                                    <i class="fa fa-check the-icon"></i>
+                                    TODO: Test Name (untimed)
+                                </li>
+                              } else {
+                                  <li>
+                                      <i class="fa fa-minus the-icon"></i>
+                                      TODO: Test Name (untimed)
+                                  </li>
+                              }
                             }
                         }
                     </ul>
                     <p id="testsTime">You have <strong>@{
-                        tests.getDuration
+                        testsPage.getDuration
                     }</strong> to finish the online exercises</p>
                     <div id="testsButtonContainer">
-
                         @helper.form(action = routes.PsiTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
                             @helper.CSRF.formField
                             @{
-                                if(!tests.areStarted) {
+                                if(!testsPage.areStarted) {
                                         <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
                                 } else {
                                         <button id="submit_online_tests" type="submit" value="submit" class="button">Continue section</button>
