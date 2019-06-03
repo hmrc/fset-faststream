@@ -75,6 +75,6 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
   }
 
   private def incompleteTestsExists(tests: Seq[PsiTest]): Boolean = {
-    tests.exists(test => test.usedForResults && test.completedDateTime.isDefined)
+    tests.exists(test => test.usedForResults && test.completedDateTime.isEmpty)
   }
 }
