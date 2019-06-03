@@ -50,9 +50,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "Find user by id" in {
       val userId = "fastPassUser"
       val appId = "fastPassApp"
+      val testAccountId = "testAccountId"
       val frameworkId = "FastStream-2016"
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId).futureValue
+      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId).futureValue
 
       val applicationResponse = repository.findByUserId(userId, frameworkId).futureValue
 
@@ -67,21 +68,21 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "Find application status" in {
       val userId = "fastPassUser"
       val appId = "fastPassApp"
+      val testAccountId = "testAccountId"
       val frameworkId = "FastStream-2016"
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = SUBMITTED).futureValue
+      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId, appStatus = SUBMITTED).futureValue
 
       val applicationStatusDetails = repository.findStatus(appId).futureValue
 
       applicationStatusDetails.status mustBe SUBMITTED.toString
       applicationStatusDetails.statusDate.get mustBe LocalDate.now().toDateTimeAtStartOfDay
-
     }
   }
 
   "Find by criteria" should {
     "find by first name" in {
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
         Some(testCandidate("firstName")), None, None
@@ -92,7 +93,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by preferred name" in {
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
         Some(testCandidate("preferredName")), None, None
@@ -103,8 +104,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by first/preferred name with special regex character" in {
-      testDataRepo.createApplicationWithAllFields(userId = "userId", appId = "appId123", frameworkId = "FastStream-2016",
-        firstName = Some("Char+lie.+x123")).futureValue
+      testDataRepo.createApplicationWithAllFields(userId = "userId", appId = "appId123", testAccountId = "testAccountId",
+        frameworkId = "FastStream-2016", firstName = Some("Char+lie.+x123")).futureValue
 
       val applicationResponse = repository.findByCriteria(
         Some("Char+lie.+x123"), None, None
@@ -115,7 +116,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by lastname" in {
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
         None, Some(testCandidate("lastName")), None
@@ -126,8 +127,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by lastname with special regex character" in {
-      testDataRepo.createApplicationWithAllFields(userId = "userId", appId = "appId123", frameworkId = "FastStream-2016",
-        lastName = Some("Barr+y.+x123")).futureValue
+      testDataRepo.createApplicationWithAllFields(userId = "userId", appId = "appId123", testAccountId = "testAccountId",
+        frameworkId = "FastStream-2016", lastName = Some("Barr+y.+x123")).futureValue
 
       val applicationResponse = repository.findByCriteria(
         None, Some("Barr+y.+x123"), None
@@ -138,7 +139,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find date of birth" in {
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
 
       val dobParts = testCandidate("dateOfBirth").split("-").map(_.toInt)
       val (dobYear, dobMonth, dobDay) = (dobParts.head, dobParts(1), dobParts(2))
@@ -156,7 +157,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "Return an empty candidate list when there are no results" in {
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
         Some("UnknownFirstName"), None, None
@@ -166,7 +167,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "filter by provided user Ids" in {
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
       val matchResponse = repository.findByCriteria(
         None, None, None, List("userId")
       ).futureValue
@@ -205,7 +206,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
         (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses.toList).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
@@ -216,7 +217,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
         (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId","appId123", "testAccountId","FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses.toList).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
@@ -229,7 +230,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
         (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId","appId123", "testAccountId","FastStream-2016", ApplicationStatus.PHASE2_TESTS,
         additionalProgressStatuses = statuses.toList).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
@@ -241,7 +242,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
         (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId","appId123", "testAccountId","FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses.toList).futureValue
       val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.size mustBe 0
@@ -253,7 +254,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val statuses = (ProgressStatuses.SUBMITTED, true) ::
         (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.SUBMITTED,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId","FastStream-2016", ApplicationStatus.SUBMITTED,
         additionalProgressStatuses = statuses).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
@@ -265,7 +266,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val statuses = (ProgressStatuses.SUBMITTED, true) ::
         (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId","FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
@@ -281,7 +282,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         PHASE1_TESTS_RESULTS_READY, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_PASSED, PHASE2_TESTS_INVITED)
         .map(_ -> true)
 
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses).futureValue
 
       val matchResponse = repository.fix(candidate, FixBatch(PassToPhase2, 1)).futureValue
@@ -300,7 +301,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         PHASE1_TESTS_RESULTS_READY, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_PASSED)
         .map(_ -> true)
 
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses).futureValue
 
       val matchResponse = repository.fix(candidate, FixBatch(PassToPhase2, 1)).futureValue
@@ -318,7 +319,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val statuses = (ProgressStatuses.SUBMITTED, true) :: (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.SUBMITTED,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId","FastStream-2016", ApplicationStatus.SUBMITTED,
         additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
 
       val matchResponse = repository.fix(candidate, FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
@@ -345,7 +346,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   "fix PassToPhase1TestPassed" should {
     "get None for PHASE1_TESTS_PASSED but with PHASE2_TESTS_INVITED" in {
       val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
       val candidates = repository.getApplicationsToFix(FixBatch(PassToPhase1TestPassed, 1)).futureValue
       candidates mustBe empty
@@ -353,7 +354,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "get a candidate for PHASE1_TESTS_PASSED and without PHASE2_TESTS_INVITED" in {
       val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
       val candidates = repository.getApplicationsToFix(FixBatch(PassToPhase1TestPassed, 1)).futureValue
       candidates.headOption.flatMap(_.applicationId) mustBe Some("appId123")
@@ -361,7 +362,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "move PHASE1_TESTS to PHASE1_TESTS_PASSED if PHASE1_TESTS_PASSED exists without PHASE2_TESTS_INVITED" in {
       val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
       val matchResponse = repository.fix(candidate, FixBatch(PassToPhase1TestPassed, 1)).futureValue
       matchResponse mustBe defined
@@ -374,7 +375,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "do not change application status for non PHASE1_TESTS" in {
       val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
         additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
       val matchResponse = repository.fix(candidate, FixBatch(PassToPhase1TestPassed, 1)).futureValue
       matchResponse mustNot be(defined)
@@ -424,7 +425,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "do NOT find a edip candidate that has already been notified of successful phase1 test results" in {
       val progressStatuses = (ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
         additionalProgressStatuses = progressStatuses, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
       val applicationResponse = repository.findTestForNotification(Phase1SuccessTestType).futureValue
       applicationResponse mustBe None
@@ -433,7 +434,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "do NOT find a sdip candidate that has already been notified of successful phase1 test results" in {
       val progressStatuses = (ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
         additionalProgressStatuses = progressStatuses, applicationRoute = Some(ApplicationRoute.Sdip)).futureValue
       val applicationResponse = repository.findTestForNotification(Phase1SuccessTestType).futureValue
       applicationResponse mustBe None
@@ -442,7 +443,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "find a candidate that needs to be notified of failed phase1 test results" in {
       val progressStatuses = (PHASE1_TESTS_RESULTS_RECEIVED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase1FailedTestType).futureValue
       applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
@@ -450,7 +451,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "find a candidate that needs to be notified of failed phase2 test results" in {
       val progressStatuses = (PHASE2_TESTS_RESULTS_RECEIVED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE2_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE2_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase2FailedTestType).futureValue
       applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
@@ -458,7 +459,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "find a candidate that needs to be notified of failed phase3 test results" in {
       val progressStatuses = (PHASE3_TESTS_RESULTS_RECEIVED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase3FailedTestType).futureValue
       applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
@@ -466,7 +467,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "do NOT find a candidate that has already been notified of successful phase3 test results" in {
       val progressStatuses = (ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase3SuccessTestType).futureValue
       applicationResponse mustBe None
@@ -474,7 +475,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "do NOT find a candidate that has already been notified of failed phase1 test results" in {
       val progressStatuses = (PHASE1_TESTS_FAILED_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase1FailedTestType).futureValue
       applicationResponse mustBe None
@@ -482,7 +483,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "do NOT find a candidate that has already been notified of failed phase2 test results" in {
       val progressStatuses = (PHASE2_TESTS_FAILED_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE2_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE2_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase2FailedTestType).futureValue
       applicationResponse mustBe None
@@ -490,7 +491,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "do NOT find a candidate that has already been notified of failed phase3 test results" in {
       val progressStatuses = (PHASE3_TESTS_FAILED_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase3FailedTestType).futureValue
       applicationResponse mustBe None
@@ -501,7 +502,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val appRoute: Option[ApplicationRoute]
 
       def createApplication() = {
-        testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus,
+        testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, appStatus,
           applicationRoute = appRoute).futureValue
       }
     }
@@ -509,7 +510,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Update application route" should {
     "return not found if the application route is not Faststream" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId,
+        applicationRoute = Some(ApplicationRoute.Edip)).futureValue
 
       val result = repository.updateApplicationRoute(AppId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).failed.futureValue
 
@@ -517,7 +519,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "update the Faststream application when application route is Faststream" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, applicationRoute = Some(ApplicationRoute.Faststream)).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId,
+        applicationRoute = Some(ApplicationRoute.Faststream)).futureValue
 
       repository.updateApplicationRoute(AppId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).futureValue
 
@@ -526,7 +529,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "update the application without application route" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId).futureValue
 
       repository.updateApplicationRoute(AppId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).futureValue
 
@@ -537,7 +540,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Archive" should {
     "archive the existing application" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId,
         applicationRoute = Some(ApplicationRoute.Faststream)
       ).futureValue
 
@@ -555,7 +558,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "archive the existing application when application route is absent" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId).futureValue
 
       val userIdToArchiveWith = "newUserId"
       repository.archive(AppId, UserId, userIdToArchiveWith, FrameworkId, ApplicationRoute.Faststream).futureValue
@@ -571,7 +574,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "return not found when application route is not faststream" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId,
+        applicationRoute = Some(ApplicationRoute.Edip)).futureValue
 
       val userIdToArchiveWith = "newUserId"
 
@@ -621,7 +625,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val progressStatuses = (PHASE3_TESTS_RESULTS_RECEIVED, true) :: (PHASE3_TESTS_FAILED, true) ::
         (PHASE3_TESTS_FAILED_NOTIFIED, true) :: Nil
       testDataRepo.createApplicationWithAllFields(
-        UserId,AppId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+        UserId, AppId, TestAccountId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses, additionalDoc = phase3TestGroup).futureValue
 
       repository.fixDataByRemovingVideoInterviewFailed(AppId).futureValue
@@ -746,7 +750,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     Future.sequence(
       (0 until num).map { i =>
         testDataRepo.createApplicationWithAllFields(
-          UserId + (i + 1), AppId + (i + 1), FrameworkId, appStatus = appStatus1,
+          UserId + (i + 1), AppId + (i + 1), TestAccountId + (i + 1), FrameworkId, appStatus = appStatus1,
           firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d"),
           additionalDoc = additionalDoc, additionalProgressStatuses = additionalProgressStatuses
         )
@@ -755,14 +759,15 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   }
 
   private def createAppWithTestResult(progressStatuses: List[(ProgressStatus, Boolean)], testResult: Option[TestResult]) = {
-    testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, ApplicationStatus.PHASE2_TESTS,
+    testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, ApplicationStatus.PHASE2_TESTS,
       additionalProgressStatuses = progressStatuses).futureValue
     val test = CubiksTest(1, usedForResults = true, 1, "cubiks", "token", "testUrl", DateTime.now, 1, testResult = testResult)
     val phase2TestGroup = Phase2TestGroup(DateTime.now, List(test))
     phase2TestRepo.insertOrUpdateTestGroup(AppId, phase2TestGroup).futureValue
   }
 
-  val candidate = Candidate("userId", Some("appId123"), Some("test@test123.com"), None, None, None, None, None, None, None, None, None)
+  val candidate = Candidate("userId", Some("appId123"), Some("testAccountId"), Some("test@test123.com"), None, None, None, None,
+    None, None, None, None, None)
 
   val testCandidate = Map(
     "firstName" -> "George",

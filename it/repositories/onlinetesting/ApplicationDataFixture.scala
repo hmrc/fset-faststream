@@ -121,6 +121,7 @@ trait ApplicationDataFixture {
   // scalastyle:off method.length
   def createApplicationWithAllFields(userId: String,
     appId: String,
+    testAccountId: String,
     frameworkId: String = "frameworkId",
     appStatus: String,
     needsSupportForOnlineAssessment: Boolean = false,
@@ -140,6 +141,7 @@ trait ApplicationDataFixture {
   ): Future[WriteResult] = {
     val doc = BSONDocument(
       "applicationId" -> appId,
+      "testAccountId" -> testAccountId,
       "applicationStatus" -> appStatus,
       "userId" -> userId,
       "applicationRoute" -> applicationRoute,

@@ -77,6 +77,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         candidateInPreviousStatus.applicationId.get,
         PHASE3_TESTS,
         candidateInPreviousStatus.userId,
+        candidateInPreviousStatus.testAccountId.get,
         guaranteedInterview = false,
         needsOnlineAdjustments = false,
         needsAtVenueAdjustments = false,
