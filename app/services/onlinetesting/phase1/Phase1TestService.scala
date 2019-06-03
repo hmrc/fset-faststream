@@ -56,7 +56,6 @@ object Phase1TestService extends Phase1TestService {
   val emailClient = CSREmailClient
   val auditService = AuditService
   val gatewayConfig = onlineTestsGatewayConfig
-  val integrationGatewayConfig = testIntegrationGatewayConfig
   val actor = ActorSystem()
   val eventService = StcEventService
   val siftService = ApplicationSiftService
@@ -68,7 +67,6 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   val testRepository: Phase1TestRepository
   val onlineTestsGatewayClient: OnlineTestsGatewayClient
   val gatewayConfig: OnlineTestsGatewayConfig
-  val integrationGatewayConfig: TestIntegrationGatewayConfig
   val delaySecsBetweenRegistrations = 1
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] =

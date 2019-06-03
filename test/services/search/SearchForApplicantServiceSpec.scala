@@ -71,7 +71,7 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
     "search by date of birth only" in new TestFixture {
       when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
         any[Option[LocalDate]], any[List[String]])
-      ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None,
+      ).thenReturn(Future.successful(List(Candidate("123", None, None, None, Some("Leia"), Some("Amadala"), None,
         Some(new LocalDate("1990-11-25")), None, None, None, None, None))))
 
       val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = None,
@@ -111,7 +111,7 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
 
     val testAddress = Address(line1 = "1 Test Street", line2 = None, line3 = None, line4 = None)
     val testEmail = "test@test.com"
-    val expected = Candidate("123", None, Some(testEmail), Some("Leia"), Some("Amadala"),
+    val expected = Candidate("123", None, None, Some(testEmail), Some("Leia"), Some("Amadala"),
       None, None, Some(testAddress), Some("QQ1 1QQ"), None, None, None
     )
 
@@ -131,7 +131,7 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
 
     when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
       any[Option[LocalDate]], any[List[String]])
-    ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None, None,
+    ).thenReturn(Future.successful(List(Candidate("123", None, None, None, Some("Leia"), Some("Amadala"), None, None,
       None, None, None, None, None))))
   }
 }

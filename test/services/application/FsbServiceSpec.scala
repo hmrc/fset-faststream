@@ -196,7 +196,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     val mockEmailClient = mock[EmailClient]
     val mockSchemePreferencesService = mock[SchemePreferencesService]
 
-    val cand1 = Candidate("123", None, Some("t@t.com"), Some("Leia"), Some("Amadala"), None, None, None, None, None, None, None)
+    val cand1 = Candidate("123", None, None, Some("t@t.com"), Some("Leia"), Some("Amadala"), None, None, None, None, None, None, None)
     val cd1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "t@t.com", "12345")
 
     val service = new FsbService {

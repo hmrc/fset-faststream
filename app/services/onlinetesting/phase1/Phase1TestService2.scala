@@ -18,7 +18,7 @@ package services.onlinetesting.phase1
 
 import akka.actor.ActorSystem
 import common.{ FutureEx, Phase1TestConcern2 }
-import config.{ OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import config.TestIntegrationGatewayConfig
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
@@ -57,7 +57,6 @@ object Phase1TestService2 extends Phase1TestService2 {
   val dateTimeFactory = DateTimeFactory
   val emailClient = CSREmailClient
   val auditService = AuditService
-  val gatewayConfig = onlineTestsGatewayConfig
   val integrationGatewayConfig = testIntegrationGatewayConfig
   val actor = ActorSystem()
   val eventService = StcEventService
@@ -70,7 +69,6 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   val testRepository: Phase1TestRepository
   val testRepository2: Phase1TestRepository2
   val onlineTestsGatewayClient: OnlineTestsGatewayClient
-  val gatewayConfig: OnlineTestsGatewayConfig
   val integrationGatewayConfig: TestIntegrationGatewayConfig
   val delaySecsBetweenRegistrations = 1
 
@@ -88,7 +86,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
 
   def registerAndInviteForTestGroup2(application: OnlineTestApplication, scheduleNames: List[String])
                                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase1Tests.expiryTimeInDays)
+    val (invitationDate, expirationDate) = calcOnlineTestDates(integrationGatewayConfig.phase1Tests.expiryTimeInDays)
 
     // TODO work out a better way to do this
     // The problem is that the standard future sequence returns at the point when the first future has failed
@@ -102,7 +100,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
 
     val registerCandidate = FutureEx.traverseToTry(scheduleNames.zipWithIndex) {
       case (scheduleName, delayModifier) =>
-        val inventoryId = inventoryIdByName(scheduleName) // sjq = 16196, bq = 16194
+        val inventoryId = inventoryIdByName2(scheduleName) // sjq = 16196, bq = 16194
       val delay = (delayModifier * delaySecsBetweenRegistrations).second
         akka.pattern.after(delay, actor.scheduler) {
           play.api.Logger.debug(s"Phase1TestService - about to call registerPsiApplicant with scheduleId - $inventoryId")
@@ -173,7 +171,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
-  private def inventoryIdByName(name: String): String = {
+  private def inventoryIdByName2(name: String): String = {
     integrationGatewayConfig.phase1Tests.inventoryIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
@@ -316,14 +314,12 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
-  //TODO: psi only supports a single test at the moment so default all candidates to gis until they add the other tests
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
-    integrationGatewayConfig.phase1Tests.gis
-//    if (application.guaranteedInterview) {
-//      integrationGatewayConfig.phase1Tests.gis
-//    } else {
-//      integrationGatewayConfig.phase1Tests.standard
-//    }
+    if (application.guaranteedInterview) {
+      integrationGatewayConfig.phase1Tests.gis
+    } else {
+      integrationGatewayConfig.phase1Tests.standard
+    }
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds2]] = {
@@ -331,7 +327,6 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   }
   //// psi code  end
 
-  //TODO: look at removing the cubiks specific code
   override def emailCandidateForExpiringTestReminder(
                                                       expiringTest: NotificationExpiringOnlineTest,
                                                       emailAddress: String,
@@ -346,6 +341,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
+  //TODO: look at removing the cubiks specific code
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     Future.sequence(applications.map { application =>
@@ -359,7 +355,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String])
                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase1Tests.expiryTimeInDays)
+    val (invitationDate, expirationDate) = calcOnlineTestDates(integrationGatewayConfig.phase1Tests.expiryTimeInDays)
 
     // TODO work out a better way to do this
     // The problem is that the standard future sequence returns at the point when the first future has failed
@@ -420,8 +416,10 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
+  // TODO: cubiks specific - we need to remove
   private def scheduleIdByName(name: String): Int = {
-    gatewayConfig.phase1Tests.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
+    16196
+//    integrationGatewayConfig.phase1Tests.inventoryIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
   private def registerAndInviteApplicant(application: OnlineTestApplication,
@@ -446,9 +444,10 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
+  // TODO: this is cubiks specific - check to see if we can remove
   private def registerApplicant(application: OnlineTestApplication, token: String)(implicit hc: HeaderCarrier): Future[Int] = {
     val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
-    val registerApplicant = RegisterApplicant(preferredName, "", token + "@" + gatewayConfig.emailDomain)
+    val registerApplicant = RegisterApplicant(preferredName, "", token + "@" + integrationGatewayConfig.emailDomain)
     onlineTestsGatewayClient.registerApplicant(registerApplicant).map { registration =>
       audit("UserRegisteredForOnlineTest", application.userId)
       registration.userId
@@ -465,8 +464,9 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
+  //TODO: cubiks specific - check to see if we can remove
   private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
-    val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase1"
+    val scheduleCompletionBaseUrl = s"${integrationGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase1"
     if (application.guaranteedInterview) {
       InviteApplicant(
         scheduleId,

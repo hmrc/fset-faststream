@@ -182,7 +182,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     }
 
     "find relevant applications for scheme sifting" in new TestFixture {
-      val candidates = Seq(Candidate("userId1", Some("appId1"), Some(""), Some(""), Some(""), Some(""), Some(LocalDate.now), Some(Address("")),
+      val candidates = Seq(Candidate("userId1", Some("appId1"), Some(""), Some(""), Some(""), Some(""), Some(""),
+        Some(LocalDate.now), Some(Address("")),
         Some("E1 7UA"), Some("UK"), Some(ApplicationRoute.Faststream), Some("")))
 
       (mockSiftRepo.findApplicationsReadyForSchemeSift _).expects(*).returningAsync(candidates)
