@@ -70,7 +70,7 @@ case class PsiTest(inventoryId: String,
                    reportId: Option[Int] = None,
                    reportLinkURL: Option[String] = None,
                    reportStatus: Option[String] = None,
-                   testResult: Option[model.persisted.TestResult] = None,
+                   testResult: Option[model.persisted.PsiTestResult] = None,
                    invigilatedAccessCode: Option[String] = None) extends Test
 
 object PsiTest {
