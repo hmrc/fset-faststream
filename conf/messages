@@ -301,3 +301,8 @@ undergradDegree.error.required=You must tell us the name of your degree
 postgradDegree.error.required=You must tell us the name of your degree
 error.year.required=You must specify a year
 error.year.format=You must specify a valid 4 digit year
+
+tests.inventoryid.name.04b86fa5-922b-4ccf-8e36-fa3837cd9dff=Situational judgement questionnaire
+tests.inventoryid.name.940bc1cf-3e8f-44c0-b74d-ffce1ac5b7d7=Behavioural questionnaire
+tests.inventoryid.name.fill-me-in-1=Test 3
+tests.inventoryid.name.fill-me-in-2=Test 4

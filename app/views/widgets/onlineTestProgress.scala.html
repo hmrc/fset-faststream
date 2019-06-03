@@ -18,7 +18,7 @@
         dashboardPage: models.page.DashboardPage,
         assistanceDetails: Option[_root_.connectors.exchange.AssistanceDetails] = None,
         adjustments: Option[Adjustments] = None)(
-        implicit request: Request[_])
+        implicit request: Request[_], messages: Messages)
 
 @import security.RoleUtils._
 @import models.page.Phase2TestsPage
@@ -183,12 +183,12 @@
                               if(test.completed) {
                                 <li>
                                     <i class="fa fa-check the-icon"></i>
-                                    TODO: Test Name (untimed)
+                                    {Messages(test.testNameKey)} (untimed)
                                 </li>
                               } else {
                                   <li>
                                       <i class="fa fa-minus the-icon"></i>
-                                      TODO: Test Name (untimed)
+                                      {Messages(test.testNameKey)} (untimed)
                                   </li>
                               }
                             }

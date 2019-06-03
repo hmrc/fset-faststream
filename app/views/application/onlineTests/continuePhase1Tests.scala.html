@@ -1,0 +1,40 @@
+@*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@(testCompletedName: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl:
+        String, messages: Messages)
+
+@main_template(title = s"$testCompletedName complete | Apply for the Civil Service Fast Stream") {
+
+    <div class="success-banner">
+        <h1 class="heading-large no-btm-margin"><i class="fa fa-check"></i>Exercise complete</h1>
+    </div>
+    <section>
+        <div class="text">
+            <p>You've completed the @{testCompletedName}. </p>
+        <h2 class="heading-large">What you need to do next</h2>
+            <div class="panel-indent">
+                <p>To complete the next exercise you need to return to your homepage.</p>
+            </div>
+        </div>
+        @if(user.isDefined){
+            <a href="@routes.HomeController.present()" class="button">Continue</a>
+        } else {
+            <a href="@routes.SignInController.signIn" class="button">Continue</a>
+        }
+    </section>
+}
+

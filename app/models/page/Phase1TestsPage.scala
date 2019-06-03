@@ -27,7 +27,8 @@ case class Phase1TestsPage2(expirationDate: DateTime,
 
 object Phase1TestsPage {
   def apply(profile: connectors.exchange.Phase1TestGroupWithNames2): Phase1TestsPage2 = {
-    Phase1TestsPage2(expirationDate = profile.expirationDate,
+    Phase1TestsPage2(
+      expirationDate = profile.expirationDate,
       tests = profile.tests.map(PsiTestPage.apply)
     )
   }

@@ -22,6 +22,7 @@ import connectors.exchange.PsiTest
 import models.UniqueIdentifier
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import play.api.i18n.Messages
 import play.api.mvc.{ Action, AnyContent }
 import security.Roles.OnlineTestInvitedRole
 import security.SilhouetteComponent
@@ -50,48 +51,27 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
     }.getOrElse(Future.successful(NotFound))
   }
 
-  def completeSjqAndContinuePhase1Tests(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
+  def completePhase1Tests(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
     implicit user =>
-      applicationClient.completeTestByOrderId(orderId).map { _ =>
+      val appId = user.flatMap { data =>
+        data.application.map { application =>
+          application.applicationId
+        }
+      }.getOrElse(throw new Exception("Unable to find applicationId for this candidate."))
 
-        // TODO: In the combined world, we should render this template if there are more tests to be taken
-        Ok(views.html.application.onlineTests.sjqComplete_continuePhase1Tests())
+      applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
+        applicationClient.getPhase1TestProfile2(appId).map { testGroup =>
+          val testCompleted = testGroup.tests.find(_.orderId == orderId)
+            .getOrElse(throw new Exception(s"Test not found for OrderId $orderId"))
+          val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
+
+          if(incompleteTestsExists(testGroup.tests)) {
+            Ok(views.html.application.onlineTests.continuePhase1Tests(testCompletedName))
+          } else {
+            Ok(views.html.application.onlineTests.phase1TestsComplete())
+          }
+        }
       }
-  }
-
-  def completePhase1Tests(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
-    implicit user =>
-      applicationClient.completeTestByOrderId(orderId).map { _ =>
-        //TODO:
-        // We need to decide here if tests have been completed or not
-        // We need a way to know if there are more tests to be completed.
-        // Perhaps pull the test group here and check for active tests without completion date?
-        // -> Ask Vijay: Can we have multiple active tests? E.g Do we have sjq and bq at the same
-        // time in the test group?
-
-        // TODO: In the combined world, we should render this template when there is no longer an active test
-        Ok(views.html.application.onlineTests.phase1TestsComplete())
-      }
-  }
-
-  //TODO: Complete this and replace the one above
-  def completePhase1Tests2(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
-    implicit user =>
-//      applicationClient.completeTestByOrderId(orderId).map { _ =>
-//        user.flatMap(_.application.map(_.applicationId)).map { appId =>
-//          applicationClient.getPhase1Tests(appId).map { tests =>
-//            if (incompleteTestsExists(tests)) {
-//              //TODO: Redirect to page showing a test still exists
-//              Ok()
-//            } else {
-//              //TODO: Redirect to page showing tests are complete
-//              Ok()
-//            }
-//          }
-//        }
-//        //
-//      }
-      Future.successful(Ok(views.html.application.onlineTests.phase1TestsComplete()))
   }
 
   private def incompleteTestsExists(tests: Seq[PsiTest]): Boolean = {
