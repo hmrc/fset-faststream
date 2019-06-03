@@ -786,25 +786,25 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "build time adjustments" should {
     "return Nil when there is no need for adjustments and no gis" in new Phase2TestServiceFixture {
-      val onlineTestApplicationWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = false,
-        needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = None, videoInterviewAdjustments = None)
+      val onlineTestApplicationWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = None, videoInterviewAdjustments = None)
       val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationWithNoAdjustments)
       result mustBe List()
     }
 
     "return time adjustments when gis" in new Phase2TestServiceFixture {
-      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = true,
-        needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = Some(AdjustmentDetail(Some(25), None, None)), videoInterviewAdjustments = None)
+      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = true, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = Some(AdjustmentDetail(Some(25), None, None)), videoInterviewAdjustments = None)
       val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationGisWithAdjustments)
       result mustBe List(TimeAdjustments(5, 1, 100))
     }
 
     "return time adjustments when adjustments needed" in new Phase2TestServiceFixture {
-      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = false,
-        needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = Some(AdjustmentDetail(Some(50), None, None)), videoInterviewAdjustments = None)
+      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = false, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = Some(AdjustmentDetail(Some(50), None, None)), videoInterviewAdjustments = None)
       val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationGisWithAdjustments)
       result mustBe List(TimeAdjustments(5, 1, 120))
     }
@@ -812,17 +812,17 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "calculate absolute time with adjustments" should {
     "return 140 when adjustment is 75%" in new Phase2TestServiceFixture {
-      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = true,
-        needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = Some(AdjustmentDetail(Some(75), None, None)), videoInterviewAdjustments = None)
+      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = true, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = Some(AdjustmentDetail(Some(75), None, None)), videoInterviewAdjustments = None)
       val result = phase2TestService.calculateAbsoluteTimeWithAdjustments(onlineTestApplicationGisWithAdjustments)
       result mustBe 140
     }
 
     "return 80 when no adjustments needed" in new Phase2TestServiceFixture {
-      val onlineTestApplicationGisWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = true,
-        needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = None, videoInterviewAdjustments = None)
+      val onlineTestApplicationGisWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = true, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = None, videoInterviewAdjustments = None)
       val result = phase2TestService.calculateAbsoluteTimeWithAdjustments(onlineTestApplicationGisWithNoAdjustments)
       result mustBe 80
     }

@@ -17,26 +17,25 @@
 package model.persisted
 
 import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class CubiksTest(
-                       scheduleId: Int,
-                       usedForResults: Boolean,
-                       cubiksUserId: Int,
-                       testProvider: String = "cubiks",
-                       token: String,
-                       testUrl: String,
-                       invitationDate: DateTime,
-                       participantScheduleId: Int,
-                       startedDateTime: Option[DateTime] = None,
-                       completedDateTime: Option[DateTime] = None,
-                       resultsReadyToDownload: Boolean = false,
-                       reportId: Option[Int] = None,
-                       reportLinkURL: Option[String] = None,
-                       reportStatus: Option[String] = None,
-                       testResult: Option[model.persisted.TestResult] = None,
-                       invigilatedAccessCode: Option[String] = None
+case class CubiksTest(scheduleId: Int,
+                      usedForResults: Boolean,
+                      cubiksUserId: Int,
+                      testProvider: String = "cubiks",
+                      token: String,
+                      testUrl: String,
+                      invitationDate: DateTime,
+                      participantScheduleId: Int,
+                      startedDateTime: Option[DateTime] = None,
+                      completedDateTime: Option[DateTime] = None,
+                      resultsReadyToDownload: Boolean = false,
+                      reportId: Option[Int] = None,
+                      reportLinkURL: Option[String] = None,
+                      reportStatus: Option[String] = None,
+                      testResult: Option[model.persisted.TestResult] = None,
+                      invigilatedAccessCode: Option[String] = None
                      ) extends Test
 
 object CubiksTest {
@@ -47,11 +46,9 @@ object CubiksTest {
   implicit val phase1TestFormat = Json.format[CubiksTest]
 }
 
-case class Phase1TestProfile(
-                              expirationDate: DateTime,
-                              tests: List[CubiksTest],
-                              evaluation: Option[PassmarkEvaluation] = None
-                            ) extends CubiksTestProfile
+case class Phase1TestProfile(expirationDate: DateTime,
+                             tests: List[CubiksTest],
+                             evaluation: Option[PassmarkEvaluation] = None) extends CubiksTestProfile
 
 object Phase1TestProfile {
 
@@ -61,39 +58,33 @@ object Phase1TestProfile {
   implicit val phase1TestProfileFormat = Json.format[Phase1TestProfile]
 }
 
-case class PsiTest(
-                    inventoryId: String,
-                    orderId: String,
-                    usedForResults: Boolean,
-                    testUrl: String,
-                    testProvider: String = "psi",
-                    invitationDate: DateTime,
-                    startedDateTime: Option[DateTime] = None,
-                    completedDateTime: Option[DateTime] = None,
-                    resultsReadyToDownload: Boolean = false,
-                    reportId: Option[Int] = None,
-                    reportLinkURL: Option[String] = None,
-                    reportStatus: Option[String] = None,
-                    testResult: Option[model.persisted.PsiTestResult] = None,
-                    invigilatedAccessCode: Option[String] = None
-                  ) extends Test
+case class PsiTest(inventoryId: String,
+                   orderId: String,
+                   usedForResults: Boolean,
+                   testUrl: String,
+                   testProvider: String = "psi",
+                   invitationDate: DateTime,
+                   startedDateTime: Option[DateTime] = None,
+                   completedDateTime: Option[DateTime] = None,
+                   resultsReadyToDownload: Boolean = false,
+                   reportId: Option[Int] = None,
+                   reportLinkURL: Option[String] = None,
+                   reportStatus: Option[String] = None,
+                   testResult: Option[model.persisted.PsiTestResult] = None,
+                   invigilatedAccessCode: Option[String] = None) extends Test
 
 object PsiTest {
-
   import repositories.BSONDateTimeHandler
 
   implicit val psiTestHandler: BSONHandler[BSONDocument, PsiTest] = Macros.handler[PsiTest]
-  implicit val psiTestFormat = Json.format[PsiTest]
+  implicit val psiTestFormat: OFormat[PsiTest] = Json.format[PsiTest]
 }
 
-case class Phase1TestProfile2(
-                              expirationDate: DateTime,
+case class Phase1TestProfile2(expirationDate: DateTime,
                               tests: List[PsiTest],
-                              evaluation: Option[PassmarkEvaluation] = None
-                            ) extends PsiTestProfile
+                              evaluation: Option[PassmarkEvaluation] = None) extends PsiTestProfile
 
 object Phase1TestProfile2 {
-
   import repositories.BSONDateTimeHandler
 
   implicit val bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile2] = Macros.handler[Phase1TestProfile2]

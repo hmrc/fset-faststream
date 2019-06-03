@@ -48,6 +48,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   val unit: Unit = ()
   val AppId = "AppId"
   val UserId = "UserId"
+  val TestAccountId = "TestAccountId"
 
   val FrameworkId = "FrameworkId"
 

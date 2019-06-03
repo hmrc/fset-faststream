@@ -201,6 +201,7 @@ PUT         /cubiks/:cubiksUserId/results-ready                          control
 
 PUT         /psi/:orderId/start                                          controllers.PsiTestsController.start(orderId: String)
 
+GET         /phase1-tests/:applicationId                                 controllers.Phase1TestGroupController.getTests(applicationId: String)
 POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
 POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
 POST        /phase3-test-group/extend/:applicationId                     controllers.Phase3TestGroupController.extend(applicationId: String)

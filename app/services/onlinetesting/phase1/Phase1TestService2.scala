@@ -162,7 +162,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
       preferredName = preferredName,
       lastName = lastName,
       // The url psi will redirect to when the candidate completes the test
-      redirectionUrl = buildRedirectionUrl(application.guaranteedInterview, orderId, inventoryId)
+      redirectionUrl = buildRedirectionUrl(orderId, inventoryId)
     )
 
     onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest).map { response =>
@@ -175,17 +175,9 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     integrationGatewayConfig.phase1Tests.inventoryIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
-  private def buildRedirectionUrl(isGuaranteedInterviewScheme: Boolean, orderId: String, inventoryId: String) = {
+  private def buildRedirectionUrl(orderId: String, inventoryId: String) = {
     val scheduleCompletionBaseUrl = s"${integrationGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/psi/phase1"
-    if (isGuaranteedInterviewScheme) {
-      s"$scheduleCompletionBaseUrl/complete/$orderId"
-    } else {
-      if (inventoryIdByName2("sjq") == inventoryId) {
-        s"$scheduleCompletionBaseUrl/continue/$orderId"
-      } else {
-        s"$scheduleCompletionBaseUrl/complete/$orderId"
-      }
-    }
+    s"$scheduleCompletionBaseUrl/complete/$orderId"
   }
 
   private def markAsInvited2(application: OnlineTestApplication)(newOnlineTestProfile: Phase1TestProfile2): Future[Unit] = for {
@@ -217,23 +209,11 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   }
 
   def getTestGroup2(applicationId: String): Future[Option[Phase1TestGroupWithNames2]] = {
-    val sjq = integrationGatewayConfig.phase1Tests.inventoryIds("sjq")
-    val bq = integrationGatewayConfig.phase1Tests.inventoryIds("bq")
-
     for {
       phase1Opt <- testRepository2.getTestGroup(applicationId)
     } yield {
-      phase1Opt.map { phase1 =>
-        val sjqTests = phase1.activeTests filter (_.inventoryId == sjq)
-        val bqTests = phase1.activeTests filter (_.inventoryId == bq)
-        require(sjqTests.length <= 1)
-        require(bqTests.length <= 1)
-
-        Phase1TestGroupWithNames2(
-          phase1.expirationDate, Map()
-            ++ (if (sjqTests.nonEmpty) Map("sjq" -> sjqTests.head) else Map())
-            ++ (if (bqTests.nonEmpty) Map("bq" -> bqTests.head) else Map())
-        )
+      phase1Opt.map { testProfile =>
+        Phase1TestGroupWithNames2(testProfile.expirationDate, testProfile.tests)
       }
     }
   }
@@ -306,11 +286,13 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
       testRepository2.getTestGroup(appId).flatMap { eventualProfile =>
 
         val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No test profile returned for $appId"))
-
         if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
           testRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).map(_ =>
             audit(s"ProgressStatusSet${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}", appId))
         } else {
+          val msg = s"Did not update progress status to ${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED} for $appId - " +
+            s"not all active tests have a testResult saved"
+          Logger.warn(msg)
           Future.successful(())
         }
       }
