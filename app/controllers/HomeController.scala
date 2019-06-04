@@ -41,6 +41,7 @@ import security.Roles._
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import play.api.i18n.Messages
 import uk.gov.hmrc.http.HeaderCarrier
 
 object HomeController extends HomeController(

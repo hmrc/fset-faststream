@@ -37,7 +37,8 @@ object CubiksTest {
   implicit def phase1TestFormat = Json.format[CubiksTest]
 }
 
-case class PsiTest(usedForResults: Boolean,
+case class PsiTest(inventoryId: String,
+                   usedForResults: Boolean,
                    testUrl: String,
                    orderId: UniqueIdentifier,
                    invitationDate: DateTime,

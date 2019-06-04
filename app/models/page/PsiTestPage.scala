@@ -16,14 +16,19 @@
 
 package models.page
 
-case class CubiksTestPage(
-                           started: Boolean = false,
-                           completed: Boolean = false
-                         )
+case class PsiTestPage(orderId: String,
+                       inventoryId: String,
+                       started: Boolean = false,
+                       completed: Boolean = false) {
+  def testNameKey = s"tests.inventoryid.name.$inventoryId"
+}
 
-object CubiksTestPage {
-  def apply(test: connectors.exchange.CubiksTest): CubiksTestPage = {
-    CubiksTestPage(started = test.started,
+object PsiTestPage {
+  def apply(test: connectors.exchange.PsiTest): PsiTestPage = {
+    new PsiTestPage(
+      orderId = test.orderId.toString,
+      inventoryId = test.inventoryId,
+      started = test.started,
       completed = test.completed
     )
   }

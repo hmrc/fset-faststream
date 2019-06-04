@@ -64,7 +64,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display home page" in new TestFixture {
       val previewApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -85,7 +85,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         val applicationsStartDate = None }
       val previewApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -209,7 +209,8 @@ class HomeControllerSpec extends BaseControllerSpec {
       val fastPassRejectedInvitedToPhase1Application = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.fastPassRejectedInvitedToPhase1Application.copy(userId = ActiveCandidate.user.userID))
 
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(fastPassRejectedInvitedToPhase1Application.application.applicationId)
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(fastPassRejectedInvitedToPhase1Application.application
+        .applicationId)
       )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
 
       val result = controller(fastPassRejectedInvitedToPhase1Application, applicationRouteState).present()(fakeRequest)
@@ -229,7 +230,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val fastPassRejectedPhase1StartedApplication = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.fastPassRejectedPhase1StartedApplication.copy(userId = ActiveCandidate.user.userID))
 
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(fastPassRejectedPhase1StartedApplication.application.applicationId)
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(fastPassRejectedPhase1StartedApplication.application.applicationId)
       )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
 
       val result = controller(fastPassRejectedPhase1StartedApplication, applicationRouteState).present()(fakeRequest)
@@ -248,7 +249,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         val applicationsSubmitEnabled = true
         val applicationsStartDate = None }
 
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -270,7 +271,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         val applicationsSubmitEnabled = true
         val applicationsStartDate = None }
 
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -292,7 +293,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         val applicationsSubmitEnabled = true
         val applicationsStartDate = None }
 
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -314,7 +315,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         val applicationsSubmitEnabled = true
         val applicationsStartDate = None }
 
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -335,7 +336,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         val applicationsSubmitEnabled = true
         val applicationsStartDate = None }
 
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -481,7 +482,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.getSiftState(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturnAsync(None)

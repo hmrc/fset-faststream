@@ -22,6 +22,8 @@ import connectors.exchange.PsiTest
 import models.UniqueIdentifier
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import play.api.i18n.Messages
+import play.api.mvc.{ Action, AnyContent }
 import security.Roles.OnlineTestInvitedRole
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
@@ -49,17 +51,30 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
     }.getOrElse(Future.successful(NotFound))
   }
 
-  def completeSjqAndContinuePhase1Tests(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
+  def completePhase1Tests(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
     implicit user =>
-      applicationClient.completeTestByOrderId(orderId).map { _ =>
-        Ok(views.html.application.onlineTests.sjqComplete_continuePhase1Tests())
+      val appId = user.flatMap { data =>
+        data.application.map { application =>
+          application.applicationId
+        }
+      }.getOrElse(throw new Exception("Unable to find applicationId for this candidate."))
+
+      applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
+        applicationClient.getPhase1TestProfile2(appId).map { testGroup =>
+          val testCompleted = testGroup.tests.find(_.orderId == orderId)
+            .getOrElse(throw new Exception(s"Test not found for OrderId $orderId"))
+          val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
+
+          if(incompleteTestsExists(testGroup.tests)) {
+            Ok(views.html.application.onlineTests.continuePhase1Tests(testCompletedName))
+          } else {
+            Ok(views.html.application.onlineTests.phase1TestsComplete())
+          }
+        }
       }
   }
 
-  def completePhase1Tests(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
-    implicit user =>
-      applicationClient.completeTestByOrderId(orderId).map { _ =>
-        Ok(views.html.application.onlineTests.phase1TestsComplete())
-      }
+  private def incompleteTestsExists(tests: Seq[PsiTest]): Boolean = {
+    tests.exists(test => test.usedForResults && test.completedDateTime.isEmpty)
   }
 }

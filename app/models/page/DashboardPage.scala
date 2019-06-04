@@ -43,7 +43,7 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isPhase2TestFailed: Boolean,
   isPhase3TestFailed: Boolean,
   fullName: String,
-  phase1TestsPage: Option[Phase1TestsPage],
+  phase1TestsPage: Option[Phase1TestsPage2],
   phase2TestsPage: Option[Phase2TestsPage],
   phase3TestsPage: Option[Phase3TestsPage],
   assessmentStageStatus: AssessmentStageStatus
@@ -57,9 +57,9 @@ object DashboardPage {
   import models.ApplicationData.ApplicationStatus
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  def apply(user: CachedData, phase1TestGroup: Option[Phase1TestsPage],
-    phase2TestGroup: Option[Phase2TestsPage], phase3TestGroup: Option[Phase3TestsPage]
-  )(implicit request: RequestHeader, lang: Lang): DashboardPage = {
+  def apply(user: CachedData, phase1TestGroup: Option[Phase1TestsPage2],
+    phase2TestGroup: Option[Phase2TestsPage], phase3TestGroup: Option[Phase3TestsPage])
+           (implicit request: RequestHeader, lang: Lang): DashboardPage = {
 
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility,
       fourthStepVisibility
