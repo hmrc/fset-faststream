@@ -38,7 +38,7 @@ trait Phase2TestConcern {
 }
 
 trait Phase2TestConcern2 {
-  type U = CubiksTest
+  type U = PsiTest
   type T = Phase2TestGroup2
   type RichTestGroup = Phase2TestGroupWithAppId
 }

@@ -53,6 +53,14 @@ object Phase2TestGroupWithAppId {
   implicit val phase2TestGroupWithAppIdHandler = Macros.handler[Phase2TestGroupWithAppId]
 }
 
+case class Phase2TestGroupWithAppId2(applicationId: String,
+                                    testGroup: Phase2TestGroup2) extends TestGroupWithIds[PsiTest, Phase2TestGroup2]
+
+object Phase2TestGroupWithAppId2 {
+  implicit val phase2TestGroupWithAppIdHandler = Macros.handler[Phase2TestGroupWithAppId2]
+}
+
+
 case class Phase3TestGroupWithAppId(
   applicationId: String,
   testGroup: Phase3TestGroup
