@@ -39,3 +39,21 @@ case class ApplicationReadyForEvaluation(
 object ApplicationReadyForEvaluation {
   implicit val applicationReadyForEvaluationFormats = Json.format[ApplicationReadyForEvaluation]
 }
+
+case class ApplicationReadyForEvaluation2(
+  applicationId: String,
+  applicationStatus: ApplicationStatus,
+  applicationRoute: ApplicationRoute,
+  isGis: Boolean,
+  activePsiTests: List[PsiTest],
+  activeLaunchpadTest: Option[LaunchpadTest],
+  prevPhaseEvaluation: Option[PassmarkEvaluation],
+  preferences: SelectedSchemes
+) {
+  def nonGis = !isGis
+  def isSdipFaststream = applicationRoute == ApplicationRoute.SdipFaststream
+}
+
+object ApplicationReadyForEvaluation2 {
+  implicit val applicationReadyForEvaluationFormats = Json.format[ApplicationReadyForEvaluation2]
+}

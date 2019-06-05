@@ -20,7 +20,7 @@ import org.joda.time.DateTime
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class CubiksTest(scheduleId: Int,
+case class  CubiksTest(scheduleId: Int,
                       usedForResults: Boolean,
                       cubiksUserId: Int,
                       testProvider: String = "cubiks",
