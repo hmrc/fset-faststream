@@ -19,7 +19,7 @@ package services.onlinetesting.phase2
 import _root_.services.AuditService
 import akka.actor.ActorSystem
 import common.Phase2TestConcern
-import config.{ OnlineTestsGatewayConfig, Phase2Schedule, Phase2TestsConfig, Phase2TestsConfig2, TestIntegrationGatewayConfig }
+import config.{ Phase2Schedule, Phase2TestsConfig, Phase2TestsConfig2, TestIntegrationGatewayConfig }
 import connectors.ExchangeObjects._
 import connectors.{ AuthProviderClient, OnlineTestsGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
@@ -29,7 +29,7 @@ import model.ProgressStatuses._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
-import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
+import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest2 }
 import model.persisted._
 import model.{ ApplicationStatus, persisted, _ }
 import org.joda.time.DateTime
@@ -70,7 +70,7 @@ object Phase2TestService2 extends Phase2TestService2 {
 }
 
 // scalastyle:off number.of.methods
-trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with Phase2TestSelector with
+trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
   ResetPhase2Test2 {
   type TestRepository = Phase2TestRepository
   val testRepository2: Phase2TestRepository2
@@ -93,17 +93,17 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with P
   case class Phase2TestInviteData2(application: OnlineTestApplication, psiTest: PsiTest)
 
 
-  def getTestGroup(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
+  def getTestGroup(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest2]] = {
     for {
-      phase2Opt <- testRepository.getTestGroup(applicationId)
+      phase2Opt <- testRepository2.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
       val test = phase2.activeTests
         .find(_.usedForResults)
         .getOrElse(throw NoActiveTestException(s"No active phase 2 test found for $applicationId"))
-      Phase2TestGroupWithActiveTest(
+      Phase2TestGroupWithActiveTest2(
         phase2.expirationDate,
         test,
-        schedulesAvailable(phase2.tests.map(_.scheduleId)) //TODO: no more selector
+        resetAllowed = true
       )
     }
   }
@@ -115,7 +115,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with P
   } yield testUrl
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
-    testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize)
+    testRepository2.nextApplicationsReadyForOnlineTesting(maxBatchSize)
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
@@ -206,6 +206,11 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with P
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(List(application))
+  }
+
+  override def registerAndInviteForPsi(applications: List[OnlineTestApplication])
+                                      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    registerAndInviteForTestGroup(applications)
   }
 
   override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
