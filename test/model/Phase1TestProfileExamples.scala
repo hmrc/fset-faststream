@@ -16,10 +16,12 @@
 
 package model
 
-import model.persisted.Phase1TestProfile
+import model.persisted.{ Phase1TestProfile, Phase1TestProfile2 }
 import org.joda.time.DateTime
 
 object Phase1TestProfileExamples {
 
   def profile(implicit now: DateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstTest))
+
+  def psiProfile(implicit now: DateTime) = Phase1TestProfile2(now, List(Phase1TestExamples.firstPsiTest))
 }
