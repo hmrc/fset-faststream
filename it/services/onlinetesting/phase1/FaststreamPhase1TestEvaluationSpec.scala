@@ -67,8 +67,8 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
             SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
-          (SchemeId("DiplomaticServiceEconomics"), 30, 30, 30, 30),
-          (SchemeId("DiplomaticServiceEuropean"), 30, 30, 30, 30))
+          (SchemeId("DiplomaticServiceEconomics"), 30, 30, 30, 30, 30, 30, 30, 30),
+          (SchemeId("DiplomaticServiceEuropean"), 30, 30, 30, 30, 30, 30, 30, 30))
         mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
           SchemeId("DiplomaticServiceEconomics") -> Green, SchemeId("DiplomaticServiceEuropean") -> Green)
       }
@@ -78,14 +78,14 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
           PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
-          (SchemeId("Finance"), 25.011, 25.014, 25.011, 25.014)
+          (SchemeId("Finance"), 25.011, 25.014, 25.011, 25.014, 25.011, 25.014, 25.011, 25.014)
         ) mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED), SchemeId("Finance") -> Green)
 
       }
 
     }
 
-    "give fail results on re-evaluation of applicant in amber when failmarks are increased" in new TestFixture {
+    "give fail results on re-evaluation of applicant in amber when fail marks are increased" in new TestFixture {
 
       {
         applicationEvaluation("application-1", 40, 40,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
@@ -93,8 +93,8 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
           SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
-          (SchemeId("DiplomaticServiceEconomics"), 41, 42, 41, 42),
-          (SchemeId("DiplomaticServiceEuropean"), 41, 42, 41, 42)
+          (SchemeId("DiplomaticServiceEconomics"), 41, 42, 41, 42, 41, 42, 41, 42),
+          (SchemeId("DiplomaticServiceEuropean"), 41, 42, 41, 42, 41, 42, 41, 42)
         ) mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
           SchemeId("DiplomaticServiceEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
       }
@@ -104,7 +104,7 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
           PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
-          (SchemeId("Finance"), 26.015, 27.015, 26.015, 27.015)
+          (SchemeId("Finance"), 26.015, 27.015, 26.015, 27.015, 26.015, 27.015, 26.015, 27.015)
         ) mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED), SchemeId("Finance") -> Red)
 
       }
@@ -118,7 +118,8 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
           SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
-          (SchemeId("DiplomaticServiceEconomics"), 38, 42, 38, 42), (SchemeId("DiplomaticServiceEuropean"), 38, 42, 38, 42)
+          (SchemeId("DiplomaticServiceEconomics"), 38, 42, 38, 42, 38, 42, 38, 42),
+          (SchemeId("DiplomaticServiceEuropean"), 38, 42, 38, 42, 38, 42, 38, 42)
         ) mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
           SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
       }
@@ -128,7 +129,7 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
           PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
-          (SchemeId("Finance"), 24.015, 27.015, 24.015, 27.015)
+          (SchemeId("Finance"), 24.015, 27.015, 24.015, 27.015, 24.015, 27.015, 24.015, 27.015)
         ) mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED), SchemeId("Finance") -> Amber)
 
       }

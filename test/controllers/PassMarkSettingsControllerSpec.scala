@@ -39,7 +39,8 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   type U = Phase1PassMark
   implicit val formatter = Phase1PassMarkSettings.jsonFormat
   val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase1PassMarkSettings])
-  val passMarkThresholds = Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold)
+  val passMarkThresholds = Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold,
+    defaultSchemeThreshold, defaultSchemeThreshold)
   val passMarks = List(
     Phase1PassMark(SchemeId("Finance"), passMarkThresholds),
     Phase1PassMark(SchemeId("Commercial"), passMarkThresholds),
@@ -65,11 +66,19 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
 
   val jsonSchemeThresholds = """
                                | "schemeThresholds": {
-                               |   "situational": {
+                               |   "test1": {
                                |     "failThreshold": 20.0,
                                |     "passThreshold": 80.0
                                |   },
-                               |   "behavioural": {
+                               |   "test2": {
+                               |     "failThreshold": 20.0,
+                               |     "passThreshold": 80.0
+                               |   },
+                               |   "test3": {
+                               |     "failThreshold": 20.0,
+                               |     "passThreshold": 80.0
+                               |   },
+                               |   "test4": {
                                |     "failThreshold": 20.0,
                                |     "passThreshold": 80.0
                                |   }

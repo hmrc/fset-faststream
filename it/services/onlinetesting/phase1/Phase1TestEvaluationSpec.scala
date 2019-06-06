@@ -10,7 +10,7 @@ import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, Sche
 import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeId }
 import org.joda.time.DateTime
 import org.mockito.Mockito.when
-import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
+import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5, TableFor9 }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import reactivemongo.play.json.collection.JSONCollection
@@ -43,30 +43,34 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   trait TestFixture {
 
     // format: OFF
-    val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double](
-      ("Scheme Name",                       "SJQ Fail Threshold",   "SJQ Pass threshold",   "BQ Fail Threshold",    "BQ Pass Threshold"),
-      (SchemeId("Commercial"),                            20.0,                    80.0,                   30.0,                   70.0),
-      (SchemeId("DigitalAndTechnology"),                  20.001,                  20.001,                 20.01,                  20.05),
-      (SchemeId("DiplomaticService"),                     20.01,                   20.02,                  20.01,                  20.02),
-      (SchemeId("DiplomaticServiceEconomics"),            30.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("DiplomaticServiceEuropean"),             30.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("European"),                              40.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("Finance"),                               25.01,                   25.02,                  25.01,                  25.02),
-      (SchemeId("Generalist"),                            30.0,                    30.0,                   30.0,                   30.0),
-      (SchemeId("GovernmentCommunicationService"),        30.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("GovernmentEconomicsService"),            30.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("GovernmentOperationalResearchService"),  30.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("GovernmentSocialResearchService"),       30.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("GovernmentStatisticalService"),          30.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("HousesOfParliament"),                    30.0,                    79.999,                 30.0,                   78.08),
-      (SchemeId("HumanResources"),                        30.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("ProjectDelivery"),                       30.0,                    70.0,                   30.0,                   70.0),
-      (SchemeId("ScienceAndEngineering"),                 69.00,                   69.00,                  78.99,                  78.99)
+    //scalastyle:off
+    val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double, Double, Double, Double, Double](
+      ("Scheme Name",                                   "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass", "Test3 Fail", "Test3 Pass", "Test4 Fail", "Test4 Pass"),
+      (SchemeId("Commercial"),                            20.0,         80.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("DigitalAndTechnology"),                  20.001,       20.001,       20.01,        20.05,        20.0,         80.0,         20.0,         80.0),
+      (SchemeId("DiplomaticService"),                     20.01,        20.02,        20.01,        20.02,        20.0,         80.0,         20.0,         80.0),
+      (SchemeId("DiplomaticServiceEconomics"),            30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("DiplomaticServiceEuropean"),             30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("European"),                              40.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("Finance"),                               25.01,        25.02,        25.01,        25.02,        20.0,         80.0,         20.0,         80.0),
+      (SchemeId("Generalist"),                            30.0,         30.0,         30.0,         30.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("GovernmentCommunicationService"),        30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("GovernmentEconomicsService"),            30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("GovernmentOperationalResearchService"),  30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("GovernmentSocialResearchService"),       30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("GovernmentStatisticalService"),          30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("HousesOfParliament"),                    30.0,         79.999,       30.0,         78.08,        20.0,         80.0,         20.0,         80.0),
+      (SchemeId("HumanResources"),                        30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("ProjectDelivery"),                       30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("ScienceAndEngineering"),                 69.00,        69.00,        78.99,        78.99,        20.0,         80.0,         20.0,         80.0)
     )
+    //scalastyle:on
+    // format: ON
 
     val phase1PassMarkSettingWithSdipTable =
-      getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable, (SchemeId("Finance"), 90.00, 90.00, 90.00, 90.00))
-    // format: ON
+      getPassMarkSettingWithNewSettings(
+        phase1PassMarkSettingsTable, (SchemeId("Finance"), 90.00, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00)
+      )
 
     var phase1PassMarkSettings: Phase1PassMarkSettings = _
 
@@ -115,24 +119,30 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     def getPassMarkSettingWithNewSettings(
-      phase1PassMarkSettingsTable: TableFor5[SchemeId, Double, Double, Double, Double],
-      newSchemeSettings: (SchemeId, Double, Double, Double, Double)*) = {
+      phase1PassMarkSettingsTable: TableFor9[SchemeId, Double, Double, Double, Double, Double, Double, Double, Double],
+      newSchemeSettings: (SchemeId, Double, Double, Double, Double, Double, Double, Double, Double)*) = {
       phase1PassMarkSettingsTable.filterNot(schemeSetting =>
         newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
     }
 
-    def applicationReEvaluationWithOverridingPassmarks(newSchemeSettings: (SchemeId, Double, Double, Double, Double)*): TestFixture = {
+    def applicationReEvaluationWithOverridingPassmarks(newSchemeSettings: (SchemeId, Double, Double, Double, Double,
+      Double, Double, Double, Double)*): TestFixture = {
       val schemePassMarkSettings = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable, newSchemeSettings:_*)
       phase1PassMarkSettings = createPhase1PassMarkSettings(schemePassMarkSettings).futureValue
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
       this
     }
 
-    def createPhase1PassMarkSettings(phase1PassMarkSettingsTable:
-                                             TableFor5[SchemeId, Double, Double, Double, Double]): Future[Phase1PassMarkSettings] = {
+    def createPhase1PassMarkSettings(phase1PassMarkSettingsTable: TableFor9[SchemeId, Double, Double, Double, Double,
+      Double, Double, Double, Double]): Future[Phase1PassMarkSettings] = {
       val schemeThresholds = phase1PassMarkSettingsTable.map {
         fields => Phase1PassMark(fields._1,
-          Phase1PassMarkThresholds(PassMarkThreshold(fields._2, fields._3), PassMarkThreshold(fields._4, fields._5)))
+          Phase1PassMarkThresholds(
+            PassMarkThreshold(fields._2, fields._3),
+            PassMarkThreshold(fields._4, fields._5),
+            PassMarkThreshold(fields._6, fields._7),
+            PassMarkThreshold(fields._8, fields._9)
+          ))
       }.toList
 
       val phase1PassMarkSettings = Phase1PassMarkSettings(
