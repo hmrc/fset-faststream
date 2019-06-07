@@ -22,8 +22,8 @@ import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.{ Phase1TestService, Phase1TestService2 }
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase1.Phase1TestService2
+import services.onlinetesting.phase2.Phase2TestService2
 import services.onlinetesting.phase3.Phase3TestService
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -36,7 +36,7 @@ object SendPhase1InvitationJob extends SendInvitationJob {
 }
 
 object SendPhase2InvitationJob extends SendInvitationJob {
-  val onlineTestingService = Phase2TestService
+  val onlineTestingService = Phase2TestService2
   val config = SendPhase2InvitationJobConfig
   val phase = "PHASE2"
 }
