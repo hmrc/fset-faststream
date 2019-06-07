@@ -377,7 +377,6 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
     val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
     val lastName = CubiksSanitizer.sanitizeFreeText(application.lastName)
 
-    // TODO: This is for phase 2. Handle adjustments
     val maybePercentage = application.eTrayAdjustments.flatMap(_.percentage)
 
     val registerCandidateRequest = RegisterCandidateRequest(
@@ -387,7 +386,8 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
       preferredName = preferredName,
       lastName = lastName,
       // The url psi will redirect to when the candidate completes the test
-      redirectionUrl = buildRedirectionUrl(orderId, inventoryId)
+      redirectionUrl = buildRedirectionUrl(orderId, inventoryId),
+      adjustment = maybePercentage.map(TestAdjustment.apply)
     )
 
     onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest).map { response =>

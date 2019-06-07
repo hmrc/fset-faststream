@@ -18,6 +18,7 @@ package connectors
 
 import java.util.UUID
 
+import model.TestAdjustment
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json._
 
@@ -57,8 +58,8 @@ object ExchangeObjects {
                                        accountId: String, // Candidate's account across all tests
                                        preferredName: String,
                                        lastName: String,
-                                       redirectionUrl: String // The url psi will redirect to when the candidate completes the test
-                                       // TODO handle adjustments
+                                       redirectionUrl: String,
+                                       adjustment: Option[TestAdjustment] = None
                                      )
   object RegisterCandidateRequest {
     implicit val registerCandidateRequest = Json.format[RegisterCandidateRequest]
