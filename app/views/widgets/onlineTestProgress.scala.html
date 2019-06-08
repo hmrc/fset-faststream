@@ -14,6 +14,7 @@
  * limitations under the License.
  *@
 
+@import models.page.Phase2TestsPage2
 @(cachedUserData: CachedData,
         dashboardPage: models.page.DashboardPage,
         assistanceDetails: Option[_root_.connectors.exchange.AssistanceDetails] = None,
@@ -46,7 +47,7 @@
     dashboardPage.phase3TestsPage.exists(_.isInvigilatedVideoApproved)
 }
 
-@eTraySection(phase2Test: Phase2TestsPage) = {
+@eTraySection(phase2Test: Phase2TestsPage2) = {
     <div id="etrayBlurb">
         @if(requiresInvigilatedETray) {
             @invigilatedETraySection()
