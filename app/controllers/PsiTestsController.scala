@@ -77,14 +77,11 @@ trait PsiTestsController extends BaseController {
     */
   def completeTestByOrderId(orderId: String) = Action.async { implicit request =>
     Logger.info(s"Complete test by orderId=$orderId")
-    phase1TestService2.markAsCompleted2(orderId).map( _ => Ok )
-//      .recoverWith { case _: CannotFindTestByCubiksId =>
-//        phase2TestService.markAsCompleted(token).recoverWith {
-//          case _: CannotFindTestByCubiksId =>
-//            numericalTestService.markAsCompleted(token)
-//        }
-//      }.map( _ => Ok )
-      .recover(recoverNotFound)
+
+    phase1TestService2.markAsCompleted2(orderId)
+      .recoverWith { case _ =>
+          phase2TestService2.markAsCompleted2(orderId)
+      }.map(_ => Ok).recover(recoverNotFound)
   }
 
   def markResultsReady(orderId: String) = Action.async(parse.json) { implicit request =>
