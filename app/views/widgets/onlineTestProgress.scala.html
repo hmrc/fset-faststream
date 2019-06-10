@@ -60,7 +60,7 @@
                 It expires at <strong id="etrayExpiryTime">@{ phase2Test.getExpireTimeLondon }</strong> (London) on <strong id="etrayExpiryDate">@{ phase2Test.getExpireDateLondon }</strong>.
             </p>
             <div id="etrayTestButton">
-                @helper.form(action = routes.CubiksTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
+                @helper.form(action = routes.PsiTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
                     @helper.CSRF.formField
                     @if(!phase2Test.isStarted) {
                         <button id="etrayButton" type="submit" value="submit" class="button">

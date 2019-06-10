@@ -73,6 +73,7 @@ GET         /schools                                                controllers.
 
 POST        /online-tests/psi/phase1/start                          controllers.PsiTestController.startPhase1Tests
 GET         /online-tests/psi/phase1/complete/:orderId              controllers.PsiTestController.completePhase1Tests(orderId: UniqueIdentifier)
+POST        /online-tests/psi/phase2/start                          controllers.PsiTestController.startPhase2Tests
 
 # Online Test
 POST        /online-tests/phase1/start                              controllers.CubiksTestController.startPhase1Tests

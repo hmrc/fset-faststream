@@ -24,7 +24,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import play.api.i18n.Messages
 import play.api.mvc.{ Action, AnyContent }
-import security.Roles.OnlineTestInvitedRole
+import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole }
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -41,6 +41,13 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
     implicit cachedUserData =>
       applicationClient.getPhase1TestProfile2(cachedUserData.application.applicationId).flatMap { phase1TestProfile =>
         startPsiTest(phase1TestProfile.tests)
+      }
+  }
+
+  def startPhase2Tests = CSRSecureAppAction(Phase2TestInvitedRole) { implicit request =>
+    implicit cachedUserData =>
+      applicationClient.getPhase2TestProfile2(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
+        startPsiTest(phase2TestProfile.activeTest :: Nil)
       }
   }
 
