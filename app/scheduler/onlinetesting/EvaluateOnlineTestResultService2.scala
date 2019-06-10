@@ -42,7 +42,8 @@ trait EvaluateOnlineTestResultService2[T <: PassMarkSettings] extends Applicatio
         evaluationRepository.nextApplicationsReadyForEvaluation2(passmark.version, batchSize) map { candidates =>
           Some(candidates -> passmark)
         }
-      case _ => Future.successful(None)
+      case _ =>
+        Future.successful(None)
     }
   }
 
