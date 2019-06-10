@@ -18,7 +18,7 @@ package services.onlinetesting.phase2
 
 import _root_.services.AuditService
 import akka.actor.ActorSystem
-import common.Phase2TestConcern
+import common.Phase2TestConcern2
 import config.{ Phase2Schedule, Phase2TestsConfig, Phase2TestsConfig2, TestIntegrationGatewayConfig }
 import connectors.ExchangeObjects._
 import connectors.{ AuthProviderClient, OnlineTestsGatewayClient, Phase2OnlineTestEmailClient }
@@ -26,27 +26,27 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
+import model._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.stc.StcEventTypes.StcEventType
-import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest2 }
 import model.persisted._
-import model.{ ApplicationStatus, persisted, _ }
+import model.stc.StcEventTypes.StcEventType
+import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.{ Phase2TestRepository, Phase2TestRepository2 }
-import services.stc.StcEventService
-import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, NoActiveTestException }
+import services.onlinetesting.Exceptions.NoActiveTestException
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
 import services.sift.ApplicationSiftService
+import services.stc.StcEventService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.{ Failure, Success, Try }
-import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase2TestService2 extends Phase2TestService2 {
 
@@ -70,7 +70,7 @@ object Phase2TestService2 extends Phase2TestService2 {
 }
 
 // scalastyle:off number.of.methods
-trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
+trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   ResetPhase2Test2 {
   type TestRepository = Phase2TestRepository
   val testRepository2: Phase2TestRepository2
@@ -118,8 +118,8 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
     testRepository2.nextApplicationsReadyForOnlineTesting(maxBatchSize)
   }
 
-  override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
-    testRepository.nextTestGroupWithReportReady
+  override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId2]] = {
+    testRepository2.nextTestGroupWithReportReady[Phase2TestGroupWithAppId2]
   }
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
@@ -334,9 +334,6 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
 
         for {
           registeredApplicants <- registerPsiApplicants(testApplications, inventoryId, invitationDate)
-//          inviteData = buildInviteData(testApplications, registeredApplicants)
-//          registeredApplicants <- registerApplicants(testApplications, tokens)
-//          invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
           _ <- insertPhase2TestGroups(registeredApplicants)(invitationDate, expirationDate, hc)
           _ <- emailInviteToApplicants(testApplications)(hc, rh, invitationDate, expirationDate)
         } yield {
@@ -465,6 +462,16 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
     }
   }
 
+  def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    updatePhase2Test2(orderId, testRepository2.updateTestStartTime(_: String, startedTime)).flatMap { u =>
+      testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
+        DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
+      }
+    }
+  }
+
+
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase2Test(cubiksUserId, testRepository.updateTestCompletionTime(_: Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
       require(u.testGroup.activeTests.nonEmpty, s"Active tests cannot be found when marking phase2 test complete for cubiksId: $cubiksUserId")
@@ -502,6 +509,13 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
       updated <- testRepository.getTestProfileByCubiksId(cubiksUserId)
     } yield {
       updated
+    }
+  }
+
+  private def updatePhase2Test2(orderId: String,
+                               updatePsiTest: String => Future[Unit]): Future[Phase2TestGroupWithAppId2] = {
+    updatePsiTest(orderId).flatMap { _ =>
+      testRepository2.getTestProfileByOrderId(orderId).map(testGroup => testGroup)
     }
   }
 
@@ -584,11 +598,11 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
   // Still feels wrong to leave it here when it's 99% the same as phase1.
   def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit] = {
 
-    def insertTests(testResults: List[(OnlineTestCommands.TestResult, U)]): Future[Unit] = {
+    def insertTests(testResults: List[(OnlineTestCommands.PsiTestResult, U)]): Future[Unit] = {
       Future.sequence(testResults.map {
-        case (result, phase1Test) => testRepository.insertTestResult(
+        case (result, phaseTest) => testRepository2.insertTestResult2(
           testProfile.applicationId,
-          phase1Test, model.persisted.TestResult.fromCommandObject(result)
+          phaseTest, model.persisted.PsiTestResult.fromCommandObject(result)
         )
       }).map(_ => ())
     }
@@ -608,7 +622,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern with
 
     val testResults = Future.sequence(testProfile.testGroup.activeTests.flatMap { test =>
       test.reportId.map { reportId =>
-        onlineTestsGatewayClient.downloadXmlReport(reportId)
+        onlineTestsGatewayClient.downloadPsiTestResults(reportId)
       }.map(_.map(_ -> test))
     })
 

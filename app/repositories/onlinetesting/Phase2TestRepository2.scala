@@ -47,6 +47,8 @@ trait Phase2TestRepository2 extends OnlineTestRepository with Phase2TestConcern2
 
   def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase2TestGroupWithAppId]
 
+  def getTestProfileByOrderId(orderId: String): Future[Phase2TestGroupWithAppId2]
+
   def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup2): Future[Unit]
 
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
@@ -121,6 +123,23 @@ class Phase2TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
         val phase2TestGroup = bsonPhase2.map(Phase2TestGroup.bsonHandler.read).getOrElse(cannotFindTestByCubiksId(cubiksUserId))
         Phase2TestGroupWithAppId(applicationId, phase2TestGroup)
       case _ => cannotFindTestByCubiksId(cubiksUserId)
+    }
+  }
+
+  def getTestProfileByOrderId(orderId: String): Future[Phase2TestGroupWithAppId2] = {
+    val query = BSONDocument("testGroups.PHASE2.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("orderId" -> orderId)
+    ))
+    val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
+        val phase2TestGroup = bsonPhase2.map(Phase2TestGroup2.bsonHandler.read)
+          .getOrElse(cannotFindTestByOrderId(orderId))
+        Phase2TestGroupWithAppId2(applicationId, phase2TestGroup)
+      case _ => cannotFindTestByOrderId(orderId)
     }
   }
 
