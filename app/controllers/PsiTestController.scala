@@ -81,6 +81,22 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
       }
   }
 
+  def completePhase2Tests(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
+    implicit user =>
+
+      val appId = user.flatMap { data =>
+        data.application.map { application =>
+          application.applicationId
+        }
+      }.getOrElse(throw new Exception("Unable to find applicationId for this candidate."))
+
+      applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
+        applicationClient.getPhase2TestProfile2(appId).map { _ =>
+          Ok(views.html.application.onlineTests.etrayTestsComplete())
+        }
+      }
+  }
+
   private def incompleteTestsExists(tests: Seq[PsiTest]): Boolean = {
     tests.exists(test => test.usedForResults && test.completedDateTime.isEmpty)
   }
