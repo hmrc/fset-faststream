@@ -90,7 +90,7 @@ case class OnlineTestsGatewayConfig(url: String,
 
 case class TestIntegrationGatewayConfig(url: String,
                                     phase1Tests: Phase1TestsConfig2,
-                                    phase2Tests: Phase2TestsConfig,
+                                    phase2Tests: Phase2TestsConfig2,
                                     numericalTests: NumericalTestsConfig,
                                     reportConfig: ReportConfig,
                                     candidateAppUrl: String,
@@ -108,6 +108,11 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
                              gis: List[String])
 
 case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
+
+case class Phase2TestsConfig2(expiryTimeInDays: Int,
+                              expiryTimeInDaysForInvigilatedETray: Int,
+                              inventoryIds: Map[String, String],
+                              tests: List[String])
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
                              expiryTimeInDaysForInvigilatedETray: Int,

@@ -37,6 +37,12 @@ trait Phase2TestConcern {
   type RichTestGroup = Phase2TestGroupWithAppId
 }
 
+trait Phase2TestConcern2 {
+  type U = PsiTest
+  type T = Phase2TestGroup2
+  type RichTestGroup = Phase2TestGroupWithAppId2
+}
+
 trait Phase3TestConcern {
   type U = LaunchpadTest
   type T = Phase3TestGroup

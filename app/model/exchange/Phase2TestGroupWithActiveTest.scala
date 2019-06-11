@@ -16,7 +16,7 @@
 
 package model.exchange
 
-import model.persisted.CubiksTest
+import model.persisted.{ CubiksTest, PsiTest }
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
@@ -24,4 +24,11 @@ case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: C
 
 object Phase2TestGroupWithActiveTest {
   implicit val phase2TestGroupWithActiveTestFormat = Json.format[Phase2TestGroupWithActiveTest]
+}
+
+
+case class Phase2TestGroupWithActiveTest2(expirationDate: DateTime, activeTest: PsiTest, resetAllowed: Boolean)
+
+object Phase2TestGroupWithActiveTest2 {
+  implicit val phase2TestGroupWithActiveTestFormat = Json.format[Phase2TestGroupWithActiveTest2]
 }
