@@ -79,7 +79,7 @@ trait PsiTestsController extends BaseController {
     Logger.info(s"Complete test by orderId=$orderId")
 
     phase1TestService2.markAsCompleted2(orderId)
-      .recoverWith { case _ =>
+      .recoverWith { case _: CannotFindTestByOrderId =>
           phase2TestService2.markAsCompleted2(orderId)
       }.map(_ => Ok).recover(recoverNotFound)
   }
