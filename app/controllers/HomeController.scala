@@ -194,12 +194,18 @@ abstract class HomeController(
       phase3Tests <- getPhase3Test
       updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
     } yield {
-      val dashboardPage = DashboardPage(updatedData, Some(Phase1TestsPage(phase1TestsWithNames)),
-        phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
+      val dashboardPage = DashboardPage(
+        updatedData,
+        Some(Phase1TestsPage(phase1TestsWithNames)),
+        phase2TestsWithNames.map(Phase2TestsPage2(_, adjustmentsOpt)),
         phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
       )
-      Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt,
-        submitApplicationsEnabled = true, displaySdipEligibilityInfo))
+      Ok(
+        views.html.home.dashboard(
+          updatedData, dashboardPage, assistanceDetailsOpt,
+          adjustmentsOpt, submitApplicationsEnabled = true, displaySdipEligibilityInfo
+        )
+      )
     }
   }
 
@@ -230,11 +236,11 @@ abstract class HomeController(
     )
   }
 
-  private def getPhase2Test(implicit application: ApplicationData, hc: HeaderCarrier) = //if (application.isPhase2) {
-//    applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
-//  } else {
+  private def getPhase2Test(implicit application: ApplicationData, hc: HeaderCarrier) = if (application.isPhase2) {
+    applicationClient.getPhase2TestProfile2(application.applicationId).map(Some(_))
+  } else {
     Future.successful(None)
-//  }
+  }
 
   private def getPhase3Test(implicit application: ApplicationData, hc: HeaderCarrier) = //if (application.isPhase3) {
 //    applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))

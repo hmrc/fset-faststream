@@ -24,7 +24,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import play.api.i18n.Messages
 import play.api.mvc.{ Action, AnyContent }
-import security.Roles.OnlineTestInvitedRole
+import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole }
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -41,6 +41,13 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
     implicit cachedUserData =>
       applicationClient.getPhase1TestProfile2(cachedUserData.application.applicationId).flatMap { phase1TestProfile =>
         startPsiTest(phase1TestProfile.tests)
+      }
+  }
+
+  def startPhase2Tests = CSRSecureAppAction(Phase2TestInvitedRole) { implicit request =>
+    implicit cachedUserData =>
+      applicationClient.getPhase2TestProfile2(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
+        startPsiTest(phase2TestProfile.activeTest :: Nil)
       }
   }
 
@@ -70,6 +77,22 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
           } else {
             Ok(views.html.application.onlineTests.phase1TestsComplete())
           }
+        }
+      }
+  }
+
+  def completePhase2Tests(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
+    implicit user =>
+
+      val appId = user.flatMap { data =>
+        data.application.map { application =>
+          application.applicationId
+        }
+      }.getOrElse(throw new Exception("Unable to find applicationId for this candidate."))
+
+      applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
+        applicationClient.getPhase2TestProfile2(appId).map { _ =>
+          Ok(views.html.application.onlineTests.etrayTestsComplete())
         }
       }
   }

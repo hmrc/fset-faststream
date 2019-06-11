@@ -222,9 +222,19 @@ trait ApplicationClient {
     }
   }
 
-  def getPhase1TestProfile2(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames2] = {
+  def getPhase1TestProfile2(appId: UniqueIdentifier)
+                           (implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames2] = {
     http.GET(s"$apiBaseUrl/online-test/psi/phase1/candidate/$appId").map { response =>
       response.json.as[Phase1TestGroupWithNames2]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
+
+  def getPhase2TestProfile2(appId: UniqueIdentifier)
+                           (implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest2] = {
+    http.GET(s"$apiBaseUrl/online-test/phase2/candidate/$appId").map { response =>
+      response.json.as[Phase2TestGroupWithActiveTest2]
     } recover {
       case _: NotFoundException => throw new OnlineTestNotFound()
     }
