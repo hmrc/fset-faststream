@@ -223,15 +223,6 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     findAndUpdateCubiksTest(cubiksUserId, update, ignoreNotFound = true)
   }
 
-  def updateTestCompletionTime(orderId: String, completedTime: DateTime) = {
-    import repositories.BSONDateTimeHandler
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
-    ))
-
-    findAndUpdatePsiTest(orderId, update, ignoreNotFound = true)
-  }
-
   def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady) = {
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.resultsReadyToDownload" -> (reportReady.reportStatus == "Ready"),

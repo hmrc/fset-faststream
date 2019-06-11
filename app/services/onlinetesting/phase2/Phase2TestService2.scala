@@ -487,7 +487,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
 
   def markAsCompleted2(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    val updateTestFunc = testRepository2.updateTestCompletionTime(_: String, dateTimeFactory.nowLocalTimeZone)
+    val updateTestFunc = testRepository2.updateTestCompletionTime2(_: String, dateTimeFactory.nowLocalTimeZone)
     updatePhase2Test2(orderId, updateTestFunc).flatMap { u =>
       val msg = s"Active tests cannot be found when marking phase2 test complete for orderId: $orderId"
       require(u.testGroup.activeTests.nonEmpty, msg)
