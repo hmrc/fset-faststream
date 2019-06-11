@@ -41,24 +41,19 @@ trait Phase2TestRepository2 extends OnlineTestRepository with Phase2TestConcern2
 
   def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup2]]
 
-  def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup2]]
-
-//  def getTestProfileByToken(token: String): Future[Phase2TestGroup]
-
-  def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase2TestGroupWithAppId]
-
   def getTestProfileByOrderId(orderId: String): Future[Phase2TestGroupWithAppId2]
 
   def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup2): Future[Unit]
 
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
 
-  def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
+  def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup2): Future[Unit]
 
-  def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]]
+  def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId2]]
 
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
 
+  // TODO: Update this to PSI spec later
   def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
@@ -88,42 +83,11 @@ class Phase2TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     getTestGroup(applicationId, phaseName)
   }
 
-  override def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup2]] = {
-    val query = BSONDocument("userId" -> userId)
-    val projection = BSONDocument(s"testGroups.PHASE2" -> 1, "_id" -> 0)
-
-    collection.find(query, projection).one[BSONDocument] map { optDocument =>
-      optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
-        .flatMap {_.getAs[BSONDocument]("PHASE2")}
-        .map {x => bsonHandler.read(x)}
-    }
-  }
-
-//  override def getTestProfileByToken(token: String): Future[Phase2TestGroup2] = {
-//    getTestProfileByToken(token, phaseName)
-//  }
-
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
     val query = inviteToTestBSON(PHASE1_TESTS_PASSED) ++ BSONDocument("applicationRoute" -> BSONDocument("$nin" -> BSONArray("Sdip", "Edip")))
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, maxBatchSize)
-  }
-
-  override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase2TestGroupWithAppId] = {
-    val query = BSONDocument("testGroups.PHASE2.tests" -> BSONDocument(
-      "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
-    ))
-    val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
-
-    collection.find(query, projection).one[BSONDocument] map {
-      case Some(doc) =>
-        val applicationId = doc.getAs[String]("applicationId").get
-        val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
-        val phase2TestGroup = bsonPhase2.map(Phase2TestGroup.bsonHandler.read).getOrElse(cannotFindTestByCubiksId(cubiksUserId))
-        Phase2TestGroupWithAppId(applicationId, phase2TestGroup)
-      case _ => cannotFindTestByCubiksId(cubiksUserId)
-    }
   }
 
   def getTestProfileByOrderId(orderId: String): Future[Phase2TestGroupWithAppId2] = {
@@ -163,7 +127,7 @@ class Phase2TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     upsertTestGroupEvaluationResult(applicationId, passmarkEvaluation)
   }
 
-  override def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup) = {
+  override def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup2) = {
     val query = BSONDocument("applicationId" -> applicationId)
     val updateBSON = BSONDocument("$set" -> BSONDocument("testGroups.PHASE2" -> phase2TestProfile))
 
@@ -198,16 +162,16 @@ class Phase2TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     nextTestForReminder(reminder, progressStatusQuery)
   }
 
-  override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
+  override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId2]] = {
 
     implicit val reader = bsonReader { doc =>
       val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
-      Phase2TestGroupWithAppId(
+      Phase2TestGroupWithAppId2(
         applicationId = doc.getAs[String]("applicationId").get,
-        Phase2TestGroup.bsonHandler.read(group)
+        Phase2TestGroup2.bsonHandler.read(group)
       )
     }
 
-    nextTestGroupWithReportReady[Phase2TestGroupWithAppId]
+    nextTestGroupWithReportReady[Phase2TestGroupWithAppId2]
   }
 }
