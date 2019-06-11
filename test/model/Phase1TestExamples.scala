@@ -20,7 +20,7 @@ import model.persisted.{ CubiksTest, PsiTest, PsiTestResult, TestResult }
 import org.joda.time.DateTime
 
 object Phase1TestExamples {
-  val testResult = TestResult("Ready", "norm", Some(12.5), None, None, None)
+  val testResult = TestResult(status = "Ready", norm = "norm", tScore = Some(12.5), percentile = None, raw = None, sten = None)
 
   def createTestResult(tScore: Double) = TestResult("Ready", "norm", Some(tScore), None, None, None)
 
@@ -31,7 +31,7 @@ object Phase1TestExamples {
 
   def thirdTest(implicit now: DateTime) = firstTest.copy(scheduleId = 16196)
 
-  val psiTestResult = PsiTestResult("Ready", 12.5, 5.5)
+  val psiTestResult = PsiTestResult(status = "Ready", tScore = 12.5, raw = 5.5)
 
   def firstPsiTest(implicit now: DateTime) =
     PsiTest(
@@ -43,9 +43,9 @@ object Phase1TestExamples {
       testResult = Some(psiTestResult)
     )
 
-  def secondPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId2")
+  def secondPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId2", orderId = "orderId2")
 
-  def thirdPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId3")
+  def thirdPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId3", orderId = "orderId3")
 
-  def fourthPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId4")
+  def fourthPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId4", orderId = "orderId4")
 }
