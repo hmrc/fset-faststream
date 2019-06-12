@@ -23,7 +23,7 @@ import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase1.Phase1TestService2
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase2.Phase2TestService2
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -35,7 +35,7 @@ object RetrievePhase1ResultsJob extends RetrieveResultsJob {
 }
 
 object RetrievePhase2ResultsJob extends RetrieveResultsJob {
-  val onlineTestingService = Phase2TestService
+  val onlineTestingService = Phase2TestService2
   val config = RetrievePhase2ResultsJobConfig
   val phase = "PHASE2"
 }

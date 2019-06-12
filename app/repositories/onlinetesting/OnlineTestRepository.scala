@@ -106,7 +106,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
     } else {
       singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests",
-        CannotFindTestByCubiksId(s"Cannot find test group by orderId=$orderId"))
+        CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId"))
     }
 
     collection.update(find, update) map validator

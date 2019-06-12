@@ -28,7 +28,7 @@ import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest2 }
+import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest2, PsiTestResultReady }
 import model.persisted._
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
@@ -119,7 +119,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId2]] = {
-    testRepository2.nextTestGroupWithReportReady[Phase2TestGroupWithAppId2]
+    testRepository2.nextTestGroupWithReportReady
   }
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
@@ -519,6 +519,16 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     }
   }
 
+  def markAsReportReadyToDownload2(orderId: String, reportReady: PsiTestResultReady): Future[Unit] = {
+    updatePhase2Test2(orderId, testRepository2.updateTestReportReady2(_: String, reportReady)).flatMap { updated =>
+      if (updated.testGroup.activeTests forall (_.resultsReadyToDownload)) {
+        testRepository2.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
+      } else {
+        Future.successful(())
+      }
+    }
+  }
+
   private def updatePhase2Test(cubiksUserId: Int, updateCubiksTest: Int => Future[Unit]): Future[Phase2TestGroupWithAppId] = {
     for {
       _ <- updateCubiksTest(cubiksUserId)
@@ -624,7 +634,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     }
 
     def maybeUpdateProgressStatus(appId: String) = {
-      testRepository.getTestGroup(appId).flatMap { eventualProfile =>
+      testRepository2.getTestGroup(appId).flatMap { eventualProfile =>
 
         val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No profile returned for $appId"))
         if (latestProfile.activeTests.forall(_.testResult.isDefined)) {

@@ -21,14 +21,12 @@ import model.exchange.PsiTestResultReady
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, Result }
-import services.NumericalTestService
-import services.stc.StcEventService
 import services.onlinetesting.phase1.Phase1TestService2
 import services.onlinetesting.phase2.Phase2TestService2
+import services.stc.StcEventService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object PsiTestsController extends PsiTestsController {
   override val phase1TestService2 = Phase1TestService2
@@ -88,7 +86,11 @@ trait PsiTestsController extends BaseController {
     withJsonBody[PsiTestResultReady] { testResultReady =>
       Logger.info(s"Psi test orderId=$orderId has results ready to download. " +
         s"Payload(json) = [${Json.toJson(testResultReady).toString}], (deserialized) = [$testResultReady]")
-      phase1TestService2.markAsReportReadyToDownload2(orderId, testResultReady).map( _ => Ok )
+
+      phase1TestService2.markAsReportReadyToDownload2(orderId, testResultReady)
+        .recoverWith { case _: CannotFindTestByOrderId =>
+          phase2TestService2.markAsReportReadyToDownload2(orderId, testResultReady)
+        }.map(_ => Ok)
         .recover(recoverNotFound)
 
 //      phase1TestService.markAsReportReadyToDownload2(orderId, testResultReady)
@@ -99,7 +101,6 @@ trait PsiTestsController extends BaseController {
 //          }
 //        }.map( _ => Ok )
 //        .recover(recoverNotFound)
-//      Future.successful(Ok)
     }
   }
 
