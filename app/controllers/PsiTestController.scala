@@ -44,10 +44,10 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
       }
   }
 
-  def startPhase2Tests = CSRSecureAppAction(Phase2TestInvitedRole) { implicit request =>
+  def startPhase2Tests: Action[AnyContent] = CSRSecureAppAction(Phase2TestInvitedRole) { implicit request =>
     implicit cachedUserData =>
       applicationClient.getPhase2TestProfile2(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
-        startPsiTest(phase2TestProfile.activeTest :: Nil)
+        startPsiTest(phase2TestProfile.activeTests)
       }
   }
 
@@ -73,7 +73,7 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
           val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
 
           if(incompleteTestsExists(testGroup.tests)) {
-            Ok(views.html.application.onlineTests.continuePhase1Tests(testCompletedName))
+            Ok(views.html.application.onlineTests.continueTests(testCompletedName))
           } else {
             Ok(views.html.application.onlineTests.phase1TestsComplete())
           }
@@ -91,8 +91,16 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
       }.getOrElse(throw new Exception("Unable to find applicationId for this candidate."))
 
       applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
-        applicationClient.getPhase2TestProfile2(appId).map { _ =>
-          Ok(views.html.application.onlineTests.etrayTestsComplete())
+        applicationClient.getPhase2TestProfile2(appId).map { testGroup =>
+          val testCompleted = testGroup.activeTests.find(_.orderId == orderId)
+            .getOrElse(throw new Exception(s"Active Test not found for OrderId $orderId"))
+          val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
+
+          if(incompleteTestsExists(testGroup.activeTests)) {
+            Ok(views.html.application.onlineTests.continueTests(testCompletedName))
+          } else {
+            Ok(views.html.application.onlineTests.etrayTestsComplete())
+          }
         }
       }
   }
