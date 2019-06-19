@@ -62,12 +62,16 @@
             <div id="etrayTestButton">
                 @helper.form(action = routes.PsiTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
                     @helper.CSRF.formField
-                    @if(!phase2Test.isStarted) {
-                        <button id="etrayButton" type="submit" value="submit" class="button">
-                            Start section</button>
-                    } else {
-                        <button id="etrayButton" type="submit" value="submit" class="button">
-                            Continue section</button>
+                    @{
+                        if(!phase2Test.areStarted) {
+                            <button id="etrayButton" type="submit" value="submit" class="button">
+                                Start section
+                            </button>
+                        } else {
+                            <button id="etrayButton" type="submit" value="submit" class="button">
+                                Continue section
+                            </button>
+                        }
                     }
                 }
                 <p>(You'll have 80 minutes to finish) <br> If we've agreed you require extra time, this will be added to the 80 minutes.</p>
@@ -261,20 +265,44 @@
                         </li>
                     }
                     case (false, false, false, Some(phase2Test), _) => {
-                        @if(phase2Test.isCompleted) {
-                            <li id="etraySection">
-                                <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>E-tray</p>
-                                <div id="etrayBlurb">
-                                    <p>You've completed this section, we'll send you an email when we have your results.
-                                    Make sure you check your junk inbox.</p>
-                                </div>
-                            </li>
-                        } else {
-                            <li id="etraySection">
-                                <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-minus"></i>E-tray </p>
-                                @eTraySection(phase2Test)
-                            </li>
-                        }
+                        <ul class="list-text list-withicons">
+                            @if(phase2Test.allCompleted) {
+                                <li id="etraySection">
+                                    <p class="med-btm-margin" id="etrayHeading">
+                                        <i class="fa the-icon fa-check"></i>E-tray
+                                    </p>
+                                    <div id="etrayBlurb">
+                                        <p>
+                                            You've completed this section, we'll send you an email when we have your results.
+                                            Make sure you check your junk inbox.
+                                        </p>
+                                    </div>
+                                </li>
+                            } else {
+                                <li>
+                                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon"></i>E-tray
+                                        Exercises
+                                    </p>
+                                    <ul class="list-text list-withicons" id="testsIndividual">
+                                        @{ phase2Test.tests.map { test =>
+                                            if(test.completed) {
+                                                <li>
+                                                    <i class="fa fa-check the-icon"></i>
+                                                    {Messages(test.testNameKey)}
+                                                </li>
+                                            } else {
+                                                <li>
+                                                    <i class="fa fa-minus the-icon"></i>
+                                                    {Messages(test.testNameKey)}
+                                                </li>
+                                            }
+                                        }}
+                                    </ul>
+                                    @{eTraySection(phase2Test)}
+                                </li>
+                            }
+                        </ul>
+
                     }
                     case _ => {}
                 }

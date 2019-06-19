@@ -20,12 +20,13 @@ import models.Adjustments
 import org.joda.time.DateTime
 
 case class Phase2TestsPage2(expirationDate: DateTime,
-                           etray: Option[PsiTestPage],
-                           adjustments: Option[Adjustments]) extends DurationFormatter {
+                            tests: Seq[PsiTestPage],
+                            adjustments: Option[Adjustments]) extends DurationFormatter {
 
-  def isStarted: Boolean = etray.exists(_.started)
-
-  def isCompleted: Boolean = etray.exists(_.completed)
+//  def isStarted: Boolean = tests.exists(_.started)
+//  def isCompleted: Boolean = tests.exists(_.completed)
+  def areStarted: Boolean = tests.exists(_.started)
+  def allCompleted: Boolean = tests.forall(_.completed)
 
   def isInvigilatedETrayApproved: Boolean = adjustments exists (_.isInvigilatedETrayApproved)
 }
@@ -36,7 +37,7 @@ object Phase2TestsPage2 {
             adjustments: Option[Adjustments]): Phase2TestsPage2 = {
     Phase2TestsPage2(
       expirationDate = profile.expirationDate,
-      etray = Some(PsiTestPage.apply(profile.activeTest)),
+      tests = profile.activeTests.map(PsiTestPage.apply),
       adjustments = adjustments
     )
   }
