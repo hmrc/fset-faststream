@@ -21,14 +21,14 @@ import config.ScheduledJobConfig
 import model.Phase
 import model.Phase.Phase
 import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.{ ApplicationReadyForEvaluation, ApplicationReadyForEvaluation2 }
+import model.persisted.ApplicationReadyForEvaluation2
 import play.api.Logger
 import play.api.libs.json.Format
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
 import services.onlinetesting.phase1.{ EvaluatePhase1ResultService, EvaluatePhase1ResultService2 }
-import services.onlinetesting.phase2.EvaluatePhase2ResultService
+import services.onlinetesting.phase2.{ EvaluatePhase2ResultService, EvaluatePhase2ResultService2 }
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -43,14 +43,14 @@ object EvaluatePhase1ResultJob extends EvaluateOnlineTestResultJob[Phase1PassMar
 
 object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
   val evaluateService = EvaluatePhase2ResultService
-  val evaluateService2 = ???
+  val evaluateService2 = EvaluatePhase2ResultService2
   val phase = Phase.PHASE2
   val config = EvaluatePhase2ResultJobConfig
 }
 
 object EvaluatePhase3ResultJob extends EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
   val evaluateService = EvaluatePhase3ResultService
-  val evaluateService2 = ???
+  val evaluateService2 = ??? //TODO: fix this
   val phase = Phase.PHASE3
   //TODO: this needs to be fixed
 //  override val errorLog = (app: ApplicationReadyForEvaluation) =>

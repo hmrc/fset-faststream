@@ -137,6 +137,24 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
       List(etrayTest), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
+  def insertApplicationWithPhase2TestResults2(appId: String, etray: Double,
+    phase1PassMarkEvaluation: PassmarkEvaluation,
+    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+  )(schemes: SchemeId*): ApplicationReadyForEvaluation2 = {
+
+    val p1test1 = firstPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
+    val p1test2 = secondPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
+    val p1test3 = thirdPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
+    val p1test4 = fourthPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
+
+    val p2test1 = getEtrayTest2.copy(testResult = Some(PsiTestResult("Ready", etray, 10.0)))
+    val phase1Tests = List(p1test1, p1test2, p1test3, p1test4)
+    insertApplication2(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(List(p2test1)))
+    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
+    ApplicationReadyForEvaluation2(appId, ApplicationStatus.PHASE2_TESTS, applicationRoute, isGis = false,
+      List(p2test1), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
+  }
+
   def insertApplicationWithPhase3TestResults(appId: String, videoInterviewScore: Option[Double],
     phase2PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
@@ -235,7 +253,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   // scalastyle:off
   def insertApplication2(appId: String, applicationStatus: ApplicationStatus, phase1Tests: Option[List[PsiTest]] = None,
-                        phase2Tests: Option[List[CubiksTest]] = None, phase3Tests: Option[List[LaunchpadTest]] = None,
+                        phase2Tests: Option[List[PsiTest]] = None, phase3Tests: Option[List[LaunchpadTest]] = None,
                         isGis: Boolean = false, schemes: List[SchemeId] = List(SchemeId("Commercial")),
                         phase1Evaluation: Option[PassmarkEvaluation] = None,
                         phase2Evaluation: Option[PassmarkEvaluation] = None,
@@ -264,7 +282,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
     insertPhase1Tests2(appId, phase1Tests, phase1Evaluation)
-    insertPhase2Tests(appId, phase2Tests, phase2Evaluation)
+    insertPhase2Tests2(appId, phase2Tests, phase2Evaluation)
     phase3Tests.foreach { t =>
       phase3TestRepository.insertOrUpdateTestGroup(appId, Phase3TestGroup(now, t)).futureValue
       if(t.headOption.exists(_.callbacks.reviewed.nonEmpty)) {
@@ -286,6 +304,15 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     }
   }
 
+  def insertPhase2Tests2(appId: String, phase2Tests: Option[List[PsiTest]], phase2Evaluation: Option[PassmarkEvaluation]): Unit = {
+    phase2Tests.foreach { t =>
+      phase2TestRepository2.insertOrUpdateTestGroup(appId, Phase2TestGroup2(now, t, phase2Evaluation)).futureValue
+      if (t.exists(_.testResult.isDefined)) {
+        phase2TestRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).futureValue
+      }
+    }
+  }
+
   def insertPhase1Tests(appId: String, phase1Tests: Option[List[CubiksTest]], phase1Evaluation: Option[PassmarkEvaluation]) = {
     phase1Tests.foreach { t =>
       phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t, phase1Evaluation)).futureValue
@@ -299,7 +326,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     phase1Tests.foreach { t =>
       phase1TestRepository2.insertOrUpdateTestGroup(appId, Phase1TestProfile2(now, t, phase1Evaluation)).futureValue
       if (t.exists(_.testResult.isDefined)) {
-        phase1TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
+        phase1TestRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
       }
     }
   }

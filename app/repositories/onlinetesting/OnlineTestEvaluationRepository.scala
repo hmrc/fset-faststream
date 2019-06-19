@@ -204,11 +204,12 @@ class Phase2EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(impl
     applicationEvaluationBuilder(phase2.activeTests, None, Some(phase1Evaluation))(doc)
   })
 
-  //TODO: implement for P2
   implicit val applicationBSONReader2: BSONDocumentReader[ApplicationReadyForEvaluation2] = bsonReader(doc => {
-    val bsonPhase1: Option[BSONDocument] = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
-    val phase1: Phase1TestProfile2 = bsonPhase1.map(Phase1TestProfile2.bsonHandler.read).get
-    applicationEvaluationBuilder2(phase1.activeTests, None, None)(doc)
+    val applicationId = doc.getAs[String]("applicationId").get
+    val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
+    val phase2 = bsonPhase2.map(Phase2TestGroup2.bsonHandler.read).get
+    val phase1Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
+    applicationEvaluationBuilder2(phase2.activeTests, None, Some(phase1Evaluation))(doc)
   })
 
   val nextApplicationQuery = (currentPassmarkVersion: String) =>

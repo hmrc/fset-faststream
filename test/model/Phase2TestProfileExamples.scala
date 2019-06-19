@@ -16,7 +16,7 @@
 
 package model
 
-import model.persisted.{ CubiksTest, Phase2TestGroup, TestResult }
+import model.persisted._
 import org.joda.time.{ DateTime, DateTimeZone }
 
 object Phase2TestProfileExamples {
@@ -35,4 +35,18 @@ object Phase2TestProfileExamples {
   def phase2TestWithResults(testResult: TestResult) = {
     phase2Test.map(t => t.copy(testResult = Some(testResult)))
   }
+
+  def getEtrayTest2(implicit now: DateTime) = fifthPsiTest
+
+  val psiTestResult = PsiTestResult(status = "Ready", tScore = 12.5, raw = 5.5)
+
+  def fifthPsiTest(implicit now: DateTime) =
+    PsiTest(
+      inventoryId = "inventoryId5",
+      orderId = "orderId5",
+      usedForResults = true,
+      testUrl = "http://localhost",
+      invitationDate = now,
+      testResult = Some(psiTestResult)
+    )
 }
