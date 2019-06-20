@@ -48,22 +48,22 @@ trait Phase1TestEvaluation2 extends OnlineTestResultsCalculator2 {
       val t3Result = test3ResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.test3)).getOrElse(Green)
       val t4Result = evaluateTestResult(schemePassmark.schemeThresholds.test4)(test4Result.tScore)
       Logger.info(s"Processing scheme $schemeToEvaluate, " +
-        s"test1 score = ${test1Result.tScore}, " +
-        s"test1 fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
-        s"test1 pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +
-        s"test1 result = $t1Result, " +
-        s"test2 score = ${test2ResultOpt.map(_.tScore)}, " +
-        s"test2 fail = ${schemePassmark.schemeThresholds.test2.failThreshold}, " +
-        s"test2 pass = ${schemePassmark.schemeThresholds.test2.passThreshold}, " +
-        s"test2 result = $t2Result, " +
-        s"test3 score = ${test3ResultOpt.map(_.tScore)}, " +
-        s"test3 fail = ${schemePassmark.schemeThresholds.test3.failThreshold}, " +
-        s"test3 pass = ${schemePassmark.schemeThresholds.test3.passThreshold}, " +
-        s"test3 result = $t3Result, " +
-        s"test4 score = ${test4Result.tScore}, " +
-        s"test4 fail = ${schemePassmark.schemeThresholds.test4.failThreshold}, " +
-        s"test4 pass = ${schemePassmark.schemeThresholds.test4.passThreshold}, " +
-        s"test4 result = $t4Result"
+        s"p1 test1 score = ${test1Result.tScore}, " +
+        s"p1 test1 fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
+        s"p1 test1 pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +
+        s"p1 test1 result = $t1Result, " +
+        s"p1 test2 score = ${test2ResultOpt.map(_.tScore)}, " +
+        s"p1 test2 fail = ${schemePassmark.schemeThresholds.test2.failThreshold}, " +
+        s"p1 test2 pass = ${schemePassmark.schemeThresholds.test2.passThreshold}, " +
+        s"p1 test2 result = $t2Result, " +
+        s"p1 test3 score = ${test3ResultOpt.map(_.tScore)}, " +
+        s"p1 test3 fail = ${schemePassmark.schemeThresholds.test3.failThreshold}, " +
+        s"p1 test3 pass = ${schemePassmark.schemeThresholds.test3.passThreshold}, " +
+        s"p1 test3 result = $t3Result, " +
+        s"p1 test4 score = ${test4Result.tScore}, " +
+        s"p1 test4 fail = ${schemePassmark.schemeThresholds.test4.failThreshold}, " +
+        s"p1 test4 pass = ${schemePassmark.schemeThresholds.test4.passThreshold}, " +
+        s"p1 test4 result = $t4Result"
       )
       SchemeEvaluationResult(schemeToEvaluate, combineTestResults(t1Result, t2Result, t3Result, t4Result).toString)
     }

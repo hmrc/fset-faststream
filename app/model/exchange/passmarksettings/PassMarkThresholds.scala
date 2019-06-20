@@ -29,7 +29,8 @@ trait Phase1Thresholds {
 }
 
 trait Phase2Thresholds {
-  def etray: PassMarkThreshold
+  def test1: PassMarkThreshold
+  def test2: PassMarkThreshold
 }
 
 trait Phase3Thresholds {
@@ -53,7 +54,8 @@ object Phase1PassMarkThresholds {
 }
 
 case class Phase2PassMarkThresholds(
-  etray: PassMarkThreshold
+                                     test1: PassMarkThreshold,
+                                     test2: PassMarkThreshold
 ) extends PassMarkThresholds with Phase2Thresholds
 
 object Phase2PassMarkThresholds {

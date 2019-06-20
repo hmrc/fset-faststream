@@ -36,11 +36,9 @@ object Phase2TestProfileExamples {
     phase2Test.map(t => t.copy(testResult = Some(testResult)))
   }
 
-  def getEtrayTest2(implicit now: DateTime) = fifthPsiTest
-
   val psiTestResult = PsiTestResult(status = "Ready", tScore = 12.5, raw = 5.5)
 
-  def fifthPsiTest(implicit now: DateTime) =
+  def firstP2PsiTest(implicit now: DateTime) =
     PsiTest(
       inventoryId = "inventoryId5",
       orderId = "orderId5",
@@ -49,4 +47,6 @@ object Phase2TestProfileExamples {
       invitationDate = now,
       testResult = Some(psiTestResult)
     )
+
+  def secondP2PsiTest(implicit now: DateTime) = firstP2PsiTest.copy(inventoryId = "inventoryId6", orderId = "orderId6")
 }

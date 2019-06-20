@@ -137,22 +137,24 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
       List(etrayTest), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
-  def insertApplicationWithPhase2TestResults2(appId: String, etray: Double,
+  def insertApplicationWithPhase2TestResults2(appId: String, t1Score: Double, t2Score: Double,
     phase1PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
   )(schemes: SchemeId*): ApplicationReadyForEvaluation2 = {
 
-    val p1test1 = firstPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
-    val p1test2 = secondPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
-    val p1test3 = thirdPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
-    val p1test4 = fourthPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
+    val p1Test1 = firstPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
+    val p1Test2 = secondPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
+    val p1Test3 = thirdPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
+    val p1Test4 = fourthPsiTest.copy(testResult = Some(PsiTestResult(status = "Ready", tScore = 45.0, raw = 10.0)))
 
-    val p2test1 = getEtrayTest2.copy(testResult = Some(PsiTestResult("Ready", etray, 10.0)))
-    val phase1Tests = List(p1test1, p1test2, p1test3, p1test4)
-    insertApplication2(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(List(p2test1)))
+    val p2Test1 = firstP2PsiTest.copy(testResult = Some(PsiTestResult("Ready", t1Score, 10.0)))
+    val p2Test2 = secondP2PsiTest.copy(testResult = Some(PsiTestResult("Ready", t2Score, 10.0)))
+    val phase1Tests = List(p1Test1, p1Test2, p1Test3, p1Test4)
+    val phase2Tests = List(p2Test1, p2Test2)
+    insertApplication2(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(phase2Tests))
     phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
     ApplicationReadyForEvaluation2(appId, ApplicationStatus.PHASE2_TESTS, applicationRoute, isGis = false,
-      List(p2test1), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
+      List(p2Test1, p2Test2), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
   def insertApplicationWithPhase3TestResults(appId: String, videoInterviewScore: Option[Double],

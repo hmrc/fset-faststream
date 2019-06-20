@@ -29,6 +29,6 @@ object Phase2PassMarkSettingsExamples {
       UUID.randomUUID().toString, now, "userId")
 
   def createPhase2PassMark(schemeName: SchemeId, fail: Double, pass: Double) = {
-    Phase2PassMark(schemeName, Phase2PassMarkThresholds(PassMarkThreshold(fail, pass)))
+    Phase2PassMark(schemeName, Phase2PassMarkThresholds(PassMarkThreshold(fail, pass), PassMarkThreshold(fail, pass)))
   }
 }

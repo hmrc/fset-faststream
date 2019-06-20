@@ -114,7 +114,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
                                              TableFor3[SchemeId, Double, Double]): Future[Phase2PassMarkSettings] = {
       val schemeThresholds = phase2PassMarkSettingsTable.map {
         fields => Phase2PassMark(fields._1,
-          Phase2PassMarkThresholds(PassMarkThreshold(fields._2, fields._3)))
+          Phase2PassMarkThresholds(PassMarkThreshold(fields._2, fields._3), PassMarkThreshold(fields._2, fields._3)))
       }.toList
 
       val phase2PassMarkSettings = Phase2PassMarkSettings(

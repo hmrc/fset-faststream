@@ -142,12 +142,13 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
     def createPhase1PassMarkSettings(phase1PassMarkSettingsTable: TableFor9[SchemeId, Double, Double, Double, Double,
       Double, Double, Double, Double]): Future[Phase1PassMarkSettings] = {
       val schemeThresholds = phase1PassMarkSettingsTable.map {
-        fields => Phase1PassMark(fields._1,
+        case (schemeName, t1Fail, t1Pass, t2Fail, t2Pass, t3Fail, t3Pass, t4Fail, t4Pass) =>
+          Phase1PassMark(schemeName,
           Phase1PassMarkThresholds(
-            PassMarkThreshold(fields._2, fields._3),
-            PassMarkThreshold(fields._4, fields._5),
-            PassMarkThreshold(fields._6, fields._7),
-            PassMarkThreshold(fields._8, fields._9)
+            PassMarkThreshold(t1Fail, t1Pass),
+            PassMarkThreshold(t2Fail, t2Pass),
+            PassMarkThreshold(t3Fail, t3Pass),
+            PassMarkThreshold(t4Fail, t4Pass)
           ))
       }.toList
 

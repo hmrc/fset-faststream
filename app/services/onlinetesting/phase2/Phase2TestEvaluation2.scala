@@ -25,7 +25,7 @@ import services.onlinetesting.OnlineTestResultsCalculator2
 
 trait Phase2TestEvaluation2 extends OnlineTestResultsCalculator2 {
 
-  def evaluate(schemes: List[SchemeId], etrayTestResult: PsiTestResult,
+  def evaluate(schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
                phase1SchemesEvaluation: List[SchemeEvaluationResult],
                passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
     for {
@@ -33,12 +33,16 @@ trait Phase2TestEvaluation2 extends OnlineTestResultsCalculator2 {
       schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
       phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
-      val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.etray)(etrayTestResult.tScore)
+      val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.test1)(test1Result.tScore)
       Logger.debug(s"processing scheme $schemeToEvaluate, " +
-        s"etray score = ${etrayTestResult.tScore}, " +
-        s"etray fail = ${schemePassmark.schemeThresholds.etray.failThreshold}, " +
-        s"etray pass = ${schemePassmark.schemeThresholds.etray.passThreshold}, " +
-        s"etray result = $phase2Result")
+        s"p2 test1 score = ${test1Result.tScore}, " +
+        s"p2 test1 fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
+        s"p2 test1 pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +
+        s"p2 test1 result = $phase2Result, " +
+        s"p2 test2 score = ${test2Result.tScore}, " +
+        s"p2 test2 fail = ${schemePassmark.schemeThresholds.test2.failThreshold}, " +
+        s"p2 test2 pass = ${schemePassmark.schemeThresholds.test2.passThreshold}, " +
+        s"p2 test2 result = $phase2Result")
       val phase1Result = Result(phase1SchemeEvaluation.result)
       SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, phase2Result).toString)
     }

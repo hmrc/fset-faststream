@@ -33,11 +33,11 @@ trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
       schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
       phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
-      val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.etray)(etrayTestResult.tScore)
+      val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.test1)(etrayTestResult.tScore)
       Logger.debug(s"processing scheme $schemeToEvaluate, " +
         s"etray score = ${etrayTestResult.tScore}, " +
-        s"etray fail = ${schemePassmark.schemeThresholds.etray.failThreshold}, " +
-        s"etray pass = ${schemePassmark.schemeThresholds.etray.passThreshold}, " +
+        s"etray fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
+        s"etray pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +
         s"etray result = $phase2Result")
       val phase1Result = Result(phase1SchemeEvaluation.result)
       SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, phase2Result).toString)
