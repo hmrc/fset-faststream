@@ -127,7 +127,8 @@ class FaststreamPhase2TestEvaluation2Spec extends Phase2TestEvaluation2Spec {
             SchemeEvaluationResult(SchemeId("DiplomaticServiceEuropean"), Green.toString)),
           "phase1-version1-res", None)
 
-        applicationEvaluation("application-1", 40, 40, SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn(
+        applicationEvaluation("application-1", 40, 40,
+          SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn(
           PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
           SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 

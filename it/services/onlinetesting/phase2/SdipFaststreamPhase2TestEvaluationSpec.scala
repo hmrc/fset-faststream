@@ -5,7 +5,7 @@ import model.EvaluationResults._
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationRoute, ProgressStatuses, _ }
 
-class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
+class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluation2Spec {
 
   "phase2 evaluation process" should {
     "give pass for SdipFaststream when all schemes and sdip are green" in new TestFixture {
@@ -15,7 +15,7 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
           SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 80, SchemeId("DiplomaticServiceEuropean"),
+      applicationEvaluation("application-1", 80, 80, SchemeId("DiplomaticServiceEuropean"),
         SchemeId("GovernmentCommunicationService")
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
@@ -30,7 +30,7 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
           SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 40, SchemeId("DiplomaticServiceEuropean"), SchemeId("GovernmentCommunicationService")
+      applicationEvaluation("application-1", 40, 40, SchemeId("DiplomaticServiceEuropean"), SchemeId("GovernmentCommunicationService")
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
         SchemeId("DiplomaticServiceEuropean") -> Amber, SchemeId("GovernmentCommunicationService") -> Amber,
@@ -44,7 +44,7 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
           SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 10, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
+      applicationEvaluation("application-1", 10, 10, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED),
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Red)
@@ -57,7 +57,7 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
           SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 10, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
+      applicationEvaluation("application-1", 10, 10, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN),
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Green)
@@ -70,7 +70,7 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
           SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
+      applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Red)
@@ -84,7 +84,7 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
             SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
           ),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
+        applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
         )(ApplicationRoute.SdipFaststream) mustResultIn(
           PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
           SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Green)
