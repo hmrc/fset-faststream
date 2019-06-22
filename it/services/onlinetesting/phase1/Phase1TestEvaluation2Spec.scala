@@ -46,7 +46,7 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
 
     // format: OFF
     //scalastyle:off
-    private val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double, Double, Double, Double, Double](
+    val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double, Double, Double, Double, Double](
       ("Scheme Name",                                   "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass", "Test3 Fail", "Test3 Pass", "Test4 Fail", "Test4 Pass"),
       (SchemeId("Commercial"),                            20.0,         80.0,         30.0,         70.0,         30.0,         70.0,         20.0,         70.0),
       (SchemeId("DigitalAndTechnology"),                  20.001,       20.001,       20.01,        20.05,        19.0,         20.0,         19.0,         20.0),

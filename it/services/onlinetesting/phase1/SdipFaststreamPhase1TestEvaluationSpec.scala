@@ -4,7 +4,7 @@ import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults._
 import model.{ ApplicationStatus => _, _ }
 
-class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
+class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluation2Spec {
 
   "phase1 evaluation process" should {
 
@@ -14,7 +14,7 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
       )
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 80, 80,SchemeId("Commercial"),
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 80, 80, 80, 80, SchemeId("Commercial"),
         SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Green)
@@ -27,7 +27,7 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
       )
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 40, 40,SchemeId("Commercial"),
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 40, 40, 40, 40, SchemeId("Commercial"),
         SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
         SchemeId("Commercial") -> Amber, SchemeId("DigitalAndTechnology") -> Amber, SchemeId("Sdip") -> Amber)
@@ -39,7 +39,7 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
       )
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 20, 20,SchemeId("Commercial"),
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 20, 20, 20, 20, SchemeId("Commercial"),
         SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Red)
@@ -51,7 +51,7 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
       )
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 20, 20,SchemeId("Commercial"),
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 20, 20, 20, 20, SchemeId("Commercial"),
         SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN),
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Green)
@@ -63,14 +63,14 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
         (SchemeId("Sdip"), 80.00, 80.00, 80.00, 80.00, 80.00, 80.00, 80.00, 80.00))
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 70, 70,SchemeId("Commercial"),
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 70, 70, 70, 70, SchemeId("Commercial"),
         SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Red)
     }
 
     "re-evaluate sdip scheme to Red for SdipFaststream candidate after changing passmarks" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
+      applicationEvaluation("application-1", 80, 80, 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
         (ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
@@ -82,7 +82,7 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
     }
 
     "re-evaluate sdip scheme to Green for SdipFaststream candidate after changing passmarks" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
+      applicationEvaluation("application-1", 80, 80, 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
         (ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
@@ -93,7 +93,7 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
     }
 
     "do not evaluate sdip scheme for SdipFaststream candidate until there are sdip passmarks" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
+      applicationEvaluation("application-1", 80, 80, 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
         (ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
@@ -111,7 +111,7 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
         (SchemeId("DigitalAndTechnology"), 75.00, 75.00, 75.00, 75.00, 75.00, 75.00, 75.00, 75.00))
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 60, 60,
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 60, 60, 60, 60,
         SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN),
         SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Green)
