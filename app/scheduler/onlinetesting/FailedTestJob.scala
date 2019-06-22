@@ -31,29 +31,33 @@ import uk.gov.hmrc.http.HeaderCarrier
 object FailedPhase1TestJob extends FailedTestJob {
   override val service = Phase1TestService
   override val failedType: FailedTestType = Phase1FailedTestType
+  override val phase = "PHASE1"
   val config = FailedPhase1TestJobConfig
 }
 
 object FailedPhase2TestJob extends FailedTestJob {
   override val service = Phase2TestService
   override val failedType: FailedTestType = Phase2FailedTestType
+  override val phase = "PHASE2"
   val config = FailedPhase2TestJobConfig
 }
 
 object FailedPhase3TestJob extends FailedTestJob {
   override val service = Phase3TestService
   override val failedType: FailedTestType = Phase3FailedTestType
+  override val phase = "PHASE3"
   val config = FailedPhase3TestJobConfig
 }
 
 trait FailedTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: OnlineTestService
   val failedType: FailedTestType
+  val phase: String
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val rh = EmptyRequestHeader
     implicit val hc = HeaderCarrier()
-    service.processNextTestForNotification(failedType)
+    service.processNextTestForNotification(failedType, phase, "failed")
   }
 }
 

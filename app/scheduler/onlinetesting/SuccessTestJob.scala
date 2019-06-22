@@ -30,29 +30,33 @@ import uk.gov.hmrc.http.HeaderCarrier
 object SuccessPhase1TestJob extends SuccessTestJob {
   override val service = Phase1TestService
   override val successType: SuccessTestType = Phase1SuccessTestType
+  override val phase = "PHASE1"
   val config = SuccessPhase1TestJobConfig
 }
 
 object SuccessPhase3TestJob extends SuccessTestJob {
   override val service = Phase3TestService
   override val successType: SuccessTestType = Phase3SuccessTestType
+  override val phase = "PHASE3"
   val config = SuccessPhase3TestJobConfig
 }
 
 object SuccessPhase3SdipFsTestJob extends SuccessTestJob {
   override val service = Phase3TestService
   override val successType: SuccessTestType = Phase3SuccessSdipFsTestType
+  override val phase = "PHASE3"
   val config = SuccessPhase3TestJobConfig
 }
 
 trait SuccessTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: OnlineTestService
   val successType: SuccessTestType
+  val phase: String
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val rh = EmptyRequestHeader
     implicit val hc = HeaderCarrier()
-    service.processNextTestForNotification(successType)
+    service.processNextTestForNotification(successType, phase, "passed")
   }
 }
 

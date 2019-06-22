@@ -70,14 +70,15 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]
   def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit]
 
-  def processNextTestForNotification(notificationType: NotificationTestType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def processNextTestForNotification(notificationType: NotificationTestType, phase: String, operation: String)
+                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     appRepository.findTestForNotification(notificationType).flatMap {
       case Some(test) =>
-        Logger.info(s"Candidate found to notify they successfully passed tests - appId=${test.applicationId}")
+        Logger.info(s"Candidate found to notify they successfully $operation tests in $phase - appId=${test.applicationId}")
         processTestForNotification(test, notificationType)
       case None =>
-        Logger.info(s"No candidates found to notify they successfully passed tests")
+        Logger.info(s"No candidate found to notify they successfully $operation tests in $phase")
         Future.successful(())
     }
   }
