@@ -180,7 +180,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   private def markAsInvited2(application: OnlineTestApplication)(newOnlineTestProfile: Phase1TestProfile2): Future[Unit] = for {
     currentOnlineTestProfile <- testRepository2.getTestGroup(application.applicationId)
     updatedTestProfile <- insertOrAppendNewTests2(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- testRepository.resetTestProfileProgresses(application.applicationId, determineStatusesToRemove2(updatedTestProfile))
+    _ <- testRepository2.resetTestProfileProgresses(application.applicationId, determineStatusesToRemove2(updatedTestProfile))
   } yield {
     audit("OnlineTestInvited", application.userId)
   }
@@ -223,7 +223,8 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
-  def markAsCompleted22(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  private def markAsCompleted22(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+    eventSink {
     updatePhase1Test2(orderId, testRepository2.updateTestCompletionTime2(_: String, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
       require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
       val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
