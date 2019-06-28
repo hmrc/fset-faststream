@@ -29,7 +29,7 @@ object Phase1TestsPage {
   def apply(profile: connectors.exchange.Phase1TestGroupWithNames2): Phase1TestsPage2 = {
     Phase1TestsPage2(
       expirationDate = profile.expirationDate,
-      tests = profile.tests.map(PsiTestPage.apply)
+      tests = profile.activeTests.map(PsiTestPage.apply)
     )
   }
 }

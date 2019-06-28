@@ -40,7 +40,7 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
   def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>
       applicationClient.getPhase1TestProfile2(cachedUserData.application.applicationId).flatMap { phase1TestProfile =>
-        startPsiTest(phase1TestProfile.tests)
+        startPsiTest(phase1TestProfile.activeTests)
       }
   }
 
@@ -68,11 +68,11 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
 
       applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
         applicationClient.getPhase1TestProfile2(appId).map { testGroup =>
-          val testCompleted = testGroup.tests.find(_.orderId == orderId)
+          val testCompleted = testGroup.activeTests.find(_.orderId == orderId)
             .getOrElse(throw new Exception(s"Test not found for OrderId $orderId"))
           val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
 
-          if(incompleteTestsExists(testGroup.tests)) {
+          if(incompleteTestsExists(testGroup.activeTests)) {
             Ok(views.html.application.onlineTests.continueTests(testCompletedName))
           } else {
             Ok(views.html.application.onlineTests.phase1TestsComplete())
