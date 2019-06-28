@@ -83,8 +83,8 @@ object PsiTest {
 case class Phase1TestProfile2(expirationDate: DateTime,
                               tests: List[PsiTest],
                               evaluation: Option[PassmarkEvaluation] = None) extends PsiTestProfile
-
 object Phase1TestProfile2 {
+
   import repositories.BSONDateTimeHandler
 
   implicit val bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile2] = Macros.handler[Phase1TestProfile2]

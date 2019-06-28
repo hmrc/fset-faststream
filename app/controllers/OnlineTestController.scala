@@ -104,9 +104,13 @@ trait OnlineTestController extends BaseController {
     }
   }
 
+  //TODO: remove this
   def getPhase1OnlineTest2(applicationId: String) = Action.async { implicit request =>
     phase1TestService2.getTestGroup2(applicationId) map {
-      case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
+      case Some(phase1TestProfileWithNames) =>
+        val response = Json.toJson(phase1TestProfileWithNames)
+        Logger.debug(s"**** getPhase1OnlineTest2 response=$response")
+        Ok(response)
       case None => Logger.debug(s"No phase 1 tests found for applicationId '$applicationId'")
         NotFound
     }

@@ -210,7 +210,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
       phase1Opt <- testRepository2.getTestGroup(applicationId)
     } yield {
       phase1Opt.map { testProfile =>
-        Phase1TestGroupWithNames2(testProfile.expirationDate, testProfile.tests)
+        Phase1TestGroupWithNames2(testProfile.expirationDate, testProfile.activeTests)
       }
     }
   }
