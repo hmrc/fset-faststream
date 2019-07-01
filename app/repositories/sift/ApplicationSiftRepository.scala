@@ -362,11 +362,16 @@ class ApplicationSiftMongoRepository(
     selectRandom[BSONDocument](query, batchSize).map {
       _.map { doc =>
         val applicationId = doc.getAs[String]("applicationId").get
+        val testAccountId = doc.getAs[String]("testAccountId").get
         val userId = doc.getAs[String]("userId").get
         val appStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
         val currentSchemeStatus = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+        val personalDetails = doc.getAs[BSONDocument]("personal-details").get
+        val preferredName = personalDetails.getAs[String]("preferredName").get
+        val lastName = personalDetails.getAs[String]("lastName").get
 
-        NumericalTestApplication2(applicationId, userId, appStatus, currentSchemeStatus)
+        NumericalTestApplication2(
+          applicationId, userId, testAccountId, appStatus, preferredName, lastName, currentSchemeStatus)
       }
     }
   }

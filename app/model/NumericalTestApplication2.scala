@@ -22,7 +22,10 @@ import play.api.libs.json.{ Json, OFormat }
 
 case class NumericalTestApplication2(applicationId: String,
                                      userId: String,
+                                     testAccountId: String,
                                      applicationStatus: ApplicationStatus,
+                                     preferredName: String,
+                                     lastName: String,
                                      currentSchemeStatus: Seq[SchemeEvaluationResult])
 
 
