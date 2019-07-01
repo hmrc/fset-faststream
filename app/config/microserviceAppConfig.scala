@@ -91,7 +91,7 @@ case class OnlineTestsGatewayConfig(url: String,
 case class TestIntegrationGatewayConfig(url: String,
                                     phase1Tests: Phase1TestsConfig2,
                                     phase2Tests: Phase2TestsConfig2,
-                                    numericalTests: NumericalTestsConfig,
+                                    numericalTests: NumericalTestsConfig2,
                                     reportConfig: ReportConfig,
                                     candidateAppUrl: String,
                                     emailDomain: String
@@ -141,6 +141,9 @@ case class NumericalTestsConfig(schedules: Map[String, NumericalTestSchedule])
 case object NumericalTestsConfig {
   val numericalTestScheduleName = "numericalTest"
 }
+
+case class NumericalTestsConfig2(inventoryIds: Map[String, String],
+                                 tests: List[String])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
