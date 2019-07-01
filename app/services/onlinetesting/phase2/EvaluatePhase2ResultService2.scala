@@ -66,7 +66,9 @@ trait EvaluatePhase2ResultService2 extends EvaluateOnlineTestResultService2[Phas
       case (Some(test1Result), Some(test2Result), Some(prevPhaseEvaluation)) =>
         evaluate(application.preferences.schemes, test1Result, test2Result, prevPhaseEvaluation.result, passmark)
       case _ => throw new IllegalStateException(s"Illegal number of phase2 active tests with results " +
-        s"for this application: ${application.applicationId}")
+        s"for this application: ${application.applicationId} - expecting a result for each of the 2 tests and the " +
+        s"previous phase evaluation. Test1Result defined=${test1ResultOpt.isDefined}, test2Result defined=${test2ResultOpt.isDefined}, " +
+        s"previous phase evaluation defined=${application.prevPhaseEvaluation.isDefined}")
     }
     schemeResults
   }
