@@ -107,7 +107,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
 
   def verifyAccessCode(email: String, accessCode: String): Future[String] = for {
     userId <- cdRepository.findUserIdByEmail(email)
-    testGroupOpt <- testRepository.getTestGroupByUserId(userId)
+    testGroupOpt <- testRepository2.getTestGroupByUserId(userId)
     testUrl <- Future.fromTry(processEtrayToken(testGroupOpt, accessCode))
   } yield testUrl
 
@@ -211,67 +211,30 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
 
   override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    testRepository.nextExpiringApplication(expiryTest).flatMap {
+    testRepository2.nextExpiringApplication(expiryTest).flatMap {
       case Some(expired) => processExpiredTest(expired, expiryTest)
       case None => Future.successful(())
     }
   }
 
-  // Not private so tests can access
-  protected[phase2] def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
-                        (implicit hc: HeaderCarrier): Future[Map[Int, (OnlineTestApplication, String, Registration)]] = {
-    onlineTestsGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map { case (registration, idx) =>
-      val candidate = candidates(idx)
-      audit("Phase2TestRegistered", candidate.userId)
-      (registration.userId, (candidate, tokens(idx), registration))
-    }.toMap)
-  }
-
-  // Not private so tests can access
-  protected[phase2] def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)],
-                                         schedule: Phase2Schedule)
-                                        (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
-    val invites = candidateData.values.map { case (application, token, registration) =>
-      buildInviteApplication(application, token, registration.userId, schedule)
-    }.toList
-
-    // Cubiks does not accept invite batch request with different time adjustments
-    // TODO LT: The filter based on the head should be done before registration, not after
-    val firstInvite = invites.head
-    val filteredInvites = invites.filter(_.timeAdjustments == firstInvite.timeAdjustments)
-
-    onlineTestsGatewayClient.inviteApplicants(filteredInvites).map(_.map { invitation =>
-      val (application, token, registration) = candidateData(invitation.userId)
-      audit("Phase2TestInvited", application.userId)
-      Phase2TestInviteData(application, schedule.scheduleId, token, registration, invitation)
-    })
-  }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    // Cubiks does not accept invite batch request with different scheduleId.
-    // Due to this limitation we cannot have multiple types of invitations, and the filtering is needed
-    //TODO: Is this also relevant for PSI?
     val firstApplication = applications.head
     val applicationsWithTheSameType = applications filter (_.isInvigilatedETray == firstApplication.isInvigilatedETray)
 
-    val isInvigilatedETrayBatch = applicationsWithTheSameType.head.isInvigilatedETray
     val inventoryIds = integrationGatewayConfig.phase2Tests.inventoryIds
     val tests = integrationGatewayConfig.phase2Tests.tests // use this for the order of tests
 
-    FutureEx.traverseSerial(applicationsWithTheSameType){ application =>
+    FutureEx.traverseSerial(applicationsWithTheSameType) { application =>
       FutureEx.traverseSerial(tests) { test =>
-        val inventoryId = if (isInvigilatedETrayBatch) {
-          testConfig2.inventoryIds.getOrElse("invigilatedETray", throw new Exception("No key for invigilatedETray found"))
-        } else {
-          inventoryIds.getOrElse(test, throw new Exception(s"Unable to find inventoryId for $test"))
-        }
+        val inventoryId = inventoryIds.getOrElse(test, throw new Exception(s"Unable to find inventoryId for $test"))
         registerAndInviteForTestGroup2(application, inventoryId).map(_ => ())
       }
     }.map(_ => ())
   }
 
-  private def processEtrayToken(phase: Option[Phase2TestGroup], accessCode: String): Try[String] = {
+  private def processEtrayToken(phase: Option[Phase2TestGroup2], accessCode: String): Try[String] = {
     phase.fold[Try[String]](Failure(new NotFoundException(Some("No Phase2TestGroup found")))){
       group => {
         val eTrayTest = group.activeTests.head
