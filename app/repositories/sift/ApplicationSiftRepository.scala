@@ -51,7 +51,7 @@ trait ApplicationSiftRepository {
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int, numericSchemes: Seq[SchemeId]): Future[Seq[NumericalTestApplication]]
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int, numericSchemes: Seq[SchemeId]): Future[Seq[NumericalTestApplication2]]
   def nextApplicationsForSiftExpiry(maxBatchSize: Int): Future[List[ApplicationForSiftExpiry]]
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]]
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]]
@@ -341,7 +341,8 @@ class ApplicationSiftMongoRepository(
     }
   }
 
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int, numericSchemes: Seq[SchemeId]): Future[Seq[NumericalTestApplication]] = {
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int,
+                                                     numericSchemes: Seq[SchemeId]): Future[Seq[NumericalTestApplication2]] = {
 
     val greenNumericSchemes = numericSchemes.map { scheme =>
       BSONDocument("currentSchemeStatus" ->
@@ -365,10 +366,7 @@ class ApplicationSiftMongoRepository(
         val appStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
         val currentSchemeStatus = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
 
-        val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
-        val needsAdjustmentForOnlineTests = assistanceDetailsRoot.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)
-        val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
-        NumericalTestApplication(applicationId, userId, appStatus, needsAdjustmentForOnlineTests, etrayAdjustments, currentSchemeStatus)
+        NumericalTestApplication2(applicationId, userId, appStatus, currentSchemeStatus)
       }
     }
   }

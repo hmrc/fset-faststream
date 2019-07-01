@@ -486,7 +486,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   }
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] =
-    testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize)
+    testRepository2.nextApplicationsReadyForOnlineTesting(maxBatchSize)
 }
 
 trait ResetPhase1Test2 {

@@ -76,7 +76,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.nextApplicationForSecondSiftReminder(timeInHours)
   }
 
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication]] = {
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication2]] = {
     val numericalSchemeIds = schemeRepo.numericTestSiftRequirementSchemeIds
     applicationSiftRepo.nextApplicationsReadyForNumericTestsInvitation(batchSize, numericalSchemeIds)
   }

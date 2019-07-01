@@ -21,7 +21,7 @@ import model.EmptyRequestHeader
 import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.NumericalTestService
+import services.NumericalTestService2
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -30,12 +30,12 @@ import scala.concurrent.{ ExecutionContext, Future }
 object SiftNumericalTestInvitationJob extends SiftNumericalTestInvitationJob {
   val siftService = ApplicationSiftService
   val config = SiftNumericalTestInvitationConfig
-  val numericalTestService: NumericalTestService = NumericalTestService
+  val numericalTestService: NumericalTestService2 = NumericalTestService2
 }
 
 trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
-  val numericalTestService: NumericalTestService
+  val numericalTestService: NumericalTestService2
   lazy val batchSize = SiftNumericalTestInvitationConfig.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
