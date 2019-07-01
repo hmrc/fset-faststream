@@ -17,6 +17,7 @@
 package services.onlinetesting
 
 import model.EvaluationResults.{ Amber, Green, Red }
+import model.SchemeId
 import model.exchange.passmarksettings.PassMarkThreshold
 import testkit.UnitSpec
 
@@ -44,23 +45,25 @@ class OnlineTestResultsCalculator2Spec extends UnitSpec {
   }
 
   "combine test results" should {
+    val scheme = SchemeId("Commercial")
+
     "give correct result" in new OnlineTestResultsCalculator2 {
-      combineTestResults(Red) mustBe Red
-      combineTestResults(Amber) mustBe Amber
-      combineTestResults(Green) mustBe Green
+      combineTestResults(scheme, Red) mustBe Red
+      combineTestResults(scheme, Amber) mustBe Amber
+      combineTestResults(scheme, Green) mustBe Green
 
-      combineTestResults(Green, Red) mustBe Red
-      combineTestResults(Red, Green) mustBe Red
-      combineTestResults(Red, Red) mustBe Red
+      combineTestResults(scheme, Green, Red) mustBe Red
+      combineTestResults(scheme, Red, Green) mustBe Red
+      combineTestResults(scheme, Red, Red) mustBe Red
 
-      combineTestResults(Green, Amber) mustBe Amber
-      combineTestResults(Amber, Green) mustBe Amber
-      combineTestResults(Amber, Amber) mustBe Amber
+      combineTestResults(scheme, Green, Amber) mustBe Amber
+      combineTestResults(scheme, Amber, Green) mustBe Amber
+      combineTestResults(scheme, Amber, Amber) mustBe Amber
 
-      combineTestResults(Green, Green) mustBe Green
+      combineTestResults(scheme, Green, Green) mustBe Green
     }
     "return exception" in new OnlineTestResultsCalculator2 {
-      an[IllegalArgumentException] must be thrownBy combineTestResults()
+      an[IllegalArgumentException] must be thrownBy combineTestResults(scheme)
     }
   }
 }

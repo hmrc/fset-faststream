@@ -65,7 +65,7 @@ trait Phase1TestEvaluation2 extends OnlineTestResultsCalculator2 {
         s"p1 test4 pass = ${schemePassmark.schemeThresholds.test4.passThreshold}, " +
         s"p1 test4 result = $t4Result"
       )
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(t1Result, t2Result, t3Result, t4Result).toString)
+      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(schemeToEvaluate, t1Result, t2Result, t3Result, t4Result).toString)
     }
   }
 }
