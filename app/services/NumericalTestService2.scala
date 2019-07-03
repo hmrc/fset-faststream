@@ -26,7 +26,7 @@ import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_I
 import model._
 import model.exchange.CubiksTestResultReady
 import model.persisted.{ CubiksTest, PsiTest }
-import model.persisted.sift.{ SiftTestGroup, SiftTestGroupWithAppId }
+import model.persisted.sift.{ SiftTestGroup, SiftTestGroup2, SiftTestGroupWithAppId }
 import model.stc.DataStoreEvents
 import org.joda.time.DateTime
 import play.api.Logger
@@ -58,6 +58,7 @@ object NumericalTestService2 extends NumericalTestService2 {
 }
 
 
+// scalastyle:off number.of.methods
 trait NumericalTestService2 extends EventSink {
   def applicationRepo: GeneralApplicationRepository
   def applicationSiftRepo: ApplicationSiftRepository
@@ -77,9 +78,10 @@ trait NumericalTestService2 extends EventSink {
                                      registration: Registration,
                                      invitation: Invitation)
 
+  case class NumericalTestInviteData2(application: NumericalTestApplication2, inventoryId: String)
+
   def registerAndInviteForTests(applications: List[NumericalTestApplication2])
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-//    val schedule = testConfig.schedules(NumericalTestsConfig.numericalTestScheduleName)
     val name = integrationGatewayConfig.numericalTests.tests.head // only one test for numerical tests
     val inventoryId = integrationGatewayConfig.numericalTests.inventoryIds
       .getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
@@ -89,14 +91,72 @@ trait NumericalTestService2 extends EventSink {
 
   private def registerAndInvite(applications: List[NumericalTestApplication2], inventoryId: String)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
     applications match {
       case Nil => Future.successful(())
       case candidates =>
-//        for {
-//        }
+        val registrations = candidates.map { candidate =>
+          for {
+            test <- registerPsiApplicant(candidate, inventoryId)
+            _ <- insertNumericalTest(candidate, test)
+            _ <- emailInvitedCandidate(candidate)
+            _ <- updateProgressStatuses(List(candidate.applicationId), SIFT_TEST_INVITED)
+          } yield {
+            Logger.warn(s"Successfully invited candidate to take numerical test with Id: " +
+              s"${candidate.applicationId} - moved to $SIFT_TEST_INVITED")
+          }
+        }
+        Future.sequence(registrations).map(_ => ())
     }
-    ???
   }
+
+  private def registerPsiApplicant(application: NumericalTestApplication2, inventoryId: String)
+                                  (implicit hc: HeaderCarrier): Future[PsiTest] = {
+    for {
+      aoa <- registerApplicant(application, inventoryId)
+    } yield {
+      if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
+        val msg = s"Received response status of ${aoa.status} when registering candidate " +
+          s"${application.applicationId} to phase1 tests whose inventoryId=$inventoryId"
+        Logger.warn(msg)
+        throw new RuntimeException(msg)
+      } else {
+        PsiTest(
+          inventoryId = inventoryId,
+          orderId = aoa.orderId,
+          usedForResults = true,
+          testUrl = aoa.testLaunchUrl,
+          invitationDate = dateTimeFactory.nowLocalTimeZone
+        )
+      }
+    }
+  }
+
+  private def registerApplicant(application: NumericalTestApplication2, inventoryId: String)
+                               (implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
+
+    val orderId = tokenFactory.generateUUID()
+    val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
+    val lastName = CubiksSanitizer.sanitizeFreeText(application.lastName)
+
+    val registerCandidateRequest = RegisterCandidateRequest(
+      inventoryId = inventoryId, // Read from config to identify the test we are registering for
+      orderId = orderId, // Identifier we generate to uniquely identify the test
+      accountId = application.testAccountId, // Candidate's account across all tests
+      preferredName = preferredName,
+      lastName = lastName,
+      // The url psi will redirect to when the candidate completes the test
+      redirectionUrl = buildRedirectionUrl(orderId, inventoryId)
+    )
+
+    onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)
+  }
+
+  private def buildRedirectionUrl(orderId: String, inventoryId: String): String = {
+    val completionBaseUrl = s"${integrationGatewayConfig.candidateAppUrl}/fset-fast-stream/sift-test/psi/phase1"
+    s"$completionBaseUrl/complete/$orderId"
+  }
+
 
   private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -164,6 +224,10 @@ trait NumericalTestService2 extends EventSink {
     Future.sequence(invitedApplicantsOps).map(_ => ()) // Process List[Future[Unit]] into Future[Unit]
   }
 
+  private def insertNumericalTest(application: NumericalTestApplication2, test: PsiTest): Future[Unit] = {
+    upsertTests2(application, test :: Nil)
+  }
+
   private def calculateAbsoluteTimeWithAdjustments(application: NumericalTestApplication): Int = {
     val baseEtrayTestDurationInMinutes = 25
     (application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(0)
@@ -190,6 +254,28 @@ trait NumericalTestService2 extends EventSink {
     } yield ()
   }
 
+  private def upsertTests2(application: NumericalTestApplication2, newTests: List[PsiTest]): Future[Unit] = {
+
+    def upsert(applicationId: String, currentTestGroup: Option[SiftTestGroup2], newTests: List[PsiTest]) = {
+      currentTestGroup match {
+        case Some(testGroup) if testGroup.tests.isEmpty =>
+          applicationSiftRepo.insertNumericalTests2(applicationId, newTests)
+        case Some(testGroup) if testGroup.tests.isDefined =>
+          // TODO: Test may have been reset, change the active test here
+          throw new NotImplementedError("Test may have been reset, change the active test here")
+        case None =>
+          throw UnexpectedException(s"Application ${application.applicationId} should have a SIFT_PHASE testGroup at this point")
+      }
+    }
+    for {
+      currentTestGroupOpt <- applicationSiftRepo.getTestGroup2(application.applicationId)
+      updatedTestGroup <- upsert(application.applicationId, currentTestGroupOpt, newTests)
+      //TODO: Reset "test profile progresses" while resetting tests?
+    } yield ()
+  }
+
+
+
   private def updateProgressStatuses(applicationIds: List[String], progressStatus: ProgressStatus): Future[Unit] = {
     Future.sequence(
       applicationIds.map(id => applicationRepo.addProgressStatusAndUpdateAppStatus(id, progressStatus))
@@ -211,6 +297,20 @@ trait NumericalTestService2 extends EventSink {
       }).flatMap(identity)
     }
     Future.sequence(emailFutures).map(_ => ()) // Process the List[Future[Unit]] into single Future[Unit]
+  }
+
+  private def emailInvitedCandidate(application: NumericalTestApplication2): Future[Unit] = {
+      (for {
+        emailAddress <- contactDetailsRepo.find(application.userId).map(_.email)
+        notificationExpiringSiftOpt <- applicationSiftRepo.getNotificationExpiringSift(application.applicationId)
+      } yield {
+        implicit val hc = HeaderCarrier()
+        val msg = s"Sending sift numeric test invite email to candidate ${application.applicationId}..."
+        Logger.info(msg)
+        notificationExpiringSiftOpt.map { notification =>
+          emailClient.sendSiftNumericTestInvite(emailAddress, notification.preferredName, notification.expiryDate)
+        }.getOrElse(throw new IllegalStateException(s"No sift notification details found for candidate ${application.applicationId}"))
+      }).flatMap(identity)
   }
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
