@@ -191,7 +191,8 @@ POST        /online-test/phase3/reset/:applicationId                     control
 POST        /online-test/phase2/verifyAccessCode                         controllers.OnlineTestController.verifyAccessCode()
 
 PUT         /psi/complete-by-orderId/:orderId                            controllers.PsiTestsController.completeTestByOrderId(orderId: String)
-PUT         /psi/:orderId/results-ready                                   controllers.PsiTestsController.markResultsReady(orderId: String)
+PUT         /psi/:orderId/results-ready                                  controllers.PsiTestsController.markResultsReady(orderId: String)
+PUT         /psi/:orderId/real-time-results                              controllers.PsiTestsController.realTimeResults(orderId: String)
 
 PUT         /cubiks/:cubiksUserId/start                                  controllers.CubiksTestsController.start(cubiksUserId: Int)
 PUT         /cubiks/:cubiksUserId/complete                               controllers.CubiksTestsController.complete(cubiksUserId: Int)

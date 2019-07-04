@@ -29,6 +29,13 @@ case object CubiksTestResultReady {
 case class PsiTestResultReady(reportId: Int,
                               reportStatus: String)
 
-case object PsiTestResultReady {
+object PsiTestResultReady {
   implicit val phase1PsiTestResultReadyFormat = Json.format[PsiTestResultReady]
 }
+
+case class PsiRealTimeResults(tScore: Double, rawScore: Double, reportUrl: Option[String])
+
+object PsiRealTimeResults {
+  implicit val psiRealTimeResultsFormat = Json.format[PsiRealTimeResults]
+}
+

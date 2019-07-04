@@ -17,7 +17,7 @@
 package controllers
 
 import model.Exceptions.CannotFindTestByOrderId
-import model.exchange.PsiTestResultReady
+import model.exchange.{ PsiRealTimeResults, PsiTestResultReady }
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, Result }
@@ -27,6 +27,7 @@ import services.stc.StcEventService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object PsiTestsController extends PsiTestsController {
   override val phase1TestService2 = Phase1TestService2
@@ -104,9 +105,25 @@ trait PsiTestsController extends BaseController {
     }
   }
 
+  def realTimeResults(orderId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[PsiRealTimeResults] { realTimeResults =>
+      Logger.info(s"We have received real time results for psi test orderId=$orderId. " +
+        s"Payload(json) = [${Json.toJson(realTimeResults).toString}], (deserialized) = [$realTimeResults]")
+
+/*
+      phase1TestService2.markAsReportReadyToDownload2(orderId, realTimeResults)
+        .recoverWith { case _: CannotFindTestByOrderId =>
+          phase2TestService2.markAsReportReadyToDownload2(orderId, realTimeResults)
+        }.map(_ => Ok)
+        .recover(recoverNotFound)
+*/
+      Future.successful(Ok)
+    }
+  }
+
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
     case e @ CannotFindTestByOrderId(msg) =>
       Logger.warn(msg, e)
-      NotFound
+      NotFound(msg)
   }
 }
