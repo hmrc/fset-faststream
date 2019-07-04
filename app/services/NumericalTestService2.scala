@@ -153,7 +153,7 @@ trait NumericalTestService2 extends EventSink {
   }
 
   private def buildRedirectionUrl(orderId: String, inventoryId: String): String = {
-    val completionBaseUrl = s"${integrationGatewayConfig.candidateAppUrl}/fset-fast-stream/sift-test/psi/phase1"
+    val completionBaseUrl = s"${integrationGatewayConfig.candidateAppUrl}/fset-fast-stream/psi/sift-test"
     s"$completionBaseUrl/complete/$orderId"
   }
 
@@ -328,6 +328,27 @@ trait NumericalTestService2 extends EventSink {
           }
         } else {
           Logger.info(s"No tests to mark as completed for cubiksId: $cubiksUserId and applicationId: $appId")
+          Future.successful(())
+        }
+      }
+    }
+  }
+
+  def markAsCompletedByOrderId(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    applicationSiftRepo.updateTestCompletionTime(orderId, dateTimeFactory.nowLocalTimeZone).flatMap { _ =>
+      applicationSiftRepo.getTestGroupByOrderId(orderId).flatMap { updatedTestGroup =>
+        val appId = updatedTestGroup.applicationId
+        require(updatedTestGroup.tests.isDefined, s"No numerical tests exists for application: $appId")
+        val tests = updatedTestGroup.tests.get
+        require(tests.exists(_.usedForResults), "Active tests cannot be found")
+
+        val activeCompletedTests = tests.forall(_.completedDateTime.isDefined)
+        if(activeCompletedTests) {
+          applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_COMPLETED).map { _ =>
+            Logger.info(s"Successfully updated to $SIFT_TEST_COMPLETED for orderID: $orderId and appId: $appId")
+          }
+        } else {
+          Logger.info(s"No tests to mark as completed for orderId: $orderId and applicationId: $appId")
           Future.successful(())
         }
       }
