@@ -24,7 +24,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import play.api.i18n.Messages
 import play.api.mvc.{ Action, AnyContent }
-import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole }
+import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole }
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -37,7 +37,7 @@ object PsiTestController extends PsiTestController(ApplicationClient) {
 
 abstract class PsiTestController(applicationClient: ApplicationClient) extends BaseController {
 
-  def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
+  def startPhase1Tests: Action[AnyContent] = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>
       applicationClient.getPhase1TestProfile2(cachedUserData.application.applicationId).flatMap { phase1TestProfile =>
         startPsiTest(phase1TestProfile.tests)
@@ -48,6 +48,19 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
     implicit cachedUserData =>
       applicationClient.getPhase2TestProfile2(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
         startPsiTest(phase2TestProfile.activeTests)
+      }
+  }
+
+  def startSiftNumericTest: Action[AnyContent] = CSRSecureAppAction(SiftNumericTestRole) { implicit request =>
+    implicit cachedUserData =>
+      applicationClient.getSiftTestGroup2(cachedUserData.application.applicationId).flatMap { siftTestGroup =>
+        val tests = siftTestGroup.activeTest :: Nil
+        tests.find(!_.completed).map { testToStart =>
+          if (!testToStart.started) {
+            applicationClient.startSiftTest(testToStart.orderId.toString)
+          }
+          Future.successful(Redirect(testToStart.testUrl))
+        }.getOrElse(Future.successful(NotFound))
       }
   }
 
@@ -102,6 +115,13 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
             Ok(views.html.application.onlineTests.etrayTestsComplete())
           }
         }
+      }
+  }
+
+  def completeSiftTest(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
+    implicit user =>
+      applicationClient.completeTestByOrderId(orderId).map { _ =>
+        Ok(views.html.application.onlineTests.siftTestComplete())
       }
   }
 

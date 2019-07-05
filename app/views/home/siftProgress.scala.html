@@ -72,7 +72,7 @@
             @if(page.isSiftTestCompleted) {
                 <p><strong>You have completed your numerical test.</strong></p>
             } else {
-                @helper.form(action = routes.CubiksTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
+                @helper.form(action = routes.PsiTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
                     @helper.CSRF.formField
                     @if(!page.isSiftTestStarted) {
                         <button id="submit_sift_test" type="submit" value="submit" class="button">Start test</button>

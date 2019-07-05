@@ -286,6 +286,14 @@ trait ApplicationClient {
     }
   }
 
+  def getSiftTestGroup2(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftTestGroupWithActiveTest2] = {
+    http.GET(s"$apiBaseUrl/psi/sift-test-group/$appId").map { response =>
+      response.json.as[SiftTestGroupWithActiveTest2]
+    } recover {
+      case _: NotFoundException => throw new SiftTestNotFound(s"No sift test group found for $appId")
+    }
+  }
+
   def getSiftState(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[SiftState]] = {
     http.GET(s"$apiBaseUrl/sift-candidate/state/$appId").map { response =>
       Some(response.json.as[SiftState])
@@ -328,6 +336,10 @@ trait ApplicationClient {
 
   def startSiftTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"$apiBaseUrl/sift-test/$cubiksUserId/start", "").map(_ => ())
+  }
+
+  def startSiftTest(orderId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"$apiBaseUrl/psi/sift-test/$orderId/start", "").map(_ => ())
   }
 
   def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
