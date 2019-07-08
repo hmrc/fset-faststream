@@ -268,7 +268,7 @@ trait NumericalTestService2 extends EventSink {
     }
     for {
       currentTestGroupOpt <- applicationSiftRepo.getTestGroup2(application.applicationId)
-      updatedTestGroup <- upsert(application.applicationId, currentTestGroupOpt, newTests)
+      _ <- upsert(application.applicationId, currentTestGroupOpt, newTests)
       //TODO: Reset "test profile progresses" while resetting tests?
     } yield ()
   }

@@ -17,7 +17,7 @@
 package services
 
 import config._
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
+import connectors.ExchangeObjects.{ AssessmentOrderAcknowledgement, Invitation, RegisterCandidateRequest }
 import connectors.{ EmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.Green
@@ -25,9 +25,9 @@ import model.Exceptions.UnexpectedException
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ProgressResponseExamples
-import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
-import model.persisted.{ ContactDetails, CubiksTest, SchemeEvaluationResult }
-import org.joda.time.DateTime
+import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup2 }
+import model.persisted.{ ContactDetails, PsiTest, SchemeEvaluationResult }
+import org.joda.time.{ DateTime, LocalDate }
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -40,7 +40,7 @@ import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionException
+import scala.concurrent.{ ExecutionException, Future }
 
 class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
 
@@ -106,11 +106,20 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     val contactDetails = ContactDetails(outsideUk = false, Address("line1"), postCode = None, country = None,
       email = "test@test.com", "0800900900")
 
-    val siftTestGroupNoTests = SiftTestGroup(expirationDate = DateTime.now(), tests = None)
+    val siftTestGroupNoTests = SiftTestGroup2(expirationDate = DateTime.now(), tests = None)
 
     val app = NumericalTestApplication2(appId, "userId", "testAccountId", ApplicationStatus.SIFT,
       "PrefName", "LastName", Seq(SchemeEvaluationResult("Commercial", Green.toString)))
     val applications = List(app)
+
+    val authenticateUrl = "http://localhost/authenticate"
+
+    def aoa = AssessmentOrderAcknowledgement(
+      customerId = "cust-id", receiptId = "receipt-id", orderId = "orderId", testLaunchUrl = authenticateUrl,
+      status = AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
+
+    when(service.onlineTestsGatewayClient.psiRegisterApplicant(any[RegisterCandidateRequest]))
+      .thenReturn(Future.successful(aoa))
   }
 
   "NumericalTestService.registerAndInviteForTests" must {
@@ -120,11 +129,7 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     }
 
     "throw an exception if no SIFT_PHASE test group is found" in new TestFixture {
-      when(mockOnlineTestsGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
-
-      when(mockOnlineTestsGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
-
-      when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(None) // This will result in exception being thrown
+      when(mockSiftRepo.getTestGroup2(any[String])).thenReturnAsync(None) // This will result in exception being thrown
 
       val failedFuture = service.registerAndInviteForTests(applications).failed.futureValue
       failedFuture mustBe a[UnexpectedException]
@@ -133,22 +138,13 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
 
     //TODO: take a closer look at the NotImplementedError
     "throw an exception if no SIFT_PHASE test group is found and the tests have already been populated" in new TestFixture {
-      when(mockOnlineTestsGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
+      val test = PsiTest(inventoryId = "inventoryUuid", orderId = "inventoryUuid", usedForResults = true,
+        testUrl = authenticateUrl, invitationDate = DateTimeFactory.nowLocalTimeZone)
 
-      when(mockOnlineTestsGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
-
-      val cubiksTest = CubiksTest(
-        scheduleId = 1,
-        usedForResults = true,
-        cubiksUserId = 2,
-        token = "abc",
-        testUrl = "test@test.com",
-        invitationDate = DateTime.now(),
-        participantScheduleId = 1
-      )
-
-      val siftTestGroup = SiftTestGroup(expirationDate = DateTime.now(), tests = Some(List(cubiksTest)))
-      when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroup)) // This will result in exception being thrown
+      val siftTestGroup = SiftTestGroup2(expirationDate = DateTime.now(), tests = Some(List(test)))
+      // This will result in exception being thrown
+      when(mockSiftRepo.getTestGroup2(any[String])).thenReturnAsync(Some(siftTestGroup))
+      when(mockSiftRepo.insertNumericalTests2(any[String], any[List[PsiTest]])).thenReturnAsync()
 
       val failedFuture = service.registerAndInviteForTests(applications).failed.futureValue
       failedFuture mustBe a[ExecutionException]
@@ -156,12 +152,8 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     }
 
     "throw an exception if no notification expiring sift details are found" in new TestFixture {
-      when(mockOnlineTestsGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
-
-      when(mockOnlineTestsGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
-
-      when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
-      when(mockSiftRepo.insertNumericalTests(any[String], any[List[CubiksTest]])).thenReturnAsync()
+      when(mockSiftRepo.getTestGroup2(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
+      when(mockSiftRepo.insertNumericalTests2(any[String], any[List[PsiTest]])).thenReturnAsync()
 
       when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(contactDetails)
 
@@ -173,12 +165,9 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     }
 
     "successfully process a candidate" in new TestFixture {
-      when(mockOnlineTestsGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
 
-      when(mockOnlineTestsGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
-
-      when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
-      when(mockSiftRepo.insertNumericalTests(any[String], any[List[CubiksTest]])).thenReturnAsync()
+      when(mockSiftRepo.getTestGroup2(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
+      when(mockSiftRepo.insertNumericalTests2(any[String], any[List[PsiTest]])).thenReturnAsync()
 
       when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(contactDetails)
 
@@ -190,6 +179,11 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
       when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
 
       service.registerAndInviteForTests(applications).futureValue
+
+      verify(mockAppRepo, times(1)).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_INVITED)
+      verify(mockEmailClient, times(1))
+        .sendSiftNumericTestInvite(eqTo(contactDetails.email), eqTo(notificationExpiringSift.preferredName),
+          eqTo(notificationExpiringSift.expiryDate))(any[HeaderCarrier])
     }
   }
 
