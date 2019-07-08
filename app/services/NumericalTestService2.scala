@@ -64,7 +64,6 @@ trait NumericalTestService2 extends EventSink {
   def applicationSiftRepo: ApplicationSiftRepository
   val tokenFactory: UUIDFactory
   val gatewayConfig: OnlineTestsGatewayConfig
-  def testConfig: NumericalTestsConfig = gatewayConfig.numericalTests
   val integrationGatewayConfig: TestIntegrationGatewayConfig
   val onlineTestsGatewayClient: OnlineTestsGatewayClient
   val dateTimeFactory: DateTimeFactory

@@ -16,7 +16,7 @@
 
 package services
 
-import config.{ NumericalTestSchedule, NumericalTestsConfig, OnlineTestsGatewayConfig }
+import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import connectors.{ EmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
@@ -53,7 +53,20 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
 
     val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
     when(mockOnlineTestsGatewayConfig.candidateAppUrl).thenReturn("localhost")
-    val mockNumericalTestsConfig = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(1, 1)))
+
+    val inventoryIds = Map[String, String]("test1" -> "test1-uuid")
+    val mockNumericalTestsConfig2 = NumericalTestsConfig2(inventoryIds, List("test1"))
+    val integrationConfig = TestIntegrationGatewayConfig(
+      url = "",
+      phase1Tests = Phase1TestsConfig2(
+        5, inventoryIds, List("test1", "test2", "test2", "test4"), List("test1", "test4")
+      ),
+      phase2Tests = Phase2TestsConfig2(5, 90, inventoryIds, List("test3", "test4")),
+      numericalTests = NumericalTestsConfig2(inventoryIds, List("test1")),
+      reportConfig = ReportConfig(1, 2, "en-GB"),
+      candidateAppUrl = "http://localhost:9284",
+      emailDomain = "test.com"
+    )
 
     val mockOnlineTestsGatewayClient: OnlineTestsGatewayClient = mock[OnlineTestsGatewayClient]
     val mockDateTimeFactory: DateTimeFactory = mock[DateTimeFactory]
@@ -69,18 +82,19 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
       )
     }
 
-    val service = new NumericalTestService {
+    val service = new NumericalTestService2 {
       override def applicationRepo: GeneralApplicationRepository = mockAppRepo
       override def applicationSiftRepo: ApplicationSiftRepository = mockSiftRepo
       val tokenFactory: UUIDFactory = UUIDFactory
       val gatewayConfig: OnlineTestsGatewayConfig = mockOnlineTestsGatewayConfig
-      override def testConfig: NumericalTestsConfig = mockNumericalTestsConfig
       val onlineTestsGatewayClient: OnlineTestsGatewayClient = mockOnlineTestsGatewayClient
       val dateTimeFactory: DateTimeFactory = mockDateTimeFactory
       override def schemeRepository: SchemeRepository = mockSchemeRepo
       val eventService = eventServiceMock
       override def emailClient = mockEmailClient
       override def contactDetailsRepo = mockContactDetailsRepo
+
+      override val integrationGatewayConfig: TestIntegrationGatewayConfig = integrationConfig
     }
 
     val appId = "appId"
@@ -94,8 +108,8 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
 
     val siftTestGroupNoTests = SiftTestGroup(expirationDate = DateTime.now(), tests = None)
 
-    val app = NumericalTestApplication(appId, "userId", ApplicationStatus.SIFT, needsOnlineAdjustments = false,
-      eTrayAdjustments = None, currentSchemeStatus = Seq(SchemeEvaluationResult("Commercial", Green.toString)))
+    val app = NumericalTestApplication2(appId, "userId", "testAccountId", ApplicationStatus.SIFT,
+      "PrefName", "LastName", Seq(SchemeEvaluationResult("Commercial", Green.toString)))
     val applications = List(app)
   }
 
