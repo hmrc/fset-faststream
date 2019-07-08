@@ -20,14 +20,16 @@ import model.ApplicationStatus.ApplicationStatus
 import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.{ Json, OFormat }
 
-case class NumericalTestApplication(applicationId: String,
-                                    userId: String,
-                                    applicationStatus: ApplicationStatus,
-                                    needsOnlineAdjustments: Boolean,
-                                    eTrayAdjustments: Option[AdjustmentDetail],
-                                    currentSchemeStatus: Seq[SchemeEvaluationResult])
+case class NumericalTestApplication2(applicationId: String,
+                                     userId: String,
+                                     testAccountId: String,
+                                     applicationStatus: ApplicationStatus,
+                                     preferredName: String,
+                                     lastName: String,
+                                     currentSchemeStatus: Seq[SchemeEvaluationResult])
 
-object NumericalTestApplication {
-  implicit val applicationForNumericTest: OFormat[NumericalTestApplication] =
-    Json.format[NumericalTestApplication]
+
+object NumericalTestApplication2 {
+  implicit val applicationForNumericTest: OFormat[NumericalTestApplication2] =
+    Json.format[NumericalTestApplication2]
 }

@@ -20,7 +20,8 @@ import model.Exceptions.CannotFindTestByOrderId
 import model.exchange.{ PsiRealTimeResults, PsiTestResultReady }
 import play.api.Logger
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, Result }
+import play.api.mvc.{ Action, AnyContent, Result }
+import services.NumericalTestService2
 import services.onlinetesting.phase1.Phase1TestService2
 import services.onlinetesting.phase2.Phase2TestService2
 import services.stc.StcEventService
@@ -32,14 +33,14 @@ import scala.concurrent.Future
 object PsiTestsController extends PsiTestsController {
   override val phase1TestService2 = Phase1TestService2
   override val phase2TestService2 = Phase2TestService2
-//  val numericalTestService: NumericalTestService = NumericalTestService
+  val numericalTestService: NumericalTestService2 = NumericalTestService2
   val eventService = StcEventService
 }
 
 trait PsiTestsController extends BaseController {
   val phase1TestService2: Phase1TestService2
   val phase2TestService2: Phase2TestService2
-//  val numericalTestService: NumericalTestService
+  val numericalTestService: NumericalTestService2
   val eventService: StcEventService
 
 
@@ -74,12 +75,15 @@ trait PsiTestsController extends BaseController {
     * This is done on purpose. We want to update the status of the user if the token is correct, but if for
     * any reason the token is wrong we still want to display the success page.
     */
-  def completeTestByOrderId(orderId: String) = Action.async { implicit request =>
+  def completeTestByOrderId(orderId: String): Action[AnyContent] = Action.async { implicit request =>
     Logger.info(s"Complete test by orderId=$orderId")
 
     phase1TestService2.markAsCompleted2(orderId)
       .recoverWith { case _: CannotFindTestByOrderId =>
-          phase2TestService2.markAsCompleted2(orderId)
+          phase2TestService2.markAsCompleted2(orderId).recoverWith {
+            case _: CannotFindTestByOrderId =>
+                numericalTestService.markAsCompletedByOrderId(orderId)
+            }
       }.map(_ => Ok).recover(recoverNotFound)
   }
 

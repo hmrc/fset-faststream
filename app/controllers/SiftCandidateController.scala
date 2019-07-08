@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.CannotFindTestByCubiksId
+import model.Exceptions.{ CannotFindTestByCubiksId, CannotFindTestByOrderId }
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Action
@@ -60,12 +60,30 @@ trait SiftCandidateController extends BaseController {
     }
   }
 
+  def getSiftTestGroup2(applicationId: String) = Action.async { implicit request =>
+    applicationSiftService.getTestGroup2(applicationId) map {
+      case Some(siftTest) =>
+        Ok(Json.toJson(siftTest))
+      case None => Logger.debug(s"No sift test group found for applicationId: $applicationId")
+        NotFound
+    }
+  }
+
   def startTest(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Sift test started for cubiks id: $cubiksUserId")
     applicationSiftService.markTestAsStarted(cubiksUserId)
       .map( _ => Ok )
       .recover {
         case _: CannotFindTestByCubiksId => NotFound
+      }
+  }
+
+  def startTest2(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    Logger.info(s"Sift test started for order id: $orderId")
+    applicationSiftService.markTestAsStarted2(orderId)
+      .map( _ => Ok )
+      .recover {
+        case _: CannotFindTestByOrderId => NotFound
       }
   }
 }

@@ -61,7 +61,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       5, inventoryIds, List("test1", "test2", "test2", "test4"), List("test1", "test4")
     ),
     phase2Tests = Phase2TestsConfig2(5, 90, inventoryIds, List("test3", "test4")),
-    numericalTests = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(12345, 123))),
+    numericalTests = NumericalTestsConfig2(inventoryIds, List("test1")),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"
