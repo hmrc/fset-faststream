@@ -22,7 +22,7 @@ import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.stc.DataStoreEvents
-import model.exchange.CubiksTestResultReady
+import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
 import model.persisted._
 import model._
 import org.joda.time.DateTime
@@ -65,6 +65,8 @@ trait OnlineTestService extends TimeExtension with EventSink {
   // Temporary provide a default implementation so we dont have to implement this for all phases
   def registerAndInviteForPsi(applications: List[OnlineTestApplication])
                              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+  // Temporary provide a default implementation so we dont have to implement this for all phases
+  def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
   def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]

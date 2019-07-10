@@ -28,7 +28,6 @@ import services.stc.StcEventService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object PsiTestsController extends PsiTestsController {
   override val phase1TestService2 = Phase1TestService2
@@ -77,7 +76,6 @@ trait PsiTestsController extends BaseController {
     */
   def completeTestByOrderId(orderId: String): Action[AnyContent] = Action.async { implicit request =>
     Logger.info(s"Complete test by orderId=$orderId")
-
     phase1TestService2.markAsCompleted2(orderId)
       .recoverWith { case _: CannotFindTestByOrderId =>
           phase2TestService2.markAsCompleted2(orderId).recoverWith {
@@ -114,14 +112,10 @@ trait PsiTestsController extends BaseController {
       Logger.info(s"We have received real time results for psi test orderId=$orderId. " +
         s"Payload(json) = [${Json.toJson(realTimeResults).toString}], (deserialized) = [$realTimeResults]")
 
-/*
-      phase1TestService2.markAsReportReadyToDownload2(orderId, realTimeResults)
+      phase1TestService2.storeRealTimeResults(orderId, realTimeResults)
         .recoverWith { case _: CannotFindTestByOrderId =>
-          phase2TestService2.markAsReportReadyToDownload2(orderId, realTimeResults)
-        }.map(_ => Ok)
-        .recover(recoverNotFound)
-*/
-      Future.successful(Ok)
+          phase2TestService2.storeRealTimeResults(orderId, realTimeResults)
+        }.map(_ => Ok).recover(recoverNotFound) // TODO: handle numerical tests
     }
   }
 

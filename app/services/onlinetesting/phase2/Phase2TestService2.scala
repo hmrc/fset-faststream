@@ -28,7 +28,7 @@ import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest2, PsiTestResultReady }
+import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest2, PsiRealTimeResults, PsiTestResultReady }
 import model.persisted._
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
@@ -541,6 +541,63 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     }
   }
 
+  //scalastyle:off method.length
+  override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    def insertResults(applicationId: String, orderId: String, testProfile: Phase2TestGroupWithAppId2,
+                      results: PsiRealTimeResults): Future[Unit] =
+      testRepository2.insertTestResult2(
+        applicationId,
+        testProfile.testGroup.tests.find(_.orderId == orderId).getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
+        model.persisted.PsiTestResult.fromCommandObject(results)
+      ).map( _ => ())
+
+    def maybeUpdateProgressStatus(appId: String) = {
+      testRepository2.getTestGroup(appId).flatMap { eventualProfile =>
+
+        val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No test profile returned for $appId"))
+        if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
+          testRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_ =>
+            audit(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}", appId))
+        } else {
+          val msg = s"Did not update progress status to ${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED} for $appId - " +
+            s"not all active tests have a testResult saved"
+          Logger.warn(msg)
+          Future.successful(())
+        }
+      }
+    }
+
+    def markTestAsCompleted(profile: Phase2TestGroupWithAppId2): Future[Unit] = {
+      profile.testGroup.tests.find(_.orderId == orderId).map { test =>
+        if (!test.isCompleted) {
+          Logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
+          markAsCompleted2(orderId)
+        }
+        else {
+          Logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId")
+          Future.successful(())
+        }
+      }.getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+    }
+
+    (for {
+      appIdOpt <- testRepository2.getApplicationIdForOrderId(orderId, "PHASE2")
+      profile <- testRepository2.getTestProfileByOrderId(orderId)
+    } yield {
+      val appId = appIdOpt.getOrElse(throw CannotFindTestByOrderId(s"Application not found for test for orderId=$orderId"))
+      for {
+        _ <- markTestAsCompleted(profile)
+        _ <- profile.testGroup.tests.find(_.orderId == orderId).map { test => insertResults(appId, test.orderId, profile, results) }
+          .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+        _ <- maybeUpdateProgressStatus(appId)
+      } yield ()
+    }).flatMap(identity)
+  }
+  //scalastyle:on
+
+
   def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication) = {
     application.eTrayAdjustments.flatMap(_.timeNeeded).map { _ =>
       List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = calculateAbsoluteTimeWithAdjustments(application)))
@@ -628,7 +685,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   // CubiksTestService/Repository layer as it will be different for Launchapd.
   // Still feels wrong to leave it here when it's 99% the same as phase1.
   def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit] = {
-
+/*
     def insertTests(testResults: List[(OnlineTestCommands.PsiTestResult, U)]): Future[Unit] = {
       Future.sequence(testResults.map {
         case (result, phaseTest) => testRepository2.insertTestResult2(
@@ -666,6 +723,8 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
         audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
       }
     }
+*/
+    Future.successful(())
   }
 }
 

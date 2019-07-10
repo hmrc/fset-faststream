@@ -180,6 +180,17 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.update(query, update) map validator
   }
 
+  def getApplicationIdForOrderId(orderId: String, phase: String = "PHASE1"): Future[Option[String]] = {
+    val projection = BSONDocument("applicationId" -> true, "_id" -> false)
+    val query = BSONDocument(s"testGroups.$phase.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("orderId" -> orderId)
+    ))
+
+    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+      optDocument.flatMap {_.getAs[String]("applicationId")}
+    }
+  }
+
   def nextTestGroupWithReportReady2[TestGroup](implicit reader: BSONDocumentReader[TestGroup]): Future[Option[TestGroup]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),

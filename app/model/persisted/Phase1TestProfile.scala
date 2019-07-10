@@ -71,7 +71,9 @@ case class PsiTest(inventoryId: String,
                    reportLinkURL: Option[String] = None,
                    reportStatus: Option[String] = None,
                    testResult: Option[model.persisted.PsiTestResult] = None,
-                   invigilatedAccessCode: Option[String] = None) extends Test
+                   invigilatedAccessCode: Option[String] = None) extends Test {
+  def isCompleted = completedDateTime.isDefined
+}
 
 object PsiTest {
   import repositories.BSONDateTimeHandler

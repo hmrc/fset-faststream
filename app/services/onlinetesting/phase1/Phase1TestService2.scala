@@ -22,10 +22,10 @@ import config.TestIntegrationGatewayConfig
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.ApplicationNotFound
+import model.Exceptions.{ ApplicationNotFound, CannotFindTestByOrderId }
 import model.OnlineTestCommands._
 import model._
-import model.exchange.{ Phase1TestGroupWithNames2, PsiTestResultReady }
+import model.exchange.{ Phase1TestGroupWithNames2, PsiRealTimeResults, PsiTestResultReady }
 import model.persisted.{ CubiksTest, Phase1TestProfile, PsiTestResult => _, TestResult => _, _ }
 import model.stc.DataStoreEvents
 import org.joda.time.DateTime
@@ -63,6 +63,7 @@ object Phase1TestService2 extends Phase1TestService2 {
   val siftService = ApplicationSiftService
 }
 
+//scalastyle:off number.of.methods
 trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with ResetPhase1Test2 {
   type TestRepository = Phase1TestRepository
   val actor: ActorSystem
@@ -223,7 +224,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
-  private def markAsCompleted22(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+  def markAsCompleted22(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
     eventSink {
     updatePhase1Test2(orderId, testRepository2.updateTestCompletionTime2(_: String, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
       require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
@@ -249,6 +250,61 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
+  //scalastyle:off method.length
+  override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    def insertResults(applicationId: String, orderId: String, testProfile: Phase1TestProfile2, results: PsiRealTimeResults): Future[Unit] =
+      testRepository2.insertTestResult2(
+        applicationId,
+        testProfile.tests.find(_.orderId == orderId).getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
+        model.persisted.PsiTestResult.fromCommandObject(results)
+      ).map( _ => ())
+
+    def maybeUpdateProgressStatus(appId: String) = {
+      testRepository2.getTestGroup(appId).flatMap { eventualProfile =>
+
+        val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No test profile returned for $appId"))
+        if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
+          testRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).map(_ =>
+            audit(s"ProgressStatusSet${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}", appId))
+        } else {
+          val msg = s"Did not update progress status to ${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED} for $appId - " +
+            s"not all active tests have a testResult saved"
+          Logger.warn(msg)
+          Future.successful(())
+        }
+      }
+    }
+
+    def markTestAsCompleted(profile: PsiTestProfile): Future[Unit] = {
+      profile.tests.find(_.orderId == orderId).map { test =>
+        if (!test.isCompleted) {
+          Logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
+          markAsCompleted22(orderId)
+        }
+        else {
+          Logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId")
+          Future.successful(())
+        }
+      }.getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+    }
+
+    (for {
+      appIdOpt <- testRepository2.getApplicationIdForOrderId(orderId)
+      profile <- testRepository2.getTestProfileByOrderId(orderId)
+    } yield {
+      val appId = appIdOpt.getOrElse(throw CannotFindTestByOrderId(s"Application not found for test for orderId=$orderId"))
+      for {
+        _ <- markTestAsCompleted(profile)
+        _ <- profile.tests.find(_.orderId == orderId).map { test => insertResults(appId, test.orderId, profile, results) }
+          .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+        _ <- maybeUpdateProgressStatus(appId)
+      } yield ()
+    }).flatMap(identity)
+  }
+  //scalastyle:on
+
   private def updatePhase1Test2(orderId: String, updatePsiTest: String => Future[Unit]): Future[Phase1TestGroupWithUserIds2] = {
     for {
       _ <- updatePsiTest(orderId)
@@ -270,7 +326,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   }
 
   override def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit] = {
-
+/*
     def insertTests(testResults: List[(PsiTestResult, PsiTest)]): Future[Unit] = {
       Future.sequence(testResults.map {
         case (result, phase1Test) => testRepository2.insertTestResult2(
@@ -312,6 +368,8 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     } yield {
       audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
     }
+*/
+    Future.successful(())
   }
 
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
@@ -488,6 +546,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] =
     testRepository2.nextApplicationsReadyForOnlineTesting(maxBatchSize)
 }
+//scalastyle:on
 
 trait ResetPhase1Test2 {
 
