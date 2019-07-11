@@ -51,3 +51,8 @@ object SiftTestGroupWithActiveTest {
   implicit val siftTestGroupFormat = Json.format[SiftTestGroupWithActiveTest]
 }
 
+case class SiftTestGroupWithActiveTest2(expirationDate: DateTime, activeTest: PsiTest)
+
+object SiftTestGroupWithActiveTest2 {
+  implicit val siftTestGroupFormat = Json.format[SiftTestGroupWithActiveTest2]
+}

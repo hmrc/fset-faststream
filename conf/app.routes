@@ -86,6 +86,7 @@ GET         /online-tests/phase2/complete/:token                    controllers.
 GET         /online-tests/phase3/complete/:token                    controllers.LaunchpadTestController.completePhase3TestsByToken(token: String)
 GET         /online-tests/complete/:token                           controllers.CubiksTestController.completeTestByToken(token: UniqueIdentifier)
 GET         /sift-test/complete/:token                              controllers.CubiksTestController.completeSiftTestByToken(token: UniqueIdentifier)
+GET         /psi/sift-test/complete/:orderId                        controllers.PsiTestController.completeSiftTest(orderId: UniqueIdentifier)
 
 # Invigilated e-tray
 GET         /invigilated-etray                                      controllers.InvigilatedController.present
@@ -110,4 +111,4 @@ GET         /additional-questions/:schemeId                         controllers.
 POST        /additional-questions/generalQuestions                  controllers.SiftQuestionsController.saveGeneralQuestions
 POST        /additional-questions/:schemeId                         controllers.SiftQuestionsController.saveSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
 
-POST        /sift/numeric-test/start                                controllers.CubiksTestController.startSiftNumericTest
+POST        /sift/numeric-test/start                                controllers.PsiTestController.startSiftNumericTest
