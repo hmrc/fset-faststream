@@ -31,7 +31,7 @@ object Phase1TestExamples {
 
   def thirdTest(implicit now: DateTime) = firstTest.copy(scheduleId = 16196)
 
-  val psiTestResult = PsiTestResult(status = "Ready", tScore = 12.5, raw = 5.5)
+  val psiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, None)
 
   def firstPsiTest(implicit now: DateTime) =
     PsiTest(

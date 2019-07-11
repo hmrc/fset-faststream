@@ -36,7 +36,7 @@ object Phase2TestProfileExamples {
     phase2Test.map(t => t.copy(testResult = Some(testResult)))
   }
 
-  val psiTestResult = PsiTestResult(status = "Ready", tScore = 12.5, raw = 5.5)
+  val psiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, None)
 
   def firstP2PsiTest(implicit now: DateTime) =
     PsiTest(

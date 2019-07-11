@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.exchange
 
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class PsiTestResult(tScore: Double, rawScore: Double, testReportUrl: Option[String])
+case class PsiRealTimeResults(tScore: Double, rawScore: Double, reportUrl: Option[String])
 
-object PsiTestResult {
-
-  def fromCommandObject(o: model.exchange.PsiRealTimeResults): PsiTestResult = {
-    PsiTestResult(tScore = o.tScore, rawScore = o.rawScore, testReportUrl = o.reportUrl)
-  }
-
-  implicit def testResultFormat = Json.format[PsiTestResult]
-  implicit def testResultBsonHandler: BSONHandler[BSONDocument, PsiTestResult] = Macros.handler[PsiTestResult]
+object PsiRealTimeResults {
+  implicit val psiRealTimeResultsFormat = Json.format[PsiRealTimeResults]
 }

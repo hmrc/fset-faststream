@@ -117,7 +117,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
   val result = OnlineTestCommands.PsiTestResult(status = "Completed", tScore = 23.9999d, raw = 66.9999d)
 
-  val savedResult = persisted.PsiTestResult(status = "Completed", tScore = 23.9999d, raw = 66.9999d)
+  val savedResult = persisted.PsiTestResult(tScore = 23.9999d, rawScore = 66.9999d, None)
 
   val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
   val expiredApplication = ExpiringOnlineTest(applicationId, userId, preferredName)
