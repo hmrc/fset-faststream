@@ -21,12 +21,12 @@ import config.{ NumericalTestSchedule, NumericalTestsConfig, OnlineTestsGatewayC
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, EmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.UnexpectedException
+import model.Exceptions.{ CannotFindTestByOrderId, UnexpectedException }
 import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED, SIFT_TEST_RESULTS_READY }
 import model._
-import model.exchange.CubiksTestResultReady
-import model.persisted.{ CubiksTest, PsiTest }
-import model.persisted.sift.{ SiftTestGroup, SiftTestGroup2, SiftTestGroupWithAppId }
+import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
+import model.persisted.{ CubiksTest, Phase2TestGroupWithAppId2, PsiTest }
+import model.persisted.sift.{ MaybeSiftTestGroupWithAppId2, SiftTestGroup, SiftTestGroup2, SiftTestGroupWithAppId }
 import model.stc.DataStoreEvents
 import org.joda.time.DateTime
 import play.api.Logger
@@ -273,8 +273,6 @@ trait NumericalTestService2 extends EventSink {
     } yield ()
   }
 
-
-
   private def updateProgressStatuses(applicationIds: List[String], progressStatus: ProgressStatus): Future[Unit] = {
     Future.sequence(
       applicationIds.map(id => applicationRepo.addProgressStatusAndUpdateAppStatus(id, progressStatus))
@@ -434,6 +432,69 @@ trait NumericalTestService2 extends EventSink {
       _ <- maybeUpdateProgressStatus(siftTestGroup.applicationId)
     } yield ()
   }
+
+  //scalastyle:off method.length
+  def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    def insertResults(applicationId: String, orderId: String, testProfile: MaybeSiftTestGroupWithAppId2,
+                      results: PsiRealTimeResults): Future[Unit] =
+      applicationSiftRepo.insertPsiTestResult(
+        applicationId,
+        testProfile.tests.flatMap(tests => tests.find(_.orderId == orderId))
+          .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
+        model.persisted.PsiTestResult.fromCommandObject(results)
+      ).map(_ => ())
+
+    def maybeUpdateProgressStatus(appId: String) = {
+      applicationSiftRepo.getTestGroup2(appId).flatMap { eventualTestGroup =>
+        val testGroup = eventualTestGroup.getOrElse(throw new Exception(s"No sift test group returned for $appId"))
+
+        val allTestsHavePsiResult = testGroup.tests.isDefined && testGroup.tests.get.forall(_.testResult.isDefined)
+        if (allTestsHavePsiResult) {
+          for {
+            _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED)
+            _ <- eventSink {
+              DataStoreEvents.SiftTestResultsReceived(appId) :: Nil
+            }
+          } yield {
+            Logger.info(s"Successfully processed sift numerical results for appId:$appId, orderId:$orderId - " +
+              s"moved to ${ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED}")
+          }
+        } else {
+          Future.successful(())
+        }
+      }
+    }
+
+    def markTestAsCompleted(profile: MaybeSiftTestGroupWithAppId2): Future[Unit] = {
+      profile.tests.flatMap( tests => tests.find(_.orderId == orderId).map { test =>
+        if (!test.isCompleted) {
+          Logger.info(s"Processing real time sift results - setting completed date on psi test whose orderId=$orderId")
+          markAsCompletedByOrderId(orderId)
+        }
+        else {
+          Logger.info(s"Processing real time sift results - completed date is already set on psi test whose orderId=$orderId")
+          Future.successful(())
+        }
+      }).getOrElse(throw CannotFindTestByOrderId(s"Processing real time sift results - test not found for orderId=$orderId"))
+    }
+
+    (for {
+      appId <- applicationSiftRepo.getApplicationIdForOrderId(orderId) // throws CannotFindApplicationByOrderId
+      profile <- applicationSiftRepo.getTestGroupByOrderId(orderId) // throws CannotFindTestByOrderId
+    } yield {
+      for {
+        _ <- markTestAsCompleted(profile)
+        _ <- profile.tests.flatMap ( tests => tests.find( _.orderId == orderId ).map ( test =>
+          insertResults(appId, test.orderId, profile, results) ))
+          .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+
+        _ <- maybeUpdateProgressStatus(appId)
+      } yield ()
+    }).flatMap(identity)
+  }
+  //scalastyle:on
 
   def nextApplicationWithResultsReceived: Future[Option[String]] = {
     (for {

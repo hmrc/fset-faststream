@@ -109,6 +109,8 @@ object Exceptions {
 
   case class CannotFindApplicationByCubiksId(message: String) extends NotFoundException(message)
 
+  case class CannotFindApplicationByOrderId(message: String) extends NotFoundException(message)
+
   case class AdjustmentsCommentNotFound(applicationId: String) extends Exception(applicationId)
 
   case class CannotUpdateAdjustmentsComment(applicationId: String) extends Exception(applicationId)

@@ -597,7 +597,6 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
   //scalastyle:on
 
-
   def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication) = {
     application.eTrayAdjustments.flatMap(_.timeNeeded).map { _ =>
       List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = calculateAbsoluteTimeWithAdjustments(application)))

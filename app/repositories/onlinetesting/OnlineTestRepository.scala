@@ -164,11 +164,11 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     findAndUpdatePsiTest(orderId, update)
   }
 
-  def insertTestResult2(appId: String, phase1Test: PsiTest, testResult: PsiTestResult): Future[Unit] = {
+  def insertTestResult2(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = {
     val query = BSONDocument(
       "applicationId" -> appId,
       s"testGroups.$phaseName.tests" -> BSONDocument(
-        "$elemMatch" -> BSONDocument("orderId" -> phase1Test.orderId)
+        "$elemMatch" -> BSONDocument("orderId" -> psiTest.orderId)
       )
     )
     val update = BSONDocument("$set" -> BSONDocument(
