@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.{ CannotFindTestByCubiksId, CannotFindTestByOrderId }
+import model.Exceptions.{ CannotFindApplicationByOrderId, CannotFindTestByCubiksId, CannotFindTestByOrderId }
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Action
@@ -84,6 +84,7 @@ trait SiftCandidateController extends BaseController {
       .map( _ => Ok )
       .recover {
         case _: CannotFindTestByOrderId => NotFound
+        case _: CannotFindApplicationByOrderId => NotFound
       }
   }
 }

@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.CannotFindTestByOrderId
+import model.Exceptions.{ CannotFindApplicationByOrderId, CannotFindTestByOrderId }
 import model.exchange.{ PsiRealTimeResults, PsiTestResultReady }
 import play.api.Logger
 import play.api.libs.json.Json
@@ -44,7 +44,7 @@ trait PsiTestsController extends BaseController {
 
 
   def start(orderId: String) = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Order ID $orderId assessment started")
+    Logger.info(s"Psi assessment started orderId=$orderId")
 
     phase1TestService2.markAsStarted2(orderId)
       .recoverWith {
@@ -55,27 +55,13 @@ trait PsiTestsController extends BaseController {
         .recover(recoverNotFound)
   }
 
-/*
-  def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Cubiks userId $cubiksUserId assessment completed")
-    phase1TestService.markAsCompleted(cubiksUserId).recoverWith {
-      case _: CannotFindTestByCubiksId =>
-        phase2TestService.markAsCompleted(cubiksUserId).recoverWith {
-          case _: CannotFindTestByCubiksId =>
-            numericalTestService.markAsCompleted(cubiksUserId)
-        }
-    }.map( _ => Ok )
-      .recover(recoverNotFound)
-  }
-*/
-
   /**
     * Note that this function will result with an ok even if the token is invalid.
     * This is done on purpose. We want to update the status of the user if the token is correct, but if for
     * any reason the token is wrong we still want to display the success page.
     */
   def completeTestByOrderId(orderId: String): Action[AnyContent] = Action.async { implicit request =>
-    Logger.info(s"Complete test by orderId=$orderId")
+    Logger.info(s"Complete psi test by orderId=$orderId")
     phase1TestService2.markAsCompleted2(orderId)
       .recoverWith { case _: CannotFindTestByOrderId =>
           phase2TestService2.markAsCompleted2(orderId).recoverWith {
@@ -85,6 +71,7 @@ trait PsiTestsController extends BaseController {
       }.map(_ => Ok).recover(recoverNotFound)
   }
 
+  // TODO: this method is now redundant
   def markResultsReady(orderId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[PsiTestResultReady] { testResultReady =>
       Logger.info(s"Psi test orderId=$orderId has results ready to download. " +
@@ -114,13 +101,19 @@ trait PsiTestsController extends BaseController {
 
       phase1TestService2.storeRealTimeResults(orderId, realTimeResults)
         .recoverWith { case _: CannotFindTestByOrderId =>
-          phase2TestService2.storeRealTimeResults(orderId, realTimeResults)
-        }.map(_ => Ok).recover(recoverNotFound) // TODO: handle numerical tests
+          phase2TestService2.storeRealTimeResults(orderId, realTimeResults).recoverWith {
+            case _: CannotFindTestByOrderId =>
+              numericalTestService.storeRealTimeResults(orderId, realTimeResults)
+          }
+        }.map(_ => Ok).recover(recoverNotFound)
     }
   }
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
     case e @ CannotFindTestByOrderId(msg) =>
+      Logger.warn(msg, e)
+      NotFound(msg)
+    case e @ CannotFindApplicationByOrderId(msg) =>
       Logger.warn(msg, e)
       NotFound(msg)
   }

@@ -25,8 +25,8 @@ import model.Exceptions._
 import model._
 import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
 import model.exchange.CubiksTestResultReady
-import model.persisted.sift.{ MaybeSiftTestGroupWithAppId, MaybeSiftTestGroupWithAppId2, NotificationExpiringSift, SiftTestGroup, SiftTestGroup2, SiftTestGroupWithAppId }
-import model.persisted.{ CubiksTest, PsiTest, SchemeEvaluationResult, TestResult }
+import model.persisted.sift._
+import model.persisted._
 import model.report.SiftPhaseReportItem
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
@@ -89,6 +89,7 @@ trait ApplicationSiftRepository {
   def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit]
   def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]]
   def insertCubiksTestResult(appId: String, cubiksTest: CubiksTest, testResult: TestResult): Future[Unit]
+  def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit]
   def nextApplicationWithResultsReceived: Future[Option[String]]
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]]
 }
@@ -186,6 +187,23 @@ class ApplicationSiftMongoRepository(
     collection.update(query, update) map validator
   }
 
+  def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = {
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("orderId" -> psiTest.orderId)
+      )
+    )
+
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.testResult" -> PsiTestResult.testResultBsonHandler.write(testResult)
+    ))
+
+    val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test results")
+
+    collection.update(query, update) map validator
+  }
+
   def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
@@ -242,7 +260,7 @@ class ApplicationSiftMongoRepository(
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(doc) => doc.getAs[String]("applicationId").get
-      case _ => throw CannotFindApplicationByCubiksId(s"Cannot find application by orderId Id: $orderId")
+      case _ => throw CannotFindApplicationByOrderId(s"Cannot find application by orderId Id: $orderId")
     }
   }
 
