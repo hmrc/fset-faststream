@@ -122,8 +122,7 @@ trait TestDataGeneratorController extends BaseController {
         start = Some("2340-01-01"),
         expiry = Some("2340-01-29"),
         completion = Some("2340-01-16"),
-        bqtscore = Some("80"),
-        sjqtscore = Some("70")
+        scores = List("80", "70")
       )),
       phase2TestData = Some(Phase2TestDataRequest(
         start = Some("2340-01-01"),
@@ -282,11 +281,14 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private lazy val cubiksUrlFromConfig: String = MicroserviceAppConfig.testDataGeneratorCubiksSecret
+  //private lazy val cubiksUrlFromConfig: String = MicroserviceAppConfig.testDataGeneratorCubiksSecret
+
+  private lazy val psiUrlFromConfig: String = MicroserviceAppConfig.testDataGeneratorPsiSecret
+
 
   def createCandidatesPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateRequest] { createRequest =>
-      createCandidates(CreateCandidateData.apply(cubiksUrlFromConfig, createRequest), numberToGenerate)
+      createCandidates(CreateCandidateData.apply(psiUrlFromConfig, createRequest), numberToGenerate)
     }
   }
 

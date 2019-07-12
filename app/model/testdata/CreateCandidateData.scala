@@ -109,8 +109,7 @@ object CreateCandidateData {
                              start: Option[DateTime] = None,
                              expiry: Option[DateTime] = None,
                              completion: Option[DateTime] = None,
-                             bqtscore: Option[Double] = None,
-                             sjqtscore: Option[Double] = None,
+      scores: List[Double] = Nil,
                              passmarkEvaluation: Option[PassmarkEvaluation] = None
                            ) extends TestDates
 
@@ -120,8 +119,7 @@ object CreateCandidateData {
         start = testDataRequest.start.map(DateTime.parse),
         expiry = testDataRequest.expiry.map(DateTime.parse),
         completion = testDataRequest.completion.map(DateTime.parse),
-        bqtscore = testDataRequest.bqtscore.map(_.toDouble),
-        sjqtscore = testDataRequest.sjqtscore.map(_.toDouble),
+        scores = testDataRequest.scores.map(_.toDouble),
         passmarkEvaluation = testDataRequest.passmarkEvaluation
       )
     }
@@ -226,7 +224,7 @@ object CreateCandidateData {
     personalData: PersonalData = PersonalData(),
     diversityDetails: DiversityDetails = DiversityDetails(),
     assistanceDetails: AssistanceDetails = AssistanceDetails(),
-    cubiksUrl: String,
+    psiUrl: String,
     schemeTypes: Option[List[SchemeId]] = None,
     isCivilServant: Boolean = false,
     hasFastPass: Boolean = false,
@@ -241,7 +239,7 @@ object CreateCandidateData {
   ) extends CreateTestData
 
   object CreateCandidateData {
-    def apply(cubiksUrlFromConfig: String, o: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
+    def apply(psiUrlFromConfig: String, o: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
 
       val statusData = StatusData(o.statusData)
 
@@ -250,7 +248,7 @@ object CreateCandidateData {
         personalData = o.personalData.map(PersonalData(_, generatorId)).getOrElse(PersonalData()),
         diversityDetails = o.diversityDetails.map(DiversityDetails(_)).getOrElse(DiversityDetails()),
         assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
-        cubiksUrl = cubiksUrlFromConfig,
+        psiUrl = psiUrlFromConfig,
         schemeTypes = o.schemeTypes,
         isCivilServant = o.isCivilServant.getOrElse(Random.bool),
         hasDegree = o.hasDegree.getOrElse(Random.bool),

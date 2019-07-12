@@ -16,72 +16,73 @@
 
 package services.testdata.candidate.onlinetests.phase1
 
-import java.util.UUID
-
-import config.OnlineTestsGatewayConfig
-import config.MicroserviceAppConfig.onlineTestsGatewayConfig
-import model.exchange.testdata.CreateCandidateResponse.{ TestGroupResponse, TestResponse }
-import model.persisted.{ CubiksTest, Phase1TestProfile }
+import config.MicroserviceAppConfig.{onlineTestsGatewayConfig, testIntegrationGatewayConfig}
+import config.{OnlineTestsGatewayConfig, TestIntegrationGatewayConfig}
+import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse, TestGroupResponse2, TestResponse, TestResponse2}
+import model.persisted.{Phase1TestProfile2, PsiTest}
 import model.testdata.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.onlinetesting.Phase1TestRepository
-import services.testdata.candidate.{ ConstructiveGenerator, SubmittedStatusGenerator }
+import repositories.onlinetesting.Phase1TestRepository2
+import services.testdata.candidate.{ConstructiveGenerator, SubmittedStatusGenerator}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestsInvitedStatusGenerator extends Phase1TestsInvitedStatusGenerator {
   override val previousStatusGenerator = SubmittedStatusGenerator
-  override val otRepository = phase1TestRepository
+  override val otRepository = phase1TestRepository2
   override val gatewayConfig = onlineTestsGatewayConfig
+  override val onlineTestGatewayConfig2 = testIntegrationGatewayConfig
 }
 
 trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase1TestRepository
+  val otRepository: Phase1TestRepository2
   val gatewayConfig: OnlineTestsGatewayConfig
+  val onlineTestGatewayConfig2: TestIntegrationGatewayConfig
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    val sjqTest = CubiksTest(
-      cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
-      token = UUID.randomUUID().toString,
-      testUrl = generatorConfig.cubiksUrl,
-      invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
-      participantScheduleId = 149245,
-      scheduleId = gatewayConfig.phase1Tests.scheduleIds("sjq"),
-      usedForResults = true
+    val testsNames = if (generatorConfig.assistanceDetails.setGis) {
+      onlineTestGatewayConfig2.phase1Tests.gis
+    } else {
+      onlineTestGatewayConfig2.phase1Tests.standard
+    }
+
+    val testsIndices = (1 to testsNames.size).toList
+    val testsZipped = testsIndices zip testsNames
+    val testsToGenerate = testsZipped.map(testPairWithName =>
+      (testPairWithName._1, onlineTestGatewayConfig2.phase1Tests.inventoryIds(testPairWithName._2))).map(testPairWithInventoryId => {
+      val orderId = java.util.UUID.randomUUID.toString
+      val test = PsiTest(
+        inventoryId = testPairWithInventoryId._2,
+        orderId = orderId,
+        usedForResults = true,
+        testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/test${testPairWithInventoryId._1}?key=$orderId",
+        invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now()).
+          withDurationAdded(86400000, -1),
+        resultsReadyToDownload = false
+      )
+      test
+    }
     )
 
-    val bqTest = CubiksTest(
-      cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
-      token = UUID.randomUUID().toString,
-      testUrl = generatorConfig.cubiksUrl,
-      invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
-      participantScheduleId = 149245,
-      scheduleId = gatewayConfig.phase1Tests.scheduleIds("bq"),
-      usedForResults = true
-    )
-
-    val phase1TestProfile = Phase1TestProfile(
+    val phase1TestProfile2 = Phase1TestProfile2(
       expirationDate = generatorConfig.phase1TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
-      tests = if (generatorConfig.assistanceDetails.setGis) List(sjqTest) else List(sjqTest, bqTest)
+      tests = testsToGenerate
     )
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
+      _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile2)
     } yield {
-      val sjq = phase1TestProfile.tests.find(t => t.cubiksUserId == sjqTest.cubiksUserId).get
-      val bq = phase1TestProfile.tests.find(t => t.cubiksUserId == bqTest.cubiksUserId)
-
+      // TODO: Set good values
+      val testToGenerateZipped = testsIndices zip testsToGenerate
+      val testResponses = testToGenerateZipped.map(test => TestResponse2(test._2.orderId, s"${test._1}", "TodoToken", test._2.testUrl))
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
-        TestGroupResponse(
-          List(TestResponse(sjq.cubiksUserId, "sjq", sjq.token, sjq.testUrl)) ++
-          bq.map { b =>
-            List(TestResponse(b.cubiksUserId, "bq", b.token, b.testUrl))
-          }.getOrElse(Nil),
+        TestGroupResponse2(
+          testResponses,
           None
         )
       ))

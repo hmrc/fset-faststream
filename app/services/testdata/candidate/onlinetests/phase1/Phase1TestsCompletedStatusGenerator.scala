@@ -20,8 +20,8 @@ import common.FutureEx
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.onlinetesting.Phase1TestRepository
-import services.onlinetesting.phase1.Phase1TestService
+import repositories.onlinetesting.{Phase1TestRepository, Phase1TestRepository2}
+import services.onlinetesting.phase1.{Phase1TestService, Phase1TestService2}
 import services.testdata.candidate.ConstructiveGenerator
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,18 +29,18 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestsCompletedStatusGenerator extends Phase1TestsCompletedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsStartedStatusGenerator
-  override val otRepository = phase1TestRepository
-  override val otService = Phase1TestService
+  override val otRepository = phase1TestRepository2
+  override val otService = Phase1TestService2
 }
 
 trait Phase1TestsCompletedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase1TestRepository
-  val otService: Phase1TestService
+  val otRepository: Phase1TestRepository2
+  val otService: Phase1TestService2
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.testId))(id => otService.markAsCompleted(id))
+      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.testId))(id => otService.markAsCompleted2(id))
     } yield candidate
   }
 }

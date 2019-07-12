@@ -219,6 +219,11 @@ trait MicroserviceAppConfig extends ServicesConfig {
   lazy val testDataGeneratorCubiksSecret = app.configuration.getString(secretsFileCubiksUrlKey).
     getOrElse(fetchSecretConfigKeyFromFile("cubiks.url"))
 
+  private val secretsFileTestPsiUrlKey = "microservice.services.test-integration-gateway.testdata.url"
+  lazy val testDataGeneratorPsiSecret = app.configuration.getString(secretsFileTestPsiUrlKey).
+    getOrElse(fetchSecretConfigKeyFromFile("test-integration-gateway.url"))
+
+
   private def fetchSecretConfigKeyFromFile(key: String): String = {
     val path = System.getProperty("user.home") + "/.csr/.secrets"
     val testConfig = ConfigFactory.parseFile(new File(path))

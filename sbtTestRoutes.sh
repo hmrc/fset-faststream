@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sbt -J-Dapplication.router=testOnlyDoNotUseInAppConf.Routes -Dhttp.port=8101
+sbt -jvm-debug 7101 -J-Dapplication.router=testOnlyDoNotUseInAppConf.Routes -Dhttp.port=8101
