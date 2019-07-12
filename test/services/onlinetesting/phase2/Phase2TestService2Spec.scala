@@ -215,13 +215,17 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
 
     val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase2"
     val inventoryIds: Map[String, String] = Map[String, String]("test3" -> "test3-uuid", "test4" -> "test4-uuid")
+    val testIds = NumericalTestIds("inventory-id", Option("assessment-id"), Option("report-id"), Option("norm-id"))
+    val tests = Map[String, NumericalTestIds]("test1" -> testIds)
+
+    val mockNumericalTestsConfig2 = NumericalTestsConfig2(tests, List("test1"))
     val integrationConfigMock = TestIntegrationGatewayConfig(
       url = "",
       phase1Tests = Phase1TestsConfig2(
         5, inventoryIds, List("test1", "test2", "test2", "test4"), List("test1", "test4")
       ),
       phase2Tests = Phase2TestsConfig2(5, 90, inventoryIds, List("test3", "test4")),
-      numericalTests = NumericalTestsConfig2(inventoryIds, List("test1")),
+      numericalTests = mockNumericalTestsConfig2,
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",
       emailDomain = "test.com"
