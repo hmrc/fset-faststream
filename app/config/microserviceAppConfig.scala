@@ -142,8 +142,9 @@ case object NumericalTestsConfig {
   val numericalTestScheduleName = "numericalTest"
 }
 
-case class NumericalTestsConfig2(inventoryIds: Map[String, String],
-                                 tests: List[String])
+case class NumericalTestIds(inventoryId: String, assessmentId: Option[String],
+                            reportId: Option[String], normId: Option[String])
+case class NumericalTestsConfig2(tests: Map[String, NumericalTestIds], standard: List[String])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int

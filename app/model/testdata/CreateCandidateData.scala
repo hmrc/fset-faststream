@@ -188,7 +188,11 @@ object CreateCandidateData {
     def apply(o: PersonalDataRequest, generatorId: Int): PersonalData = {
       val default = PersonalData()
       val fname = o.firstName.getOrElse(Random.getFirstname(generatorId))
-      val emailPrefix = o.emailPrefix.map(e => if (generatorId > 1) { s"$e-$generatorId" } else { e })
+      val emailPrefix = o.emailPrefix.map(e => if (generatorId > 1) {
+        s"$e-$generatorId"
+      } else {
+        e
+      })
 
       PersonalData(
         emailPrefix = emailPrefix.getOrElse(s"tesf${Random.number()}-$generatorId"),

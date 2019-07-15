@@ -17,7 +17,7 @@
 package services
 
 import config.MicroserviceAppConfig.{ onlineTestsGatewayConfig, testIntegrationGatewayConfig }
-import config.{ NumericalTestSchedule, NumericalTestsConfig, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import config.{ NumericalTestIds, NumericalTestSchedule, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, EmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
@@ -28,7 +28,6 @@ import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
 import model.persisted.{ CubiksTest, Phase2TestGroupWithAppId2, PsiTest }
 import model.persisted.sift.{ MaybeSiftTestGroupWithAppId2, SiftTestGroup, SiftTestGroup2, SiftTestGroupWithAppId }
 import model.stc.DataStoreEvents
-import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.{ SchemeRepository, SchemeYamlRepository }
@@ -81,14 +80,14 @@ trait NumericalTestService2 extends EventSink {
 
   def registerAndInviteForTests(applications: List[NumericalTestApplication2])
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    val name = integrationGatewayConfig.numericalTests.tests.head // only one test for numerical tests
-    val inventoryId = integrationGatewayConfig.numericalTests.inventoryIds
+    val name = integrationGatewayConfig.numericalTests.standard.head // only one test for numerical tests
+    val inventoryId = integrationGatewayConfig.numericalTests.tests
       .getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
 
     registerAndInvite(applications, inventoryId)
   }
 
-  private def registerAndInvite(applications: List[NumericalTestApplication2], inventoryId: String)
+  private def registerAndInvite(applications: List[NumericalTestApplication2], testIds: NumericalTestIds)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     applications match {
@@ -96,7 +95,7 @@ trait NumericalTestService2 extends EventSink {
       case candidates =>
         val registrations = candidates.map { candidate =>
           for {
-            test <- registerPsiApplicant(candidate, inventoryId)
+            test <- registerPsiApplicant(candidate, testIds)
             _ <- insertNumericalTest(candidate, test)
             _ <- emailInvitedCandidate(candidate)
             _ <- updateProgressStatuses(List(candidate.applicationId), SIFT_TEST_INVITED)
@@ -109,19 +108,19 @@ trait NumericalTestService2 extends EventSink {
     }
   }
 
-  private def registerPsiApplicant(application: NumericalTestApplication2, inventoryId: String)
+  private def registerPsiApplicant(application: NumericalTestApplication2, testIds: NumericalTestIds)
                                   (implicit hc: HeaderCarrier): Future[PsiTest] = {
     for {
-      aoa <- registerApplicant(application, inventoryId)
+      aoa <- registerApplicant(application, testIds)
     } yield {
       if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
         val msg = s"Received response status of ${aoa.status} when registering candidate " +
-          s"${application.applicationId} to phase1 tests whose inventoryId=$inventoryId"
+          s"${application.applicationId} to phase1 tests with=$testIds"
         Logger.warn(msg)
         throw new RuntimeException(msg)
       } else {
         PsiTest(
-          inventoryId = inventoryId,
+          inventoryId = testIds.inventoryId,
           orderId = aoa.orderId,
           usedForResults = true,
           testUrl = aoa.testLaunchUrl,
@@ -131,7 +130,7 @@ trait NumericalTestService2 extends EventSink {
     }
   }
 
-  private def registerApplicant(application: NumericalTestApplication2, inventoryId: String)
+  private def registerApplicant(application: NumericalTestApplication2, testIds: NumericalTestIds)
                                (implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
 
     val orderId = tokenFactory.generateUUID()
@@ -139,13 +138,16 @@ trait NumericalTestService2 extends EventSink {
     val lastName = CubiksSanitizer.sanitizeFreeText(application.lastName)
 
     val registerCandidateRequest = RegisterCandidateRequest(
-      inventoryId = inventoryId, // Read from config to identify the test we are registering for
+      inventoryId = testIds.inventoryId, // Read from config to identify the test we are registering for
       orderId = orderId, // Identifier we generate to uniquely identify the test
       accountId = application.testAccountId, // Candidate's account across all tests
       preferredName = preferredName,
       lastName = lastName,
       // The url psi will redirect to when the candidate completes the test
-      redirectionUrl = buildRedirectionUrl(orderId, inventoryId)
+      redirectionUrl = buildRedirectionUrl(orderId, testIds.inventoryId),
+      assessmentId = testIds.assessmentId,
+      reportId = testIds.reportId,
+      normId = testIds.normId
     )
 
     onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)

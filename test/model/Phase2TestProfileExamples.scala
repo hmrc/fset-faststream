@@ -29,6 +29,8 @@ object Phase2TestProfileExamples {
 
   def profile(implicit now: DateTime) = Phase2TestGroup(now, List(getEtrayTest))
 
+  def profile2(implicit now: DateTime) = Phase2TestGroup2(now, List(firstP2PsiTest))
+
   val phase2Test = List(CubiksTest(16196, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000))
   val phase2TestWithResult = phase2TestWithResults(TestResult("Ready", "norm", Some(20.5), None, None, None))
 
