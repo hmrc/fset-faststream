@@ -32,14 +32,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object PsiTestsController extends PsiTestsController {
   override val phase1TestService2 = Phase1TestService2
   override val phase2TestService2 = Phase2TestService2
-  val numericalTestService: NumericalTestService2 = NumericalTestService2
+  val numericalTestService2: NumericalTestService2 = NumericalTestService2
   val eventService = StcEventService
 }
 
 trait PsiTestsController extends BaseController {
   val phase1TestService2: Phase1TestService2
   val phase2TestService2: Phase2TestService2
-  val numericalTestService: NumericalTestService2
+  val numericalTestService2: NumericalTestService2
   val eventService: StcEventService
 
 
@@ -66,7 +66,7 @@ trait PsiTestsController extends BaseController {
       .recoverWith { case _: CannotFindTestByOrderId =>
           phase2TestService2.markAsCompleted2(orderId).recoverWith {
             case _: CannotFindTestByOrderId =>
-                numericalTestService.markAsCompletedByOrderId(orderId)
+                numericalTestService2.markAsCompletedByOrderId(orderId)
             }
       }.map(_ => Ok).recover(recoverNotFound)
   }
@@ -103,7 +103,7 @@ trait PsiTestsController extends BaseController {
         .recoverWith { case _: CannotFindTestByOrderId =>
           phase2TestService2.storeRealTimeResults(orderId, realTimeResults).recoverWith {
             case _: CannotFindTestByOrderId =>
-              numericalTestService.storeRealTimeResults(orderId, realTimeResults)
+              numericalTestService2.storeRealTimeResults(orderId, realTimeResults)
           }
         }.map(_ => Ok).recover(recoverNotFound)
     }
