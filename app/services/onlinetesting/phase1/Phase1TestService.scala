@@ -25,7 +25,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
 import model._
-import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
+import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames, PsiRealTimeResults }
 import model.persisted.{ CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, TestResult => _, _ }
 import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
@@ -143,6 +143,13 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
   }
+
+  // New PSI based method should not be implemented by cubiks based class
+  override def registerAndInvite(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+
+  // New PSI based method should not be implemented by cubiks based class
+  override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     testRepository.nextExpiringApplication(expiryTest).flatMap {

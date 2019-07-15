@@ -160,7 +160,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(otRepositoryMock2.insertPsiTests(any[String], any[Phase1TestProfile2])).thenReturn(Future.successful(()))
 
       val result = phase1TestService
-        .registerAndInviteForPsi(List(onlineTestApplication.copy(guaranteedInterview = true)))
+        .registerAndInvite(List(onlineTestApplication.copy(guaranteedInterview = true)))
 
       result.futureValue mustBe unit
 
@@ -182,7 +182,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(otRepositoryMock2.insertPsiTests(any[String], any[Phase1TestProfile2])).thenReturn(Future.successful(()))
 
       val result = phase1TestService
-        .registerAndInviteForPsi(List(onlineTestApplication.copy(guaranteedInterview = false)))
+        .registerAndInvite(List(onlineTestApplication.copy(guaranteedInterview = false)))
 
       result.futureValue mustBe unit
 
@@ -202,7 +202,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).
         thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
 
-      val result = phase1TestService.registerAndInviteForPsi(onlineTestApplication :: Nil)
+      val result = phase1TestService.registerAndInvite(onlineTestApplication :: Nil)
       result.failed.futureValue mustBe a[ConnectorException]
 
       verify(auditServiceMock, times(0)).logEventNoRequest(any[String], any[Map[String, String]])
@@ -219,7 +219,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(cdRepositoryMock.find(anyString())).thenReturn(Future.failed(new Exception))
 
 
-      val result = phase1TestService.registerAndInviteForPsi(List(onlineTestApplication))
+      val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
       result.failed.futureValue mustBe an[Exception]
 
       verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
@@ -243,7 +243,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       )(any[HeaderCarrier]))
         .thenReturn(Future.failed(new Exception))
 
-      val result = phase1TestService.registerAndInviteForPsi(List(onlineTestApplication))
+      val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
       result.failed.futureValue mustBe an[Exception]
 
       verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
@@ -265,7 +265,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2]))
         .thenReturn(Future.successful(()))
 
-      val result = phase1TestService.registerAndInviteForPsi(List(onlineTestApplication))
+      val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
       result.futureValue mustBe unit
 
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(

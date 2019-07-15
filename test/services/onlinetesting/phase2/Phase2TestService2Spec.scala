@@ -105,7 +105,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
           .thenReturn(Future.successful(aoa))
 
-      phase2TestService.registerAndInviteForPsi(candidates).futureValue
+      phase2TestService.registerAndInvite(candidates).futureValue
 
       verify(otRepositoryMock2, times(4)).insertPsiTests(any[String], any[Phase2TestGroup2])
       verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
