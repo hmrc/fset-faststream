@@ -63,6 +63,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   // Temporary provide a default implementation so we dont have to implement this for all phases
+  //TODO: this method needs to be renamed to registerAndInvite as it also needs to cover p3 launchpad as well as psi
   def registerAndInviteForPsi(applications: List[OnlineTestApplication])
                              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
   // Temporary provide a default implementation so we dont have to implement this for all phases

@@ -101,6 +101,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
+  // Redirect the impl to the P3 specific version
+  override def registerAndInviteForPsi(applications: List[OnlineTestApplication])
+                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = registerAndInviteForTestGroup(applications)
+
+
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier,
                                              rh: RequestHeader): Future[Unit] =
