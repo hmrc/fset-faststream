@@ -37,7 +37,7 @@ object CreateCandidateResponse {
     diversityDetails: Option[List[QuestionnaireQuestion]] = None,
     assistanceDetails: Option[AssistanceDetails] = None,
     phase1TestGroup: Option[TestGroupResponse2] = None,
-    phase2TestGroup: Option[TestGroupResponse] = None,
+    phase2TestGroup: Option[TestGroupResponse2] = None,
     phase3TestGroup: Option[TestGroupResponse] = None,
     fsbTestGroup: Option[FsbTestGroupResponse] = None,
     siftForms: Option[Seq[SiftForm]] = None,

@@ -102,7 +102,7 @@ object CreateCandidateData {
   }
 
   trait TestResult {
-    def tscore: Option[Double]
+    def scores: List[Double]
   }
 
   case class Phase1TestData(
@@ -129,7 +129,7 @@ object CreateCandidateData {
                              start: Option[DateTime] = None,
                              expiry: Option[DateTime] = None,
                              completion: Option[DateTime] = None,
-                             tscore: Option[Double] = None,
+                             scores: List[Double] = Nil,
                              passmarkEvaluation: Option[PassmarkEvaluation] = None
                            ) extends TestDates with TestResult
 
@@ -139,7 +139,7 @@ object CreateCandidateData {
         start = o.start.map(DateTime.parse),
         expiry = o.expiry.map(DateTime.parse),
         completion = o.completion.map(DateTime.parse),
-        tscore = o.tscore.map(_.toDouble),
+        scores = o.scores.map(_.toDouble),
         passmarkEvaluation = o.passmarkEvaluation
       )
     }

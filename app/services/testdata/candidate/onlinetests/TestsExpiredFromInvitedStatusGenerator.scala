@@ -21,7 +21,7 @@ import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase1.{Phase1TestService, Phase1TestService2}
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase2.{Phase2TestService, Phase2TestService2}
 import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.phase1.Phase1TestsInvitedStatusGenerator
@@ -39,7 +39,7 @@ object Phase1TestsExpiredFromInvitedStatusGenerator extends TestsExpiredFromInvi
 
 object Phase2TestsExpiredFromInvitedStatusGenerator extends TestsExpiredFromInvitedStatusGenerator {
   override val previousStatusGenerator = Phase2TestsInvitedStatusGenerator
-  override val otService = Phase2TestService
+  override val otService = Phase2TestService2
   override val expiredStatus = PHASE2_TESTS_EXPIRED
 }
 

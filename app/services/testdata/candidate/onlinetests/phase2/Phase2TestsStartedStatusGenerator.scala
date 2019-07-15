@@ -23,7 +23,8 @@ import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase1.Phase1TestService2
+import services.onlinetesting.phase2.{Phase2TestService, Phase2TestService2}
 import services.testdata.candidate.ConstructiveGenerator
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,19 +34,19 @@ import uk.gov.hmrc.http.HeaderCarrier
 object Phase2TestsStartedStatusGenerator extends Phase2TestsStartedStatusGenerator {
   override val previousStatusGenerator = Phase2TestsInvitedStatusGenerator
   override val otRepository = phase2TestRepository
-  override val otService = Phase2TestService
+  override val otService = Phase2TestService2
 }
 
 trait Phase2TestsStartedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase2TestRepository
-  val otService: Phase2TestService
+  val otService: Phase2TestService2
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
       (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.testId))(id =>
-        otService.markAsStarted(id, generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now))
+      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.orderId))(orderId =>
+        otService.markAsStarted2(orderId, generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now))
       )
     } yield candidate
   }

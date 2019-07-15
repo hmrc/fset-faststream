@@ -24,7 +24,7 @@ import repositories._
 import repositories.onlinetesting.OnlineTestRepository
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase1.{Phase1TestService, Phase1TestService2}
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase2.{Phase2TestService, Phase2TestService2}
 import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.phase1.Phase1TestsStartedStatusGenerator
@@ -43,8 +43,8 @@ object Phase1TestsExpiredFromStartedStatusGenerator extends TestsExpiredFromStar
 
 object Phase2TestsExpiredFromStartedStatusGenerator extends TestsExpiredFromStartedStatusGenerator {
   override val previousStatusGenerator = Phase2TestsStartedStatusGenerator
-  override val otRepository = phase2TestRepository
-  override val otService = Phase2TestService
+  override val otRepository = phase2TestRepository2
+  override val otService = Phase2TestService2
   override val expiredStatus = PHASE2_TESTS_EXPIRED
 }
 
