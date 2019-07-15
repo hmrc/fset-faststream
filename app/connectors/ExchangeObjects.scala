@@ -52,15 +52,17 @@ object ExchangeObjects {
   object UserAuthInfo { implicit val format: OFormat[UserAuthInfo] = Json.format[UserAuthInfo] }
 
   // PSI gateway requests
-  case class RegisterCandidateRequest(
-                                       inventoryId: String, // Read from config to identify the test we are registering for
-                                       orderId: String, // Identifier we generate to uniquely identify the test
-                                       accountId: String, // Candidate's account across all tests
-                                       preferredName: String,
-                                       lastName: String,
-                                       redirectionUrl: String,
-                                       adjustment: Option[TestAdjustment] = None
-                                     )
+  case class RegisterCandidateRequest(inventoryId: String, // Read from config to identify the test we are registering for
+                                      orderId: String, // Identifier we generate to uniquely identify the test
+                                      accountId: String, // Candidate's account across all tests
+                                      preferredName: String,
+                                      lastName: String,
+                                      redirectionUrl: String,
+                                      assessmentId: Option[String] = None,
+                                      reportId: Option[String] = None,
+                                      normId: Option[String] = None,
+                                      adjustment: Option[TestAdjustment] = None)
+
   object RegisterCandidateRequest {
     implicit val registerCandidateRequest = Json.format[RegisterCandidateRequest]
   }
