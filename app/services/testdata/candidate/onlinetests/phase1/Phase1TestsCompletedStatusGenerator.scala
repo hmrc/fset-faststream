@@ -40,7 +40,7 @@ trait Phase1TestsCompletedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.testId))(id => otService.markAsCompleted2(id))
+      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.orderId))(otService.markAsCompleted2(_))
     } yield candidate
   }
 }

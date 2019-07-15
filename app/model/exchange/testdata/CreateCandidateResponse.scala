@@ -72,7 +72,7 @@ object CreateCandidateResponse {
 
   case class TestResponse(testId: Int, testType: String, token: String, testUrl: String)
 
-  case class TestResponse2(testId: String, testType: String, token: String, testUrl: String)
+  case class TestResponse2(inventoryId: String, orderId: String, testUrl: String)
 
   object TestResponse {
     implicit val testResponseFormat: OFormat[TestResponse] = Json.format[TestResponse]

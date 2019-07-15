@@ -68,7 +68,7 @@ object CreateCandidateRequest {
                                     start: Option[String] = None,
                                     expiry: Option[String] = None,
                                     completion: Option[String] = None,
-    scores: List[String] = Nil,
+                                    scores: List[String] = Nil,
                                     passmarkEvaluation: Option[PassmarkEvaluation] = None
                                   ) extends TestDatesRequest
 

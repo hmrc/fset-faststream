@@ -44,8 +44,8 @@ trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
       (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.testId))(id =>
-        otService.markAsStarted2(id, generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now))
+      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.orderId))(orderId =>
+        otService.markAsStarted2(orderId, generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now))
       )
     } yield candidate
   }

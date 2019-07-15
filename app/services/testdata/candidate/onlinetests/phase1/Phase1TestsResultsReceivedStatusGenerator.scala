@@ -46,9 +46,8 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
       scores <- Future.successful(generatorConfig.phase1TestData.getOrElse(
         Phase1TestData(scores = List(10.0, 20.0, 30.0, 40.0))).scores)
       pairs <- Future.successful(candidate.phase1TestGroup.get.tests zip scores)
-      _ <- FutureEx.traverseSerial(pairs)(pair =>
-        otService.storeRealTimeResults(pair._1.testId, PsiRealTimeResults(pair._2, pair._2, Some("http://localhost/testReport"))))
+      _ <- FutureEx.traverseSerial(pairs){ case (test, score) =>
+        otService.storeRealTimeResults(test.orderId, PsiRealTimeResults(score, score, Some("http://localhost/testReport")))}
     } yield candidate
-    // TODO: Maybe add some information about what is going on in the response
   }
 }

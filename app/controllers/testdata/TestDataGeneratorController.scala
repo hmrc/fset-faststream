@@ -281,10 +281,7 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  //private lazy val cubiksUrlFromConfig: String = MicroserviceAppConfig.testDataGeneratorCubiksSecret
-
-  private lazy val psiUrlFromConfig: String = MicroserviceAppConfig.testDataGeneratorPsiSecret
-
+  private lazy val psiUrlFromConfig: String = MicroserviceAppConfig.testIntegrationGatewayConfig.url
 
   def createCandidatesPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateRequest] { createRequest =>

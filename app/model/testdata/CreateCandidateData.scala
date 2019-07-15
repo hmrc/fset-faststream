@@ -109,7 +109,7 @@ object CreateCandidateData {
                              start: Option[DateTime] = None,
                              expiry: Option[DateTime] = None,
                              completion: Option[DateTime] = None,
-      scores: List[Double] = Nil,
+                             scores: List[Double] = Nil,
                              passmarkEvaluation: Option[PassmarkEvaluation] = None
                            ) extends TestDates
 

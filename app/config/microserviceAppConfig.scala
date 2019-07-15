@@ -200,7 +200,6 @@ trait MicroserviceAppConfig extends ServicesConfig {
   val AllLocations = Location("All")
   val AllVenues = Venue("ALL_VENUES", "All venues")
 
-
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
     underlyingConfiguration
       .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")
@@ -214,23 +213,4 @@ trait MicroserviceAppConfig extends ServicesConfig {
   override def mode = Play.current.mode
 
   override def runModeConfiguration = Play.current.configuration
-
-  private val secretsFileCubiksUrlKey = "microservice.services.cubiks-gateway.testdata.url"
-  lazy val testDataGeneratorCubiksSecret = app.configuration.getString(secretsFileCubiksUrlKey).
-    getOrElse(fetchSecretConfigKeyFromFile("cubiks.url"))
-
-  private val secretsFileTestPsiUrlKey = "microservice.services.test-integration-gateway.testdata.url"
-  lazy val testDataGeneratorPsiSecret = app.configuration.getString(secretsFileTestPsiUrlKey).
-    getOrElse(fetchSecretConfigKeyFromFile("test-integration-gateway.url"))
-
-
-  private def fetchSecretConfigKeyFromFile(key: String): String = {
-    val path = System.getProperty("user.home") + "/.csr/.secrets"
-    val testConfig = ConfigFactory.parseFile(new File(path))
-    if (testConfig.isEmpty) {
-      throw new IllegalArgumentException(s"No key found at '$secretsFileCubiksUrlKey' and .secrets file does not exist.")
-    } else {
-      testConfig.getString(s"testdata.$key")
-    }
-  }
 }

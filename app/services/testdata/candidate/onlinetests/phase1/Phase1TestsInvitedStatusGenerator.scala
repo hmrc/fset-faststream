@@ -18,7 +18,7 @@ package services.testdata.candidate.onlinetests.phase1
 
 import config.MicroserviceAppConfig.{onlineTestsGatewayConfig, testIntegrationGatewayConfig}
 import config.{OnlineTestsGatewayConfig, TestIntegrationGatewayConfig}
-import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse, TestGroupResponse2, TestResponse, TestResponse2}
+import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
 import model.persisted.{Phase1TestProfile2, PsiTest}
 import model.testdata.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
@@ -38,6 +38,7 @@ object Phase1TestsInvitedStatusGenerator extends Phase1TestsInvitedStatusGenerat
 }
 
 trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
+  private val OneDay = 86400000
   val otRepository: Phase1TestRepository2
   val gatewayConfig: OnlineTestsGatewayConfig
   val onlineTestGatewayConfig2: TestIntegrationGatewayConfig
@@ -50,36 +51,33 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       onlineTestGatewayConfig2.phase1Tests.standard
     }
 
-    val testsIndices = (1 to testsNames.size).toList
-    val testsZipped = testsIndices zip testsNames
-    val testsToGenerate = testsZipped.map(testPairWithName =>
-      (testPairWithName._1, onlineTestGatewayConfig2.phase1Tests.inventoryIds(testPairWithName._2))).map(testPairWithInventoryId => {
+  val psiTests = testsNames.map{ testName =>
+  (testName, onlineTestGatewayConfig2.phase1Tests.inventoryIds(testName))
+    }.map { case (testName, inventoryId) => {
       val orderId = java.util.UUID.randomUUID.toString
       val test = PsiTest(
-        inventoryId = testPairWithInventoryId._2,
+        inventoryId = inventoryId,
         orderId = orderId,
         usedForResults = true,
-        testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/test${testPairWithInventoryId._1}?key=$orderId",
+        testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/${testName}?key=$orderId",
         invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now()).
-          withDurationAdded(86400000, -1),
+          withDurationAdded(OneDay, -1),
         resultsReadyToDownload = false
       )
       test
     }
-    )
+    }
 
     val phase1TestProfile2 = Phase1TestProfile2(
       expirationDate = generatorConfig.phase1TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
-      tests = testsToGenerate
+      tests = psiTests
     )
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile2)
     } yield {
-      // TODO: Set good values
-      val testToGenerateZipped = testsIndices zip testsToGenerate
-      val testResponses = testToGenerateZipped.map(test => TestResponse2(test._2.orderId, s"${test._1}", "TodoToken", test._2.testUrl))
+      val testResponses = psiTests.map(test => TestResponse2(test.inventoryId, test.orderId, test.testUrl))
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
         TestGroupResponse2(
           testResponses,
