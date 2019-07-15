@@ -205,8 +205,8 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     registerAndInviteForTestGroup(List(application))
   }
 
-  override def registerAndInviteForPsi(applications: List[OnlineTestApplication])
-                                      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def registerAndInvite(applications: List[OnlineTestApplication])
+                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(applications)
   }
 

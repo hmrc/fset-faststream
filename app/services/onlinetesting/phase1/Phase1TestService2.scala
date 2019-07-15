@@ -74,8 +74,8 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   val delaySecsBetweenRegistrations = 1
 
   //// psi code start
-  override def registerAndInviteForPsi(applications: List[OnlineTestApplication])
-                                      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def registerAndInvite(applications: List[OnlineTestApplication])
+                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     Future.sequence(applications.map { application =>
       registerAndInviteForTestGroup2(application)
     }).map(_ => ())

@@ -29,7 +29,7 @@ import model.ProgressStatuses._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
-import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
+import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest, PsiRealTimeResults }
 import model.persisted._
 import model.{ ApplicationStatus, _ }
 import org.joda.time.DateTime
@@ -266,6 +266,13 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
       }
     }
   }
+
+  // New PSI based method should not be implemented by cubiks based class
+  override def registerAndInvite(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+
+  // New PSI based method should not be implemented by cubiks based class
+  override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   private def processEtrayToken(phase: Option[Phase2TestGroup], accessCode: String): Try[String] = {
     phase.fold[Try[String]](Failure(new NotFoundException(Some("No Phase2TestGroup found")))){

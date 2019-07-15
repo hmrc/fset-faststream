@@ -62,7 +62,7 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
         implicit val hc = HeaderCarrier()
         implicit val rh = EmptyRequestHeader
 //        onlineTestingService.registerAndInviteForTestGroup(applications)
-        onlineTestingService.registerAndInviteForPsi(applications)
+        onlineTestingService.registerAndInvite(applications)
     }
   }
 }
