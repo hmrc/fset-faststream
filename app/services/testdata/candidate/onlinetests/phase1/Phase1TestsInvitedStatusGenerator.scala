@@ -34,25 +34,25 @@ object Phase1TestsInvitedStatusGenerator extends Phase1TestsInvitedStatusGenerat
   override val previousStatusGenerator = SubmittedStatusGenerator
   override val otRepository = phase1TestRepository2
   override val gatewayConfig = onlineTestsGatewayConfig
-  override val onlineTestGatewayConfig2 = testIntegrationGatewayConfig
+  override val onlineTestGatewayConfig = testIntegrationGatewayConfig
 }
 
 trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
   private val OneDay = 86400000
   val otRepository: Phase1TestRepository2
   val gatewayConfig: OnlineTestsGatewayConfig
-  val onlineTestGatewayConfig2: TestIntegrationGatewayConfig
+  val onlineTestGatewayConfig: TestIntegrationGatewayConfig
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     val testsNames = if (generatorConfig.assistanceDetails.setGis) {
-      onlineTestGatewayConfig2.phase1Tests.gis
+      onlineTestGatewayConfig.phase1Tests.gis
     } else {
-      onlineTestGatewayConfig2.phase1Tests.standard
+      onlineTestGatewayConfig.phase1Tests.standard
     }
 
   val psiTests = testsNames.map{ testName =>
-  (testName, onlineTestGatewayConfig2.phase1Tests.inventoryIds(testName))
+  (testName, onlineTestGatewayConfig.phase1Tests.inventoryIds(testName))
     }.map { case (testName, inventoryId) => {
       val orderId = java.util.UUID.randomUUID.toString
       val test = PsiTest(

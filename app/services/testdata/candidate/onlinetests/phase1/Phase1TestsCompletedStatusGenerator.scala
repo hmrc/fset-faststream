@@ -20,12 +20,12 @@ import common.FutureEx
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.onlinetesting.{Phase1TestRepository, Phase1TestRepository2}
-import services.onlinetesting.phase1.{Phase1TestService, Phase1TestService2}
+import repositories.onlinetesting.Phase1TestRepository2
+import services.onlinetesting.phase1.Phase1TestService2
 import services.testdata.candidate.ConstructiveGenerator
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestsCompletedStatusGenerator extends Phase1TestsCompletedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsStartedStatusGenerator

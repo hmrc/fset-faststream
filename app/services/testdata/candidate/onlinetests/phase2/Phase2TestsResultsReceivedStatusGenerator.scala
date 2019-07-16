@@ -20,8 +20,6 @@ import common.FutureEx
 import model.exchange.PsiRealTimeResults
 import model.testdata.CreateCandidateData.{CreateCandidateData, Phase2TestData}
 import play.api.mvc.RequestHeader
-import repositories._
-import repositories.onlinetesting.Phase2TestRepository
 import services.onlinetesting.phase2.Phase2TestService2
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
@@ -42,8 +40,7 @@ trait Phase2TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       scores <- Future.successful(generatorConfig.phase2TestData.getOrElse(
         Phase2TestData(scores = List(11.0, 22.0))).scores)
-      pairs <- Future.successful(candidate.phase2TestGroup.get.tests zip scores)
-      _ <- FutureEx.traverseSerial(pairs) { case (test, score) =>
+      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests zip scores) { case (test, score) =>
         otService.storeRealTimeResults(test.orderId, PsiRealTimeResults(score, score, Some("http://localhost/testReport")))
       }
     } yield candidate

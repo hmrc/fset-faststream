@@ -16,53 +16,48 @@
 
 package services.testdata.candidate.onlinetests.phase2
 
-import java.util.UUID
-
-import config.{OnlineTestsGatewayConfig, TestIntegrationGatewayConfig}
-import config.MicroserviceAppConfig.{onlineTestsGatewayConfig, testIntegrationGatewayConfig}
+import config.MicroserviceAppConfig.testIntegrationGatewayConfig
+import config.TestIntegrationGatewayConfig
 import model.Adjustments
-import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse, TestGroupResponse2, TestResponse, TestResponse2}
-import model.persisted.{CubiksTest, Phase2TestGroup, Phase2TestGroup2, PsiTest}
+import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
+import model.persisted.{Phase2TestGroup2, PsiTest}
 import model.testdata.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.onlinetesting.{Phase2TestRepository, Phase2TestRepository2}
+import repositories.onlinetesting.Phase2TestRepository2
 import services.testdata.candidate.ConstructiveGenerator
-import services.testdata.faker.DataFaker._
 import services.testdata.candidate.onlinetests.Phase1TestsPassedStatusGenerator
+import services.testdata.faker.DataFaker._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase2TestsInvitedStatusGenerator extends Phase2TestsInvitedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsPassedStatusGenerator
   override val otRepository = phase2TestRepository2
-  override val onlineTestGatewayConfig2 = testIntegrationGatewayConfig
+  override val onlineTestGatewayConfig = testIntegrationGatewayConfig
 }
 
 trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase2TestRepository2
-  val onlineTestGatewayConfig2: TestIntegrationGatewayConfig
+  val onlineTestGatewayConfig: TestIntegrationGatewayConfig
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-
-    val psiTests = onlineTestGatewayConfig2.phase2Tests.tests.map { testName =>
-      (testName, onlineTestGatewayConfig2.phase2Tests.inventoryIds(testName))
+    val psiTests = onlineTestGatewayConfig.phase2Tests.tests.map { testName =>
+      (testName, onlineTestGatewayConfig.phase2Tests.inventoryIds(testName))
     }.map { case (testName, inventoryId) => {
       val orderId = java.util.UUID.randomUUID.toString
-      // TODO: Check values
       val test = PsiTest(
         inventoryId = inventoryId,
         orderId = orderId,
         usedForResults = true,
-        // TODO: right URL?
         testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/${testName}?key=$orderId",
         invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now()).plusDays(-1),
         resultsReadyToDownload = false,
         invigilatedAccessCode = generatorConfig.adjustmentInformation.flatMap { adjustments =>
-          if (isInvigilatedETray(adjustments)) {
+          if (isInvigilated(adjustments)) {
             Some(Random.accessCode)
           } else {
             None
@@ -78,7 +73,6 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
       tests = psiTests
     )
 
-    // TODO: Invigilated? Is still relevant?
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase2TestGroup)
@@ -94,10 +88,9 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
     }
   }
 
-  def isInvigilatedETray(adjustments: Adjustments) = {
+  def isInvigilated(adjustments: Adjustments) = {
     val isConfirmed = adjustments.adjustmentsConfirmed.contains(true)
-    // TODO: etray?
-    val hasInvigilatedETray = adjustments.etray.exists(_.invigilatedInfo.isDefined)
-    isConfirmed && hasInvigilatedETray
+    val hasInvigilated = adjustments.etray.exists(_.invigilatedInfo.isDefined)
+    isConfirmed && hasInvigilated
   }
 }
