@@ -124,7 +124,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   // New PSI based method should not be implemented by launchpad based class
   override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
-  
+
   override def nextTestGroupWithReportReady: Future[Option[Phase3TestGroupWithAppId]] =
     Future.successful(None)
 

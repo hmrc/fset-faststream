@@ -449,8 +449,8 @@ trait NumericalTestService2 extends EventSink {
       ).map(_ => ())
 
     def maybeUpdateProgressStatus(appId: String) = {
-      applicationSiftRepo.getTestGroup2(appId).flatMap { eventualTestGroup =>
-        val testGroup = eventualTestGroup.getOrElse(throw new Exception(s"No sift test group returned for $appId"))
+      applicationSiftRepo.getTestGroup2(appId).flatMap { testGroupOpt =>
+        val testGroup = testGroupOpt.getOrElse(throw new Exception(s"No sift test group returned for $appId"))
 
         val allTestsHavePsiResult = testGroup.tests.isDefined && testGroup.tests.get.forall(_.testResult.isDefined)
         if (allTestsHavePsiResult) {

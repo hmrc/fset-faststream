@@ -130,6 +130,18 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
       status(response) mustBe OK
     }
 
+    "process the numeric test  results" in {
+      when(mockPhase1TestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
+      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      when(mockPhase2TestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
+      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      when(mockNumericalTestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
+      ).thenReturn(Future.successful(()))
+
+      val response = controllerUnderTest.realTimeResults(orderId)(fakeRequest(testResults))
+      status(response) mustBe OK
+    }
+
     "return test not found" in {
       when(mockPhase1TestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
