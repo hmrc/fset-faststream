@@ -17,17 +17,17 @@
 package controllers
 
 import play.api.mvc.Action
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase2.Phase2TestService2
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase2TestGroupController extends Phase2TestGroupController {
-  val phase2TestService = Phase2TestService
+  val phase2TestService = Phase2TestService2
 }
 
 trait Phase2TestGroupController extends BaseController {
-  val phase2TestService: Phase2TestService
+  val phase2TestService: Phase2TestService2
 
   def extend(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>

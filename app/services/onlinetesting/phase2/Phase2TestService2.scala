@@ -205,8 +205,8 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     registerAndInviteForTestGroup(List(application))
   }
 
-  override def registerAndInviteForPsi(applications: List[OnlineTestApplication])
-                                      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def registerAndInvite(applications: List[OnlineTestApplication])
+                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(applications)
   }
 
@@ -554,9 +554,9 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
       ).map( _ => ())
 
     def maybeUpdateProgressStatus(appId: String) = {
-      testRepository2.getTestGroup(appId).flatMap { eventualProfile =>
+      testRepository2.getTestGroup(appId).flatMap { testProfileOpt =>
 
-        val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No test profile returned for $appId"))
+        val latestProfile = testProfileOpt.getOrElse(throw new Exception(s"No test profile returned for $appId"))
         if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
           testRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_ =>
             audit(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}", appId))
@@ -625,7 +625,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     val progressFut = appRepository.findProgress(applicationId)
-    val phase2TestGroup = testRepository.getTestGroup(applicationId)
+    val phase2TestGroup = testRepository2.getTestGroup(applicationId)
       .map(tg => tg.getOrElse(throw new IllegalStateException("Expiration date for Phase 2 cannot be extended. Test group not found.")))
 
     for {
@@ -645,7 +645,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
 
   private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: DateTime,
-                                                     profile: Phase2TestGroup,
+                                                     profile: Phase2TestGroup2,
                                                      progress: ProgressResponse): Option[List[ProgressStatus]] = {
     val shouldRemoveExpired = progress.phase2ProgressResponse.phase2TestsExpired
     val today = dateTimeFactory.nowLocalTimeZone
