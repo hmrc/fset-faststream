@@ -65,13 +65,18 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
       "test4" -> testIds(4)
     )
 
+    val mockPhase1TestConfig = Phase1TestsConfig2(
+      5, tests, List("test1", "test2", "test3", "test4"), List("test1", "test4")
+    )
+    val mockPhase2TestConfig = Phase2TestsConfig2(
+      5, 90, tests, List("test1", "test4")
+    )
+
     val mockNumericalTestsConfig2 = NumericalTestsConfig2(tests, List("test1"))
     val integrationConfig = TestIntegrationGatewayConfig(
       url = "",
-      phase1Tests = Phase1TestsConfig2(
-        5, tests, List("test1", "test2", "test2", "test4"), List("test1", "test4")
-      ),
-      phase2Tests = Phase2TestsConfig2(5, 90, inventoryIds, List("test3", "test4")),
+      phase1Tests = mockPhase1TestConfig,
+      phase2Tests = mockPhase2TestConfig,
       numericalTests = NumericalTestsConfig2(tests, List("test1")),
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",

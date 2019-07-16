@@ -114,8 +114,8 @@ case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
 
 case class Phase2TestsConfig2(expiryTimeInDays: Int,
                               expiryTimeInDaysForInvigilatedETray: Int,
-                              inventoryIds: Map[String, String],
-                              tests: List[String])
+                              tests: Map[String, PsiTestIds],
+                              standard: List[String])
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
                              expiryTimeInDaysForInvigilatedETray: Int,
