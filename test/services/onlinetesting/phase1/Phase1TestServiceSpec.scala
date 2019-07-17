@@ -234,8 +234,8 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     }
 
     "fail if registration fails" in new OnlineTest {
-      when(onlineTestsGatewayClientMock.registerApplicant(any[RegisterApplicant])).
-        thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
+      when(onlineTestsGatewayClientMock.registerApplicant(any[RegisterApplicant]))
+        .thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
 
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
       result.failed.futureValue mustBe a[ConnectorException]
