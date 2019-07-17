@@ -154,8 +154,12 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
     getHaveDegreeAnswer(generatorConfig),
     getUniversityAnswer(generatorConfig),
     getUniversityDegreeCategoryAnswer(generatorConfig),
-    Some(QuestionnaireQuestion("Do you have a parent or guardian that has completed a university degree course or equivalent?",
+    Some(QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?",
       QuestionnaireAnswer(Some(Random.yesNoPreferNotToSay), None, None))
+    ),
+    Some(QuestionnaireQuestion("Do you have a parent or guardian that completed a university degree course, or qualifications " +
+      "below degree level, by the time you were 18?",
+      QuestionnaireAnswer(Some(Random.parentsDegree), None, None))
     ),
     getParentsOccupationDetail(parentsOccupation),
     getEmployeedOrSelfEmployeed(parentsOccupation),

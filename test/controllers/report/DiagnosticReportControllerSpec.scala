@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import repositories.AssessmentScoresMongoRepository
 import repositories.application.DiagnosticReportingRepository
 import testkit.UnitWithAppSpec
 import org.mockito.ArgumentMatchers.any
+import repositories.events.EventsMongoRepository
 import services.assessor.AssessorService
 import testkit.MockitoImplicits.OngoingStubbingExtension
 
@@ -37,17 +38,18 @@ import scala.concurrent.Future
 
 class DiagnosticReportControllerSpec extends UnitWithAppSpec {
 
-  val mockdiagnosticReportRepository: DiagnosticReportingRepository = mock[DiagnosticReportingRepository]
+  val mockDiagnosticReportRepository: DiagnosticReportingRepository = mock[DiagnosticReportingRepository]
   val mockAssessorScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
   val mockReviewerScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
   val mockAuthProvider: AuthProviderClient = mock[AuthProviderClient]
   val mockAssessorService: AssessorService = mock[AssessorService]
+  val mockEventsRepo: EventsMongoRepository = mock[EventsMongoRepository]
 
   "Get application by id" should {
     "return all non-sensitive information about the user application" in new TestFixture {
       val appId = UUIDFactory.generateUUID()
       val expectedApplications = List(Json.obj("applicationId" -> appId, "userId" -> "user1", "frameworkId" -> "FastStream-2016"))
-      when(mockdiagnosticReportRepository.findByApplicationId(appId)).thenReturnAsync(expectedApplications)
+      when(mockDiagnosticReportRepository.findByApplicationId(appId)).thenReturnAsync(expectedApplications)
       when(mockAssessorScoresRepo.find(any[UniqueIdentifier])).thenReturnAsync(None)
       when(mockReviewerScoresRepo.find(any[UniqueIdentifier])).thenReturnAsync(None)
       val result = TestableDiagnosticReportingController.getApplicationByUserId(appId)(createGetUserByIdRequest(
@@ -57,26 +59,27 @@ class DiagnosticReportControllerSpec extends UnitWithAppSpec {
       val resultJson = contentAsJson(result)
 
       val actualApplications = resultJson.as[JsValue]
-      status(result) must be(200)
+      status(result) mustBe OK
       resultJson mustBe JsArray(expectedApplications)
     }
 
     "return NotFound if the user cannot be found" in new TestFixture {
       val IncorrectUserId = "1234"
-      when(mockdiagnosticReportRepository.findByApplicationId(IncorrectUserId)).thenReturn(Future.failed(
+      when(mockDiagnosticReportRepository.findByApplicationId(IncorrectUserId)).thenReturn(Future.failed(
         ApplicationNotFound(IncorrectUserId)
       ))
       val result = TestableDiagnosticReportingController.getApplicationByUserId(IncorrectUserId)(createGetUserByIdRequest(IncorrectUserId)).run
 
-      status(result) must be(NOT_FOUND)
+      status(result) mustBe NOT_FOUND
     }
   }
 
   trait TestFixture extends TestFixtureBase {
     object TestableDiagnosticReportingController extends DiagnosticReportController {
-      val drRepository: DiagnosticReportingRepository = mockdiagnosticReportRepository
+      val drRepository: DiagnosticReportingRepository = mockDiagnosticReportRepository
       val assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository = mockAssessorScoresRepo
       val reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository = mockReviewerScoresRepo
+      val eventsRepo: EventsMongoRepository = mockEventsRepo
 
       val authProvider: AuthProviderClient = mockAuthProvider
       val assessorService: AssessorService = mockAssessorService

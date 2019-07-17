@@ -17,7 +17,7 @@
 package controllers
 
 import model.Exceptions.OptimisticLockException
-import model.persisted.{ CandidateAllocation, eventschedules }
+import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.EventType.EventType
 import model.{ command, exchange }
 import play.api.libs.json.{ JsValue, Json }
@@ -26,7 +26,6 @@ import services.allocation.CandidateAllocationService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 
 object CandidateAllocationController extends CandidateAllocationController {
   val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
@@ -99,7 +98,6 @@ trait CandidateAllocationController extends BaseController {
       }
   }
 
-
   def candidateAllocationsSummary(applicationId: String) = Action.async { implicit request =>
     candidateAllocationService.getCandidateAllocationsSummary(Seq(applicationId)) map {
       res => Ok(Json.toJson(res))
@@ -121,5 +119,4 @@ trait CandidateAllocationController extends BaseController {
   def addNewAttributes() = Action.async { implicit request =>
     candidateAllocationService.updateStructure().map(_ => Ok)
   }
-
 }

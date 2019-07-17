@@ -25,13 +25,15 @@ case class PreSubmittedReportItem(firstName: String,
                                   preferredName: Option[String],
                                   email: String,
                                   applicationStatus: String,
+                                  applicationRoute: String,
                                   progressStatus: Option[String])
 
 object PreSubmittedReportItem {
   implicit val format: OFormat[PreSubmittedReportItem] = Json.format[PreSubmittedReportItem]
 
   def apply(user: Candidate, preferredName: Option[String], app: ApplicationIdsAndStatus): PreSubmittedReportItem = {
-    PreSubmittedReportItem(user.firstName, user.lastName, preferredName, user.email, app.applicationStatus, app.progressStatus)
+    PreSubmittedReportItem(
+      user.firstName, user.lastName, preferredName, user.email, app.applicationStatus, app.applicationRoute, app.progressStatus
+    )
   }
-
 }

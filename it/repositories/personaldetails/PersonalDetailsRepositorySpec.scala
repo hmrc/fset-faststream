@@ -5,7 +5,7 @@ import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetailsExamples._
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
@@ -19,7 +19,7 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
   override val collectionName = CollectionNames.APPLICATION
 
   def repository = new PersonalDetailsMongoRepository(DateTimeFactory)
-  def appRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
+  def appRepository = new GeneralApplicationMongoRepository(DateTimeFactory, onlineTestsGatewayConfig)
 
   "update candidate" should {
     "modify the details and find the personal details successfully" in {

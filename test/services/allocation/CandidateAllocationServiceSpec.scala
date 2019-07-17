@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,11 +39,12 @@ import testkit.MockitoImplicits._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
+import testkit.ExtendedTimeout
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class CandidateAllocationServiceSpec extends BaseServiceSpec {
+class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout{
   "Allocate candidate" must {
     "save allocation if non already exists" in new TestFixture {
       val eventId = "E1"
@@ -92,8 +93,10 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
     "return all candidates except no-shows" in new TestFixture {
 
       private val fsacIndicator = model.FSACIndicator("","")
-      private val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsacIndicator, DateTime.now())
-      private val c2 = CandidateEligibleForEvent("app2", "", "", needsAdjustment = true, fsacIndicator, DateTime.now())
+      private val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
+        fsacIndicator, DateTime.now())
+      private val c2 = CandidateEligibleForEvent("app2", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
+        fsacIndicator, DateTime.now())
       private val loc = "London"
       private val eventType = EventType.FSAC
       private val desc = "ORAC"
@@ -128,10 +131,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
           )
         )
       )
-
     }
   }
-
 
   trait TestFixture {
     val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
@@ -175,5 +176,4 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec {
       )
     }
   }
-
 }

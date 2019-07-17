@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
-import services.onlinetesting.phase1.Phase1TestService
-import services.onlinetesting.phase2.Phase2TestService
-import services.onlinetesting.Exceptions.{ ResetLimitExceededException, CannotResetPhase2Tests }
+import services.onlinetesting.phase1.{ Phase1TestService, Phase1TestService2 }
+import services.onlinetesting.phase2.{ Phase2TestService, Phase2TestService2 }
+import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import testkit.UnitWithAppSpec
@@ -40,12 +40,15 @@ import uk.gov.hmrc.http.HeaderCarrier
 class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
   val mockPhase1TestService = mock[Phase1TestService]
+  val mockPhase1TestService2 = mock[Phase1TestService2]
   val mockPhase2TestService = mock[Phase2TestService]
+  val mockPhase2TestService2 = mock[Phase2TestService2]
   val mockPhase3TestService = mock[Phase3TestService]
   val mockApplicationRepository = mock[GeneralApplicationRepository]
   val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
     applicationStatus = ApplicationStatus.SUBMITTED,
     userId = "userId",
+    testAccountId = "testAccountId",
     guaranteedInterview = false,
     needsOnlineAdjustments = false,
     needsAtVenueAdjustments = false,
@@ -57,7 +60,9 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
   def controller = new OnlineTestController {
     val phase1TestService = mockPhase1TestService
+    val phase1TestService2 = mockPhase1TestService2
     val phase2TestService = mockPhase2TestService
+    val phase2TestService2 = mockPhase2TestService2
     val phase3TestService = mockPhase3TestService
     val appRepository = mockApplicationRepository
   }

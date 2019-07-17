@@ -1,6 +1,6 @@
 package services.onlinetesting.phase2
 
-import config.{ CubiksGatewayConfig, Phase2TestsConfig }
+import config.{ OnlineTestsGatewayConfig, Phase2TestsConfig }
 import model.ApplicationRoute._
 import model.ApplicationStatus._
 import model.EvaluationResults._
@@ -12,8 +12,8 @@ import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.scalatest.prop._
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
-import reactivemongo.json.collection.JSONCollection
+import reactivemongo.play.json.ImplicitBSONHandlers
+import reactivemongo.play.json.collection.JSONCollection
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.onlinetesting.Phase2EvaluationMongoRepository
 import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
@@ -32,7 +32,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   def phase2TestEvaluationService = new EvaluatePhase2ResultService {
     val evaluationRepository: Phase2EvaluationMongoRepository = phase2EvaluationRepo
-    val gatewayConfig: CubiksGatewayConfig = mockGatewayConfig
+    val gatewayConfig: OnlineTestsGatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository = phase2PassMarkSettingRepo
     val phase2TestsConfigMock: Phase2TestsConfig = mock[Phase2TestsConfig]
     val generalAppRepository: GeneralApplicationMongoRepository = applicationRepository
@@ -114,7 +114,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
                                              TableFor3[SchemeId, Double, Double]): Future[Phase2PassMarkSettings] = {
       val schemeThresholds = phase2PassMarkSettingsTable.map {
         fields => Phase2PassMark(fields._1,
-          Phase2PassMarkThresholds(PassMarkThreshold(fields._2, fields._3)))
+          Phase2PassMarkThresholds(PassMarkThreshold(fields._2, fields._3), PassMarkThreshold(fields._2, fields._3)))
       }.toList
 
       val phase2PassMarkSettings = Phase2PassMarkSettings(
@@ -141,5 +141,4 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       createPhase2PassMarkSettings(phase2PassMarkSettingsTable).map(phase2PassMarkSettings = _)
     )).futureValue
   }
-
 }

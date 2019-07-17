@@ -28,9 +28,13 @@ import model.exchange.testdata.{ CreateCandidateAllocationResponse, CreateTestDa
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateEventData.CreateEventData
 import model.testdata.{ CreateCandidateAllocationData, CreateTestData }
+import play.api.Logger
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.MongoDbConnection
+import reactivemongo.api.DB
+import reactivemongo.bson.BSONDocument
+import reactivemongo.play.json.collection.JSONCollection
 import services.testdata.admin.AdminUserBaseGenerator
 import services.testdata.allocation.{ AssessorAllocationGenerator, CandidateAllocationGenerator }
 import services.testdata.candidate.{ BaseGenerator, CandidateRemover, RegisteredStatusGenerator }
@@ -52,7 +56,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
 
   def clearDatabase(generateDefaultUsers: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
-      _ <- db().drop()
+      _ <- cleanupDb()
       _ <- AuthProviderClient.removeAllUsers()
       _ <- generateUsers() if generateDefaultUsers
     } yield ()
@@ -60,6 +64,16 @@ trait TestDataGeneratorService extends MongoDbConnection {
 
   def clearCandidates(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int] = {
     CandidateRemover.remove(applicationStatus)
+  }
+
+  def cleanupDb(): Future[Unit] = {
+    db().collectionNames.map { names =>
+      names.foreach { name =>
+        Logger.info(s"removing collection: $name")
+        import reactivemongo.play.json.ImplicitBSONHandlers._
+        db().collection[JSONCollection](name).remove(BSONDocument.empty)
+      }
+    }
   }
 
   def generateUsers()(implicit hc: HeaderCarrier): Future[Unit] = {

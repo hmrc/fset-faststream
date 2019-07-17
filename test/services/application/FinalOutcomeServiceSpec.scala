@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
     val App1 = ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
       List(SchemeEvaluationResult(SchemeId(Scheme), EvaluationResults.Green.toString)))
 
-    val C1 = Candidate("userId", Some(App1.applicationId), Some("test@test123.com"), None, None, None, None, None, None, None, None, None)
+    val C1 = Candidate("userId", Some(App1.applicationId), None, Some("test@test123.com"), None, None, None, None, None, None, None, None, None)
 
     val Cd1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
 

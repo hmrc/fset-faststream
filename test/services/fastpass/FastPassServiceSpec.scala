@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package services.fastpass
 import connectors.OnlineTestEmailClient
 import model._
 import model.command.PersonalDetailsExamples._
+import model.command.ProgressResponse
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
 import model.persisted.{ AssistanceDetails, SchemeEvaluationResult }
 import org.joda.time.DateTime
@@ -44,7 +45,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "processFastPassCandidate" should {
-    "correctly process an approved fast pass candidate who has numeric schemes and no adjustments" in new TestFixtureWithMockResponses {
+    "correctly process an approved fast pass candidate with a submitted application who has numeric schemes and no adjustments" in
+      new TestFixtureWithMockResponses {
       when(assistanceDetailsRepositoryMock.find(any[String])).thenReturnAsync(assistanceDetails)
       when(adjustmentsManagementServiceMock.find(any[String])).thenReturnAsync(None)
 
@@ -72,6 +74,28 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(cdRepositoryMock).find(userId)
       verify(emailClientMock).sendEmailWithName(
         eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+      verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+    }
+
+    "refuse to accept an approved fast pass candidate who has not submitted their application" in new TestFixtureWithMockResponses {
+      when(appRepoMock.findProgress(any[String])).thenReturn(Future.successful(notSubmittedProgressResponse))
+
+      val failedFuture = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue
+      failedFuture mustBe a[IllegalStateException]
+      failedFuture.getMessage mustBe s"Candidate $appId cannot have their fast pass accepted/rejected because their " +
+        "application has not been submitted"
+
+      verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+    }
+
+    "refuse to reject a fast pass candidate who has not submitted their application" in new TestFixtureWithMockResponses {
+      when(appRepoMock.findProgress(any[String])).thenReturn(Future.successful(notSubmittedProgressResponse))
+
+      val failedFuture = underTest.processFastPassCandidate(userId, appId, rejected, triggeredBy).failed.futureValue
+      failedFuture mustBe a[IllegalStateException]
+      failedFuture.getMessage mustBe s"Candidate $appId cannot have their fast pass accepted/rejected because their " +
+        "application has not been submitted"
+
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
@@ -209,7 +233,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
         verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
-    "process correctly a rejected fast pass candidate" in new TestFixtureWithMockResponses {
+    "process correctly a rejected fast pass candidate with a submitted application" in new TestFixtureWithMockResponses {
       val (name, surname) = underTest.processFastPassCandidate(userId, appId, rejected, triggeredBy).futureValue
 
       name mustBe completeGeneralDetails.firstName
@@ -223,6 +247,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
         List("FastPassUserRejected")
       )
 
+      verify(appRepoMock).findProgress(appId)
       verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = false)
       verify(personalDetailsServiceMock).find(appId, userId)
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock)
@@ -338,6 +363,10 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
   }
 
   trait TestFixtureWithMockResponses extends TestFixture {
+
+    val notSubmittedProgressResponse = ProgressResponse(appId)
+    val submittedProgressResponse = ProgressResponse(appId, submitted = true)
+
     when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceFutureResponse)
     when(csedRepositoryMock.update(any[String], any[CivilServiceExperienceDetails])).thenReturn(serviceFutureResponse)
     when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
@@ -348,6 +377,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
     when(schemesRepositoryMock.siftableSchemeIds).thenReturn(siftableSchemes)
     when(schemesRepositoryMock.numericTestSiftRequirementSchemeIds).thenReturn(numericSchemes)
     when(appRepoMock.updateCurrentSchemeStatus(any[String], any[Seq[SchemeEvaluationResult]])).thenReturn(Future.successful(unit))
+    when(appRepoMock.findProgress(any[String])).thenReturn(Future.successful(submittedProgressResponse))
     when(applicationSiftServiceMock.sendSiftEnteredNotification(appId)).thenReturn(Future.successful(unit))
   }
 }

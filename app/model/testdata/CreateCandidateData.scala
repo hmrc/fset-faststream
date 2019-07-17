@@ -83,7 +83,6 @@ object CreateCandidateData {
         parentalCompanySize = o.parentalCompanySize
       )
     }
-
   }
 
   trait TestDates {
@@ -191,7 +190,11 @@ object CreateCandidateData {
     def apply(o: PersonalDataRequest, generatorId: Int): PersonalData = {
       val default = PersonalData()
       val fname = o.firstName.getOrElse(Random.getFirstname(generatorId))
-      val emailPrefix = o.emailPrefix.map(e => if (generatorId > 1) { s"$e-$generatorId" } else { e })
+      val emailPrefix = o.emailPrefix.map(e => if (generatorId > 1) {
+        s"$e-$generatorId"
+      } else {
+        e
+      })
 
       PersonalData(
         emailPrefix = emailPrefix.getOrElse(s"tesf${Random.number()}-$generatorId"),
@@ -224,22 +227,22 @@ object CreateCandidateData {
   }
 
   case class CreateCandidateData(statusData: StatusData,
-    personalData: PersonalData = PersonalData(),
-    diversityDetails: DiversityDetails = DiversityDetails(),
-    assistanceDetails: AssistanceDetails = AssistanceDetails(),
-    cubiksUrl: String,
-    schemeTypes: Option[List[SchemeId]] = None,
-    isCivilServant: Boolean = false,
-    hasFastPass: Boolean = false,
-    hasDegree: Boolean = Random.bool,
-    region: Option[String] = None,
-    phase1TestData: Option[Phase1TestData] = None,
-    phase2TestData: Option[Phase2TestData] = None,
-    phase3TestData: Option[Phase3TestData] = None,
-    fsbTestGroupData: Option[FsbTestGroupDataRequest] = None,
-    adjustmentInformation: Option[Adjustments] = None,
-    assessorDetails: Option[AssessorData] = None
-  ) extends CreateTestData
+                                 personalData: PersonalData = PersonalData(),
+                                 diversityDetails: DiversityDetails = DiversityDetails(),
+                                 assistanceDetails: AssistanceDetails = AssistanceDetails(),
+                                 cubiksUrl: String,
+                                 schemeTypes: Option[List[SchemeId]] = None,
+                                 isCivilServant: Boolean = false,
+                                 hasFastPass: Boolean = false,
+                                 hasDegree: Boolean = Random.bool,
+                                 region: Option[String] = None,
+                                 phase1TestData: Option[Phase1TestData] = None,
+                                 phase2TestData: Option[Phase2TestData] = None,
+                                 phase3TestData: Option[Phase3TestData] = None,
+                                 fsbTestGroupData: Option[FsbTestGroupDataRequest] = None,
+                                 adjustmentInformation: Option[Adjustments] = None,
+                                 assessorDetails: Option[AssessorData] = None
+                                ) extends CreateTestData
 
   object CreateCandidateData {
     def apply(cubiksUrlFromConfig: String, o: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
@@ -255,6 +258,7 @@ object CreateCandidateData {
         schemeTypes = o.schemeTypes,
         isCivilServant = o.isCivilServant.getOrElse(Random.bool),
         hasDegree = o.hasDegree.getOrElse(Random.bool),
+        hasFastPass = o.hasFastPass.getOrElse(Random.bool),
         region = o.region,
         phase1TestData = o.phase1TestData.map(Phase1TestData.apply),
         phase2TestData = o.phase2TestData.map(Phase2TestData.apply),

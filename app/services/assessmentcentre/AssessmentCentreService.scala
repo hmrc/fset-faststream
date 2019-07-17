@@ -78,14 +78,34 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     passmarkService.getLatestPassMarkSettings.flatMap {
       case Some(passmark) =>
         Logger.debug(s"$logPrefix Assessment evaluation found pass marks - $passmark")
-        assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.version, batchSize).flatMap {
-          case appIds if appIds.nonEmpty =>
-            Logger.debug(
-              s"$logPrefix Assessment evaluation found ${appIds.size} candidates to process - applicationIds = [${appIds.mkString(",")}]")
-            Future.sequence(appIds.map(appId => tryToFindEvaluationData(appId, passmark))).map(_.flatten)
-          case Nil =>
-            Logger.debug(s"$logPrefix Assessment evaluation completed - no candidates found")
-            Future.successful(Seq.empty)
+        assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.version, batchSize).flatMap { applicationIds =>
+          commonProcessApplicationIds(applicationIds, passmark)
+        }
+      case None =>
+        Logger.debug(s"$logPrefix Assessment centre pass marks have not been set")
+        Future.successful(Seq.empty)
+    }
+  }
+
+  private def commonProcessApplicationIds(applicationIds: List[UniqueIdentifier], passmark: AssessmentCentrePassMarkSettings) = {
+    applicationIds match {
+      case appIds if appIds.nonEmpty =>
+        Logger.warn(
+          s"$logPrefix Assessment evaluation found ${appIds.size} candidates to process - applicationIds = [${appIds.mkString(",")}]")
+        Future.sequence(appIds.map(appId => tryToFindEvaluationData(appId, passmark))).map(_.flatten)
+      case Nil =>
+        Logger.warn(s"$logPrefix Assessment evaluation completed - no candidates found")
+        Future.successful(Seq.empty)
+    }
+  }
+
+  def nextSpecificCandidateReadyForEvaluation(applicationId: String): Future[Seq[AssessmentPassMarksSchemesAndScores]] = {
+    passmarkService.getLatestPassMarkSettings.flatMap {
+      case Some(passmark) =>
+        Logger.debug(s"$logPrefix Assessment evaluation found pass marks - $passmark")
+        assessmentCentreRepo.nextSpecificApplicationReadyForAssessmentScoreEvaluation(
+          passmark.version, applicationId).flatMap { applicationIds =>
+          commonProcessApplicationIds(applicationIds, passmark)
         }
       case None =>
         Logger.debug(s"$logPrefix Assessment centre pass marks have not been set")

@@ -77,13 +77,14 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         candidateInPreviousStatus.applicationId.get,
         PHASE3_TESTS,
         candidateInPreviousStatus.userId,
+        candidateInPreviousStatus.testAccountId.get,
         guaranteedInterview = false,
         needsOnlineAdjustments = false,
         needsAtVenueAdjustments = false,
-        generatorConfig.personalData.getPreferredName,
-        candidateInPreviousStatus.lastName,
-        None,
-        None
+        preferredName = generatorConfig.personalData.getPreferredName,
+        lastName = candidateInPreviousStatus.lastName,
+        eTrayAdjustments = None,
+        videoInterviewAdjustments = None
       )
       _ <- p3Repository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase3TestGroup)
       testGroup <- p3Repository.getTestGroup(phase3TestApplication.applicationId)

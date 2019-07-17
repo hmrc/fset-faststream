@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package services.onlinetesting.phase1
 import akka.actor.ActorSystem
 import config._
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, CubiksGatewayClient }
+import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
 import model.Exceptions.ConnectorException
@@ -51,7 +51,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
   val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
-  val testGatewayConfig = CubiksGatewayConfig(
+  val testGatewayConfig = OnlineTestsGatewayConfig(
     "",
     Phase1TestsConfig(expiryTimeInDays = 5,
       scheduleIds = Map("sjq" -> 16196, "bq" -> 16194),
@@ -59,8 +59,8 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       List("sjq")
     ),
     phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90,
-      Map("daro" -> Phase2ScheduleExamples.DaroSchedule)),
-    numericalTests = NumericalTestsConfig(Map("sample" -> NumericalTestSchedule(12345, 123))), // TODO: Update this schedule
+      Map("daro" -> Phase2ScheduleExamples.DaroSchedule), None),
+    numericalTests = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(12345, 123))),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"
@@ -77,6 +77,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
     applicationStatus = ApplicationStatus.SUBMITTED,
     userId = userId,
+    testAccountId = "testAccountId",
     guaranteedInterview = false,
     needsOnlineAdjustments = false,
     needsAtVenueAdjustments = false,
@@ -127,9 +128,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     List(phase1Test)
   )
 
-  val candidate = model.Candidate(userId = "user123", firstName = Some("Cid"),
-    lastName = Some("Highwind"), preferredName = None, applicationId = Some("appId123"),
-    email = Some("test@test.com"), dateOfBirth = None, address = None, postCode = None, country = None,
+  val candidate = model.Candidate(userId = "user123", applicationId = Some("appId123"), testAccountId = Some("testAccountId"),
+    email = Some("test@test.com"), firstName = Some("Cid"),lastName = Some("Highwind"), preferredName = None,
+    dateOfBirth = None, address = None, postCode = None, country = None,
     applicationRoute = None, applicationStatus = None
   )
 
@@ -233,8 +234,8 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     }
 
     "fail if registration fails" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])).
-        thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
+      when(onlineTestsGatewayClientMock.registerApplicant(any[RegisterApplicant]))
+        .thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
 
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
       result.failed.futureValue mustBe a[ConnectorException]
@@ -243,9 +244,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     }
 
     "fail and audit 'UserRegisteredForOnlineTest' if invitation fails" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant]))
+      when(onlineTestsGatewayClientMock.registerApplicant(any[RegisterApplicant]))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])).thenReturn(
+      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant])).thenReturn(
         Future.failed(new ConnectorException(connectorErrorMessage))
       )
 
@@ -258,9 +259,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest' " +
       "if there is an exception retrieving the contact details" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
+      when(onlineTestsGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
+      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
         .thenReturn(Future.successful(invitation))
       when(cdRepositoryMock.find(userId))
         .thenReturn(Future.failed(new Exception))
@@ -275,9 +276,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest'" +
       " if there is an exception sending the invitation email" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant]))
+      when(onlineTestsGatewayClientMock.registerApplicant(any[RegisterApplicant]))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
+      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
         .thenReturn(Future.successful(invitation))
       when(cdRepositoryMock.find(userId))
         .thenReturn(Future.successful(contactDetails))
@@ -298,9 +299,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     "fail, audit 'UserRegisteredForOnlineTest', audit 'UserInvitedToOnlineTest'" +
       ", not send invitation email to user" +
       "if there is an exception storing the status and the online profile data to database" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
+      when(onlineTestsGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
+      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
         .thenReturn(Future.successful(invitation))
       when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
       when(emailClientMock.sendOnlineTestInvitation(
@@ -323,9 +324,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
+      when(onlineTestsGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
+      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
         .thenReturn(Future.successful(invitation))
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
@@ -503,7 +504,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(otRepositoryMock).resetTestProfileProgresses("appId",
         List(PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_RESULTS_READY,
-          PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED, PHASE1_TESTS_FAILED_SDIP_AMBER))
+          PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED, PHASE1_TESTS_FAILED_SDIP_AMBER, PHASE1_TESTS_FAILED_SDIP_GREEN))
       val expectedTestsAfterReset = List(phase1TestProfileWithStartedTests.tests.head.copy(usedForResults = false),
         phase1Test.copy(participantScheduleId = invitation.participantScheduleId))
 
@@ -517,7 +518,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       val failedTest = phase1Test.copy(scheduleId = 555, reportId = Some(2))
       val successfulTest = phase1Test.copy(scheduleId = 444, reportId = Some(1))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(successfulTest.reportId.get)))
+      when(onlineTestsGatewayClientMock.downloadXmlReport(eqTo(successfulTest.reportId.get)))
         .thenReturn(Future.successful(OnlineTestCommands.TestResult(status = "Completed",
           norm = "some norm",
           tScore = Some(23.9999d),
@@ -526,7 +527,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
           sten = Some(1.333d)
         )))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get)))
+      when(onlineTestsGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get)))
         .thenReturn(Future.failed(new Exception))
 
       val result = phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds(
@@ -540,7 +541,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       val test = phase1Test.copy(reportId = Some(123), resultsReadyToDownload = true)
       val testProfile = phase1TestProfile.copy(tests = List(test))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
+      when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
       when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
@@ -562,7 +563,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       val testNotReady = phase1Test.copy(reportId = None, resultsReadyToDownload = false)
       val testProfile = phase1TestProfile.copy(tests = List(testReady, testNotReady))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
+      when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
       when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
@@ -580,7 +581,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     }
 
     "retrieve only reports which are not already saved" in new OnlineTest {
-      when(cubiksGatewayClientMock.downloadXmlReport(123)).thenReturn(Future.successful(result))
+      when(onlineTestsGatewayClientMock.downloadXmlReport(123)).thenReturn(Future.successful(result))
       when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult])).thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
 
@@ -597,7 +598,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(otRepositoryMock).insertTestResult("appId", testWithoutResult, savedResult)
       verify(otRepositoryMock).updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)
-      verify(cubiksGatewayClientMock, never).downloadXmlReport(456)
+      verify(onlineTestsGatewayClientMock, never).downloadXmlReport(456)
     }
   }
 
@@ -734,7 +735,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val otRepositoryMock = mock[Phase1TestRepository]
-    val cubiksGatewayClientMock = mock[CubiksGatewayClient]
+    val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
     val emailClientMock = mock[CSREmailClient]
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
@@ -751,7 +752,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val testRepository = otRepositoryMock
-      val cubiksGatewayClient = cubiksGatewayClientMock
+      val onlineTestsGatewayClient = onlineTestsGatewayClientMock
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val tokenFactory = tokenFactoryMock
@@ -764,9 +765,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   }
 
   trait SuccessfulTestInviteFixture extends OnlineTest {
-    when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
+    when(onlineTestsGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
       .thenReturn(Future.successful(registration))
-    when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
+    when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
       .thenReturn(Future.successful(invitation))
     when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
     when(emailClientMock.sendOnlineTestInvitation(

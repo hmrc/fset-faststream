@@ -21,7 +21,6 @@ import java.util.UUID
 import org.joda.time.Duration
 import play.modules.reactivemongo.MongoDbConnection
 import repositories._
-import uk.gov.hmrc.play.config.RunMode
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -52,7 +51,7 @@ trait LockKeeper {
   }
 }
 
-object LockKeeper extends RunMode with MongoDbConnection {
+object LockKeeper extends MongoDbConnection {
   private implicit val connection = {
     db
   }

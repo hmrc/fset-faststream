@@ -16,20 +16,25 @@
 
 package controllers
 
+import model.command.SetTScoreRequest
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import services.campaignmanagement.CampaignManagementService
+import services.search.SearchForApplicantService
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object CampaignManagementController extends CampaignManagementController {
   val campaignManagementService: CampaignManagementService.type = CampaignManagementService
+  val searchForApplicantService: SearchForApplicantService = SearchForApplicantService
 }
 
 trait CampaignManagementController extends BaseController {
 
   val campaignManagementService: CampaignManagementService
+  val searchForApplicantService: SearchForApplicantService
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Action[AnyContent] = Action.async { implicit request =>
     campaignManagementService.afterDeadlineSignupCodeUnusedAndValid(code).map(response => Ok(Json.toJson(response)))
@@ -42,5 +47,42 @@ trait CampaignManagementController extends BaseController {
   def markSignupCodeAsUsed(code: String, applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     campaignManagementService.markSignupCodeAsUsed(code, applicationId).map(_ => Ok)
   }
-}
 
+  def listCollections: Action[AnyContent] = Action.async { implicit request =>
+    campaignManagementService.listCollections.map(Ok(_))
+  }
+
+  def removeCollection(name: String): Action[AnyContent] = Action.async { implicit request =>
+    campaignManagementService.removeCollection(name).map(_ => Ok)
+  }
+
+  def setTScore = Action.async(parse.json) { implicit request =>
+    withJsonBody[SetTScoreRequest] { tScoreRequest =>
+      tScoreRequest.phase.toUpperCase match {
+        case "PHASE1" =>
+          campaignManagementService.setPhase1TScore(tScoreRequest).map(_ => Ok)
+            .recover{
+              case e: Exception => Forbidden(e.getMessage)
+            }
+        case "PHASE2" =>
+          campaignManagementService.setPhase2TScore(tScoreRequest).map(_ => Ok)
+            .recover{
+              case e: Exception => Forbidden(e.getMessage)
+            }
+        case _ =>
+          Future.successful(BadRequest(s"${tScoreRequest.phase} is not a valid value"))
+      }
+    }
+  }
+
+  def findCandidateByUserId(userId: String): Action[AnyContent] = Action.async { implicit request =>
+    searchForApplicantService.findCandidateByUserId(userId).map {
+      case None => NotFound
+      case Some(candidate) => Ok(Json.toJson(candidate))
+    }
+  }
+
+  def removeCandidate(applicationId: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
+    campaignManagementService.removeCandidate(applicationId, userId).map(_ => Ok)
+  }
+}

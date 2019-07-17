@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ object ApplicationForOnlineTestPassMarkReportItemExamples {
   lazy val application2 = newApplicationForOnlineTestPassMarkReportItem(TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
 
   lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None, None))
   lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None, None))
 
   def newApplicationForOnlineTestPassMarkReportItem(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
     ApplicationForOnlineTestPassMarkReportItem(

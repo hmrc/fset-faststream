@@ -26,6 +26,7 @@ case class QuestionnaireReportItem(
                                     parentOccupation: Option[String],
                                     parentEmployedOrSelf: Option[String],
                                     parentCompanySize: Option[String],
+                                    lowerSocioEconomicBackground: Option[String],
                                     socioEconomicScore: String,
                                     university: Option[String]
                                   )

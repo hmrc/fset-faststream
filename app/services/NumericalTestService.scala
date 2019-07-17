@@ -16,9 +16,9 @@
 
 package services
 
-import config.MicroserviceAppConfig.cubiksGatewayConfig
-import config.{ CubiksGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
-import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
+import config.MicroserviceAppConfig.onlineTestsGatewayConfig
+import config.{ OnlineTestsGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
+import connectors.{ CSREmailClient, OnlineTestsGatewayClient, EmailClient }
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration, TimeAdjustments }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.UnexpectedException
@@ -43,8 +43,8 @@ import scala.concurrent.Future
 object NumericalTestService extends NumericalTestService {
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
   val applicationSiftRepo: ApplicationSiftRepository = repositories.applicationSiftRepository
-  val cubiksGatewayClient = CubiksGatewayClient
-  val gatewayConfig = cubiksGatewayConfig
+  val onlineTestsGatewayClient = OnlineTestsGatewayClient
+  val gatewayConfig = onlineTestsGatewayConfig
   val tokenFactory = UUIDFactory
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val eventService: StcEventService = StcEventService
@@ -57,9 +57,9 @@ trait NumericalTestService extends EventSink {
   def applicationRepo: GeneralApplicationRepository
   def applicationSiftRepo: ApplicationSiftRepository
   val tokenFactory: UUIDFactory
-  val gatewayConfig: CubiksGatewayConfig
+  val gatewayConfig: OnlineTestsGatewayConfig
   def testConfig: NumericalTestsConfig = gatewayConfig.numericalTests
-  val cubiksGatewayClient: CubiksGatewayClient
+  val onlineTestsGatewayClient: OnlineTestsGatewayClient
   val dateTimeFactory: DateTimeFactory
   def schemeRepository: SchemeRepository
   def emailClient: EmailClient
@@ -73,7 +73,7 @@ trait NumericalTestService extends EventSink {
 
   def registerAndInviteForTests(applications: List[NumericalTestApplication])
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    val schedule = testConfig.schedules("sample") //TODO: Update this schedule
+    val schedule = testConfig.schedules(NumericalTestsConfig.numericalTestScheduleName)
     registerAndInvite(applications, schedule)
   }
 
@@ -90,7 +90,7 @@ trait NumericalTestService extends EventSink {
           _ <- emailInvitedCandidates(invitedApplicants)
           _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
         } yield {
-          Logger.info(s"Successfully invited candidates to take a sift numerical test with Ids: " +
+          Logger.warn(s"Successfully invited candidates to take a sift numerical test with Ids: " +
             s"${invitedApplicants.map(_.application.applicationId)} - moved to $SIFT_TEST_INVITED")
         }
     }
@@ -98,7 +98,7 @@ trait NumericalTestService extends EventSink {
 
   private def registerApplicants(candidates: Seq[NumericalTestApplication], tokens: Seq[String])
                         (implicit hc: HeaderCarrier): Future[Map[Int, (NumericalTestApplication, String, Registration)]] = {
-    cubiksGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map{
+    onlineTestsGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map{
       case (registration, idx) =>
         val candidate = candidates(idx)
         (registration.userId, (candidate, tokens(idx), registration))
@@ -119,7 +119,7 @@ trait NumericalTestService extends EventSink {
         InviteApplicant(schedule.scheduleId, registration.userId, completionUrl, timeAdjustments = timeAdjustments)
     }.toList
 
-    cubiksGatewayClient.inviteApplicants(invites).map(_.map { invitation =>
+    onlineTestsGatewayClient.inviteApplicants(invites).map(_.map { invitation =>
       val (application, token, registration) = candidateData(invitation.userId)
       NumericalTestInviteData(application, schedule.scheduleId, token, registration, invitation)
     })
@@ -232,6 +232,7 @@ trait NumericalTestService extends EventSink {
         val tests = updatedTestGroup.tests.get
         require(tests.exists(_.usedForResults), "Active tests cannot be found")
 
+        // TODO: should we be checking resultsReadyToDownload here and not completedDateTime - see p1 & p2 impl ?
         val activeCompletedTest = tests.forall(_.completedDateTime.isDefined)
         if (activeCompletedTest) {
           applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_RESULTS_READY).map { _ =>
@@ -282,7 +283,7 @@ trait NumericalTestService extends EventSink {
 
     val testResults = Future.sequence(siftTestGroup.activeTests.flatMap { test =>
       test.reportId.map { reportId =>
-        cubiksGatewayClient.downloadXmlReport(reportId)
+        onlineTestsGatewayClient.downloadXmlReport(reportId)
       }.map( cubiksTestResult => cubiksTestResult.map( cubiksTestResult => cubiksTestResult -> test ))
     })
 
@@ -308,16 +309,16 @@ trait NumericalTestService extends EventSink {
           } yield {
             if (schemesPassedRequiringSift.isEmpty) {
               // Candidate has no schemes that require a form to be filled so we can process the candidate
-              Logger.info(s"**** Candidate $appId has no schemes that require a form to be filled in so we will process this one")
+              Logger.info(s"Candidate $appId has no schemes that require a form to be filled in so we will process this one")
               applicationId
             } else { // Candidate has schemes that require forms to be filled
               if (progressResponse.siftProgressResponse.siftFormsCompleteNumericTestPending) {
                 // Forms have already been filled in so can process this candidate
-                Logger.info(s"**** Candidate $appId has schemes that require a form to be filled in and has already " +
+                Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has already " +
                   "submitted the answers so we will process this one")
                 applicationId
               } else {
-                Logger.info(s"**** Candidate $appId has schemes that require a form to be filled in and has not yet submitted " +
+                Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has not yet submitted " +
                   "the answers so not processing this one")
                 None
               }

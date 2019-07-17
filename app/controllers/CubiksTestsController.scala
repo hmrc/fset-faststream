@@ -19,6 +19,7 @@ package controllers
 import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
 import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc.{ Action, Result }
 import services.NumericalTestService
 import services.stc.StcEventService
@@ -81,7 +82,8 @@ trait CubiksTestsController extends BaseController {
 
   def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     withJsonBody[CubiksTestResultReady] { testResultReady =>
-      Logger.info(s"Cubiks user $cubiksUserId has xml results report ready to download. Payload = [$testResultReady]")
+      Logger.info(s"Cubiks user $cubiksUserId has xml results report ready to download. " +
+        s"Payload(json) = [${Json.toJson(testResultReady).toString}], (deserialized) = [$testResultReady]")
       phase1TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
         .recoverWith { case _: CannotFindTestByCubiksId =>
             phase2TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady).recoverWith {

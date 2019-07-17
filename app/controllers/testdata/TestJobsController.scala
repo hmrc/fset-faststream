@@ -73,6 +73,12 @@ class TestJobsController extends BaseController {
     }
   }
 
+  def processSuccessPhase3SdipTestJob: Action[AnyContent] = Action.async { implicit request =>
+    SuccessPhase3SdipFsTestJob.tryExecute().map { _ =>
+      Ok("Success phase 3 sdip test job started")
+    }
+  }
+
   def progressCandidatesToSift: Action[AnyContent] = Action.async { implicit request =>
     ProgressToSiftJob.tryExecute().map { _ =>
       Ok("Progress to sift result job started")
@@ -88,6 +94,18 @@ class TestJobsController extends BaseController {
   def secondSiftReminder: Action[AnyContent] = Action.async { implicit request =>
     SecondSiftReminderJob.tryExecute().map { _ =>
       Ok("Second sift reminder job started")
+    }
+  }
+
+  def retrievePhase1Results: Action[AnyContent] = Action.async { implicit request =>
+    RetrievePhase1ResultsJob.tryExecute().map { _ =>
+      Ok("Retrieve phase 1 results job started")
+    }
+  }
+
+  def retrievePhase2Results: Action[AnyContent] = Action.async { implicit request =>
+    RetrievePhase2ResultsJob.tryExecute().map { _ =>
+      Ok("Retrieve phase 2 results job started")
     }
   }
 

@@ -29,8 +29,8 @@ import play.api.libs.json.Json
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.DefaultDB
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
-import reactivemongo.json.collection.JSONCollection
+import reactivemongo.play.json.ImplicitBSONHandlers
+import reactivemongo.play.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.play.test.WithFakeApplication
 
@@ -48,6 +48,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   val unit: Unit = ()
   val AppId = "AppId"
   val UserId = "UserId"
+  val TestAccountId = "TestAccountId"
 
   val FrameworkId = "FrameworkId"
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,21 @@ package services.onlinetesting
 import factories.DateTimeFactory
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED }
 import model.command.{ Phase1ProgressResponse, ProgressResponse }
-import model.persisted.Phase1TestProfile
+import model.persisted.Phase1TestProfile2
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.Phase1TestRepository
+import repositories.onlinetesting.Phase1TestRepository2
 import services.AuditService
 import services.onlinetesting.Exceptions.TestExtensionException
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.{ ShortTimeout, UnitSpec }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
@@ -184,7 +184,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val InFiveHours = Now.plusHours(5)
     val InTwentyFiveHours = Now.plusHours(25)
     val InMoreThanThreeDays = Now.plusHours(73)
-    val mockProfile = mock[Phase1TestProfile]
+    val mockProfile = mock[Phase1TestProfile2]
     val mockPhase1ProgressResponse = mock[Phase1ProgressResponse]
     val mockProgressResponse = mock[ProgressResponse]
 
@@ -193,7 +193,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
     val successfulTestProfile = Some(mockProfile)
     val mockAppRepository = mock[GeneralApplicationRepository]
-    val mockOtRepository = mock[Phase1TestRepository]
+    val mockOtRepository = mock[Phase1TestRepository2]
     val mockAuditService = mock[AuditService]
     val underTest = new OnlineTestExtensionService with StcEventServiceFixture {
       val appRepository = mockAppRepository

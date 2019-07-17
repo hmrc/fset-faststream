@@ -146,9 +146,9 @@ trait TestDataGeneratorController extends BaseController {
         adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
         adjustmentsConfirmed = Some(true),
         etray = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
-          , otherInfo = Some("Some other comments here"))),
+          , otherInfo = Some("Some other comments here"), percentage = Some(50))),
         video = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
-          , otherInfo = Some("Some other comments here")))
+          , otherInfo = Some("Some other comments here"), percentage = Some(50)))
       ))
     )
 

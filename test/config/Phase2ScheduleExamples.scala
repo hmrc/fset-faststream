@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,6 @@ package config
 
 object Phase2ScheduleExamples {
   val DaroSchedule = Phase2Schedule(1, 2)
-  val IradSchedule = Phase2Schedule(4, 5)
+  val OriaSchedule = Phase2Schedule(4, 5)
   val WardSchedule = Phase2Schedule(7, 8)
 }

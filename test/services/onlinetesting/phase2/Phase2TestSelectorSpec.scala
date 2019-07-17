@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,15 +32,24 @@ class Phase2TestSelectorSpec extends UnitSpec {
     }
 
     "return a schedule randomly" in {
-      val schedules = Map("daro" -> DaroSchedule, "irad" -> IradSchedule, "ward" -> WardSchedule)
+      val schedules = Map("daro" -> DaroSchedule, "oria" -> OriaSchedule, "ward" -> WardSchedule)
       val selector = createSelector(schedules)
       val randomSchedules = 1 to 1000 map (_ => selector.getNextSchedule())
 
       randomSchedules.distinct must contain theSameElementsAs schedules
     }
 
+    "always choose the same schedule if configured to do so" in {
+      val alwaysChooseSchedule = "ward"
+      val schedules = Map("daro" -> DaroSchedule, "oria" -> OriaSchedule, "ward" -> WardSchedule)
+      val selector = createSelector(schedules, Some(alwaysChooseSchedule))
+      val randomSchedules = 1 to 1000 map (_ => selector.getNextSchedule())
+
+      randomSchedules.distinct must contain theSameElementsAs Seq(alwaysChooseSchedule -> WardSchedule)
+    }
+
     "return a schedule randomly for the first n schedules defined and then repeat those schedules in subsequent calls" in {
-      val schedules = Map("daro" -> DaroSchedule, "irad" -> IradSchedule, "ward" -> WardSchedule)
+      val schedules = Map("daro" -> DaroSchedule, "oria" -> OriaSchedule, "ward" -> WardSchedule)
       val selector = createSelector(schedules)
 
       def createSchedules(startingSchedule: List[(String, Phase2Schedule)]) = {
@@ -58,8 +67,8 @@ class Phase2TestSelectorSpec extends UnitSpec {
     }
   }
 
-
-  private def createSelector(schedules: Map[String, Phase2Schedule]): Phase2TestSelector = new Phase2TestSelector {
-    def testConfig = Phase2TestsConfig(1, 90, schedules)
+  private def createSelector(schedules: Map[String, Phase2Schedule],
+                             alwaysChooseSchedule: Option[String] = None): Phase2TestSelector = new Phase2TestSelector {
+    def testConfig = Phase2TestsConfig(1, 90, schedules, alwaysChooseSchedule)
   }
 }

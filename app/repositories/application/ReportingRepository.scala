@@ -29,7 +29,9 @@ import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Format
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
+import repositories.BSONDateTimeHandler
 import services.TimeZoneService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -44,7 +46,11 @@ trait ReportingRepository {
 
   def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
 
-  def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]]
+  def onlineTestPassMarkReportFsPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]]
+
+  def onlineTestPassMarkReportFsNotPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]]
+
+  def onlineTestPassMarkReportNonFs: Future[List[ApplicationForOnlineTestPassMarkReport]]
 
   def onlineTestPassMarkReportByIds(applicationIds: Seq[String]): Future[List[ApplicationForOnlineTestPassMarkReport]]
 
@@ -220,23 +226,60 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     reportQueryWithProjectionsBSON[ApplicationForNumericTestExtractReport](query, projection)
   }
 
-  override def onlineTestPassMarkReport: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
-    onlineTestPassMarkReportWithQuery(BSONDocument.empty)
+  override def onlineTestPassMarkReportFsPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"applicationRoute" -> ApplicationRoute.Faststream),
+      BSONDocument(s"applicationStatus" -> ApplicationStatus.PHASE1_TESTS_FAILED),
+      BSONDocument(
+        "$or" -> BSONArray(
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+        )
+      )))
+
+    commonOnlineTestPassMarkReport(query)
+  }
+
+  override def onlineTestPassMarkReportFsNotPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"applicationRoute" -> ApplicationRoute.Faststream),
+      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.PHASE1_TESTS_FAILED)),
+
+      BSONDocument(
+        "$or" -> BSONArray(
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+        )
+      )))
+
+    commonOnlineTestPassMarkReport(query)
+  }
+
+  override def onlineTestPassMarkReportNonFs: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> BSONDocument("$in" ->
+        Seq(ApplicationRoute.Edip.toString, ApplicationRoute.Sdip.toString, ApplicationRoute.SdipFaststream.toString))
+      ),
+      BSONDocument(
+        "$or" -> BSONArray(
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+        )
+      )))
+
+    commonOnlineTestPassMarkReport(query)
   }
 
   def onlineTestPassMarkReportByIds(applicationIds: Seq[String]): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-    onlineTestPassMarkReportWithQuery(query)
+    val query = BSONDocument("$or" -> BSONArray(
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
+    )) ++ BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+
+    commonOnlineTestPassMarkReport(query)
   }
 
-
-  private def onlineTestPassMarkReportWithQuery(extraQuery: BSONDocument): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
-    val query = BSONDocument(
-      "$and" -> BSONArray(
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
-      )
-    ) ++ extraQuery
-
+  private def commonOnlineTestPassMarkReport(query: BSONDocument): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
     val projection = BSONDocument(
       "userId" -> "1",
       "applicationId" -> "1",
@@ -253,7 +296,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
   }
-  
+
   //scalastyle:off method.length
   override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]] = {
     val query = BSONDocument("$and" ->
@@ -479,6 +522,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "applicationId" -> true,
       "userId" -> true,
       "applicationStatus" -> true,
+      "applicationRoute" -> true,
       "progress-status" -> "2"
     )
 
@@ -488,9 +532,10 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
         val applicationId = document.getAs[String]("applicationId").get
         val userId = document.getAs[String]("userId").get
         val applicationStatus = document.getAs[String]("applicationStatus").get
+        val applicationRoute = document.getAs[String]("applicationRoute").get
         val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
         val latestProgressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses))
-        ApplicationIdsAndStatus(applicationId, userId, applicationStatus, latestProgressStatus)
+        ApplicationIdsAndStatus(applicationId, userId, applicationStatus, applicationRoute, latestProgressStatus)
       })
   }
 

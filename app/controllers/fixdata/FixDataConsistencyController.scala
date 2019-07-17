@@ -18,16 +18,19 @@ package controllers.fixdata
 
 import factories.UUIDFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.NotFoundException
+import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
-import model.SchemeId
+import model.{ ProgressStatuses, SchemeId }
 import model.command.FastPassPromotion
+import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Result }
-import services.application.ApplicationService
-import services.assessmentcentre.AssessmentCentreService
+import scheduler.assessment.MinimumCompetencyLevelConfig
+import services.application.{ ApplicationService, FsbService }
+import services.assessmentcentre.{ AssessmentCentreService, AssessmentCentreToFsbOrOfferProgressionService }
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.fastpass.FastPassService
 import services.sift.ApplicationSiftService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,14 +41,18 @@ object FixDataConsistencyController extends FixDataConsistencyController {
   override val fastPassService = FastPassService
   override val siftService = ApplicationSiftService
   override val assessmentCentreService = AssessmentCentreService
+  override val assessmentCentreToFsbOrOfferService = AssessmentCentreToFsbOrOfferProgressionService
+  override val fsbService = FsbService
 }
 
 // scalastyle:off number.of.methods
-trait FixDataConsistencyController extends BaseController {
+trait FixDataConsistencyController extends BaseController with MinimumCompetencyLevelConfig {
   val applicationService: ApplicationService
   val fastPassService: FastPassService
   val siftService: ApplicationSiftService
   val assessmentCentreService: AssessmentCentreService
+  val assessmentCentreToFsbOrOfferService: AssessmentCentreToFsbOrOfferProgressionService
+  val fsbService: FsbService
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -262,7 +269,22 @@ trait FixDataConsistencyController extends BaseController {
 
   def fixUserSiftedWithAFailByMistake(applicationId: String): Action[AnyContent] =
     Action.async {
-      siftService.fixUserSiftedWithAFailByMistake(applicationId).map(_ => Ok(s"Successfully fixed $applicationId"))
+      siftService.fixUserSiftedWithAFailByMistake(applicationId).map(_ =>
+        Ok(s"Successfully fixed $applicationId. Remember to update the CurrentSchemeStatus")
+      ).recover {
+        case ex: Throwable =>
+          InternalServerError(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def fixUserSiftedWithAFailToSiftCompleted(applicationId: String): Action[AnyContent] =
+    Action.async {
+      siftService.fixUserSiftedWithAFailToSiftCompleted(applicationId).map(_ =>
+        Ok(s"Successfully fixed $applicationId. Remember to update the CurrentSchemeStatus and sift evaluation")
+      ).recover {
+        case ex: Throwable =>
+          InternalServerError(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
     }
 
   def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -279,6 +301,66 @@ trait FixDataConsistencyController extends BaseController {
     applicationService.markSiftSchemeAsGreen(applicationId, schemeId).map(_ =>
       Ok(s"Successfully marked ${schemeId.value} as green for $applicationId")
     )
+  }
+
+  def createSiftStructure(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.findStatus(applicationId).flatMap { applicationStatus =>
+      val statuses = Seq(SIFT_ENTERED, SIFT_READY, WITHDRAWN)
+      val canProceed = statuses.exists( s => applicationStatus.latestProgressStatus.contains(s) )
+
+      if (canProceed) {
+        for {
+          _ <- siftService.saveSiftExpiryDate(applicationId)
+        } yield {
+          Ok(s"Successfully created sift structure for $applicationId")
+        }
+      } else {
+          Future.successful {
+            BadRequest(s"Cannot create sift structure for $applicationId because the latest progress status is " +
+              s"${applicationStatus.latestProgressStatus.getOrElse("NO-STATUS")}")
+          }
+      }
+    }.recover {
+      case e: ApplicationNotFound => NotFound(s"Cannot retrieve application status details for application: $applicationId")
+    }
+  }
+
+  def findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift: Action[AnyContent] = Action.async {
+    applicationService.findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift.map { resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("Email,Preferred Name (or first name if no preferred),Application ID," +
+          "Latest Progress Status,online test results") ++
+          resultList.map { case (user, contactDetails, latestProgressStatus, onlineTestResults) =>
+            val onlineTestResultsAsString = "\"[" + onlineTestResults.result.map(schemeResult =>
+              s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
+            ).mkString(", ") + "]\""
+
+            s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
+              s"${latestProgressStatus.toString},$onlineTestResultsAsString"
+          }).mkString("\n"))
+      }
+    }
+  }
+
+  def findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift: Action[AnyContent] = Action.async {
+    applicationService.findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift.map { resultList =>
+      if (resultList.isEmpty) {
+        Ok("No candidates found")
+      } else {
+        Ok((Seq("Email,Preferred Name (or first name if no preferred),Application ID," +
+          "Latest Progress Status,online test results") ++
+          resultList.map { case (user, contactDetails, latestProgressStatus, onlineTestResults) =>
+            val onlineTestResultsAsString = "\"[" + onlineTestResults.result.map(schemeResult =>
+              s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
+            ).mkString(", ") + "]\""
+
+            s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
+              s"${latestProgressStatus.toString},$onlineTestResultsAsString"
+          }).mkString("\n"))
+      }
+    }
   }
 
   def markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
@@ -388,8 +470,199 @@ trait FixDataConsistencyController extends BaseController {
       )
     }
 
+  def rollbackToPhase2TestExpiredFromSift(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.rollbackToPhase2ExpiredFromSift(applicationId).map(_ =>
+        Ok(s"Successfully rolled back to phase2 expired $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def fixPhase2PartialCallbackCandidate(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fixPhase2PartialCallbackCandidate(applicationId).map(_ =>
+        Ok(s"Successfully fixed partial callback candidate $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix partial callback candidate $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def fixPhase3ExpiredCandidate(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fixPhase3ExpiredCandidate(applicationId).map(_ =>
+        Ok(s"Successfully fixed p3 expired candidate $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix p3 expired candidate $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def rollbackToPhase3TestExpiredFromSift(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.rollbackToPhase3ExpiredFromSift(applicationId).map(_ =>
+        Ok(s"Successfully rolled back to phase3 expired $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def rollbackToPhase1TestsPassedFromSift(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.rollbackToPhase1TestsPassedFromSift(applicationId).map(_ =>
+        Ok(s"Successfully rolled back to phase1 tests passed $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def enablePhase3CandidateToBeEvaluated(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.enablePhase3CandidateToBeEvaluated(applicationId).map(_ =>
+        Ok(s"Successfully updated phase3 state so candidate $applicationId can be evaluated ")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def removePhase3TestAndSetOtherToActive(removeTestToken: String, markTestAsActiveToken: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.removePhase3TestAndSetOtherToActive(removeTestToken, markTestAsActiveToken).map(_ =>
+        Ok(s"Successfully removed phase3 test for token $removeTestToken and set other test to active for token $markTestAsActiveToken ")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix candidate - message: ${ex.getMessage}")
+      }
+    }
+
+  def rollbackToRetakePhase3FromSift(applicationId: String, token: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.rollbackToRetakePhase3FromSift(applicationId, token).map(_ =>
+        Ok(s"Successfully rolled back candidate $applicationId from sift so can retake video interview")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
+  def removePhase3TestEvaluation(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.removePhase3TestEvaluation(applicationId).map(_ =>
+        Ok(s"Successfully removed P3 test evaluation and updated css for candidate $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
-    applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT testgroup for  $applicationId"))
+    applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT test group for $applicationId"))
   }
+
+  def removeFsbTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    applicationService.removeFsbTestGroup(applicationId).map { _ =>
+      Ok(s"Successfully removed FSB test group for $applicationId")
+    } recover {
+      case _: ApplicationNotFound => NotFound
+    }
+  }
+
+  def updateApplicationStatus(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
+    applicationService.updateApplicationStatus(applicationId, newApplicationStatus).map { _ =>
+      Ok(s"Successfully updated $applicationId application status to $newApplicationStatus")
+    } recover {
+      case _: ApplicationNotFound => NotFound
+    }
+  }
+
+  def fsacResetFastPassCandidate(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fsacResetFastPassCandidate(applicationId).map { _ =>
+        Ok(s"Successfully reset fsac fast pass candidate $applicationId. Remember to update the current scheme status")
+      } recover {
+        case _: NotFoundException => NotFound
+      }
+    }
+
+  def fsacRollbackWithdraw(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fsacRollbackWithdraw(applicationId).map { _ =>
+        Ok(s"Successfully rolled back withdraw for fsac candidate $applicationId")
+      } recover {
+        case _: NotFoundException => NotFound
+      }
+    }
+
+  def fsacRemoveEvaluation(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.fsacRemoveEvaluation(applicationId).map { _ =>
+        Ok(s"Successfully removed evaluation for fsac candidate $applicationId")
+      } recover {
+        case _: NotFoundException => NotFound
+      }
+    }
+
+  def fsacEvaluateCandidate(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      assessmentCentreService.nextSpecificCandidateReadyForEvaluation(applicationId).flatMap { candidateResults =>
+        if (candidateResults.isEmpty) {
+          Future.successful(BadRequest("No candidate found to evaluate at FSAC. Please check the candidate's state in the diagnostic report"))
+        } else {
+          val candidateFutures = candidateResults.map { candidateResult =>
+
+            if (candidateResult.schemes.isEmpty) {
+              val msg = s"FSAC candidate $applicationId has no eligible schemes so will not evaluate"
+              Logger.warn(msg)
+              Future.failed(new Exception(msg))
+            } else {
+              assessmentCentreService.evaluateAssessmentCandidate(candidateResult, minimumCompetencyLevelConfig)
+            }
+          }
+          Future.sequence(candidateFutures).map(_ => Ok(s"Successfully evaluated candidate $applicationId at FSAC"))
+            .recover {
+              case ex: Throwable => BadRequest(ex.getMessage)
+            }
+        }
+      }
+    }
+
+  def progressCandidateToFsbOrOfferJob(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      implicit val hc = HeaderCarrier()
+      assessmentCentreToFsbOrOfferService.nextApplicationForFsbOrJobOffer(applicationId).flatMap {
+        case Nil =>
+          val msg = "No candidate found to progress to fsb or offer job. Please check the candidate's state in the diagnostic report"
+          Future.successful(BadRequest(msg))
+        case application =>
+          assessmentCentreToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(application).map { result =>
+            val msg = s"Progress to fsb or job offer complete - ${result.successes.size} processed successfully " +
+              s"and ${result.failures.size} failed to update"
+            Ok(msg)
+          }
+      }
+    }
+
+  def progressCandidateFailedAtFsb(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      fsbService.processApplicationFailedAtFsb(applicationId).map { result =>
+        val successfulAppIds = result.successes.map( _.applicationId )
+        val failedAppIds = result.failures.map( _.applicationId )
+        val msg = s"Progress candidate failed at FSB complete - ${result.successes.size} updated, appIds: ${successfulAppIds.mkString(",")} " +
+          s"and ${result.failures.size} failed to update, appIds: ${failedAppIds.mkString(",")}"
+        Logger.warn(msg)
+        if (result.failures.nonEmpty) {
+          BadRequest(s"Failed to update candidate, appId: ${failedAppIds.mkString(",")}")
+        } else if (result.successes.isEmpty) {
+          BadRequest(s"No candidate found to update, appId: $applicationId. Please check the candidate's status")
+        } else {
+          Ok(msg)
+        }
+      }
+    }
 }
 // scalastyle:on

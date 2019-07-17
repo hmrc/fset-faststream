@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package model
 
-import model.persisted.CubiksTest
-import model.persisted.TestResult
+import model.persisted.{ CubiksTest, PsiTest, PsiTestResult, TestResult }
 import org.joda.time.DateTime
 
 object Phase1TestExamples {
-  val testResult = TestResult("Ready", "norm", Some(12.5), None, None, None)
+  val testResult = TestResult(status = "Ready", norm = "norm", tScore = Some(12.5), percentile = None, raw = None, sten = None)
 
   def createTestResult(tScore: Double) = TestResult("Ready", "norm", Some(tScore), None, None, None)
 
@@ -31,4 +30,22 @@ object Phase1TestExamples {
   def secondTest(implicit now: DateTime) = firstTest.copy(scheduleId = 16194)
 
   def thirdTest(implicit now: DateTime) = firstTest.copy(scheduleId = 16196)
+
+  val psiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, None)
+
+  def firstPsiTest(implicit now: DateTime) =
+    PsiTest(
+      inventoryId = "inventoryId1",
+      orderId = "orderId1",
+      usedForResults = true,
+      testUrl = "http://localhost",
+      invitationDate = now,
+      testResult = Some(psiTestResult)
+    )
+
+  def secondPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId2", orderId = "orderId2")
+
+  def thirdPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId3", orderId = "orderId3")
+
+  def fourthPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId4", orderId = "orderId4")
 }

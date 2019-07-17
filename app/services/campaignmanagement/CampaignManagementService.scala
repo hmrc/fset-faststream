@@ -16,26 +16,40 @@
 
 package services.campaignmanagement
 
-import java.util.UUID
-
 import factories.UUIDFactory
+import model.command.SetTScoreRequest
 import model.exchange.campaignmanagement.{ AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused }
-import model.persisted.CampaignManagementAfterDeadlineCode
+import model.persisted._
 import org.joda.time.DateTime
-import repositories.campaignManagementAfterDeadlineSignupCodeRepository
+import repositories._
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.onlinetesting.{ Phase1TestRepository, Phase2TestRepository }
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object CampaignManagementService extends CampaignManagementService{
   val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository = campaignManagementAfterDeadlineSignupCodeRepository
-  val uuidFactory = UUIDFactory
+  val uuidFactory: UUIDFactory = UUIDFactory
+  val appRepo: GeneralApplicationMongoRepository = applicationRepository
+  val phase1TestRepo: Phase1TestRepository = phase1TestRepository
+  val phase2TestRepo: Phase2TestRepository = phase2TestRepository
+  val questionnaireRepo: QuestionnaireRepository = questionnaireRepository
+  val mediaRepo: MediaRepository = mediaRepository
+  val contactDetailsRepo: ContactDetailsRepository = faststreamContactDetailsRepository
 }
 
 trait CampaignManagementService {
   val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository
   val uuidFactory: UUIDFactory
+  val appRepo: GeneralApplicationRepository
+  val phase1TestRepo: Phase1TestRepository
+  val phase2TestRepo: Phase2TestRepository
+  val questionnaireRepo: QuestionnaireRepository
+  val mediaRepo: MediaRepository
+  val contactDetailsRepo: ContactDetailsRepository
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Future[AfterDeadlineSignupCodeUnused] = {
     afterDeadlineCodeRepository.findUnusedValidCode(code).map(storedCodeOpt =>
@@ -57,5 +71,111 @@ trait CampaignManagementService {
     afterDeadlineCodeRepository.save(newCode).map { _ =>
       AfterDeadlineSignupCode(newCode.code)
     }
+  }
+
+  def listCollections: Future[String] = {
+    appRepo.listCollections.map(_.mkString("\n"))
+  }
+
+  def removeCollection(name: String): Future[Unit] = {
+    appRepo.removeCollection(name)
+  }
+
+  def removeCandidate(applicationId: String, userId: String): Future[Unit] = {
+    for {
+      _ <- appRepo.removeCandidate(applicationId)
+      _ <- contactDetailsRepo.removeContactDetails(userId)
+      _ <- mediaRepo.removeMedia(userId)
+      _ <- questionnaireRepo.removeQuestions(applicationId)
+    } yield ()
+  }
+
+  private def verifyPhase1TestScoreData(tScoreRequest: SetTScoreRequest): Future[Boolean] = {
+    for {
+      phase1TestProfileOpt <- phase1TestRepo.getTestGroup(tScoreRequest.applicationId)
+    } yield {
+      val sjqBqPresent = phase1TestProfileOpt.exists { phase1TestProfile =>
+        phase1TestProfile.tests.size == 2
+      }
+
+      val sjqScoresSaved = phase1TestProfileOpt.flatMap { phase1TestProfile =>
+        phase1TestProfile.tests.head.testResult
+      }.isDefined
+
+      val bqScoresSaved = phase1TestProfileOpt.flatMap { phase1TestProfile =>
+        phase1TestProfile.tests(1).testResult
+      }.isDefined
+
+      sjqBqPresent && sjqScoresSaved && bqScoresSaved
+    }
+  }
+
+  private def updatePhase1TestProfile(tScoreRequest: SetTScoreRequest, phase1TestProfile: Phase1TestProfile): Phase1TestProfile = {
+    phase1TestProfile.copy(tests = updateTests(tScoreRequest, phase1TestProfile.tests))
+  }
+
+  private def updateTests(tScoreRequest: SetTScoreRequest, tests: List[CubiksTest]) :List[CubiksTest] = {
+    tests.map { test =>
+      val testResultOpt = test.testResult.map { testResult =>
+        testResult.copy(tScore = Some(tScoreRequest.tScore))
+      }
+      test.copy(testResult = testResultOpt)
+    }
+  }
+
+  def setPhase1TScore(tScoreRequest: SetTScoreRequest): Future[Unit] = {
+    (for {
+      dataIsValid <- verifyPhase1TestScoreData(tScoreRequest)
+    } yield {
+      val msg = "Phase1 data is not in the correct state to set tScores"
+      if (dataIsValid) {
+        for {
+          phase1TestProfileOpt <- phase1TestRepo.getTestGroup(tScoreRequest.applicationId)
+          _ <- phase1TestRepo.insertOrUpdateTestGroup(
+            tScoreRequest.applicationId, updatePhase1TestProfile(tScoreRequest, phase1TestProfileOpt
+              .getOrElse(throw new IllegalStateException(msg))))
+        } yield ()
+      } else {
+        throw new IllegalStateException(msg)
+      }
+    }).flatMap(identity)
+  }
+
+  def setPhase2TScore(tScoreRequest: SetTScoreRequest): Future[Unit] = {
+    (for {
+      dataIsValid <- verifyPhase2TestScoreData(tScoreRequest)
+    } yield {
+      val msg = "Phase2 data is not in the correct state to set tScores"
+      if (dataIsValid) {
+        for {
+          phase2TestGroupOpt <- phase2TestRepo.getTestGroup(tScoreRequest.applicationId)
+          _ <- phase2TestRepo.insertOrUpdateTestGroup(
+            tScoreRequest.applicationId, updatePhase2TestGroup(tScoreRequest, phase2TestGroupOpt
+              .getOrElse(throw new IllegalStateException(msg))))
+        } yield ()
+      } else {
+        throw new IllegalStateException(msg)
+      }
+    }).flatMap(identity)
+  }
+
+  private def verifyPhase2TestScoreData(tScoreRequest: SetTScoreRequest): Future[Boolean] = {
+    for {
+      phase2TestProfileOpt <- phase2TestRepo.getTestGroup(tScoreRequest.applicationId)
+    } yield {
+      val etrayPresent = phase2TestProfileOpt.exists { phase2TestProfile =>
+        phase2TestProfile.tests.size == 1
+      }
+
+      val etrayScoresSaved = phase2TestProfileOpt.flatMap { phase2TestProfile =>
+        phase2TestProfile.tests.head.testResult
+      }.isDefined
+
+      etrayPresent && etrayScoresSaved
+    }
+  }
+
+  private def updatePhase2TestGroup(tScoreRequest: SetTScoreRequest, phase2TestGroup: Phase2TestGroup): Phase2TestGroup = {
+    phase2TestGroup.copy(tests = updateTests(tScoreRequest, phase2TestGroup.tests))
   }
 }

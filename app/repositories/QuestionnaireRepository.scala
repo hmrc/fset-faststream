@@ -22,6 +22,7 @@ import play.api.libs.json._
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import services.reporting.SocioEconomicScoreCalculator
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -36,12 +37,13 @@ trait QuestionnaireRepository {
   def findForOnlineTestPassMarkReport(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]]
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
   def findQuestionsByIds(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]]
-
+  def removeQuestions(applicationId: String): Future[Unit]
 
   val GenderQuestionText = "What is your gender identity?"
   val SexualOrientationQuestionText = "What is your sexual orientation?"
   val EthnicityQuestionText = "What is your ethnic group?"
   val UniversityQuestionText = "What is the name of the university you received your degree from?"
+  val socioEconomicQuestionText = "Do you consider yourself to come from a lower socio-economic background?"
   val EmploymentStatusQuestionText = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
   val ParentEmployedOrSelfEmployedQuestionText = "Did they work as an employee or were they self-employed?"
   val ParentCompanySizeQuestionText = "Which size would best describe their place of work?"
@@ -108,6 +110,11 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     queryResult.map(_.toMap)
   }
 
+  override def removeQuestions(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    collection.remove(query, firstMatchOnly = true).map(_ => ())
+  }
+
   private[repositories] def find(applicationId: String): Future[List[QuestionnaireQuestion]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("questions" -> 1, "_id" -> 0)
@@ -128,6 +135,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     }
   }
 
+  //scalastyle:off method.length
   private def docToReport(document: BSONDocument): (String, QuestionnaireReportItem) = {
     val questionsDoc = document.getAs[BSONDocument]("questions")
 
@@ -144,6 +152,8 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
 
     val university = getAnswer(UniversityQuestionText)
 
+    val socioEconomic = getAnswer(socioEconomicQuestionText)
+
     val employmentStatus = getAnswer(EmploymentStatusQuestionText)
     val isEmployed = employmentStatus.exists (s => !s.startsWith(UnemployedAnswerText) && !s.startsWith(UnknownAnswerText))
 
@@ -153,10 +163,11 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     val parentEmployedOrSelf = getAnswer(ParentEmployedOrSelfEmployedQuestionText)
     val parentCompanySize = getAnswer(ParentCompanySizeQuestionText)
 
-    val qAndA = questionsDoc.toList.flatMap(_.elements).map {
-      case (question, _) =>
-        val answer = getAnswer(question).getOrElse(UnknownAnswerText)
-        (question, answer)
+    //TODO: Ian mongo 3.2 -> 3.4
+    val qAndA = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
+      val question = bsonElement.name
+      val answer = getAnswer(question).getOrElse(UnknownAnswerText)
+      question -> answer
     }.toMap
 
     val socioEconomicScore = employmentStatus.map(_ => socioEconomicCalculator.calculate(qAndA)).getOrElse("")
@@ -169,6 +180,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
       parentOccupation,
       parentEmployedOrSelf,
       parentCompanySize,
+      socioEconomic,
       socioEconomicScore,
       university
     ))

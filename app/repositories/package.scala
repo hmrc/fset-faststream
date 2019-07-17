@@ -73,10 +73,12 @@ package object repositories {
   lazy val fsacIndicatorRepository = new FSACIndicatorMongoRepository
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, onlineTestsGatewayConfig)
   lazy val reportingRepository = new ReportingMongoRepository(timeZoneService, DateTimeFactory)
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
+  lazy val phase1TestRepository2 = new Phase1TestMongoRepository2(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
+  lazy val phase2TestRepository2 = new Phase2TestMongoRepository2(DateTimeFactory)
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
@@ -207,6 +209,7 @@ package object repositories {
     }
   }
 
+  //TODO: Ian mongo 3.2 -> 3.4
   implicit object BSONMapOfListOfLocalDateHandler extends BSONHandler[BSONDocument, Map[String, List[LocalDate]]] {
     import Producer._
 
@@ -220,9 +223,8 @@ package object repositories {
     }
 
     override def read(bson: BSONDocument): Map[String, List[LocalDate]] = {
-      val elements = bson.elements.map {
-        case (key, value) =>
-          key -> value.seeAsTry[List[LocalDate]].get
+      val elements = bson.elements.map { bsonElement =>
+        bsonElement.name -> bsonElement.value.seeAsTry[List[LocalDate]].get
       }
       elements.toMap
     }
@@ -260,6 +262,7 @@ package object repositories {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[String]("applicationStatus").get
     val userId = doc.getAs[String]("userId").get
+    val testAccountId = doc.getAs[String]("testAccountId").get
 
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
@@ -273,7 +276,10 @@ package object repositories {
     val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
     val videoInterviewAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("video")
 
-    OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests,
-      needsAdjustmentsAtVenue, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments)
+    OnlineTestApplication(
+      applicationId, applicationStatus, userId, testAccountId, guaranteedInterview,
+      needsAdjustmentForOnlineTests, needsAdjustmentsAtVenue, preferredName, lastName,
+      etrayAdjustments, videoInterviewAdjustments
+    )
   }
 }

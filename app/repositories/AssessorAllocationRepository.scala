@@ -24,6 +24,7 @@ import play.api.libs.json.{ JsObject, OFormat }
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.api.commands.MultiBulkWriteResult
 import reactivemongo.bson._
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 

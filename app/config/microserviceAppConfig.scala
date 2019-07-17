@@ -20,13 +20,13 @@ import java.io.File
 
 import com.github.ghik.silencer.silent
 import com.typesafe.config.ConfigFactory
-import model.persisted.eventschedules.{Location, Venue}
+import model.persisted.eventschedules.{ Location, Venue }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
-import play.api.Play
-import play.api.Play.{configuration, current}
+import play.api.{ Logger, Play }
+import play.api.Play.{ configuration, current }
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.config.ServicesConfig
 
 case class FrameworksConfig(yamlFilePath: String)
 
@@ -36,7 +36,7 @@ case class EventsConfig(scheduleFilePath: String, fsacGuideUrl: String, daysBefo
 
 case class EventSubtypeConfig(yamlFilePath: String)
 
-case class AuthConfig(host: String, port: Int, serviceName: String)
+case class AuthConfig(serviceName: String)
 
 case class EmailConfig(url: String)
 
@@ -79,14 +79,28 @@ object WaitingScheduledJobConfig {
   }
 }
 
-case class CubiksGatewayConfig(url: String,
-  phase1Tests: Phase1TestsConfig,
-  phase2Tests: Phase2TestsConfig,
-  numericalTests: NumericalTestsConfig,
-  reportConfig: ReportConfig,
-  candidateAppUrl: String,
-  emailDomain: String
+case class OnlineTestsGatewayConfig(url: String,
+                                    phase1Tests: Phase1TestsConfig,
+                                    phase2Tests: Phase2TestsConfig,
+                                    numericalTests: NumericalTestsConfig,
+                                    reportConfig: ReportConfig,
+                                    candidateAppUrl: String,
+                                    emailDomain: String
 )
+
+case class TestIntegrationGatewayConfig(url: String,
+                                    phase1Tests: Phase1TestsConfig2,
+                                    phase2Tests: Phase2TestsConfig2,
+                                    numericalTests: NumericalTestsConfig2,
+                                    reportConfig: ReportConfig,
+                                    candidateAppUrl: String,
+                                    emailDomain: String
+)
+
+case class Phase1TestsConfig2(expiryTimeInDays: Int,
+                             inventoryIds: Map[String, String],
+                             standard: List[String],
+                             gis: List[String])
 
 case class Phase1TestsConfig(expiryTimeInDays: Int,
                              scheduleIds: Map[String, Int],
@@ -95,10 +109,20 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
 
 case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
 
+case class Phase2TestsConfig2(expiryTimeInDays: Int,
+                              expiryTimeInDaysForInvigilatedETray: Int,
+                              inventoryIds: Map[String, String],
+                              tests: List[String])
+
 case class Phase2TestsConfig(expiryTimeInDays: Int,
                              expiryTimeInDaysForInvigilatedETray: Int,
-                             schedules: Map[String, Phase2Schedule]) {
+                             schedules: Map[String, Phase2Schedule],
+                             alwaysChooseSchedule: Option[String]) {
   require(schedules.contains("daro"), "Daro schedule must be present as it is used for the invigilated e-tray applications")
+  alwaysChooseSchedule.foreach { s =>
+    require(schedules.contains(s), s"The alwaysChooseSchedule value: $s is not in the schedule names: ${schedules.keys}")
+    Logger.info(s"The alwaysChooseSchedule key is configured so phase2 invitation job will always invite candidates to take $s Etray")
+  }
 
   def scheduleNameByScheduleId(scheduleId: Int): String = {
     val scheduleNameOpt = schedules.find { case (_, s) =>
@@ -113,6 +137,14 @@ case class Phase2TestsConfig(expiryTimeInDays: Int,
 
 case class NumericalTestSchedule(scheduleId: Int, assessmentId: Int)
 case class NumericalTestsConfig(schedules: Map[String, NumericalTestSchedule])
+
+case object NumericalTestsConfig {
+  val numericalTestScheduleName = "numericalTest"
+}
+
+case class NumericalTestIds(inventoryId: String, assessmentId: Option[String],
+                            reportId: Option[String], normId: Option[String])
+case class NumericalTestsConfig2(tests: Map[String, NumericalTestIds], standard: List[String])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
@@ -143,7 +175,7 @@ object AssessmentEvaluationMinimumCompetencyLevel {
 
 object MicroserviceAppConfig extends MicroserviceAppConfig
 
-trait MicroserviceAppConfig extends ServicesConfig with RunMode {
+trait MicroserviceAppConfig extends ServicesConfig {
   import net.ceedubs.ficus.readers.ArbitraryTypeReader._
   @silent lazy val app = play.api.Play.current
   @silent lazy val underlyingConfiguration = configuration.underlying
@@ -156,7 +188,9 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val schemeConfig = underlyingConfiguration.as[SchemeConfig]("microservice.schemes")
   lazy val eventsConfig = underlyingConfiguration.as[EventsConfig]("microservice.events")
   lazy val userManagementConfig = underlyingConfiguration.as[UserManagementConfig]("microservice.services.user-management")
-  lazy val cubiksGatewayConfig = underlyingConfiguration.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val onlineTestsGatewayConfig = underlyingConfiguration.as[OnlineTestsGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val testIntegrationGatewayConfig = underlyingConfiguration
+    .as[TestIntegrationGatewayConfig]("microservice.services.test-integration-gateway")
   lazy val launchpadGatewayConfig = underlyingConfiguration.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
   lazy val disableSdipFaststreamForSift = underlyingConfiguration.as[Boolean]("microservice.services.disableSdipFaststreamForSift")
   lazy val maxNumberOfDocuments = underlyingConfiguration.as[Int]("maxNumberOfDocuments")
@@ -177,6 +211,10 @@ trait MicroserviceAppConfig extends ServicesConfig with RunMode {
 
   lazy val parityExportJobConfig =
     underlyingConfiguration.as[ScheduledJobConfig]("scheduling.parity-export-job")
+
+  override def mode = Play.current.mode
+
+  override def runModeConfiguration = Play.current.configuration
 
   private val secretsFileCubiksUrlKey = "microservice.services.cubiks-gateway.testdata.url"
   lazy val testDataGeneratorCubiksSecret = app.configuration.getString(secretsFileCubiksUrlKey).

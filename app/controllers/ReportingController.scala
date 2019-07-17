@@ -21,10 +21,10 @@ import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.EvaluationResults.Green
 import model.Exceptions.{ NotFoundException, UnexpectedException }
 import model.command.{ CandidateDetailsReportItem, CsvExtract }
-import model.persisted.ContactDetailsWithId
+import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
 import model.persisted.eventschedules.Event
 import model.report._
-import model.{ ApplicationStatus, SiftRequirement, UniqueIdentifier }
+import model._
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
@@ -43,6 +43,8 @@ import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import common.Joda._
+import model.ApplicationRoute.{ ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream }
+import model.ApplicationStatus.ApplicationStatus
 
 object ReportingController extends ReportingController {
   val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
@@ -62,6 +64,8 @@ object ReportingController extends ReportingController {
   val fsbRepository = repositories.fsbRepository
   val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
 }
+
+// scalastyle:off number.of.methods
 
 trait ReportingController extends BaseController {
 
@@ -117,59 +121,257 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def streamPreviousYearCandidatesDetailsReport: Action[AnyContent] = Action.async { implicit request =>
-    enrichPreviousYearCandidateDetails {
-      (contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) =>
-      {
+  def streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.CREATED, ApplicationStatus.IN_PROGRESS,
+        ApplicationStatus.SUBMITTED, ApplicationStatus.WITHDRAWN,
+        ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER
+      )
+    )
+  }
+
+  def streamPreviousYearFaststreamP1CandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_FAILED,
+        ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+    )
+  }
+
+  def streamPreviousYearFaststreamP2P3CandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(
+        ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_PASSED,
+        ApplicationStatus.PHASE2_TESTS_FAILED, ApplicationStatus.PHASE3_TESTS,
+        ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER, ApplicationStatus.PHASE3_TESTS_PASSED,
+        ApplicationStatus.PHASE3_TESTS_FAILED, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
+      )
+    )
+  }
+
+  def streamPreviousYearFaststreamSIFTCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.SIFT, ApplicationStatus.FAILED_AT_SIFT)
+    )
+  }
+
+  def streamPreviousYearFaststreamFSACCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.ASSESSMENT_CENTRE)
+    )
+  }
+
+  def streamPreviousYearFaststreamFSBCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.FSB)
+    )
+  }
+
+  def streamPreviousYearFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      (c: Candidate) => c.applicationStatus.get == ApplicationStatus.PHASE1_TESTS_FAILED.toString
+    )
+  }
+
+  def streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      (c: Candidate) => c.applicationStatus.get != ApplicationStatus.PHASE1_TESTS_FAILED.toString
+    )
+  }
+
+  def streamPreviousYearNonFaststreamCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(SdipFaststream, Sdip, Edip),
+      _ => true
+    )
+  }
+
+  private def streamPreviousYearCandidatesDetailsReport(
+    applicationRoutes: Seq[ApplicationRoute],
+    applicationStatuses: Seq[ApplicationStatus]
+    ): Action[AnyContent] = Action.async { implicit request =>
+      prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
+        val appIds = candidates.flatMap(_.applicationId)
+        val userIds = candidates.map(_.userId)
+
+        enrichPreviousYearCandidateDetails(appIds, userIds) {
+          (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+           siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
+            val header = buildHeaders(numOfSchemes)
+            var counter = 0
+            val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
+              app =>
+                val ret = createCandidateInfoBackUpRecord(
+                  app, contactDetails, questionnaireDetails, mediaDetails,
+                  eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
+                ) + "\n"
+                counter += 1
+                ret
+            }
+            Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+          }
+        }
+      }
+  }
+
+  private def streamPreviousYearCandidatesDetailsReport(
+    applicationRoutes: Seq[ApplicationRoute],
+    filter: Candidate => Boolean): Action[AnyContent] = Action.async { implicit request =>
+      prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
+        val appIds = candidates.collect { case c if filter(c) => c.applicationId }.flatten
+        val userIds = candidates.collect { case c if filter(c) => c.userId }
+
+        enrichPreviousYearCandidateDetails(appIds, userIds) {
+          (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+           siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
+            val header = buildHeaders(numOfSchemes)
+            var counter = 0
+            val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
+              app =>
+                val ret = createCandidateInfoBackUpRecord(
+                  app, contactDetails, questionnaireDetails, mediaDetails,
+                  eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
+                ) + "\n"
+                counter += 1
+                ret
+            }
+            Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+          }
+        }
+      }
+  }
+
+  private def buildHeaders(numOfSchemes: Int): Enumerator[String] = {
+    Enumerator(
+      (prevYearCandidatesDetailsRepository.applicationDetailsHeader(numOfSchemes) ::
+        prevYearCandidatesDetailsRepository.contactDetailsHeader ::
+        prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+        prevYearCandidatesDetailsRepository.mediaHeader ::
+        prevYearCandidatesDetailsRepository.eventsDetailsHeader ::
+        prevYearCandidatesDetailsRepository.siftAnswersHeader ::
+        prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Assessor") ::
+        prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Reviewer") ::
+        Nil).mkString(",") + "\n"
+    )
+  }
+
+  type ReportStreamBlockType = (Int, CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String],
+    CsvExtract[String],CsvExtract[String], CsvExtract[String]) => Result
+
+  private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String], userIds: Seq[String] = Nil)(block: ReportStreamBlockType) = {
+    def log(msg: String)= play.api.Logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
+    log(s"started enriching data at ${org.joda.time.DateTime.now}")
+    val data = for {
+      contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails(userIds)
+      _ = log(s"enriching data - contactDetails = ${contactDetails.header}, size = ${contactDetails.records.size}")
+      questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetails(applicationIds)
+      _ = log(s"enriching data - questionnaireDetails = ${questionnaireDetails.header}, size = ${questionnaireDetails.records.size}")
+      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails(userIds)
+      _ = log(s"enriching data - mediaDetails = ${mediaDetails.header}, size = ${mediaDetails.records.size}")
+      eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails(applicationIds)
+      _ = log(s"enriching data - eventsDetails = ${eventsDetails.header}, size = ${eventsDetails.records.size}")
+      siftAnswers <- prevYearCandidatesDetailsRepository.findSiftAnswers(applicationIds)
+      _ = log(s"enriching data - siftAnswers = ${siftAnswers.header}, size = ${siftAnswers.records.size}")
+      assessorAssessmentScores <- prevYearCandidatesDetailsRepository.findAssessorAssessmentScores(applicationIds)
+      _ = log(s"enriching data - assessorAssessmentScores = ${assessorAssessmentScores.header}, size = ${assessorAssessmentScores.records.size}")
+      reviewerAssessmentScores <- prevYearCandidatesDetailsRepository.findReviewerAssessmentScores(applicationIds)
+      _ = log(s"enriching data - reviewerAssessmentScores = ${reviewerAssessmentScores.header}, size = ${reviewerAssessmentScores.records.size}")
+    } yield {
+      val res = block(maxSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
+        assessorAssessmentScores, reviewerAssessmentScores)
+      log(s"result = $res")
+      log(s"finished enriching data at ${org.joda.time.DateTime.now} ")
+      res
+    }
+    data
+  }
+
+  // +1 to handle SdipFastStream candidates who automatically get the Sdip schemes in addition to the 4 selectable schemes
+  private def maxSchemes = schemeRepo.maxNumberOfSelectableSchemes + 1
+
+  // Includes data from the following collections: application, contact-details and media
+  def streamDataAnalystReportPt1: Action[AnyContent] = Action.async { implicit request =>
+    enrichDataAnalystReportPt1(
+      (numOfSchemes, contactDetails, mediaDetails) => {
+
+        val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStreamPt1(numOfSchemes).map { app =>
+          createDataAnalystRecordPt1(app, contactDetails, mediaDetails) + "\n"
+        }
+
         val header = Enumerator(
-          (prevYearCandidatesDetailsRepository.applicationDetailsHeader ::
-            prevYearCandidatesDetailsRepository.contactDetailsHeader ::
-            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+          (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
+            prevYearCandidatesDetailsRepository.dataAnalystContactDetailsHeader ::
             prevYearCandidatesDetailsRepository.mediaHeader ::
-            prevYearCandidatesDetailsRepository.eventsDetailsHeader ::
-            prevYearCandidatesDetailsRepository.siftAnswersHeader ::
-            prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Assessor") ::
-            prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Reviewer") ::
             Nil).mkString(",") + "\n"
         )
-        var counter = 0
-        val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream().map { app =>
-          val ret = createCandidateInfoBackUpRecord(
-            app,
-            contactDetails,
-            questionnaireDetails,
-            mediaDetails,
-            eventsDetails,
-            siftAnswers,
-            assessorAssessmentScores,
-            reviewerAssessmentScores
-          ) + "\n"
-          counter += 1
-          ret
-        }
-        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
       }
+    )
+  }
+
+  private def enrichDataAnalystReportPt1(block: (Int, CsvExtract[String], CsvExtract[String]) => Result)= {
+    for {
+      contactDetails <- prevYearCandidatesDetailsRepository.findDataAnalystContactDetails
+      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails
+    } yield {
+      block(maxSchemes, contactDetails, mediaDetails)
     }
   }
 
-  private def enrichPreviousYearCandidateDetails(
-    block: (CsvExtract[String], CsvExtract[String],
-      CsvExtract[String], CsvExtract[String],
-      CsvExtract[String], CsvExtract[String],
-      CsvExtract[String]) => Result
-  ) = {
+  private def createDataAnalystRecordPt1(candidateDetails: CandidateDetailsReportItem,
+                                         contactDetails: CsvExtract[String],
+                                         mediaDetails: CsvExtract[String]
+                                        ) = {
+    (candidateDetails.csvRecord ::
+      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
+      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
+      Nil).mkString(",")
+  }
+
+  // Includes data from the following collections: application, questionnaire and sift-answers
+  def streamDataAnalystReportPt2: Action[AnyContent] = Action.async { implicit request =>
+    enrichDataAnalystReportPt2(
+      (questionnaireDetails, siftDetails) => {
+
+        val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStreamPt2.map { app =>
+          createDataAnalystRecordPt2(app, questionnaireDetails, siftDetails) + "\n"
+        }
+
+        val header = Enumerator(
+          ("ApplicationId" ::
+            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+            prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
+            Nil).mkString(",") + "\n"
+        )
+        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+      }
+    )
+  }
+
+  private def enrichDataAnalystReportPt2(block: (CsvExtract[String], CsvExtract[String]) => Result)= {
     for {
-      contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails()
-      questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetails()
-      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails()
-      eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails()
-      siftAnswers <- prevYearCandidatesDetailsRepository.findSiftAnswers()
-      assessorAssessmentScores <- prevYearCandidatesDetailsRepository.findAssessorAssessmentScores()
-      reviewerAssessmentScores <- prevYearCandidatesDetailsRepository.findReviewerAssessmentScores()
+      questionnaireDetails <- prevYearCandidatesDetailsRepository.findDataAnalystQuestionnaireDetails
+      siftDetails <- prevYearCandidatesDetailsRepository.findDataAnalystSiftAnswers
     } yield {
-      block(contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
-        assessorAssessmentScores, reviewerAssessmentScores)
+      block(questionnaireDetails, siftDetails)
     }
+  }
+
+  private def createDataAnalystRecordPt2(candidateDetails: CandidateDetailsReportItem,
+                                         questionnaireDetails: CsvExtract[String],
+                                         siftDetails: CsvExtract[String]
+                                        ) = {
+    (candidateDetails.csvRecord ::
+      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+      siftDetails.records.getOrElse(candidateDetails.appId, siftDetails.emptyRecord) ::
+      Nil).mkString(",")
   }
 
   private def createCandidateInfoBackUpRecord(
@@ -414,23 +616,61 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def onlineTestPassMarkReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
-    val reports =
+  private def onlineTestPassMarkReportCommon(applications: List[ApplicationForOnlineTestPassMarkReport]):
+  Future[List[OnlineTestPassMarkReportItem]] = {
+
+    for {
+      siftResults <- applicationSiftRepository.findAllResults
+      fsacResults <- assessmentScoresRepository.findAll
+      appIds = applications.map(_.applicationId)
+      questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(appIds)
+      fsbScoresAndFeedback <- fsbRepository.findScoresAndFeedback(appIds)
+    } yield {
       for {
-        applications <- reportingRepository.onlineTestPassMarkReport
-        siftResults <- applicationSiftRepository.findAllResults
-        fsacResults <- assessmentScoresRepository.findAll
-        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
-      } yield {
-        for {
-          application <- applications
-          appId = UniqueIdentifier(application.applicationId)
-          fsac = fsacResults.find(_.applicationId == appId)
-          overallFsacScoreOpt = fsac.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
-          sift = siftResults.find(_.applicationId == application.applicationId)
-          q <- questionnaires.get(application.applicationId)
-        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(application, fsac, overallFsacScoreOpt, sift), q)
-      }
+        application <- applications
+        appId = UniqueIdentifier(application.applicationId)
+        fsac = fsacResults.find(_.applicationId == appId)
+        overallFsacScoreOpt = fsac.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
+        sift = siftResults.find(_.applicationId == application.applicationId)
+        q <- questionnaires.get(application.applicationId)
+        fsb <- fsbScoresAndFeedback.get(application.applicationId)
+      } yield OnlineTestPassMarkReportItem(
+        ApplicationForOnlineTestPassMarkReportItem.create(application, fsac, overallFsacScoreOpt, sift, fsb), q
+      )
+    }
+  }
+
+  def onlineTestPassMarkReportFsPhase1Failed(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+    val reports = (for {
+      applications <- reportingRepository.onlineTestPassMarkReportFsPhase1Failed
+    } yield {
+      onlineTestPassMarkReportCommon(applications)
+    }).flatMap(identity)
+
+    reports.map { list =>
+      Ok(Json.toJson(list))
+    }
+  }
+
+  def onlineTestPassMarkReportFsNotPhase1Failed(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+    val reports = (for {
+      applications <- reportingRepository.onlineTestPassMarkReportFsNotPhase1Failed
+    } yield {
+      onlineTestPassMarkReportCommon(applications)
+    }).flatMap(identity)
+
+    reports.map { list =>
+      Ok(Json.toJson(list))
+    }
+  }
+
+  def onlineTestPassMarkReportNonFs(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+    val reports = (for {
+      applications <- reportingRepository.onlineTestPassMarkReportNonFs
+    } yield {
+      onlineTestPassMarkReportCommon(applications)
+    }).flatMap(identity)
+
     reports.map { list =>
       Ok(Json.toJson(list))
     }
@@ -493,5 +733,4 @@ trait ReportingController extends BaseController {
       }
     }
   }
-
 }

@@ -24,7 +24,7 @@ import model.Exceptions.{ SiftResultsAlreadyExistsException, UnexpectedException
 import model.ProgressStatuses.SIFT_ENTERED
 import model._
 import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
-import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest }
+import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest, SiftTestGroupWithActiveTest2 }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
@@ -76,14 +76,9 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.nextApplicationForSecondSiftReminder(timeInHours)
   }
 
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication]] = {
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication2]] = {
     val numericalSchemeIds = schemeRepo.numericTestSiftRequirementSchemeIds
-    def isEligibleForNumericTest(app: NumericalTestApplication): Boolean = {
-      app.currentSchemeStatus.exists(schemeRes =>
-        Result(schemeRes.result) == Green && numericalSchemeIds.contains(schemeRes.schemeId)
-      )
-    }
-    applicationSiftRepo.nextApplicationsReadyForNumericTestsInvitation(batchSize).map(_.filter(isEligibleForNumericTest))
+    applicationSiftRepo.nextApplicationsReadyForNumericTestsInvitation(batchSize, numericalSchemeIds)
   }
 
   def sendReminderNotification(expiringSift: NotificationExpiringSift,
@@ -215,10 +210,32 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
+  def getTestGroup2(applicationId: String): Future[Option[SiftTestGroupWithActiveTest2]] = {
+    for {
+      siftOpt <- applicationSiftRepo.getTestGroup2(applicationId)
+    } yield siftOpt.map { sift =>
+      val test = sift.tests.getOrElse(throw UnexpectedException(s"No tests found for $applicationId in SIFT"))
+        .find(_.usedForResults)
+        .getOrElse(throw NoActiveTestException(s"No active sift test found for $applicationId"))
+      SiftTestGroupWithActiveTest2(
+        sift.expirationDate,
+        test
+      )
+    }
+  }
+
   def markTestAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
     for {
       _ <- applicationSiftRepo.updateTestStartTime(cubiksUserId, startedTime)
       appId <- applicationSiftRepo.getApplicationIdForCubiksId(cubiksUserId)
+      - <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_STARTED)
+    } yield {}
+  }
+
+  def markTestAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+    for {
+      _ <- applicationSiftRepo.updateTestStartTime(orderId, startedTime)
+      appId <- applicationSiftRepo.getApplicationIdForOrderId(orderId)
       - <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_STARTED)
     } yield {}
   }
@@ -431,7 +448,17 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     for {
       _ <- applicationSiftRepo.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId)
       _ <- applicationRepo.removeProgressStatuses(applicationId,
-        List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
+        List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.SDIP_FAILED_AT_SIFT,
+          ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
+    } yield ()
+  }
+
+  def fixUserSiftedWithAFailToSiftCompleted(applicationId: String): Future[Unit] = {
+    for {
+      _ <- applicationRepo.removeProgressStatuses(applicationId,
+        List(ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.SDIP_FAILED_AT_SIFT,
+          ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
+      _ <- applicationRepo.updateApplicationStatusOnly(applicationId, ApplicationStatus.SIFT)
     } yield ()
   }
 }

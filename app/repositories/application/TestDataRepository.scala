@@ -25,6 +25,7 @@ import model.persisted.ContactDetails
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -104,7 +105,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     ).map(_ => ())
 
   // scalastyle:off parameter.number
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
+  def createApplicationWithAllFields(userId: String, appId: String, testAccountId: String, frameworkId: String,
     appStatus: ApplicationStatus = ApplicationStatus.IN_PROGRESS, hasDisability: String = "Yes",
     needsSupportForOnlineAssessment: Boolean = false,
     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
@@ -117,6 +118,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     import repositories.BSONLocalDateHandler
     val document = BSONDocument(
       "applicationId" -> appId,
+      "testAccountId" -> testAccountId,
       "applicationStatus" -> appStatus,
       "applicationRoute" -> applicationRoute,
       "userId" -> userId,

@@ -40,7 +40,7 @@ trait OnlineTestResultsCalculator {
       case _ if results.contains(Amber) => Amber
       case _ if results.forall(_ == Green) => Green
     }
-    Logger.info(s"**** Combining results $results = $result")
+    Logger.info(s"Combining results $results = $result")
     result
   }
 }

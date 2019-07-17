@@ -19,17 +19,19 @@ package repositories.onlinetesting
 import common.Phase3TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ApplicationNotFound, NotFoundException}
+import model.Exceptions.{ ApplicationNotFound, NotFoundException, TokenNotFound }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted.phase3tests.Phase3TestGroup
-import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId}
-import model.{ApplicationStatus, ProgressStatuses, ReminderNotice}
+import model.persisted.{ NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId }
+import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.bson.{ BSONDocument, _ }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
+import repositories.BSONDateTimeHandler
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -58,6 +60,16 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
+
+  def removePhase3TestGroup(applicationId: String): Future[Unit]
+
+  def removeReviewedCallbacks(token: String): Future[Unit]
+
+  def removeTest(token: String): Future[Unit]
+
+  def markTestAsActive(token: String): Future[Unit]
+
+  def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -115,6 +127,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     upsertTestGroupEvaluationResult(applicationId, passmarkEvaluation)
   }
 
+  // Note this overrides the default impl in OnlineTestRepository. Maybe rename this method so we have the default available
   override def removeTestGroup(applicationId: String): Future[Unit] = {
     val appStatuses = List(ApplicationStatus.PHASE3_TESTS,
       ApplicationStatus.PHASE3_TESTS_FAILED,
@@ -135,6 +148,63 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(applicationId, "removing test group", ApplicationNotFound(applicationId))
     collection.update(query, updateQuery, upsert = false) map validator
+  }
+
+  // Note this is the same impl as the default removeTestGroup in OnlineTestRepository. Provided here because
+  // the default impl is overriden above
+  override def removePhase3TestGroup(applicationId: String): Future[Unit] = {
+    super.removeTestGroup(applicationId)
+  }
+
+  override def removeReviewedCallbacks(token: String): Future[Unit] = {
+    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+    val update = BSONDocument(
+      "$set" -> BSONDocument(s"testGroups.$phaseName.tests.$$.callbacks.reviewed" -> List.empty[String])
+    )
+
+    val validator = singleUpdateValidator(token, "removing reviewed callbacks", TokenNotFound(token))
+    collection.update(query, update, upsert = false, multi = true) map validator
+  }
+
+  override def removeTest(token: String): Future[Unit] = {
+    val removePredicate = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+
+    val removeDoc = BSONDocument(
+      "$pull" -> BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument("token" -> token))
+    )
+
+    val validator = singleUpdateValidator(token, "removing test", TokenNotFound(s"Failed to remove P3 test for $token"))
+
+    collection.update(removePredicate, removeDoc, upsert = false) map validator
+  }
+
+  override def markTestAsActive(token: String) = {
+    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.usedForResults" -> true
+    ))
+
+    val validator = singleUpdateValidator(token, "setting P3 test active", TokenNotFound(s"Failed to set P3 test active for $token"))
+
+    collection.update(query, update, upsert = false) map validator
+  }
+
+  override def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
+
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.expirationDate" -> expiryDate
+    ))
+
+    val validator = singleUpdateValidator(applicationId, "setting phase3 expiration date", ApplicationNotFound(applicationId))
+    collection.update(query, update, upsert = false) map validator
   }
 
   override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = {

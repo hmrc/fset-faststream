@@ -28,6 +28,7 @@ import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
 import repositories.application.GeneralApplicationRepoBSONReader
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -52,11 +53,14 @@ trait AssessmentCentreRepository {
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[UniqueIdentifier]]
+  def nextSpecificApplicationReadyForAssessmentScoreEvaluation(
+    currentPassmarkVersion: String, applicationId: String): Future[List[UniqueIdentifier]]
   def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]]
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
   def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
+  def removeFsacTestGroup(applicationId: String): Future[Unit]
   def removeFsacEvaluation(applicationId: String): Future[Unit]
   def findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]]
 }
@@ -104,6 +108,16 @@ class AssessmentCentreMongoRepository (
     })
   }
 
+  private val commonProgressStatusStateForEvaluation = BSONDocument(
+    "$and" -> BSONArray(
+      BSONDocument(s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$exists" -> false)),
+      BSONDocument(s"progress-status.${ProgressStatuses.WITHDRAWN}" -> BSONDocument("$exists" -> false))
+    )
+  )
+
   override def nextApplicationReadyForAssessmentScoreEvaluation(
     currentPassmarkVersion: String,
     batchSize: Int): Future[List[UniqueIdentifier]] = {
@@ -114,9 +128,7 @@ class AssessmentCentreMongoRepository (
             "$and" -> BSONArray(
               BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
-              BSONDocument(s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)),
-              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED}" -> BSONDocument("$exists" -> false)),
-              BSONDocument(s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$exists" -> false))
+              commonProgressStatusStateForEvaluation
             )
           ),
           BSONDocument(
@@ -124,15 +136,46 @@ class AssessmentCentreMongoRepository (
               BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
-              BSONDocument(s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)),
-              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED}" -> BSONDocument("$exists" -> false)),
-              BSONDocument(s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$exists" -> false))
+              commonProgressStatusStateForEvaluation
             )
           )
         )
       )
 
     selectRandom[BSONDocument](query, batchSize).map(docs => docs.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get))
+  }
+
+  override def nextSpecificApplicationReadyForAssessmentScoreEvaluation(
+    currentPassmarkVersion: String,
+    applicationId: String): Future[List[UniqueIdentifier]] = {
+    val projection = BSONDocument("_id" -> false, "applicationId" -> true)
+    val query =
+      BSONDocument("$or" ->
+        BSONArray(
+          BSONDocument(
+            "$and" -> BSONArray(
+              BSONDocument("applicationId" -> applicationId),
+              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
+              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+              commonProgressStatusStateForEvaluation
+            )
+          ),
+          BSONDocument(
+            "$and" -> BSONArray(
+              BSONDocument("applicationId" -> applicationId),
+              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
+              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
+              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
+              commonProgressStatusStateForEvaluation
+            )
+          )
+        )
+      )
+
+    collection.find(query, projection).one[BSONDocument].map {
+      case Some(doc) => List(doc.getAs[UniqueIdentifier]("applicationId").get)
+      case _ => Nil
+    }
   }
 
   override def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]] = {
@@ -246,12 +289,27 @@ class AssessmentCentreMongoRepository (
     collection.update(query, update) map validator
   }
 
-  override def removeFsacEvaluation(applicationId: String): Future[Unit] = {
+  override def removeFsacTestGroup(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val updateOp = bsonCollection.updateModifier(
       BSONDocument(
         "$unset" -> BSONDocument(s"testGroups.$fsacKey" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map{ result =>
+      if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
+  }
+
+  override def removeFsacEvaluation(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$unset" -> BSONDocument(s"testGroups.$fsacKey.evaluation" -> "")
       )
     )
 

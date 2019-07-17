@@ -17,18 +17,19 @@
 package services.application
 
 import common.FutureEx
-import connectors.{CSREmailClient, EmailClient}
-import model.EvaluationResults.{Green, Red}
+import connectors.{ CSREmailClient, EmailClient }
+import model.EvaluationResults.{ Green, Red }
 import model.ProgressStatuses._
 import model._
 import model.command.ApplicationForProgression
-import model.exchange.ApplicationResult
-import model.persisted.{FsbSchemeResult, SchemeEvaluationResult}
+import model.exchange.{ ApplicationResult, FsbScoresAndFeedback }
+import model.persisted.fsb.ScoresAndFeedback
+import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import play.api.Logger
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.fsb.{FsbMongoRepository, FsbRepository}
-import repositories.{CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository}
+import repositories.fsb.{ FsbMongoRepository, FsbRepository }
+import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
 import services.application.DSSchemeIds._
 import services.scheme.SchemePreferencesService
 
@@ -72,6 +73,18 @@ trait FsbService extends CurrentSchemeStatusHelper {
     }
   }
 
+  def processApplicationFailedAtFsb(applicationId: String): Future[SerialUpdateResult[ApplicationForProgression]] = {
+    fsbRepo.nextApplicationFailedAtFsb(applicationId).flatMap { applications =>
+      val updates = FutureEx.traverseSerial(applications) { application =>
+        FutureEx.futureToEither(application,
+          applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
+        )
+      }
+
+      updates.map(SerialUpdateResult.fromEither)
+    }
+  }
+
   def evaluateFsbCandidate(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     Logger.debug(s"$logPrefix running for application $applicationId")
@@ -90,7 +103,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
     }
   }
 
-  private def getResultsForScheme(schemeId: SchemeId, results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
+  private def getResultsForScheme(appId: String, schemeId: SchemeId, results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
     import DSSchemeIds._
     val r = schemeId match {
       case DiplomaticServiceEconomists =>
@@ -99,7 +112,7 @@ trait FsbService extends CurrentSchemeStatusHelper {
           results.find(_.schemeId == DiplomaticService)
         ).flatten
         Logger.info(s">>>>>>> Results for GES-DS: $res")
-        require(res.size == 2 || res.exists(_.result == Red.toString), s"$DiplomaticServiceEconomists require EAC && FCO test results")
+        require(res.size == 2 || res.exists(_.result == Red.toString), s"$DiplomaticServiceEconomists requires EAC && FCO test results - $appId")
         res
       case GovernmentEconomicsService =>
         results.find(r => EacSchemes.contains(r.schemeId)).toSeq
@@ -137,17 +150,19 @@ trait FsbService extends CurrentSchemeStatusHelper {
     firstResidualPreferenceOpt: Option[SchemeEvaluationResult],
     currentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
 
-    require(fsbEvaluation.isDefined, "Evaluation for scheme must be defined to reach this stage, unexpected error.")
-    require(firstResidualPreferenceOpt.isDefined, "First residual preference must be defined to reach this stage, unexpected error.")
+    require(fsbEvaluation.isDefined, s"Evaluation for scheme must be defined to reach this stage, unexpected error for $appId")
+    require(firstResidualPreferenceOpt.isDefined, s"First residual preference must be defined to reach this stage, unexpected error for $appId")
 
-    val firstResidualInEvaluation = getResultsForScheme(firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)
+    val firstResidualInEvaluation = getResultsForScheme(appId, firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)
 
     if (firstResidualInEvaluation.result == Green.toString) {
-      for {
+      // These futures need to be in sequence one after the other
+      (for {
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
+      } yield for {
         // There are no notifications before going to eligible but we want audit trail to show we've passed
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
-      } yield ()
+      } yield ()).flatMap(identity)
 
     } else {
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED).flatMap { _ =>
@@ -209,6 +224,20 @@ trait FsbService extends CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def findScoresAndFeedback(applicationId: String): Future[Option[FsbScoresAndFeedback]] = {
+    for {
+      scoresAndFeedbackOpt <- fsbRepo.findScoresAndFeedback(applicationId)
+    } yield {
+      scoresAndFeedbackOpt.map( saf => FsbScoresAndFeedback(saf.overallScore, saf.feedback) )
+    }
+  }
+
+  def saveScoresAndFeedback(applicationId: String, data: FsbScoresAndFeedback): Future[Unit] = {
+    for {
+      _ <- fsbRepo.saveScoresAndFeedback(applicationId, ScoresAndFeedback(data.overallScore, data.feedback))
+    } yield ()
+  }
+
   def findByApplicationIdsAndFsbType(applicationIds: List[String], mayBeFsbType: Option[String]): Future[List[FsbSchemeResult]] = {
     val maybeSchemeId = mayBeFsbType.flatMap { fsb =>
       Try(schemeRepo.getSchemeForFsb(fsb)).toOption
@@ -227,7 +256,6 @@ trait FsbService extends CurrentSchemeStatusHelper {
   def findByApplicationIdsAndScheme(applicationIds: List[String], mayBeSchemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
     fsbRepo.findByApplicationIds(applicationIds, mayBeSchemeId)
   }
-
 }
 
 object DSSchemeIds {

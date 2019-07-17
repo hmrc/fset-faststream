@@ -16,8 +16,7 @@
 
 package model.persisted
 
-import controllers.OnlineTest
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class TestResult(status: String,

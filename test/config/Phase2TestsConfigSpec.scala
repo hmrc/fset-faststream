@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import testkit.UnitSpec
 class Phase2TestsConfigSpec extends UnitSpec {
 
   "Schedule name by schedule id" should {
-    val config = Phase2TestsConfig(10, 20, Map("daro" -> DaroSchedule))
+    val config = Phase2TestsConfig(10, 20, Map("daro" -> DaroSchedule), None)
 
     "return schedule name by schedule id" in {
       val name = config.scheduleNameByScheduleId(DaroSchedule.scheduleId)
@@ -38,13 +38,21 @@ class Phase2TestsConfigSpec extends UnitSpec {
 
   "schedule for invigilated e-tray" should {
     "return daro" in {
-      val config = Phase2TestsConfig(10, 20, Map("irad" -> IradSchedule, "daro" -> DaroSchedule))
+      val config = Phase2TestsConfig(10, 20, Map("oria" -> OriaSchedule, "daro" -> DaroSchedule), None)
       config.scheduleForInvigilatedETray mustBe DaroSchedule
     }
 
     "throw an exception when there is no daro schedule" in {
       an[IllegalArgumentException] must be thrownBy {
-        Phase2TestsConfig(10, 20, Map("irad" -> IradSchedule))
+        Phase2TestsConfig(10, 20, Map("oria" -> OriaSchedule), None)
+      }
+    }
+  }
+
+  "when configuring phase2 tests to always invite a candidate to a specific eTray" should {
+    "throw an exception when the specified eTray is not in the schedule list" in {
+      an[IllegalArgumentException] must be thrownBy {
+        Phase2TestsConfig(10, 20, Map("oria" -> OriaSchedule), Some("BOOM"))
       }
     }
   }

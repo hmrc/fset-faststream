@@ -18,20 +18,23 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId }
+import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, CannotFindTestByOrderId }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
-import model.exchange.CubiksTestResultReady
+import model.exchange.{ CubiksTestResultReady, PsiTestResultReady }
 import model.persisted._
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.{ BSONDocument, _ }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
+import repositories.BSONDateTimeHandler
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+//scalastyle:off number.of.methods
 trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
@@ -70,12 +73,138 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     findAndUpdateCubiksTest(cubiksUserId, update)
   }
 
+  def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
+    ))
+    findAndUpdateTest(orderId, update)
+  }
+
   def markTestAsInactive(cubiksUserId: Int) = {
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.usedForResults" -> false
     ))
     findAndUpdateCubiksTest(cubiksUserId, update)
   }
+
+  /// psi specific code start
+  def markTestAsInactive2(psiOrderId: String) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.usedForResults" -> false
+    ))
+    findAndUpdatePsiTest(psiOrderId, update)
+  }
+
+  private def findAndUpdatePsiTest(orderId: String, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit] = {
+    val find = BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("orderId" -> orderId)
+      )
+    )
+
+    val validator = if (ignoreNotFound) {
+      singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
+    } else {
+      singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests",
+        CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId"))
+    }
+
+    collection.update(find, update) map validator
+  }
+
+  def insertPsiTests(applicationId: String, newTestProfile: PsiTestProfile) = {
+//  def insertPsiTests[P <: PsiTestProfile](applicationId: String, newTestProfile: P) = {
+    val query = BSONDocument(
+      "applicationId" -> applicationId
+    )
+    val update = BSONDocument(
+      "$push" -> BSONDocument(
+        s"testGroups.$phaseName.tests" -> BSONDocument(
+          "$each" -> newTestProfile.tests
+        )),
+      "$set" -> BSONDocument(
+        s"testGroups.$phaseName.expirationDate" -> newTestProfile.expirationDate
+      )
+    )
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
+
+    collection.update(query, update) map validator
+  }
+
+  def getTestProfileByOrderId(orderId: String, phase: String = "PHASE1"): Future[T] = {
+    val query = BSONDocument(s"testGroups.$phase.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("orderId" -> orderId)
+    ))
+
+    phaseTestProfileByQuery(query, phase).map { x =>
+      x.getOrElse(cannotFindTestByOrderId(orderId))
+    }
+  }
+
+  def cannotFindTestByOrderId(orderId: String) = {
+    throw CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
+  }
+
+  def updateTestCompletionTime2(orderId: String, completedTime: DateTime) = {
+    import repositories.BSONDateTimeHandler
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
+    ))
+
+    findAndUpdatePsiTest(orderId, update, ignoreNotFound = true)
+  }
+
+  def updateTestReportReady2(orderId: String, reportReady: PsiTestResultReady) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.resultsReadyToDownload" -> (reportReady.reportStatus == "Ready"),
+      s"testGroups.$phaseName.tests.$$.reportId" -> reportReady.reportId,
+      s"testGroups.$phaseName.tests.$$.reportStatus" -> Some(reportReady.reportStatus)
+    ))
+    findAndUpdatePsiTest(orderId, update)
+  }
+
+  def insertTestResult2(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = {
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("orderId" -> psiTest.orderId)
+      )
+    )
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.testResult" -> PsiTestResult.testResultBsonHandler.write(testResult)
+    ))
+
+    val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test result")
+
+    collection.update(query, update) map validator
+  }
+
+  def getApplicationIdForOrderId(orderId: String, phase: String = "PHASE1"): Future[Option[String]] = {
+    val projection = BSONDocument("applicationId" -> true, "_id" -> false)
+    val query = BSONDocument(s"testGroups.$phase.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("orderId" -> orderId)
+    ))
+
+    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+      optDocument.flatMap {_.getAs[String]("applicationId")}
+    }
+  }
+
+  def nextTestGroupWithReportReady2[TestGroup](implicit reader: BSONDocumentReader[TestGroup]): Future[Option[TestGroup]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> thisApplicationStatus),
+      BSONDocument(s"progress-status.${phaseName}_TESTS_COMPLETED" -> true),
+      BSONDocument(s"progress-status.${phaseName}_TESTS_RESULTS_RECEIVED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"testGroups.$phaseName.tests" ->
+        BSONDocument("$elemMatch" -> BSONDocument("resultsReadyToDownload" -> true, "testResult" -> BSONDocument("$exists" -> false)))
+      )
+    ))
+
+    selectOneRandom[TestGroup](query)
+  }
+
+  /// psi specific code end
 
   def insertCubiksTests[P <: CubiksTestProfile](applicationId: String, newTestProfile: P) = {
     val query = BSONDocument(
@@ -236,6 +365,24 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.update(find, update) map validator
   }
 
+  private def findAndUpdateTest(orderId: String, update: BSONDocument,
+                                ignoreNotFound: Boolean = false): Future[Unit] = {
+    val find = BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("orderId" -> orderId)
+      )
+    )
+
+    val validator = if (ignoreNotFound) {
+      singleUpdateValidator(orderId, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
+    } else {
+      singleUpdateValidator(orderId, actionDesc = s"updating $phaseName tests",
+        CannotFindTestByCubiksId(s"Cannot find test group by Order ID: $orderId"))
+    }
+
+    collection.update(find, update) map validator
+  }
+
   def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
     val query = BSONDocument(
       "applicationId" -> appId,
@@ -294,4 +441,31 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.update(query, update) map validator
   }
+
+  def removeTestGroupEvaluation(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val update = BSONDocument("$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> ""))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing test group evaluation")
+
+    collection.update(query, update) map validator
+  }
+
+  def findEvaluation(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument(
+      "_id" -> false,
+      s"testGroups.$phaseName.evaluation.result" -> true
+    )
+
+    collection.find(query, projection).one[BSONDocument].map { optDocument =>
+      optDocument.flatMap {_.getAs[BSONDocument](s"testGroups")
+        .flatMap(_.getAs[BSONDocument](phaseName))
+        .flatMap(_.getAs[BSONDocument]("evaluation"))
+        .flatMap(_.getAs[Seq[SchemeEvaluationResult]]("result"))
+      }
+    }
+  }
 }
+//scalastyle:on

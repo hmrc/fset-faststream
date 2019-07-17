@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,23 @@
 
 package model
 
-import model.Candidate
-
 object CandidateExamples {
-  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
-
+  def minCandidate(userId: String) =
+    Candidate(
+      userId,
+      applicationId = None,
+      testAccountId = None,
+      email = None,
+      firstName = None,
+      lastName = None,
+      preferredName = None,
+      dateOfBirth = None,
+      address = None,
+      postCode = None,
+      country = None,
+      applicationRoute = None,
+      applicationStatus = None
+    )
 
   val NewCandidates = List(minCandidate("John"), minCandidate("Galt"))
 }

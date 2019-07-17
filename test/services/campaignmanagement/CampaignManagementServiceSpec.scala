@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,13 @@ import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers.any
+import repositories.{ MediaRepository, QuestionnaireRepository }
+import repositories.application.GeneralApplicationRepository
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.onlinetesting.{ Phase1TestRepository, Phase2TestRepository }
 import services.BaseServiceSpec
 import testkit.MockitoImplicits._
-
-import scala.concurrent.Future
 
 class CampaignManagementServiceSpec extends BaseServiceSpec {
 
@@ -68,10 +70,22 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
   trait TestFixture  {
     val mockAfterDeadlineCodeRepository = mock[CampaignManagementAfterDeadlineSignupCodeRepository]
     val mockUuidFactory = mock[UUIDFactory]
+    val mockApplicationRepository = mock[GeneralApplicationRepository]
+    val mockPhase1TestRepository = mock[Phase1TestRepository]
+    val mockPhase2TestRepository = mock[Phase2TestRepository]
+    val mockQuestionnaireRepository = mock[QuestionnaireRepository]
+    val mockMediaRepository = mock[MediaRepository]
+    val mockContactDetailsRepository = mock[ContactDetailsRepository]
 
     val service = new CampaignManagementService {
       val afterDeadlineCodeRepository = mockAfterDeadlineCodeRepository
       val uuidFactory = mockUuidFactory
+      val appRepo = mockApplicationRepository
+      val phase1TestRepo = mockPhase1TestRepository
+      val phase2TestRepo = mockPhase2TestRepository
+      val questionnaireRepo = mockQuestionnaireRepository
+      val mediaRepo = mockMediaRepository
+      val contactDetailsRepo = mockContactDetailsRepository
     }
   }
 }

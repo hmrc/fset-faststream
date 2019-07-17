@@ -22,12 +22,15 @@ import reactivemongo.bson.Macros
 trait PassMarkThresholds
 
 trait Phase1Thresholds {
-  def situational: PassMarkThreshold
-  def behavioural: PassMarkThreshold
+  def test1: PassMarkThreshold
+  def test2: PassMarkThreshold
+  def test3: PassMarkThreshold
+  def test4: PassMarkThreshold
 }
 
 trait Phase2Thresholds {
-  def etray: PassMarkThreshold
+  def test1: PassMarkThreshold
+  def test2: PassMarkThreshold
 }
 
 trait Phase3Thresholds {
@@ -39,8 +42,10 @@ trait AssessmentCentreThresholds {
 }
 
 case class Phase1PassMarkThresholds(
-  situational: PassMarkThreshold,
-  behavioural: PassMarkThreshold
+                                     test1: PassMarkThreshold,
+                                     test2: PassMarkThreshold,
+                                     test3: PassMarkThreshold,
+                                     test4: PassMarkThreshold
 ) extends PassMarkThresholds with Phase1Thresholds
 
 object Phase1PassMarkThresholds {
@@ -49,7 +54,8 @@ object Phase1PassMarkThresholds {
 }
 
 case class Phase2PassMarkThresholds(
-  etray: PassMarkThreshold
+                                     test1: PassMarkThreshold,
+                                     test2: PassMarkThreshold
 ) extends PassMarkThresholds with Phase2Thresholds
 
 object Phase2PassMarkThresholds {

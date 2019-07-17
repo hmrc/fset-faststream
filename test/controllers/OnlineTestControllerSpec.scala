@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package controllers
 
 import config._
 import connectors.ExchangeObjects._
-import connectors.{ CubiksGatewayClient, EmailClient }
+import connectors.{ OnlineTestsGatewayClient, EmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import mocks._
 import mocks.application.{ DocumentRootInMemoryRepository, OnlineTestInMemoryRepository }
@@ -131,22 +131,22 @@ class OnlineTestControllerSpec extends UnitSpec with Results with MockitoSugar {
     val onlineTestExtensionServiceMock = mock[OnlineTestExtensionService]
     when(onlineTestExtensionServiceMock.extendExpiryTime(any(), any())).thenReturnAsync()
 
-    val cubiksGatewayClientMock = mock[CubiksGatewayClient]
+    val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
     val emailClientMock = mock[EmailClient]
 
     when(emailClientMock.sendOnlineTestInvitation(any(), any(), any())(any())).thenReturn(
       Future.successful(())
     )
 
-    when(cubiksGatewayClientMock.registerApplicant(any())(any())).thenReturn(Future.successful(Registration(0)))
-    when(cubiksGatewayClientMock.inviteApplicant(any())(any())).thenReturn(Future.successful(Invitation(0, "", "", "", "", 0)))
+    when(onlineTestsGatewayClientMock.registerApplicant(any())(any())).thenReturn(Future.successful(Registration(0)))
+    when(onlineTestsGatewayClientMock.inviteApplicant(any())(any())).thenReturn(Future.successful(Invitation(0, "", "", "", "", 0)))
 
     class OnlineTestServiceMock extends OnlineTestService {
       val appRepository = DocumentRootInMemoryRepository
       val cdRepository: ContactDetailsRepository = ContactDetailsInMemoryRepository
       val otRepository = OnlineTestInMemoryRepository
       val trRepository = TestReportInMemoryRepository
-      val cubiksGatewayClient = cubiksGatewayClientMock
+      val onlineTestsGatewayClient = onlineTestsGatewayClientMock
       val tokenFactory = UUIDFactory
       val onlineTestInvitationDateFactory = DateTimeFactory
       val emailClient = emailClientMock

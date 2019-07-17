@@ -22,11 +22,11 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions._
 import model.ProgressStatuses._
-import model.command.{ ProgressResponse, WithdrawApplication, WithdrawRequest, WithdrawScheme }
+import model.command._
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.{ ContactDetails, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted._
 import model.{ ProgressStatuses, _ }
 import model.exchange.SchemeEvaluationResultWithFailureDetails
 import model.exchange.sift.SiftAnswersStatus
@@ -151,9 +151,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     appRepository.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus)
   }
 
-  def removeFromAllEvents(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  private def removeFromAllEvents(applicationId: String, eligibleForReallocation: Boolean)
+                         (implicit hc: HeaderCarrier): Future[Unit] = {
     candidateAllocationService.allocationsForApplication(applicationId).flatMap { allocations =>
-      candidateAllocationService.unAllocateCandidates(allocations.toList).map(_ => ())
+      candidateAllocationService.unAllocateCandidates(allocations.toList, eligibleForReallocation).map(_ => ())
     }
   }
 
@@ -164,7 +165,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   private def withdrawFromApplication(applicationId: String, withdrawRequest: WithdrawApplication)
     (candidate: Candidate, cd: ContactDetails)(implicit hc: HeaderCarrier) = {
       appRepository.withdraw(applicationId, withdrawRequest).flatMap { _ =>
-        removeFromAllEvents(applicationId).map { _ =>
+        removeFromAllEvents(applicationId, eligibleForReallocation = false).map { _ =>
           val commonEventList =
             DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
               AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
@@ -318,6 +319,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def updateApplicationStatus(applicationId: String, newApplicationStatus: ApplicationStatus): Future[Unit] = {
+    for {
+      application <- appRepository.find(applicationId)
+      _ = application.getOrElse(throw ApplicationNotFound(applicationId))
+      _ <- appRepository.updateStatus(applicationId, newApplicationStatus)
+    } yield ()
+  }
+
   def fixDataByRemovingETray(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     appRepository.fixDataByRemovingETray(appId)
   }
@@ -440,7 +449,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
-  def allOnlineTestsPhases: Seq[ProgressStatus] = {
+  private def allOnlineTestsPhases: Seq[ProgressStatus] = {
     Seq(
       ProgressStatuses.PHASE1_TESTS_INVITED,
       ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER,
@@ -453,6 +462,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED,
       ProgressStatuses.PHASE1_TESTS_FAILED,
       ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN,
       ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
       ProgressStatuses.PHASE1_TESTS_EXPIRED,
 
@@ -467,6 +477,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.PHASE2_TESTS_PASSED,
       ProgressStatuses.PHASE2_TESTS_FAILED,
       ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN,
       ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
       ProgressStatuses.PHASE2_TESTS_EXPIRED,
 
@@ -481,6 +492,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED,
       ProgressStatuses.PHASE3_TESTS_FAILED,
       ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN,
       ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED,
       ProgressStatuses.PHASE3_TESTS_EXPIRED
     )
@@ -549,13 +561,13 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     }.flatMap(_ => applicationIdsFut.map(_.length))
   }
 
+  private def liftToOption(passMarkFetch: String => Future[PassmarkEvaluation], applicationId: String): Future[Option[PassmarkEvaluation]] = {
+    passMarkFetch(applicationId).map(Some(_)).recover { case _: PassMarkEvaluationNotFound => None }
+  }
+
   // scalastyle:off cyclomatic.complexity
   def findSdipFaststreamFailedFaststreamInvitedToVideoInterview:
   Future[Seq[(Candidate, ContactDetails, String, ProgressStatus, PassmarkEvaluation, PassmarkEvaluation)]] = {
-
-    def liftToOption(passMarkFetch: String => Future[PassmarkEvaluation], applicationId: String): Future[Option[PassmarkEvaluation]] = {
-      passMarkFetch(applicationId).map(Some(_)).recover { case _: PassMarkEvaluationNotFound => None }
-    }
 
     (for {
       potentialAffectedUsers <- appRepository.findSdipFaststreamInvitedToVideoInterview
@@ -588,6 +600,58 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
   // scalastyle:on
 
+  def findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift:
+  Future[Seq[(Candidate, ContactDetails, ProgressStatus, PassmarkEvaluation)]] = {
+
+    (for {
+      potentialAffectedUsers <- appRepository.findSdipFaststreamExpiredPhase2InvitedToSift
+    } yield for {
+      potentialAffectedUser <- potentialAffectedUsers
+    } yield for {
+      phase1SchemeStatusOpt <- liftToOption(evaluateP1ResultService.getPassmarkEvaluation _, potentialAffectedUser.applicationId.get)
+      applicationDetails <- appRepository.findStatus(potentialAffectedUser.applicationId.get)
+      contactDetails <- cdRepository.find(potentialAffectedUser.userId)
+    } yield for {
+      phase1SchemeStatus <- phase1SchemeStatusOpt
+    } yield {
+      val failedAtOnlineExercises = phase1SchemeStatus.result.forall(schemeResult =>
+        schemeResult.result == Red.toString ||
+          (schemeResult.schemeId == Scheme.SdipId && schemeResult.result == Green.toString))
+
+      if (failedAtOnlineExercises) {
+        Some((potentialAffectedUser, contactDetails, applicationDetails.latestProgressStatus.get, phase1SchemeStatus))
+      } else {
+        None
+      }
+    }).map(Future.sequence(_)).flatMap(identity).map(_.map(_.flatten)).map(_.flatten)
+  }
+
+  def findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift:
+  Future[Seq[(Candidate, ContactDetails, ProgressStatus, PassmarkEvaluation)]] = {
+
+    (for {
+      potentialAffectedUsers <- appRepository.findSdipFaststreamExpiredPhase3InvitedToSift
+    } yield for {
+      potentialAffectedUser <- potentialAffectedUsers
+    } yield for {
+      phase2SchemeStatusOpt <- liftToOption(evaluateP2ResultService.getPassmarkEvaluation _, potentialAffectedUser.applicationId.get)
+      applicationDetails <- appRepository.findStatus(potentialAffectedUser.applicationId.get)
+      contactDetails <- cdRepository.find(potentialAffectedUser.userId)
+    } yield for {
+      phase2SchemeStatus <- phase2SchemeStatusOpt
+    } yield {
+      val failedAtOnlineExercises = phase2SchemeStatus.result.forall(schemeResult =>
+        schemeResult.result == Red.toString ||
+          (schemeResult.schemeId == Scheme.SdipId && schemeResult.result == Green.toString))
+
+      if (failedAtOnlineExercises) {
+        Some((potentialAffectedUser, contactDetails, applicationDetails.latestProgressStatus.get, phase2SchemeStatus))
+      } else {
+        None
+      }
+    }).map(Future.sequence(_)).flatMap(identity).map(_.map(_.flatten)).map(_.flatten)
+  }
+
   def moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       allAffectedUsers <- findSdipFaststreamFailedFaststreamInvitedToVideoInterview
@@ -596,6 +660,9 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       )
       _ = if (!latestProgressStatus.startsWith("PHASE2") && !latestProgressStatus.startsWith("PHASE3")) {
         throw new Exception("User must be in a Phase2 or Phase3 progress status")
+      }
+      _ = if (!latestProgressStatus.startsWith("PHASE3_TESTS_COMPLETED") ) {
+        throw new Exception("User must be in a PHASE3_TESTS_COMPLETED")
       }
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       _ <- siftService.sendSiftEnteredNotification(candidate.applicationId.get).map(_ => ())
@@ -715,6 +782,12 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def removeFsbTestGroup(applicationId: String): Future[Unit] = {
+    for {
+      _ <- fsbRepo.removeTestGroup(applicationId)
+    } yield ()
+  }
+
   def removeSiftTestGroup(application: String): Future[Unit] = {
     appSiftRepository.removeTestGroup(application).map(_ => ())
   }
@@ -741,7 +814,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     for {
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), reviewerExercisesToRemove)
-      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+      _ <- fsacRepo.removeFsacTestGroup(applicationId)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
       phase3ResultsOpt <- getPhase3Results
       phase3Results = phase3ResultsOpt.getOrElse(throw new RuntimeException("No phase 3 video results found"))
@@ -764,11 +837,47 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     )
 
     for {
-      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+      _ <- fsacRepo.removeFsacTestGroup(applicationId)
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+    } yield ()
+  }
+
+  def fsacResetFastPassCandidate(applicationId: String): Future[Unit] = {
+    val exercisesToRemove = List("analysisExercise", "groupExercise", "leadershipExercise", "finalFeedback")
+    val statuses = List(
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
+    )
+
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
+      _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+      _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
+      _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
+      _ <- fsacRepo.removeFsacTestGroup(applicationId)
+    } yield ()
+  }
+
+  def fsacRemoveEvaluation(applicationId: String): Future[Unit] = {
+    for {
+      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+    } yield ()
+  }
+
+  def fsacRollbackWithdraw(applicationId: String): Future[Unit] = {
+    val statuses = List(
+      ProgressStatuses.WITHDRAWN,
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION
+    )
+
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
+      _ <- appRepository.removeWithdrawReason(applicationId)
     } yield ()
   }
 
@@ -783,11 +892,184 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     )
 
     for {
-      _ <- fsacRepo.removeFsacEvaluation(applicationId)
+      _ <- fsacRepo.removeFsacTestGroup(applicationId)
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED)
+    } yield ()
+  }
+
+  private def updateCurrentSchemeStatus(applicationId: String, evaluation: Option[Seq[SchemeEvaluationResult]]) = {
+    evaluation.map { evaluationResults =>
+      for {
+        _ <- appRepository.updateCurrentSchemeStatus(applicationId, evaluationResults)
+      } yield ()
+    }.getOrElse(throw new Exception(s"Error no evaluation results found for $applicationId"))
+  }
+
+  def rollbackToPhase2ExpiredFromSift(applicationId: String): Future[Unit] = {
+    val statusesToRollback = List(ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_READY)
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statusesToRollback)
+      _ <- phase2TestRepository.removeTestGroupEvaluation(applicationId)
+      evaluationOpt <- phase1TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+      _ <- siftAnswersService.removeAnswers(applicationId)
+    } yield ()
+  }
+
+  def fixPhase2PartialCallbackCandidate(applicationId: String): Future[Unit] = {
+    for {
+      _ <- phase2TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase2TestRepository.phaseName)
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE2_TESTS_EXPIRED))
+
+      phase2TestGroupOpt <- phase2TestRepository.getTestGroup(applicationId)
+      cubiksUserId = extractCubiksUserId(applicationId, phase2TestGroupOpt)
+
+      // Now re-run the partially executed callbacks
+      testProfile <- phase2TestRepository.getTestProfileByCubiksId(cubiksUserId)
+      _ <- fixPartiallyExecutedCompletedCallback(cubiksUserId, testProfile)
+      _ <- fixPartiallyExecutedResultsReadyCallback(cubiksUserId, testProfile)
+    } yield ()
+  }
+
+  def fixPhase3ExpiredCandidate(applicationId: String): Future[Unit] = {
+    (for {
+      _ <- phase3TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase3TestRepository.phaseName)
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
+      _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
+    } yield for {
+      _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+    } yield ()).flatMap(identity)
+  }
+
+  private def extractCubiksUserId(applicationId: String, phase2TestGroupOpt: Option[Phase2TestGroup]) = {
+    phase2TestGroupOpt.map { p2TestGroup =>
+      val msg = s"Active tests cannot be found when marking phase2 test complete for applicationId: $applicationId"
+      require(p2TestGroup.activeTests.nonEmpty, msg)
+      p2TestGroup.activeTests.head.cubiksUserId
+    }.getOrElse(throw new Exception(s"Failed to find phase2 cubiks user id for application id: $applicationId"))
+  }
+
+  private def fixPartiallyExecutedCompletedCallback(cubiksUserId: Int, phase2TestGroup: Phase2TestGroupWithAppId) = {
+    val msg = s"Active tests cannot be found when marking phase2 test complete for cubiksId: $cubiksUserId"
+    require(phase2TestGroup.testGroup.activeTests.nonEmpty, msg)
+    val activeTestsCompleted = phase2TestGroup.testGroup.activeTests forall (_.completedDateTime.isDefined)
+    if (activeTestsCompleted) {
+      phase2TestRepository.updateProgressStatus(phase2TestGroup.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED)
+    } else {
+      Future.failed(new Exception(s"No active completed phase2 tests found for applicationId: ${phase2TestGroup.applicationId}"))
+    }
+  }
+
+  private def fixPartiallyExecutedResultsReadyCallback(cubiksUserId: Int, phase2TestGroup: Phase2TestGroupWithAppId) = {
+    if (phase2TestGroup.testGroup.activeTests forall (_.resultsReadyToDownload)) {
+      phase2TestRepository.updateProgressStatus(phase2TestGroup.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
+    } else {
+      Future.failed(new Exception(s"No active results ready phase2 tests found for applicationId: ${phase2TestGroup.applicationId}"))
+    }
+  }
+
+  def rollbackToPhase3ExpiredFromSift(applicationId: String): Future[Unit] = {
+    val statusesToRollback = List(ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_READY)
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE3_TESTS, statusesToRollback)
+      _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)
+      evaluationOpt <- phase2TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+      _ <- siftAnswersService.removeAnswers(applicationId)
+    } yield ()
+  }
+
+  def rollbackToRetakePhase3FromSift(applicationId: String, token: String): Future[Unit] = {
+    val statusesToRollback = List(
+      ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER, ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_STARTED, ProgressStatuses.PHASE3_TESTS_COMPLETED,
+      ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED, ProgressStatuses.PHASE3_TESTS_PASSED,
+      ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED,
+      ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN,
+      ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_FIRST_REMINDER,
+      ProgressStatuses.SIFT_SECOND_REMINDER, ProgressStatuses.SIFT_READY,
+      ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN,
+      ProgressStatuses.FSB_AWAITING_ALLOCATION
+    )
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE3_TESTS, statusesToRollback)
+      _ <- siftAnswersService.removeAnswers(applicationId)
+      _ <- appSiftRepository.removeTestGroup(applicationId)
+      _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(7))
+      _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)
+      _ <- phase3TestRepository.removeReviewedCallbacks(token)
+      evaluationOpt <- phase2TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+    } yield ()
+  }
+
+  def removePhase3TestEvaluation(applicationId: String): Future[Unit] = {
+    for {
+      _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)
+      evaluationOpt <- phase2TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+    } yield ()
+  }
+
+  def rollbackToPhase1TestsPassedFromSift(applicationId: String): Future[Unit] = {
+
+    val statusesToRollback = List(
+      ProgressStatuses.PHASE2_TESTS_INVITED,
+      ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_STARTED,
+      ProgressStatuses.PHASE2_TESTS_COMPLETED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_READY,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN,
+      ProgressStatuses.PHASE2_TESTS_PASSED,
+      ProgressStatuses.PHASE3_TESTS_INVITED,
+      ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_STARTED,
+      ProgressStatuses.PHASE3_TESTS_COMPLETED,
+      ProgressStatuses.SIFT_ENTERED,
+      ProgressStatuses.SIFT_FIRST_REMINDER,
+      ProgressStatuses.SIFT_SECOND_REMINDER,
+      ProgressStatuses.SIFT_EXPIRED,
+      ProgressStatuses.SIFT_EXPIRED_NOTIFIED,
+      ProgressStatuses.SIFT_READY
+    )
+
+    for {
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE1_TESTS_PASSED, statusesToRollback)
+      _ <- siftAnswersService.removeAnswers(applicationId)
+      _ <- appSiftRepository.removeTestGroup(applicationId)
+      _ <- phase3TestRepository.removePhase3TestGroup(applicationId)
+      _ <- phase2TestRepository.removeTestGroup(applicationId)
+      evaluationOpt <- phase1TestRepo.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
+    } yield ()
+  }
+
+  def enablePhase3CandidateToBeEvaluated(applicationId: String): Future[Unit] = {
+    for {
+      _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(1))
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
+    } yield ()
+  }
+
+  def removePhase3TestAndSetOtherToActive(removeTestToken: String, markTestAsActiveToken: String): Future[Unit] = {
+    for {
+      _ <- phase3TestRepository.removeTest(removeTestToken)
+      _ <- phase3TestRepository.markTestAsActive(markTestAsActiveToken)
+    } yield ()
+  }
+
+  def setCurrentSchemeStatusToPhase3Evaluation(applicationId: String): Future[Unit] = {
+    for {
+      evaluationOpt <- phase3TestRepository.findEvaluation(applicationId)
+      _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
     } yield ()
   }
 
@@ -888,6 +1170,10 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         SchemeEvaluationResultWithFailureDetails(result)
       )
     }
+  }
+
+  def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
+    appRepository.findStatus(applicationId)
   }
 
   private def extractFirstRedResults(

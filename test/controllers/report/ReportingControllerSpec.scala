@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -408,7 +408,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       Some("231456879")
     )
 
-    val questionnaireReportItem = QuestionnaireReportItem(None, None, None, None, None, None, None, "2.5", None)
+    val questionnaireReportItem = QuestionnaireReportItem(gender = None, sexualOrientation = None, ethnicity = None,
+      parentEmploymentStatus = None, parentOccupation = None, parentEmployedOrSelf = None, parentCompanySize = None,
+      lowerSocioEconomicBackground = None, socioEconomicScore = "2.5", university = None)
 
     val applicationForNumericSift = ApplicationForNumericTestExtractReport(
       "userId1", "appId1",

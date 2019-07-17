@@ -19,9 +19,9 @@ package services.onlinetesting.phase2
 import _root_.services.AuditService
 import akka.actor.ActorSystem
 import common.Phase2TestConcern
-import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
+import config.{ OnlineTestsGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
-import connectors.{ AuthProviderClient, CubiksGatewayClient, Phase2OnlineTestEmailClient }
+import connectors.{ AuthProviderClient, OnlineTestsGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions._
 import model.OnlineTestCommands._
@@ -29,7 +29,7 @@ import model.ProgressStatuses._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
-import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
+import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest, PsiRealTimeResults }
 import model.persisted._
 import model.{ ApplicationStatus, _ }
 import org.joda.time.DateTime
@@ -54,12 +54,12 @@ object Phase2TestService extends Phase2TestService {
   val appRepository = applicationRepository
   val cdRepository = faststreamContactDetailsRepository
   val testRepository = phase2TestRepository
-  val cubiksGatewayClient = CubiksGatewayClient
+  val onlineTestsGatewayClient = OnlineTestsGatewayClient
   val tokenFactory = UUIDFactory
   val dateTimeFactory = DateTimeFactory
   val emailClient = Phase2OnlineTestEmailClient
   val auditService = AuditService
-  val gatewayConfig = cubiksGatewayConfig
+  val gatewayConfig = onlineTestsGatewayConfig
   val actor = ActorSystem()
   val eventService = StcEventService
   val authProvider = AuthProviderClient
@@ -71,8 +71,8 @@ object Phase2TestService extends Phase2TestService {
 trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Phase2TestSelector with ResetPhase2Test {
   type TestRepository = Phase2TestRepository
   val actor: ActorSystem
-  val cubiksGatewayClient: CubiksGatewayClient
-  val gatewayConfig: CubiksGatewayConfig
+  val onlineTestsGatewayClient: OnlineTestsGatewayClient
+  val gatewayConfig: OnlineTestsGatewayConfig
   val authProvider: AuthProviderClient
   val phase3TestService: Phase3TestService
 
@@ -206,16 +206,18 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     }
   }
 
-  def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
+  // Not private so tests can access
+  protected[phase2] def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
                         (implicit hc: HeaderCarrier): Future[Map[Int, (OnlineTestApplication, String, Registration)]] = {
-    cubiksGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map { case (registration, idx) =>
+    onlineTestsGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map { case (registration, idx) =>
       val candidate = candidates(idx)
       audit("Phase2TestRegistered", candidate.userId)
       (registration.userId, (candidate, tokens(idx), registration))
     }.toMap)
   }
 
-  def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)],
+  // Not private so tests can access
+  protected[phase2] def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)],
                       schedule: Phase2Schedule)
                       (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
     val invites = candidateData.values.map { case (application, token, registration) =>
@@ -227,7 +229,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     val firstInvite = invites.head
     val filteredInvites = invites.filter(_.timeAdjustments == firstInvite.timeAdjustments)
 
-    cubiksGatewayClient.inviteApplicants(filteredInvites).map(_.map { invitation =>
+    onlineTestsGatewayClient.inviteApplicants(filteredInvites).map(_.map { invitation =>
       val (application, token, registration) = candidateData(invitation.userId)
       audit("Phase2TestInvited", application.userId)
       Phase2TestInviteData(application, schedule.scheduleId, token, registration, invitation)
@@ -264,6 +266,13 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
       }
     }
   }
+
+  // New PSI based method should not be implemented by cubiks based class
+  override def registerAndInvite(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+
+  // New PSI based method should not be implemented by cubiks based class
+  override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   private def processEtrayToken(phase: Option[Phase2TestGroup], accessCode: String): Try[String] = {
     phase.fold[Try[String]](Failure(new NotFoundException(Some("No Phase2TestGroup found")))){
@@ -387,7 +396,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase2Test(cubiksUserId, testRepository.updateTestCompletionTime(_: Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
-      require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
+      require(u.testGroup.activeTests.nonEmpty, s"Active tests cannot be found when marking phase2 test complete for cubiksId: $cubiksUserId")
       val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
       if (activeTestsCompleted) {
         testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
@@ -528,7 +537,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
     val testResults = Future.sequence(testProfile.testGroup.activeTests.flatMap { test =>
       test.reportId.map { reportId =>
-        cubiksGatewayClient.downloadXmlReport(reportId)
+        onlineTestsGatewayClient.downloadXmlReport(reportId)
       }.map(_.map(_ -> test))
     })
 

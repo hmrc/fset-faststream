@@ -26,4 +26,5 @@ trait BaseBSONReader {
   }
 
   protected def booleanTranslator(bool: Boolean) = if (bool) { "Yes" } else { "No" }
+  protected def booleanYnTranslator(bool: Boolean) = if (bool) { "Y" } else { "N" }
 }

@@ -71,6 +71,8 @@ object Exceptions {
 
   case class ApplicationNotFound(id: String) extends Exception(id)
 
+  case class TokenNotFound(id: String) extends Exception(id)
+
   case class PassMarkSettingsNotFound() extends Exception
 
   case class CannotAddMedia(userId: String) extends Exception(userId)
@@ -103,7 +105,11 @@ object Exceptions {
 
   case class CannotFindTestByCubiksId(message: String) extends NotFoundException(message)
 
+  case class CannotFindTestByOrderId(message: String) extends NotFoundException(message)
+
   case class CannotFindApplicationByCubiksId(message: String) extends NotFoundException(message)
+
+  case class CannotFindApplicationByOrderId(message: String) extends NotFoundException(message)
 
   case class AdjustmentsCommentNotFound(applicationId: String) extends Exception(applicationId)
 

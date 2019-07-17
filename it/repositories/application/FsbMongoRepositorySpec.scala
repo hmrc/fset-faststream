@@ -22,7 +22,7 @@ import model.command.ApplicationForProgression
 import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 

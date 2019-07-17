@@ -18,7 +18,7 @@ package repositories
 
 import model.Exceptions.ApplicationNotFound
 import reactivemongo.bson.{ BSONBoolean, BSONDocument }
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
 import config.MicroserviceAppConfig._
 import factories.DateTimeFactory
@@ -32,7 +32,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   override val collectionName = CollectionNames.APPLICATION
   
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository()
-  def helperRepo = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(DateTimeFactory, onlineTestsGatewayConfig)
 
 
   "Find by user id" should {

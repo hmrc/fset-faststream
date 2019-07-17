@@ -23,6 +23,7 @@ import model.persisted.Media._
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -37,6 +38,8 @@ trait MediaRepository {
   def findAll(): Future[Map[String, Media]]
 
   def cloneAndArchive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
+
+  def removeMedia(userId: String): Future[Unit]
 }
 
 class MediaMongoRepository(implicit mongo: () => DB)
@@ -68,6 +71,12 @@ class MediaMongoRepository(implicit mongo: () => DB)
       case None => Future.successful(())
     }
   }
+
+  override def removeMedia(userId: String): Future[Unit] = {
+    val query = BSONDocument("userId" -> userId)
+    collection.remove(query, firstMatchOnly = true).map(_ => ())
+  }
+
 
   private def docToMedia(document: BSONDocument): (String, Media) = {
     val userId = document.getAs[String]("userId").get

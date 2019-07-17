@@ -17,27 +17,27 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import model.persisted.Phase1TestProfile
 import model.ProgressStatuses._
 import model.command.ProgressResponse
-import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
+import model.persisted.Phase1TestProfile2
+import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.{ Phase1FirstReminder, Phase1SecondReminder }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.Phase1TestRepository
+import repositories.onlinetesting.Phase1TestRepository2
 import services.AuditService
-import services.stc.{ StcEventService, EventSink}
 import services.onlinetesting.Exceptions.TestExtensionException
+import services.stc.{ EventSink, StcEventService }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 object OnlineTestExtensionService extends OnlineTestExtensionService {
   val appRepository = applicationRepository
-  val otRepository = phase1TestRepository
+  val otRepository = phase1TestRepository2
   val auditService = AuditService
   val dateTimeFactory = DateTimeFactory
   val eventService = StcEventService
@@ -45,7 +45,7 @@ object OnlineTestExtensionService extends OnlineTestExtensionService {
 
 trait OnlineTestExtensionService extends EventSink {
   val appRepository: GeneralApplicationRepository
-  val otRepository: Phase1TestRepository
+  val otRepository: Phase1TestRepository2
   val auditService: AuditService
   val dateTimeFactory: DateTimeFactory
   import OnlineTestExtensionServiceImpl._
@@ -92,14 +92,15 @@ trait OnlineTestExtensionService extends EventSink {
   }
 }
 
-private final case class Extension(extendedExpiryDate: DateTime, expired: Boolean, profile: Phase1TestProfile, progress: ProgressResponse)
+private final case class Extension(extendedExpiryDate: DateTime, expired: Boolean,
+                                   profile: Phase1TestProfile2, progress: ProgressResponse)
 
 object OnlineTestExtensionServiceImpl {
 
   val NoOp: Future[Unit] = Future.successful(())
 
   def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
-                                  profile: Phase1TestProfile,
+                                  profile: Phase1TestProfile2,
                                   progress: ProgressResponse): Option[List[ProgressStatus]] = {
 
     val today = DateTime.now()

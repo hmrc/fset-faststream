@@ -28,7 +28,6 @@ import services.passmarksettings.PassMarkSettingsService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends ApplicationStatusCalculator {
   this: PassMarkSettingsService[T] =>
 

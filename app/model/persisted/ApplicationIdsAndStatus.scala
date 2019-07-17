@@ -22,6 +22,7 @@ import reactivemongo.bson.Macros
 case class ApplicationIdsAndStatus(applicationId: String,
                                    userId: String,
                                    applicationStatus: String,
+                                   applicationRoute: String,
                                    progressStatus: Option[String])
 
 object ApplicationIdsAndStatus {

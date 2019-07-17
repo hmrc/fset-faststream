@@ -25,3 +25,10 @@ case class CubiksTestResultReady(reportId: Option[Int],
 case object CubiksTestResultReady {
   implicit val phase1TestResultReadyFormat = Json.format[CubiksTestResultReady]
 }
+
+case class PsiTestResultReady(reportId: Int,
+                              reportStatus: String)
+
+object PsiTestResultReady {
+  implicit val phase1PsiTestResultReadyFormat = Json.format[PsiTestResultReady]
+}

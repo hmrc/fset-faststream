@@ -9,17 +9,17 @@ import reactivemongo.bson.{ BSONArray, BSONDocument }
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 
 import scala.concurrent.Future
-import config.MicroserviceAppConfig.cubiksGatewayConfig
+import config.MicroserviceAppConfig.onlineTestsGatewayConfig
 import model.SchemeId
 import repositories.CollectionNames
 
 trait ApplicationDataFixture {
   this: MongoRepositorySpec =>
 
-  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, onlineTestsGatewayConfig)
 
   def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock)
 
@@ -121,6 +121,7 @@ trait ApplicationDataFixture {
   // scalastyle:off method.length
   def createApplicationWithAllFields(userId: String,
     appId: String,
+    testAccountId: String,
     frameworkId: String = "frameworkId",
     appStatus: String,
     needsSupportForOnlineAssessment: Boolean = false,
@@ -140,6 +141,7 @@ trait ApplicationDataFixture {
   ): Future[WriteResult] = {
     val doc = BSONDocument(
       "applicationId" -> appId,
+      "testAccountId" -> testAccountId,
       "applicationStatus" -> appStatus,
       "userId" -> userId,
       "applicationRoute" -> applicationRoute,

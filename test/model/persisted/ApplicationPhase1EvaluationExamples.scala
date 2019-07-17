@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,5 +30,17 @@ object ApplicationPhase1EvaluationExamples {
 
   def sdipFaststreamApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
     ApplicationRoute.SdipFaststream, isGis = false, activeCubiksTests = Phase1TestProfileExamples.profile.activeTests,
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+
+  def faststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE1_TESTS,
+    ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+
+  def edipPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE1_TESTS,
+    ApplicationRoute.Edip, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+
+  def sdipFaststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE1_TESTS,
+    ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 }

@@ -26,6 +26,7 @@ import play.api.libs.json.Reads._
 import play.api.libs.json._
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -51,6 +52,8 @@ trait ContactDetailsRepository {
   def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
 
   def findEmails: Future[List[UserIdWithEmail]]
+
+  def removeContactDetails(userId: String): Future[Unit]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -177,5 +180,10 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
       UserIdWithEmail(id, email)
     })
+  }
+
+  override def removeContactDetails(userId: String): Future[Unit] = {
+    val query = BSONDocument("userId" -> userId)
+    collection.remove(query, firstMatchOnly = true).map(_ => ())
   }
 }

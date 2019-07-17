@@ -22,7 +22,7 @@ import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.stc.DataStoreEvents
-import model.exchange.CubiksTestResultReady
+import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
 import model.persisted._
 import model._
 import org.joda.time.DateTime
@@ -62,16 +62,23 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def registerAndInvite(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]
   def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit]
 
-  def processNextTestForNotification(notificationType: NotificationTestType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def processNextTestForNotification(notificationType: NotificationTestType, phase: String, operation: String)
+                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     appRepository.findTestForNotification(notificationType).flatMap {
-      case Some(test) => processTestForNotification(test, notificationType)
-      case None => Future.successful(())
+      case Some(test) =>
+        Logger.info(s"Candidate found to notify they successfully $operation tests in $phase - appId=${test.applicationId}")
+        processTestForNotification(test, notificationType)
+      case None =>
+        Logger.info(s"No candidate found to notify they successfully $operation tests in $phase")
+        Future.successful(())
     }
   }
 
@@ -150,54 +157,13 @@ trait OnlineTestService extends TimeExtension with EventSink {
     )
   }
 
-  // scalastyle:off method.length
   protected def processExpiredTest(expiringTest: ExpiringOnlineTest, expiryType: TestExpirationEvent)
                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-
-    def markFsSchemesAsRed(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = {
-      val updatedResults = setToRedExceptSdip(results)
-      val evaluation = PassmarkEvaluation("", None, updatedResults.toList, "", None)
-      testRepository.upsertTestGroupEvaluationResult(applicationId, evaluation).flatMap { _ =>
-        appRepository.updateCurrentSchemeStatus(applicationId, updatedResults).map(_ => ())
-      }
-    }
-
-    def setToRedExceptSdip(results: Seq[SchemeEvaluationResult]): Seq[SchemeEvaluationResult] = {
-      results.map { result =>
-        if(result.schemeId != Scheme.SdipId) {
-          result.copy(result = EvaluationResults.Red.toString)
-        } else {
-          result
-        }
-      }
-    }
-
-    def updateResultsAndMaybeProgressSdipToSift(): Future[Unit] = {
-      for {
-        currentSchemeStatus <- appRepository.getCurrentSchemeStatus(expiringTest.applicationId)
-        _ <- markFsSchemesAsRed(expiringTest.applicationId, currentSchemeStatus)
-      } yield {
-        val sdipIsGreen = currentSchemeStatus.find(_.schemeId == Scheme.SdipId)
-          .getOrElse(throw UnexpectedException("SDIP is not found in CurrentSchemeStatus"))
-          .result == "Green"
-        if(sdipIsGreen) {
-          appRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, ProgressStatuses.SIFT_ENTERED).flatMap { _ =>
-            siftService.sendSiftEnteredNotification(expiringTest.applicationId).map(_ => ())
-          }
-        } else {
-          Future.successful(())
-        }
-      }
-    }
 
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
       _ <- commitProgressStatus(expiringTest.applicationId, expiryType.expiredStatus)
       _ <- emailCandidate(expiringTest.applicationId, expiringTest.preferredName, emailAddress, expiryType.template, expiryType.expiredStatus)
-      appRoute <- appRepository.getApplicationRoute(expiringTest.applicationId)
-      isPhase2Or3 = Seq("PHASE2", "PHASE3").contains(expiryType.phase.toUpperCase)
-      _ <- if(appRoute == ApplicationRoute.SdipFaststream && isPhase2Or3) {
-        updateResultsAndMaybeProgressSdipToSift() } else { Future.successful(()) }
     } yield ()
   }
 

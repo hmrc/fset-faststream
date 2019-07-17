@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import akka.actor.ActorSystem
 import config.Phase2ScheduleExamples._
 import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments, toString => _ }
-import connectors.{ CSREmailClient, CubiksGatewayClient }
+import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
 import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenException, InvalidTokenException }
@@ -156,10 +156,10 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "process adjustment candidates first and individually" ignore new Phase2TestServiceFixture {
      val adjustmentCandidates = candidates :+ adjustmentApplication :+ adjustmentApplication2
-      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(registrations.head)))
 
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(invites.head)))
 
       phase2TestService.registerAndInviteForTestGroup(adjustmentCandidates).futureValue
@@ -178,15 +178,15 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfile)))
 
-      when(cubiksGatewayClientMock.registerApplicants(any[Int])).thenReturn(Future.successful(List(registrations.head)))
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])).thenReturn(Future.successful(List(invites.head)))
+      when(onlineTestsGatewayClientMock.registerApplicants(any[Int])).thenReturn(Future.successful(List(registrations.head)))
+      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])).thenReturn(Future.successful(List(invites.head)))
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
 
       phase2TestService.registerAndInviteForTestGroup(List(application)).futureValue
 
       val invitation = InviteApplicant(DaroSchedule.scheduleId, cubiksUserId, inviteApplicant.scheduleCompletionURL, None)
-      verify(cubiksGatewayClientMock).inviteApplicants(List(invitation))
+      verify(onlineTestsGatewayClientMock).inviteApplicants(List(invitation))
       verify(otRepositoryMock).insertCubiksTests(
         application.applicationId,
         invigilatedTestProfile
@@ -195,7 +195,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
   }
 
   "processNextExpiredTest" should {
-    "do nothing if there are no expired application to process" in new Phase2TestServiceFixture {
+    "do nothing if there is no expired application to process" in new Phase2TestServiceFixture {
       when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(None))
       phase2TestService.processNextExpiredTest(Phase2ExpirationEvent).futureValue mustBe unit
     }
@@ -204,7 +204,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.Faststream))
-      val results = List(SchemeEvaluationResult("Sdip", "Green"))
+      val results = List(SchemeEvaluationResult("Commercial", "Green"))
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
 
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
@@ -222,42 +222,12 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
     }
 
-    "progress SdipFS application to SIFT_ENTERED if Sdip is GREEN and tests have expired" in new Phase2TestServiceFixture {
+    "update progress status and send an email to the user when an sdip faststream application is expired" in new Phase2TestServiceFixture {
       when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
-      val results = List(SchemeEvaluationResult("Sdip", "Green"))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
-      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(success)
-      when(otRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(success)
+      val results = List(SchemeEvaluationResult("Sdip", "Green"), SchemeEvaluationResult("Commercial", "Green"))
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
-      when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(success)
-
-      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
-
-      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent)
-
-      result.futureValue mustBe unit
-
-      verify(cdRepositoryMock).find(userId)
-      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE2_TESTS_EXPIRED)
-      verify(appRepositoryMock, times(1)).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
-      verify(appRepositoryMock, times(1)).getCurrentSchemeStatus(applicationId)
-      verify(appRepositoryMock, times(1)).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, times(1)).sendSiftEnteredNotification(applicationId)
-      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
-    }
-
-    "not progress SdipFS application to SIFT_ENTERED if Sdip is RED and tests have expired" in new Phase2TestServiceFixture {
-      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
-      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
-      val results = List(SchemeEvaluationResult("Sdip", "Red"))
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
-      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(success)
-      when(otRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(success)
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
-      when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(success)
 
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
@@ -268,13 +238,12 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(cdRepositoryMock).find(userId)
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE2_TESTS_EXPIRED)
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
-      verify(appRepositoryMock, times(1)).getCurrentSchemeStatus(applicationId)
-      verify(appRepositoryMock, times(1)).updateCurrentSchemeStatus(applicationId, results)
+      verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
+      verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
       verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
     }
   }
-
 
   "mark as started" should {
     "change progress to started" in new Phase2TestServiceFixture {
@@ -370,9 +339,9 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(expectedRegistration)))
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(expectedInvite)))
 
       phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
@@ -414,9 +383,9 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(expectedRegistration)))
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(expectedInvite)))
 
       phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
@@ -462,9 +431,9 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(expectedRegistration)))
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(expectedInvite)))
 
       phase2TestService.resetTests(invigilatedOnlineTestApplicationForReset, "createdBy").futureValue
@@ -510,9 +479,9 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(expectedRegistration)))
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(expectedInvite)))
 
       phase2TestService.resetTests(invigilatedOnlineTestApplicationForReset, "createdBy").futureValue
@@ -556,9 +525,9 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(expectedRegistration)))
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(expectedInvite)))
 
       phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
@@ -606,9 +575,9 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(expectedRegistration)))
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(expectedInvite)))
 
       phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
@@ -627,7 +596,6 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       an[CannotResetPhase2Tests] must be thrownBy
         Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
     }
-
   }
 
   "Extend time for expired test" should {
@@ -680,7 +648,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "return an exception if there is an error retrieving one of the reports" in new Phase2TestServiceFixture {
       val failedTest = phase2Test.copy(scheduleId = 555, reportId = Some(2))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get)))
+      when(onlineTestsGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get)))
         .thenReturn(Future.failed(new Exception))
 
       val result = phase2TestService.retrieveTestResult(Phase2TestGroupWithAppId(
@@ -718,7 +686,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val test = phase2Test.copy(reportId = Some(123), resultsReadyToDownload = true)
       val testProfile = phase2TestProfile.copy(tests = List(test))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
+      when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(testResult))
 
       when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult])).thenReturn(Future.successful(()))
@@ -740,7 +708,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val testNotReady = phase2Test.copy(reportId = None, resultsReadyToDownload = false)
       val testProfile = phase2TestProfile.copy(tests = List(testReady, testNotReady))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
+      when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(testResult))
 
       when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult]))
@@ -818,25 +786,25 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "build time adjustments" should {
     "return Nil when there is no need for adjustments and no gis" in new Phase2TestServiceFixture {
-      val onlineTestApplicationWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = false,
-        needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = None, videoInterviewAdjustments = None)
+      val onlineTestApplicationWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = None, videoInterviewAdjustments = None)
       val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationWithNoAdjustments)
       result mustBe List()
     }
 
     "return time adjustments when gis" in new Phase2TestServiceFixture {
-      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = true,
-        needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = Some(AdjustmentDetail(Some(25), None, None)), videoInterviewAdjustments = None)
+      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = true, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = Some(AdjustmentDetail(Some(25), None, None)), videoInterviewAdjustments = None)
       val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationGisWithAdjustments)
       result mustBe List(TimeAdjustments(5, 1, 100))
     }
 
     "return time adjustments when adjustments needed" in new Phase2TestServiceFixture {
-      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = false,
-        needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = Some(AdjustmentDetail(Some(50), None, None)), videoInterviewAdjustments = None)
+      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = false, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = Some(AdjustmentDetail(Some(50), None, None)), videoInterviewAdjustments = None)
       val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationGisWithAdjustments)
       result mustBe List(TimeAdjustments(5, 1, 120))
     }
@@ -844,17 +812,17 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "calculate absolute time with adjustments" should {
     "return 140 when adjustment is 75%" in new Phase2TestServiceFixture {
-      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = true,
-        needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = Some(AdjustmentDetail(Some(75), None, None)), videoInterviewAdjustments = None)
+      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = true, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = Some(AdjustmentDetail(Some(75), None, None)), videoInterviewAdjustments = None)
       val result = phase2TestService.calculateAbsoluteTimeWithAdjustments(onlineTestApplicationGisWithAdjustments)
       result mustBe 140
     }
 
     "return 80 when no adjustments needed" in new Phase2TestServiceFixture {
-      val onlineTestApplicationGisWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = true,
-        needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
-        eTrayAdjustments = None, videoInterviewAdjustments = None)
+      val onlineTestApplicationGisWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
+        guaranteedInterview = true, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        lastName = "LastName1", eTrayAdjustments = None, videoInterviewAdjustments = None)
       val result = phase2TestService.calculateAbsoluteTimeWithAdjustments(onlineTestApplicationGisWithNoAdjustments)
       result mustBe 80
     }
@@ -882,16 +850,16 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     when(clock.nowLocalTimeZone).thenReturn(now)
 
     val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase2"
-    def availableSchedules = Map("irad" -> IradSchedule, "daro" -> DaroSchedule)
-    val gatewayConfigMock =  CubiksGatewayConfig(
+    def availableSchedules = Map("oria" -> OriaSchedule, "daro" -> DaroSchedule)
+    val gatewayConfigMock =  OnlineTestsGatewayConfig(
       "",
       Phase1TestsConfig(expiryTimeInDays = 5,
         scheduleIds = Map("sjq" -> 16196, "bq" -> 16194),
         List("sjq", "bq"),
         List("sjq")
       ),
-      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, availableSchedules),
-      numericalTests = NumericalTestsConfig(Map("sample" -> NumericalTestSchedule(12345, 123))), //TODO: Update this schedule
+      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, availableSchedules, None),
+      numericalTests = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(12345, 123))),
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",
       emailDomain = "test.com"
@@ -918,7 +886,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val otRepositoryMock = mock[Phase2TestRepository]
-    val cubiksGatewayClientMock = mock[CubiksGatewayClient]
+    val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
     val emailClientMock = mock[CSREmailClient]
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
@@ -931,6 +899,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
+      testAccountId = "testAccountId",
       guaranteedInterview = false,
       needsOnlineAdjustments = false,
       needsAtVenueAdjustments = false,
@@ -969,7 +938,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         authenticateUrl = authenticateUrl, participantScheduleId = 888
     ))
 
-    val phase2Test = CubiksTest(scheduleId = IradSchedule.scheduleId,
+    val phase2Test = CubiksTest(scheduleId = OriaSchedule.scheduleId,
       usedForResults = true,
       cubiksUserId = cubiksUserId,
       token = token,
@@ -1007,10 +976,10 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     )
     val nonInvigilatedETrayApp = onlineTestApplication.copy(needsOnlineAdjustments = false)
 
-    when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+    when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
       .thenReturn(Future.successful(registrations))
 
-    when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+    when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
       .thenReturn(Future.successful(invites))
 
     when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup]))
@@ -1039,7 +1008,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val testRepository = otRepositoryMock
-      val cubiksGatewayClient = cubiksGatewayClientMock
+      val onlineTestsGatewayClient = onlineTestsGatewayClientMock
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val tokenFactory = tokenFactoryMock

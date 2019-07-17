@@ -35,6 +35,16 @@ object Phase1TestGroupWithUserIds {
   implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestGroupWithUserIds]
 }
 
+case class Phase1TestGroupWithUserIds2(
+  applicationId: String,
+  userId: String,
+  testGroup: Phase1TestProfile2
+) extends TestGroupWithIds[PsiTest, Phase1TestProfile2]
+
+object Phase1TestGroupWithUserIds2 {
+  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestGroupWithUserIds2]
+}
+
 case class Phase2TestGroupWithAppId(applicationId: String,
   testGroup: Phase2TestGroup
 ) extends TestGroupWithIds[CubiksTest, Phase2TestGroup]
@@ -42,6 +52,14 @@ case class Phase2TestGroupWithAppId(applicationId: String,
 object Phase2TestGroupWithAppId {
   implicit val phase2TestGroupWithAppIdHandler = Macros.handler[Phase2TestGroupWithAppId]
 }
+
+case class Phase2TestGroupWithAppId2(applicationId: String,
+                                    testGroup: Phase2TestGroup2) extends TestGroupWithIds[PsiTest, Phase2TestGroup2]
+
+object Phase2TestGroupWithAppId2 {
+  implicit val phase2TestGroupWithAppIdHandler = Macros.handler[Phase2TestGroupWithAppId2]
+}
+
 
 case class Phase3TestGroupWithAppId(
   applicationId: String,

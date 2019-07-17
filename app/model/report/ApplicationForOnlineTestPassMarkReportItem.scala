@@ -19,6 +19,7 @@ package model.report
 import model.ApplicationRoute._
 import model.SchemeId
 import model.assessmentscores.AssessmentScoresAllExercises
+import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{ ApplicationForOnlineTestPassMarkReport, SchemeEvaluationResult }
 import play.api.libs.json.Json
 
@@ -40,7 +41,9 @@ object ApplicationForOnlineTestPassMarkReportItem {
   def create(a: ApplicationForOnlineTestPassMarkReport,
              fsacResults: Option[AssessmentScoresAllExercises],
              overallScoreOpt: Option[Double],
-             siftResults: Option[SiftPhaseReportItem]): ApplicationForOnlineTestPassMarkReportItem = {
+             siftResults: Option[SiftPhaseReportItem],
+             fsbScoresAndFeedback: Option[ScoresAndFeedback]): ApplicationForOnlineTestPassMarkReportItem = {
+
     ApplicationForOnlineTestPassMarkReportItem(
       progress = a.progress,
       applicationRoute = a.applicationRoute,
@@ -49,7 +52,7 @@ object ApplicationForOnlineTestPassMarkReportItem {
       gis = a.gis,
       onlineAdjustments = a.onlineAdjustments,
       assessmentCentreAdjustments = a.assessmentCentreAdjustments,
-      testResults = a.testResults.copy(fsac = fsacResults, overallFsacScore = overallScoreOpt, sift = siftResults),
+      testResults = a.testResults.copy(fsac = fsacResults, overallFsacScore = overallScoreOpt, sift = siftResults, fsb = fsbScoresAndFeedback),
       currentSchemeStatus = a.currentSchemeStatus
     )
   }

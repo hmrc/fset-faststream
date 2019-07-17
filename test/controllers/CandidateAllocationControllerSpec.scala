@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,11 @@ import services.allocation.CandidateAllocationService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 
-
 class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
-
 
   private val location = "London"
   private val eventType = EventType.FSAC
   private val description = "ORAC"
-
 
   "Find candidates eligible for event allocation" must {
 
@@ -58,7 +55,7 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     "handle candidates" in new TestFixture {
       val fsacIndicator = FSACIndicator("SouthWest London", "London")
       val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
-        needsAdjustment = true, fsacIndicator = fsacIndicator, dateReady = DateTime.now())
+        needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false, fsacIndicator = fsacIndicator, dateReady = DateTime.now())
       when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String], any[EventType], any[String]))
         .thenReturnAsync(CandidatesEligibleForEventResponse(List(candidate), 1))
 
@@ -91,5 +88,4 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
       controllers.routes.CandidateAllocationController.findCandidatesEligibleForEventAllocation(location, eventType, t).url,
       FakeHeaders(), "").withHeaders("Content-Type" -> "application/json")
   }
-
 }

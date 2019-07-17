@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ class SendInvitationJobSpec extends UnitWithAppSpec with ShortTimeout {
   val onlineTestingServiceMock = mock[OnlineTestService]
   object TestableSendInvitationJob extends SendInvitationJob {
     override val onlineTestingService = onlineTestingServiceMock
+    override val phase = "TEST_PHASE"
     override val lockId: String = "1"
     override val forceLockReleaseAfter: Duration = mock[Duration]
     override implicit val ec: ExecutionContext = mock[ExecutionContext]

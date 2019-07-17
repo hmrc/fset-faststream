@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package model
 
-import model.persisted.Phase1TestProfile
+import model.persisted.{ Phase1TestProfile, Phase1TestProfile2 }
 import org.joda.time.DateTime
 
 object Phase1TestProfileExamples {
 
   def profile(implicit now: DateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstTest))
+
+  def psiProfile(implicit now: DateTime) = Phase1TestProfile2(now, List(Phase1TestExamples.firstPsiTest))
 }

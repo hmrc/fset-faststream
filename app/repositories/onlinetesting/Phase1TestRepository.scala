@@ -27,6 +27,7 @@ import model._
 import org.joda.time.DateTime
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -58,7 +59,7 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
 
 class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[Phase1TestProfile, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    model.persisted.Phase1TestProfile.phase1TestProfileFormat, ReactiveMongoFormats.objectIdFormats
+    Phase1TestProfile.phase1TestProfileFormat, ReactiveMongoFormats.objectIdFormats
   ) with Phase1TestRepository {
 
   override val phaseName = "PHASE1"

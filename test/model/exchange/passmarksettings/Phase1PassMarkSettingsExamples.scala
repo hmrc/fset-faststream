@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,8 @@ object Phase1PassMarkSettingsExamples {
       UUID.randomUUID().toString, now, "userId")
 
   def createPhase1PassMark(schemeName: SchemeId, fail: Double, pass: Double) = {
-    Phase1PassMark(schemeName, Phase1PassMarkThresholds(PassMarkThreshold(fail, pass), PassMarkThreshold(fail, pass)))
+    Phase1PassMark(schemeName, Phase1PassMarkThresholds(
+      PassMarkThreshold(fail, pass), PassMarkThreshold(fail, pass), PassMarkThreshold(fail, pass), PassMarkThreshold(fail, pass)
+    ))
   }
-
 }

@@ -28,6 +28,7 @@ object CreateCandidateResponse {
     generationId: Int,
     userId: String,
     applicationId: Option[String],
+    testAccountId: Option[String],
     email: String,
     firstName: String,
     lastName: String,

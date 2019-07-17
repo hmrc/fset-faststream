@@ -29,6 +29,7 @@ import model.command.{ ProgressResponse, WithdrawApplication }
 import model.persisted._
 import model.testdata.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
 import _root_.services.testdata.candidate.CandidateStatusGeneratorFactory
 import testkit.MongoRepositorySpec
@@ -44,7 +45,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   def repository = new ReportingMongoRepository(GBTimeZoneService, ITDateTimeFactoryMock)
 
-  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, onlineTestsGatewayConfig)
 
   def testDataRepo = new TestDataMongoRepository()
 
@@ -56,7 +57,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     "for an application with all fields" in {
       val userId = generateUUID()
       val appId = generateUUID()
-      testDataRepo.createApplicationWithAllFields(userId, appId, "FastStream-2016").futureValue
+      val testAccountId = generateUUID()
+      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, "FastStream-2016").futureValue
 
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
@@ -83,7 +85,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   "Candidate deferral report" must {
     "not return candidates who have not deferred" in {
-      testDataRepo.createApplicationWithAllFields("userId", "appId", "frameworkId").futureValue
+      testDataRepo.createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId").futureValue
 
       val result = repository.candidateDeferralReport("frameworkId").futureValue
 
@@ -92,7 +94,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     "extract the correct information for candidates" in {
       val programmes = List("TeachFirst", "Police Now")
-      testDataRepo.createApplicationWithAllFields("userId", "appId", "frameworkId", firstName = Some("Bob"),
+      testDataRepo.createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", firstName = Some("Bob"),
         lastName = Some("Bobson"), preferredName = Some("prefBob"), partnerProgrammes = programmes).futureValue
 
       val result = repository.candidateDeferralReport("frameworkId").futureValue
@@ -122,11 +124,14 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val appId1 = generateUUID()
       val appId2 = generateUUID()
       val appId3 = generateUUID()
+      val testAccountId1 = generateUUID()
+      val testAccountId2 = generateUUID()
+      val testAccountId3 = generateUUID()
 
-      testDataRepo.createApplicationWithAllFields(userId1, appId1, "FastStream-2016", guaranteedInterview = true,
+      testDataRepo.createApplicationWithAllFields(userId1, appId1, testAccountId1,"FastStream-2016", guaranteedInterview = true,
         needsSupportForOnlineAssessment = true).futureValue
-      testDataRepo.createApplicationWithAllFields(userId2, appId2, "FastStream-2016", hasDisability = "No").futureValue
-      testDataRepo.createApplicationWithAllFields(userId3, appId3, "FastStream-2016", needsSupportAtVenue = true).futureValue
+      testDataRepo.createApplicationWithAllFields(userId2, appId2, testAccountId2,"FastStream-2016", hasDisability = "No").futureValue
+      testDataRepo.createApplicationWithAllFields(userId3, appId3, testAccountId3,"FastStream-2016", needsSupportAtVenue = true).futureValue
 
       val result = repository.diversityReport("FastStream-2016").futureValue
 
@@ -325,7 +330,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   private def create(application: UserApplicationProfile) = {
     import repositories.BSONLocalDateHandler
-    import reactivemongo.json.ImplicitBSONHandlers._
 
     repository.collection.insert(BSONDocument(
       "applicationId" -> application.userId,
@@ -343,7 +347,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   private def createWithoutPersonalDetails(userId: String, latestProgressStatus: String) = {
     import repositories.BSONLocalDateHandler
-    import reactivemongo.json.ImplicitBSONHandlers._
 
     repository.collection.insert(BSONDocument(
       "userId" -> userId,

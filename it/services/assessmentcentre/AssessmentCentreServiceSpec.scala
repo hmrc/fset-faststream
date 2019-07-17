@@ -17,7 +17,7 @@ import org.joda.time.DateTime
 import play.Logger
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONDocument
-import reactivemongo.json.ImplicitBSONHandlers
+import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories._
 import services.evaluation.AssessmentCentreEvaluationEngine
 import services.passmarksettings.PassMarkSettingsService

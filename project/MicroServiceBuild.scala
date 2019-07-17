@@ -24,20 +24,16 @@ object MicroServiceBuild extends Build with MicroService {
 
 private object Versions {
 
-  val microserviceBootstrapVersion  = "6.13.0"
-  val ficus                         = "1.1.2"
-  val playHealthVersion             = "2.1.0"
-  val playConfigVersion             = "4.2.0"
-  val hmrcScheduler                 = "4.1.0"
-  val hmrcTestVersion               = "2.3.0"
-  val playReactivemongoVersion      = "5.2.0"
-  val logbackJsonLogger             = "3.1.0"
+  val hmrcMicroserviceBootstrapVersion = "10.6.0"
+  val hmrcScheduler                    = "5.4.0"
+  val hmrcTestVersion                  = "2.3.0"
+  val ficus                            = "1.1.2"
+  val playConfigVersion                = "7.2.0"
+  val playReactivemongoVersion         = "6.2.0"
 
-  val pegdown                       = "1.6.0"
-  val mockito                       = "2.2.17"
-  val scalatestplus                 = "2.0.1"
+  val mockito                          = "2.2.17"
+  val scalatestplus                    = "2.0.1"
  }
-
 
 private object AppDependencies {
   import Versions._
@@ -45,7 +41,7 @@ private object AppDependencies {
 
   val compile = Seq(
     "uk.gov.hmrc" %% "play-reactivemongo" % playReactivemongoVersion,
-    "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
+    "uk.gov.hmrc" %% "microservice-bootstrap" % hmrcMicroserviceBootstrapVersion,
     "uk.gov.hmrc" %% "play-scheduling" % hmrcScheduler,
     "org.webjars" %% "webjars-play" % "2.3.0",
     "org.webjars" % "bootstrap" % "3.1.1",
@@ -67,7 +63,6 @@ private object AppDependencies {
       "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
       "org.mockito" % "mockito-core" % mockito % scope,
       "org.scalatestplus.play" %% "scalatestplus-play" % scalatestplus % scope,
-      "org.pegdown" % "pegdown" % pegdown % scope,
       "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
       "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % scope,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
@@ -78,6 +73,4 @@ private object AppDependencies {
   object IntegrationTest extends TestDependencies("it")
 
   def apply() = compile ++ Test.test ++ IntegrationTest.test
-
 }
-

@@ -28,10 +28,16 @@ object Adjustments { implicit val adjustmentsFormat: OFormat[Adjustments] = Json
 
 case class AdjustmentDetail(
   timeNeeded: Option[Int] = None,
-  invigilatedInfo: Option[String] = None,
-  otherInfo: Option[String] = None
+  percentage: Option[Int] = None,
+  otherInfo: Option[String] = None,
+  invigilatedInfo: Option[String] = None
 )
 object AdjustmentDetail { implicit val adjustmentDetailFormat: OFormat[AdjustmentDetail] = Json.format[AdjustmentDetail] }
+
+case class TestAdjustment(percentage: Int)
+object TestAdjustment {
+  implicit val testAdjustmentFormat: OFormat[TestAdjustment] = Json.format[TestAdjustment]
+}
 
 case class AdjustmentsComment(
   comment: String

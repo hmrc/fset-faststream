@@ -20,7 +20,7 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
-import config.CubiksGatewayConfig
+import config.OnlineTestsGatewayConfig
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
@@ -34,15 +34,19 @@ import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventRes
 import model.persisted._
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.EventType.EventType
+import model.persisted.fsb.ScoresAndFeedback
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
-import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.api.{ DB, DefaultDB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, document, _ }
-import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
+import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
+import reactivemongo.play.json.collection.JSONCollection
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
+import repositories.BSONDateTimeHandler
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.TimeZoneService
@@ -50,7 +54,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Success, Try }
 
 // TODO FAST STREAM
@@ -151,6 +155,10 @@ trait GeneralApplicationRepository {
 
   def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]]
 
+  def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]]
+
+  def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]]
+
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 
   def getLatestProgressStatuses: Future[List[String]]
@@ -166,14 +174,20 @@ trait GeneralApplicationRepository {
   def removeWithdrawReason(applicationId: String): Future[Unit]
 
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
+
+  def listCollections(implicit ec: ExecutionContext): Future[List[String]]
+
+  def removeCollection(name: String): Future[Unit]
+
+  def removeCandidate(applicationId: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
 class GeneralApplicationMongoRepository(
   val dateTimeFactory: DateTimeFactory,
-  gatewayConfig: CubiksGatewayConfig
-)(implicit mongo: () => DB)
+  gatewayConfig: OnlineTestsGatewayConfig
+)(implicit mongo: () => DefaultDB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     CreateApplicationRequest.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
@@ -181,16 +195,18 @@ class GeneralApplicationMongoRepository(
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
+    val testAccountId = UUID.randomUUID().toString
     val applicationBSON = BSONDocument(
       "applicationId" -> applicationId,
       "userId" -> userId,
+      "testAccountId" -> testAccountId,
       "frameworkId" -> frameworkId,
       "applicationStatus" -> CREATED,
       "applicationRoute" -> route
     )
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, CREATED, route, userId, p, None, None)
+        ApplicationResponse(applicationId, CREATED, route, userId, testAccountId, p, None, None)
       }
     }
   }
@@ -290,12 +306,16 @@ class GeneralApplicationMongoRepository(
     collection.find(query).one[BSONDocument] flatMap {
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
+        val testAccountId = document.getAs[String]("testAccountId").get
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
         val submissionDeadline = document.getAs[DateTime]("submissionDeadline")
         findProgress(applicationId).map { progress =>
-          ApplicationResponse(applicationId, applicationStatus, applicationRoute, userId, progress, fastPassReceived, submissionDeadline)
+          ApplicationResponse(
+            applicationId, applicationStatus, applicationRoute, userId, testAccountId,
+            progress, fastPassReceived, submissionDeadline
+          )
         }
       case None => throw ApplicationNotFound(userId)
     }
@@ -364,6 +384,38 @@ class GeneralApplicationMongoRepository(
       "applicationRoute" -> ApplicationRoute.SdipFaststream,
       s"progress-status.${ProgressStatuses.PHASE3_TESTS_INVITED}" -> BSONDocument("$exists" -> true)
     )
+
+    val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
+      "applicationStatus" -> true, "personal-details" -> true)
+
+    bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
+  }
+
+  override def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_EXPIRED}" -> BSONDocument("$exists" -> true)),
+      BSONDocument(s"testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" ->
+        BSONDocument("schemeId" -> "Sdip", "result" -> EvaluationResults.Green.toString)
+      ))
+    ))
+
+    val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
+      "applicationStatus" -> true, "personal-details" -> true)
+
+    bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
+  }
+
+  override def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_EXPIRED}" -> BSONDocument("$exists" -> true)),
+      BSONDocument(s"testGroups.PHASE2.evaluation.result" -> BSONDocument("$elemMatch" ->
+        BSONDocument("schemeId" -> "Sdip", "result" -> EvaluationResults.Green.toString)
+      ))
+    ))
 
     val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
       "applicationStatus" -> true, "personal-details" -> true)
@@ -899,7 +951,8 @@ class GeneralApplicationMongoRepository(
       "assistance-details.needsSupportAtVenue" -> true,
       "assistance-details.needsSupportForOnlineAssessment" -> true,
       "progress-status-timestamp" -> true,
-      "fsac-indicator" -> true
+      "fsac-indicator" -> true,
+      "testGroups.FSB.scoresAndFeedback" -> true
     )
 
     collection.find(query, projection).cursor[BSONDocument]().collect[List]()
@@ -949,7 +1002,7 @@ class GeneralApplicationMongoRepository(
         val ascending = JsNumber(1)
         // Eligible candidates should be sorted based on when they passed PHASE 3
         val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
-        collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List]()
+        collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List](50)
           .map { docList =>
             docList.map { doc =>
               bsonDocToCandidatesEligibleForEvent(doc)
@@ -1008,12 +1061,22 @@ class GeneralApplicationMongoRepository(
     val needsAdjustment = needsSupportAtVenue || needsSupportForOnlineTests
     val dateReady = doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](ApplicationStatus.PHASE3_TESTS_PASSED))
     val fsacIndicator = doc.getAs[model.persisted.FSACIndicator]("fsac-indicator").get
+    val scoresAndFeedbackOpt = for {
+      testGroups <- doc.getAs[BSONDocument]("testGroups")
+      fsb <- testGroups.getAs[BSONDocument]("FSB")
+      scoresAndFeedback <- fsb.getAs[ScoresAndFeedback]("scoresAndFeedback")
+    } yield scoresAndFeedback
+    val fsbScoresAndFeedbackSubmitted = scoresAndFeedbackOpt match {
+      case Some(scoresAndFeedback) => true
+      case _ => false
+    }
 
     CandidateEligibleForEvent(
       applicationId,
       firstName,
       lastName,
       needsAdjustment,
+      fsbScoresAndFeedbackSubmitted,
       model.FSACIndicator(fsacIndicator),
       dateReady.getOrElse(DateTime.now()))
   }
@@ -1057,16 +1120,25 @@ class GeneralApplicationMongoRepository(
   }
 
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = {
-    import BSONDateTimeHandler._
 
-    val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
+    //TODO Ian mongo 3.2 -> 3.4
+    implicit object BSONDateTimeHandler extends BSONReader[BSONValue, DateTime] {
+      def read(time: BSONValue) = time match {
+        case BSONDateTime(value) => new DateTime(value, org.joda.time.DateTimeZone.UTC)
+        case _ => throw new RuntimeException("Error trying to read date time value when processing progress status time stamps")
+      }
+    }
+
+    val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> true)
     val query = BSONDocument("applicationId" -> applicationId)
 
     collection.find(query, projection).one[BSONDocument].map {
-      case Some(doc) => doc.getAs[BSONDocument]("progress-status-timestamp").get.elements.toList.map {
-        case (progressStatus: String, bsonDateTime: BSONDateTime) =>
-          progressStatus -> bsonDateTime.as[DateTime]
-      }
+      case Some(doc) =>
+        doc.getAs[BSONDocument]("progress-status-timestamp").map { timestamps =>
+          timestamps.elements.toList.map { bsonElement =>
+            bsonElement.name -> bsonElement.value.as[DateTime]
+          }
+        }.getOrElse(Nil)
       case _ => Nil
     }
   }
@@ -1092,5 +1164,18 @@ class GeneralApplicationMongoRepository(
         doc.getAs[String]("applicationId").get
       }
     }
+  }
+
+  override def listCollections(implicit ec: ExecutionContext): Future[List[String]] = {
+     mongo().collectionNames
+  }
+
+  override def removeCollection(name: String): Future[Unit] = {
+    mongo().collection[JSONCollection](name).drop()
+  }
+
+  override def removeCandidate(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    collection.remove(query, firstMatchOnly = true).map(_ => ())
   }
 }

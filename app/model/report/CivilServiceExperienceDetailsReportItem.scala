@@ -23,8 +23,8 @@ case class CivilServiceExperienceDetailsReportItem(
                                                     isCivilServant: Option[String],
                                                     isFastTrack: Option[String],
                                                     isEDIP: Option[String],
-                                                    isSDIPPre2016: Option[String],
-                                                    isSDIP2016: Option[String],
+                                                    isSDIP: Option[String],
+                                                    isEligibleForFastPass: Option[String],
                                                     fastPassCertificate: Option[String])
 
 object CivilServiceExperienceDetailsReportItem {
@@ -36,8 +36,8 @@ object CivilServiceExperienceDetailsReportItem {
       isCivilServant = civilServiceExperience.isCivilServant,
       isFastTrack = civilServiceExperience.isFastTrack,
       isEDIP = civilServiceExperience.isEDIP,
-      isSDIPPre2016 = civilServiceExperience.isSDIPPre2016,
-      isSDIP2016 = civilServiceExperience.isSDIP2016,
+      isSDIP = civilServiceExperience.isSDIP,
+      isEligibleForFastPass = civilServiceExperience.isEligibleForFastPass,
       fastPassCertificate = civilServiceExperience.fastPassCertificate)
   }
 }

@@ -41,16 +41,16 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
       schemeToEvaluate <- schemes
       schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
     } yield {
-      val sjqResult = evaluateTestResult(schemePassmark.schemeThresholds.situational)(sjqTestResult.tScore)
-      val bqResult = bqTestResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.behavioural)).getOrElse(Green)
-      Logger.info(s"**** Processing scheme $schemeToEvaluate, " +
+      val sjqResult = evaluateTestResult(schemePassmark.schemeThresholds.test1)(sjqTestResult.tScore)
+      val bqResult = bqTestResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.test2)).getOrElse(Green)
+      Logger.info(s"Processing scheme $schemeToEvaluate, " +
         s"sjq score = ${sjqTestResult.tScore}, " +
-        s"sjq fail = ${schemePassmark.schemeThresholds.situational.failThreshold}, " +
-        s"sqj pass = ${schemePassmark.schemeThresholds.situational.passThreshold}, " +
+        s"sjq fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
+        s"sqj pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +
         s"sqj result = $sjqResult, " +
         s"bq score = ${bqTestResultOpt.flatMap(_.tScore)}, " +
-        s"bq fail = ${schemePassmark.schemeThresholds.behavioural.failThreshold}, " +
-        s"bq pass = ${schemePassmark.schemeThresholds.behavioural.passThreshold}, " +
+        s"bq fail = ${schemePassmark.schemeThresholds.test2.failThreshold}, " +
+        s"bq pass = ${schemePassmark.schemeThresholds.test2.passThreshold}, " +
         s"bq result = $bqResult"
       )
       SchemeEvaluationResult(schemeToEvaluate, combineTestResults(sjqResult, bqResult).toString)

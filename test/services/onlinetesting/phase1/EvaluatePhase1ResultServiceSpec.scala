@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package services.onlinetesting.phase1
 
-import config.CubiksGatewayConfig
+import config.OnlineTestsGatewayConfig
 import model.EvaluationResults.Green
 import model.ProgressStatuses.ProgressStatus
 import model._
@@ -169,7 +169,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis, "", None)
 
     val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository]
-    val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
+    val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
     val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsMongoRepository]
 
     when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
@@ -177,7 +177,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     val service = new EvaluatePhase1ResultService with StubbedPhase1TestEvaluation {
       val evaluationRepository = mockPhase1EvaluationRepository
-      val gatewayConfig = mockCubiksGatewayConfig
+      val gatewayConfig = mockOnlineTestsGatewayConfig
       val passMarkSettingsRepo = mockPhase1PMSRepository
       val phase = Phase.PHASE1
 
@@ -188,7 +188,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     val edipSkipEvaluationService = new EvaluatePhase1ResultService {
       val evaluationRepository = mockPhase1EvaluationRepository
-      val gatewayConfig = mockCubiksGatewayConfig
+      val gatewayConfig = mockOnlineTestsGatewayConfig
       val passMarkSettingsRepo = mockPhase1PMSRepository
       val phase = Phase.PHASE1
 
