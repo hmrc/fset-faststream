@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,26 +21,26 @@ import connectors.AuthProviderClient
 import factories.UUIDFactory
 import model.Exceptions.EmailTakenException
 import model._
-import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
+import model.command.testdata.CreateAdminRequest.{AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest}
 import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllocationRequest
-import model.command.testdata.{ ClearCandidatesRequest, CreateCandidateAllocationRequest }
-import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
+import model.command.testdata.{ClearCandidatesRequest, CreateCandidateAllocationRequest}
+import model.command.testdata.CreateCandidateRequest.{CreateCandidateRequest, _}
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.AssessorSkill
-import model.persisted.{ FsbTestGroup, SchemeEvaluationResult }
+import model.persisted.{FsbTestGroup, SchemeEvaluationResult}
 import model.persisted.assessor.AssessorStatus
-import model.persisted.eventschedules.{ EventType, Session, SkillType }
+import model.persisted.eventschedules.{EventType, Session, SkillType}
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateCandidateAllocationData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
-import org.joda.time.{ LocalDate, LocalTime }
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, RequestHeader }
-import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
+import org.joda.time.{LocalDate, LocalTime}
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
+import play.api.mvc.{Action, AnyContent, RequestHeader}
+import repositories.events.{LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository}
 import services.testdata._
-import services.testdata.candidate.{ AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory }
+import services.testdata.candidate.{AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory}
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -286,7 +286,20 @@ trait TestDataGeneratorController extends BaseController {
 
   def createCandidatesPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateRequest] { createRequest =>
+      if (isValidCreateCandidateRequest(createRequest)) {
+        throw new Exception(s"Invalid combination route: ${createRequest.statusData.applicationRoute}, " +
+          s"status ${createRequest.statusData.applicationStatus}")
+      }
       createCandidates(CreateCandidateData.apply(cubiksUrlFromConfig, createRequest), numberToGenerate)
+    }
+  }
+
+  private def isValidCreateCandidateRequest(generatorConfig: CreateCandidateRequest): Boolean = {
+    (generatorConfig.statusData.applicationRoute, ApplicationStatus.withName(generatorConfig.statusData.applicationStatus)) match {
+      case (ApplicationRoute.Sdip | ApplicationRoute.Edip,
+      ApplicationStatus.PHASE2_TESTS | ApplicationStatus.PHASE2_TESTS_FAILED | ApplicationStatus.PHASE2_TESTS_PASSED)
+      => false
+      case _ => true
     }
   }
 

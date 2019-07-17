@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,23 +156,23 @@ object ProgressStatuses {
   case object ELIGIBLE_FOR_JOB_OFFER extends ProgressStatus(ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
   case object ELIGIBLE_FOR_JOB_OFFER_NOTIFIED extends ProgressStatus(ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
 
+  case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_PASSED
   }
 
+  case object PHASE1_TESTS_SDIP_FS_FAILED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   def getProgressStatusForSdipFsFailed(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TESTS_SDIP_FS_FAILED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_FAILED
   }
 
+  case object PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   def getProgressStatusForSdipFsFailedNotified(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED
   }
 
+  case object PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   def getProgressStatusForSdipFsPassedNotified(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED
   }
 

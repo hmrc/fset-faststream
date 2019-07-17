@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package services.testdata.candidate
 
 import model.ApplicationStatus._
 import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
-import model.ProgressStatuses
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ASSESSMENT_CENTRE_SCORES_ENTERED }
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED }
+import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ASSESSMENT_CENTRE_SCORES_ENTERED}
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED}
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED}
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateCandidateData.CreateCandidateData
 import services.testdata.admin._
@@ -31,7 +31,7 @@ import services.testdata.candidate.onlinetests._
 import services.testdata.candidate.onlinetests.phase1._
 import services.testdata.candidate.onlinetests.phase2._
 import services.testdata.candidate.onlinetests.phase3._
-import services.testdata.candidate.sift.{ SiftCompleteStatusGenerator, SiftEnteredStatusGenerator, SiftFormsSubmittedStatusGenerator }
+import services.testdata.candidate.sift.{SiftCompleteStatusGenerator, SiftEnteredStatusGenerator, SiftFormsSubmittedStatusGenerator}
 
 object AdminStatusGeneratorFactory {
   def getGenerator(createData: CreateAdminData): AdminUserBaseGenerator = {
@@ -47,6 +47,8 @@ object CandidateStatusGeneratorFactory {
 
   // scalastyle:off cyclomatic.complexity method.length
   def getGenerator(generatorConfig: CreateCandidateData) = {
+
+
 
     val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
     val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)
@@ -153,7 +155,6 @@ object CandidateStatusGeneratorFactory {
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")
     }
   }
-
   // scalastyle:on cyclomatic.complexity
 }
 
