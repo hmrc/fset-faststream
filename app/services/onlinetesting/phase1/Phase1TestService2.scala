@@ -299,13 +299,14 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
 
     (for {
       appIdOpt <- testRepository2.getApplicationIdForOrderId(orderId)
-      profile <- testRepository2.getTestProfileByOrderId(orderId)
     } yield {
       val appId = appIdOpt.getOrElse(throw CannotFindTestByOrderId(s"Application not found for test for orderId=$orderId"))
       for {
+        profile <- testRepository2.getTestProfileByOrderId(orderId)
         _ <- markTestAsCompleted(profile)
         _ <- profile.tests.find(_.orderId == orderId).map { test => insertResults(appId, test.orderId, profile, results) }
           .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+
         _ <- maybeUpdateProgressStatus(appId)
       } yield ()
     }).flatMap(identity)

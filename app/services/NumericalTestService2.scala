@@ -487,9 +487,9 @@ trait NumericalTestService2 extends EventSink {
 
     (for {
       appId <- applicationSiftRepo.getApplicationIdForOrderId(orderId) // throws CannotFindApplicationByOrderId
-      profile <- applicationSiftRepo.getTestGroupByOrderId(orderId) // throws CannotFindTestByOrderId
     } yield {
       for {
+        profile <- applicationSiftRepo.getTestGroupByOrderId(orderId) // throws CannotFindTestByOrderId
         _ <- markTestAsCompleted(profile)
         _ <- profile.tests.flatMap ( tests => tests.find( _.orderId == orderId ).map ( test =>
           insertResults(appId, test.orderId, profile, results) ))
