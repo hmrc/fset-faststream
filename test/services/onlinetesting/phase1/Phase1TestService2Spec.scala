@@ -22,9 +22,10 @@ import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
-import model.Exceptions.ConnectorException
+import model.Exceptions.{ CannotFindTestByOrderId, ConnectorException }
 import model.OnlineTestCommands._
 import model.ProgressStatuses.{ toString => _, _ }
+import model.exchange.PsiRealTimeResults
 import model.persisted._
 import model.stc.StcEventTypes.{ toString => _ }
 import model.{ ProgressStatuses, _ }
@@ -314,6 +315,49 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     }
   }
 
+  "store real time results" should {
+    "handle not finding an application for the given order id" ignore new OnlineTest {
+      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturn(Future.successful(None))
+
+      val result = phase1TestService.storeRealTimeResults(orderId, results)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[CannotFindTestByOrderId]
+      exception.getMessage mustBe s"Application not found for test for orderId=$orderId"
+    }
+
+    "handle not finding a test profile for the given order id" ignore new OnlineTest {
+      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturn(Future.successful(Some("appId")))
+
+      when(otRepositoryMock2.getTestProfileByOrderId(any[String])).thenReturn(Future.failed(
+        CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
+      ))
+
+      val result = phase1TestService.storeRealTimeResults(orderId, results)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[CannotFindTestByOrderId]
+      exception.getMessage mustBe s"Cannot find test group by orderId=$orderId"
+    }
+
+    "wip for the given order id" ignore new OnlineTest {
+      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturn(Future.successful(Some("appId")))
+
+      val phase1Tests: Phase1TestProfile2 = phase1TestProfile.copy(
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().plusDays(2)
+      )
+
+      when(otRepositoryMock2.getTestProfileByOrderId(any[String])).thenReturn(Future.successful(phase1Tests))
+      when(otRepositoryMock2.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturn(Future.successful(()))
+
+      val result = phase1TestService.storeRealTimeResults(orderId, results)
+
+      verify(otRepositoryMock2, times(0)).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(otRepositoryMock2, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))
+    }
+  }
+
   trait OnlineTest {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val rh: RequestHeader = mock[RequestHeader]
@@ -339,6 +383,8 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
     when(otRepositoryMock2.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
       .thenReturn(Future.successful(()))
+
+    val results = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
 
     val phase1TestService = new Phase1TestService2 with StcEventServiceFixture {
       override val delaySecsBetweenRegistrations = 0
