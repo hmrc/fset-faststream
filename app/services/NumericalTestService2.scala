@@ -124,7 +124,10 @@ trait NumericalTestService2 extends EventSink {
           orderId = aoa.orderId,
           usedForResults = true,
           testUrl = aoa.testLaunchUrl,
-          invitationDate = dateTimeFactory.nowLocalTimeZone
+          invitationDate = dateTimeFactory.nowLocalTimeZone,
+          assessmentId = testIds.assessmentId,
+          reportId = testIds.reportId,
+          normId = testIds.normId
         )
       }
     }
