@@ -16,30 +16,30 @@
 
 package services.testdata.candidate.onlinetests
 
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus }
+import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus}
 import model.testdata.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.Phase1TestService
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase1.Phase1TestService2
+import services.onlinetesting.phase2.Phase2TestService2
 import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.phase1.Phase1TestsInvitedStatusGenerator
 import services.testdata.candidate.onlinetests.phase2.Phase2TestsInvitedStatusGenerator
 import services.testdata.candidate.onlinetests.phase3.Phase3TestsInvitedStatusGenerator
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestsExpiredFromInvitedStatusGenerator extends TestsExpiredFromInvitedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
-  override val otService = Phase1TestService
+  override val otService = Phase1TestService2
   override val expiredStatus = PHASE1_TESTS_EXPIRED
 }
 
 object Phase2TestsExpiredFromInvitedStatusGenerator extends TestsExpiredFromInvitedStatusGenerator {
   override val previousStatusGenerator = Phase2TestsInvitedStatusGenerator
-  override val otService = Phase2TestService
+  override val otService = Phase2TestService2
   override val expiredStatus = PHASE2_TESTS_EXPIRED
 }
 

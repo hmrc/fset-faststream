@@ -61,15 +61,14 @@ object CreateCandidateRequest {
   }
 
   trait TestResultRequest {
-    def tscore: Option[String]
+    def scores: List[String]
   }
 
   case class Phase1TestDataRequest(
                                     start: Option[String] = None,
                                     expiry: Option[String] = None,
                                     completion: Option[String] = None,
-                                    bqtscore: Option[String] = None,
-                                    sjqtscore: Option[String] = None,
+                                    scores: List[String] = Nil,
                                     passmarkEvaluation: Option[PassmarkEvaluation] = None
                                   ) extends TestDatesRequest
 
@@ -81,7 +80,7 @@ object CreateCandidateRequest {
                                     start: Option[String] = None,
                                     expiry: Option[String] = None,
                                     completion: Option[String] = None,
-                                    tscore: Option[String] = None,
+                                    scores: List[String] = Nil,
                                     passmarkEvaluation: Option[PassmarkEvaluation] = None
                                   ) extends TestDatesRequest with TestResultRequest
 

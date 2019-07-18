@@ -102,15 +102,14 @@ object CreateCandidateData {
   }
 
   trait TestResult {
-    def tscore: Option[Double]
+    def scores: List[Double]
   }
 
   case class Phase1TestData(
                              start: Option[DateTime] = None,
                              expiry: Option[DateTime] = None,
                              completion: Option[DateTime] = None,
-                             bqtscore: Option[Double] = None,
-                             sjqtscore: Option[Double] = None,
+                             scores: List[Double] = Nil,
                              passmarkEvaluation: Option[PassmarkEvaluation] = None
                            ) extends TestDates
 
@@ -120,8 +119,7 @@ object CreateCandidateData {
         start = testDataRequest.start.map(DateTime.parse),
         expiry = testDataRequest.expiry.map(DateTime.parse),
         completion = testDataRequest.completion.map(DateTime.parse),
-        bqtscore = testDataRequest.bqtscore.map(_.toDouble),
-        sjqtscore = testDataRequest.sjqtscore.map(_.toDouble),
+        scores = testDataRequest.scores.map(_.toDouble),
         passmarkEvaluation = testDataRequest.passmarkEvaluation
       )
     }
@@ -131,7 +129,7 @@ object CreateCandidateData {
                              start: Option[DateTime] = None,
                              expiry: Option[DateTime] = None,
                              completion: Option[DateTime] = None,
-                             tscore: Option[Double] = None,
+                             scores: List[Double] = Nil,
                              passmarkEvaluation: Option[PassmarkEvaluation] = None
                            ) extends TestDates with TestResult
 
@@ -141,7 +139,7 @@ object CreateCandidateData {
         start = o.start.map(DateTime.parse),
         expiry = o.expiry.map(DateTime.parse),
         completion = o.completion.map(DateTime.parse),
-        tscore = o.tscore.map(_.toDouble),
+        scores = o.scores.map(_.toDouble),
         passmarkEvaluation = o.passmarkEvaluation
       )
     }
@@ -227,25 +225,25 @@ object CreateCandidateData {
   }
 
   case class CreateCandidateData(statusData: StatusData,
-                                 personalData: PersonalData = PersonalData(),
-                                 diversityDetails: DiversityDetails = DiversityDetails(),
-                                 assistanceDetails: AssistanceDetails = AssistanceDetails(),
-                                 cubiksUrl: String,
-                                 schemeTypes: Option[List[SchemeId]] = None,
-                                 isCivilServant: Boolean = false,
-                                 hasFastPass: Boolean = false,
-                                 hasDegree: Boolean = Random.bool,
-                                 region: Option[String] = None,
-                                 phase1TestData: Option[Phase1TestData] = None,
-                                 phase2TestData: Option[Phase2TestData] = None,
-                                 phase3TestData: Option[Phase3TestData] = None,
-                                 fsbTestGroupData: Option[FsbTestGroupDataRequest] = None,
-                                 adjustmentInformation: Option[Adjustments] = None,
-                                 assessorDetails: Option[AssessorData] = None
-                                ) extends CreateTestData
+    personalData: PersonalData = PersonalData(),
+    diversityDetails: DiversityDetails = DiversityDetails(),
+    assistanceDetails: AssistanceDetails = AssistanceDetails(),
+    psiUrl: String,
+    schemeTypes: Option[List[SchemeId]] = None,
+    isCivilServant: Boolean = false,
+    hasFastPass: Boolean = false,
+    hasDegree: Boolean = Random.bool,
+    region: Option[String] = None,
+    phase1TestData: Option[Phase1TestData] = None,
+    phase2TestData: Option[Phase2TestData] = None,
+    phase3TestData: Option[Phase3TestData] = None,
+    fsbTestGroupData: Option[FsbTestGroupDataRequest] = None,
+    adjustmentInformation: Option[Adjustments] = None,
+    assessorDetails: Option[AssessorData] = None
+  ) extends CreateTestData
 
   object CreateCandidateData {
-    def apply(cubiksUrlFromConfig: String, o: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
+    def apply(psiUrlFromConfig: String, o: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
 
       val statusData = StatusData(o.statusData)
 
@@ -254,7 +252,7 @@ object CreateCandidateData {
         personalData = o.personalData.map(PersonalData(_, generatorId)).getOrElse(PersonalData()),
         diversityDetails = o.diversityDetails.map(DiversityDetails(_)).getOrElse(DiversityDetails()),
         assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
-        cubiksUrl = cubiksUrlFromConfig,
+        psiUrl = psiUrlFromConfig,
         schemeTypes = o.schemeTypes,
         isCivilServant = o.isCivilServant.getOrElse(Random.bool),
         hasDegree = o.hasDegree.getOrElse(Random.bool),
