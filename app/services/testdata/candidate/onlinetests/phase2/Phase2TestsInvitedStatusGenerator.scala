@@ -45,15 +45,15 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    val psiTests = onlineTestGatewayConfig.phase2Tests.tests.map { testName =>
-      (testName, onlineTestGatewayConfig.phase2Tests.inventoryIds(testName))
-    }.map { case (testName, inventoryId) => {
+    val psiTests = onlineTestGatewayConfig.phase2Tests.standard.map { testName =>
+      (testName, onlineTestGatewayConfig.phase2Tests.tests(testName).inventoryId)
+    }.map { case (testName, inventoryId) =>
       val orderId = java.util.UUID.randomUUID.toString
       val test = PsiTest(
         inventoryId = inventoryId,
         orderId = orderId,
         usedForResults = true,
-        testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/${testName}?key=$orderId",
+        testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/$testName?key=$orderId",
         invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now()).plusDays(-1),
         resultsReadyToDownload = false,
         invigilatedAccessCode = generatorConfig.adjustmentInformation.flatMap { adjustments =>
@@ -65,7 +65,6 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
         }
       )
       test
-    }
     }
 
     val phase2TestGroup = Phase2TestGroup2(
