@@ -55,16 +55,28 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     when(mockOnlineTestsGatewayConfig.candidateAppUrl).thenReturn("localhost")
 
     val inventoryIds = Map[String, String]("test1" -> "test1-uuid")
-    val testIds = NumericalTestIds("inventory-id", Option("assessment-id"), Option("report-id"), Option("norm-id"))
-    val tests = Map[String, NumericalTestIds]("test1" -> testIds)
+    def testIds(idx: Int): PsiTestIds =
+      PsiTestIds(s"inventory-id-$idx", Option(s"assessment-id-$idx"), Option(s"report-id-$idx"), Option(s"norm-id-$idx"))
+
+    val tests = Map[String, PsiTestIds](
+      "test1" -> testIds(1),
+      "test2" -> testIds(2),
+      "test3" -> testIds(3),
+      "test4" -> testIds(4)
+    )
+
+    val mockPhase1TestConfig = Phase1TestsConfig2(
+      5, tests, List("test1", "test2", "test3", "test4"), List("test1", "test4")
+    )
+    val mockPhase2TestConfig = Phase2TestsConfig2(
+      5, 90, tests, List("test1", "test4")
+    )
 
     val mockNumericalTestsConfig2 = NumericalTestsConfig2(tests, List("test1"))
     val integrationConfig = TestIntegrationGatewayConfig(
       url = "",
-      phase1Tests = Phase1TestsConfig2(
-        5, inventoryIds, List("test1", "test2", "test2", "test4"), List("test1", "test4")
-      ),
-      phase2Tests = Phase2TestsConfig2(5, 90, inventoryIds, List("test3", "test4")),
+      phase1Tests = mockPhase1TestConfig,
+      phase2Tests = mockPhase2TestConfig,
       numericalTests = NumericalTestsConfig2(tests, List("test1")),
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",

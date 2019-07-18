@@ -31,6 +31,6 @@ trait Phase1TestSelector2 {
   def findFirstTest4Test(tests: List[PsiTest]): Option[PsiTest] = tests find (_.inventoryId == inventoryIdForTest("test4"))
 
   //TODO: support a list of tests?
-  private[onlinetesting] def inventoryIdForTest(testName: String) = gatewayConfig.phase1Tests.inventoryIds(testName)
+  private[onlinetesting] def inventoryIdForTest(testName: String) = gatewayConfig.phase1Tests.tests(testName).inventoryId
 
 }

@@ -97,10 +97,13 @@ case class TestIntegrationGatewayConfig(url: String,
                                     emailDomain: String
 )
 
+case class PsiTestIds(inventoryId: String, assessmentId: Option[String],
+                      reportId: Option[String], normId: Option[String])
+
 case class Phase1TestsConfig2(expiryTimeInDays: Int,
-                             inventoryIds: Map[String, String],
-                             standard: List[String],
-                             gis: List[String])
+                              tests: Map[String, PsiTestIds],
+                              standard: List[String],
+                              gis: List[String])
 
 case class Phase1TestsConfig(expiryTimeInDays: Int,
                              scheduleIds: Map[String, Int],
@@ -111,8 +114,8 @@ case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
 
 case class Phase2TestsConfig2(expiryTimeInDays: Int,
                               expiryTimeInDaysForInvigilatedETray: Int,
-                              inventoryIds: Map[String, String],
-                              tests: List[String])
+                              tests: Map[String, PsiTestIds],
+                              standard: List[String])
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
                              expiryTimeInDaysForInvigilatedETray: Int,
@@ -142,9 +145,7 @@ case object NumericalTestsConfig {
   val numericalTestScheduleName = "numericalTest"
 }
 
-case class NumericalTestIds(inventoryId: String, assessmentId: Option[String],
-                            reportId: Option[String], normId: Option[String])
-case class NumericalTestsConfig2(tests: Map[String, NumericalTestIds], standard: List[String])
+case class NumericalTestsConfig2(tests: Map[String, PsiTestIds], standard: List[String])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int

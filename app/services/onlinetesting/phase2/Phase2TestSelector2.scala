@@ -26,5 +26,5 @@ trait Phase2TestSelector2 {
 
   def findFirstTest2Test(tests: List[PsiTest]): Option[PsiTest] = tests find (_.inventoryId == inventoryIdForTest("test2"))
 
-  private[onlinetesting] def inventoryIdForTest(testName: String) = gatewayConfig.phase2Tests.inventoryIds(testName)
+  private[onlinetesting] def inventoryIdForTest(testName: String) = gatewayConfig.phase2Tests.tests(testName).inventoryId
 }

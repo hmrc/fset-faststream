@@ -17,7 +17,7 @@
 package services
 
 import config.MicroserviceAppConfig.{ onlineTestsGatewayConfig, testIntegrationGatewayConfig }
-import config.{ NumericalTestIds, NumericalTestSchedule, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import config.{ PsiTestIds, NumericalTestSchedule, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, EmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
@@ -87,7 +87,7 @@ trait NumericalTestService2 extends EventSink {
     registerAndInvite(applications, inventoryId)
   }
 
-  private def registerAndInvite(applications: List[NumericalTestApplication2], testIds: NumericalTestIds)
+  private def registerAndInvite(applications: List[NumericalTestApplication2], testIds: PsiTestIds)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     applications match {
@@ -108,7 +108,7 @@ trait NumericalTestService2 extends EventSink {
     }
   }
 
-  private def registerPsiApplicant(application: NumericalTestApplication2, testIds: NumericalTestIds)
+  private def registerPsiApplicant(application: NumericalTestApplication2, testIds: PsiTestIds)
                                   (implicit hc: HeaderCarrier): Future[PsiTest] = {
     for {
       aoa <- registerApplicant(application, testIds)
@@ -124,13 +124,16 @@ trait NumericalTestService2 extends EventSink {
           orderId = aoa.orderId,
           usedForResults = true,
           testUrl = aoa.testLaunchUrl,
-          invitationDate = dateTimeFactory.nowLocalTimeZone
+          invitationDate = dateTimeFactory.nowLocalTimeZone,
+          assessmentId = testIds.assessmentId,
+          reportId = testIds.reportId,
+          normId = testIds.normId
         )
       }
     }
   }
 
-  private def registerApplicant(application: NumericalTestApplication2, testIds: NumericalTestIds)
+  private def registerApplicant(application: NumericalTestApplication2, testIds: PsiTestIds)
                                (implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
 
     val orderId = tokenFactory.generateUUID()

@@ -1,6 +1,6 @@
 package services.onlinetesting.phase2
 
-import config.{ Phase2TestsConfig, Phase2TestsConfig2, TestIntegrationGatewayConfig }
+import config.{ Phase2TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
 import model.ApplicationRoute._
 import model.ApplicationStatus._
 import model.EvaluationResults._
@@ -37,12 +37,18 @@ class Phase2TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
     val generalAppRepository: GeneralApplicationMongoRepository = applicationRepository
     val phase = Phase.PHASE2
 
+    def testIds(idx: Int): PsiTestIds =
+      PsiTestIds(s"inventoryId$idx", Option(s"assessmentId$idx"), Option(s"reportId$idx"), Option(s"normId$idx"))
+
+    val tests = Map[String, PsiTestIds](
+      "test1" -> testIds(5),
+      "test2" -> testIds(6)
+    )
+
     val phase2TestsConfigMock: Phase2TestsConfig2 = mock[Phase2TestsConfig2]
 
     when(gatewayConfig.phase2Tests).thenReturn(phase2TestsConfigMock)
-    when(phase2TestsConfigMock.inventoryIds).thenReturn(
-      Map("test1" -> "inventoryId5", "test2" -> "inventoryId6")
-    )
+    when(phase2TestsConfigMock.tests).thenReturn(tests)
   }
 
   trait TestFixture {

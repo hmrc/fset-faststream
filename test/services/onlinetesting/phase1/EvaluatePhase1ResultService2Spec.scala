@@ -16,7 +16,7 @@
 
 package services.onlinetesting.phase1
 
-import config.{ Phase1TestsConfig2, TestIntegrationGatewayConfig }
+import config.{ Phase1TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
 import model.EvaluationResults.Green
 import model.Phase1TestExamples._
 import model.ProgressStatuses.ProgressStatus
@@ -170,11 +170,20 @@ class EvaluatePhase1ResultService2Spec extends BaseServiceSpec {
     val twoTests = oneTest :+ secondPsiTest
     val fourTests = twoTests :+ thirdPsiTest :+ fourthPsiTest
 
-    val phase1TestsConfig = Phase1TestsConfig2(expiryTimeInDays = 1,
-      inventoryIds = Map("test1" -> "inventoryId1", "test2" -> "inventoryId2", "test3" -> "inventoryId3", "test4" -> "inventoryId4"),
-      standard = List("test1", "test2", "test3", "test4"), gis = List("test1", "test4"))
+    def testIds(idx: Int): PsiTestIds =
+      PsiTestIds(s"inventory-id-$idx", Option(s"assessment-id-$idx"), Option(s"report-id-$idx"), Option(s"norm-id-$idx"))
 
-    when(mockTestIntegrationGatewayConfig.phase1Tests).thenReturn(phase1TestsConfig)
+    val tests = Map[String, PsiTestIds](
+      "test1" -> testIds(1),
+      "test2" -> testIds(2),
+      "test3" -> testIds(3),
+      "test4" -> testIds(4)
+    )
+
+    val mockPhase1TestConfig = Phase1TestsConfig2(
+      5, tests, List("test1", "test2", "test2", "test4"), List("test1", "test4")
+    )
+    when(mockTestIntegrationGatewayConfig.phase1Tests).thenReturn(mockPhase1TestConfig)
 
     val service = new EvaluatePhase1ResultService2 with StubbedPhase1TestEvaluation {
       val evaluationRepository = mockPhase1EvaluationRepository

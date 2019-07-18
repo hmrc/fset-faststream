@@ -18,7 +18,7 @@ package services.onlinetesting.phase1
 
 import akka.actor.ActorSystem
 import common.{ FutureEx, Phase1TestConcern2 }
-import config.TestIntegrationGatewayConfig
+import config.{ PsiTestIds, TestIntegrationGatewayConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
@@ -100,12 +100,12 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     // After zipWithIndex scheduleNames = ( ("sjq", 0), ("bq", 1) )
 
     val registerCandidate = FutureEx.traverseToTry(scheduleNames.zipWithIndex) {
-      case (scheduleName, delayModifier) =>
-        val inventoryId = inventoryIdByName2(scheduleName) // sjq = 16196, bq = 16194
+      case (testName, delayModifier) =>
+        val testIds = testIdsByName(testName)
       val delay = (delayModifier * delaySecsBetweenRegistrations).second
         akka.pattern.after(delay, actor.scheduler) {
-          play.api.Logger.debug(s"Phase1TestService - about to call registerPsiApplicant with scheduleId - $inventoryId")
-          registerPsiApplicant(application, inventoryId, invitationDate, expirationDate)
+          Logger.debug(s"Phase1TestService - about to call registerPsiApplicant with testIds - $testIds")
+          registerPsiApplicant(application, testIds, invitationDate, expirationDate)
         }
     }
 
@@ -123,30 +123,33 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   }
 
   private def registerPsiApplicant(application: OnlineTestApplication,
-                                   inventoryId: String, invitationDate: DateTime,
+                                   testIds: PsiTestIds, invitationDate: DateTime,
                                    expirationDate: DateTime)
                                   (implicit hc: HeaderCarrier): Future[PsiTest] = {
     for {
-      aoa <- registerApplicant2(application, inventoryId)
+      aoa <- registerApplicant2(application, testIds)
     } yield {
       if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
         val msg = s"Received response status of ${aoa.status} when registering candidate " +
-          s"${application.applicationId} to phase1 tests whose inventoryId=$inventoryId"
+          s"${application.applicationId} to phase1 tests with testIds $testIds"
         Logger.warn(msg)
         throw new RuntimeException(msg)
       } else {
         PsiTest(
-          inventoryId = inventoryId,
+          inventoryId = testIds.inventoryId,
           orderId = aoa.orderId,
           usedForResults = true,
           testUrl = aoa.testLaunchUrl,
-          invitationDate = invitationDate
+          invitationDate = invitationDate,
+          assessmentId = testIds.assessmentId,
+          reportId = testIds.reportId,
+          normId = testIds.normId
         )
       }
     }
   }
 
-  private def registerApplicant2(application: OnlineTestApplication, inventoryId: String)(
+  private def registerApplicant2(application: OnlineTestApplication, testIds: PsiTestIds)(
     implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
 
     val orderId = tokenFactory.generateUUID()
@@ -154,13 +157,16 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     val lastName = CubiksSanitizer.sanitizeFreeText(application.lastName)
 
     val registerCandidateRequest = RegisterCandidateRequest(
-      inventoryId = inventoryId, // Read from config to identify the test we are registering for
+      inventoryId = testIds.inventoryId, // Read from config to identify the test we are registering for
       orderId = orderId, // Identifier we generate to uniquely identify the test
       accountId = application.testAccountId, // Candidate's account across all tests
       preferredName = preferredName,
       lastName = lastName,
       // The url psi will redirect to when the candidate completes the test
-      redirectionUrl = buildRedirectionUrl(orderId, inventoryId)
+      redirectionUrl = buildRedirectionUrl(orderId, testIds.inventoryId),
+      assessmentId = testIds.assessmentId,
+      reportId = testIds.reportId,
+      normId = testIds.normId
     )
 
     onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest).map { response =>
@@ -169,8 +175,9 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
-  private def inventoryIdByName2(name: String): String = {
-    integrationGatewayConfig.phase1Tests.inventoryIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
+  private def testIdsByName(name: String): PsiTestIds = {
+    integrationGatewayConfig.phase1Tests.tests
+      .getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
   private def buildRedirectionUrl(orderId: String, inventoryId: String) = {
