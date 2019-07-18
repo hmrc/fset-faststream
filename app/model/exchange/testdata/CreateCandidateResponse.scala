@@ -36,8 +36,8 @@ object CreateCandidateResponse {
     personalDetails: Option[GeneralDetails] = None,
     diversityDetails: Option[List[QuestionnaireQuestion]] = None,
     assistanceDetails: Option[AssistanceDetails] = None,
-    phase1TestGroup: Option[TestGroupResponse] = None,
-    phase2TestGroup: Option[TestGroupResponse] = None,
+    phase1TestGroup: Option[TestGroupResponse2] = None,
+    phase2TestGroup: Option[TestGroupResponse2] = None,
     phase3TestGroup: Option[TestGroupResponse] = None,
     fsbTestGroup: Option[FsbTestGroupResponse] = None,
     siftForms: Option[Seq[SiftForm]] = None,
@@ -64,10 +64,22 @@ object CreateCandidateResponse {
     implicit val testGroupResponseFormat: OFormat[TestGroupResponse] = Json.format[TestGroupResponse]
   }
 
+  case class TestGroupResponse2(tests: List[TestResponse2], schemeResult: Option[PassmarkEvaluation])
+
+  object TestGroupResponse2 {
+    implicit val testGroupResponseFormat: OFormat[TestGroupResponse2] = Json.format[TestGroupResponse2]
+  }
+
   case class TestResponse(testId: Int, testType: String, token: String, testUrl: String)
+
+  case class TestResponse2(inventoryId: String, orderId: String, testUrl: String)
 
   object TestResponse {
     implicit val testResponseFormat: OFormat[TestResponse] = Json.format[TestResponse]
+  }
+
+  object TestResponse2 {
+    implicit val testResponse2Format: OFormat[TestResponse2] = Json.format[TestResponse2]
   }
 
   case class SiftForm(
