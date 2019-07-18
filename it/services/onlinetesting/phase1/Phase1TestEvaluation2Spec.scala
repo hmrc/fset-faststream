@@ -35,8 +35,9 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
     val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository = phase1PassMarkSettingRepo
     val phase1TestsConfigMock: Phase1TestsConfig2 = mock[Phase1TestsConfig2]
     val phase = Phase.PHASE1
+
     def testIds(idx: Int): PsiTestIds =
-      PsiTestIds(s"inventory-id-$idx", Option(s"assessment-id-$idx"), Option(s"report-id-$idx"), Option(s"norm-id-$idx"))
+      PsiTestIds(s"inventoryId$idx", Option(s"assessmentId$idx"), Option(s"reportId$idx"), Option(s"normId$idx"))
 
     val tests = Map[String, PsiTestIds](
       "test1" -> testIds(1),
@@ -47,6 +48,8 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
 
     when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
     when(phase1TestsConfigMock.tests).thenReturn(tests)
+    when(phase1TestsConfigMock.gis).thenReturn(List("test1", "test4"))
+    when(phase1TestsConfigMock.standard).thenReturn(List("test1", "test2", "test3", "test4"))
   }
 
   trait TestFixture {
