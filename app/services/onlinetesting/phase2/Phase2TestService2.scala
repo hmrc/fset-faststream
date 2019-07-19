@@ -19,7 +19,7 @@ package services.onlinetesting.phase2
 import _root_.services.AuditService
 import akka.actor.ActorSystem
 import common.{ FutureEx, Phase2TestConcern2 }
-import config.{ Phase2Schedule, Phase2TestsConfig, Phase2TestsConfig2, TestIntegrationGatewayConfig }
+import config.{ Phase2Schedule, Phase2TestsConfig, Phase2TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
 import connectors.ExchangeObjects._
 import connectors.{ AuthProviderClient, OnlineTestsGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
@@ -37,7 +37,6 @@ import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.{ Phase2TestRepository, Phase2TestRepository2 }
-import services.onlinetesting.Exceptions.NoActiveTestException
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
 import services.sift.ApplicationSiftService
@@ -223,13 +222,13 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     val firstApplication = applications.head
     val applicationsWithTheSameType = applications filter (_.isInvigilatedETray == firstApplication.isInvigilatedETray)
 
-    val inventoryIds = integrationGatewayConfig.phase2Tests.inventoryIds
-    val tests = integrationGatewayConfig.phase2Tests.tests // use this for the order of tests
+    val tests = integrationGatewayConfig.phase2Tests.tests
+    val standardTests = integrationGatewayConfig.phase2Tests.standard // use this for the order of tests
 
     FutureEx.traverseSerial(applicationsWithTheSameType) { application =>
-      FutureEx.traverseSerial(tests) { test =>
-        val inventoryId = inventoryIds.getOrElse(test, throw new Exception(s"Unable to find inventoryId for $test"))
-        registerAndInviteForTestGroup2(application, inventoryId).map(_ => ())
+      FutureEx.traverseSerial(standardTests) { testName =>
+        val testIds = tests.getOrElse(testName, throw new Exception(s"Unable to find inventoryId for $testName"))
+        registerAndInviteForTestGroup2(application, testIds).map(_ => ())
       }
     }.map(_ => ())
   }
@@ -255,8 +254,8 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
 
 
   private def registerAndInviteForTestGroup2(application: OnlineTestApplication,
-                                            inventoryId: String,
-                                            expiresDate: Option[DateTime] = None)
+                                             testIds: PsiTestIds,
+                                             expiresDate: Option[DateTime] = None)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[OnlineTestApplication] = {
     //TODO: Do we need to worry about this for PSI?
     //    require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
@@ -274,7 +273,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     }
 
     for {
-      registeredApplicant <- registerPsiApplicant(application, inventoryId, invitationDate)
+      registeredApplicant <- registerPsiApplicant(application, testIds, invitationDate)
       _ <- insertPhase2TestGroups(registeredApplicant)(invitationDate, expirationDate, hc)
       _ <- emailInviteToApplicant(application)(hc, rh, invitationDate, expirationDate)
     } yield {
@@ -283,7 +282,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
 
   private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication],
-                                            inventoryId: String,
+                                            testIds: PsiTestIds,
                                             expiresDate: Option[DateTime] = None)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = {
     //TODO: Do we need to worry about this for PSI?
@@ -305,7 +304,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
         }
 
         for {
-          registeredApplicants <- registerPsiApplicants(testApplications, inventoryId, invitationDate)
+          registeredApplicants <- registerPsiApplicants(testApplications, testIds, invitationDate)
           _ <- insertPhase2TestGroups(registeredApplicants)(invitationDate, expirationDate, hc)
           _ <- emailInviteToApplicants(testApplications)(hc, rh, invitationDate, expirationDate)
         } yield {
@@ -315,38 +314,41 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
 
   def registerPsiApplicants(applications: List[OnlineTestApplication],
-                            inventoryId: String, invitationDate: DateTime)
+                            testIds: PsiTestIds, invitationDate: DateTime)
                            (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData2]] = {
     Future.sequence(
       applications.map { application =>
-        registerPsiApplicant(application, inventoryId, invitationDate)
+        registerPsiApplicant(application, testIds, invitationDate)
     })
   }
 
   private def registerPsiApplicant(application: OnlineTestApplication,
-                                   inventoryId: String,
+                                   testIds: PsiTestIds,
                                    invitationDate: DateTime)
                                   (implicit hc: HeaderCarrier): Future[Phase2TestInviteData2] = {
-    registerApplicant2(application, inventoryId).map { aoa =>
+    registerApplicant2(application, testIds).map { aoa =>
       if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
         val msg = s"Received response status of ${aoa.status} when registering candidate " +
-          s"${application.applicationId} to phase1 tests whose inventoryId=$inventoryId"
+          s"${application.applicationId} to phase1 tests with Ids=$testIds"
         Logger.warn(msg)
         throw new RuntimeException(msg)
       } else {
         val psiTest = PsiTest(
-          inventoryId = inventoryId,
+          inventoryId = testIds.inventoryId,
           orderId = aoa.orderId,
           usedForResults = true,
           testUrl = aoa.testLaunchUrl,
-          invitationDate = invitationDate
+          invitationDate = invitationDate,
+          assessmentId = testIds.assessmentId,
+          reportId = testIds.reportId,
+          normId = testIds.normId
         )
         Phase2TestInviteData2(application, psiTest)
       }
     }
   }
 
-  private def registerApplicant2(application: OnlineTestApplication, inventoryId: String)
+  private def registerApplicant2(application: OnlineTestApplication, testIds: PsiTestIds)
                                 (implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
 
     val orderId = tokenFactory.generateUUID()
@@ -356,14 +358,17 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     val maybePercentage = application.eTrayAdjustments.flatMap(_.percentage)
 
     val registerCandidateRequest = RegisterCandidateRequest(
-      inventoryId = inventoryId, // Read from config to identify the test we are registering for
+      inventoryId = testIds.inventoryId, // Read from config to identify the test we are registering for
       orderId = orderId, // Identifier we generate to uniquely identify the test
       accountId = application.testAccountId, // Candidate's account across all tests
       preferredName = preferredName,
       lastName = lastName,
       // The url psi will redirect to when the candidate completes the test
-      redirectionUrl = buildRedirectionUrl(orderId, inventoryId),
-      adjustment = maybePercentage.map(TestAdjustment.apply)
+      redirectionUrl = buildRedirectionUrl(orderId, testIds.inventoryId),
+      adjustment = maybePercentage.map(TestAdjustment.apply),
+      assessmentId = testIds.assessmentId,
+      reportId = testIds.reportId,
+      normId = testIds.normId
     )
 
     onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest).map { response =>

@@ -1,6 +1,6 @@
 package services.onlinetesting.phase1
 
-import config.{ Phase1TestsConfig2, TestIntegrationGatewayConfig }
+import config.{ Phase1TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
@@ -36,10 +36,20 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
     val phase1TestsConfigMock: Phase1TestsConfig2 = mock[Phase1TestsConfig2]
     val phase = Phase.PHASE1
 
-    when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
-    when(phase1TestsConfigMock.inventoryIds).thenReturn(
-      Map("test1" -> "inventoryId1", "test2" -> "inventoryId2", "test3" -> "inventoryId3", "test4" -> "inventoryId4")
+    def testIds(idx: Int): PsiTestIds =
+      PsiTestIds(s"inventoryId$idx", Option(s"assessmentId$idx"), Option(s"reportId$idx"), Option(s"normId$idx"))
+
+    val tests = Map[String, PsiTestIds](
+      "test1" -> testIds(1),
+      "test2" -> testIds(2),
+      "test3" -> testIds(3),
+      "test4" -> testIds(4)
     )
+
+    when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
+    when(phase1TestsConfigMock.tests).thenReturn(tests)
+    when(phase1TestsConfigMock.gis).thenReturn(List("test1", "test4"))
+    when(phase1TestsConfigMock.standard).thenReturn(List("test1", "test2", "test3", "test4"))
   }
 
   trait TestFixture {

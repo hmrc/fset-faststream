@@ -52,20 +52,19 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
     }
 
   val psiTests = testsNames.map{ testName =>
-  (testName, onlineTestGatewayConfig.phase1Tests.inventoryIds(testName))
-    }.map { case (testName, inventoryId) => {
+  (testName, onlineTestGatewayConfig.phase1Tests.tests(testName).inventoryId)
+    }.map { case (testName, inventoryId) =>
       val orderId = java.util.UUID.randomUUID.toString
       val test = PsiTest(
         inventoryId = inventoryId,
         orderId = orderId,
         usedForResults = true,
-        testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/${testName}?key=$orderId",
+        testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/$testName?key=$orderId",
         invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now()).
           withDurationAdded(OneDay, -1),
         resultsReadyToDownload = false
       )
       test
-    }
     }
 
     val phase1TestProfile2 = Phase1TestProfile2(
