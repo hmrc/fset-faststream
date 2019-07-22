@@ -18,13 +18,13 @@ package services.testdata.candidate
 
 import model._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.CreateCandidateData.{ CreateCandidateData, PersonalData }
+import model.testdata.CreateCandidateData.{CreateCandidateData, PersonalData}
 import play.api.mvc.RequestHeader
 import services.personaldetails.PersonalDetailsService
 import services.testdata.faker.DataFaker.Random
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.http.HeaderCarrier
 
 object InProgressPersonalDetailsStatusGenerator extends InProgressPersonalDetailsStatusGenerator {
   override val previousStatusGenerator = CreatedStatusGenerator
@@ -39,7 +39,8 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
     def getPersonalDetails(candidateInformation: CreateCandidateResponse) = {
       def getEdipCompleted = {
         if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip) {
-          Some(generatorConfig.personalData.edipCompleted.getOrElse(Random.bool))}
+          Some(generatorConfig.personalData.edipCompleted.getOrElse(Random.bool))
+        }
         else {
           None
         }
@@ -51,14 +52,12 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
       def getCivilServiceExperienceDetails(candidateInformation: CreateCandidateResponse) = {
         if (generatorConfig.isCivilServant) {
-          if (generatorConfig.hasFastPass) {
-            CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
-              Some(InternshipType.SDIPCurrentYear :: Nil), fastPassReceived = Some(true), fastPassAccepted = Some(true),
-              certificateNumber = Some(Random.number().toString)
-            )
-          } else {
-            CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
-          }
+          CivilServiceExperienceDetails(applicable = true,
+            civilServiceExperienceType = if (generatorConfig.isCivilServant) Some(CivilServiceExperienceType.CivilServant) else None,
+            internshipTypes = Some(generatorConfig.internshipTypes),
+            fastPassReceived = Some(generatorConfig.hasFastPass), fastPassAccepted = Some(false),
+            certificateNumber = generatorConfig.fastPassCertificateNumber
+          )
         } else {
           CivilServiceExperienceDetails(applicable = false)
         }

@@ -77,7 +77,8 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         candidateInPreviousStatus.applicationId.get,
         PHASE3_TESTS,
         candidateInPreviousStatus.userId,
-        candidateInPreviousStatus.testAccountId.get,
+        // TODO: This is not set in code, so it will always generate a random useless value, anyway it is not used yet
+        candidateInPreviousStatus.testAccountId.getOrElse("TODOTestAccountId"),
         guaranteedInterview = false,
         needsOnlineAdjustments = false,
         needsAtVenueAdjustments = false,

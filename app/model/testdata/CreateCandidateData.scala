@@ -18,29 +18,29 @@ package model.testdata
 
 import connectors.AuthProviderClient.UserRole
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.Result
+import model.InternshipType.InternshipType
 import model.ProgressStatuses.ProgressStatus
+import model._
 import model.command.testdata.CreateCandidateRequest._
 import model.persisted.PassmarkEvaluation
 import model.testdata.CreateAdminData.AssessorData
-import model._
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import services.testdata.faker.DataFaker.Random
 
 object CreateCandidateData {
 
   case class AssistanceDetails(
-                                hasDisability: String = Random.yesNoPreferNotToSay,
-                                hasDisabilityDescription: String = Random.hasDisabilityDescription,
-                                setGis: Boolean = false,
-                                onlineAdjustments: Boolean = Random.bool,
-                                onlineAdjustmentsDescription: String = Random.onlineAdjustmentsDescription,
-                                assessmentCentreAdjustments: Boolean = Random.bool,
-                                assessmentCentreAdjustmentsDescription: String = Random.assessmentCentreAdjustmentDescription,
-                                phoneAdjustments: Boolean = Random.bool,
-                                phoneAdjustmentsDescription: String = Random.phoneAdjustmentsDescription
-                              )
+    hasDisability: String = Random.yesNoPreferNotToSay,
+    hasDisabilityDescription: String = Random.hasDisabilityDescription,
+    setGis: Boolean = false,
+    onlineAdjustments: Boolean = Random.bool,
+    onlineAdjustmentsDescription: String = Random.onlineAdjustmentsDescription,
+    assessmentCentreAdjustments: Boolean = Random.bool,
+    assessmentCentreAdjustmentsDescription: String = Random.assessmentCentreAdjustmentDescription,
+    phoneAdjustments: Boolean = Random.bool,
+    phoneAdjustmentsDescription: String = Random.phoneAdjustmentsDescription
+  )
 
   object AssistanceDetails {
     def apply(o: AssistanceDetailsRequest): AssistanceDetails = {
@@ -61,14 +61,14 @@ object CreateCandidateData {
   }
 
   case class DiversityDetails(
-                               genderIdentity: String = Random.gender,
-                               sexualOrientation: String = Random.sexualOrientation,
-                               ethnicity: String = Random.ethnicGroup,
-                               universityAttended: String = Random.university._2,
-                               parentalEmployedOrSelfEmployed: String = Random.parentsOccupation,
-                               parentalEmployment: Option[String] = Some(Random.parentsOccupationDetails),
-                               parentalCompanySize: Option[String] = Some(Random.sizeParentsEmployeer)
-                             )
+    genderIdentity: String = Random.gender,
+    sexualOrientation: String = Random.sexualOrientation,
+    ethnicity: String = Random.ethnicGroup,
+    universityAttended: String = Random.university._2,
+    parentalEmployedOrSelfEmployed: String = Random.parentsOccupation,
+    parentalEmployment: Option[String] = Some(Random.parentsOccupationDetails),
+    parentalCompanySize: Option[String] = Some(Random.sizeParentsEmployeer)
+  )
 
   object DiversityDetails {
     def apply(o: DiversityDetailsRequest): DiversityDetails = {
@@ -106,12 +106,12 @@ object CreateCandidateData {
   }
 
   case class Phase1TestData(
-                             start: Option[DateTime] = None,
-                             expiry: Option[DateTime] = None,
-                             completion: Option[DateTime] = None,
-                             scores: List[Double] = Nil,
-                             passmarkEvaluation: Option[PassmarkEvaluation] = None
-                           ) extends TestDates
+    start: Option[DateTime] = None,
+    expiry: Option[DateTime] = None,
+    completion: Option[DateTime] = None,
+    scores: List[Double] = Nil,
+    passmarkEvaluation: Option[PassmarkEvaluation] = None
+  ) extends TestDates
 
   object Phase1TestData {
     def apply(testDataRequest: Phase1TestDataRequest): Phase1TestData = {
@@ -126,12 +126,12 @@ object CreateCandidateData {
   }
 
   case class Phase2TestData(
-                             start: Option[DateTime] = None,
-                             expiry: Option[DateTime] = None,
-                             completion: Option[DateTime] = None,
-                             scores: List[Double] = Nil,
-                             passmarkEvaluation: Option[PassmarkEvaluation] = None
-                           ) extends TestDates with TestResult
+    start: Option[DateTime] = None,
+    expiry: Option[DateTime] = None,
+    completion: Option[DateTime] = None,
+    scores: List[Double] = Nil,
+    passmarkEvaluation: Option[PassmarkEvaluation] = None
+  ) extends TestDates with TestResult
 
   object Phase2TestData {
     def apply(o: Phase2TestDataRequest): Phase2TestData = {
@@ -146,14 +146,14 @@ object CreateCandidateData {
   }
 
   case class Phase3TestData(
-                             start: Option[DateTime] = None,
-                             expiry: Option[DateTime] = None,
-                             completion: Option[DateTime] = None,
-                             score: Option[Double] = None,
-                             generateNullScoresForFewQuestions: Option[Boolean] = None,
-                             receivedBeforeInHours: Option[Int] = None,
-                             passmarkEvaluation: Option[PassmarkEvaluation] = None
-                           )
+    start: Option[DateTime] = None,
+    expiry: Option[DateTime] = None,
+    completion: Option[DateTime] = None,
+    score: Option[Double] = None,
+    generateNullScoresForFewQuestions: Option[Boolean] = None,
+    receivedBeforeInHours: Option[Int] = None,
+    passmarkEvaluation: Option[PassmarkEvaluation] = None
+  )
 
   object Phase3TestData {
     def apply(o: Phase3TestDataRequest): Phase3TestData = {
@@ -170,16 +170,16 @@ object CreateCandidateData {
   }
 
   case class PersonalData(
-                           emailPrefix: String = s"tesf${Random.number() - 1}",
-                           firstName: String = Random.getFirstname(1),
-                           lastName: String = Random.getLastname(1),
-                           preferredName: Option[String] = None,
-                           dob: LocalDate = new LocalDate(1981, 5, 21),
-                           postCode: Option[String] = None,
-                           country: Option[String] = None,
-                           edipCompleted: Option[Boolean] = None,
-                           role: Option[UserRole] = None
-                         ) {
+    emailPrefix: String = s"tesf${Random.number() - 1}",
+    firstName: String = Random.getFirstname(1),
+    lastName: String = Random.getLastname(1),
+    preferredName: Option[String] = None,
+    dob: LocalDate = new LocalDate(1981, 5, 21),
+    postCode: Option[String] = None,
+    country: Option[String] = None,
+    edipCompleted: Option[Boolean] = None,
+    role: Option[UserRole] = None
+  ) {
     def getPreferredName: String = preferredName.getOrElse(s"Pref$firstName")
   }
 
@@ -208,11 +208,11 @@ object CreateCandidateData {
   }
 
   case class StatusData(
-                         applicationStatus: ApplicationStatus = ApplicationStatus.REGISTERED,
-                         previousApplicationStatus: Option[ApplicationStatus] = None,
-                         progressStatus: Option[ProgressStatus] = None,
-                         applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream
-                       )
+    applicationStatus: ApplicationStatus = ApplicationStatus.REGISTERED,
+    previousApplicationStatus: Option[ApplicationStatus] = None,
+    progressStatus: Option[ProgressStatus] = None,
+    applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream
+  )
 
   object StatusData {
     def apply(o: StatusDataRequest): StatusData = {
@@ -232,6 +232,8 @@ object CreateCandidateData {
     schemeTypes: Option[List[SchemeId]] = None,
     isCivilServant: Boolean = false,
     hasFastPass: Boolean = false,
+    internshipTypes: List[InternshipType] = Nil,
+    fastPassCertificateNumber: Option[String] = None,
     hasDegree: Boolean = Random.bool,
     region: Option[String] = None,
     phase1TestData: Option[Phase1TestData] = None,
@@ -247,6 +249,21 @@ object CreateCandidateData {
 
       val statusData = StatusData(o.statusData)
 
+      val isCivilServant = o.isCivilServant.getOrElse(Random.bool)
+      val hasFastPass = o.hasFastPass.getOrElse(if (isCivilServant) {
+        Random.bool
+      } else {
+        false
+      })
+      val internshipTypes = if (hasFastPass) {
+        o.internshipTypes.map(internshipTypes =>
+          internshipTypes.map(internshipType => InternshipType.withName(internshipType)))
+            .getOrElse(List(InternshipType.SDIPCurrentYear))
+      } else {
+        Nil
+      }
+      val fastPassCertificateNumber = if (hasFastPass) Some(Random.number().toString) else None
+
       CreateCandidateData(
         statusData = statusData,
         personalData = o.personalData.map(PersonalData(_, generatorId)).getOrElse(PersonalData()),
@@ -254,9 +271,11 @@ object CreateCandidateData {
         assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
         psiUrl = psiUrlFromConfig,
         schemeTypes = o.schemeTypes,
-        isCivilServant = o.isCivilServant.getOrElse(Random.bool),
+        isCivilServant = isCivilServant,
+        hasFastPass = hasFastPass,
+        internshipTypes = internshipTypes,
+        fastPassCertificateNumber = fastPassCertificateNumber,
         hasDegree = o.hasDegree.getOrElse(Random.bool),
-        hasFastPass = o.hasFastPass.getOrElse(Random.bool),
         region = o.region,
         phase1TestData = o.phase1TestData.map(Phase1TestData.apply),
         phase2TestData = o.phase2TestData.map(Phase2TestData.apply),

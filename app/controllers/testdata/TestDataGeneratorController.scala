@@ -50,9 +50,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 object TestDataGeneratorController extends TestDataGeneratorController {
   val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+  val createCandidateRequestValidator = CreateCandidateRequestValidator
 }
 
 trait TestDataGeneratorController extends BaseController {
+  val createCandidateRequestValidator: CreateCandidateRequestValidator
 
   val locationsAndVenuesRepository: LocationsWithVenuesRepository
 
@@ -112,7 +114,8 @@ trait TestDataGeneratorController extends BaseController {
       )),
       schemeTypes = Some(List(SchemeId("Commercial"), SchemeId("European"), SchemeId("DigitalAndTechnology"))),
       isCivilServant = Some(Random.bool),
-      hasFastPass = Some(true),
+      internshipTypes = None,
+      hasFastPass = Some(false),
       hasDegree = Some(Random.bool),
       region = Some("region"),
       loc1scheme1EvaluationResult = Some("loc1 scheme1 result1"),
@@ -285,53 +288,11 @@ trait TestDataGeneratorController extends BaseController {
 
   def createCandidatesPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateRequest] { createRequest =>
-      if (!isValidCreateCandidateRequest(createRequest)) {
-        Future.successful(BadRequest(JsObject(List(("message",
-          JsString(s"Invalid combination " +
-            s"application route: ${createRequest.statusData.applicationRoute}, " +
-            s"status: ${createRequest.statusData.applicationStatus}, " +
-            s"hasFastPass: ${createRequest.hasFastPass}, " +
-            s"isCivilServant: ${createRequest.isCivilServant}"))))))
+      val validateResult = createCandidateRequestValidator.validate(createRequest)
+      if (!validateResult.result) {
+        Future.successful(BadRequest(JsObject(List(("message", JsString(s"${validateResult.message.getOrElse("Unexpected error")}"))))))
       } else {
         createCandidates(CreateCandidateData.apply(psiUrlFromConfig, createRequest), numberToGenerate)
-      }
-    }
-  }
-
-  private def isValidCreateCandidateRequest(generatorConfig: CreateCandidateRequest): Boolean = {
-    val (route, status, hasFastPass, isCivilServant) = (generatorConfig.statusData.applicationRoute.map(ApplicationRoute.withName(_)),
-      ApplicationStatus.withName(generatorConfig.statusData.applicationStatus), generatorConfig.hasFastPass, generatorConfig.isCivilServant)
-
-    if (List(Some(ApplicationRoute.Sdip), Some(ApplicationRoute.Edip)).contains(route) &&
-       Some(true) == generatorConfig.schemeTypes.map(!_.isEmpty)) {
-      false
-      // TODO: Return also a message to display. Refactor the method
-    } else if ((Some(ApplicationRoute.Sdip) == route) && generatorConfig.phase1TestData.flatMap(_.passmarkEvaluation.map(
-        _.result.map(_.schemeId)
-          .filterNot(_.value == "Sdip")
-      )).toList.flatten.size > 0) {
-      false
-    } else if (Some(ApplicationRoute.Edip) == route && generatorConfig.phase1TestData.flatMap(_.passmarkEvaluation.map(
-        _.result.map(_.schemeId).filterNot(_.value == "Edip")
-      )).toList.flatten.size > 0) {
-      false
-    } else if (hasFastPass == Some(true) && isCivilServant != Some(true)) {
-      false
-    } else {
-      (route, status, hasFastPass) match {
-        case (_, ApplicationStatus.PHASE1_TESTS | ApplicationStatus.PHASE1_TESTS_FAILED | ApplicationStatus.PHASE1_TESTS_PASSED |
-                 ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED |
-                 ApplicationStatus.PHASE2_TESTS | ApplicationStatus.PHASE2_TESTS_FAILED | ApplicationStatus.PHASE2_TESTS_PASSED |
-                 ApplicationStatus.PHASE3_TESTS | ApplicationStatus.PHASE3_TESTS_FAILED | ApplicationStatus.PHASE3_TESTS_PASSED |
-                 ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED | ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
-        Some(true)) => false
-        case (Some(ApplicationRoute.Sdip) | Some(ApplicationRoute.Edip),
-        ApplicationStatus.PHASE2_TESTS | ApplicationStatus.PHASE2_TESTS_FAILED | ApplicationStatus.PHASE2_TESTS_PASSED |
-        ApplicationStatus.PHASE3_TESTS | ApplicationStatus.PHASE3_TESTS_FAILED | ApplicationStatus.PHASE3_TESTS_PASSED |
-        ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED | ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
-        _)
-        => false
-        case _ => true
       }
     }
   }

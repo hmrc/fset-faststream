@@ -16,87 +16,64 @@
 
 package services.testdata.candidate.sift
 
-import model.ApplicationStatus.{ApplicationStatus, SUBMITTED}
-import model.{ApplicationRoute, ApplicationStatus, EvaluationResults, ProgressStatuses, SchemeId}
+import model.ApplicationStatus.ApplicationStatus
 import model.command.ApplicationForSift
 import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, SiftForm}
 import model.persisted.SchemeEvaluationResult
-import model.stc.AuditEvents.{FastPassUserAccepted, FastPassUserAcceptedEmailSent}
-import model.stc.DataStoreEvents.{ApplicationReadyForExport, FastPassApproved}
 import model.testdata.CreateCandidateData.CreateCandidateData
+import model.{ApplicationRoute, ApplicationStatus, EvaluationResults}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import repositories.{applicationRepository, civilServiceExperienceDetailsRepository}
-import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
-import services.fastpass.FastPassService
-import services.scheme.SchemePreferencesService
+import repositories.applicationRepository
 import services.sift.ApplicationSiftService
-import services.testdata.candidate.{CandidateStatusGeneratorFactory, ConstructiveGenerator, SubmittedStatusGenerator}
 import services.testdata.candidate.onlinetests.{Phase1TestsPassedNotifiedStatusGenerator, Phase3TestsPassedNotifiedStatusGenerator}
+import services.testdata.candidate.{CandidateStatusGeneratorFactory, ConstructiveGenerator, FastPassAcceptedStatusGenerator}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 object SiftEnteredStatusGenerator extends SiftEnteredStatusGenerator {
   override val previousStatusGenerator = Phase3TestsPassedNotifiedStatusGenerator
   override val appRepo = applicationRepository
   override val siftService = ApplicationSiftService
-  override val fastPassService = FastPassService
-  override val schemePreferencesService = SchemePreferencesService
-  override val csedRepository = civilServiceExperienceDetailsRepository
-
 }
 
 trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
   val appRepo: GeneralApplicationRepository
   val siftService: ApplicationSiftService
-  val fastPassService: FastPassService
-  val schemePreferencesService: SchemePreferencesService
-  val csedRepository: CivilServiceExperienceDetailsRepository
-
 
   override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData): (ApplicationStatus, ConstructiveGenerator) = {
-    val previousStatusGenerator = generatorConfig.statusData.previousApplicationStatus.map(  previousApplicationStatus =>
+    val previousStatusGenerator = generatorConfig.statusData.previousApplicationStatus.map(previousApplicationStatus =>
       CandidateStatusGeneratorFactory.getGenerator(
-      generatorConfig.copy(
-        statusData = generatorConfig.statusData.copy(
-          applicationStatus = previousApplicationStatus
-        ))))
+        generatorConfig.copy(
+          statusData = generatorConfig.statusData.copy(
+            applicationStatus = previousApplicationStatus
+          ))))
     previousStatusGenerator.orElse(Some(
       if (generatorConfig.hasFastPass) {
-        (ApplicationStatus.SUBMITTED, SubmittedStatusGenerator)
+        (ApplicationStatus.FAST_PASS_ACCEPTED, FastPassAcceptedStatusGenerator)
       } else if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Edip ||
         generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip /*||
       (generatorConfig.statusData.applicationRoute == ApplicationRoute.SdipFaststream &&
-        generatorConfig.statusData.previousApplicationStatus == Some(Phase1))*/) {
-        (ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED, Phase1TestsPassedNotifiedStatusGenerator) }
+        generatorConfig.statusData.previousApplicationStatus == Some(Phase1))*/ ) {
+        (ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED, Phase1TestsPassedNotifiedStatusGenerator)
+      }
       else {
         (ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, Phase3TestsPassedNotifiedStatusGenerator)
       }
     ))
 
-    if (generatorConfig.hasFastPass) { (ApplicationStatus.SUBMITTED, SubmittedStatusGenerator) }
+    if (generatorConfig.hasFastPass) {
+      (ApplicationStatus.FAST_PASS_ACCEPTED, FastPassAcceptedStatusGenerator)
+    }
     else if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Edip ||
       generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip /*||
       (generatorConfig.statusData.applicationRoute == ApplicationRoute.SdipFaststream &&
-        generatorConfig.statusData.previousApplicationStatus == Some(Phase1))*/) {
+        generatorConfig.statusData.previousApplicationStatus == Some(Phase1))*/ ) {
       (ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED, Phase1TestsPassedNotifiedStatusGenerator)
     } else {
       (ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED, Phase3TestsPassedNotifiedStatusGenerator)
-    }
-  }
-
-  def progressFastPassIfRelevant(applicationId: String, generatorConfig: CreateCandidateData) = {
-    if (generatorConfig.hasFastPass) {
-      for {
-        _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
-        preferences <- schemePreferencesService.find(applicationId)
-        _ <- fastPassService.createCurrentSchemeStatus(applicationId, preferences)
-        _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = true)
-      } yield ()
-    } else {
-      Future.successful()
     }
   }
 
@@ -120,9 +97,8 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
     for {
       (previousApplicationStatus, previousStatusGenerator) <- Future.successful(getPreviousStatusGenerator(generatorConfig))
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- progressFastPassIfRelevant(candidateInPreviousStatus.applicationId.get, generatorConfig)
       _ <- siftService.progressApplicationToSiftStage(Seq(ApplicationForSift(candidateInPreviousStatus.applicationId.get,
-        candidateInPreviousStatus.userId,previousApplicationStatus, getSchemesResults(candidateInPreviousStatus, generatorConfig))))
+        candidateInPreviousStatus.userId, previousApplicationStatus, getSchemesResults(candidateInPreviousStatus, generatorConfig))))
       _ <- siftService.saveSiftExpiryDate(candidateInPreviousStatus.applicationId.get)
     } yield {
 
@@ -133,7 +109,7 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
       )
 
       candidateInPreviousStatus.copy(
-        siftForms = greenSchemes.map(_.map( result => SiftForm(result.schemeId, "", None) ))
+        siftForms = greenSchemes.map(_.map(result => SiftForm(result.schemeId, "", None)))
       )
     }
   }

@@ -69,6 +69,7 @@ object CandidateStatusGeneratorFactory {
         case IN_PROGRESS_PREVIEW => InProgressPreviewStatusGenerator
         case SUBMITTED => SubmittedStatusGenerator
         case WITHDRAWN => WithdrawnStatusGenerator
+        case FAST_PASS_ACCEPTED => FastPassAcceptedStatusGenerator
         case PHASE1_TESTS_PASSED => Phase1TestsPassedStatusGenerator
         case PHASE1_TESTS_FAILED => Phase1TestsFailedStatusGenerator
         case PHASE2_TESTS_PASSED => Phase2TestsPassedStatusGenerator
@@ -81,6 +82,7 @@ object CandidateStatusGeneratorFactory {
           s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")
       }
       case (SUBMITTED, Some(ProgressStatuses.SUBMITTED)) => SubmittedStatusGenerator
+      case (FAST_PASS_ACCEPTED, Some(ProgressStatuses.FAST_PASS_ACCEPTED)) => FastPassAcceptedStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PERSONAL_DETAILS)) => InProgressPersonalDetailsStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.SCHEME_PREFERENCES)) => InProgressSchemePreferencesStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES)) => InProgressPartnerGraduateProgrammesStatusGenerator
