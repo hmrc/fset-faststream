@@ -14,76 +14,74 @@
  * limitations under the License.
  */
 
-package services.onlinetesting.phase2
+package services.onlinetesting.phase3
 
-import config.{ Phase2TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
-import model.EvaluationResults.{ Amber, Green }
+import config._
+import model.EvaluationResults.Green
+import model.Phase3TestProfileExamples._
 import model.ProgressStatuses.ProgressStatus
 import model._
-import model.exchange.passmarksettings.Phase2PassMarkSettingsExamples
+import model.exchange.passmarksettings.Phase3PassMarkSettingsExamples
 import model.persisted._
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks }
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
-import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
+import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
 
 import scala.concurrent.Future
 
-class EvaluatePhase2ResultService2Spec extends BaseServiceSpec {
+class EvaluatePhase3ResultService2Spec extends BaseServiceSpec {
 
   "evaluate candidate" should {
-
-    import Phase2TestExamples._
-
-    val twoTests = List(fifthPsiTest, sixthPsiTest)
-
     "throw an exception if there are no active tests" in new TestFixture {
       val thrown = intercept[IllegalArgumentException] {
-        val application = createAppWithTestGroup(Nil).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED)
+        val application = createApplication(None).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED)
         service.evaluate(application, passmarkSettings).futureValue
       }
-      thrown.getMessage mustBe "requirement failed: Allowed active number of tests for phase2 is 2 - found 0"
+      thrown.getMessage mustBe "requirement failed: Active launchpad test not found"
     }
 
     "throw an exception if there is no previous phase evaluation" in new TestFixture {
       val thrown = intercept[IllegalArgumentException] {
-        val application = createAppWithTestGroup(twoTests).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED)
+        val application = createApplication(Some(launchPadTest)).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED)
         service.evaluate(application, passmarkSettings).futureValue
       }
-      thrown.getMessage mustBe "requirement failed: Phase1 results are required before we can evaluate phase2"
+      thrown.getMessage mustBe "requirement failed: Phase2 results required to evaluate Phase3"
     }
 
     "evaluate the expected schemes when processing a faststream candidate" in new TestFixture {
-      val application = createAppWithTestGroup(twoTests).copy(
-        applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED, prevPhaseEvaluation = previousPhaseEvaluation)
-
+      val application = createApplication(
+        Some(launchPadTest.copy(callbacks = LaunchpadTestCallbacks(reviewed = List(sampleReviewedCallback(Some(30.0))))))
+      ).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED, prevPhaseEvaluation = previousPhaseEvaluation)
       service.evaluate(application, passmarkSettings).futureValue
 
       val applicationIdCaptor = ArgumentCaptor.forClass(classOf[String])
       val passmarkEvaluationCaptor = ArgumentCaptor.forClass(classOf[PassmarkEvaluation])
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
 
-      verify(mockPhase2EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
+      verify(mockPhase3EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
         progressStatusCaptor.capture)
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
-        SchemeId(digitalAndTechnology),Amber.toString),
-        SchemeEvaluationResult(SchemeId(commercial),Amber.toString)
+        SchemeId(digitalAndTechnology), Green.toString),
+        SchemeEvaluationResult(SchemeId(commercial), Green.toString)
       )
       passmarkEvaluationCaptor.getValue.result mustBe expected
       progressStatusCaptor.getValue mustBe None
     }
 
     "include sdip evaluation read from current scheme status when saving evaluation for sdip faststream candidate" in new TestFixture {
-      val application = createSdipFaststreamAppWithTestGroup(twoTests).copy(
-        applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED, prevPhaseEvaluation = previousPhaseEvaluation)
+      val application = createSdipFaststreamApplication(
+        Some(launchPadTest.copy(callbacks = LaunchpadTestCallbacks(reviewed = List(sampleReviewedCallback(Some(30.0))))))
+      ).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED, prevPhaseEvaluation = previousPhaseEvaluation)
 
       when(mockApplicationRepository.getCurrentSchemeStatus(eqTo(appId))).thenReturn(
-        Future.successful(Seq(SchemeEvaluationResult(SchemeId(sdip), Amber.toString))))
+        Future.successful(Seq(SchemeEvaluationResult(SchemeId(sdip), Green.toString))))
 
       service.evaluate(application, passmarkSettings).futureValue
 
@@ -91,14 +89,14 @@ class EvaluatePhase2ResultService2Spec extends BaseServiceSpec {
       val passmarkEvaluationCaptor = ArgumentCaptor.forClass(classOf[PassmarkEvaluation])
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
 
-      verify(mockPhase2EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
+      verify(mockPhase3EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
         progressStatusCaptor.capture)
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
-        SchemeId(digitalAndTechnology),Amber.toString),
-        SchemeEvaluationResult(SchemeId(commercial), Amber.toString),
-        SchemeEvaluationResult(SchemeId(sdip), Amber.toString)
+        SchemeId(digitalAndTechnology),Green.toString),
+        SchemeEvaluationResult(SchemeId(commercial), Green.toString),
+        SchemeEvaluationResult(SchemeId(sdip), Green.toString)
       )
       passmarkEvaluationCaptor.getValue.result mustBe expected
       progressStatusCaptor.getValue mustBe None
@@ -110,15 +108,15 @@ class EvaluatePhase2ResultService2Spec extends BaseServiceSpec {
     val sdip = "Sdip"
     val commercial = "Commercial"
     val digitalAndTechnology = "DigitalAndTechnology"
-    val passmarkSettings = Phase2PassMarkSettingsExamples.passMarkSettings(List(
+    val passmarkSettings = Phase3PassMarkSettingsExamples.passMarkSettings(List(
       (SchemeId(commercial), 10.0, 20.0),
       (SchemeId(digitalAndTechnology), 10.0, 20.0)
     ))
 
-    val mockPhase2EvaluationRepository = mock[OnlineTestEvaluationRepository]
-    val mockPhase2PassMarkSettingsRepository = mock[Phase2PassMarkSettingsMongoRepository]
+    val mockPhase3EvaluationRepository = mock[OnlineTestEvaluationRepository]
+    val mockPhase3PassMarkSettingsRepository = mock[Phase3PassMarkSettingsMongoRepository]
 
-    when(mockPhase2EvaluationRepository.savePassmarkEvaluation(eqTo(appId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
+    when(mockPhase3EvaluationRepository.savePassmarkEvaluation(eqTo(appId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
       .thenReturn(Future.successful(()))
 
     val mockApplicationRepository = mock[GeneralApplicationRepository]
@@ -134,37 +132,31 @@ class EvaluatePhase2ResultService2Spec extends BaseServiceSpec {
         previousPhaseResultVersion = Some("res-v1"))
     )
 
-    val mockTestIntegrationGatewayConfig = mock[TestIntegrationGatewayConfig]
+    val mocklaunchpadGWConfig = mock[LaunchpadGatewayConfig]
 
-    def testIds(idx: Int): PsiTestIds =
-      PsiTestIds(s"inventoryId$idx", Option(s"assessmentId$idx"), Option(s"reportId$idx"), Option(s"normId$idx"))
-
-    val tests = Map[String, PsiTestIds](
-      "test1" -> testIds(5),
-      "test2" -> testIds(6)
+    when(mocklaunchpadGWConfig.phase3Tests).thenReturn(
+      Phase3TestsConfig(timeToExpireInDays = 5,
+        invigilatedTimeToExpireInDays = 10,
+        candidateCompletionRedirectUrl = "http://someurl",
+        interviewsByAdjustmentPercentage = Map.empty[String, Int],
+        evaluationWaitTimeAfterResultsReceivedInHours = 0,
+        verifyAllScoresArePresent = true)
     )
 
-    val mockPhase2TestConfig = Phase2TestsConfig2(
-      expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 10, tests, List("test1", "test2")
-    )
-    when(mockTestIntegrationGatewayConfig.phase2Tests).thenReturn(mockPhase2TestConfig)
-
-    val service = new EvaluatePhase2ResultService2 {
-      val evaluationRepository = mockPhase2EvaluationRepository
-      val passMarkSettingsRepo = mockPhase2PassMarkSettingsRepository
+    val service = new EvaluatePhase3ResultService2 {
+      val evaluationRepository = mockPhase3EvaluationRepository
+      val passMarkSettingsRepo = mockPhase3PassMarkSettingsRepository
       val generalAppRepository = mockApplicationRepository
-      val gatewayConfig = mockTestIntegrationGatewayConfig
+      val launchpadGWConfig = mocklaunchpadGWConfig
       val phase = Phase.PHASE2
     }
 
-    def createAppWithTestGroup(tests: List[PsiTest]) = {
-      val phase2 = Phase2TestProfileExamples.profile2.copy(tests = tests)
-      ApplicationPhase1EvaluationExamples.faststreamPsiApplication.copy(activePsiTests = phase2.activeTests)
+    def createApplication(test: Option[LaunchpadTest]) = {
+      ApplicationPhase2EvaluationExamples.faststreamPsiApplication.copy(activeLaunchpadTest = test)
     }
 
-    def createSdipFaststreamAppWithTestGroup(tests: List[PsiTest]) = {
-      val phase2 = Phase2TestProfileExamples.profile2.copy(tests = tests)
-      ApplicationPhase1EvaluationExamples.sdipFaststreamPsiApplication.copy(activePsiTests = phase2.activeTests)
+    def createSdipFaststreamApplication(test: Option[LaunchpadTest]) = {
+      ApplicationPhase2EvaluationExamples.sdipFaststreamPsiApplication.copy(activeLaunchpadTest = test)
     }
   }
 }
