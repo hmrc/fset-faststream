@@ -54,9 +54,7 @@ object CreateCandidateRequest {
 
   trait TestDatesRequest {
     def start: Option[String]
-
     def expiry: Option[String]
-
     def completion: Option[String]
   }
 

@@ -190,6 +190,8 @@ POST        /online-test/phase3/reset/:applicationId                     control
 
 POST        /online-test/phase2/verifyAccessCode                         controllers.OnlineTestController.verifyAccessCode()
 
+PUT         /psi/:orderId/complete                            controllers.PsiTestsController.completeTestByOrderId(orderId: String)
+# TODO: Check with Ian, why we do not follow the convention
 PUT         /psi/complete-by-orderId/:orderId                            controllers.PsiTestsController.completeTestByOrderId(orderId: String)
 PUT         /psi/:orderId/results-ready                                  controllers.PsiTestsController.markResultsReady(orderId: String)
 PUT         /psi/:orderId/real-time-results                              controllers.PsiTestsController.realTimeResults(orderId: String)
