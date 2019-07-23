@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package model.persisted
+package persisted
 
-import model.{ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples, _}
+import model.persisted.ApplicationReadyForEvaluation2
+import model.{ ApplicationStatus, SelectedSchemesExamples, _ }
 import org.joda.time.DateTime
 
-object ApplicationPhase2EvaluationExamples {
-  def faststreamApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE2_TESTS,
-    ApplicationRoute.Faststream, isGis = false, activeCubiksTests = Phase1TestProfileExamples.profile.activeTests,
-    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
-
-  def faststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE2_TESTS,
+object ApplicationPhase3EvaluationExamples {
+  def faststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE3_TESTS,
     ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile2.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 
-  def sdipFaststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE2_TESTS,
+  def sdipFaststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE3_TESTS,
     ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile2.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 }
