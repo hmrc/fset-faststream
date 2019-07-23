@@ -22,7 +22,7 @@ import model.InternshipType.InternshipType
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.testdata.CreateCandidateRequest._
-import model.persisted.PassmarkEvaluation
+import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.testdata.CreateAdminData.AssessorData
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, LocalDate}
@@ -114,14 +114,37 @@ object CreateCandidateData {
   ) extends TestDates
 
   object Phase1TestData {
-    def apply(testDataRequest: Phase1TestDataRequest): Phase1TestData = {
-      Phase1TestData(
-        start = testDataRequest.start.map(DateTime.parse),
-        expiry = testDataRequest.expiry.map(DateTime.parse),
-        completion = testDataRequest.completion.map(DateTime.parse),
-        scores = testDataRequest.scores.map(_.toDouble),
-        passmarkEvaluation = testDataRequest.passmarkEvaluation
-      )
+    def apply(candidateRequest: CreateCandidateRequest, schemeTypes: List[SchemeId]): Option[Phase1TestData] = {
+      val testDataRequest = candidateRequest.phase1TestData
+
+      val progressStatusMaybe = candidateRequest.statusData.progressStatus.map(ProgressStatuses.nameToProgressStatus)
+      progressStatusMaybe.flatMap { progressStatus =>
+        if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
+          ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).getOrElse(false)) {
+
+          val scores = testDataRequest.map(_.scores.map(_.toDouble)).getOrElse(
+            if (candidateRequest.assistanceDetails.flatMap(_.setGis).getOrElse(false)) {
+              List(20.0, 21.00)
+            } else {
+              List(20.00, 21.00, 22.00, 23.00)
+            }
+          )
+
+          val passmarkEvaluation = testDataRequest.flatMap(_.passmarkEvaluation).getOrElse(
+            PassmarkEvaluation("2", Some("1"), schemeTypes.map{schemeId => SchemeEvaluationResult(schemeId.value, "GREEN")},
+              "2", Some("1")
+            ))
+          Some(Phase1TestData(
+            start = testDataRequest.map(_.start.map(DateTime.parse)).get,
+            expiry = testDataRequest.map(_.expiry.map(DateTime.parse)).get,
+            completion = testDataRequest.map(_.completion.map(DateTime.parse)).get,
+            scores = scores,
+            passmarkEvaluation = Some(passmarkEvaluation)
+          ))
+        } else {
+          None
+        }
+      }
     }
   }
 
@@ -258,11 +281,22 @@ object CreateCandidateData {
       val internshipTypes = if (hasFastPass) {
         o.internshipTypes.map(internshipTypes =>
           internshipTypes.map(internshipType => InternshipType.withName(internshipType)))
-            .getOrElse(List(InternshipType.SDIPCurrentYear))
+          .getOrElse(List(InternshipType.SDIPCurrentYear))
       } else {
         Nil
       }
       val fastPassCertificateNumber = if (hasFastPass) Some(Random.number().toString) else None
+
+      val progressStatusMaybe = o.statusData.progressStatus.map(ProgressStatuses.nameToProgressStatus)
+        .orElse(Some(translateApplicationStatusToProgressStatus(o.statusData.applicationStatus)))
+
+      val schemeTypes = progressStatusMaybe.map(progressStatus => {
+        if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus, ProgressStatuses.SCHEME_PREFERENCES).getOrElse(false)) {
+          o.schemeTypes.getOrElse(List(SchemeId("Commercial"), SchemeId("Finance")))
+        } else {
+          Nil
+        }
+      }).getOrElse(Nil)
 
       CreateCandidateData(
         statusData = statusData,
@@ -270,19 +304,31 @@ object CreateCandidateData {
         diversityDetails = o.diversityDetails.map(DiversityDetails(_)).getOrElse(DiversityDetails()),
         assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
         psiUrl = psiUrlFromConfig,
-        schemeTypes = o.schemeTypes,
+        schemeTypes = Some(schemeTypes),
         isCivilServant = isCivilServant,
         hasFastPass = hasFastPass,
         internshipTypes = internshipTypes,
         fastPassCertificateNumber = fastPassCertificateNumber,
         hasDegree = o.hasDegree.getOrElse(Random.bool),
         region = o.region,
-        phase1TestData = o.phase1TestData.map(Phase1TestData.apply),
+        phase1TestData = Phase1TestData(o, schemeTypes),
         phase2TestData = o.phase2TestData.map(Phase2TestData.apply),
         phase3TestData = o.phase3TestData.map(Phase3TestData.apply),
         fsbTestGroupData = o.fsbTestGroupData,
         adjustmentInformation = o.adjustmentInformation
       )
+    }
+
+    private def translateApplicationStatusToProgressStatus(applicationStatus: String) = {
+      applicationStatus match {
+        case "REGISTERED" => ProgressStatuses.CREATED
+        case "IN_PROGRESS_PERSONAL_DETAILS" => ProgressStatuses.PERSONAL_DETAILS
+        case "IN_PROGRESS_SCHEME_PREFERENCES" => ProgressStatuses.SCHEME_PREFERENCES
+        case "IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES" => ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES
+        case "IN_PROGRESS_ASSISTANCE_DETAILS" => ProgressStatuses.ASSISTANCE_DETAILS
+        case "IN_PROGRESS_PREVIEW" => ProgressStatuses.PREVIEW
+        case _ => ProgressStatuses.nameToProgressStatus(applicationStatus)
+      }
     }
   }
 
