@@ -153,13 +153,12 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
         .map { t => if (t.orderId == orderIdToReset) { t.copy(usedForResults = false) } else t }
       _ = Logger.info(s"testsWithInactiveTest -- $testsWithInactiveTest")
 
+      // insert new test and maintain test order
       idxOfResetTest = testGroup.tests.indexWhere(_.orderId == orderIdToReset)
       updatedTests = insertTest(testsWithInactiveTest, idxOfResetTest, newPsiTest)
       _ = Logger.info(s"updatedTests -- $updatedTests")
 
-      // Mark as invited
       _ <- markAsInvited2(application)(Phase1TestProfile2(expirationDate, updatedTests))
-      _ <- testRepository2.markTestAsInactive2(orderIdToReset)
     } yield {
       List(
         AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "orderId" -> orderIdToReset)),
