@@ -17,7 +17,7 @@
 package services.testdata.candidate.onlinetests.phase2
 
 import common.FutureEx
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository

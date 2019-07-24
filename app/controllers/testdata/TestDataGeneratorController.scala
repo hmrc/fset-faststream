@@ -33,7 +33,7 @@ import model.persisted.eventschedules.{EventType, Session, SkillType}
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateCandidateAllocationData
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
 import org.joda.time.{LocalDate, LocalTime}
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}

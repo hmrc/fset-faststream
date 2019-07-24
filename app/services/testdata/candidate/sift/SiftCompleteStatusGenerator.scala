@@ -19,7 +19,7 @@ package services.testdata.candidate.sift
 import model.EvaluationResults
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.SchemeEvaluationResult
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import services.sift.ApplicationSiftService

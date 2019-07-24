@@ -30,7 +30,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import _root_.services.testdata.candidate.onlinetests.Phase2TestsPassedStatusGenerator
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import _root_.services.testdata.candidate.ConstructiveGenerator
 
 import scala.concurrent.ExecutionContext.Implicits.global

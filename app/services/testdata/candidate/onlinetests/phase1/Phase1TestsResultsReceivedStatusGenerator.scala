@@ -19,7 +19,8 @@ package services.testdata.candidate.onlinetests.phase1
 import common.FutureEx
 import model.exchange.PsiRealTimeResults
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.CreateCandidateData.{CreateCandidateData, Phase1TestData}
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.Phase1TestData
 import play.api.mvc.RequestHeader
 import services.onlinetesting.phase1.Phase1TestService2
 import services.testdata.candidate.ConstructiveGenerator

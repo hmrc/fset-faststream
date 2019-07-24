@@ -27,7 +27,7 @@ import model.ApplicationRoute.{ apply => _ }
 import model.command.testdata.CreateCandidateRequest.{ AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest }
 import model.command.{ ProgressResponse, WithdrawApplication }
 import model.persisted._
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames

@@ -22,7 +22,7 @@ import model.command.ApplicationForSift
 import model.exchange.sift.GeneralQuestionsAnswers
 import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, SiftForm, TestGroupResponse }
 import model.exchange.sift.SchemeSpecificAnswer
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.{ SchemeRepository, SchemeYamlRepository }
 import services.sift.{ ApplicationSiftService, SiftAnswersService }

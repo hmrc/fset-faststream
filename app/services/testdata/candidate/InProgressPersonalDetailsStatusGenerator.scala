@@ -18,7 +18,7 @@ package services.testdata.candidate
 
 import model._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.CreateCandidateData.{CreateCandidateData, PersonalData}
+import model.testdata.candidate.CreateCandidateData.{CreateCandidateData, PersonalData}
 import play.api.mvc.RequestHeader
 import services.personaldetails.PersonalDetailsService
 import services.testdata.faker.DataFaker.Random

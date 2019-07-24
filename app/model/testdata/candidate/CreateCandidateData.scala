@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package model.testdata
+package model.testdata.candidate
 
 import connectors.AuthProviderClient.UserRole
 import model.ApplicationStatus.ApplicationStatus
@@ -22,10 +22,10 @@ import model.InternshipType.InternshipType
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.testdata.CreateCandidateRequest._
-import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.testdata.CreateAdminData.AssessorData
+import model.testdata.CreateTestData
+import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import services.testdata.faker.DataFaker.Random
 
 object CreateCandidateData {
@@ -81,113 +81,6 @@ object CreateCandidateData {
         parentalEmployedOrSelfEmployed = o.parentalEmployedOrSelfEmployed.getOrElse(default.parentalEmployedOrSelfEmployed),
         parentalEmployment = o.parentalEmployment,
         parentalCompanySize = o.parentalCompanySize
-      )
-    }
-  }
-
-  trait TestDates {
-    def start: Option[DateTime]
-
-    def expiry: Option[DateTime]
-
-    def completion: Option[DateTime]
-
-    def randomDateBeforeNow: DateTime = {
-      DateTime.now(DateTimeZone.UTC).minusHours(scala.util.Random.nextInt(120))
-    }
-
-    def randomDateAroundNow: DateTime = {
-      DateTime.now(DateTimeZone.UTC).plusHours(scala.util.Random.nextInt(240)).minusHours(scala.util.Random.nextInt(240))
-    }
-  }
-
-  trait TestResult {
-    def scores: List[Double]
-  }
-
-  case class Phase1TestData(
-    start: Option[DateTime] = None,
-    expiry: Option[DateTime] = None,
-    completion: Option[DateTime] = None,
-    scores: List[Double] = Nil,
-    passmarkEvaluation: Option[PassmarkEvaluation] = None
-  ) extends TestDates
-
-  object Phase1TestData {
-    def apply(candidateRequest: CreateCandidateRequest, schemeTypes: List[SchemeId]): Option[Phase1TestData] = {
-      val testDataRequest = candidateRequest.phase1TestData
-
-      val progressStatusMaybe = candidateRequest.statusData.progressStatus.map(ProgressStatuses.nameToProgressStatus)
-      progressStatusMaybe.flatMap { progressStatus =>
-        if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
-          ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).getOrElse(false)) {
-
-          val scores = testDataRequest.map(_.scores.map(_.toDouble)).getOrElse(
-            if (candidateRequest.assistanceDetails.flatMap(_.setGis).getOrElse(false)) {
-              List(20.0, 21.00)
-            } else {
-              List(20.00, 21.00, 22.00, 23.00)
-            }
-          )
-
-          val passmarkEvaluation = testDataRequest.flatMap(_.passmarkEvaluation).getOrElse(
-            PassmarkEvaluation("2", Some("1"), schemeTypes.map{schemeId => SchemeEvaluationResult(schemeId.value, "GREEN")},
-              "2", Some("1")
-            ))
-          Some(Phase1TestData(
-            start = testDataRequest.map(_.start.map(DateTime.parse)).get,
-            expiry = testDataRequest.map(_.expiry.map(DateTime.parse)).get,
-            completion = testDataRequest.map(_.completion.map(DateTime.parse)).get,
-            scores = scores,
-            passmarkEvaluation = Some(passmarkEvaluation)
-          ))
-        } else {
-          None
-        }
-      }
-    }
-  }
-
-  case class Phase2TestData(
-    start: Option[DateTime] = None,
-    expiry: Option[DateTime] = None,
-    completion: Option[DateTime] = None,
-    scores: List[Double] = Nil,
-    passmarkEvaluation: Option[PassmarkEvaluation] = None
-  ) extends TestDates with TestResult
-
-  object Phase2TestData {
-    def apply(o: Phase2TestDataRequest): Phase2TestData = {
-      Phase2TestData(
-        start = o.start.map(DateTime.parse),
-        expiry = o.expiry.map(DateTime.parse),
-        completion = o.completion.map(DateTime.parse),
-        scores = o.scores.map(_.toDouble),
-        passmarkEvaluation = o.passmarkEvaluation
-      )
-    }
-  }
-
-  case class Phase3TestData(
-    start: Option[DateTime] = None,
-    expiry: Option[DateTime] = None,
-    completion: Option[DateTime] = None,
-    score: Option[Double] = None,
-    generateNullScoresForFewQuestions: Option[Boolean] = None,
-    receivedBeforeInHours: Option[Int] = None,
-    passmarkEvaluation: Option[PassmarkEvaluation] = None
-  )
-
-  object Phase3TestData {
-    def apply(o: Phase3TestDataRequest): Phase3TestData = {
-      Phase3TestData(
-        start = o.start.map(DateTime.parse),
-        expiry = o.expiry.map(DateTime.parse),
-        completion = o.completion.map(DateTime.parse),
-        score = o.score,
-        generateNullScoresForFewQuestions = o.generateNullScoresForFewQuestions,
-        receivedBeforeInHours = o.receivedBeforeInHours,
-        passmarkEvaluation = o.passmarkEvaluation
       )
     }
   }
@@ -311,9 +204,9 @@ object CreateCandidateData {
         fastPassCertificateNumber = fastPassCertificateNumber,
         hasDegree = o.hasDegree.getOrElse(Random.bool),
         region = o.region,
-        phase1TestData = Phase1TestData(o, schemeTypes),
-        phase2TestData = o.phase2TestData.map(Phase2TestData.apply),
-        phase3TestData = o.phase3TestData.map(Phase3TestData.apply),
+        phase1TestData = Phase1TestData.build(o, schemeTypes),
+        phase2TestData = Phase2TestData(o, schemeTypes),
+        phase3TestData = Phase3TestData(o, schemeTypes),
         fsbTestGroupData = o.fsbTestGroupData,
         adjustmentInformation = o.adjustmentInformation
       )

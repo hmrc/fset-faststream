@@ -16,10 +16,11 @@
 
 package model.command.testdata
 
-import model.{ Adjustments, SchemeId }
+import model.{Adjustments, SchemeId}
 import model.ApplicationRoute.ApplicationRoute
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.libs.json.{ Json, OFormat }
+import model.command.testdata.CreateCandidateRequest.PhaseXTestDataRequest
+import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
+import play.api.libs.json.{Json, OFormat}
 
 object CreateCandidateRequest {
 
@@ -62,13 +63,20 @@ object CreateCandidateRequest {
     def scores: List[String]
   }
 
+  abstract class PhaseXTestDataRequest(
+    start: Option[String] = None,
+    expiry: Option[String] = None,
+    completion: Option[String] = None,
+    val scores: List[String] = Nil,
+    val passmarkEvaluation: Option[PassmarkEvaluation] = None) extends TestDatesRequest
+
   case class Phase1TestDataRequest(
                                     start: Option[String] = None,
                                     expiry: Option[String] = None,
                                     completion: Option[String] = None,
-                                    scores: List[String] = Nil,
-                                    passmarkEvaluation: Option[PassmarkEvaluation] = None
-                                  ) extends TestDatesRequest
+    override val scores: List[String] = Nil,
+    override val                            passmarkEvaluation: Option[PassmarkEvaluation] = None
+                                  ) extends PhaseXTestDataRequest(start, expiry, completion, scores, passmarkEvaluation)
 
   object Phase1TestDataRequest {
     implicit val phase1TestDataFormat: OFormat[Phase1TestDataRequest] = Json.format[Phase1TestDataRequest]
@@ -78,9 +86,9 @@ object CreateCandidateRequest {
                                     start: Option[String] = None,
                                     expiry: Option[String] = None,
                                     completion: Option[String] = None,
-                                    scores: List[String] = Nil,
-                                    passmarkEvaluation: Option[PassmarkEvaluation] = None
-                                  ) extends TestDatesRequest with TestResultRequest
+    override val scores: List[String] = Nil,
+    override val passmarkEvaluation: Option[PassmarkEvaluation] = None
+                                  ) extends PhaseXTestDataRequest(start, expiry, completion, scores, passmarkEvaluation) with TestResultRequest
 
   object Phase2TestDataRequest {
     implicit val phase2TestDataFormat: OFormat[Phase2TestDataRequest] = Json.format[Phase2TestDataRequest]

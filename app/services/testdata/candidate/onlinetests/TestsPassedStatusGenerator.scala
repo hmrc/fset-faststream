@@ -21,7 +21,7 @@ import factories.UUIDFactory
 import model.EvaluationResults
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED, PHASE2_TESTS_PASSED, PHASE3_TESTS_PASSED, ProgressStatus }
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationMongoRepository

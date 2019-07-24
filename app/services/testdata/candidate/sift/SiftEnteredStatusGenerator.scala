@@ -20,7 +20,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.command.ApplicationForSift
 import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, SiftForm}
 import model.persisted.SchemeEvaluationResult
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.{ApplicationRoute, ApplicationStatus, EvaluationResults}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository

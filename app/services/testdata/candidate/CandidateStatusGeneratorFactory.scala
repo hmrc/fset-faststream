@@ -23,7 +23,7 @@ import model.ProgressStatuses.{ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMEN
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED}
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED}
 import model.testdata.CreateAdminData.CreateAdminData
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import services.testdata.admin._
 import services.testdata.candidate.assessmentcentre._
 import services.testdata.candidate.fsb._

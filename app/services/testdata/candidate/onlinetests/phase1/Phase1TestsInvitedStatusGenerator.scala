@@ -20,7 +20,7 @@ import config.MicroserviceAppConfig.{onlineTestsGatewayConfig, testIntegrationGa
 import config.{OnlineTestsGatewayConfig, TestIntegrationGatewayConfig}
 import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
 import model.persisted.{Phase1TestProfile2, PsiTest}
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
