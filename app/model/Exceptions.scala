@@ -105,7 +105,11 @@ object Exceptions {
 
   case class CannotFindTestByCubiksId(message: String) extends NotFoundException(message)
 
+  case class CannotFindTestGroupByApplicationId(message: String) extends NotFoundException(message)
+
   case class CannotFindTestByOrderId(message: String) extends NotFoundException(message)
+
+  case class CannotFindTestByInventoryId(message: String) extends NotFoundException(message)
 
   case class CannotFindApplicationByCubiksId(message: String) extends NotFoundException(message)
 

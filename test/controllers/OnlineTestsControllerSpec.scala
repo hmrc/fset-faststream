@@ -19,7 +19,7 @@ package controllers
 import model.ApplicationStatus
 import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.{ InvigilatedTestUrl, ResetOnlineTest, VerifyAccessCode }
+import model.command.{ InvigilatedTestUrl, ResetOnlineTest, ResetOnlineTest2, VerifyAccessCode }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.{ JsValue, Json }
@@ -71,17 +71,17 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     "return OK when candidate is reset" in {
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
 
-      when(mockPhase1TestService.resetTests(any[OnlineTestApplication], any[List[String]], any[String])
+      when(mockPhase1TestService2.resetTest(any[OnlineTestApplication], any[String], any[String])
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
-      val response = controller.resetPhase1OnlineTests(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      val response = controller.resetPhase1OnlineTests(AppId)(fakeRequest(ResetOnlineTest2("appId", "orderId", "")))
       status(response) mustBe OK
     }
 
     "return NOT_FOUND when candidate is not found" in {
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(None))
 
-      val response = controller.resetPhase1OnlineTests(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      val response = controller.resetPhase1OnlineTests(AppId)(fakeRequest(ResetOnlineTest2("appId", "orderId", "")))
       status(response) mustBe NOT_FOUND
     }
   }

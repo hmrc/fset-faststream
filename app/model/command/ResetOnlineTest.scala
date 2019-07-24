@@ -16,10 +16,17 @@
 
 package model.command
 
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 case class ResetOnlineTest(tests: List[String], actionTriggeredBy: String)
 
 object ResetOnlineTest {
   implicit val resetOnlineTestFormat = Json.format[ResetOnlineTest]
 }
+
+case class ResetOnlineTest2(applicationId: String, orderId: String, actionTriggeredBy: String)
+
+object ResetOnlineTest2 {
+  implicit val resetOnlineTest2Format: OFormat[ResetOnlineTest2] = Json.format[ResetOnlineTest2]
+}
+
