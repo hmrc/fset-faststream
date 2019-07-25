@@ -25,6 +25,7 @@ import model.ProgressStatuses._
 import model.persisted._
 import model.{ ApplicationStatus, ReminderNotice }
 import org.joda.time.DateTime
+
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, _ }

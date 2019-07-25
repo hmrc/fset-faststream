@@ -252,7 +252,6 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     }
   }
 
-
   private def registerAndInviteForTestGroup2(application: OnlineTestApplication,
                                              testIds: PsiTestIds,
                                              expiresDate: Option[DateTime] = None)
@@ -556,11 +555,10 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
         applicationId,
         testProfile.testGroup.tests.find(_.orderId == orderId).getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
         model.persisted.PsiTestResult.fromCommandObject(results)
-      ).map( _ => ())
+      )
 
     def maybeUpdateProgressStatus(appId: String) = {
       testRepository2.getTestGroup(appId).flatMap { testProfileOpt =>
-
         val latestProfile = testProfileOpt.getOrElse(throw new Exception(s"No test profile returned for $appId"))
         if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
           testRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_ =>
