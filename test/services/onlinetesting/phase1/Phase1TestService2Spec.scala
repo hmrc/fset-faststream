@@ -24,12 +24,12 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
 import model.Exceptions.{ CannotFindTestByOrderId, ConnectorException }
 import model.OnlineTestCommands._
+import model.Phase1TestExamples._
 import model.ProgressStatuses.{ toString => _, _ }
 import model.exchange.PsiRealTimeResults
 import model.persisted._
 import model.stc.StcEventTypes.{ toString => _ }
 import model.{ ProgressStatuses, _ }
-import model.Phase1TestExamples._
 import org.joda.time.{ DateTime, LocalDate }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -40,9 +40,9 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.{ Phase1TestRepository, Phase1TestRepository2 }
 import services.AuditService
 import services.sift.ApplicationSiftService
-import services.stc.{ StcEventService, StcEventServiceFixture }
-import testkit.{ ExtendedTimeout, UnitSpec }
+import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
+import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -246,8 +246,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(otRepositoryMock2.insertPsiTests(any[String], any[Phase1TestProfile2])).thenReturnAsync()
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
 
-      when(cdRepositoryMock.find(userId))
-        .thenReturn(Future.successful(contactDetails))
+      when(cdRepositoryMock.find(userId)).thenReturnAsync(contactDetails)
 
       when(emailClientMock.sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
@@ -328,7 +327,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     "handle not finding an application for the given order id" in new OnlineTest {
       when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(None)
 
-      val result = phase1TestService.storeRealTimeResults(orderId, results)
+      val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
       exception mustBe an[CannotFindTestByOrderId]
@@ -342,7 +341,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
         CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
       ))
 
-      val result = phase1TestService.storeRealTimeResults(orderId, results)
+      val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
       exception mustBe an[CannotFindTestByOrderId]
@@ -361,7 +360,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(otRepositoryMock2.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(None)
 
-      val result = phase1TestService.storeRealTimeResults(orderId, results)
+      val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
       exception mustBe an[Exception]
@@ -386,7 +385,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
       when(otRepositoryMock2.updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturnAsync()
 
-      phase1TestService.storeRealTimeResults(orderId, results).futureValue
+      phase1TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
 
       verify(otRepositoryMock2, never()).updateTestCompletionTime2(any[String], any[DateTime])
       verify(otRepositoryMock2, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))
@@ -416,10 +415,10 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(otRepositoryMock2.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_COMPLETED))).thenReturnAsync()
 
       val phase1TestProfile2 = Phase1TestProfile2(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
-      when(otRepositoryMock2.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile2)))
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
       when(otRepositoryMock2.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))).thenReturnAsync()
 
-      phase1TestService.storeRealTimeResults(orderId, results).futureValue
+      phase1TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
 
       verify(otRepositoryMock2, times(1)).updateTestCompletionTime2(any[String], any[DateTime])
       verify(otRepositoryMock2, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_COMPLETED))
@@ -447,13 +446,12 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,status =
         AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
 
-
     when(tokenFactoryMock.generateUUID()).thenReturn(uuid)
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
     when(otRepositoryMock2.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
-      .thenReturn(Future.successful(()))
+      .thenReturnAsync()
 
-    val results = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
+    val realTimeResults = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
 
     val phase1TestService = new Phase1TestService2 with StcEventServiceFixture {
       override val delaySecsBetweenRegistrations = 0
@@ -477,15 +475,15 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
   trait SuccessfulTestInviteFixture extends OnlineTest {
 
     when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
-      .thenReturn(Future.successful(aoa))
-    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      .thenReturnAsync(aoa)
+    when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
     when(emailClientMock.sendOnlineTestInvitation(
       eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
       any[HeaderCarrier]
-    )).thenReturn(Future.successful(()))
+    )).thenReturnAsync()
     when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2]))
-      .thenReturn(Future.successful(()))
+      .thenReturnAsync()
     when(otRepositoryMock2.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
-      .thenReturn(Future.successful(()))
+      .thenReturnAsync()
   }
 }
