@@ -21,12 +21,13 @@ import connectors.ExchangeObjects.{ AssessmentOrderAcknowledgement, Invitation, 
 import connectors.{ EmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.Green
-import model.Exceptions.UnexpectedException
+import model.Exceptions.{ CannotFindApplicationByOrderId, CannotFindTestByOrderId, UnexpectedException }
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ProgressResponseExamples
-import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup2 }
-import model.persisted.{ ContactDetails, PsiTest, SchemeEvaluationResult }
+import model.exchange.PsiRealTimeResults
+import model.persisted.sift.{ MaybeSiftTestGroupWithAppId2, NotificationExpiringSift, SiftTestGroup2 }
+import model.persisted.{ ContactDetails, PsiTest, PsiTestResult, SchemeEvaluationResult }
 import org.joda.time.{ DateTime, LocalDate }
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
@@ -35,7 +36,7 @@ import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
-import services.stc.StcEventServiceFixture
+import services.stc.{ StcEventService, StcEventServiceFixture }
 import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -51,14 +52,15 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
     val mockEmailClient: EmailClient = mock[EmailClient]
 
-    val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
+    val mockOnlineTestsGatewayConfig: OnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
     when(mockOnlineTestsGatewayConfig.candidateAppUrl).thenReturn("localhost")
 
-    val inventoryIds = Map[String, String]("test1" -> "test1-uuid")
+    val now: DateTime = DateTime.now
+    val inventoryIds: Map[String, String] = Map[String, String]("test1" -> "test1-uuid")
     def testIds(idx: Int): PsiTestIds =
       PsiTestIds(s"inventory-id-$idx", Option(s"assessment-id-$idx"), Option(s"report-id-$idx"), Option(s"norm-id-$idx"))
 
-    val tests = Map[String, PsiTestIds](
+    val tests: Map[String, PsiTestIds] = Map[String, PsiTestIds](
       "test1" -> testIds(1),
       "test2" -> testIds(2),
       "test3" -> testIds(3),
@@ -86,7 +88,7 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     val mockOnlineTestsGatewayClient: OnlineTestsGatewayClient = mock[OnlineTestsGatewayClient]
     val mockDateTimeFactory: DateTimeFactory = mock[DateTimeFactory]
 
-    val mockSchemeRepo = new SchemeRepository {
+    val mockSchemeRepo: SchemeRepository = new SchemeRepository {
       override lazy val schemes: Seq[Scheme] = Seq(
         Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
           siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
@@ -97,7 +99,11 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
       )
     }
 
-    val service = new NumericalTestService2 {
+    def uuid: String = UUIDFactory.generateUUID()
+    val orderId: String = uuid
+    val realTimeResults = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
+
+    val service: NumericalTestService2 = new NumericalTestService2 {
       override def applicationRepo: GeneralApplicationRepository = mockAppRepo
       override def applicationSiftRepo: ApplicationSiftRepository = mockSiftRepo
       val tokenFactory: UUIDFactory = UUIDFactory
@@ -105,16 +111,16 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
       val onlineTestsGatewayClient: OnlineTestsGatewayClient = mockOnlineTestsGatewayClient
       val dateTimeFactory: DateTimeFactory = mockDateTimeFactory
       override def schemeRepository: SchemeRepository = mockSchemeRepo
-      val eventService = eventServiceMock
-      override def emailClient = mockEmailClient
-      override def contactDetailsRepo = mockContactDetailsRepo
+      val eventService: StcEventService = eventServiceMock
+      override def emailClient: EmailClient = mockEmailClient
+      override def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
 
       override val integrationGatewayConfig: TestIntegrationGatewayConfig = integrationConfig
     }
 
     val appId = "appId"
-    implicit val hc = HeaderCarrier()
-    implicit val rh = mock[RequestHeader]
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val rh: RequestHeader = mock[RequestHeader]
     val invite = Invitation(userId = 1, "test@test.com", accessCode = "123", logonUrl = "", authenticateUrl = "",
       participantScheduleId = 1)
 
@@ -134,7 +140,7 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
       status = AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
 
     when(service.onlineTestsGatewayClient.psiRegisterApplicant(any[RegisterCandidateRequest]))
-      .thenReturn(Future.successful(aoa))
+      .thenReturnAsync(aoa)
   }
 
   "NumericalTestService.registerAndInviteForTests" must {
@@ -180,7 +186,6 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     }
 
     "successfully process a candidate" in new TestFixture {
-
       when(mockSiftRepo.getTestGroup2(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
       when(mockSiftRepo.insertNumericalTests2(any[String], any[List[PsiTest]])).thenReturnAsync()
 
@@ -247,6 +252,128 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
 
       val result = service.nextApplicationWithResultsReceived.futureValue
       result mustBe None
+    }
+  }
+
+  "store real time results" should {
+    "handle not finding an application for the given order id" in new TestFixture {
+      when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturn(Future.failed(CannotFindApplicationByOrderId("Boom")))
+
+      val result = service.storeRealTimeResults(orderId, realTimeResults)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[CannotFindApplicationByOrderId]
+    }
+
+    "handle not finding a test profile for the given order id" in new TestFixture {
+      when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturnAsync(appId)
+
+      when(mockSiftRepo.getTestGroupByOrderId(any[String])).thenReturn(Future.failed(
+        CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
+      ))
+
+      val result = service.storeRealTimeResults(orderId, realTimeResults)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[CannotFindTestByOrderId]
+      exception.getMessage mustBe s"Cannot find test group by orderId=$orderId"
+    }
+
+    "handle not finding the test group when checking to update the progress status" in new TestFixture {
+      when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturnAsync(appId)
+
+      val numericTestCompleted = PsiTest(inventoryId = uuid, orderId = orderId, usedForResults = true,
+        testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"), completedDateTime = Some(DateTime.now))
+
+      val maybeSiftTestGroupWithAppId2 = MaybeSiftTestGroupWithAppId2(
+        applicationId = appId,
+        expirationDate = DateTime.now,
+        tests = Some(List(numericTestCompleted)))
+
+      when(mockSiftRepo.getTestGroupByOrderId(any[String])).thenReturnAsync(maybeSiftTestGroupWithAppId2)
+      when(mockSiftRepo.insertPsiTestResult(any[String], any[PsiTest], any[PsiTestResult])).thenReturnAsync()
+      when(mockSiftRepo.getTestGroup2(any[String])).thenReturnAsync(None)
+
+      val result = service.storeRealTimeResults(orderId, realTimeResults)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[Exception]
+      exception.getMessage mustBe s"No sift test group returned for $appId"
+
+      verify(mockSiftRepo, never()).updateTestCompletionTime(any[String], any[DateTime])
+      verify(mockAppRepo, never()).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])
+    }
+
+    "process the real time results and update the progress status" in new TestFixture {
+      when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturnAsync(appId)
+
+      val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, usedForResults = true,
+        testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"), completedDateTime = Some(now),
+        testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
+      )
+
+      val maybeSiftTestGroupWithAppId2 = MaybeSiftTestGroupWithAppId2(
+        applicationId = appId,
+        expirationDate = now,
+        tests = Some(List(numericTestCompletedWithScores)))
+
+      when(mockSiftRepo.getTestGroupByOrderId(any[String])).thenReturnAsync(maybeSiftTestGroupWithAppId2)
+      when(mockSiftRepo.insertPsiTestResult(any[String], any[PsiTest], any[PsiTestResult])).thenReturnAsync()
+
+      val siftTestGroup2 = SiftTestGroup2(expirationDate = now, tests = Some(List(numericTestCompletedWithScores)))
+      when(mockSiftRepo.getTestGroup2(any[String])).thenReturnAsync(Some(siftTestGroup2))
+      when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturnAsync()
+
+      service.storeRealTimeResults(orderId, realTimeResults).futureValue
+
+      verify(mockSiftRepo, never()).updateTestCompletionTime(any[String], any[DateTime])
+      verify(mockAppRepo, times(1)).addProgressStatusAndUpdateAppStatus(any[String],
+        eqTo(ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED))
+    }
+
+    "process the real time results, mark the test as completed and update the progress status" in new TestFixture {
+      when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturnAsync(appId)
+
+      val numericTestNotCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, usedForResults = true,
+        testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"),
+        testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
+      )
+
+      val maybeSiftTestGroupWithAppId2TestNotCompleted = MaybeSiftTestGroupWithAppId2(
+        applicationId = appId,
+        expirationDate = now,
+        tests = Some(List(numericTestNotCompletedWithScores)))
+
+      val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, usedForResults = true,
+        testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"), completedDateTime = Some(now),
+        testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
+      )
+
+      val maybeSiftTestGroupWithAppId2TestCompleted = MaybeSiftTestGroupWithAppId2(
+        applicationId = appId,
+        expirationDate = now,
+        tests = Some(List(numericTestCompletedWithScores)))
+
+      //First call return tests that are not completed second call return tests that are are completed
+      when(mockSiftRepo.getTestGroupByOrderId(any[String]))
+        .thenReturnAsync(maybeSiftTestGroupWithAppId2TestNotCompleted)
+        .thenReturnAsync(maybeSiftTestGroupWithAppId2TestCompleted)
+
+      when(mockSiftRepo.updateTestCompletionTime(any[String], any[DateTime])).thenReturnAsync()
+      when(mockSiftRepo.insertPsiTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+
+      when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], eqTo(ProgressStatuses.SIFT_TEST_COMPLETED))).thenReturnAsync()
+
+      val siftTestGroup2 = SiftTestGroup2(expirationDate = now, tests = Some(List(numericTestCompletedWithScores)))
+
+      when(mockSiftRepo.getTestGroup2(any[String])).thenReturnAsync(Some(siftTestGroup2))
+      when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], eqTo(ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED))).thenReturnAsync()
+
+      service.storeRealTimeResults(orderId, realTimeResults).futureValue
+
+      verify(mockSiftRepo, times(1)).updateTestCompletionTime(any[String], any[DateTime])
+      verify(mockAppRepo, times(1)).addProgressStatusAndUpdateAppStatus(any[String], eqTo(ProgressStatuses.SIFT_TEST_COMPLETED))
+      verify(mockAppRepo, times(1)).addProgressStatusAndUpdateAppStatus(any[String], eqTo(ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED))
     }
   }
 }
