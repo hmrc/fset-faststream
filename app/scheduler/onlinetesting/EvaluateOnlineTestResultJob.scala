@@ -29,7 +29,7 @@ import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
 import services.onlinetesting.phase1.{ EvaluatePhase1ResultService, EvaluatePhase1ResultService2 }
 import services.onlinetesting.phase2.{ EvaluatePhase2ResultService, EvaluatePhase2ResultService2 }
-import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.onlinetesting.phase3.{ EvaluatePhase3ResultService, EvaluatePhase3ResultService2 }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
@@ -50,11 +50,10 @@ object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob[Phase2PassMar
 
 object EvaluatePhase3ResultJob extends EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
   val evaluateService = EvaluatePhase3ResultService
-  val evaluateService2 = ??? //TODO: fix this
+  val evaluateService2 = EvaluatePhase3ResultService2
   val phase = Phase.PHASE3
-  //TODO: this needs to be fixed
-//  override val errorLog = (app: ApplicationReadyForEvaluation) =>
-//    s"${app.applicationId}, Launchpad test Id: ${app.activeLaunchpadTest.map(_.token)}"
+  override val errorLog = (app: ApplicationReadyForEvaluation2) =>
+    s"${app.applicationId}, Launchpad test Id: ${app.activeLaunchpadTest.map(_.token)}"
   val config = EvaluatePhase3ResultJobConfig
 }
 

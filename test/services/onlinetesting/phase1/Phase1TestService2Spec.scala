@@ -24,6 +24,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
 import model.Exceptions.{ CannotFindTestByOrderId, ConnectorException }
 import model.OnlineTestCommands._
+import model.Phase1TestExamples._
 import model.ProgressStatuses.{ toString => _, _ }
 import model.exchange.PsiRealTimeResults
 import model.persisted._
@@ -39,7 +40,8 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.{ Phase1TestRepository, Phase1TestRepository2 }
 import services.AuditService
 import services.sift.ApplicationSiftService
-import services.stc.{ StcEventService, StcEventServiceFixture }
+import services.stc.StcEventServiceFixture
+import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -89,8 +91,9 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
   val preferredNameSanitized = "Preferred Name"
   val lastName = ""
   val userId = "testUserId"
+  val appId = "appId"
 
-  val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
+  val onlineTestApplication = OnlineTestApplication(applicationId = appId,
     applicationStatus = ApplicationStatus.SUBMITTED,
     userId = userId,
     testAccountId = "testAccountId",
@@ -144,7 +147,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
   "get online test" should {
     "return None if the application id does not exist" in new OnlineTest {
-      when(otRepositoryMock2.getTestGroup(any())).thenReturn(Future.successful(None))
+      when(otRepositoryMock2.getTestGroup(any())).thenReturnAsync(None)
       val result = phase1TestService.getTestGroup2("nonexistent-userid").futureValue
       result mustBe None
     }
@@ -153,12 +156,10 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
     "return a valid set of aggregated online test data if the user id is valid" in new OnlineTest {
       when(appRepositoryMock.findCandidateByUserId(any[String]))
-        .thenReturn(Future.successful(Some(candidate)))
+        .thenReturnAsync(Some(candidate))
 
       when(otRepositoryMock2.getTestGroup(any[String]))
-        .thenReturn(Future.successful(
-          Some(Phase1TestProfile2(expirationDate = validExpireDate, tests = List(phase1Test)))
-      ))
+        .thenReturnAsync(Some(Phase1TestProfile2(expirationDate = validExpireDate, tests = List(phase1Test))))
 
       val result = phase1TestService.getTestGroup2("valid-userid").futureValue
 
@@ -169,6 +170,8 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
   "register and invite application" should {
     "Invite to two tests and issue one email for GIS candidates" in new SuccessfulTestInviteFixture {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+
       val result = phase1TestService
         .registerAndInvite(List(onlineTestApplication.copy(guaranteedInterview = true)))
 
@@ -187,7 +190,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     }
 
     "Invite to 4 tests and issue one email for non-GIS candidates" in new SuccessfulTestInviteFixture {
-      when(otRepositoryMock2.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
       val result = phase1TestService
         .registerAndInvite(List(onlineTestApplication.copy(guaranteedInterview = false)))
@@ -207,8 +210,8 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     }
 
     "fail if registration fails" in new OnlineTest {
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).
-        thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
 
       val result = phase1TestService.registerAndInvite(onlineTestApplication :: Nil)
       result.failed.futureValue mustBe a[ConnectorException]
@@ -218,14 +221,10 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited' " +
       "if there is an exception retrieving the contact details" in new OnlineTest  {
-      when(otRepositoryMock2.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2]))
-        .thenReturn(Future.successful(()))
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
-        .thenReturn(Future.successful(aoa))
-
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2])).thenReturnAsync(())
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
       when(cdRepositoryMock.find(anyString())).thenReturn(Future.failed(new Exception))
-
 
       val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
       result.failed.futureValue mustBe an[Exception]
@@ -237,14 +236,13 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited'" +
       " if there is an exception sending the invitation email" in new OnlineTest {
-      when(otRepositoryMock2.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
       when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2]))
-        .thenReturn(Future.successful(()))
+        .thenReturnAsync(())
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
-        .thenReturn(Future.successful(aoa))
+        .thenReturnAsync(aoa)
 
-      when(cdRepositoryMock.find(userId))
-        .thenReturn(Future.successful(contactDetails))
+      when(cdRepositoryMock.find(userId)).thenReturnAsync(contactDetails)
 
       when(emailClientMock.sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
@@ -260,16 +258,15 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     }
 
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
-        .thenReturn(Future.successful(aoa))
-      when(otRepositoryMock2.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+      when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
       when(emailClientMock.sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
         any[HeaderCarrier]
-      )).thenReturn(Future.successful(()))
+      )).thenReturnAsync()
       when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2]))
-        .thenReturn(Future.successful(()))
+        .thenReturnAsync()
 
       val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
       result.futureValue mustBe unit
@@ -288,11 +285,11 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
   "mark as started" should {
     "change progress to started" in new OnlineTest {
-      when(otRepositoryMock2.updateTestStartTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
+      when(otRepositoryMock2.updateTestStartTime(any[String], any[DateTime])).thenReturnAsync()
       when(otRepositoryMock2.getTestGroupByOrderId(anyString()))
-        .thenReturn(Future.successful(Phase1TestGroupWithUserIds2("appId123", userId, phase1TestProfile)))
+        .thenReturnAsync(Phase1TestGroupWithUserIds2("appId123", userId, phase1TestProfile))
       when(otRepositoryMock2.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED))
-        .thenReturn(Future.successful(()))
+        .thenReturnAsync()
 
       phase1TestService.markAsStarted2(orderId).futureValue
 
@@ -302,17 +299,17 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
   "mark as completed" should {
     "change progress to completed if there are all tests completed and the test profile hasn't expired" in new OnlineTest {
-      when(otRepositoryMock2.updateTestCompletionTime2(any[String], any[DateTime])).thenReturn(Future.successful(()))
+      when(otRepositoryMock2.updateTestCompletionTime2(any[String], any[DateTime])).thenReturnAsync()
       val phase1Tests: Phase1TestProfile2 = phase1TestProfile.copy(
         tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
         expirationDate = DateTime.now().plusDays(2)
       )
       when(otRepositoryMock2.getTestProfileByOrderId(anyString()))
-        .thenReturn(Future.successful(phase1Tests))
+        .thenReturnAsync(phase1Tests)
       when(otRepositoryMock2.getTestGroupByOrderId(anyString()))
-        .thenReturn(Future.successful(Phase1TestGroupWithUserIds2("appId123", userId, phase1Tests)))
+        .thenReturnAsync(Phase1TestGroupWithUserIds2("appId123", userId, phase1Tests))
       when(otRepositoryMock2.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED))
-        .thenReturn(Future.successful(()))
+        .thenReturnAsync()
 
       phase1TestService.markAsCompleted2(orderId).futureValue
 
@@ -321,44 +318,104 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
   }
 
   "store real time results" should {
-    "handle not finding an application for the given order id" ignore new OnlineTest {
-      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturn(Future.successful(None))
+    "handle not finding an application for the given order id" in new OnlineTest {
+      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(None)
 
-      val result = phase1TestService.storeRealTimeResults(orderId, results)
+      val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
       exception mustBe an[CannotFindTestByOrderId]
       exception.getMessage mustBe s"Application not found for test for orderId=$orderId"
     }
 
-    "handle not finding a test profile for the given order id" ignore new OnlineTest {
-      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturn(Future.successful(Some("appId")))
+    "handle not finding a test profile for the given order id" in new OnlineTest {
+      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(appId))
 
       when(otRepositoryMock2.getTestProfileByOrderId(any[String])).thenReturn(Future.failed(
         CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
       ))
 
-      val result = phase1TestService.storeRealTimeResults(orderId, results)
+      val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
       exception mustBe an[CannotFindTestByOrderId]
       exception.getMessage mustBe s"Cannot find test group by orderId=$orderId"
     }
 
-    "wip for the given order id" ignore new OnlineTest {
-      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturn(Future.successful(Some("appId")))
+    "handle not finding the test group when checking to update the progress status" in new OnlineTest {
+      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(appId))
 
       val phase1Tests: Phase1TestProfile2 = phase1TestProfile.copy(
         tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
         expirationDate = DateTime.now().plusDays(2)
       )
 
-      when(otRepositoryMock2.getTestProfileByOrderId(any[String])).thenReturn(Future.successful(phase1Tests))
-      when(otRepositoryMock2.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturn(Future.successful(()))
+      when(otRepositoryMock2.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1Tests)
+      when(otRepositoryMock2.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(None)
 
-      val result = phase1TestService.storeRealTimeResults(orderId, results)
+      val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
 
-      verify(otRepositoryMock2, times(0)).updateTestCompletionTime2(any[String], any[DateTime])
+      val exception = result.failed.futureValue
+      exception mustBe an[Exception]
+      exception.getMessage mustBe s"No test profile returned for $appId"
+
+      verify(otRepositoryMock2, never()).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(otRepositoryMock2, never()).updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])
+    }
+
+    "process the real time results and update the progress status" in new OnlineTest {
+      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(appId))
+
+      val phase1Tests: Phase1TestProfile2 = phase1TestProfile.copy(
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().plusDays(2)
+      )
+
+      when(otRepositoryMock2.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1Tests)
+      when(otRepositoryMock2.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+
+      val phase1TestProfile2 = Phase1TestProfile2(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
+      when(otRepositoryMock2.updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturnAsync()
+
+      phase1TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
+
+      verify(otRepositoryMock2, never()).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(otRepositoryMock2, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))
+    }
+
+    "process the real time results, mark the test as completed and update the progress status" in new OnlineTest {
+      when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(appId))
+
+      val phase1TestsNotCompleted: Phase1TestProfile2 = phase1TestProfile.copy(
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId)),
+        expirationDate = DateTime.now().plusDays(2)
+      )
+
+      when(otRepositoryMock2.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1TestsNotCompleted)
+      when(otRepositoryMock2.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+      when(otRepositoryMock2.updateTestCompletionTime2(any[String], any[DateTime])).thenReturnAsync()
+
+      val phase1TestsCompleted: Phase1TestProfile2 = phase1TestProfile.copy(
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().plusDays(2)
+      )
+
+      val phase1TestGroupWithUserIds2 = Phase1TestGroupWithUserIds2(applicationId = "appId", userId = "userId", testGroup = phase1TestsCompleted)
+
+      when(otRepositoryMock2.getTestGroupByOrderId(any[String])).thenReturnAsync(phase1TestGroupWithUserIds2)
+
+      when(otRepositoryMock2.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_COMPLETED))).thenReturnAsync()
+
+      val phase1TestProfile2 = Phase1TestProfile2(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
+      when(otRepositoryMock2.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))).thenReturnAsync()
+
+      phase1TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
+
+      verify(otRepositoryMock2, times(1)).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(otRepositoryMock2, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_COMPLETED))
       verify(otRepositoryMock2, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))
     }
   }
@@ -366,6 +423,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
   trait OnlineTest {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val rh: RequestHeader = mock[RequestHeader]
+    implicit val now: DateTime = DateTime.now
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
@@ -376,20 +434,18 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
-    val eventServiceMock = mock[StcEventService]
     val siftServiceMock = mock[ApplicationSiftService]
 
     def aoa = AssessmentOrderAcknowledgement(
       customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,status =
         AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
 
-
     when(tokenFactoryMock.generateUUID()).thenReturn(uuid)
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
     when(otRepositoryMock2.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
-      .thenReturn(Future.successful(()))
+      .thenReturnAsync()
 
-    val results = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
+    val realTimeResults = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
 
     val phase1TestService = new Phase1TestService2 with StcEventServiceFixture {
       override val delaySecsBetweenRegistrations = 0
@@ -413,15 +469,15 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
   trait SuccessfulTestInviteFixture extends OnlineTest {
 
     when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
-      .thenReturn(Future.successful(aoa))
-    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      .thenReturnAsync(aoa)
+    when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
     when(emailClientMock.sendOnlineTestInvitation(
       eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
       any[HeaderCarrier]
-    )).thenReturn(Future.successful(()))
+    )).thenReturnAsync()
     when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2]))
-      .thenReturn(Future.successful(()))
+      .thenReturnAsync()
     when(otRepositoryMock2.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
-      .thenReturn(Future.successful(()))
+      .thenReturnAsync()
   }
 }

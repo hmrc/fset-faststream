@@ -22,31 +22,30 @@ import config.MicroserviceAppConfig.launchpadGatewayConfig
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import model.Phase
 import model.exchange.passmarksettings.Phase3PassMarkSettings
-import model.persisted.ApplicationReadyForEvaluation
+import model.persisted.ApplicationReadyForEvaluation2
 import play.api.Logger
 import repositories._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
-import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.onlinetesting.{ ApplicationStatusCalculator, CurrentSchemeStatusHelper }
+import scheduler.onlinetesting.EvaluateOnlineTestResultService2
+import services.onlinetesting.{ ApplicationStatusCalculator, CurrentSchemeStatusHelper2 }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
-  val evaluationRepository: OnlineTestEvaluationRepository
-    = repositories.faststreamPhase3EvaluationRepository
+object EvaluatePhase3ResultService2 extends EvaluatePhase3ResultService2 {
+  val evaluationRepository: OnlineTestEvaluationRepository = repositories.faststreamPhase3EvaluationRepository
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
   val generalAppRepository = repositories.applicationRepository
   val launchpadGWConfig = launchpadGatewayConfig
   val phase = Phase.PHASE3
 }
 
-trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
-  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper {
+trait EvaluatePhase3ResultService2 extends EvaluateOnlineTestResultService2[Phase3PassMarkSettings] with Phase3TestEvaluation
+  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper2 {
 
   val launchpadGWConfig: LaunchpadGatewayConfig
 
-  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettings): Future[Unit] = {
+  def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase3PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating Phase3 appId=${application.applicationId}")
 
     val optLaunchpadTest = application.activeLaunchpadTest

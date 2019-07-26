@@ -275,20 +275,20 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
 
   def markAsCompleted22(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
     eventSink {
-    updatePhase1Test2(orderId, testRepository2.updateTestCompletionTime2(_: String, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
-      require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
-      val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
-      if (activeTestsCompleted) {
-        testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
-          DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
-            DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
-            Nil
+      updatePhase1Test2(orderId, testRepository2.updateTestCompletionTime2(_: String, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
+        require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
+        val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
+        if (activeTestsCompleted) {
+          testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
+            DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
+              DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
+              Nil
+          }
+        } else {
+          Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
         }
-      } else {
-        Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
       }
     }
-  }
 
   def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
@@ -308,11 +308,10 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
         applicationId,
         testProfile.tests.find(_.orderId == orderId).getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
         model.persisted.PsiTestResult.fromCommandObject(results)
-      ).map( _ => ())
+      )
 
     def maybeUpdateProgressStatus(appId: String) = {
       testRepository2.getTestGroup(appId).flatMap { testProfileOpt =>
-
         val latestProfile = testProfileOpt.getOrElse(throw new Exception(s"No test profile returned for $appId"))
         if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
           testRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).map(_ =>
@@ -326,7 +325,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
       }
     }
 
-    def markTestAsCompleted(profile: PsiTestProfile): Future[Unit] = {
+    def markTestAsCompleted(profile: PsiTestProfile): Future[Unit] =
       profile.tests.find(_.orderId == orderId).map { test =>
         if (!test.isCompleted) {
           Logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
@@ -337,7 +336,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
           Future.successful(())
         }
       }.getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
-    }
+
 
     (for {
       appIdOpt <- testRepository2.getApplicationIdForOrderId(orderId)
@@ -348,7 +347,6 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
         _ <- markTestAsCompleted(profile)
         _ <- profile.tests.find(_.orderId == orderId).map { test => insertResults(appId, test.orderId, profile, results) }
           .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
-
         _ <- maybeUpdateProgressStatus(appId)
       } yield ()
     }).flatMap(identity)
