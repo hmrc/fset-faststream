@@ -222,7 +222,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited' " +
       "if there is an exception retrieving the contact details" in new OnlineTest  {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
-      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2])).thenReturnAsync(())
+      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2])).thenReturnAsync()
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
       when(cdRepositoryMock.find(anyString())).thenReturn(Future.failed(new Exception))
 
@@ -238,7 +238,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       " if there is an exception sending the invitation email" in new OnlineTest {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
       when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2]))
-        .thenReturnAsync(())
+        .thenReturnAsync()
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
         .thenReturnAsync(aoa)
 
