@@ -137,7 +137,7 @@ trait TestDataGeneratorController extends BaseController {
         start = Some("2340-01-01"),
         expiry = Some("2340-01-29"),
         completion = Some("2340-01-16"),
-        score = Some(12.0),
+        scores = List("12.0"),
         receivedBeforeInHours = Some(72),
         generateNullScoresForFewQuestions = Some(false)
       )),

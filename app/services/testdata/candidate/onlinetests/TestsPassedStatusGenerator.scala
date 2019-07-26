@@ -19,9 +19,10 @@ package services.testdata.candidate.onlinetests
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import factories.UUIDFactory
 import model.EvaluationResults
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED, PHASE2_TESTS_PASSED, PHASE3_TESTS_PASSED, ProgressStatus }
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.ProgressStatuses.{PHASE1_TESTS_PASSED, PHASE2_TESTS_PASSED, PHASE3_TESTS_PASSED, ProgressStatus}
+import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationMongoRepository
@@ -97,9 +98,13 @@ object Phase3TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
           schemeEvaluation, resultVersion, dgr.phase2TestGroup.flatMap(_.schemeResult.map(_.resultVersion)))
       }
 
-  def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse = dgr.copy(
-    phase3TestGroup = dgr.phase3TestGroup.map( p3 => p3.copy(schemeResult = Some(pme)))
-  )
+  def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse = {
+    Logger.error(s"-------Phase3TestsPassedStatusGeFnerator for ${this.getClass.getCanonicalName}." +
+      s"updateGenerationResponse. appId=${dgr.applicationId}")
+    dgr.copy(
+      phase3TestGroup = dgr.phase3TestGroup.map( p3 => p3.copy(schemeResult = Some(pme)))
+    )
+  }
 }
 
 trait TestsPassedStatusGenerator extends ConstructiveGenerator {
@@ -110,11 +115,18 @@ trait TestsPassedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+    Logger.error(s"----------------TestsPassedStatusGenerator for ${this.getClass.getCanonicalName}. enter")
 
     previousStatusGenerator.generate(generationId, generatorConfig).flatMap { candidate =>
       val evaluation = passmarkEvaluation(generatorConfig, candidate)
+      Logger.error(s"----------------TestsPassedStatusGenerator for ${this.getClass.getCanonicalName}")
       evaluationRepository.savePassmarkEvaluation(candidate.applicationId.getOrElse(""), evaluation, Some(passedStatus)).map { _ =>
-        updateGenerationResponse(candidate, evaluation)
+        val x = updateGenerationResponse(candidate, evaluation)
+        Logger.error(s"----------------TestsPassedStatusGenerator for ${this.getClass.getCanonicalName}." +
+          s"updateGenerationResponse inside TestsPassedStatusGenerator. appId=${x.applicationId}")
+        Logger.error(s"----------------TestsPassedStatusGenerator for ${this.getClass.getCanonicalName}. exit")
+
+        x
       }
     }
   }
