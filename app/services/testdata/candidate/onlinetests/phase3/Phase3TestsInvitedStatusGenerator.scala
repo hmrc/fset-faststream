@@ -52,9 +52,6 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
-    Logger.error("--------------Phase3TestsInvitedStatusGenerator. enter generate")
-
-
     val launchpad = LaunchpadTest(
       interviewId = 12345,
       usedForResults = true,
@@ -94,8 +91,6 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
     } yield {
       val phase3TestGroupResponse = TestResponse(testId = launchpad.interviewId, testType = "video", token = launchpad.token,
         testUrl = testGroup.get.tests.find(_.usedForResults).get.testUrl)
-      Logger.error(s"--------------Phase3TestsInvitedStatusGenerator.exit generate. " +
-        s"copying to phase3TestGroup response. appId=${candidateInPreviousStatus.applicationId}")
       candidateInPreviousStatus.copy(
         phase3TestGroup = Some(TestGroupResponse(List(phase3TestGroupResponse), None))
       )

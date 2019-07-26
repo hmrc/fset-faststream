@@ -45,7 +45,6 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
   val siftService: ApplicationSiftService
 
   override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData): (ApplicationStatus, BaseGenerator) = {
-    Logger.error(s"-----------------SiftEnteredStatusGenerator.getPreviousStatusGenerator. enter")
     val previousStatusAndGeneratorPair = generatorConfig.statusData.previousApplicationStatus.map(previousApplicationStatus => {
       val generator = CandidateStatusGeneratorFactory.getGenerator(
         generatorConfig.copy(
@@ -84,10 +83,6 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
-    generatorConfig.schemeTypes
-
-    Logger.error("------------ SiftEnteredStatusGenerator.enter ")
-
     for {
       (previousApplicationStatus, previousStatusGenerator) <- Future.successful(getPreviousStatusGenerator(generatorConfig))
       _ <- Future.successful(Logger.error(s"previousApplicationStatus=${previousApplicationStatus}, " +
@@ -109,10 +104,6 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
           )
         )
       }
-
-      Logger.error(s"------------ SiftEnteredStatusGenerator.exit.appId=${candidateInPreviousStatus.applicationId}")
-
-
       candidateInPreviousStatus.copy(
         siftForms = greenSchemes.map(_.map(result => SiftForm(result.schemeId, "", None)))
       )

@@ -48,14 +48,11 @@ trait TestsPassedNotifiedStatusGenerator extends ConstructiveGenerator {
   override def generate(generationId: Int,
     generatorConfig:
     CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
-    Logger.error(s"------------ TestsPassedNotifiedStatusGenerator for ${this.getClass.getCanonicalName}.enter ")
 
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, notifiedStatus)
     } yield {
-      Logger.error(s"------------ TestsPassedNotifiedStatusGenerator for ${this.getClass.getCanonicalName}.exit ")
-
       candidate
     }
   }

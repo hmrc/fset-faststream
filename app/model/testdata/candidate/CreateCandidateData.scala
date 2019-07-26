@@ -166,11 +166,7 @@ object CreateCandidateData {
       val statusData = StatusData(o.statusData)
 
       val isCivilServant = o.isCivilServant.getOrElse(Random.bool)
-      val hasFastPass = o.hasFastPass.getOrElse(if (isCivilServant) {
-        Random.bool
-      } else {
-        false
-      })
+      val hasFastPass = o.hasFastPass.getOrElse(false)
       val internshipTypes = if (hasFastPass) {
         o.internshipTypes.map(internshipTypes =>
           internshipTypes.map(internshipType => InternshipType.withName(internshipType)))
