@@ -41,7 +41,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 object NumericalTestService2 extends NumericalTestService2 {
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
   val applicationSiftRepo: ApplicationSiftRepository = repositories.applicationSiftRepository
@@ -55,7 +54,6 @@ object NumericalTestService2 extends NumericalTestService2 {
   val emailClient: CSREmailClient = CSREmailClient
   val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
 }
-
 
 // scalastyle:off number.of.methods
 trait NumericalTestService2 extends EventSink {
@@ -449,7 +447,7 @@ trait NumericalTestService2 extends EventSink {
         testProfile.tests.flatMap(tests => tests.find(_.orderId == orderId))
           .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
         model.persisted.PsiTestResult.fromCommandObject(results)
-      ).map(_ => ())
+      )
 
     def maybeUpdateProgressStatus(appId: String) = {
       applicationSiftRepo.getTestGroup2(appId).flatMap { testGroupOpt =>
