@@ -28,6 +28,8 @@ object ProgressStatuses {
     def key = toString
   }
 
+
+
   object ProgressStatus {
     implicit val progressStatusFormat = new Format[ProgressStatus] {
       def reads(json: JsValue) = JsSuccess(nameToProgressStatus(json.as[String]))
@@ -131,6 +133,68 @@ object ProgressStatuses {
   case object SDIP_FAILED_AT_SIFT extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_FASTSTREAM_FAILED_SDIP_GREEN extends ProgressStatus(ApplicationStatus.SIFT)
 
+
+  case object ProgressStatusOrder
+  {
+    val relativeOrder = List(
+      CREATED,
+      PERSONAL_DETAILS, PARTNER_GRADUATE_PROGRAMMES, SCHEME_PREFERENCES, ASSISTANCE_DETAILS, PREVIEW,
+      SUBMITTED, FAST_PASS_ACCEPTED,
+
+      PHASE1_TESTS_INVITED, PHASE1_TESTS_EXPIRED,
+      PHASE1_TESTS_STARTED, PHASE1_TESTS_EXPIRED,
+      PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_READY,
+      PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_PASSED, PHASE1_TESTS_PASSED_NOTIFIED,
+
+      PHASE2_TESTS_INVITED, PHASE2_TESTS_EXPIRED,
+      PHASE2_TESTS_STARTED, PHASE2_TESTS_EXPIRED,
+      PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_PASSED,
+
+      PHASE3_TESTS_INVITED, PHASE3_TESTS_EXPIRED,
+      PHASE3_TESTS_STARTED, PHASE3_TESTS_EXPIRED,
+      PHASE3_TESTS_COMPLETED, PHASE3_TESTS_RESULTS_RECEIVED, PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_NOTIFIED,
+
+      SIFT_ENTERED, SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING, SIFT_TEST_INVITED, SIFT_TEST_STARTED,
+      SIFT_TEST_COMPLETED, SIFT_TEST_RESULTS_RECEIVED, SIFT_READY, SIFT_COMPLETED,
+
+      ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMENT_CENTRE_SCORES_ENTERED, ASSESSMENT_CENTRE_SCORES_ACCEPTED,
+      ASSESSMENT_CENTRE_PASSED,
+
+      FSB_AWAITING_ALLOCATION, FSB_ALLOCATION_CONFIRMED, FSB_RESULT_ENTERED, FSB_PASSED, ELIGIBLE_FOR_JOB_OFFER
+    )
+    def isBefore(progressStatus1: ProgressStatus, progressStatus2: ProgressStatus): Option[Boolean] = {
+      val index1 = relativeOrder. indexOf(progressStatus1)
+      val index2 = relativeOrder.indexOf(progressStatus2)
+      if (index1 == -1 || index2 == -1) {
+        None
+      } else {
+        Some(index1 < index2)
+      }
+    }
+
+    def isAfter(progressStatus1: ProgressStatus, progressStatus2: ProgressStatus): Option[Boolean] = {
+      val index1 = relativeOrder. indexOf(progressStatus1)
+      val index2 = relativeOrder.indexOf(progressStatus2)
+      if (index1 == -1 || index2 == -1) {
+        None
+      } else {
+        Some(index1 > index2)
+      }
+    }
+
+    def isEqualOrAfter(progressStatus1: ProgressStatus, progressStatus2: ProgressStatus): Option[Boolean] = {
+      val index1 = relativeOrder.lastIndexOf(progressStatus1)
+      val index2 = relativeOrder.indexOf(progressStatus2)
+      if (index1 == -1 || index2 == -1) {
+        None
+      } else {
+        Some(index1 >= index2)
+      }
+    }
+  }
+
+
   case object ASSESSMENT_CENTRE_AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
@@ -159,27 +223,36 @@ object ProgressStatuses {
   case object ELIGIBLE_FOR_JOB_OFFER extends ProgressStatus(ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
   case object ELIGIBLE_FOR_JOB_OFFER_NOTIFIED extends ProgressStatus(ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
 
+  case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_PASSED
   }
 
+  case object PHASE1_TESTS_SDIP_FS_FAILED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   def getProgressStatusForSdipFsFailed(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TESTS_SDIP_FS_FAILED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_FAILED
   }
 
+  case object PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   def getProgressStatusForSdipFsFailedNotified(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED
   }
 
+  case object PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   def getProgressStatusForSdipFsPassedNotified(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED
   }
 
-  def nameToProgressStatus(name: String): ProgressStatus = nameToProgressStatusMap(name.toLowerCase)
+  def nameToProgressStatus(name: String): ProgressStatus = {
+    nameToProgressStatusMap(
+      name.toLowerCase match {
+        case "personal_details" => "personal-details"
+        case "assistance_details" => "assistance-details"
+        case "partner_graduate-programmes" => "partner-graduate-programmes"
+        case "scheme_preferences" => "scheme-preferences"
+        case _ => name.toLowerCase
+      })
+  }
 
   // Reflection is generally 'A bad thing' but in this case it ensures that all progress statues are taken into account
   // Had considered an implementation with a macro, but that would need defining in another compilation unit
@@ -202,9 +275,11 @@ object ProgressStatuses {
     }.toSeq
   }
 
-  private[model] val nameToProgressStatusMap: Map[String, ProgressStatus] = allStatuses.map { value =>
-    value.key.toLowerCase -> value
-  }.toMap
+  private[model] val nameToProgressStatusMap: Map[String, ProgressStatus] = {
+    allStatuses.map { value =>
+      value.key.toLowerCase -> value
+    }.toMap
+  }
 
   def tryToGetDefaultProgressStatus(applicationStatus: ApplicationStatus): Option[ProgressStatus] = {
     val matching = allStatuses.filter(_.applicationStatus == applicationStatus)

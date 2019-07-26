@@ -17,21 +17,20 @@
 package services.testdata.candidate.sift
 
 import common.FutureEx
-import model.{ ApplicationStatus, EvaluationResults, SiftRequirement }
-import model.command.ApplicationForSift
-import model.exchange.sift.GeneralQuestionsAnswers
-import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, SiftForm, TestGroupResponse }
-import model.exchange.sift.SchemeSpecificAnswer
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.SiftRequirement
+import model.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer}
+import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse}
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import play.api.Logger
 import play.api.mvc.RequestHeader
-import repositories.{ SchemeRepository, SchemeYamlRepository }
-import services.sift.{ ApplicationSiftService, SiftAnswersService }
+import repositories.{SchemeRepository, SchemeYamlRepository}
+import services.sift.SiftAnswersService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 object SiftFormsSubmittedStatusGenerator extends SiftFormsSubmittedStatusGenerator {
   val previousStatusGenerator = SiftEnteredStatusGenerator
@@ -52,28 +51,54 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
 
   def generateSchemeAnswers = SchemeSpecificAnswer(DataFaker.loremIpsum)
 
-  def saveSchemeAnswers(appId: String, p3: TestGroupResponse): Future[List[Unit]] = {
+  def saveSchemeAnswersFromFastPass(appId: String, createCandidateData: CreateCandidateData): Future[List[Unit]] = {
+    createCandidateData.schemeTypes.map( schemeTypes =>
+      FutureEx.traverseSerial(schemeTypes) { schemeType =>
+        schemeRepo.schemes.find(_.id == schemeType).map { scheme =>
+          if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
+            siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
+          } else {
+            Future()
+          }
+        }.getOrElse(Future())
+      }
+    ).getOrElse(Future.successful(Nil))
+  }
+
+  def saveSchemeAnswersFromPhase3(appId: String, p3: TestGroupResponse): Future[List[Unit]] = {
     p3.schemeResult.map { sr =>
       FutureEx.traverseSerial(sr.result) { result =>
-          schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
-            if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
-              siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
-            } else {
-              Future()
-            }
-          }.getOrElse(Future())
-        }
-      }.getOrElse(Future.successful(Nil))
-    }
+        schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
+          if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
+            siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
+          } else {
+            Future()
+          }
+        }.getOrElse(Future())
+      }
+    }.getOrElse(Future.successful(Nil))
+  }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+    Logger.error("----------SiftFormsSubmittedStatusGenerator.generate")
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+      - <- Future.successful(Logger.error(s"-1----------SiftFormsSubmittedStatusGenerator.candidateInPreviousStatus=$candidateInPreviousStatus"))
+      - <- Future.successful(Logger.error(s"-2----------SiftFormsSubmittedStatusGenerator.candidateInPreviousStatus." +
+        s"phase3TestGroup=${candidateInPreviousStatus.phase3TestGroup}"))
+      - <- Future.successful(Logger.error(s"-2----------SiftFormsSubmittedStatusGenerator.generatorConfig=$generatorConfig"))
       _ <- siftService.addGeneralAnswers(candidateInPreviousStatus.applicationId.get, generateGeneralAnswers)
-      _ <- saveSchemeAnswers(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.phase3TestGroup.get)
+      - <- if (generatorConfig.hasFastPass) { Logger.error("---------------------SiftFormsSubmittedStatusGenerator. " +
+        "IT IS FASTPASS --------------------")
+        saveSchemeAnswersFromFastPass(candidateInPreviousStatus.applicationId.get,
+        generatorConfig) } else {
+        saveSchemeAnswersFromPhase3(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.phase3TestGroup.get)
+      }
       _ <- siftService.submitAnswers(candidateInPreviousStatus.applicationId.get)
     } yield {
+      Logger.error(s"---------- SiftFormsSubmittedStatusGenerator. returning from SiftFormsSubmittedStatusGenerator.generate. " +
+        s"appId=${candidateInPreviousStatus.applicationId}");
       candidateInPreviousStatus
     }
 

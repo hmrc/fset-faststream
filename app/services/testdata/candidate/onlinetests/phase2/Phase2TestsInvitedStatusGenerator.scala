@@ -21,7 +21,7 @@ import config.TestIntegrationGatewayConfig
 import model.Adjustments
 import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
 import model.persisted.{Phase2TestGroup2, PsiTest}
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._

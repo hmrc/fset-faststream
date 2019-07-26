@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package services.testdata.candidate
+package model.testdata.candidate
 
-import model.ApplicationStatus
-import model.ApplicationStatus.ApplicationStatus
-import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import org.joda.time.{DateTime, DateTimeZone}
 
-trait ConstructiveGenerator extends BaseGenerator {
-  val previousStatusGenerator: BaseGenerator
+trait TestDates {
+  def start: Option[DateTime]
 
-  def getPreviousStatusGenerator(generatorConfig: CreateCandidateData): (ApplicationStatus, BaseGenerator) = {
-    // TODO: Review if SUBMITTED is the best default previous status
-    (generatorConfig.statusData.previousApplicationStatus.getOrElse(ApplicationStatus.SUBMITTED), previousStatusGenerator)
+  def expiry: Option[DateTime]
+
+  def completion: Option[DateTime]
+
+  def randomDateBeforeNow: DateTime = {
+    DateTime.now(DateTimeZone.UTC).minusHours(scala.util.Random.nextInt(120))
+  }
+
+  def randomDateAroundNow: DateTime = {
+    DateTime.now(DateTimeZone.UTC).plusHours(scala.util.Random.nextInt(240)).minusHours(scala.util.Random.nextInt(240))
   }
 }
