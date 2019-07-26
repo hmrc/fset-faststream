@@ -22,12 +22,12 @@ import config.{ PsiTestIds, TestIntegrationGatewayConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.{ ApplicationNotFound, CannotFindTestByOrderId }
+import model.Exceptions._
 import model.OnlineTestCommands._
 import model._
 import model.exchange.{ Phase1TestGroupWithNames2, PsiRealTimeResults, PsiTestResultReady }
 import model.persisted.{ CubiksTest, Phase1TestProfile, PsiTestResult => _, TestResult => _, _ }
-import model.stc.DataStoreEvents
+import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -105,7 +105,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
       val delay = (delayModifier * delaySecsBetweenRegistrations).second
         akka.pattern.after(delay, actor.scheduler) {
           Logger.debug(s"Phase1TestService - about to call registerPsiApplicant with testIds - $testIds")
-          registerPsiApplicant(application, testIds, invitationDate, expirationDate)
+          registerPsiApplicant(application, testIds, invitationDate)
         }
     }
 
@@ -122,9 +122,58 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     } yield audit("OnlineTestInvitationProcessComplete", application.userId)
   }
 
+  def resetTest(application: OnlineTestApplication, orderIdToReset: String, actionTriggeredBy: String)
+                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+
+    val (invitationDate, expirationDate) = calcOnlineTestDates(integrationGatewayConfig.phase1Tests.expiryTimeInDays)
+
+    for {
+      // Fetch existing test group that should exist
+      maybeTestGroup <- testRepository2.getTestGroup(application.applicationId)
+      testGroup = maybeTestGroup
+        .getOrElse(throw CannotFindTestGroupByApplicationId(s"appId - ${application.applicationId}"))
+
+      // Extract test that requires reset
+      testToReset = testGroup.tests.find(_.orderId == orderIdToReset)
+        .getOrElse(throw CannotFindTestByOrderId(s"OrderId - $orderIdToReset"))
+      _ = Logger.info(s"testToReset -- $testToReset")
+
+      // Create PsiIds to use for re-invitation
+      psiIds = integrationGatewayConfig.phase1Tests.tests.find {
+        case (_, ids) => ids.inventoryId == testToReset.inventoryId
+      }.getOrElse(throw CannotFindTestByInventoryId(s"InventoryId - ${testToReset.inventoryId}"))._2
+      _ = Logger.info(s"psiIds -- $psiIds")
+
+      // Register applicant
+      newPsiTest <- registerPsiApplicant(application, psiIds, invitationDate)
+      _ = Logger.info(s"newPsiTest -- $newPsiTest")
+
+      // Set old test to inactive
+      testsWithInactiveTest = testGroup.tests
+        .map { t => if (t.orderId == orderIdToReset) { t.copy(usedForResults = false) } else t }
+      _ = Logger.info(s"testsWithInactiveTest -- $testsWithInactiveTest")
+
+      // insert new test and maintain test order
+      idxOfResetTest = testGroup.tests.indexWhere(_.orderId == orderIdToReset)
+      updatedTests = insertTest(testsWithInactiveTest, idxOfResetTest, newPsiTest)
+      _ = Logger.info(s"updatedTests -- $updatedTests")
+
+      _ <- markAsInvited2(application)(Phase1TestProfile2(expirationDate, updatedTests))
+    } yield {
+      List(
+        AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "orderId" -> orderIdToReset)),
+        DataStoreEvents.OnlineExerciseReset(application.applicationId, actionTriggeredBy)
+      )
+    }
+  }
+
+  private def insertTest(ls: List[PsiTest], i: Int, value: PsiTest): List[PsiTest] = {
+    val (front, back) = ls.splitAt(i)
+    front ++ List(value) ++ back
+  }
+
   private def registerPsiApplicant(application: OnlineTestApplication,
-                                   testIds: PsiTestIds, invitationDate: DateTime,
-                                   expirationDate: DateTime)
+                                   testIds: PsiTestIds, invitationDate: DateTime)
                                   (implicit hc: HeaderCarrier): Future[PsiTest] = {
     for {
       aoa <- registerApplicant2(application, testIds)
@@ -197,19 +246,12 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   // eg if a test is being reset and the candidate is being invited to a replacement test
   private def insertOrAppendNewTests2(applicationId: String, currentProfile: Option[Phase1TestProfile2],
                                      newProfile: Phase1TestProfile2): Future[Phase1TestProfile2] = {
-    (currentProfile match {
-      case None => testRepository2.insertOrUpdateTestGroup(applicationId, newProfile)
-      case Some(profile) =>
-        val orderIdsToArchive = newProfile.tests.map(_.orderId)
-        val existingActiveTestOrderIds = profile.tests.filter(t =>
-          orderIdsToArchive.contains(t.orderId) && t.usedForResults).map(_.orderId)
-        Future.traverse(existingActiveTestOrderIds)(testRepository2.markTestAsInactive2).flatMap { _ =>
-          testRepository2.insertPsiTests(applicationId, newProfile)
-        }
-    }).flatMap { _ => testRepository2.getTestGroup(applicationId)
-    }.map {
-      case Some(testProfile) => testProfile
-      case None => throw ApplicationNotFound(applicationId)
+
+    testRepository2.insertOrUpdateTestGroup(applicationId, newProfile).flatMap { _ =>
+      testRepository2.getTestGroup(applicationId).map {
+        case Some(testProfile) => testProfile
+        case None => throw ApplicationNotFound(applicationId)
+      }
     }
   }
 
