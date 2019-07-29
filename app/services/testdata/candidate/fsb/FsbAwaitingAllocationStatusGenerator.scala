@@ -16,13 +16,16 @@
 
 package services.testdata.candidate.fsb
 
-import model.ProgressStatuses
+import model.ApplicationStatus.ApplicationStatus
+import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import services.testdata.candidate.assessmentcentre._
-import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
+import services.testdata.candidate.onlinetests.{Phase1TestsPassedNotifiedStatusGenerator, Phase3TestsPassedNotifiedStatusGenerator}
+import services.testdata.candidate.sift.SiftCompleteStatusGenerator
+import services.testdata.candidate.{BaseGenerator, CandidateStatusGeneratorFactory, ConstructiveGenerator, FastPassAcceptedStatusGenerator}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,10 +39,31 @@ object FsbAwaitingAllocationStatusGenerator extends FsbAwaitingAllocationStatusG
 trait FsbAwaitingAllocationStatusGenerator extends ConstructiveGenerator {
   val applicationRepository: GeneralApplicationRepository
 
+  override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData): (ApplicationStatus, BaseGenerator) = {
+    val previousStatusAndGeneratorPair = generatorConfig.statusData.previousApplicationStatus.map(previousApplicationStatus => {
+      val generator = CandidateStatusGeneratorFactory.getGenerator(
+        generatorConfig.copy(
+          statusData = generatorConfig.statusData.copy(
+            applicationStatus = previousApplicationStatus
+          )))
+      (previousApplicationStatus, generator)
+    })
+
+    // TODO: SdipFaststream
+    previousStatusAndGeneratorPair.getOrElse(
+      if (List(ApplicationRoute.Sdip, ApplicationRoute.Edip).contains(generatorConfig.statusData.applicationRoute)) {
+        (ApplicationStatus.SIFT, SiftCompleteStatusGenerator)
+      } else {
+        (ApplicationStatus.ASSESSMENT_CENTRE, AssessmentCentrePassedStatusGenerator)
+      }
+    )
+  }
+
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     for {
+      (previousApplicationStatus, previousStatusGenerator) <- Future.successful(getPreviousStatusGenerator(generatorConfig))
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(
         candidateInPreviousStatus.applicationId.get,

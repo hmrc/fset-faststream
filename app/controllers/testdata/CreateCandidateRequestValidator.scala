@@ -100,7 +100,9 @@ trait CreateCandidateRequestValidator {
     }
 
     def containsNoSdipSchemes = {
-      request.schemeTypes.map(_.filterNot(_.value == requestedRoute).size > 0).getOrElse(false)
+      request.schemeTypes.map(_.filterNot(schemeType => {
+        Some(schemeType.value) == requestedRoute.map(_.toString)
+      }).size > 0).getOrElse(false)
     }
 
     def containsNoSdipSchemePhase1TestData = {

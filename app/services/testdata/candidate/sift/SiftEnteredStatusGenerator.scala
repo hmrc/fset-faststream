@@ -97,12 +97,19 @@ trait SiftEnteredStatusGenerator extends ConstructiveGenerator {
         generatorConfig.schemeTypes.map(_.map(schemeType => SchemeEvaluationResult(schemeType.toString(),
           EvaluationResults.Green.toString)))
       } else {
-// TODO: And edip and sdip
-        candidateInPreviousStatus.phase3TestGroup.flatMap(tg =>
-          tg.schemeResult.map(pm =>
-            pm.result.filter(_.result == EvaluationResults.Green.toString)
+        if (List(ApplicationRoute.Sdip, ApplicationRoute.Edip).contains(generatorConfig.statusData.applicationRoute)) {
+          candidateInPreviousStatus.phase1TestGroup.flatMap(tg =>
+            tg.schemeResult.map(pm =>
+              pm.result.filter(_.result == EvaluationResults.Green.toString)
+            )
           )
-        )
+        } else {
+          candidateInPreviousStatus.phase3TestGroup.flatMap(tg =>
+            tg.schemeResult.map(pm =>
+              pm.result.filter(_.result == EvaluationResults.Green.toString)
+            )
+          )
+        }
       }
       candidateInPreviousStatus.copy(
         siftForms = greenSchemes.map(_.map(result => SiftForm(result.schemeId, "", None)))

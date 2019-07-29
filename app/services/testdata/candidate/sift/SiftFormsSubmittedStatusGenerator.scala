@@ -17,9 +17,9 @@
 package services.testdata.candidate.sift
 
 import common.FutureEx
-import model.SiftRequirement
+import model.{ApplicationRoute, SiftRequirement}
 import model.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer}
-import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse}
+import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse, TestGroupResponse2}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.{SchemeRepository, SchemeYamlRepository}
@@ -64,8 +64,9 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
     ).getOrElse(Future.successful(Nil))
   }
 
-  def saveSchemeAnswersFromPhase3(appId: String, p3: TestGroupResponse): Future[List[Unit]] = {
-    p3.schemeResult.map { sr =>
+  // TODO: Once phase3TestData is converted into TestGroupResponse2, merge this method with saveSchemeAnswersFromPhase3TestData
+  def saveSchemeAnswersFromPhase1TestData(appId: String, phase1TestData: TestGroupResponse2): Future[List[Unit]] = {
+    phase1TestData.schemeResult.map { sr =>
       FutureEx.traverseSerial(sr.result) { result =>
         schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
           if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
@@ -78,17 +79,37 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
     }.getOrElse(Future.successful(Nil))
   }
 
+  def saveSchemeAnswersFromPhase3TestData(appId: String, phase3TestData: TestGroupResponse): Future[List[Unit]] = {
+    phase3TestData.schemeResult.map { sr =>
+      FutureEx.traverseSerial(sr.result) { result =>
+        schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
+          if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
+            siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
+          } else {
+            Future()
+          }
+        }.getOrElse(Future())
+      }
+    }.getOrElse(Future.successful(Nil))
+  }
+
+  def saveSchemeAnswers(generatorConfig: CreateCandidateData, candidateInPreviousStatus: CreateCandidateResponse) = {
+    if (generatorConfig.hasFastPass) {
+      saveSchemeAnswersFromFastPass(candidateInPreviousStatus.applicationId.get,
+        generatorConfig)
+    } else if (List(ApplicationRoute.Sdip, ApplicationRoute.Edip).contains(generatorConfig.statusData.applicationRoute)) {
+      saveSchemeAnswersFromPhase1TestData(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.phase1TestGroup.get)
+    } else {
+      saveSchemeAnswersFromPhase3TestData(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.phase3TestGroup.get)
+    }
+  }
+
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- siftService.addGeneralAnswers(candidateInPreviousStatus.applicationId.get, generateGeneralAnswers)
-      - <- if (generatorConfig.hasFastPass) {
-        saveSchemeAnswersFromFastPass(candidateInPreviousStatus.applicationId.get,
-          generatorConfig)
-      } else {
-        saveSchemeAnswersFromPhase3(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.phase3TestGroup.get)
-      }
+      - <- saveSchemeAnswers(generatorConfig, candidateInPreviousStatus)
       _ <- siftService.submitAnswers(candidateInPreviousStatus.applicationId.get)
     } yield {
       candidateInPreviousStatus
