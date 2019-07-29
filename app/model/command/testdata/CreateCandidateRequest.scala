@@ -69,6 +69,7 @@ object CreateCandidateRequest {
     expiry: Option[String] = None,
     completion: Option[String] = None,
     val scores: List[String] = Nil,
+    // TODO: Maybe we don't need TestDatesRequest
     val passmarkEvaluation: Option[PassmarkEvaluation] = None) extends TestDatesRequest
 
   case class Phase1TestDataRequest(

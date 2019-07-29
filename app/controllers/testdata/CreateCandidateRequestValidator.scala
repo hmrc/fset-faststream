@@ -69,7 +69,9 @@ trait CreateCandidateRequestValidator {
     }
 
     def containsCivilServantAndInternshipTypes = {
-      request.isCivilServant.getOrElse(false) && request.internshipTypes.map(_.contains("SDIPCurrentYear")).getOrElse(false)
+      val isCivilServant = request.isCivilServant.getOrElse(false)
+      val isExpectedInternshipType = request.internshipTypes.exists(_.contains("SDIPCurrentYear"))
+      isCivilServant && isExpectedInternshipType
     }
 
     if (request.hasFastPass.getOrElse(false)) {
@@ -108,15 +110,18 @@ trait CreateCandidateRequestValidator {
       )).toList.flatten.size > 0
     }
 
-    if (Some(routeToValidate) == requestedRoute) {
-      if (isInvalidApplicationStatusForRoute || containsNoSdipSchemes || containsNoSdipSchemePhase1TestData) {
-        false
+    def areApplicationStatusSchemesAndTestResultsApplicableForApplicationRoute: Boolean = {
+      if (Some(routeToValidate) == requestedRoute) {
+        if (isInvalidApplicationStatusForRoute || containsNoSdipSchemes || containsNoSdipSchemePhase1TestData) {
+          false
+        } else {
+          true
+        }
       } else {
         true
       }
-    } else {
-      true
     }
+    areApplicationStatusSchemesAndTestResultsApplicableForApplicationRoute
   }
 
   def validateGis(request: CreateCandidateRequest) = {

@@ -246,7 +246,7 @@ object ProgressStatuses {
       name.toLowerCase match {
         case "personal_details" => "personal-details"
         case "assistance_details" => "assistance-details"
-        case "partner_graduate-programmes" => "partner-graduate-programmes"
+        case "partner_graduate_programmes" => "partner-graduate-programmes"
         case "scheme_preferences" => "scheme-preferences"
         case _ => name.toLowerCase
       })

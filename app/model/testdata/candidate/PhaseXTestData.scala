@@ -17,7 +17,7 @@
 package model.testdata.candidate
 
 import model.ProgressStatuses.ProgressStatus
-import model.command.testdata.CreateCandidateRequest.{CreateCandidateRequest, Phase3TestDataRequest, PhaseXTestDataRequest}
+import model.command.testdata.CreateCandidateRequest.{CreateCandidateRequest, PhaseXTestDataRequest}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.{ProgressStatuses, SchemeId}
 import org.joda.time.DateTime
@@ -58,6 +58,7 @@ case class Phase3TestData(
 
 
 abstract class PhaseXTestDataFactory {
+
   case class PhaseXTestDataConfig(
     invitedStatus: ProgressStatus,
     startedStatus: ProgressStatus,
@@ -126,8 +127,9 @@ abstract class PhaseXTestDataFactory {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
       getConfig().resultsReceived).getOrElse(false)) {
       testDataRequest.flatMap(_.passmarkEvaluation).orElse(
-        Some(PassmarkEvaluation("2", Some("1"), schemeTypes.map { schemeId => SchemeEvaluationResult(schemeId.value, "Green") },
-          "2", Some("1")
+        Some(PassmarkEvaluation(passmarkVersion = "2", previousPhasePassMarkVersion = Some("1"),
+          schemeTypes.map { schemeId => SchemeEvaluationResult(schemeId.value, "Green") },
+          resultVersion = "2", previousPhaseResultVersion = Some("1")
         )))
     } else {
       None
@@ -135,7 +137,7 @@ abstract class PhaseXTestDataFactory {
   }
 }
 
-case class Phase1TestDataFactory[T <: PhaseXTestData] ()extends PhaseXTestDataFactory {
+case class Phase1TestDataFactory[T <: PhaseXTestData]() extends PhaseXTestDataFactory {
   override def getConfig() = PhaseXTestDataConfig(ProgressStatuses.PHASE1_TESTS_INVITED, ProgressStatuses.PHASE1_TESTS_STARTED,
     ProgressStatuses.PHASE1_TESTS_COMPLETED, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
 
@@ -167,7 +169,6 @@ case class Phase1TestDataFactory[T <: PhaseXTestData] ()extends PhaseXTestDataFa
       Nil
     }
   }
-
 }
 
 object Phase1TestData extends Phase1TestDataFactory {
@@ -198,13 +199,12 @@ case class Phase2TestDataFactory() extends PhaseXTestDataFactory {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
       getConfig().completedStatus).getOrElse(false)) {
       testDataRequest.map(_.scores.map(_.toDouble)).getOrElse(
-          List(20.0, 21.00)
+        List(20.0, 21.00)
       )
     } else {
       Nil
     }
   }
-
 }
 
 object Phase2TestData extends Phase2TestDataFactory {
@@ -227,7 +227,7 @@ case class Phase3TestDataFactory() extends PhaseXTestDataFactory {
         scores = components.scores,
         generateNullScoresForFewQuestions = candidateRequest.phase3TestData.flatMap(_.generateNullScoresForFewQuestions),
         receivedBeforeInHours = candidateRequest.phase3TestData.flatMap(_.receivedBeforeInHours),
-          passmarkEvaluation = components.passmarkEvaluation
+        passmarkEvaluation = components.passmarkEvaluation
       )
     )
   }
@@ -243,7 +243,6 @@ case class Phase3TestDataFactory() extends PhaseXTestDataFactory {
       Nil
     }
   }
-
 }
 
 object Phase3TestData extends Phase2TestDataFactory {
@@ -251,8 +250,3 @@ object Phase3TestData extends Phase2TestDataFactory {
     Phase3TestDataFactory().build(candidateRequest, schemeTypes)
   }
 }
-
-
-
-
-
