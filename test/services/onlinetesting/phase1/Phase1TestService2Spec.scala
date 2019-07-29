@@ -169,9 +169,8 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
   "register and invite application" should {
     "Invite to two tests and issue one email for GIS candidates" in new SuccessfulTestInviteFixture {
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
-      when(otRepositoryMock2.markTestAsInactive2(any[String])).thenReturnAsync()
-      when(otRepositoryMock2.insertPsiTests(any[String], any[Phase1TestProfile2])).thenReturnAsync()
 
       val result = phase1TestService
         .registerAndInvite(List(onlineTestApplication.copy(guaranteedInterview = true)))
@@ -192,8 +191,6 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
     "Invite to 4 tests and issue one email for non-GIS candidates" in new SuccessfulTestInviteFixture {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
-      when(otRepositoryMock2.markTestAsInactive2(any[String])).thenReturnAsync()
-      when(otRepositoryMock2.insertPsiTests(any[String], any[Phase1TestProfile2])).thenReturnAsync()
 
       val result = phase1TestService
         .registerAndInvite(List(onlineTestApplication.copy(guaranteedInterview = false)))
@@ -225,10 +222,8 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited' " +
       "if there is an exception retrieving the contact details" in new OnlineTest  {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
-      when(otRepositoryMock2.markTestAsInactive2(any[String])).thenReturnAsync()
-      when(otRepositoryMock2.insertPsiTests(any[String], any[Phase1TestProfile2])).thenReturnAsync()
+      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2])).thenReturnAsync()
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
-
       when(cdRepositoryMock.find(anyString())).thenReturn(Future.failed(new Exception))
 
       val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
@@ -242,9 +237,10 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited'" +
       " if there is an exception sending the invitation email" in new OnlineTest {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
-      when(otRepositoryMock2.markTestAsInactive2(any[String])).thenReturnAsync()
-      when(otRepositoryMock2.insertPsiTests(any[String], any[Phase1TestProfile2])).thenReturnAsync()
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
+      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2]))
+        .thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa)
 
       when(cdRepositoryMock.find(userId)).thenReturnAsync(contactDetails)
 
@@ -264,8 +260,6 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
-      when(otRepositoryMock2.markTestAsInactive2(any[String])).thenReturnAsync()
-      when(otRepositoryMock2.insertPsiTests(any[String], any[Phase1TestProfile2])).thenReturnAsync()
       when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
       when(emailClientMock.sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(

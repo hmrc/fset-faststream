@@ -447,7 +447,7 @@ trait NumericalTestService2 extends EventSink {
         testProfile.tests.flatMap(tests => tests.find(_.orderId == orderId))
           .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
         model.persisted.PsiTestResult.fromCommandObject(results)
-      ).map(_ => ())
+      )
 
     def maybeUpdateProgressStatus(appId: String) = {
       applicationSiftRepo.getTestGroup2(appId).flatMap { testGroupOpt =>

@@ -17,13 +17,12 @@
 package controllers
 
 import model.ApplicationStatus._
-import model.Commands
 import model.Exceptions.ExpiredTestForTokenException
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.{ InvigilatedTestUrl, ResetOnlineTest, VerifyAccessCode }
+import model.command.{ InvigilatedTestUrl, ResetOnlineTest, ResetOnlineTest2, VerifyAccessCode }
 import org.joda.time.DateTime
 import play.api.Logger
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{ JsValue, Json, OFormat }
 import play.api.mvc._
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -138,12 +137,13 @@ trait OnlineTestController extends BaseController {
     }
   }
 
-  def resetPhase1OnlineTests(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
-      play.api.Logger.debug(s"resetPhase1OnlineTests - request=${play.api.libs.json.Json.toJson(resetOnlineTest).toString}")
+  def resetPhase1OnlineTests(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[ResetOnlineTest2] { resetOnlineTest =>
+      Logger.debug(s"resetPhase1OnlineTest - $resetOnlineTest")
       appRepository.getOnlineTestApplication(applicationId).flatMap {
-        case Some(onlineTestApp) => phase1TestService.resetTests(onlineTestApp, resetOnlineTest.tests, resetOnlineTest.actionTriggeredBy)
-          .map ( _ => Ok )
+        case Some(onlineTestApp) =>
+          phase1TestService2.resetTest(onlineTestApp, resetOnlineTest.orderId, resetOnlineTest.actionTriggeredBy)
+            .map ( _ => Ok )
         case _ => Future.successful(NotFound)
       }
     }
