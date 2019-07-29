@@ -19,7 +19,6 @@ package services.testdata.candidate.onlinetests
 import model.ProgressStatuses.{PHASE1_TESTS_PASSED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED, ProgressStatus}
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationMongoRepository
 import repositories._

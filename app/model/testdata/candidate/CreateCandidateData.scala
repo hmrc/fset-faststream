@@ -220,5 +220,4 @@ object CreateCandidateData {
       }
     }
   }
-
 }

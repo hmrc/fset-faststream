@@ -18,7 +18,7 @@ package services.testdata.candidate
 
 import model.ApplicationStatus._
 import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
-import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
+import model.ProgressStatuses
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ASSESSMENT_CENTRE_SCORES_ENTERED}
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED}
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED}
@@ -47,8 +47,6 @@ object CandidateStatusGeneratorFactory {
 
   // scalastyle:off cyclomatic.complexity method.length
   def getGenerator(generatorConfig: CreateCandidateData) = {
-
-
 
     val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
     val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)

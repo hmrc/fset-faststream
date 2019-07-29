@@ -28,8 +28,6 @@ object ProgressStatuses {
     def key = toString
   }
 
-
-
   object ProgressStatus {
     implicit val progressStatusFormat = new Format[ProgressStatus] {
       def reads(json: JsValue) = JsSuccess(nameToProgressStatus(json.as[String]))

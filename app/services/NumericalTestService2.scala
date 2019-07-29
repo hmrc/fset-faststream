@@ -41,7 +41,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 object NumericalTestService2 extends NumericalTestService2 {
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
   val applicationSiftRepo: ApplicationSiftRepository = repositories.applicationSiftRepository
@@ -55,7 +54,6 @@ object NumericalTestService2 extends NumericalTestService2 {
   val emailClient: CSREmailClient = CSREmailClient
   val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
 }
-
 
 // scalastyle:off number.of.methods
 trait NumericalTestService2 extends EventSink {
