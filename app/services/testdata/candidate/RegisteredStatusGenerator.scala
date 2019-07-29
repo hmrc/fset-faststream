@@ -24,7 +24,7 @@ import model.persisted.Media
 import model.persisted.assessor.AssessorStatus
 import model.persisted.eventschedules.SkillType
 import model.testdata.CreateAdminData.AssessorData
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import services.testdata.admin.AssessorCreatedStatusGenerator

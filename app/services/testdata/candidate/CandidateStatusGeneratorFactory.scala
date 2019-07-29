@@ -19,11 +19,11 @@ package services.testdata.candidate
 import model.ApplicationStatus._
 import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
 import model.ProgressStatuses
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ASSESSMENT_CENTRE_SCORES_ENTERED }
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED }
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ASSESSMENT_CENTRE_SCORES_ENTERED}
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_SCORES_ACCEPTED}
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED}
 import model.testdata.CreateAdminData.CreateAdminData
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import services.testdata.admin._
 import services.testdata.candidate.assessmentcentre._
 import services.testdata.candidate.fsb._
@@ -31,7 +31,7 @@ import services.testdata.candidate.onlinetests._
 import services.testdata.candidate.onlinetests.phase1._
 import services.testdata.candidate.onlinetests.phase2._
 import services.testdata.candidate.onlinetests.phase3._
-import services.testdata.candidate.sift.{ SiftCompleteStatusGenerator, SiftEnteredStatusGenerator, SiftFormsSubmittedStatusGenerator }
+import services.testdata.candidate.sift.{SiftCompleteStatusGenerator, SiftEnteredStatusGenerator, SiftFormsSubmittedStatusGenerator}
 
 object AdminStatusGeneratorFactory {
   def getGenerator(createData: CreateAdminData): AdminUserBaseGenerator = {
@@ -67,6 +67,7 @@ object CandidateStatusGeneratorFactory {
         case IN_PROGRESS_PREVIEW => InProgressPreviewStatusGenerator
         case SUBMITTED => SubmittedStatusGenerator
         case WITHDRAWN => WithdrawnStatusGenerator
+        case FAST_PASS_ACCEPTED => FastPassAcceptedStatusGenerator
         case PHASE1_TESTS_PASSED => Phase1TestsPassedStatusGenerator
         case PHASE1_TESTS_FAILED => Phase1TestsFailedStatusGenerator
         case PHASE2_TESTS_PASSED => Phase2TestsPassedStatusGenerator
@@ -79,6 +80,7 @@ object CandidateStatusGeneratorFactory {
           s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")
       }
       case (SUBMITTED, Some(ProgressStatuses.SUBMITTED)) => SubmittedStatusGenerator
+      case (FAST_PASS_ACCEPTED, Some(ProgressStatuses.FAST_PASS_ACCEPTED)) => FastPassAcceptedStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PERSONAL_DETAILS)) => InProgressPersonalDetailsStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.SCHEME_PREFERENCES)) => InProgressSchemePreferencesStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES)) => InProgressPartnerGraduateProgrammesStatusGenerator
@@ -153,7 +155,6 @@ object CandidateStatusGeneratorFactory {
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")
     }
   }
-
   // scalastyle:on cyclomatic.complexity
 }
 

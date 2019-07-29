@@ -16,9 +16,9 @@
 
 package services.testdata.candidate.onlinetests
 
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED, ProgressStatus }
+import model.ProgressStatuses.{PHASE1_TESTS_PASSED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED, ProgressStatus}
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationMongoRepository
 import repositories._
@@ -47,9 +47,12 @@ trait TestsPassedNotifiedStatusGenerator extends ConstructiveGenerator {
   override def generate(generationId: Int,
     generatorConfig:
     CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, notifiedStatus)
-    } yield candidate
+    } yield {
+      candidate
+    }
   }
 }

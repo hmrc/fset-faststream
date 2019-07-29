@@ -19,7 +19,7 @@ package services.testdata.candidate.assessmentcentre
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import services.assessmentscores.{ AssessmentScoresService, AssessorAssessmentScoresService }

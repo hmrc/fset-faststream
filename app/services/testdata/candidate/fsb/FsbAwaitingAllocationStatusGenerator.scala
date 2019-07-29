@@ -18,7 +18,7 @@ package services.testdata.candidate.fsb
 
 import model.ProgressStatuses
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import services.testdata.candidate.assessmentcentre._

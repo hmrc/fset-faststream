@@ -18,7 +18,7 @@ package services.testdata.candidate.onlinetests.phase2
 
 import common.FutureEx
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import services.onlinetesting.phase2.Phase2TestService2

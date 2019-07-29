@@ -21,7 +21,7 @@ import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.command.{ CandidateAllocation, CandidateAllocations }
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.eventschedules.EventType
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.{ AllocationStatuses, ProgressStatuses }
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository

@@ -22,7 +22,7 @@ import model.command.{ CandidateAllocation, CandidateAllocations }
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.eventschedules.EventType
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.SchemeYamlRepository
 import repositories.application.GeneralApplicationRepository

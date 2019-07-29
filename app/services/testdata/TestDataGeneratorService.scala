@@ -22,7 +22,7 @@ import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
 import model.exchange.testdata.CreateAssessorAllocationResponse.CreateAssessorAllocationResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateEventResponse.CreateEventResponse
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateAdminData.CreateAdminData
 import model.exchange.testdata.{ CreateCandidateAllocationResponse, CreateTestDataResponse }
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData

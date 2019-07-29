@@ -21,26 +21,26 @@ import connectors.AuthProviderClient
 import factories.UUIDFactory
 import model.Exceptions.EmailTakenException
 import model._
-import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
+import model.command.testdata.CreateAdminRequest.{AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest}
 import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllocationRequest
-import model.command.testdata.{ ClearCandidatesRequest, CreateCandidateAllocationRequest }
-import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
+import model.command.testdata.{ClearCandidatesRequest, CreateCandidateAllocationRequest}
+import model.command.testdata.CreateCandidateRequest.{CreateCandidateRequest, _}
 import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.AssessorSkill
-import model.persisted.{ FsbTestGroup, SchemeEvaluationResult }
+import model.persisted.{FsbTestGroup, SchemeEvaluationResult}
 import model.persisted.assessor.AssessorStatus
-import model.persisted.eventschedules.{ EventType, Session, SkillType }
+import model.persisted.eventschedules.{EventType, Session, SkillType}
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateCandidateAllocationData
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
-import org.joda.time.{ LocalDate, LocalTime }
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, RequestHeader }
-import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
+import org.joda.time.{LocalDate, LocalTime}
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
+import play.api.mvc.{Action, AnyContent, RequestHeader}
+import repositories.events.{LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository}
 import services.testdata._
-import services.testdata.candidate.{ AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory }
+import services.testdata.candidate.{AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory}
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -50,9 +50,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 object TestDataGeneratorController extends TestDataGeneratorController {
   val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+  val createCandidateRequestValidator = CreateCandidateRequestValidator
 }
 
 trait TestDataGeneratorController extends BaseController {
+  val createCandidateRequestValidator: CreateCandidateRequestValidator
 
   val locationsAndVenuesRepository: LocationsWithVenuesRepository
 
@@ -112,7 +114,8 @@ trait TestDataGeneratorController extends BaseController {
       )),
       schemeTypes = Some(List(SchemeId("Commercial"), SchemeId("European"), SchemeId("DigitalAndTechnology"))),
       isCivilServant = Some(Random.bool),
-      hasFastPass = Some(true),
+      internshipTypes = None,
+      hasFastPass = Some(false),
       hasDegree = Some(Random.bool),
       region = Some("region"),
       loc1scheme1EvaluationResult = Some("loc1 scheme1 result1"),
@@ -134,7 +137,7 @@ trait TestDataGeneratorController extends BaseController {
         start = Some("2340-01-01"),
         expiry = Some("2340-01-29"),
         completion = Some("2340-01-16"),
-        score = Some(12.0),
+        scores = List("12.0"),
         receivedBeforeInHours = Some(72),
         generateNullScoresForFewQuestions = Some(false)
       )),
@@ -285,7 +288,12 @@ trait TestDataGeneratorController extends BaseController {
 
   def createCandidatesPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateRequest] { createRequest =>
-      createCandidates(CreateCandidateData.apply(psiUrlFromConfig, createRequest), numberToGenerate)
+      val validateResult = createCandidateRequestValidator.validate(createRequest)
+      if (!validateResult.result) {
+        Future.successful(BadRequest(JsObject(List(("message", JsString(s"${validateResult.message.getOrElse("Unexpected error")}"))))))
+      } else {
+        createCandidates(CreateCandidateData.apply(psiUrlFromConfig, createRequest), numberToGenerate)
+      }
     }
   }
 
