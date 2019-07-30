@@ -37,6 +37,13 @@ object CubiksTest {
   implicit def phase1TestFormat = Json.format[CubiksTest]
 }
 
+// More data is sent by the backend but we only care about the report url
+case class PsiTestResult(testReportUrl: Option[String])
+
+object PsiTestResult {
+  implicit def testResultFormat = Json.format[PsiTestResult]
+}
+
 case class PsiTest(inventoryId: String,
                    usedForResults: Boolean,
                    testUrl: String,
@@ -44,8 +51,9 @@ case class PsiTest(inventoryId: String,
                    invitationDate: DateTime,
                    startedDateTime: Option[DateTime] = None,
                    completedDateTime: Option[DateTime] = None,
-                   resultsReadyToDownload: Boolean = false
-) {//extends Test {
+                   resultsReadyToDownload: Boolean = false,
+                   testResult: Option[PsiTestResult] = None
+) {
   def started = startedDateTime.isDefined
   def completed = completedDateTime.isDefined
 }
