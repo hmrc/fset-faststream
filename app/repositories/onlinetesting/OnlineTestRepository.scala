@@ -112,7 +112,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.update(find, update) map validator
   }
 
-  def insertPsiTests(applicationId: String, newTestProfile: PsiTestProfile) = {
+  def insertPsiTests(applicationId: String, newTestProfile: PsiTestProfile): Future[Unit] = {
 //  def insertPsiTests[P <: PsiTestProfile](applicationId: String, newTestProfile: P) = {
     val query = BSONDocument(
       "applicationId" -> applicationId

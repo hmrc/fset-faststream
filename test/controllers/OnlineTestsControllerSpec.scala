@@ -88,38 +88,38 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
   "reset phase2 tests" should {
     "register user with new test" in {
-      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
+      when(mockPhase2TestService2.resetTest(any[OnlineTestApplication], anyString(), anyString())
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
-      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest2("", "", "")))
       status(response) mustBe OK
     }
 
     "return the response as reset limit exceeded" in {
-      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
+      when(mockPhase2TestService2.resetTest(any[OnlineTestApplication], anyString(), anyString())
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
-      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest2("", "", "")))
       status(response) mustBe LOCKED
     }
 
     "return cannot reset phase2 tests exception" in {
-      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
+      when(mockPhase2TestService2.resetTest(any[OnlineTestApplication], anyString(), any[String])
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotResetPhase2Tests()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
-      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest2("", "", "")))
       status(response) mustBe NOT_FOUND
     }
 
     "return not found exception" in {
-      when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
+      when(mockPhase2TestService2.resetTest(any[OnlineTestApplication],anyString(), any[String])
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(None))
-      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest2("", "", "")))
       status(response) mustBe NOT_FOUND
     }
   }

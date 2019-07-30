@@ -104,15 +104,14 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
   "Invite applicants to PHASE 2" must {
     "save tests for a candidate after registration" in new Phase2TestServiceFixture {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
-      when(otRepositoryMock2.insertPsiTests(any[String], any[Phase2TestGroup2])).thenReturnAsync()
+      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])).thenReturnAsync()
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
           .thenReturnAsync(aoa)
 
       phase2TestService.registerAndInvite(candidates).futureValue
 
-      verify(otRepositoryMock2, times(4)).insertPsiTests(any[String], any[Phase2TestGroup2])
+      verify(otRepositoryMock2, times(4)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
       verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
-      verify(otRepositoryMock2, never()).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
     }
   }
 

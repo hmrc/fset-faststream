@@ -149,21 +149,19 @@ trait OnlineTestController extends BaseController {
     }
   }
 
-  def resetPhase2OnlineTest(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
-      play.api.Logger.debug(s"resetPhase2OnlineTests - request=${play.api.libs.json.Json.toJson(resetOnlineTest).toString}")
-      def reset(onlineTestApp: OnlineTestApplication, actionTriggeredBy: String) =
-        phase2TestService.resetTests(onlineTestApp, actionTriggeredBy)
-          .map(_ => Ok)
-          .recover {
-            case _: ResetLimitExceededException =>
-              Locked
-            case _: CannotResetPhase2Tests =>
-              NotFound
-          }
-
+  def resetPhase2OnlineTest(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[ResetOnlineTest2] { resetOnlineTest =>
+      Logger.debug(s"resetPhase2OnlineTests - $resetOnlineTest")
       appRepository.getOnlineTestApplication(applicationId).flatMap {
-        case Some(onlineTestApp) => reset(onlineTestApp, resetOnlineTest.actionTriggeredBy)
+        case Some(onlineTestApp) =>
+          phase2TestService2.resetTest(onlineTestApp, resetOnlineTest.orderId, resetOnlineTest.actionTriggeredBy)
+            .map(_ => Ok)
+            .recover {
+              case _: ResetLimitExceededException =>
+                Locked
+              case _: CannotResetPhase2Tests =>
+                NotFound
+            }
         case _ => Future.successful(NotFound)
       }
     }
