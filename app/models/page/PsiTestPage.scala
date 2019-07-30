@@ -18,6 +18,7 @@ package models.page
 
 case class PsiTestPage(orderId: String,
                        inventoryId: String,
+                       testReportUrl: Option[String],
                        started: Boolean = false,
                        completed: Boolean = false) {
   def testNameKey = s"tests.inventoryid.name.$inventoryId"
@@ -28,6 +29,7 @@ object PsiTestPage {
     new PsiTestPage(
       orderId = test.orderId.toString,
       inventoryId = test.inventoryId,
+      testReportUrl = test.testResult.flatMap(_.testReportUrl),
       started = test.started,
       completed = test.completed
     )

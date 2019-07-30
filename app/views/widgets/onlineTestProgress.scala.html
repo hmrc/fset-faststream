@@ -14,7 +14,10 @@
  * limitations under the License.
  *@
 
+@import models.page.Phase1TestsPage2
 @import models.page.Phase2TestsPage2
+@import models.page.PsiTestPage
+
 @(cachedUserData: CachedData,
         dashboardPage: models.page.DashboardPage,
         assistanceDetails: Option[_root_.connectors.exchange.AssistanceDetails] = None,
@@ -94,9 +97,32 @@
     <p>Before you take the e-tray we need to contact you to confirm your requested extra support.</p>
 }
 
+@displayPhase1TestResultsLinks(testsPage: Phase1TestsPage2) = {
+    @testsPage.tests.map { psiTestPage =>
+        @Messages(psiTestPage.testNameKey)
+        @displayTestPageLink(psiTestPage)
+        </br>
+    }
+}
+
+@displayTestPageLink(testPage: PsiTestPage) = {
+    @testPage.testReportUrl.map { reportUrl =>
+        <a href="@reportUrl" target="_blank">Results report</a>
+    }
+}
+
+@displayPhase2TestResultsLinks() = {
+    @dashboardPage.phase2TestsPage.map { testsPage =>
+        @testsPage.tests.map { psiTestPage =>
+            @Messages(psiTestPage.testNameKey)
+            @displayTestPageLink(psiTestPage)
+            </br>
+        }
+    }
+}
 
 @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
-    case (true, _, _) => {
+    case (true, _, Some(testsPage)) => {
         <ul class="list-text list-withicons">
             <li>
                 <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
@@ -107,11 +133,12 @@
                         .</p>
                     <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                         site for more opportunities with us.</p>
+                    @displayPhase1TestResultsLinks(testsPage)
                 </div>
             </li>
         </ul>
     }
-    case (_, true, _) => {
+    case (_, true, Some(testsPage)) => {
         <ul class="list-text list-withicons">
             <li>
                 <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
@@ -120,6 +147,7 @@
                     <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
                     <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                         site for more opportunities with us.</p>
+                    @displayPhase1TestResultsLinks(testsPage)
                 </div>
             </li>
         </ul>
@@ -169,11 +197,12 @@
                         Online exercises</p>
                     <div>
                     @if(dashboardPage.isPhase1TestsPassed) {
-                        <p>Congratulations, you've passed this section and can now
-                            continue to the next section.</p>
+                        <p>Congratulations, you've passed this section and can now continue to the next section.</p>
+                        @displayPhase1TestResultsLinks(testsPage)
                     } else {
                         <p>You've completed this section, we'll send you an email when we have your results.
                             Make sure you check your junk inbox.</p>
+                        @displayPhase1TestResultsLinks(testsPage)
                     }
                     </div>
                 </li>
@@ -183,19 +212,18 @@
                     <p class="med-btm-margin" id="testsHeading"><i class="fa fa-minus the-icon"></i>
                         Online exercises</p>
                     <ul class="list-text list-withicons" id="testsIndividual">
-                        @{
-                            testsPage.tests.map { test =>
-                              if(test.completed) {
+                        @testsPage.tests.map { test =>
+                            @if(test.completed) {
                                 <li>
                                     <i class="fa fa-check the-icon"></i>
-                                    {Messages(test.testNameKey)} (untimed)
+                                    @Messages(test.testNameKey) (untimed)
+                                    @displayTestPageLink(test)
                                 </li>
-                              } else {
-                                  <li>
-                                      <i class="fa fa-minus the-icon"></i>
-                                      {Messages(test.testNameKey)} (untimed)
-                                  </li>
-                              }
+                            } else {
+                                <li>
+                                    <i class="fa fa-minus the-icon"></i>
+                                    @Messages(test.testNameKey) (untimed)
+                                </li>
                             }
                         }
                     </ul>
@@ -207,9 +235,9 @@
                             @helper.CSRF.formField
                             @{
                                 if(!testsPage.areStarted) {
-                                        <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
+                                    <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
                                 } else {
-                                        <button id="submit_online_tests" type="submit" value="submit" class="button">Continue section</button>
+                                    <button id="submit_online_tests" type="submit" value="submit" class="button">Continue section</button>
                                 }
                             }
                         }
@@ -225,6 +253,7 @@
                             <div id="etrayBlurb">
                                 <p>Congratulations, you've passed this section and can now
                                     continue to the next section.</p>
+                                @displayPhase2TestResultsLinks()
                             </div>
                         </li>
                     }
@@ -238,10 +267,11 @@
                                     .</p>
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                                     site for more opportunities with us.</p>
+                                @displayPhase2TestResultsLinks()
                             </div>
                         </li>
                     }
-                     case (_, false, true, _, _) => {
+                     case (_, false, true, _, Some(phase2Test)) => {
                         <li id="etraySection">
                             <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                                 E-tray</p>
@@ -249,6 +279,11 @@
                                 <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                                     site for more opportunities with us.</p>
+                                @phase2Test.tests.map { test =>
+                                    @Messages(test.testNameKey)
+                                    @displayTestPageLink(test)
+                                    </br>
+                                }
                             </div>
                         </li>
                     }
@@ -276,6 +311,11 @@
                                             You've completed this section, we'll send you an email when we have your results.
                                             Make sure you check your junk inbox.
                                         </p>
+                                        @phase2Test.tests.map { test =>
+                                            @Messages(test.testNameKey)
+                                            @displayTestPageLink(test)
+                                            </br>
+                                        }
                                     </div>
                                 </li>
                             } else {
@@ -284,19 +324,20 @@
                                         Exercises
                                     </p>
                                     <ul class="list-text list-withicons" id="testsIndividual">
-                                        @{ phase2Test.tests.map { test =>
-                                            if(test.completed) {
+                                        @phase2Test.tests.map { test =>
+                                            @if(test.completed) {
                                                 <li>
                                                     <i class="fa fa-check the-icon"></i>
-                                                    {Messages(test.testNameKey)}
+                                                    @Messages(test.testNameKey)
+                                                    @displayTestPageLink(test)
                                                 </li>
                                             } else {
                                                 <li>
                                                     <i class="fa fa-minus the-icon"></i>
-                                                    {Messages(test.testNameKey)}
+                                                    @Messages(test.testNameKey)
                                                 </li>
                                             }
-                                        }}
+                                        }
                                     </ul>
                                     @{eTraySection(phase2Test)}
                                 </li>
@@ -394,4 +435,3 @@
     <p id="testsFindOutMore"><a href="https://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
         Find out more about the online tests</a></p>
 }
-
