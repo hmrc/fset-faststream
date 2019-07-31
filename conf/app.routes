@@ -186,6 +186,7 @@ GET         /online-test/phase3/candidate/:applicationId                 control
 POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
 POST        /online-test/psi/phase1/reset/:applicationId                 controllers.OnlineTestController.resetPhase1OnlineTests(applicationId: String)
 POST        /online-test/phase2/reset/:applicationId                     controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
+POST        /online-test/psi/phase2/reset/:applicationId                 controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
 POST        /online-test/phase3/reset/:applicationId                     controllers.OnlineTestController.resetPhase3OnlineTest(applicationId: String)
 
 POST        /online-test/phase2/verifyAccessCode                         controllers.OnlineTestController.verifyAccessCode()
