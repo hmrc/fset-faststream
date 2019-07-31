@@ -80,7 +80,7 @@ abstract class HomeController(
             case _ if !isSiftEntered && !isSiftReady && !isPhase3TestsPassed && !isAllocatedToAssessmentCentre => {
               dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
             }
-            case _ => displayPostOnlineTestsPage
+            case _ => displayPostOnlineTestsDashboard
           }
         }.getOrElse {
           dashboardWithoutApplication
@@ -116,7 +116,7 @@ abstract class HomeController(
       }
   }
 
-  private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
+  private def displayPostOnlineTestsDashboard(implicit application: ApplicationData, cachedData: CachedData,
     request: Request[_], hc: HeaderCarrier) = {
     for {
       allSchemes <- refDataClient.allSchemes()

@@ -270,6 +270,9 @@ trait ApplicationClient {
     }
   }
 
+  // TODO: Delete this, if we complete Phase3TestGroup in frontend to match the backend, we can remove this,
+  // although we will need to bring a lot of data structures front back end. Maybe we can create a field that will contain
+  // what we need competency and engagement and then we populate it
   def getPhase3Results(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[List[SchemeEvaluationResult]]] = {
     http.GET(s"$apiBaseUrl/application/$appId/phase3/results").map { response =>
       Some(response.json.as[List[SchemeEvaluationResult]])
