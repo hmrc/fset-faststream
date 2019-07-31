@@ -34,21 +34,37 @@ case class ReviewedCallbackRequest(
   val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))
 
   def calculateTotalScore(): Double = {
-
     def scoreForQuestion(question: ReviewSectionQuestionRequest) = {
       BigDecimal(question.reviewCriteria1.score.getOrElse(0.0)) + BigDecimal(question.reviewCriteria2.score.getOrElse(0.0))
     }
-    (
-      scoreForQuestion(latestReviewer.question1) +
-      scoreForQuestion(latestReviewer.question2) +
-      scoreForQuestion(latestReviewer.question3) +
-      scoreForQuestion(latestReviewer.question4) +
-      scoreForQuestion(latestReviewer.question5) +
-      scoreForQuestion(latestReviewer.question6) +
-      scoreForQuestion(latestReviewer.question7) +
-      scoreForQuestion(latestReviewer.question8)
-    ).toDouble
+    aggregateScoresForAllQuestion(scoreForQuestion)
+  }
 
+  def calculateReviewCriteria1Score(): Double = {
+    def scoreInCriteria1ForQuestion(question: ReviewSectionQuestionRequest) = {
+      BigDecimal(question.reviewCriteria1.score.getOrElse(0.0))
+    }
+    aggregateScoresForAllQuestion(scoreInCriteria1ForQuestion)
+  }
+
+  def calculateReviewCriteria2Score(): Double = {
+    def scoreInCriteria2ForQuestion(question: ReviewSectionQuestionRequest) = {
+      BigDecimal(question.reviewCriteria2.score.getOrElse(0.0))
+    }
+    aggregateScoresForAllQuestion(scoreInCriteria2ForQuestion)
+  }
+
+  private def aggregateScoresForAllQuestion(scoreExtractor: ReviewSectionQuestionRequest => BigDecimal) = {
+    (
+      scoreExtractor(latestReviewer.question1) +
+        scoreExtractor(latestReviewer.question2) +
+        scoreExtractor(latestReviewer.question3) +
+        scoreExtractor(latestReviewer.question4) +
+        scoreExtractor(latestReviewer.question5) +
+        scoreExtractor(latestReviewer.question6) +
+        scoreExtractor(latestReviewer.question7) +
+        scoreExtractor(latestReviewer.question8)
+      ).toDouble
   }
 
   def allQuestionsReviewed: Boolean = {
