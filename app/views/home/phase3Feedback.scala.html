@@ -16,7 +16,7 @@
 
 @import models.page.Phase3CompetencyFeedback
 @import models.page.Phase3FeedbackPage
-@(page: Phase3FeedbackPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@(pageOpt: Option[Phase3FeedbackPage])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @returnToHomePage = {
     <a href="@routes.HomeController.present()">Return to homepage</a>
@@ -31,7 +31,7 @@
         <div class="grid grid-1-3">
             <div class="page-link">
                 <p>
-                    @returnToHomePage
+                @returnToHomePage
                 </p>
                 <p>
                     <a href="" class="print-trigger" id="printLink"><i class="fa fa-print"></i>Print this page</a>
@@ -40,30 +40,36 @@
         </div>
     </div>
 
-    <div class="text">
+    @pageOpt.map { page =>
+
+        <div class="text">
         <p>Thank you for undertaking this assessment - we hope you found it interesting to do. This feedback sheet provides
             a summary of what was assessed and then describes your overall performance, along with some relevant development
             suggestions.</p>
-    </div>
+        </div>
 
-    <h2 class="heading-large">Description</h2>
-    <div class="text">
-        <p>This Video Interview asks you to respond to a series of questions relating to a range of criteria regarding your
-            experience and also what you enjoy and find energising. Your score relates to your capability to do things and
-            also to how engaged and motivated you feel about those areas - these two aspects are presented separately below.</p>
-    </div>
+        <h2 class="heading-large">Description</h2>
+        <div class="text">
+            <p>This Video Interview asks you to respond to a series of questions relating to a range of criteria regarding your
+                experience and also what you enjoy and find energising. Your score relates to your capability to do things and
+                also to how engaged and motivated you feel about those areas - these two aspects are presented separately below.</p>
+        </div>
 
-    <h2 class="heading-large">Capability</h2>
-    <h2 class="heading-small">Feedback on performance</h2>
-    <p class="text">@page.capabilityFeedback.feedbackOnPerformance</p>
-    <h2 class="heading-small">Suggestions for further development</h2>
-    <p class="text">@page.capabilityFeedback.suggestionsForFurtherDevelopment</p>
+        <h2 class="heading-large">Capability</h2>
+        <h2 class="heading-small">Feedback on performance</h2>
+        <p class="text">@page.capabilityFeedback.feedbackOnPerformance</p>
+        <h2 class="heading-small">Suggestions for further development</h2>
+        <p class="text">@page.capabilityFeedback.suggestionsForFurtherDevelopment</p>
 
-    <h2 class="heading-large">Engagement</h2>
-    <h2 class="heading-small">Feedback on performance</h2>
-    <p class="text">@page.engagementFeedback.feedbackOnPerformance</p>
-    <h2 class="heading-small">Suggestions for further development</h2>
-    <p class="text">@page.engagementFeedback.suggestionsForFurtherDevelopment</p>
+        <h2 class="heading-large">Engagement</h2>
+        <h2 class="heading-small">Feedback on performance</h2>
+        <p class="text">@page.engagementFeedback.feedbackOnPerformance</p>
+        <h2 class="heading-small">Suggestions for further development</h2>
+        <p class="text">@page.engagementFeedback.suggestionsForFurtherDevelopment</p>
 
-    <p class="hide-print">@returnToHomePage</p>
+        <p class="hide-print">@returnToHomePage</p>
+    }
+    @if(pageOpt.isEmpty){ // TODO: Think is we need this or what want a different way of dealing with not having tests
+        <p class="text">There is no feedback report for this candidate.</p>
+    }
 }

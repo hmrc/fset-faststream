@@ -17,6 +17,7 @@
 package services
 
 import connectors.ApplicationClient
+import connectors.ApplicationClient.OnlineTestNotFound
 import models.UniqueIdentifier
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -26,7 +27,7 @@ import scala.concurrent.Future
 trait Phase3FeedbackService {
   val applicationClient: ApplicationClient
 
-  def getFeedback(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[(String, String)] = {
+  def getFeedback(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[(String, String)]] = {
     object OverallScore extends Enumeration {
       type OverallScore = Value
       val Low, Medium, High = Value
@@ -46,12 +47,20 @@ trait Phase3FeedbackService {
 
 
     applicationClient.getPhase3TestGroup(applicationId).map { phase3TestGroup =>
-      // TODO: Find out how to retrieve the best results if there are many
-      val testResults = phase3TestGroup.activeTests.reverse.head.callbacks.reviewed.reverse.head
-      val criteria1Score = getOverallScore(testResults.calculateReviewCriteria1Score()).toString
-      val criteria2Score = getOverallScore(testResults.calculateReviewCriteria2Score()).toString
-      (criteria1Score, criteria2Score)
-    }
+      val testResultsOpt = phase3TestGroup.activeTests.headOption
+      val latestReviewedOpt = testResultsOpt.flatMap(testResults =>
+        testResults.callbacks.getLatestReviewed
+      )
+      latestReviewedOpt.map(latestReviewed => {
+        val criteria1Score = getOverallScore(latestReviewed.calculateReviewCriteria1Score()).toString
+        val criteria2Score = getOverallScore(latestReviewed.calculateReviewCriteria2Score()).toString
+        (criteria1Score, criteria2Score)
+      }
+      )
+    }.recoverWith({
+      // TODO: Maybe we should let the exception to propagate and show eventually a 500.
+      case e: OnlineTestNotFound => Future.successful(None)
+    })
   }
 }
 

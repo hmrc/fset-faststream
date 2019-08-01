@@ -72,6 +72,7 @@ object ReviewSectionRequest {
 }
 
 case class ReviewedCallbackRequest(
+  received: DateTime,
   reviews: ReviewSectionRequest) {
 
   val reviewers = reviews.reviewers
@@ -126,8 +127,10 @@ object ReviewedCallbackRequest {
 }
 
 case class LaunchpadTestCallbacks(
-  reviewed: List[ReviewedCallbackRequest] = Nil
-)
+  reviewed: List[ReviewedCallbackRequest] = Nil)  {
+  def getLatestReviewed: Option[ReviewedCallbackRequest] =
+    reviewed.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption
+}
 
 object LaunchpadTestCallbacks {
   implicit val launchpadTestCallbacksFormat = Json.format[LaunchpadTestCallbacks]

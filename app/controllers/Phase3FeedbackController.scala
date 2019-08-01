@@ -32,13 +32,13 @@ object Phase3FeedbackController extends Phase3FeedbackController(Phase3FeedbackS
 
 abstract class Phase3FeedbackController(phase3FeedbackService: Phase3FeedbackService) extends BaseController {
 
-  def present(applicationId: UniqueIdentifier): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
+  def present: Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>
       implicit cachedData =>
         for {
-          feedback <- phase3FeedbackService.getFeedback(applicationId)
+          feedbackOpt <- phase3FeedbackService.getFeedback(cachedData.application.get.applicationId)
         } yield {
-          Ok(views.html.home.phase3Feedback(Phase3FeedbackPage(feedback)))
+          Ok(views.html.home.phase3Feedback(feedbackOpt.map(Phase3FeedbackPage(_))))
         }
   }
 }

@@ -121,10 +121,8 @@
     }
 }
 
-@displayPhase3TestResultsLinks(cachedUserData: CachedData) = {
-    @cachedUserData.application.map(_.applicationId).map { applicationId =>
-        <a href="@routes.Phase3FeedbackController.present(applicationId)" target="_blank">Results report</a>
-    }
+@displayPhase3TestResultsLinks() = {
+        <a href="@routes.Phase3FeedbackController.present" target="_blank">Results report</a>
 }
 
 @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
@@ -377,7 +375,7 @@
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                                     site for more opportunities with us.</p>
                             </div>
-                            @displayPhase3TestResultsLinks(cachedUserData)
+                            @displayPhase3TestResultsLinks
                         </li>
                     }
 

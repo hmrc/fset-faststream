@@ -17,9 +17,8 @@
 package models.page
 
 import play.api.Play.current
-import play.api.i18n.Messages.Implicits._
 import play.api.i18n.Messages
-import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.i18n.Messages.Implicits._
 
 case class Phase3CompetencyFeedback(feedbackOnPerformance: String, suggestionsForFurtherDevelopment: String)
 
@@ -30,14 +29,12 @@ case class Phase3FeedbackPage(
 
 case object Phase3FeedbackPage {
   def apply(feedback: (String, String)): Phase3FeedbackPage = {
-
     val competencyFeedback = Phase3CompetencyFeedback(
       Messages(s"phase3.feedback.capability.feedbackOnPerformance.${feedback._1}"),
       Messages(s"phase3.feedback.capability.suggestionsForFurtherDevelopment.${feedback._1}"))
     val engagementFeedback = Phase3CompetencyFeedback(
       Messages(s"phase3.feedback.engagement.feedbackOnPerformance.${feedback._2}"),
       Messages(s"phase3.feedback.engagement.suggestionsForFurtherDevelopment.${feedback._2}"))
-
     Phase3FeedbackPage(competencyFeedback, engagementFeedback)
   }
 }
