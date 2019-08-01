@@ -82,8 +82,5 @@ object ReviewedCallbackRequest {
   import repositories.BSONLocalDateHandler
   implicit val bsonHandler: BSONHandler[BSONDocument, ReviewedCallbackRequest] = Macros.handler[ReviewedCallbackRequest]
 
-  def getLatestReviewed(reviewCallBacks: List[ReviewedCallbackRequest]): Option[ReviewedCallbackRequest] =
-    reviewCallBacks.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption
-
   case class LaunchpadQuestionIsUnscoredException(message: String) extends Exception(message)
 }

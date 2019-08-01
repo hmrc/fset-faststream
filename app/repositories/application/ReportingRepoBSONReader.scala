@@ -18,23 +18,24 @@ package repositories.application
 
 import config.MicroserviceAppConfig._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewedCallbackRequest }
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ReviewSectionQuestionRequest, ReviewedCallbackRequest}
 import model._
 import model.ApplicationRoute.ApplicationRoute
-import model.ApplicationStatus.{ apply => _ }
-import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _ }
+import model.ApplicationStatus.{apply => _}
+import model.CivilServiceExperienceType.{CivilServiceExperienceType, apply => _}
 import model.Commands._
-import model.InternshipType.{ InternshipType, apply => _ }
+import model.InternshipType.{InternshipType, apply => _}
 import model.OnlineTestCommands.TestResult
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.command._
 import model.persisted._
+import model.persisted.phase3tests.LaunchpadTestCallbacks
 import model.persisted.sift.SiftTestGroup
 import model.report._
 import play.api.Logger
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.{ BaseBSONReader, CommonBSONDocuments, CurrentSchemeStatusHelper }
+import reactivemongo.bson.{BSONDocument, _}
+import repositories.{BaseBSONReader, CommonBSONDocuments, CurrentSchemeStatusHelper}
 
 trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
@@ -344,12 +345,12 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   }
 
   private[application] def toPhase3TestResults(testGroupsDoc: Option[BSONDocument]): Option[VideoInterviewTestResult] = {
-    val reviewedDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE3))
+    val callsbacksDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE3))
       .flatMap(_.getAs[BSONArray]("tests")).flatMap(_.getAs[BSONDocument](0))
-      .flatMap(_.getAs[BSONDocument]("callbacks")).flatMap(_.getAs[List[BSONDocument]]("reviewed"))
+      .flatMap(_.getAs[BSONDocument]("callbacks"))
 
-    val reviewed = reviewedDocOpt.map (_.map(ReviewedCallbackRequest.bsonHandler.read))
-    val latestReviewedOpt = reviewed.flatMap(getLatestReviewed)
+    val callsbacksOpt = callsbacksDocOpt.map(LaunchpadTestCallbacks.bsonHandler.read)
+    val latestReviewedOpt = callsbacksOpt.flatMap(_.getLatestReviewed)
 
     latestReviewedOpt.map { latestReviewed =>
       VideoInterviewTestResult(

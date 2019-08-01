@@ -52,7 +52,7 @@ trait EvaluatePhase3ResultService2 extends EvaluateOnlineTestResultService2[Phas
     require(optLaunchpadTest.isDefined, "Active launchpad test not found")
     require(application.prevPhaseEvaluation.isDefined, "Phase2 results required to evaluate Phase3")
 
-    val optLatestReviewed = optLaunchpadTest.map(_.callbacks.reviewed).flatMap(getLatestReviewed)
+    val optLatestReviewed = optLaunchpadTest.flatMap(_.callbacks.getLatestReviewed)
 
     val allQuestionsReviewed = optLatestReviewed.exists(_.allQuestionsReviewed)
 

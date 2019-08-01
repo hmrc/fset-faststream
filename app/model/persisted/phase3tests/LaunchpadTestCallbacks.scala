@@ -29,7 +29,12 @@ case class LaunchpadTestCallbacks(
                                  finalCallback: List[FinalCallbackRequest] = Nil,
                                  finished: List[FinishedCallbackRequest] = Nil,
                                  reviewed: List[ReviewedCallbackRequest] = Nil
-                     )
+                     ) {
+  def getLatestReviewed: Option[ReviewedCallbackRequest] =
+    reviewed.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption
+}
+
+
 
 object LaunchpadTestCallbacks {
   implicit val launchpadTestCallbacksFormat = Json.format[LaunchpadTestCallbacks]
