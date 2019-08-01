@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.CannotFindTestByOrderId
+import model.Exceptions.CannotFindTestByOrderIdException
 import model.exchange.PsiRealTimeResults
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -59,7 +59,7 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
     "mark the phase2 test as started" in {
       when(mockPhase1TestService2.markAsStarted2(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockPhase2TestService2.markAsStarted2(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
@@ -69,9 +69,9 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
     "return test not found" in {
       when(mockPhase1TestService2.markAsStarted2(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockPhase2TestService2.markAsStarted2(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
 
       val response = controllerUnderTest.start(orderId)(fakeRequest(""))
       status(response) mustBe NOT_FOUND
@@ -89,7 +89,7 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
     "mark the phase2 test as completed" in {
       when(mockPhase1TestService2.markAsCompleted2(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockPhase2TestService2.markAsCompleted2(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
@@ -99,11 +99,11 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
     "return test not found" in {
       when(mockPhase1TestService2.markAsCompleted2(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockPhase2TestService2.markAsCompleted2(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockNumericalTestService2.markAsCompletedByOrderId(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
 
       val response = controllerUnderTest.completeTestByOrderId(orderId)(fakeRequest)
       status(response) mustBe NOT_FOUND
@@ -122,7 +122,7 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
     "process the phase2 test results" in {
       when(mockPhase1TestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockPhase2TestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
@@ -132,9 +132,9 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
     "process the numeric test  results" in {
       when(mockPhase1TestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockPhase2TestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockNumericalTestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
@@ -144,11 +144,11 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
     "return test not found" in {
       when(mockPhase1TestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockPhase2TestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockNumericalTestService2.storeRealTimeResults(eqTo(orderId), eqTo(testResults))(any[HeaderCarrier], any[RequestHeader])
-      ).thenReturn(Future.failed(CannotFindTestByOrderId("")))
+      ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
 
       val response = controllerUnderTest.realTimeResults(orderId)(fakeRequest(testResults))
       status(response) mustBe NOT_FOUND

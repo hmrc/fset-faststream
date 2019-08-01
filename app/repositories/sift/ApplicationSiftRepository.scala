@@ -260,7 +260,7 @@ class ApplicationSiftMongoRepository(
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(doc) => doc.getAs[String]("applicationId").get
-      case _ => throw CannotFindApplicationByOrderId(s"Cannot find application by orderId Id: $orderId")
+      case _ => throw CannotFindApplicationByOrderIdException(s"Cannot find application by orderId Id: $orderId")
     }
   }
 
@@ -729,7 +729,7 @@ class ApplicationSiftMongoRepository(
   private def getTestGroupWithAppIdByQuery2(query: BSONDocument): Future[MaybeSiftTestGroupWithAppId2] = {
     val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
 
-    val ex = CannotFindTestByOrderId(s"Cannot find test group for query: ${BSONDocument.pretty(query)}")
+    val ex = CannotFindTestByOrderIdException(s"Cannot find test group for query: ${BSONDocument.pretty(query)}")
     collection.find(query, projection).one[BSONDocument] map {
       case Some(doc) =>
         val appId = doc.getAs[String]("applicationId").get

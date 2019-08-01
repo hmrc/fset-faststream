@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.{ CannotFindApplicationByOrderId, CannotFindTestByOrderId }
+import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByOrderIdException }
 import model.exchange.{ PsiRealTimeResults, PsiTestResultReady }
 import play.api.Logger
 import play.api.libs.json.Json
@@ -63,9 +63,9 @@ trait PsiTestsController extends BaseController {
   def completeTestByOrderId(orderId: String): Action[AnyContent] = Action.async { implicit request =>
     Logger.info(s"Complete psi test by orderId=$orderId")
     phase1TestService2.markAsCompleted2(orderId)
-      .recoverWith { case _: CannotFindTestByOrderId =>
+      .recoverWith { case _: CannotFindTestByOrderIdException =>
           phase2TestService2.markAsCompleted2(orderId).recoverWith {
-            case _: CannotFindTestByOrderId =>
+            case _: CannotFindTestByOrderIdException =>
                 numericalTestService2.markAsCompletedByOrderId(orderId)
             }
       }.map(_ => Ok).recover(recoverNotFound)
@@ -78,7 +78,7 @@ trait PsiTestsController extends BaseController {
         s"Payload(json) = [${Json.toJson(testResultReady).toString}], (deserialized) = [$testResultReady]")
 
       phase1TestService2.markAsReportReadyToDownload2(orderId, testResultReady)
-        .recoverWith { case _: CannotFindTestByOrderId =>
+        .recoverWith { case _: CannotFindTestByOrderIdException =>
           phase2TestService2.markAsReportReadyToDownload2(orderId, testResultReady)
         }.map(_ => Ok)
         .recover(recoverNotFound)
@@ -100,9 +100,9 @@ trait PsiTestsController extends BaseController {
         s"Payload(json) = [${Json.toJson(realTimeResults).toString}], (deserialized) = [$realTimeResults]")
 
       phase1TestService2.storeRealTimeResults(orderId, realTimeResults)
-        .recoverWith { case _: CannotFindTestByOrderId =>
+        .recoverWith { case _: CannotFindTestByOrderIdException =>
           phase2TestService2.storeRealTimeResults(orderId, realTimeResults).recoverWith {
-            case _: CannotFindTestByOrderId =>
+            case _: CannotFindTestByOrderIdException =>
               numericalTestService2.storeRealTimeResults(orderId, realTimeResults)
           }
         }.map(_ => Ok).recover(recoverNotFound)
@@ -110,10 +110,10 @@ trait PsiTestsController extends BaseController {
   }
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
-    case e @ CannotFindTestByOrderId(msg) =>
+    case e @ CannotFindTestByOrderIdException(msg) =>
       Logger.warn(msg, e)
       NotFound(msg)
-    case e @ CannotFindApplicationByOrderId(msg) =>
+    case e @ CannotFindApplicationByOrderIdException(msg) =>
       Logger.warn(msg, e)
       NotFound(msg)
   }

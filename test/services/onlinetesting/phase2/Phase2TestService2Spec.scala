@@ -22,7 +22,7 @@ import connectors.ExchangeObjects.{ AssessmentOrderAcknowledgement, RegisterCand
 import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
-import model.Exceptions.{ CannotFindTestByOrderId, ContactDetailsNotFoundForEmail, ExpiredTestForTokenException, InvalidTokenException }
+import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.Phase2TestExamples._
 import model.ProgressStatuses.{ toString => _, _ }
@@ -209,7 +209,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       val result = phase2TestService.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
-      exception mustBe an[CannotFindTestByOrderId]
+      exception mustBe an[CannotFindTestByOrderIdException]
       exception.getMessage mustBe s"Application not found for test for orderId=$orderId"
     }
 
@@ -217,13 +217,13 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(applicationId))
 
       when(otRepositoryMock2.getTestProfileByOrderId(any[String])).thenReturn(Future.failed(
-        CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
+        CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
       ))
 
       val result = phase2TestService.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
-      exception mustBe an[CannotFindTestByOrderId]
+      exception mustBe an[CannotFindTestByOrderIdException]
       exception.getMessage mustBe s"Cannot find test group by orderId=$orderId"
     }
 

@@ -137,17 +137,17 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
       // Fetch existing test group that should exist
       testGroupOpt <- testRepository2.getTestGroup(application.applicationId)
       testGroup = testGroupOpt
-        .getOrElse(throw CannotFindTestGroupByApplicationId(s"appId - ${application.applicationId}"))
+        .getOrElse(throw CannotFindTestGroupByApplicationIdException(s"appId - ${application.applicationId}"))
 
       // Extract test that requires reset
       testToReset = testGroup.tests.find(_.orderId == orderIdToReset)
-        .getOrElse(throw CannotFindTestByOrderId(s"OrderId - $orderIdToReset"))
+        .getOrElse(throw CannotFindTestByOrderIdException(s"OrderId - $orderIdToReset"))
       _ = Logger.info(s"testToReset -- $testToReset")
 
       // Create PsiIds to use for re-invitation
       psiIds = integrationGatewayConfig.phase2Tests.tests.find {
         case (_, ids) => ids.inventoryId == testToReset.inventoryId
-      }.getOrElse(throw CannotFindTestByInventoryId(s"InventoryId - ${testToReset.inventoryId}"))._2
+      }.getOrElse(throw CannotFindTestByInventoryIdException(s"InventoryId - ${testToReset.inventoryId}"))._2
       _ = Logger.info(s"psiIds -- $psiIds")
 
       // Register applicant
@@ -545,7 +545,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
                       results: PsiRealTimeResults): Future[Unit] =
       testRepository2.insertTestResult2(
         applicationId,
-        testProfile.testGroup.tests.find(_.orderId == orderId).getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
+        testProfile.testGroup.tests.find(_.orderId == orderId).getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId")),
         model.persisted.PsiTestResult.fromCommandObject(results)
       )
 
@@ -574,18 +574,18 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
           Logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId")
           Future.successful(())
         }
-      }.getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+      }.getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId"))
     }
 
     (for {
       appIdOpt <- testRepository2.getApplicationIdForOrderId(orderId, "PHASE2")
     } yield {
-      val appId = appIdOpt.getOrElse(throw CannotFindTestByOrderId(s"Application not found for test for orderId=$orderId"))
+      val appId = appIdOpt.getOrElse(throw CannotFindTestByOrderIdException(s"Application not found for test for orderId=$orderId"))
       for {
         profile <- testRepository2.getTestProfileByOrderId(orderId)
         _ <- markTestAsCompleted(profile)
         _ <- profile.testGroup.tests.find(_.orderId == orderId).map { test => insertResults(appId, test.orderId, profile, results) }
-          .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+          .getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId"))
         _ <- maybeUpdateProgressStatus(appId)
       } yield ()
     }).flatMap(identity)

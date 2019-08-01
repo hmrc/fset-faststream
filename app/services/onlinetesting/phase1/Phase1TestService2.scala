@@ -34,6 +34,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.{ Phase1TestRepository, Phase1TestRepository2 }
 import services.AuditService
+import services.onlinetesting.Exceptions.{ TestCancellationException, TestRegistrationException }
 import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
 import services.sift.ApplicationSiftService
 import services.stc.StcEventService
@@ -131,17 +132,20 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
       // Fetch existing test group that should exist
       maybeTestGroup <- testRepository2.getTestGroup(application.applicationId)
       testGroup = maybeTestGroup
-        .getOrElse(throw CannotFindTestGroupByApplicationId(s"appId - ${application.applicationId}"))
+        .getOrElse(throw CannotFindTestGroupByApplicationIdException(s"appId - ${application.applicationId}"))
 
       // Extract test that requires reset
       testToReset = testGroup.tests.find(_.orderId == orderIdToReset)
-        .getOrElse(throw CannotFindTestByOrderId(s"OrderId - $orderIdToReset"))
+        .getOrElse(throw CannotFindTestByOrderIdException(s"OrderId - $orderIdToReset"))
       _ = Logger.info(s"testToReset -- $testToReset")
+
+      // Send cancellation request
+      _ <- cancelPsiTest(application.applicationId, application.userId, orderIdToReset)
 
       // Create PsiIds to use for re-invitation
       psiIds = integrationGatewayConfig.phase1Tests.tests.find {
         case (_, ids) => ids.inventoryId == testToReset.inventoryId
-      }.getOrElse(throw CannotFindTestByInventoryId(s"InventoryId - ${testToReset.inventoryId}"))._2
+      }.getOrElse(throw CannotFindTestByInventoryIdException(s"InventoryId - ${testToReset.inventoryId}"))._2
       _ = Logger.info(s"psiIds -- $psiIds")
 
       // Register applicant
@@ -159,6 +163,8 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
       _ = Logger.info(s"updatedTests -- $updatedTests")
 
       _ <- markAsInvited2(application)(Phase1TestProfile2(expirationDate, updatedTests))
+      emailAddress <- candidateEmailAddress(application.userId)
+      _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
     } yield {
       List(
         AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "orderId" -> orderIdToReset)),
@@ -182,7 +188,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
         val msg = s"Received response status of ${aoa.status} when registering candidate " +
           s"${application.applicationId} to phase1 tests with testIds $testIds"
         Logger.warn(msg)
-        throw new RuntimeException(msg)
+        throw TestRegistrationException(msg)
       } else {
         PsiTest(
           inventoryId = testIds.inventoryId,
@@ -221,6 +227,22 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest).map { response =>
       audit("UserRegisteredForOnlineTest", application.userId)
       response
+    }
+  }
+
+  private def cancelPsiTest(appId: String,
+                            userId: String,
+                            orderId: String): Future[AssessmentCancelAcknowledgementResponse] = {
+    val req = CancelCandidateTestRequest(orderId)
+    onlineTestsGatewayClient.psiCancelTest(req).map { response =>
+      Logger.debug(s"Response from cancellation for orderId=$orderId")
+      if (response.status != AssessmentCancelAcknowledgementResponse.completedStatus) {
+        Logger.debug(s"Cancellation failed with errors: ${response.details}")
+        throw TestCancellationException(s"appId=$appId, orderId=$orderId")
+      } else {
+        audit("TestCancelledForCandidate", userId)
+        response
+      }
     }
   }
 
@@ -306,7 +328,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     def insertResults(applicationId: String, orderId: String, testProfile: Phase1TestProfile2, results: PsiRealTimeResults): Future[Unit] =
       testRepository2.insertTestResult2(
         applicationId,
-        testProfile.tests.find(_.orderId == orderId).getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
+        testProfile.tests.find(_.orderId == orderId).getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId")),
         model.persisted.PsiTestResult.fromCommandObject(results)
       )
 
@@ -335,18 +357,18 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
           Logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId")
           Future.successful(())
         }
-      }.getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+      }.getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId"))
 
 
     (for {
       appIdOpt <- testRepository2.getApplicationIdForOrderId(orderId)
     } yield {
-      val appId = appIdOpt.getOrElse(throw CannotFindTestByOrderId(s"Application not found for test for orderId=$orderId"))
+      val appId = appIdOpt.getOrElse(throw CannotFindTestByOrderIdException(s"Application not found for test for orderId=$orderId"))
       for {
         profile <- testRepository2.getTestProfileByOrderId(orderId)
         _ <- markTestAsCompleted(profile)
         _ <- profile.tests.find(_.orderId == orderId).map { test => insertResults(appId, test.orderId, profile, results) }
-          .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+          .getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId"))
         _ <- maybeUpdateProgressStatus(appId)
       } yield ()
     }).flatMap(identity)

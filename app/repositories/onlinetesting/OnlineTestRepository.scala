@@ -18,7 +18,7 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, CannotFindTestByOrderId }
+import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, CannotFindTestByOrderIdException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
@@ -106,7 +106,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
     } else {
       singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests",
-        CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId"))
+        CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId"))
     }
 
     collection.update(find, update) map validator
@@ -143,7 +143,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
   }
 
   def cannotFindTestByOrderId(orderId: String) = {
-    throw CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
+    throw CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
   }
 
   def updateTestCompletionTime2(orderId: String, completedTime: DateTime) = {
