@@ -116,6 +116,16 @@ abstract class HomeController(
       }
   }
 
+  // If the candidate is fast pass then there will be no P1 data
+  private def getPhase1DataIfCandidateIsNotFastPass(implicit application: ApplicationData, cachedData: CachedData,
+                                                    request: Request[_], hc: HeaderCarrier) = {
+    if (hasFastPassBeenApproved(cachedData)) {
+      Future.successful(None)
+    } else {
+      applicationClient.getPhase1TestProfile2(application.applicationId).map(Some(_))
+    }
+  }
+
   private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
     request: Request[_], hc: HeaderCarrier) = {
     for {
@@ -128,14 +138,24 @@ abstract class HomeController(
       siftEvaluation <- applicationClient.getSiftResults(application.applicationId)
       schemePreferences <- schemeClient.getSchemePreferences(application.applicationId)
       siftState <- applicationClient.getSiftState(application.applicationId)
+      phase1TestsWithNames <- getPhase1DataIfCandidateIsNotFastPass
+      phase2TestsWithNames <- getPhase2Test
+      phase3Tests <- getPhase3Test
     } yield {
+      val phase1DataOpt = phase1TestsWithNames.map(Phase1TestsPage(_))
+      val phase2DataOpt = phase2TestsWithNames.map(Phase2TestsPage2(_, None))
+      val phase3DataOpt = phase3Tests.map(Phase3TestsPage(_, None))
+
       val page = PostOnlineTestsPage(
         CachedUserWithSchemeData(cachedData.user, application, schemePreferences, allSchemes, phase3Evaluation, siftEvaluation, schemeStatus),
         allocationWithEvents,
         siftAnswersStatus,
         hasWrittenAnalysisExercise,
         allSchemes,
-        siftState
+        siftState,
+        phase1DataOpt,
+        phase2DataOpt,
+        phase3DataOpt
       )
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
