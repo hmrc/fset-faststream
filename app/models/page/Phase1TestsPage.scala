@@ -16,6 +16,7 @@
 
 package models.page
 
+import connectors.exchange.Phase1TestGroupWithNames2
 import org.joda.time.DateTime
 
 case class Phase1TestsPage2(expirationDate: DateTime,
@@ -26,7 +27,7 @@ case class Phase1TestsPage2(expirationDate: DateTime,
 }
 
 object Phase1TestsPage {
-  def apply(profile: connectors.exchange.Phase1TestGroupWithNames2): Phase1TestsPage2 = {
+  def apply(profile: Phase1TestGroupWithNames2): Phase1TestsPage2 = {
     Phase1TestsPage2(
       expirationDate = profile.expirationDate,
       tests = profile.activeTests.map(PsiTestPage.apply)
