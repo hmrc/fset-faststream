@@ -16,7 +16,6 @@
 
 package model.persisted
 
-import model.persisted.{ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport}
 import model.{ApplicationRoute, EvaluationResults, SchemeId}
 
 object ApplicationForDiversityReportExamples {

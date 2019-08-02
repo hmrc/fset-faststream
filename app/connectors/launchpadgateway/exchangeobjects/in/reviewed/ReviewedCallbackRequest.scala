@@ -34,36 +34,27 @@ case class ReviewedCallbackRequest(
   val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))
 
   def calculateTotalScore(): Double = {
-    def scoreForQuestion(question: ReviewSectionQuestionRequest) = {
-      BigDecimal(question.reviewCriteria1.score.getOrElse(0.0)) + BigDecimal(question.reviewCriteria2.score.getOrElse(0.0))
-    }
-    aggregateScoresForAllQuestion(scoreForQuestion)
+    calculateReviewCriteria1Score + calculateReviewCriteria2Score
   }
 
   def calculateReviewCriteria1Score(): Double = {
-    def scoreInCriteria1ForQuestion(question: ReviewSectionQuestionRequest) = {
-      BigDecimal(question.reviewCriteria1.score.getOrElse(0.0))
-    }
-    aggregateScoresForAllQuestion(scoreInCriteria1ForQuestion)
+    aggregateScoresForAllQuestion(question => question.reviewCriteria1)
   }
 
   def calculateReviewCriteria2Score(): Double = {
-    def scoreInCriteria2ForQuestion(question: ReviewSectionQuestionRequest) = {
-      BigDecimal(question.reviewCriteria2.score.getOrElse(0.0))
-    }
-    aggregateScoresForAllQuestion(scoreInCriteria2ForQuestion)
+    aggregateScoresForAllQuestion(question => question.reviewCriteria2)
   }
 
-  private def aggregateScoresForAllQuestion(scoreExtractor: ReviewSectionQuestionRequest => BigDecimal) = {
+  private def aggregateScoresForAllQuestion(scoreExtractor: ReviewSectionQuestionRequest => ReviewSectionCriteriaRequest) = {
     (
-      scoreExtractor(latestReviewer.question1) +
-        scoreExtractor(latestReviewer.question2) +
-        scoreExtractor(latestReviewer.question3) +
-        scoreExtractor(latestReviewer.question4) +
-        scoreExtractor(latestReviewer.question5) +
-        scoreExtractor(latestReviewer.question6) +
-        scoreExtractor(latestReviewer.question7) +
-        scoreExtractor(latestReviewer.question8)
+      BigDecimal(scoreExtractor(latestReviewer.question1).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question2).score.getOrElse(0.0))  +
+        BigDecimal(scoreExtractor(latestReviewer.question3).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question4).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question5).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question6).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question7).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question8).score.getOrElse(0.0))
       ).toDouble
   }
 

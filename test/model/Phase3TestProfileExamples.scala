@@ -78,8 +78,8 @@ object Phase3TestProfileExamples {
     )
   )
 
-  def buildReviewCallBack(criteriaScore: Double) = ReviewedCallbackRequest(
-    DateTime.now(),
+  def buildReviewCallBack(criteriaScore: Double, dateTime: DateTime = DateTime.now()) = ReviewedCallbackRequest(
+    dateTime,
     sampleCandidateId,
     sampleCustomCandidateId,
     sampleInterviewId,
