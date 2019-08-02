@@ -117,17 +117,12 @@ abstract class HomeController(
   }
 
   // If the candidate is fast pass then there will be no P1 data
-  private def getPhase1DataIfCandidateIsNotFassPass(implicit application: ApplicationData, cachedData: CachedData,
+  private def getPhase1DataIfCandidateIsNotFastPass(implicit application: ApplicationData, cachedData: CachedData,
                                                     request: Request[_], hc: HeaderCarrier) = {
-
     if (hasFastPassBeenApproved(cachedData)) {
       Future.successful(None)
     } else {
-      for {
-        phase1TestsWithNames <- applicationClient.getPhase1TestProfile2(application.applicationId)
-      } yield {
-        Option(phase1TestsWithNames)
-      }
+      applicationClient.getPhase1TestProfile2(application.applicationId).map(Some(_))
     }
   }
 
@@ -143,7 +138,7 @@ abstract class HomeController(
       siftEvaluation <- applicationClient.getSiftResults(application.applicationId)
       schemePreferences <- schemeClient.getSchemePreferences(application.applicationId)
       siftState <- applicationClient.getSiftState(application.applicationId)
-      phase1TestsWithNames <- getPhase1DataIfCandidateIsNotFassPass
+      phase1TestsWithNames <- getPhase1DataIfCandidateIsNotFastPass
       phase2TestsWithNames <- getPhase2Test
       phase3Tests <- getPhase3Test
     } yield {
