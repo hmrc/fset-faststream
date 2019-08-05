@@ -445,35 +445,11 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     }
   }
 
-  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
-                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase2Test(cubiksUserId, testRepository.updateTestStartTime(_: Int, startedTime)).flatMap { u =>
-      testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
-        DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
-      }
-    }
-  }
-
   def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase2Test2(orderId, testRepository2.updateTestStartTime(_: String, startedTime)).flatMap { u =>
       testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
         DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
-      }
-    }
-  }
-
-
-  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase2Test(cubiksUserId, testRepository.updateTestCompletionTime(_: Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
-      require(u.testGroup.activeTests.nonEmpty, s"Active tests cannot be found when marking phase2 test complete for cubiksId: $cubiksUserId")
-      val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
-      if (activeTestsCompleted) {
-        testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
-          DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
-        }
-      } else {
-        Future.successful(List.empty[StcEventType])
       }
     }
   }
@@ -490,23 +466,6 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
         }
       } else {
         Future.successful(List.empty[StcEventType])
-      }
-    }
-  }
-
-  def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    testRepository.getTestProfileByToken(token).flatMap { p =>
-      p.tests.find(_.token == token).map { test => markAsCompleted(test.cubiksUserId) }
-        .getOrElse(Future.successful(()))
-    }
-  }
-
-  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
-    updatePhase2Test(cubiksUserId, testRepository.updateTestReportReady(_: Int, reportReady)).flatMap { updated =>
-      if (updated.testGroup.activeTests forall (_.resultsReadyToDownload)) {
-        testRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
-      } else {
-        Future.successful(())
       }
     }
   }
