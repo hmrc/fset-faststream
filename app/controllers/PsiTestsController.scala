@@ -17,7 +17,7 @@
 package controllers
 
 import model.Exceptions.{ CannotFindApplicationByOrderId, CannotFindTestByOrderId }
-import model.exchange.{ PsiRealTimeResults, PsiTestResultReady }
+import model.exchange.PsiRealTimeResults
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Result }
@@ -69,29 +69,6 @@ trait PsiTestsController extends BaseController {
                 numericalTestService2.markAsCompletedByOrderId(orderId)
             }
       }.map(_ => Ok).recover(recoverNotFound)
-  }
-
-  // TODO: this method is now redundant
-  def markResultsReady(orderId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[PsiTestResultReady] { testResultReady =>
-      Logger.info(s"Psi test orderId=$orderId has results ready to download. " +
-        s"Payload(json) = [${Json.toJson(testResultReady).toString}], (deserialized) = [$testResultReady]")
-
-      phase1TestService2.markAsReportReadyToDownload2(orderId, testResultReady)
-        .recoverWith { case _: CannotFindTestByOrderId =>
-          phase2TestService2.markAsReportReadyToDownload2(orderId, testResultReady)
-        }.map(_ => Ok)
-        .recover(recoverNotFound)
-
-//      phase1TestService.markAsReportReadyToDownload2(orderId, testResultReady)
-//        .recoverWith { case _: CannotFindTestByCubiksId =>
-//          phase2TestService.markAsReportReadyToDownload(orderId, testResultReady).recoverWith {
-//            case _: CannotFindTestByCubiksId =>
-//              numericalTestService.markAsReportReadyToDownload(orderId, testResultReady)
-//          }
-//        }.map( _ => Ok )
-//        .recover(recoverNotFound)
-    }
   }
 
   def realTimeResults(orderId: String) = Action.async(parse.json) { implicit request =>
