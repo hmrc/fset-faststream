@@ -241,7 +241,7 @@ trait ApplicationClient {
   }
 
   def completeTestByOrderId(orderId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(s"$apiBaseUrl/psi/complete-by-orderId/$orderId", "").map(_ => ())
+    http.PUT(s"$apiBaseUrl/psi/$orderId/complete", "").map(_ => ())
   }
 
   // psi code end
