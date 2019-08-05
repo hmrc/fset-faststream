@@ -42,12 +42,15 @@ object PostOnlineTestsStage extends Enumeration {
 }
 
 case class PostOnlineTestsPage(
-    userDataWithSchemes: CachedUserWithSchemeData,
-    allocationsWithEvent: Seq[CandidateAllocationWithEvent],
-    additionalQuestionsStatus: Option[SiftAnswersStatus],
-    hasAnalysisExercise: Boolean,
-    schemes: List[Scheme],
-    siftState: Option[SiftState]
+                                userDataWithSchemes: CachedUserWithSchemeData,
+                                allocationsWithEvent: Seq[CandidateAllocationWithEvent],
+                                additionalQuestionsStatus: Option[SiftAnswersStatus],
+                                hasAnalysisExercise: Boolean,
+                                schemes: List[Scheme],
+                                siftState: Option[SiftState],
+                                phase1DataOpt: Option[Phase1TestsPage2],
+                                phase2DataOpt: Option[Phase2TestsPage2],
+                                phase3DataOpt: Option[Phase3TestsPage]
 ) {
   import PostOnlineTestsStage._
 

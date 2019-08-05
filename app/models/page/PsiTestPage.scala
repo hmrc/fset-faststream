@@ -16,6 +16,8 @@
 
 package models.page
 
+import connectors.exchange.PsiTest
+
 case class PsiTestPage(orderId: String,
                        inventoryId: String,
                        testReportUrl: Option[String],
@@ -25,7 +27,7 @@ case class PsiTestPage(orderId: String,
 }
 
 object PsiTestPage {
-  def apply(test: connectors.exchange.PsiTest): PsiTestPage = {
+  def apply(test: PsiTest): PsiTestPage = {
     new PsiTestPage(
       orderId = test.orderId.toString,
       inventoryId = test.inventoryId,

@@ -22,7 +22,7 @@ import config.{ CSRHttp, SecurityEnvironmentImpl }
 import connectors._
 import connectors.exchange.referencedata.SchemeId
 import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound }
-import connectors.exchange.sift.{ SiftAnswersStatus, SiftState }
+import connectors.exchange.sift.SiftAnswersStatus
 import connectors.exchange._
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
@@ -42,10 +42,11 @@ import testkit.MockitoImplicits._
 import scala.concurrent.Future
 import java.io.File
 import java.nio.file.Path
+import java.util.UUID
 
 import connectors.ReferenceDataExamples.Schemes
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
-import models.events.{ AllocationStatuses, EventType }
+import models.events.AllocationStatuses
 import org.joda.time.DateTime
 import play.api.test.{ FakeHeaders, FakeRequest }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -61,6 +62,55 @@ class HomeControllerSpec extends BaseControllerSpec {
   }
 
   "present" should {
+    "display the expected test result urls in the post online tests page" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None
+      }
+
+      val sift = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.SiftApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        ReferenceDataExamples.Schemes.Dip
+      ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(None)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
+
+      mockPostOnlineTestsDashboardCalls()
+
+      val phase1Test1InventoryId = "45c7aee3-4d23-45c7-a09d-276df7db3e4c"
+      val phase1Test1 = PsiTest(inventoryId = phase1Test1InventoryId, usedForResults = true,
+        testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
+        invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http:phase1Test1Url.com"))))
+
+      val phase2Test1InventoryId = "60b423e5-75d6-4d31-b02c-97b8686e22e6"
+      val phase2Test1 = PsiTest(inventoryId = phase2Test1InventoryId, usedForResults = true,
+        testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
+        invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http:phase2Test1Url.com"))))
+
+      mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
+
+      val result = controller(sift, applicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+
+      content must include("Phase 1 results")
+      content must include("<div>FS Work Style Questionnaire Part 1</div>")
+      content must include("<a href=\"http:phase1Test1Url.com\" target=\"_blank\">Results report</a>")
+      content must include("Phase 2 results")
+      content must include("<div>FS Case Study Assessment</div>")
+      content must include("<a href=\"http:phase2Test1Url.com\" target=\"_blank\">Results report</a>")
+      content must include("Phase 3 results")
+    }
+
     "display home page" in new TestFixture {
       val previewApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
@@ -71,7 +121,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
       val result = controller(previewApp).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content mustNot include("Fast Stream applications are now closed")
       content must include("""<ol class="step-by-step-coloured " id="sixSteps">""")
@@ -92,7 +142,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
       val result = controller(previewApp, applicationRouteState).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include("Applications are now closed")
       content must include("""<ol class="step-by-step-coloured disabled" id="sixSteps">""")
@@ -122,8 +172,10 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       mockPostOnlineTestsDashboardCalls()
 
+      mockPhaseOneTwoThreeData()
+
       val result = controller(sift, applicationRouteState).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
 
       content must include("Your current schemes are detailed below:")
@@ -136,7 +188,6 @@ class HomeControllerSpec extends BaseControllerSpec {
         val newAccountsEnabled = true
         val applicationsSubmitEnabled = true
         val applicationsStartDate = None }
-
 
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -154,8 +205,10 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       mockPostOnlineTestsDashboardCalls()
 
+      mockPhaseOneTwoThreeData()
+
       val result = controller(withdrawnSiftApp, applicationRouteState).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
 
       content must include("Your application has been withdrawn.")
@@ -163,8 +216,9 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display edip final results page" in new EdipAndSdipTestFixture {
+      mockPhaseOneTwoThreeData()
       val result = controller(edipPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
 
       content must include("Congratulations, you're through to the next stage")
@@ -172,8 +226,9 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display sdip final results page" in new EdipAndSdipTestFixture {
+      mockPhaseOneTwoThreeData()
       val result = controller(sdipPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
 
       content must include("Congratulations, you're through to the next stage")
@@ -181,9 +236,9 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display edip final results page for withdrawn application" in new EdipAndSdipTestFixture {
-
+      mockPhaseOneTwoThreeData()
       val result = controller(edipWithdrawnPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
 
       content must include("Your application has been withdrawn.")
@@ -191,8 +246,9 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display sdip final results page for withdrawn application" in new EdipAndSdipTestFixture {
+      mockPhaseOneTwoThreeData()
       val result = controller(sdipWithdrawnPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
 
       content must include("Your application has been withdrawn.")
@@ -214,7 +270,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
 
       val result = controller(fastPassRejectedInvitedToPhase1Application, applicationRouteState).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
 
       content must include("Unfortunately we've not been able to confirm that your Fast Pass is valid.")
@@ -234,7 +290,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
 
       val result = controller(fastPassRejectedPhase1StartedApplication, applicationRouteState).present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
 
       content mustNot include("Unfortunately we've not been able to confirm that your Fast Pass is valid.")
@@ -360,18 +416,17 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithContentMock)
 
-      status(result) mustBe 303
+      status(result) mustBe SEE_OTHER
       flash(result).get("danger") mustBe Some("Your analysis exercise must be less than 4MB")
     }
 
     "show success when preconditions for upload are met" in new TestFixture {
-
       mockPostOnlineTestsDashboardCalls()
       fileUploadMocks(3500000)
 
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithContentMock)
 
-      status(result) mustBe 303
+      status(result) mustBe SEE_OTHER
       flash(result).get("success") mustBe Some("You've successfully submitted your analysis exercise.")
     }
 
@@ -381,7 +436,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithContentMock)
 
-      status(result) mustBe 303
+      status(result) mustBe SEE_OTHER
       flash(result).get("danger") mustBe Some("There was a problem uploading your analysis exercise. You can try again or speak to an assessor.")
     }
 
@@ -391,7 +446,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithBadContentTypeMock)
 
-      status(result) mustBe 303
+      status(result) mustBe SEE_OTHER
       flash(result).get("danger") mustBe Some("Your analysis exercise must be in the .doc or .docx format")
     }
 
@@ -401,10 +456,9 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithoutProperMultipartFormData)
 
-      status(result) mustBe 303
+      status(result) mustBe SEE_OTHER
       flash(result).get("danger") mustBe Some("There was a problem uploading your analysis exercise. You can try again or speak to an assessor.")
     }
-
   }
 
   trait TestFixture {
@@ -462,6 +516,18 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(fileMock.length()).thenReturn(fileSize)
     }
 
+    def mockPhaseOneTwoThreeData(phase1Tests: List[PsiTest] = Nil, phase2Tests: List[PsiTest] = Nil) = {
+
+      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Phase1TestGroupWithNames2(expirationDate = DateTime.now, activeTests = phase1Tests)))
+
+      when(mockApplicationClient.getPhase2TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Phase2TestGroupWithActiveTest2(expirationDate = DateTime.now, activeTests = phase2Tests)))
+
+      when(mockApplicationClient.getPhase3TestGroup(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Phase3TestGroup(expirationDate = DateTime.now, tests = Nil)))
+    }
+
     class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient, mockSchemeClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
@@ -482,8 +548,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.failed(new OnlineTestNotFound))
+
       when(mockApplicationClient.getSiftState(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturnAsync(None)
 
@@ -534,6 +599,5 @@ class HomeControllerSpec extends BaseControllerSpec {
       CachedDataExample.EdipWithdrawnPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
     val sdipWithdrawnPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
       CachedDataExample.SdipWithdrawnPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-
   }
 }

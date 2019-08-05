@@ -99,9 +99,8 @@
 
 @displayPhase1TestResultsLinks(testsPage: Phase1TestsPage2) = {
     @testsPage.tests.map { psiTestPage =>
-        @Messages(psiTestPage.testNameKey)
-        @displayTestPageLink(psiTestPage)
-        </br>
+        <div>@Messages(psiTestPage.testNameKey)</div>
+        <div>@displayTestPageLink(psiTestPage)</div>
     }
 }
 
@@ -114,9 +113,8 @@
 @displayPhase2TestResultsLinks() = {
     @dashboardPage.phase2TestsPage.map { testsPage =>
         @testsPage.tests.map { psiTestPage =>
-            @Messages(psiTestPage.testNameKey)
-            @displayTestPageLink(psiTestPage)
-            </br>
+            <div>@Messages(psiTestPage.testNameKey)</div>
+            <div>@displayTestPageLink(psiTestPage)</div>
         }
     }
 }
@@ -178,13 +176,7 @@
         } else { @if(isEdip(cachedUserData) || isSdip(cachedUserData)) {
                 <ul class="list-text list-withicons" id="testsIndividual">
                     <li>
-                        <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>
-                            Situational judgement questionnaire
-                            <span class="font-xsmall">- locked</span>
-                        </p>
-                    </li>
-                    <li>
-                        <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Behavioural questionnaire
+                        <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
                             <span class="font-xsmall">- locked</span>
                         </p>
                     </li>
@@ -220,8 +212,8 @@
                             @if(test.completed) {
                                 <li>
                                     <i class="fa fa-check the-icon"></i>
-                                    @Messages(test.testNameKey) (untimed)
-                                    @displayTestPageLink(test)
+                                    <div>@Messages(test.testNameKey) (untimed)</div>
+                                    <div>@displayTestPageLink(test)</div>
                                 </li>
                             } else {
                                 <li>
@@ -284,9 +276,8 @@
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                                     site for more opportunities with us.</p>
                                 @phase2Test.tests.map { test =>
-                                    @Messages(test.testNameKey)
-                                    @displayTestPageLink(test)
-                                    </br>
+                                    <div>@Messages(test.testNameKey)</div>
+                                    <div>@displayTestPageLink(test)</div>
                                 }
                             </div>
                         </li>
@@ -316,9 +307,8 @@
                                             Make sure you check your junk inbox.
                                         </p>
                                         @phase2Test.tests.map { test =>
-                                            @Messages(test.testNameKey)
-                                            @displayTestPageLink(test)
-                                            </br>
+                                            <div>@Messages(test.testNameKey)</div>
+                                            <div>@displayTestPageLink(test)</div>
                                         }
                                     </div>
                                 </li>
@@ -332,8 +322,8 @@
                                             @if(test.completed) {
                                                 <li>
                                                     <i class="fa fa-check the-icon"></i>
-                                                    @Messages(test.testNameKey)
-                                                    @displayTestPageLink(test)
+                                                    <div>@Messages(test.testNameKey)</div>
+                                                    <div>@displayTestPageLink(test)</div>
                                                 </li>
                                             } else {
                                                 <li>
