@@ -18,7 +18,6 @@ package services.onlinetesting
 
 import connectors.OnlineTestEmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.stc.DataStoreEvents
