@@ -21,15 +21,13 @@ import java.util.UUID
 import connectors.ReferenceDataExamples._
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.SchemeId
-import connectors.exchange.sift.SiftState
-import connectors.exchange.{ EventsExamples, SchemeEvaluationResultWithFailureDetails, SelectedSchemes }
+import connectors.exchange.{EventsExamples, SchemeEvaluationResultWithFailureDetails, SelectedSchemes}
 import controllers.UnitSpec
-import helpers.{ CachedUserWithSchemeData, CurrentSchemeStatus }
+import helpers.{CachedUserWithSchemeData, CurrentSchemeStatus}
 import models.ApplicationData.ApplicationStatus
 import models._
 import models.events.AllocationStatuses
-import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
-import org.joda.time.DateTime
+import models.page.DashboardPage.Flags.{ProgressActive, ProgressInactiveDisabled}
 
 class PostOnlineTestsPageSpec extends UnitSpec {
 

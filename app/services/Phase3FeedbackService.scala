@@ -17,7 +17,6 @@
 package services
 
 import connectors.ApplicationClient
-import connectors.ApplicationClient.OnlineTestNotFound
 import models.UniqueIdentifier
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -57,10 +56,7 @@ trait Phase3FeedbackService {
         (criteria1Score, criteria2Score)
       }
       )
-    }.recoverWith({
-      // TODO: Maybe we should let the exception to propagate and show eventually a 500.
-      case e: OnlineTestNotFound => Future.successful(None)
-    })
+    }
   }
 }
 

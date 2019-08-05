@@ -17,12 +17,11 @@
 package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
-import models.UniqueIdentifier
 import models.page.Phase3FeedbackPage
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Action, AnyContent}
-import security.Roles.ActiveUserRole
+import security.Roles.Phase3TestDisplayFeedbackRole
 import security.{SecurityEnvironment, SilhouetteComponent}
 import services.Phase3FeedbackService
 
@@ -32,13 +31,13 @@ object Phase3FeedbackController extends Phase3FeedbackController(Phase3FeedbackS
 
 abstract class Phase3FeedbackController(phase3FeedbackService: Phase3FeedbackService) extends BaseController {
 
-  def present: Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
+  def present: Action[AnyContent] = CSRSecureAppAction(Phase3TestDisplayFeedbackRole) {
     implicit request =>
       implicit cachedData =>
         for {
-          feedbackOpt <- phase3FeedbackService.getFeedback(cachedData.application.get.applicationId)
+          feedbackOpt <- phase3FeedbackService.getFeedback(cachedData.application.applicationId)
         } yield {
-          Ok(views.html.home.phase3Feedback(feedbackOpt.map(Phase3FeedbackPage(_))))
+          Ok(views.html.home.phase3Feedback(Phase3FeedbackPage(feedbackOpt.get)))
         }
   }
 }
