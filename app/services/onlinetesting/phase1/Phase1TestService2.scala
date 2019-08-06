@@ -360,17 +360,6 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
-  def markAsReportReadyToDownload2(orderId: String, reportReady: PsiTestResultReady): Future[Unit] = {
-    updatePhase1Test2(orderId, testRepository2.updateTestReportReady2(_: String, reportReady)).flatMap { updated =>
-      val allResultReadyToDownload = updated.testGroup.activeTests forall (_.resultsReadyToDownload)
-      if (allResultReadyToDownload) {
-        testRepository2.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
-      } else {
-        Future.successful(())
-      }
-    }
-  }
-
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
       integrationGatewayConfig.phase1Tests.gis
