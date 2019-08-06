@@ -21,7 +21,7 @@ import config.{ PsiTestIds, NumericalTestSchedule, OnlineTestsGatewayConfig, Tes
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, EmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.{ CannotFindTestByOrderId, UnexpectedException }
+import model.Exceptions.{ CannotFindTestByOrderIdException, UnexpectedException }
 import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED, SIFT_TEST_RESULTS_READY }
 import model._
 import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
@@ -445,7 +445,7 @@ trait NumericalTestService2 extends EventSink {
       applicationSiftRepo.insertPsiTestResult(
         applicationId,
         testProfile.tests.flatMap(tests => tests.find(_.orderId == orderId))
-          .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId")),
+          .getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId")),
         model.persisted.PsiTestResult.fromCommandObject(results)
       )
 
@@ -480,7 +480,7 @@ trait NumericalTestService2 extends EventSink {
           Logger.info(s"Processing real time sift results - completed date is already set on psi test whose orderId=$orderId")
           Future.successful(())
         }
-      }).getOrElse(throw CannotFindTestByOrderId(s"Processing real time sift results - test not found for orderId=$orderId"))
+      }).getOrElse(throw CannotFindTestByOrderIdException(s"Processing real time sift results - test not found for orderId=$orderId"))
     }
 
     (for {
@@ -491,7 +491,7 @@ trait NumericalTestService2 extends EventSink {
         _ <- markTestAsCompleted(profile)
         _ <- profile.tests.flatMap ( tests => tests.find( _.orderId == orderId ).map ( test =>
           insertResults(appId, test.orderId, profile, results) ))
-          .getOrElse(throw CannotFindTestByOrderId(s"Test not found for orderId=$orderId"))
+          .getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId"))
 
         _ <- maybeUpdateProgressStatus(appId)
       } yield ()
