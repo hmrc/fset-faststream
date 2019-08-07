@@ -120,43 +120,6 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Reporting controller candidate deferral report" must {
-    "return the report in a happy path" in new TestFixture {
-
-      when(mockReportingRepository.candidateDeferralReport(any[String])).thenReturn(
-        Future.successful(List(
-        ApplicationDeferralPartialItem("userId1", "Bob", "Bobson", "prefBob"),
-        ApplicationDeferralPartialItem("userId2", "Dave", "Daveson", "prefDave")
-      )))
-
-      when(mockContactDetailsRepository.findAll).thenReturn(
-        Future.successful(List(
-          ContactDetailsWithId(userId = "userId1", address = Address("1 Test Street"), postCode = Some("QQ1 1QQ"), outsideUk = false,
-            email = "blah@blah.com", phone = Some("07707717711")
-          ),
-            ContactDetailsWithId(userId = "userId2", address = Address("1 Fake Street"), postCode = Some("QQ1 1QQ"), outsideUk = false,
-              email = "blah@blah.com", phone = Some("07707727722")
-          )
-      )))
-
-      val controller = new TestableReportingController
-      val result = controller.candidateDeferralReport("frameworkId")(candidateDeferralRequest("frameworkId")).run
-
-      val expectedJson = Json.toJson(List(
-        CandidateDeferralReportItem(
-          "Bob Bobson", "prefBob", "blah@blah.com", Address("1 Test Street"), Some("QQ1 1QQ"), Some("07707717711")
-        ),
-        CandidateDeferralReportItem(
-          "Dave Daveson", "prefDave", "blah@blah.com", Address("1 Fake Street"), Some("QQ1 1QQ"), Some("07707727722")
-        )
-      ))
-
-      val json = contentAsJson(result)
-
-      json mustBe expectedJson
-    }
-  }
-
   "Reporting controller internship report" must {
     "return the report in a happy path scenario" in new TestFixture {
       val underTest = new TestableReportingController
@@ -562,11 +525,6 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     val Error = new RuntimeException("something bad happened")
     val GenericFailureResponse = Future.failed(Error)
-
-    def candidateDeferralRequest(frameworkId: String) = {
-      FakeRequest(Helpers.GET, controllers.routes.ReportingController.candidateDeferralReport(frameworkId).url, FakeHeaders(), "")
-        .withHeaders("Content-Type" -> "application/json")
-    }
 
     def createAdjustmentsRequest(frameworkId: String) = {
       FakeRequest(Helpers.GET, controllers.routes.ReportingController.adjustmentReport(frameworkId).url, FakeHeaders(), "")

@@ -30,6 +30,8 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
   "All progress status in the application" should {
     "be mapped to the report labels" in {
       ProgressStatuses.allStatuses
+        // Only used in Test Data Generator
+        .filter {_ != ProgressStatuses.QUESTIONNAIRE_OCCUPATION}
         .foreach { progressStatus =>
         val userId = UUID.randomUUID().toString
         val appId = appRepo.create(userId, "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId

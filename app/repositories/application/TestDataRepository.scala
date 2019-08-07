@@ -154,14 +154,6 @@ class TestDataMongoRepository(implicit mongo: () => DB)
   }
   // scalastyle:on parameter.number
 
-  def deferral(args: List[String] = Nil): BSONDocument = args match {
-    case Nil => BSONDocument()
-
-    case _ :: _ => BSONDocument(
-      "interested" -> true
-    )
-  }
-
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(
       "personal-details" -> true,
