@@ -21,7 +21,7 @@ import connectors.ExchangeObjects.{ AssessmentOrderAcknowledgement, Invitation, 
 import connectors.{ EmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.Green
-import model.Exceptions.{ CannotFindApplicationByOrderId, CannotFindTestByOrderId, UnexpectedException }
+import model.Exceptions._
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ProgressResponseExamples
@@ -257,25 +257,25 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
 
   "store real time results" should {
     "handle not finding an application for the given order id" in new TestFixture {
-      when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturn(Future.failed(CannotFindApplicationByOrderId("Boom")))
+      when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturn(Future.failed(CannotFindApplicationByOrderIdException("Boom")))
 
       val result = service.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
-      exception mustBe an[CannotFindApplicationByOrderId]
+      exception mustBe an[CannotFindApplicationByOrderIdException]
     }
 
     "handle not finding a test profile for the given order id" in new TestFixture {
       when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturnAsync(appId)
 
       when(mockSiftRepo.getTestGroupByOrderId(any[String])).thenReturn(Future.failed(
-        CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
+        CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
       ))
 
       val result = service.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
-      exception mustBe an[CannotFindTestByOrderId]
+      exception mustBe an[CannotFindTestByOrderIdException]
       exception.getMessage mustBe s"Cannot find test group by orderId=$orderId"
     }
 

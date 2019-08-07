@@ -22,7 +22,7 @@ import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
-import model.Exceptions.{ CannotFindTestByOrderId, ConnectorException }
+import model.Exceptions._
 import model.OnlineTestCommands._
 import model.Phase1TestExamples._
 import model.ProgressStatuses.{ toString => _, _ }
@@ -39,6 +39,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.{ Phase1TestRepository, Phase1TestRepository2 }
 import services.AuditService
+import services.onlinetesting.Exceptions.{ TestCancellationException, TestRegistrationException }
 import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
@@ -169,7 +170,6 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
 
   "register and invite application" should {
     "Invite to two tests and issue one email for GIS candidates" in new SuccessfulTestInviteFixture {
-      when(otRepositoryMock2.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
       val result = phase1TestService
@@ -283,6 +283,123 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     }
   }
 
+  "Reset tests" should {
+    "throw exception if test group cannot be found" in new OnlineTest {
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(None)
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe an[CannotFindTestGroupByApplicationIdException]
+    }
+
+    "throw exception if test by orderId cannot be found" in new OnlineTest {
+      val newTests = phase1Test.copy(orderId = "unknown-uuid") :: Nil
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe an[CannotFindTestByOrderIdException]
+    }
+
+    "not register candidate if cancellation request fails" in new OnlineTest {
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaError)
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe a[TestCancellationException]
+
+      verify(onlineTestsGatewayClientMock, times(0)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(0))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
+    }
+
+    "throw exception if config cant be found" in new OnlineTest {
+      val newTests = phase1Test.copy(inventoryId = "unknown-uuid") :: Nil
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe a[CannotFindTestByInventoryIdException]
+    }
+
+    "not complete invitation if re-registration request connection fails"  in new OnlineTest {
+      val newTests = phase1Test.copy(inventoryId = "inventory-id-1") :: Nil
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe a[ConnectorException]
+
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(0))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+
+      verify(auditServiceMock, times(1)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
+    }
+
+    "not complete invitation if re-registration fails"  in new OnlineTest {
+      val newTests = phase1Test.copy(inventoryId = "inventory-id-1") :: Nil
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
+
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoaFailed)
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe a[TestRegistrationException]
+
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(0))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+
+      verify(auditServiceMock, times(1)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
+    }
+
+    "complete reset successfully" in new SuccessfulTestInviteFixture {
+      val newTests = phase1Test.copy(inventoryId = "inventory-id-1") :: Nil
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
+
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa)
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.futureValue mustBe unit
+
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(1))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+
+      verify(auditServiceMock, times(1)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
+    }
+  }
+
   "mark as started" should {
     "change progress to started" in new OnlineTest {
       when(otRepositoryMock2.updateTestStartTime(any[String], any[DateTime])).thenReturnAsync()
@@ -324,7 +441,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
-      exception mustBe an[CannotFindTestByOrderId]
+      exception mustBe an[CannotFindTestByOrderIdException]
       exception.getMessage mustBe s"Application not found for test for orderId=$orderId"
     }
 
@@ -332,13 +449,13 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       when(otRepositoryMock2.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(appId))
 
       when(otRepositoryMock2.getTestProfileByOrderId(any[String])).thenReturn(Future.failed(
-        CannotFindTestByOrderId(s"Cannot find test group by orderId=$orderId")
+        CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
       ))
 
       val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
 
       val exception = result.failed.futureValue
-      exception mustBe an[CannotFindTestByOrderId]
+      exception mustBe an[CannotFindTestByOrderIdException]
       exception.getMessage mustBe s"Cannot find test group by orderId=$orderId"
     }
 
@@ -437,8 +554,23 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     val siftServiceMock = mock[ApplicationSiftService]
 
     def aoa = AssessmentOrderAcknowledgement(
-      customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,status =
-        AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
+      customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,
+      status = AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
+
+    def aoaFailed = AssessmentOrderAcknowledgement(
+      customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,
+      status = AssessmentOrderAcknowledgement.errorStatus, statusDetails = "", statusDate = LocalDate.now())
+
+
+    def acaCompleted = AssessmentCancelAcknowledgementResponse(
+      AssessmentCancelAcknowledgementResponse.completedStatus,
+      "Everything is fine!", statusDate = LocalDate.now()
+    )
+
+    def acaError = AssessmentCancelAcknowledgementResponse(
+      AssessmentCancelAcknowledgementResponse.errorStatus,
+      "Something went wrong!", LocalDate.now()
+    )
 
     when(tokenFactoryMock.generateUUID()).thenReturn(uuid)
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)

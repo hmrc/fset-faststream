@@ -25,6 +25,7 @@ import ExchangeObjects.Implicits._
 import model.OnlineTestCommands._
 import play.api.http.Status._
 import play.api.Logger
+import play.api.libs.json.Json
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -66,12 +67,25 @@ trait OnlineTestsGatewayClient {
   }
 
   def psiRegisterApplicant(request: RegisterCandidateRequest): Future[AssessmentOrderAcknowledgement] = {
-    Logger.debug(s"$root psi registerApplicant POST request, body=${play.api.libs.json.Json.toJson(request).toString}")
+    Logger.debug(s"$root psi registerApplicant POST request, body=${Json.toJson(request).toString}")
 
     http.POST(url = s"$url/$root/faststream/psi-register", request).map { response =>
       if (response.status == OK) {
         Logger.debug(s"$root psiRegisterApplicant response - ${response.json.toString}")
         response.json.as[AssessmentOrderAcknowledgement]
+      } else {
+        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
+      }
+    }
+  }
+
+  def psiCancelTest(request: CancelCandidateTestRequest): Future[AssessmentCancelAcknowledgementResponse] = {
+    Logger.debug(s"cancelTest - $request")
+
+    http.GET(url = s"$url/$root/faststream/psi-cancel-assessment/${request.orderId}").map { response =>
+      if (response.status == OK) {
+        Logger.debug(s"psiRegisterApplicant response - ${response.json.toString}")
+        response.json.as[AssessmentCancelAcknowledgementResponse]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }

@@ -64,7 +64,13 @@ object ExchangeObjects {
                                       adjustment: Option[TestAdjustment] = None)
 
   object RegisterCandidateRequest {
-    implicit val registerCandidateRequest = Json.format[RegisterCandidateRequest]
+    implicit val registerCandidateRequest: OFormat[RegisterCandidateRequest] = Json.format[RegisterCandidateRequest]
+  }
+
+  case class CancelCandidateTestRequest(orderId: String)
+
+  object CancelCandidateTestRequest {
+    implicit val cancelCandidateTestRequestFormat: OFormat[CancelCandidateTestRequest] = Json.format[CancelCandidateTestRequest]
   }
 
   // Cubiks Gateway Requests
@@ -120,18 +126,28 @@ object ExchangeObjects {
   }
 
   case class AssessmentOrderAcknowledgement(customerId: String,
-                                                receiptId: String,
-                                                orderId: String,
-                                                testLaunchUrl: String,
-                                                status: String,
-                                                statusDetails: String,
-                                                statusDate: LocalDate)
+                                            receiptId: String,
+                                            orderId: String,
+                                            testLaunchUrl: String,
+                                            status: String,
+                                            statusDetails: String,
+                                            statusDate: LocalDate)
 
   object AssessmentOrderAcknowledgement {
     val acknowledgedStatus = "Acknowledged"
+    val errorStatus = "Error"
     implicit val assessmentOrderAcknowledgementFormat: Format[AssessmentOrderAcknowledgement] =
       Json.format[AssessmentOrderAcknowledgement]
 
+  }
+
+  case class AssessmentCancelAcknowledgementResponse(status: String, details: String, statusDate: LocalDate)
+  object AssessmentCancelAcknowledgementResponse {
+    val completedStatus = "Completed"
+    val errorStatus = "Error"
+
+    implicit val assessmentCancelAcknowledgementResponseFormat: OFormat[AssessmentCancelAcknowledgementResponse] =
+      Json.format[AssessmentCancelAcknowledgementResponse]
   }
 
   object Implicits {
