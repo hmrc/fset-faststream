@@ -100,7 +100,6 @@ trait CommonBSONDocuments extends BaseBSONReader {
         ProgressResponse(
           applicationId,
           personalDetails = getProgress(ProgressStatuses.PERSONAL_DETAILS.key),
-          partnerGraduateProgrammes = getProgress(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES.key),
           schemePreferences = getProgress(ProgressStatuses.SCHEME_PREFERENCES.key),
           assistanceDetails = getProgress(ProgressStatuses.ASSISTANCE_DETAILS.key),
           preview = getProgress(ProgressStatuses.PREVIEW.key),

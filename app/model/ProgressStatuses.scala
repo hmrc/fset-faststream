@@ -48,9 +48,6 @@ object ProgressStatuses {
   case object PERSONAL_DETAILS extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "personal-details"}
 
-  case object PARTNER_GRADUATE_PROGRAMMES extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
-    override def key = "partner-graduate-programmes"}
-
   case object SCHEME_PREFERENCES extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "scheme-preferences"}
 
@@ -138,7 +135,7 @@ object ProgressStatuses {
   {
     val relativeOrder = List(
       CREATED,
-      PERSONAL_DETAILS, PARTNER_GRADUATE_PROGRAMMES, SCHEME_PREFERENCES, ASSISTANCE_DETAILS, QUESTIONNAIRE_OCCUPATION, PREVIEW,
+      PERSONAL_DETAILS, SCHEME_PREFERENCES, ASSISTANCE_DETAILS, QUESTIONNAIRE_OCCUPATION, PREVIEW,
       SUBMITTED, FAST_PASS_ACCEPTED,
 
       PHASE1_TESTS_INVITED, PHASE1_TESTS_EXPIRED,
@@ -251,7 +248,6 @@ object ProgressStatuses {
       name.toLowerCase match {
         case "personal_details" => "personal-details"
         case "assistance_details" => "assistance-details"
-        case "partner_graduate_programmes" => "partner-graduate-programmes"
         case "scheme_preferences" => "scheme-preferences"
         case _ => name.toLowerCase
       })

@@ -93,14 +93,13 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
 
     "extract the correct information for candidates" in {
-      val programmes = List("TeachFirst", "Police Now")
       testDataRepo.createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", firstName = Some("Bob"),
-        lastName = Some("Bobson"), preferredName = Some("prefBob"), partnerProgrammes = programmes).futureValue
+        lastName = Some("Bobson"), preferredName = Some("prefBob")).futureValue
 
       val result = repository.candidateDeferralReport("frameworkId").futureValue
 
       result.size mustBe 1
-      result.head mustBe ApplicationDeferralPartialItem("userId", "Bob", "Bobson", "prefBob", programmes)
+      result.head mustBe ApplicationDeferralPartialItem("userId", "Bob", "Bobson", "prefBob")
     }
   }
 

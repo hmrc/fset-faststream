@@ -16,7 +16,7 @@
 
 package services.testdata.candidate
 
-import model.ApplicationRoute
+import model.{ApplicationRoute, ApplicationStatus}
 import model.persisted.AssistanceDetails
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
@@ -29,7 +29,7 @@ import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
 object InProgressAssistanceDetailsStatusGenerator extends InProgressAssistanceDetailsStatusGenerator {
-  val previousStatusGenerator = InProgressPartnerGraduateProgrammesStatusGenerator
+  val previousStatusGenerator = InProgressSchemePreferencesStatusGenerator
   val adRepository = faststreamAssistanceDetailsRepository
   val adjustmentsManagementService = AdjustmentsManagementService
 }
@@ -39,12 +39,20 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
   val adRepository: AssistanceDetailsRepository
   val adjustmentsManagementService: AdjustmentsManagementService
 
+  override def getPreviousStatusGenerator(generatorConfig:  CreateCandidateData) = {
+    if (List(ApplicationRoute.Sdip, ApplicationRoute.Edip).contains(generatorConfig.statusData.applicationRoute)) {
+      (ApplicationStatus.IN_PROGRESS, InProgressPersonalDetailsStatusGenerator)
+    } else {
+      (ApplicationStatus.IN_PROGRESS, InProgressSchemePreferencesStatusGenerator)
+    }
+  }
+
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val assistanceDetails = getAssistanceDetails(generatorConfig)
     val maybeAdjustments = generatorConfig.adjustmentInformation
 
     for {
-      candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+      candidateInPreviousStatus <- getPreviousStatusGenerator(generatorConfig)._2.generate(generationId, generatorConfig)
       appId = candidateInPreviousStatus.applicationId.get
       _ <- adRepository.update(appId, candidateInPreviousStatus.userId, assistanceDetails)
       _ <- if (maybeAdjustments.exists(_.adjustmentsConfirmed.getOrElse(false))) {

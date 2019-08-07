@@ -19,7 +19,6 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
     CREATED -> "registered",
     PERSONAL_DETAILS -> "personal_details_completed",
     SCHEME_PREFERENCES -> "scheme_preferences_completed",
-    PARTNER_GRADUATE_PROGRAMMES -> "partner_graduate_programmes_completed",
     ASSISTANCE_DETAILS -> "assistance_details_completed",
     PREVIEW -> "preview_completed",
     PHASE1_TESTS_FIRST_REMINDER -> "phase1_tests_first_reminder",

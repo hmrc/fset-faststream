@@ -10,9 +10,6 @@ POST        /fast-pass-evaluation/:userId/:applicationId                 control
 GET         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.find(applicationId: String)
 PUT         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.update(applicationId: String)
 
-GET         /partner-graduate-programmes/:applicationId                  controllers.PartnerGraduateProgrammesController.find(applicationId: String)
-PUT         /partner-graduate-programmes/:applicationId                  controllers.PartnerGraduateProgrammesController.update(applicationId: String)
-
 PUT         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.update(userId: String, applicationId: String)
 GET         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.find(userId: String, applicationId: String)
 

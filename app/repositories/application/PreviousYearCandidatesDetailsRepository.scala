@@ -55,7 +55,7 @@ trait PreviousYearCandidatesDetailsRepository {
 
   // scalastyle:off
 
-  private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,partner-graduate-programmes,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
+  private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
     "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE1_TESTS_PASSED_NOTIFIED,PHASE1_TESTS_FAILED,PHASE1_TESTS_FAILED_NOTIFIED,PHASE1_TESTS_FAILED_SDIP_AMBER,PHASE1_TESTS_FAILED_SDIP_GREEN," +
     "PHASE2_TESTS_INVITED,PHASE2_TESTS_FIRST_REMINDER," +
     "PHASE2_TESTS_SECOND_REMINDER,PHASE2_TESTS_STARTED,PHASE2_TESTS_COMPLETED,PHASE2_TESTS_EXPIRED,PHASE2_TESTS_RESULTS_READY," +
@@ -280,7 +280,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             List(schemesYesNoAsString) :::
             List(progressResponseReachedYesNo(progressResponse.schemePreferences)) :::
             List(progressResponseReachedYesNo(progressResponse.schemePreferences)) :::
-            partnerGraduateProgrammes(doc) :::
             assistanceDetails(doc) :::
             List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) :::
             onlineTestResults("bq") :::
@@ -485,7 +484,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       statusTimestamps.getAsStr[DateTime]("IN_PROGRESS").orElse(progressStatusDates.flatMap(_.getAs[String]("in_progress"))
       ),
       progressStatus.getOrElseAsStr[Boolean]("scheme-preferences")(false),
-      progressStatus.getOrElseAsStr[Boolean]("partner-graduate-programmes")(false),
       progressStatus.getOrElseAsStr[Boolean]("assistance-details")(false),
       questionnaireStatus("start_questionnaire"),
       questionnaireStatus("diversity_questionnaire"),
@@ -600,16 +598,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   ) = List(if (civilServExperienceInternshipTypes.exists(_.contains(typeToMatch))) Y else N)
 
   private def progressResponseReachedYesNo(progressResponseReached: Boolean) = if (progressResponseReached) Y else N
-
-  private def partnerGraduateProgrammes(doc: BSONDocument) = {
-    val subDoc = doc.getAs[BSONDocument]("partner-graduate-programmes")
-    val interested = subDoc.flatMap(_.getAs[Boolean]("interested")).getOrElse(false)
-
-    List(
-      if (interested) Y else N,
-      subDoc.map(_.getAs[List[String]]("partnerGraduateProgrammes").getOrElse(Nil).mkString(","))
-    )
-  }
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]] = {
     val query = BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes))

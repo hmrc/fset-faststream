@@ -537,8 +537,7 @@ trait ReportingController extends BaseController {
             email = cd.email,
             address = cd.address,
             postCode = cd.postCode,
-            telephone = cd.phone,
-            programmes = candidate.partnerProgrammes
+            telephone = cd.phone
           )
         }
       }

@@ -125,8 +125,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       when(mockReportingRepository.candidateDeferralReport(any[String])).thenReturn(
         Future.successful(List(
-        ApplicationDeferralPartialItem("userId1", "Bob", "Bobson", "prefBob", List("Police Now")),
-        ApplicationDeferralPartialItem("userId2", "Dave", "Daveson", "prefDave", List("Teach First"))
+        ApplicationDeferralPartialItem("userId1", "Bob", "Bobson", "prefBob"),
+        ApplicationDeferralPartialItem("userId2", "Dave", "Daveson", "prefDave")
       )))
 
       when(mockContactDetailsRepository.findAll).thenReturn(
@@ -144,10 +144,10 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       val expectedJson = Json.toJson(List(
         CandidateDeferralReportItem(
-          "Bob Bobson", "prefBob", "blah@blah.com", Address("1 Test Street"), Some("QQ1 1QQ"), Some("07707717711"), List("Police Now")
+          "Bob Bobson", "prefBob", "blah@blah.com", Address("1 Test Street"), Some("QQ1 1QQ"), Some("07707717711")
         ),
         CandidateDeferralReportItem(
-          "Dave Daveson", "prefDave", "blah@blah.com", Address("1 Fake Street"), Some("QQ1 1QQ"), Some("07707727722"), List("Teach First")
+          "Dave Daveson", "prefDave", "blah@blah.com", Address("1 Fake Street"), Some("QQ1 1QQ"), Some("07707727722")
         )
       ))
 

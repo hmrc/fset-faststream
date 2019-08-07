@@ -24,8 +24,7 @@ case class CandidateDeferralReportItem(
   email: String,
   address: Address,
   postCode: Option[String] = None,
-  telephone: Option[String] = None,
-  programmes: List[String] = Nil
+  telephone: Option[String] = None
 )
 
 object CandidateDeferralReportItem {
@@ -36,8 +35,7 @@ case class ApplicationDeferralPartialItem(
   userId: String,
   firstName: String,
   lastName: String,
-  preferredName: String,
-  partnerProgrammes: List[String] = Nil
+  preferredName: String
 )
 
 object ApplicationDeferralPartialItem {

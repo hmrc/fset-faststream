@@ -112,8 +112,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     firstName: Option[String] = None, preferredName: Option[String] = None,
     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
     additionalDoc: BSONDocument = BSONDocument.empty,
-    applicationRoute: Option[ApplicationRoute] = None,
-    partnerProgrammes: List[String] = Nil
+    applicationRoute: Option[ApplicationRoute] = None
   ) = {
     import repositories.BSONLocalDateHandler
     val document = BSONDocument(
@@ -145,7 +144,6 @@ class TestDataMongoRepository(implicit mongo: () => DB)
         "needsSupportAtVenue" -> needsSupportAtVenue,
         "guaranteedInterview" -> guaranteedInterview
       ),
-      "partner-graduate-programmes" -> deferral(partnerProgrammes),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
       "progress-status-dates" -> BSONDocument(
@@ -160,8 +158,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     case Nil => BSONDocument()
 
     case _ :: _ => BSONDocument(
-      "interested" -> true,
-      "partnerGraduateProgrammes" -> args
+      "interested" -> true
     )
   }
 
@@ -170,7 +167,6 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       "personal-details" -> true,
       "in_progress" -> true,
       "scheme-preferences" -> true,
-      "partner-graduate-programmes" -> true,
       "assistance-details" -> true,
       "questionnaire" -> BSONDocument(
         "start_questionnaire" -> true,

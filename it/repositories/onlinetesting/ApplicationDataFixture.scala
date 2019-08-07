@@ -189,7 +189,6 @@ trait ApplicationDataFixture {
       "personal-details" -> true,
       "in_progress" -> true,
       "scheme-preferences" -> true,
-      "partner-graduate-programmes" -> true,
       "assistance-details" -> true,
       "questionnaire" -> questionnaire(),
       "preview" -> true,
