@@ -85,6 +85,7 @@ object CandidateStatusGeneratorFactory {
       case (IN_PROGRESS, Some(ProgressStatuses.SCHEME_PREFERENCES)) => InProgressSchemePreferencesStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES)) => InProgressPartnerGraduateProgrammesStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.ASSISTANCE_DETAILS)) => InProgressAssistanceDetailsStatusGenerator
+      case (IN_PROGRESS, Some(ProgressStatuses.QUESTIONNAIRE_OCCUPATION)) => InProgressQuestionnaireStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PREVIEW)) => InProgressPreviewStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
