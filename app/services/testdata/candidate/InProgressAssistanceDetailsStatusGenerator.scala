@@ -16,17 +16,17 @@
 
 package services.testdata.candidate
 
-import model.{ApplicationRoute, ApplicationStatus}
 import model.persisted.AssistanceDetails
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import model.{ApplicationRoute, ApplicationStatus}
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.assistancedetails.AssistanceDetailsRepository
 import services.adjustmentsmanagement.AdjustmentsManagementService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 object InProgressAssistanceDetailsStatusGenerator extends InProgressAssistanceDetailsStatusGenerator {
   val previousStatusGenerator = InProgressSchemePreferencesStatusGenerator
@@ -39,12 +39,8 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
   val adRepository: AssistanceDetailsRepository
   val adjustmentsManagementService: AdjustmentsManagementService
 
-  override def getPreviousStatusGenerator(generatorConfig:  CreateCandidateData) = {
-    if (List(ApplicationRoute.Sdip, ApplicationRoute.Edip).contains(generatorConfig.statusData.applicationRoute)) {
-      (ApplicationStatus.IN_PROGRESS, InProgressPersonalDetailsStatusGenerator)
-    } else {
-      (ApplicationStatus.IN_PROGRESS, InProgressSchemePreferencesStatusGenerator)
-    }
+  override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData) = {
+    (ApplicationStatus.IN_PROGRESS, InProgressSchemePreferencesStatusGenerator)
   }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
@@ -76,7 +72,9 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       }
     val gisFinalValue = if (hasDisabilityFinalValue == "Yes" && config.assistanceDetails.setGis) {
       Some(true)
-    } else { Some(false) }
+    } else {
+      Some(false)
+    }
 
     val onlineAdjustmentsFinalValue = config.assistanceDetails.onlineAdjustments
     val onlineAdjustmentsDescriptionFinalValue =
@@ -93,7 +91,11 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
         None
       }
     val phoneAdjustmentsFinalValue = if (config.statusData.applicationRoute == ApplicationRoute.Edip ||
-      config.statusData.applicationRoute == ApplicationRoute.Sdip) { config.assistanceDetails.phoneAdjustments } else { false }
+      config.statusData.applicationRoute == ApplicationRoute.Sdip) {
+      config.assistanceDetails.phoneAdjustments
+    } else {
+      false
+    }
     val phoneAdjustmentsDescriptionFinalValue =
       if (phoneAdjustmentsFinalValue) {
         Some(config.assistanceDetails.phoneAdjustmentsDescription)
