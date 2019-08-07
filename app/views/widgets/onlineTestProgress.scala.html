@@ -120,7 +120,7 @@
 }
 
 @displayPhase3TestResultsLinks() = {
-        <a href="@routes.Phase3FeedbackController.present" target="_blank">Results report</a>
+        <a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">Results report</a>
 }
 
 @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
