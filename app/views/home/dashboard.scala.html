@@ -92,7 +92,7 @@
 
     <section class="section-border">
         <ol class="step-by-step-coloured @disableDashboardMayBe" id="sixSteps">
-            <li class="text first-step @activateByStep(dashboardPage.firstStepVisibility)">
+            <li class="step text first-step @activateByStep(dashboardPage.firstStepVisibility)">
                 <h2 class='@if(dashboardPage.isApplicationInProgress) {heading-large} else {heading-medium} '>
                     1. Fill in your application form</h2>
                 @if(!dashboardPage.isApplicationWithdrawn) {
@@ -131,7 +131,7 @@
                 }
 
             </li>
-            <li class="text second-step @activateByStep(dashboardPage.secondStepVisibility)">
+            <li class="step text second-step @activateByStep(dashboardPage.secondStepVisibility)">
                 <h2 class="heading-medium">2. Take the online tests</h2>
                 @dashboardPage.assessmentStageStatus match {
                     case ASSESSMENT_FAST_PASS_CERTIFICATE => {
@@ -150,7 +150,7 @@
                     }
                 }
             </li>
-            <li class="text third-step @activateByStep(dashboardPage.thirdStepVisibility)">
+            <li class="step text third-step @activateByStep(dashboardPage.thirdStepVisibility)">
                 @if(isFaststream(usr)) {
                     <h2 class="heading-medium ">3. Extra information</h2>
                     @if(dashboardPage.assessmentStageStatus == ASSESSMENT_FAST_PASS_CERTIFICATE) {
@@ -165,7 +165,7 @@
                 }}
                 <br>
             </li>
-            <li class="text fourth-step @activateByStep(dashboardPage.fourthStepVisibility)">
+            <li class="step text fourth-step @activateByStep(dashboardPage.fourthStepVisibility)">
                 @if(isFaststream(usr)) {
                     <h2 class="heading-medium ">4. Assessment centre and final stages</h2>
                     <p>If you pass the online tests and the scheme specific questions you'll be invited to attend an assessment centre.</p>
