@@ -33,9 +33,9 @@ abstract class Phase3FeedbackController(phase3FeedbackService: Phase3FeedbackSer
 
   def present: Action[AnyContent] = CSRSecureAppAction(Phase3TestDisplayFeedbackRole) {
     implicit request =>
-      implicit cachedData =>
+      implicit user =>
         for {
-          feedbackOpt <- phase3FeedbackService.getFeedback(cachedData.application.applicationId)
+          feedbackOpt <- phase3FeedbackService.getFeedback(user.application.applicationId)
         } yield {
           Ok(views.html.home.phase3Feedback(Phase3FeedbackPage(feedbackOpt.get)))
         }
