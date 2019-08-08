@@ -18,7 +18,7 @@ package services.testdata.candidate
 
 import model.persisted.AssistanceDetails
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import model.{ApplicationRoute, ApplicationStatus}
+import model.{Adjustments, ApplicationRoute, ApplicationStatus}
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.assistancedetails.AssistanceDetailsRepository
@@ -45,19 +45,20 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val assistanceDetails = getAssistanceDetails(generatorConfig)
-    val maybeAdjustments = generatorConfig.adjustmentInformation
+    val adjustmentsDataOpt = generatorConfig.adjustmentInformation
 
     for {
       candidateInPreviousStatus <- getPreviousStatusGenerator(generatorConfig)._2.generate(generationId, generatorConfig)
       appId = candidateInPreviousStatus.applicationId.get
       _ <- adRepository.update(appId, candidateInPreviousStatus.userId, assistanceDetails)
-      _ <- if (maybeAdjustments.exists(_.adjustmentsConfirmed.getOrElse(false))) {
-        adjustmentsManagementService.confirmAdjustment(appId, maybeAdjustments.get)
+      _ <- if (adjustmentsDataOpt.exists(_.adjustmentsConfirmed.getOrElse(false))) {
+        adjustmentsManagementService.confirmAdjustment(appId, adjustmentsDataOpt.get)
       } else {
         Future.successful(())
       }
     } yield {
-      candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails), adjustmentInformation = maybeAdjustments)
+      candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails),
+        adjustmentInformation = adjustmentsDataOpt)
     }
   }
 
