@@ -87,6 +87,7 @@ GET         /online-tests/phase3/complete/:token                    controllers.
 GET         /online-tests/complete/:token                           controllers.CubiksTestController.completeTestByToken(token: UniqueIdentifier)
 GET         /sift-test/complete/:token                              controllers.CubiksTestController.completeSiftTestByToken(token: UniqueIdentifier)
 GET         /psi/sift-test/complete/:orderId                        controllers.PsiTestController.completeSiftTest(orderId: UniqueIdentifier)
+GET         /online-tests/phase3/feedback-report                    controllers.Phase3FeedbackController.present
 
 # Invigilated e-tray
 GET         /invigilated-etray                                      controllers.InvigilatedController.present

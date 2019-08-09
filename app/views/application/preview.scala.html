@@ -74,7 +74,7 @@
     @if(ApplicationData.isReadOnly(user.get.application.get.applicationStatus)) {
         <section class="section-border">
             <div class="form-group">
-                <a href="@routes.HomeController.present()" class="button">Return to home</a>
+                <a href="@routes.HomeController.present()" class="button" id="returnToHome">Return to home</a>
             </div>
         </section>
     }

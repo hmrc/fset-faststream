@@ -19,17 +19,17 @@ package config
 import java.util.Base64
 
 import akka.actor.ActorSystem
-import com.mohiva.play.silhouette.api.crypto.{ Base64AuthenticatorEncoder, Hash }
-import com.mohiva.play.silhouette.api.util.{ Clock, FingerprintGenerator }
-import com.mohiva.play.silhouette.api.{ Environment, EventBus }
-import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticatorService, SessionAuthenticatorSettings }
+import com.mohiva.play.silhouette.api.crypto.{Base64AuthenticatorEncoder, Hash}
+import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator}
+import com.mohiva.play.silhouette.api.{Environment, EventBus}
+import com.mohiva.play.silhouette.impl.authenticators.{SessionAuthenticatorService, SessionAuthenticatorSettings}
 import com.typesafe.config.Config
-import connectors.{ ApplicationClient, UserManagementClient }
+import connectors.{ApplicationClient, UserManagementClient}
 import helpers.WSBinaryPost
 import play.api.Play
 import play.api.Play.current
 import uk.gov.hmrc.http.hooks.HttpHooks
-import uk.gov.hmrc.http.{ HttpDelete, HttpGet, HttpPost, HttpPut }
+import uk.gov.hmrc.http.{HttpDelete, HttpGet, HttpPost, HttpPut}
 //import play.api.libs.ws.WS
 import play.api.mvc.Results.{ Forbidden, NotImplemented, Redirect }
 import play.api.mvc.{ Call, RequestHeader, Result }
@@ -55,7 +55,7 @@ trait WSHttp extends HttpGet with WSGet
 trait CSRHttp extends WSHttp with WSBinaryPost {
   override val hooks = NoneRequired
   //val wS = WS
-  override val appNameConfiguration = Play.current.configuration
+  override lazy val appNameConfiguration = Play.current.configuration
   override lazy val configuration: Option[Config] = Option(Play.current.configuration.underlying)
   override lazy val actorSystem: ActorSystem = Play.current.actorSystem
 }

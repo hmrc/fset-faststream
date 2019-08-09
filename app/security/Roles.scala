@@ -181,6 +181,11 @@ object Roles {
       isPhase3TestsFailed(user)
   }
 
+  object Phase3TestDisplayFeedbackRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
+      isPhase3TestsFailed(user) || isPhase3TestsPassed(user)
+  }
+
   object DisplayOnlineTestSectionRole extends CsrAuthorization {
     // format: OFF
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =

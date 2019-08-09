@@ -80,6 +80,9 @@ object CachedDataExample {
     progress = ProgressExamples.Phase3TestsPassed, applicationRoute = ApplicationRoute.Sdip)
   val Phase3TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
     progress = ProgressExamples.Phase3TestsPassed)
+  val Phase3TestsFailedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+    progress = ProgressExamples.Phase3TestsFailed)
+
 
   val SiftApplication = Phase3TestsPassedApplication.copy(applicationStatus = ApplicationStatus.SIFT, progress = ProgressExamples.SiftEntered)
 

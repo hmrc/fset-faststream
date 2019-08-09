@@ -119,6 +119,10 @@
     }
 }
 
+@displayPhase3TestResultsLinks() = {
+        <a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">Results report</a>
+}
+
 @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
     case (true, _, Some(testsPage)) => {
         <ul class="list-text list-withicons">
@@ -356,6 +360,7 @@
                         <li id="videoSection">
                             <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                                 Video interview</p>
+                            @displayPhase3TestResultsLinks
                             <div id="phase3TestFailed">
                                 <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
