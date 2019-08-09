@@ -34,21 +34,28 @@ case class ReviewedCallbackRequest(
   val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))
 
   def calculateTotalScore(): Double = {
+    calculateReviewCriteria1Score + calculateReviewCriteria2Score
+  }
 
-    def scoreForQuestion(question: ReviewSectionQuestionRequest) = {
-      BigDecimal(question.reviewCriteria1.score.getOrElse(0.0)) + BigDecimal(question.reviewCriteria2.score.getOrElse(0.0))
-    }
+  def calculateReviewCriteria1Score(): Double = {
+    aggregateScoresForAllQuestion(question => question.reviewCriteria1)
+  }
+
+  def calculateReviewCriteria2Score(): Double = {
+    aggregateScoresForAllQuestion(question => question.reviewCriteria2)
+  }
+
+  private def aggregateScoresForAllQuestion(scoreExtractor: ReviewSectionQuestionRequest => ReviewSectionCriteriaRequest) = {
     (
-      scoreForQuestion(latestReviewer.question1) +
-      scoreForQuestion(latestReviewer.question2) +
-      scoreForQuestion(latestReviewer.question3) +
-      scoreForQuestion(latestReviewer.question4) +
-      scoreForQuestion(latestReviewer.question5) +
-      scoreForQuestion(latestReviewer.question6) +
-      scoreForQuestion(latestReviewer.question7) +
-      scoreForQuestion(latestReviewer.question8)
-    ).toDouble
-
+      BigDecimal(scoreExtractor(latestReviewer.question1).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question2).score.getOrElse(0.0))  +
+        BigDecimal(scoreExtractor(latestReviewer.question3).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question4).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question5).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question6).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question7).score.getOrElse(0.0)) +
+        BigDecimal(scoreExtractor(latestReviewer.question8).score.getOrElse(0.0))
+      ).toDouble
   }
 
   def allQuestionsReviewed: Boolean = {
@@ -65,9 +72,6 @@ object ReviewedCallbackRequest {
   import repositories.BSONDateTimeHandler
   import repositories.BSONLocalDateHandler
   implicit val bsonHandler: BSONHandler[BSONDocument, ReviewedCallbackRequest] = Macros.handler[ReviewedCallbackRequest]
-
-  def getLatestReviewed(reviewCallBacks: List[ReviewedCallbackRequest]): Option[ReviewedCallbackRequest] =
-    reviewCallBacks.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption
 
   case class LaunchpadQuestionIsUnscoredException(message: String) extends Exception(message)
 }

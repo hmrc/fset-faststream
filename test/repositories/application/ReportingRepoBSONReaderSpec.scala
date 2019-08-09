@@ -17,11 +17,11 @@
 package repositories.application
 
 import factories.DateTimeFactoryMock
-import model.ApplicationRoute.{ apply => _ }
+import model.ApplicationRoute.{apply => _}
 import model.BSONExamples
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
-import model.report.{ CandidateProgressReportItemExamples, VideoInterviewQuestionTestResult, VideoInterviewTestResult }
-import reactivemongo.bson.{ BSONArray, BSONDateTime, BSONDocument }
+import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, SUBMITTED => _}
+import model.report.{CandidateProgressReportItemExamples, VideoInterviewQuestionTestResult, VideoInterviewTestResult}
+import reactivemongo.bson.{BSONArray, BSONDateTime, BSONDocument}
 import testkit.UnitWithAppSpec
 
 class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
@@ -217,11 +217,11 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
 
     //scalastyle:off method.length
     def threeReviewedTwoReviewerReviewedBSONDoc(score1: Double,
-                                                score2: Double,
-                                                score3: Double,
-                                                score4: Double,
-                                                score5: Double,
-                                                score6: Double) = BSONArray(
+      score2: Double,
+      score3: Double,
+      score4: Double,
+      score5: Double,
+      score6: Double) = BSONArray(
       BSONDocument(
         "received" -> BSONDateTime(2),
         "candidateId" -> "cnd_f9e67cbb858aed29b3884ff4a10d77e2",
@@ -294,9 +294,14 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
         "customCandidateId" -> "FSCND-f182f623-80ba-49f4-bed2-77c3c93296d2",
         "invitationDate" -> BSONDateTime(1),
         "callbacks" ->
-          BSONDocument("reviewed" -> reviewed
-          ))
-      ))
+          BSONDocument("viewBrandedVideo" -> BSONArray.empty,
+            "setupProcess" -> BSONArray.empty,
+            "viewPracticeQuestion" -> BSONArray.empty,
+            "question" -> BSONArray.empty,
+            "finalCallback" -> BSONArray.empty,
+            "finished" -> BSONArray.empty,
+            "reviewed" -> reviewed
+          ))))
 
     def oneReviewedOneReviewerReviewedPhase3BSONDoc(score1: Double) = BSONDocument("PHASE3" ->
       testsBSONDoc(oneReviewedOneReviewerReviewedBSONDoc(score1)))
@@ -305,7 +310,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
       testsBSONDoc(oneReviewedTwoReviewerReviewedBSONDoc(score1, score2)))
 
     def threeReviewedTwoReviewerReviewedPhase3BSONDoc(score1: Double, score2: Double, score3: Double,
-                                                      score4: Double, score5: Double, score6: Double) = BSONDocument("PHASE3" ->
+      score4: Double, score5: Double, score6: Double) = BSONDocument("PHASE3" ->
       testsBSONDoc(threeReviewedTwoReviewerReviewedBSONDoc(score1, score2, score3, score4, score5, score6)))
   }
 

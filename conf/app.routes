@@ -10,9 +10,6 @@ POST        /fast-pass-evaluation/:userId/:applicationId                 control
 GET         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.find(applicationId: String)
 PUT         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.update(applicationId: String)
 
-GET         /partner-graduate-programmes/:applicationId                  controllers.PartnerGraduateProgrammesController.find(applicationId: String)
-PUT         /partner-graduate-programmes/:applicationId                  controllers.PartnerGraduateProgrammesController.update(applicationId: String)
-
 PUT         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.update(userId: String, applicationId: String)
 GET         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.find(userId: String, applicationId: String)
 
@@ -81,7 +78,6 @@ GET         /report/pre-submitted-candidates/:frameworkId                control
 GET         /report/online-test-pass-mark-fs-p1-failed/:frameworkId      controllers.ReportingController.onlineTestPassMarkReportFsPhase1Failed(frameworkId: String)
 GET         /report/online-test-pass-mark-fs-not-p1-failed/:frameworkId  controllers.ReportingController.onlineTestPassMarkReportFsNotPhase1Failed(frameworkId: String)
 GET         /report/online-test-pass-mark-nonfs/:frameworkId             controllers.ReportingController.onlineTestPassMarkReportNonFs(frameworkId: String)
-GET         /report/candidate-deferral/:frameworkId                      controllers.ReportingController.candidateDeferralReport(frameworkId: String)
 GET         /report/internship/:frameworkId                              controllers.ReportingController.internshipReport(frameworkId: String)
 GET         /report/analytical-schemes/:frameworkId                      controllers.ReportingController.analyticalSchemesReport(frameworkId: String)
 GET         /report/numeric-test-extract                                 controllers.ReportingController.numericTestExtractReport()

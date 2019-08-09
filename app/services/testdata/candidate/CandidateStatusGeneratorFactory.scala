@@ -60,8 +60,6 @@ object CandidateStatusGeneratorFactory {
         case IN_PROGRESS_PERSONAL_DETAILS => InProgressPersonalDetailsStatusGenerator
         // IN_PROGRESS_SCHEME_PREFERENCES should be deprecated, look below
         case IN_PROGRESS_SCHEME_PREFERENCES => InProgressSchemePreferencesStatusGenerator
-        // IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES should be deprecatedc
-        case IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES => InProgressPartnerGraduateProgrammesStatusGenerator
         case IN_PROGRESS_QUESTIONNAIRE => InProgressQuestionnaireStatusGenerator
         // IN_PROGRESS_PREVIEW should be deprecated, look below
         case IN_PROGRESS_PREVIEW => InProgressPreviewStatusGenerator
@@ -83,8 +81,8 @@ object CandidateStatusGeneratorFactory {
       case (FAST_PASS_ACCEPTED, Some(ProgressStatuses.FAST_PASS_ACCEPTED)) => FastPassAcceptedStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PERSONAL_DETAILS)) => InProgressPersonalDetailsStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.SCHEME_PREFERENCES)) => InProgressSchemePreferencesStatusGenerator
-      case (IN_PROGRESS, Some(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES)) => InProgressPartnerGraduateProgrammesStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.ASSISTANCE_DETAILS)) => InProgressAssistanceDetailsStatusGenerator
+      case (IN_PROGRESS, Some(ProgressStatuses.QUESTIONNAIRE_OCCUPATION)) => InProgressQuestionnaireStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PREVIEW)) => InProgressPreviewStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
@@ -161,6 +159,5 @@ object CandidateStatusGeneratorFactory {
 trait ApplicationStatusOnlyForTest {
   this: Enumeration =>
   val REGISTERED, IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES,
-  IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES, IN_PROGRESS_ASSISTANCE_DETAILS,
-  IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
+  IN_PROGRESS_ASSISTANCE_DETAILS, IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
 }

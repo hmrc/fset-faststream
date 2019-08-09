@@ -129,7 +129,6 @@ case class ProgressResponse(
   applicationId: String,
   personalDetails: Boolean = false,
   schemePreferences: Boolean = false,
-  partnerGraduateProgrammes: Boolean = false,
   assistanceDetails: Boolean = false,
   preview: Boolean = false,
   questionnaire: List[String] = Nil,

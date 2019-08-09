@@ -26,7 +26,7 @@ class ProgressStatusesReportLabelsSpec extends UnitSpec {
   "a registered application" should {
     "return registered" in {
       val status = ProgressStatusesReportLabels.progressStatusNameInReports(new ProgressResponse("id", false, false,
-        false, false, false, Nil, false, false))
+        false, false, Nil, false, false))
       status mustBe ("registered")
     }
   }
@@ -66,13 +66,6 @@ class ProgressStatusesReportLabelsSpec extends UnitSpec {
     }
   }
 
-  "an application in partner graduate programmes" should {
-    "Return partner_graduate_programmes_completed" in {
-      val customProgress = ProgressResponseExamples.InPartnerGraduateProgrammes
-      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) mustBe "partner_graduate_programmes_completed"
-    }
-  }
-
   "an application in scheme preferences" should {
     "return scheme_preferences_completed" in {
       val customProgress = ProgressResponseExamples.InSchemePreferences
@@ -96,13 +89,13 @@ class ProgressStatusesReportLabelsSpec extends UnitSpec {
 object ProgressStatusesReportLabelsSpec {
 
   val progressResponse = ProgressResponse("1", personalDetails = true, schemePreferences = true,
-    partnerGraduateProgrammes = true, assistanceDetails = true, preview = true,
+    assistanceDetails = true, preview = true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"),
     submitted = true, withdrawn = true
   )
 
   val completeProgressResponse = ProgressResponse("1", personalDetails = true, schemePreferences = true,
-    partnerGraduateProgrammes = true, assistanceDetails = true, preview = true,
+    assistanceDetails = true, preview = true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"),
     submitted = true, withdrawn = true
   )

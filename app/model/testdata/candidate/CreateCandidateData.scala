@@ -213,8 +213,8 @@ object CreateCandidateData {
         case "REGISTERED" => ProgressStatuses.CREATED
         case "IN_PROGRESS_PERSONAL_DETAILS" => ProgressStatuses.PERSONAL_DETAILS
         case "IN_PROGRESS_SCHEME_PREFERENCES" => ProgressStatuses.SCHEME_PREFERENCES
-        case "IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES" => ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES
         case "IN_PROGRESS_ASSISTANCE_DETAILS" => ProgressStatuses.ASSISTANCE_DETAILS
+        case "IN_PROGRESS_QUESTIONNAIRE" => ProgressStatuses.QUESTIONNAIRE_OCCUPATION
         case "IN_PROGRESS_PREVIEW" => ProgressStatuses.PREVIEW
         case _ => ProgressStatuses.nameToProgressStatus(applicationStatus)
       }

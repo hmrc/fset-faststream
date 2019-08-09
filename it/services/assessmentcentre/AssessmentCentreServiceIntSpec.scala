@@ -26,9 +26,9 @@ import testkit.MongoRepositorySpec
 import scala.io.Source
 import scala.util.{ Failure, Success, Try }
 
-class AssessmentCentreServiceSpec extends MongoRepositorySpec {
+class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
-  import AssessmentCentreServiceSpec._
+  import AssessmentCentreServiceIntSpec._
 
   lazy val service = new AssessmentCentreService {
     val applicationRepo = repositories.applicationRepository
@@ -311,7 +311,7 @@ class AssessmentCentreServiceSpec extends MongoRepositorySpec {
   }
 }
 
-object AssessmentCentreServiceSpec {
+object AssessmentCentreServiceIntSpec {
 
   val TestPath = "it/resources/assessmentCentreServiceSpec"
   val PassmarkSettingsFile = "passmarkSettings.conf"

@@ -41,19 +41,19 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
   val phase3TestRepo: Phase3TestRepository
 
-  def getCallbackData(receivedBeforeInHours: Int, score: Option[Double],
+  def getCallbackData(receivedBeforeInHours: Int, scores: List[Double],
                       generateNullScoresForFewQuestions: Boolean = false): ReviewedCallbackRequest = {
     ReviewedCallbackRequest(DateTime.now.minusHours(receivedBeforeInHours), "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6",
       "FSCND-f9cf395d-df9d-4037-9fbf-9b3aa9d86c16", 46, None, "FSINV-28d52608-95e0-4d3a-93e7-0881cd2bc78b",
       LocalDate.now().plusDays(3), ReviewSectionRequest(
         ReviewSectionTotalAverageRequest("videoInterview", "50%", 50.0), // TODO: 50.0 should be calculated
         ReviewSectionReviewersRequest(
-          reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost", score,
-            score,  generateNullScoresForFewQuestions),
-          reviewer2 = Some(getReviewSectionReviewersRequest("John Doe2", "johnDoe2@localhost", score,
-            score, generateNullScoresForFewQuestions)),
-          reviewer3 = Some(getReviewSectionReviewersRequest("John Doe3", "johnDoe3@localhost", score,
-            score, generateNullScoresForFewQuestions)))
+          reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost", scores.headOption,
+            scores.take(2).reverse.headOption,  generateNullScoresForFewQuestions),
+          reviewer2 = Some(getReviewSectionReviewersRequest("John Doe2", "johnDoe2@localhost", scores.headOption,
+            scores.take(2).reverse.headOption, generateNullScoresForFewQuestions)),
+          reviewer3 = Some(getReviewSectionReviewersRequest("John Doe3", "johnDoe3@localhost", scores.headOption,
+            scores.take(2).reverse.headOption, generateNullScoresForFewQuestions)))
       ))
   }
 
@@ -86,12 +86,12 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val receivedBeforeInHours = generatorConfig.phase3TestData.flatMap(_.receivedBeforeInHours).getOrElse(0)
-    val score = generatorConfig.phase3TestData.flatMap(_.scores.headOption)
+    val scores = generatorConfig.phase3TestData.map(_.scores).getOrElse(Nil)
     val generateNullScoresForFewQuestions = generatorConfig.phase3TestData.flatMap(_.generateNullScoresForFewQuestions).getOrElse(false)
 
-    val callbackData1 = getCallbackData(receivedBeforeInHours, score, generateNullScoresForFewQuestions)
-    val callbackData2 = getCallbackData(receivedBeforeInHours, score, generateNullScoresForFewQuestions)
-    val callbackData3 = getCallbackData(receivedBeforeInHours, score, generateNullScoresForFewQuestions)
+    val callbackData1 = getCallbackData(receivedBeforeInHours, scores, generateNullScoresForFewQuestions)
+    val callbackData2 = getCallbackData(receivedBeforeInHours, scores, generateNullScoresForFewQuestions)
+    val callbackData3 = getCallbackData(receivedBeforeInHours, scores, generateNullScoresForFewQuestions)
     for {
         candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
         token <- Future.successful(candidate.phase3TestGroup.get.tests.head.token)

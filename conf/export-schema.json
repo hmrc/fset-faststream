@@ -169,36 +169,6 @@
           "minLength": 0,
           "maxLength": 100
         },
-        "partner-graduate-programmes": {
-          "type": "object",
-          "properties": {
-            "interested": {
-              "type": "boolean"
-            },
-            "partnerGraduateProgrammes": {
-              "type": "array",
-              "uniqueItems": true,
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 100,
-                "enum": [
-                  "Entrepreneur First",
-                  "Frontline",
-                  "Lead First",
-                  "Police Now",
-                  "TeachFirst",
-                  "Think Ahead",
-                  "Year Here"
-                ]
-              }
-            }
-          },
-          "required": [
-            "interested"
-          ]
-        },
         "scheme-preferences": {
           "type": "object",
           "properties": {
@@ -664,7 +634,7 @@
                   "type": "number"
                 }
               },
-              "required": ["ses"] 
+              "required": ["ses"]
             }
           },
           "required": [

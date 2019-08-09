@@ -60,8 +60,6 @@ trait ReportingRepository {
 
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]]
 
-  def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]]
-
   def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]]
 
   def applicationsForInternshipReport(frameworkId: String): Future[List[ApplicationForInternshipReport]]
@@ -156,36 +154,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     )
 
     reportQueryWithProjectionsBSON[ApplicationForAnalyticalSchemesReport](query, projection)
-  }
-
-  override def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]] = {
-    val query = BSONDocument(
-      "$and" -> BSONArray(
-        BSONDocument("frameworkId" -> frameworkId),
-        BSONDocument("partner-graduate-programmes.interested" -> true)
-    ))
-
-    val projection = BSONDocument("userId" -> true, "personal-details" -> true, "partner-graduate-programmes" -> true)
-
-    reportQueryWithProjections[BSONDocument](query, projection).map { docs =>
-      docs.flatMap { doc =>
-        for {
-          userId <- doc.getAs[String]("userId")
-          personalDetails <- doc.getAs[model.persisted.PersonalDetails]("personal-details")
-          programmes <- doc.getAs[BSONDocument]("partner-graduate-programmes").map { p =>
-            p.getAs[List[String]]("partnerGraduateProgrammes").getOrElse(Nil)
-          }
-        } yield {
-          ApplicationDeferralPartialItem(
-            userId,
-            personalDetails.firstName,
-            personalDetails.lastName,
-            personalDetails.preferredName,
-            programmes
-          )
-        }
-      }
-    }
   }
 
   override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = {

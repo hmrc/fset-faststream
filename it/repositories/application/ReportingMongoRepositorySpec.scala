@@ -20,7 +20,7 @@ import _root_.services.testdata.TestDataGeneratorService
 import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model._
-import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
+import model.report.{ AdjustmentReportItem, CandidateProgressReportItem }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
@@ -80,27 +80,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result.head must be(CandidateProgressReportItem(userId, appId, Some("registered"),
         List.empty[SchemeId], None, None, None, None, None, None, None, None, None, None, None, None, ApplicationRoute.Faststream)
       )
-    }
-  }
-
-  "Candidate deferral report" must {
-    "not return candidates who have not deferred" in {
-      testDataRepo.createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId").futureValue
-
-      val result = repository.candidateDeferralReport("frameworkId").futureValue
-
-      result mustBe Nil
-    }
-
-    "extract the correct information for candidates" in {
-      val programmes = List("TeachFirst", "Police Now")
-      testDataRepo.createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", firstName = Some("Bob"),
-        lastName = Some("Bobson"), preferredName = Some("prefBob"), partnerProgrammes = programmes).futureValue
-
-      val result = repository.candidateDeferralReport("frameworkId").futureValue
-
-      result.size mustBe 1
-      result.head mustBe ApplicationDeferralPartialItem("userId", "Bob", "Bobson", "prefBob", programmes)
     }
   }
 
